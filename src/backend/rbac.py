@@ -6,14 +6,14 @@ Implements self-access logic for student-scoped permissions.
 """
 
 from functools import wraps
-from typing import Any, Callable, Optional, Sequence, cast, get_type_hints
+from typing import Any, Callable, Optional, Sequence, Union, cast, get_type_hints
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
-from backend.models import Permission, RolePermission, User, UserPermission, UserRole
+from backend.models import Permission, RolePermission, Student, User, UserPermission, UserRole
 from backend.security.current_user import get_current_user
 
 
@@ -341,16 +341,23 @@ def _is_self_access(
     user: User,
     permission_key: str,
     request: Request,
-    resource_user_id: Optional[int] = None,
+    student_id: Optional[int] = None,
+    db: Optional[Session] = None,
 ) -> bool:
     """
-    Check if the request is for self-access (student accessing own data).
+    Check if the request is for self-access (student accessing their own record).
+
+    A student's `User.id` (login account) and `Student.id` (student record) are
+    different ID spaces — a student is only granted access to a `students` row
+    whose `Student.user_id` points back to their own account, resolved via `db`.
 
     Args:
         user: Current user
         permission_key: Permission being checked
         request: FastAPI request object
-        resource_user_id: Optional user_id of the resource being accessed
+        student_id: Optional `students.id` of the resource being accessed, if
+            already known to the caller (e.g. extracted from the route kwargs)
+        db: Database session used to resolve the student_id -> owning user_id
 
     Returns:
         True if this is valid self-access, False otherwise
@@ -372,30 +379,31 @@ def _is_self_access(
     if permission_key not in self_access_permissions:
         return False
 
-    # If resource_user_id provided, check it matches current user
-    if resource_user_id is not None:
-        return resource_user_id == user.id
+    resolved_student_id: Union[int, str, None] = student_id
 
     # Check path parameters for student_id
-    if hasattr(request, "path_params"):
-        student_id = request.path_params.get("student_id")
-        if student_id:
-            try:
-                return int(student_id) == user.id
-            except (ValueError, TypeError):
-                return False
+    if resolved_student_id is None and hasattr(request, "path_params"):
+        resolved_student_id = request.path_params.get("student_id")
 
     # Check query parameters for user_id or student_id
-    if hasattr(request, "query_params"):
-        user_id_param = request.query_params.get("user_id") or request.query_params.get("student_id")
-        if user_id_param:
-            try:
-                return int(user_id_param) == user.id
-            except (ValueError, TypeError):
-                return False
+    if resolved_student_id is None and hasattr(request, "query_params"):
+        resolved_student_id = request.query_params.get("user_id") or request.query_params.get("student_id")
 
-    # If no specific resource identified, allow (for listing own data)
-    return True
+    # If no specific resource identified, allow (for listing own data) — the
+    # endpoint itself is responsible for scoping results to the caller.
+    if resolved_student_id is None:
+        return True
+
+    try:
+        resolved_student_id = int(resolved_student_id)
+    except (ValueError, TypeError):
+        return False
+
+    if db is None:
+        return False
+
+    student = db.query(Student).filter(Student.id == resolved_student_id).first()
+    return bool(student is not None and student.user_id == user.id)
 
 
 def require_permission(
@@ -518,7 +526,7 @@ def require_permission(
 
             if allow_self_access and request:
                 student_id = kwargs.get("student_id")
-                has_self = any(_is_self_access(current_user, key, request, student_id) for key in permission_keys)
+                has_self = any(_is_self_access(current_user, key, request, student_id, db) for key in permission_keys)
 
             if not has_perm and not has_self:
                 requirement = _format_permission_requirement(permission_keys)
@@ -777,7 +785,7 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
 
                 if allow_self_access and request:
                     student_id = kwargs.get("student_id")
-                    if _is_self_access(current_user, perm_key, request, student_id):
+                    if _is_self_access(current_user, perm_key, request, student_id, db):
                         call_kwargs = {**kwargs}
                         if request is not None:
                             call_kwargs["request"] = request

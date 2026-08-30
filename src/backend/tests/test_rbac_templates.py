@@ -9,8 +9,10 @@ import pytest
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends
 
-from backend.models import Permission, Role, RolePermission, User, UserPermission, UserRole
-from backend.rbac import has_permission
+from unittest.mock import Mock
+
+from backend.models import Permission, Role, RolePermission, Student, User, UserPermission, UserRole
+from backend.rbac import _is_self_access, has_permission
 
 
 # ============================================================================
@@ -480,25 +482,79 @@ def test_018_require_all_permissions_denies_when_one_missing(db):
 # ============================================================================
 
 
-@pytest.mark.skip(reason="Self-access requires student_id mapping in User model")
 def test_019_self_access_student_own_record(db):
     """Students should access their own student record when allowed."""
-    # NOTE: Requires User.student_id relationship
-    ...
+    user = User(email="own.record@test.com", hashed_password="dummy", role="student")
+    db.add(user)
+    db.flush()
+
+    student = Student(
+        first_name="Own",
+        last_name="Record",
+        email="own.record.student@test.com",
+        student_id="OWN-001",
+        user_id=user.id,
+    )
+    db.add(student)
+    db.flush()
+
+    request = Mock()
+    request.query_params = {}
+    request.path_params = {"student_id": str(student.id)}
+
+    assert _is_self_access(user, "students:view", request, db=db) is True
 
 
-@pytest.mark.skip(reason="Self-access requires student_id mapping in User model")
 def test_020_self_access_student_other_record(db):
     """Students should not access other students' records."""
-    # NOTE: Requires User.student_id relationship
-    ...
+    user = User(email="other.record@test.com", hashed_password="dummy", role="student")
+    db.add(user)
+    db.flush()
+
+    own_student = Student(
+        first_name="Own",
+        last_name="Record",
+        email="other.record.own@test.com",
+        student_id="OWN-002",
+        user_id=user.id,
+    )
+    other_student = Student(
+        first_name="Other",
+        last_name="Record",
+        email="other.record.other@test.com",
+        student_id="OTHER-002",
+    )
+    db.add_all([own_student, other_student])
+    db.flush()
+
+    request = Mock()
+    request.query_params = {}
+    request.path_params = {"student_id": str(other_student.id)}
+
+    assert _is_self_access(user, "students:view", request, db=db) is False
 
 
-@pytest.mark.skip(reason="Self-access requires student_id mapping in User model")
 def test_021_self_access_grade_view(db):
     """Students may view their own grades if policy allows."""
-    # NOTE: Requires User.student_id relationship
-    ...
+    user = User(email="grade.view@test.com", hashed_password="dummy", role="student")
+    db.add(user)
+    db.flush()
+
+    student = Student(
+        first_name="Grade",
+        last_name="Viewer",
+        email="grade.viewer@test.com",
+        student_id="GRADE-001",
+        user_id=user.id,
+    )
+    db.add(student)
+    db.flush()
+
+    request = Mock()
+    request.query_params = {}
+    request.path_params = {"student_id": str(student.id)}
+
+    assert _is_self_access(user, "grades:view", request, db=db) is True
 
 
 @pytest.mark.skip(reason="Self-access grade editing not implemented")

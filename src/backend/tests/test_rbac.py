@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import text
 
-from backend.models import Permission, Role, User, UserPermission
+from backend.models import Permission, Role, Student, User, UserPermission
 from backend.rbac import (
     _is_self_access,
     get_user_permissions,
@@ -211,25 +211,77 @@ def test_get_user_permissions_empty(db, sample_user):
     assert perms == []
 
 
-def test_is_self_access_student():
-    """Test self-access check for student role."""
+def test_is_self_access_student(db):
+    """Test self-access check for student role.
+
+    Self-access is resolved via Student.user_id (the login account linked to
+    the student record), not by comparing Student.id to User.id directly —
+    those are different ID spaces.
+    """
     from unittest.mock import Mock
 
-    # Create mock user
-    user = Mock()
-    user.id = 123
-    user.role = "student"
+    user = User(email="self.access@test.com", hashed_password="hashed", full_name="Student One", role="student")
+    db.add(user)
+    db.flush()
 
-    # Create mock request with path params
+    own_student = Student(
+        first_name="Student",
+        last_name="One",
+        email="student.one@self-access.test",
+        student_id="SELF-001",
+        user_id=user.id,
+    )
+    other_student = Student(
+        first_name="Student",
+        last_name="Two",
+        email="student.two@self-access.test",
+        student_id="SELF-002",
+    )
+    db.add_all([own_student, other_student])
+    db.flush()
+
     request = Mock()
-    request.path_params = {"student_id": "123"}
+    request.query_params = {}
 
-    # Should return True for matching student_id
-    assert _is_self_access(user, "students:view", request) is True
+    # Should return True when the path's student_id resolves to the caller's own record
+    request.path_params = {"student_id": str(own_student.id)}
+    assert _is_self_access(user, "students:view", request, db=db) is True
 
-    # Should return False for non-matching student_id
-    request.path_params = {"student_id": "456"}
-    assert _is_self_access(user, "students:view", request) is False
+    # Should return False for another student's record, even with a "close" id
+    request.path_params = {"student_id": str(other_student.id)}
+    assert _is_self_access(user, "students:view", request, db=db) is False
+
+
+def test_is_self_access_denies_id_collision(db):
+    """Regression test: User.id and Student.id are unrelated ID spaces.
+
+    A student login account must not be granted access to a students row
+    purely because that row's primary key happens to equal the account's
+    User.id — only an explicit Student.user_id link should grant access.
+    """
+    from unittest.mock import Mock
+
+    user = User(email="collision@test.com", hashed_password="hashed", full_name="Collision User", role="student")
+    db.add(user)
+    db.flush()
+
+    # A student record whose id happens to equal the caller's User.id but is
+    # NOT linked to that user's account.
+    unrelated_student = Student(
+        id=user.id,
+        first_name="Unrelated",
+        last_name="Student",
+        email=f"unrelated-{user.id}@self-access.test",
+        student_id=f"COLLIDE-{user.id}",
+    )
+    db.add(unrelated_student)
+    db.flush()
+
+    request = Mock()
+    request.query_params = {}
+    request.path_params = {"student_id": str(user.id)}
+
+    assert _is_self_access(user, "students:view", request, db=db) is False
 
 
 def test_is_self_access_non_student():

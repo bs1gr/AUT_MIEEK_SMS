@@ -80,6 +80,9 @@ class Student(SoftDeleteMixin, Base):
     last_name = Column(String(100), nullable=False, index=False)
     email = Column(String(255), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
     student_id = Column(String(50), unique=True, nullable=False, index=True)  # ✅ ADDED INDEX
+    # Links this student record to its login account (User with role='student').
+    # Nullable: most students have no login account. Unique: one account per student.
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, unique=True, index=True)
     # Remove Python-side default so that None stays None when not provided
     enrollment_date = Column(Date, index=True)  # ✅ ADDED INDEX
     is_active = Column(Boolean, default=True, index=True)  # ✅ ADDED INDEX for filtering
