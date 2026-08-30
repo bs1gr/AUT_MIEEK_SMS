@@ -139,17 +139,23 @@ class AuditLogger:
 
     @staticmethod
     def _get_client_ip(request: Request) -> Optional[str]:
-        """Extract client IP address from request, handling proxies."""
-        # Check X-Forwarded-For header first (for proxies)
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            # X-Forwarded-For can contain multiple IPs, take the first one
-            return forwarded_for.split(",")[0].strip()
+        """Extract client IP address from request, handling proxies.
 
-        # Check X-Real-IP header (for Nginx proxies)
+        Prefers X-Real-IP: the bundled nginx config sets it via direct
+        assignment (`$remote_addr`), so it always reflects the real peer and
+        can't be spoofed by a client-supplied header. X-Forwarded-For there
+        is set as `$proxy_add_x_forwarded_for`, which APPENDS to any
+        client-supplied value rather than replacing it, so only its last
+        entry (nginx's own observation) is trustworthy - the first entry is
+        attacker-controlled.
+        """
         real_ip = request.headers.get("X-Real-IP")
         if real_ip:
-            return real_ip
+            return real_ip.strip()
+
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return forwarded_for.split(",")[-1].strip()
 
         # Fall back to direct client IP
         if request.client:

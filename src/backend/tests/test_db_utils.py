@@ -98,3 +98,45 @@ def test_ensure_schema_delegates_to_helper(monkeypatch: pytest.MonkeyPatch):
     assert ensure_called["called"]
     assert ensure_called["table"] == "courses"
     assert ensure_called["column"] == "absence_penalty"
+
+
+def test_bulk_update_applies_all_rows_in_one_batch(db):
+    """bulk_update() previously issued one UPDATE...WHERE id=X per row via a
+    Python loop. It now uses SQLAlchemy's bulk_update_mappings for a single
+    executemany() batch - verify it still applies distinct field values to
+    each targeted row correctly.
+    """
+    from backend.db.utils import bulk_update
+    from backend.models import Student
+
+    students = [
+        Student(first_name="A", last_name="One", email="a1@test.com", student_id="BU-001", study_year=1),
+        Student(first_name="B", last_name="Two", email="b2@test.com", student_id="BU-002", study_year=1),
+    ]
+    db.add_all(students)
+    db.commit()
+    for s in students:
+        db.refresh(s)
+
+    updated_count = bulk_update(
+        db,
+        Student,
+        [
+            {"id": students[0].id, "study_year": 3},
+            {"id": students[1].id, "study_year": 4},
+        ],
+    )
+
+    assert updated_count == 2
+    db.expire_all()
+    refreshed = db.query(Student).filter(Student.id.in_([students[0].id, students[1].id])).all()
+    by_id = {s.id: s.study_year for s in refreshed}
+    assert by_id[students[0].id] == 3
+    assert by_id[students[1].id] == 4
+
+
+def test_bulk_update_empty_list_is_a_noop(db):
+    from backend.db.utils import bulk_update
+    from backend.models import Student
+
+    assert bulk_update(db, Student, []) == 0

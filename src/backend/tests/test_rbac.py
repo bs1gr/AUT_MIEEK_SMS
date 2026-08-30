@@ -312,3 +312,77 @@ def test_is_self_access_non_self_permission():
 
     # Should return False because students:delete doesn't allow self-access
     assert _is_self_access(user, "students:delete", request) is False
+
+
+def _fake_get_db_generator(close_calls: dict):
+    def fake_get_db():
+        try:
+            yield "fake-db-session"
+        finally:
+            close_calls["count"] += 1
+
+    return fake_get_db
+
+
+def test_require_permission_closes_db_session_on_strict_401(monkeypatch):
+    """Regression test: for an endpoint that doesn't declare its own `db`
+    parameter, the decorator opens a session via its own db_gen fallback.
+    HTTPException raises (401 here, for a missing bearer token in strict
+    mode) previously skipped the manual `next(db_gen)` close entirely,
+    leaking one DB session per rejected request.
+    """
+    import asyncio
+
+    from fastapi import HTTPException, Request
+
+    import backend.rbac as rbac_module
+    from backend.config import settings
+
+    close_calls = {"count": 0}
+    monkeypatch.setattr(rbac_module, "get_db", _fake_get_db_generator(close_calls))
+    monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
+
+    @rbac_module.require_permission("test:whatever")
+    async def endpoint(request: Request):
+        return {"status": "ok"}
+
+    request = Request({"type": "http", "headers": [], "client": ("127.0.0.1", 1234)})
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(endpoint(request=request))
+
+    assert exc_info.value.status_code == 401
+    assert close_calls["count"] == 1
+
+
+def test_require_permission_closes_db_session_on_403(monkeypatch):
+    """Same regression as above, for the permission-denied (403) exit path."""
+    import asyncio
+
+    from fastapi import HTTPException, Request
+
+    import backend.rbac as rbac_module
+    from backend.config import settings
+
+    async def fake_get_current_user(request, db):
+        return User(role="teacher")
+
+    close_calls = {"count": 0}
+    monkeypatch.setattr(rbac_module, "get_db", _fake_get_db_generator(close_calls))
+    monkeypatch.setattr(settings, "AUTH_MODE", "permissive", raising=False)
+    monkeypatch.setattr(rbac_module, "get_current_user", fake_get_current_user)
+    monkeypatch.setattr(rbac_module, "has_permission", lambda user, key, db: False)
+
+    @rbac_module.require_permission("test:whatever")
+    async def endpoint(request: Request):
+        return {"status": "ok"}
+
+    request = Request(
+        {"type": "http", "headers": [(b"authorization", b"Bearer faketoken")], "client": ("127.0.0.1", 1234)}
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(endpoint(request=request))
+
+    assert exc_info.value.status_code == 403
+    assert close_calls["count"] == 1

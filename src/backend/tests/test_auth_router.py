@@ -160,3 +160,44 @@ def test_optional_require_role_enforces_when_enabled(monkeypatch):
     dependency = optional_require_role("admin")
     admin = SimpleNamespace(role="admin")
     assert dependency(Request({"type": "http"}), admin) is admin  # type: ignore[misc]
+
+
+def _make_request(headers: dict[str, str], client_host: str | None = "10.0.0.1"):
+    from starlette.requests import Request
+
+    scope = {
+        "type": "http",
+        "headers": [(k.lower().encode(), v.encode()) for k, v in headers.items()],
+        "client": (client_host, 12345) if client_host else None,
+    }
+    return Request(scope)
+
+
+def test_get_client_identifier_prefers_x_real_ip():
+    """X-Real-IP is set by nginx via direct assignment ($remote_addr), so it
+    can never be influenced by the client and should win over everything else.
+    """
+    from backend.routers.routers_auth import _get_client_identifier
+
+    request = _make_request({"x-real-ip": "203.0.113.5", "x-forwarded-for": "1.2.3.4"})
+    assert _get_client_identifier(request) == "203.0.113.5"
+
+
+def test_get_client_identifier_uses_last_x_forwarded_for_entry():
+    """Regression test: the bundled nginx config appends to X-Forwarded-For
+    (`$proxy_add_x_forwarded_for`) rather than replacing it, so a
+    client-supplied first entry is attacker-controlled. Only the last entry -
+    the address nginx itself observed - can be trusted. Using the first entry
+    let an attacker rotate their apparent identity to bypass login lockout.
+    """
+    from backend.routers.routers_auth import _get_client_identifier
+
+    request = _make_request({"x-forwarded-for": "1.2.3.4, 203.0.113.9"})
+    assert _get_client_identifier(request) == "203.0.113.9"
+
+
+def test_get_client_identifier_falls_back_to_client_host():
+    from backend.routers.routers_auth import _get_client_identifier
+
+    request = _make_request({}, client_host="198.51.100.7")
+    assert _get_client_identifier(request) == "198.51.100.7"

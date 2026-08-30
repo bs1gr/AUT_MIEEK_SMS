@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 
 # ---------------------------------------------------------------------------
@@ -25,6 +26,18 @@ def _is_test_runner_permitted() -> bool:
     # Batch runner sets this flag automatically; manual override is possible
     # with SMS_ALLOW_DIRECT_PYTEST=1 when absolutely necessary.
     if _is_env_flag_set(os.environ.get("SMS_ALLOW_DIRECT_PYTEST")):
+        # Unlike the CI/batch-runner routes below, this one is a manual
+        # override left in the environment can silently keep bypassing the
+        # guard in every subsequent shell session with no indication it's
+        # happening - print a loud, impossible-to-miss warning every time.
+        print(
+            "\n"
+            "*** WARNING: bypassing the RUN_TESTS_BATCH.ps1 guard because "
+            "SMS_ALLOW_DIRECT_PYTEST=1 is set in this environment. ***\n"
+            "*** If you did not set this intentionally for a one-off run, "
+            "unset it - direct pytest has crashed VS Code on this project. ***\n",
+            file=sys.stderr,
+        )
         return True
 
     # RUN_TESTS_BATCH.ps1 also sets this marker.

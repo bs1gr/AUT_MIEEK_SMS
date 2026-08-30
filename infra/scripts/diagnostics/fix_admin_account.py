@@ -5,13 +5,14 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-# Set default admin credentials via environment variables
-# Note: These should ideally come from secure configuration files or prompts,
-# not hardcoded in the script. This is a bootstrap script for development only.
-# Production deployments should use secure credential management.
-os.environ['DEFAULT_ADMIN_EMAIL'] = 'admin@sms-lite.app'
-os.environ['DEFAULT_ADMIN_PASSWORD'] = 'AdminPassword123!'
-os.environ['DEFAULT_ADMIN_FULL_NAME'] = 'System Administrator'
+# Default admin credentials, used only if not already set by the caller.
+# These match the documented Native Lite default account. Using setdefault
+# (not a direct assignment) means an operator who exports their own
+# DEFAULT_ADMIN_* env vars - e.g. to repair a real, non-Lite admin account -
+# is honored instead of silently overridden by this script.
+os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
+os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
+os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
 # Do not log credentials to avoid security vulnerability
 
 # DATABASE_URL should be set via environment variable or .env file
@@ -32,9 +33,9 @@ print()
 
 try:
     settings = Settings()
-    print(f'✅ Settings loaded')
+    print('✅ Settings loaded')
     print(f'   AUTH_ENABLED: {settings.AUTH_ENABLED}')
-    print(f'   DEFAULT_ADMIN_EMAIL: admin@sms-lite.app')
+    print(f"   DEFAULT_ADMIN_EMAIL: {os.environ['DEFAULT_ADMIN_EMAIL']}")
     print()
 
     print('Running bootstrap...')
@@ -63,7 +64,7 @@ from backend.models import User
 
 db = SessionLocal()
 try:
-    admin = db.query(User).filter(User.email == 'admin@sms-lite.app').first()
+    admin = db.query(User).filter(User.email == os.environ['DEFAULT_ADMIN_EMAIL']).first()
     if admin:
         print('✅ Account created/verified!')
         print(f'   Email: {admin.email}')

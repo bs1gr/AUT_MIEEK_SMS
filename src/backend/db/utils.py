@@ -431,11 +431,16 @@ def bulk_update(db: Session, model: Any, updates: list[Dict[str, Any]], commit: 
     Returns:
         Number of records updated
     """
-    count = 0
-    for update_data in updates:
-        id = update_data.pop("id")
-        db.query(model).filter(model.id == id).update(update_data)
-        count += 1
+    if not updates:
+        if commit:
+            db.commit()
+        return 0
+
+    # bulk_update_mappings batches all rows into a single executemany() round
+    # trip instead of issuing one UPDATE ... WHERE id = X statement per row.
+    # It expects the primary key ("id") to remain in each mapping.
+    db.bulk_update_mappings(model, updates)
+    count = len(updates)
 
     if commit:
         db.commit()

@@ -41,14 +41,27 @@ logger = logging.getLogger(__name__)
 
 
 def _get_client_identifier(request: Request) -> Optional[str]:
-    """Extract a client identifier (IP address) from the request for throttling/lockout purposes."""
-    # Try to get the real client IP from X-Forwarded-For, else fallback to client.host
+    """Extract a client identifier (IP address) from the request for throttling/lockout purposes.
+
+    Prefers X-Real-IP because the bundled nginx config (infra/docker/docker-old/
+    nginx.conf) sets it via direct assignment (`X-Real-IP: $remote_addr`),
+    which always reflects the real peer address nginx observed and cannot be
+    influenced by a client-supplied header. X-Forwarded-For, by contrast, is
+    set there as `$proxy_add_x_forwarded_for`, which APPENDS nginx's observed
+    address to whatever the client already sent rather than replacing it - so
+    only its *last* entry is trustworthy for a security decision like
+    login-lockout keying; the first entry is attacker-controlled.
+    """
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip and real_ip.strip():
+        return real_ip.strip()
+
     x_forwarded_for = request.headers.get("x-forwarded-for")
     if x_forwarded_for:
-        # X-Forwarded-For may contain multiple IPs, take the first one
-        ip = x_forwarded_for.split(",")[0].strip()
+        ip = x_forwarded_for.split(",")[-1].strip()
         if ip:
             return ip
+
     # Fallback to request.client.host
     if request.client and request.client.host:
         return request.client.host

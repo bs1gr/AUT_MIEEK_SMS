@@ -459,98 +459,103 @@ def require_permission(
                     db = next(db_gen)
                 except StopIteration:
                     db = None
-            # Determine auth mode up-front
+
+            # Everything below is wrapped in try/finally so a db_gen opened
+            # above is always advanced (closing its session) exactly once on
+            # every exit path, including the HTTPException raises for 401/
+            # 403/500 - those used to skip the close entirely, leaking a
+            # session per rejected request.
             try:
-                from backend.config import settings
+                # Determine auth mode up-front
+                try:
+                    from backend.config import settings
 
-                auth_mode = getattr(settings, "AUTH_MODE", "disabled")
-            except Exception:
-                auth_mode = "disabled"
+                    auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+                except Exception:
+                    auth_mode = "disabled"
 
-            # When authentication is disabled (tests/emergency), skip all checks
-            if auth_mode == "disabled":
+                # When authentication is disabled (tests/emergency), skip all checks
+                if auth_mode == "disabled":
+                    call_kwargs = {**kwargs}
+                    if request is not None:
+                        call_kwargs["request"] = request
+                    if accepts_db and "db" not in call_kwargs:
+                        call_kwargs["db"] = db
+                    result = func(*args, **call_kwargs)
+                    import asyncio as _asyncio
+
+                    if _asyncio.iscoroutine(result):
+                        result = await result
+                    return result
+
+                # In permissive/strict modes, check for bearer token
+                if request is None:
+                    raise HTTPException(status_code=500, detail="Request not available")
+
+                auth_header = request.headers.get("Authorization") or ""
+                has_bearer = auth_header.lower().startswith("bearer ")
+
+                # Strict mode requires a token
+                if auth_mode == "strict" and not has_bearer:
+                    raise HTTPException(status_code=401, detail="Authentication required")
+
+                current_user = None
+                if has_bearer:
+                    # Resolve current user only if a token is present
+                    current_user = await get_current_user(request=request, db=db)
+
+                # In permissive mode without token, allow access without checks
+                if auth_mode == "permissive" and not current_user:
+                    call_kwargs = {**kwargs, "request": request}
+                    if accepts_db:
+                        call_kwargs["db"] = db
+                    result = func(*args, **call_kwargs)
+                    import asyncio as _asyncio
+
+                    if _asyncio.iscoroutine(result):
+                        result = await result
+                    return result
+
+                # Enforce permission for authenticated users (permissive or strict)
+                if not current_user:
+                    raise HTTPException(status_code=401, detail="Authentication required")
+
+                if not db:
+                    raise HTTPException(status_code=500, detail="Database session not available")
+
+                has_perm = any(has_permission(current_user, key, db) for key in permission_keys)
+                has_self = False
+
+                if allow_self_access and request:
+                    student_id = kwargs.get("student_id")
+                    has_self = any(
+                        _is_self_access(current_user, key, request, student_id, db) for key in permission_keys
+                    )
+
+                if not has_perm and not has_self:
+                    requirement = _format_permission_requirement(permission_keys)
+                    raise HTTPException(status_code=403, detail=f"Permission denied: requires {requirement}")
+
+                # Call the wrapped function, conditionally passing db if the function accepts it
                 call_kwargs = {**kwargs}
                 if request is not None:
                     call_kwargs["request"] = request
                 if accepts_db and "db" not in call_kwargs:
                     call_kwargs["db"] = db
+
                 result = func(*args, **call_kwargs)
+
                 import asyncio as _asyncio
 
                 if _asyncio.iscoroutine(result):
                     result = await result
+                return result
+            finally:
                 if db_gen is not None:
                     try:
                         next(db_gen)
                     except StopIteration:
                         pass
-                return result
-
-            # In permissive/strict modes, check for bearer token
-            if request is None:
-                raise HTTPException(status_code=500, detail="Request not available")
-
-            auth_header = request.headers.get("Authorization") or ""
-            has_bearer = auth_header.lower().startswith("bearer ")
-
-            # Strict mode requires a token
-            if auth_mode == "strict" and not has_bearer:
-                raise HTTPException(status_code=401, detail="Authentication required")
-
-            current_user = None
-            if has_bearer:
-                # Resolve current user only if a token is present
-                current_user = await get_current_user(request=request, db=db)
-
-            # In permissive mode without token, allow access without checks
-            if auth_mode == "permissive" and not current_user:
-                call_kwargs = {**kwargs, "request": request}
-                if accepts_db:
-                    call_kwargs["db"] = db
-                result = func(*args, **call_kwargs)
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    return await result
-                return result
-
-            # Enforce permission for authenticated users (permissive or strict)
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Authentication required")
-
-            if not db:
-                raise HTTPException(status_code=500, detail="Database session not available")
-
-            has_perm = any(has_permission(current_user, key, db) for key in permission_keys)
-            has_self = False
-
-            if allow_self_access and request:
-                student_id = kwargs.get("student_id")
-                has_self = any(_is_self_access(current_user, key, request, student_id, db) for key in permission_keys)
-
-            if not has_perm and not has_self:
-                requirement = _format_permission_requirement(permission_keys)
-                raise HTTPException(status_code=403, detail=f"Permission denied: requires {requirement}")
-
-            # Call the wrapped function, conditionally passing db if the function accepts it
-            call_kwargs = {**kwargs}
-            if request is not None:
-                call_kwargs["request"] = request
-            if accepts_db and "db" not in call_kwargs:
-                call_kwargs["db"] = db
-
-            result = func(*args, **call_kwargs)
-
-            import asyncio as _asyncio
-
-            if _asyncio.iscoroutine(result):
-                result = await result
-            if db_gen is not None:
-                try:
-                    next(db_gen)
-                except StopIteration:
-                    pass
-            return result
 
         try:
             wrapper.__annotations__ = get_type_hints(func, globalns=func.__globals__, localns=None)
@@ -697,75 +702,21 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
                     db = next(db_gen)
                 except StopIteration:
                     db = None
-            # Determine auth mode
+
+            # Wrapped in try/finally so db_gen is always advanced (closing
+            # its session) exactly once on every exit path, including the
+            # HTTPException raises below.
             try:
-                from backend.config import settings
+                # Determine auth mode
+                try:
+                    from backend.config import settings
 
-                auth_mode = getattr(settings, "AUTH_MODE", "disabled")
-            except Exception:
-                auth_mode = "disabled"
+                    auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+                except Exception:
+                    auth_mode = "disabled"
 
-            # Disabled: skip checks
-            if auth_mode == "disabled":
-                call_kwargs = {**kwargs}
-                if request is not None:
-                    call_kwargs["request"] = request
-                if "db" in sig.parameters and "db" not in call_kwargs:
-                    call_kwargs["db"] = db
-                result = func(*args, **call_kwargs)
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    result = await result
-                if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
-                return result
-
-            # Check for bearer token
-            if request is None:
-                raise HTTPException(status_code=500, detail="Request not available")
-
-            auth_header = request.headers.get("Authorization") or ""
-            has_bearer = auth_header.lower().startswith("bearer ")
-
-            # Strict requires token
-            if auth_mode == "strict" and not has_bearer:
-                raise HTTPException(status_code=401, detail="Authentication required")
-
-            current_user = None
-            if has_bearer:
-                current_user = await get_current_user(request=request, db=db)
-
-            # Permissive without token: allow
-            if auth_mode == "permissive" and not current_user:
-                call_kwargs = {**kwargs}
-                if request is not None:
-                    call_kwargs["request"] = request
-                if "db" in sig.parameters and "db" not in call_kwargs:
-                    call_kwargs["db"] = db
-                result = func(*args, **call_kwargs)
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    result = await result
-                if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
-                return result
-
-            # Enforce any-of permissions for authenticated users
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Authentication required")
-            if not db:
-                raise HTTPException(status_code=500, detail="Database session not available")
-
-            for perm_key in permission_keys:
-                if has_permission(current_user, perm_key, db):
+                # Disabled: skip checks
+                if auth_mode == "disabled":
                     call_kwargs = {**kwargs}
                     if request is not None:
                         call_kwargs["request"] = request
@@ -776,16 +727,45 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
 
                     if _asyncio.iscoroutine(result):
                         result = await result
-                    if db_gen is not None:
-                        try:
-                            next(db_gen)
-                        except StopIteration:
-                            pass
                     return result
 
-                if allow_self_access and request:
-                    student_id = kwargs.get("student_id")
-                    if _is_self_access(current_user, perm_key, request, student_id, db):
+                # Check for bearer token
+                if request is None:
+                    raise HTTPException(status_code=500, detail="Request not available")
+
+                auth_header = request.headers.get("Authorization") or ""
+                has_bearer = auth_header.lower().startswith("bearer ")
+
+                # Strict requires token
+                if auth_mode == "strict" and not has_bearer:
+                    raise HTTPException(status_code=401, detail="Authentication required")
+
+                current_user = None
+                if has_bearer:
+                    current_user = await get_current_user(request=request, db=db)
+
+                # Permissive without token: allow
+                if auth_mode == "permissive" and not current_user:
+                    call_kwargs = {**kwargs}
+                    if request is not None:
+                        call_kwargs["request"] = request
+                    if "db" in sig.parameters and "db" not in call_kwargs:
+                        call_kwargs["db"] = db
+                    result = func(*args, **call_kwargs)
+                    import asyncio as _asyncio
+
+                    if _asyncio.iscoroutine(result):
+                        result = await result
+                    return result
+
+                # Enforce any-of permissions for authenticated users
+                if not current_user:
+                    raise HTTPException(status_code=401, detail="Authentication required")
+                if not db:
+                    raise HTTPException(status_code=500, detail="Database session not available")
+
+                for perm_key in permission_keys:
+                    if has_permission(current_user, perm_key, db):
                         call_kwargs = {**kwargs}
                         if request is not None:
                             call_kwargs["request"] = request
@@ -796,19 +776,30 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
 
                         if _asyncio.iscoroutine(result):
                             result = await result
-                        if db_gen is not None:
-                            try:
-                                next(db_gen)
-                            except StopIteration:
-                                pass
                         return result
 
-            if db_gen is not None:
-                try:
-                    next(db_gen)
-                except StopIteration:
-                    pass
-            raise HTTPException(status_code=403, detail=f"Permission denied: requires one of {permission_keys}")
+                    if allow_self_access and request:
+                        student_id = kwargs.get("student_id")
+                        if _is_self_access(current_user, perm_key, request, student_id, db):
+                            call_kwargs = {**kwargs}
+                            if request is not None:
+                                call_kwargs["request"] = request
+                            if "db" in sig.parameters and "db" not in call_kwargs:
+                                call_kwargs["db"] = db
+                            result = func(*args, **call_kwargs)
+                            import asyncio as _asyncio
+
+                            if _asyncio.iscoroutine(result):
+                                result = await result
+                            return result
+
+                raise HTTPException(status_code=403, detail=f"Permission denied: requires one of {permission_keys}")
+            finally:
+                if db_gen is not None:
+                    try:
+                        next(db_gen)
+                    except StopIteration:
+                        pass
 
         cast(Any, wrapper).__signature__ = sig
         return wrapper
@@ -847,93 +838,89 @@ def require_all_permissions(*permission_keys: str) -> Callable:
                     db = next(db_gen)
                 except StopIteration:
                     db = None
-            # Determine auth mode
+
+            # Wrapped in try/finally so db_gen is always advanced (closing
+            # its session) exactly once on every exit path, including the
+            # HTTPException raises below.
             try:
-                from backend.config import settings
-
-                auth_mode = getattr(settings, "AUTH_MODE", "disabled")
-            except Exception:
-                auth_mode = "disabled"
-
-            # Disabled: skip checks
-            if auth_mode == "disabled":
-                call_kwargs = {**kwargs}
-                if request is not None:
-                    call_kwargs["request"] = request
-                if "db" in sig.parameters and "db" not in call_kwargs:
-                    call_kwargs["db"] = db
-                result = func(*args, **call_kwargs)
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    result = await result
-                if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
-                return result
-
-            # Check for bearer token
-            if request is None:
-                raise HTTPException(status_code=500, detail="Request not available")
-
-            auth_header = request.headers.get("Authorization") or ""
-            has_bearer = auth_header.lower().startswith("bearer ")
-
-            # Strict requires token
-            if auth_mode == "strict" and not has_bearer:
-                raise HTTPException(status_code=401, detail="Authentication required")
-
-            current_user = None
-            if has_bearer:
-                current_user = await get_current_user(request=request, db=db)
-
-            # Permissive without token: allow
-            if auth_mode == "permissive" and not current_user:
-                call_kwargs = {**kwargs}
-                if request is not None:
-                    call_kwargs["request"] = request
-                if "db" in sig.parameters and "db" not in call_kwargs:
-                    call_kwargs["db"] = db
-                result = func(*args, **call_kwargs)
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    result = await result
-                if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
-                return result
-
-            # Enforce all-of permissions for authenticated users
-            if not current_user:
-                raise HTTPException(status_code=401, detail="Authentication required")
-            if not db:
-                raise HTTPException(status_code=500, detail="Database session not available")
-
-            for perm_key in permission_keys:
-                if not has_permission(current_user, perm_key, db):
-                    raise HTTPException(status_code=403, detail=f"Permission denied: requires '{perm_key}'")
-
-            call_kwargs = {**kwargs}
-            if request is not None:
-                call_kwargs["request"] = request
-            if "db" in sig.parameters and "db" not in call_kwargs:
-                call_kwargs["db"] = db
-            result = func(*args, **call_kwargs)
-            import asyncio as _asyncio
-
-            if _asyncio.iscoroutine(result):
-                result = await result
-            if db_gen is not None:
+                # Determine auth mode
                 try:
-                    next(db_gen)
-                except StopIteration:
-                    pass
-            return result
+                    from backend.config import settings
+
+                    auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+                except Exception:
+                    auth_mode = "disabled"
+
+                # Disabled: skip checks
+                if auth_mode == "disabled":
+                    call_kwargs = {**kwargs}
+                    if request is not None:
+                        call_kwargs["request"] = request
+                    if "db" in sig.parameters and "db" not in call_kwargs:
+                        call_kwargs["db"] = db
+                    result = func(*args, **call_kwargs)
+                    import asyncio as _asyncio
+
+                    if _asyncio.iscoroutine(result):
+                        result = await result
+                    return result
+
+                # Check for bearer token
+                if request is None:
+                    raise HTTPException(status_code=500, detail="Request not available")
+
+                auth_header = request.headers.get("Authorization") or ""
+                has_bearer = auth_header.lower().startswith("bearer ")
+
+                # Strict requires token
+                if auth_mode == "strict" and not has_bearer:
+                    raise HTTPException(status_code=401, detail="Authentication required")
+
+                current_user = None
+                if has_bearer:
+                    current_user = await get_current_user(request=request, db=db)
+
+                # Permissive without token: allow
+                if auth_mode == "permissive" and not current_user:
+                    call_kwargs = {**kwargs}
+                    if request is not None:
+                        call_kwargs["request"] = request
+                    if "db" in sig.parameters and "db" not in call_kwargs:
+                        call_kwargs["db"] = db
+                    result = func(*args, **call_kwargs)
+                    import asyncio as _asyncio
+
+                    if _asyncio.iscoroutine(result):
+                        result = await result
+                    return result
+
+                # Enforce all-of permissions for authenticated users
+                if not current_user:
+                    raise HTTPException(status_code=401, detail="Authentication required")
+                if not db:
+                    raise HTTPException(status_code=500, detail="Database session not available")
+
+                for perm_key in permission_keys:
+                    if not has_permission(current_user, perm_key, db):
+                        raise HTTPException(status_code=403, detail=f"Permission denied: requires '{perm_key}'")
+
+                call_kwargs = {**kwargs}
+                if request is not None:
+                    call_kwargs["request"] = request
+                if "db" in sig.parameters and "db" not in call_kwargs:
+                    call_kwargs["db"] = db
+                result = func(*args, **call_kwargs)
+                import asyncio as _asyncio
+
+                if _asyncio.iscoroutine(result):
+                    result = await result
+                return result
+            finally:
+                if db_gen is not None:
+                    try:
+                        next(db_gen)
+                    except StopIteration:
+                        pass
 
         cast(Any, wrapper).__signature__ = sig
         return wrapper
