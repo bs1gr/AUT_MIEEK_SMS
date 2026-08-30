@@ -67,8 +67,11 @@ services:
   redis:
     image: redis:7-alpine
     container_name: sms-redis
+    # Bound to localhost only: the backend reaches Redis over the internal
+    # Docker network (REDIS_HOST=redis above); this port exists solely for
+    # local debugging (redis-cli) and must not be reachable from the LAN.
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --appendfsync everysec

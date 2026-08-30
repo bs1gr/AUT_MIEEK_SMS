@@ -661,3 +661,24 @@ class TestErrorHandling:
         # Verify data still exists
         response2 = client.get("/api/v1/search/students", params={"q": "test"}, headers=admin_headers)
         assert response2.status_code == 200
+
+    def test_service_failure_returns_clean_error_without_leaking_exception_text(self, client, admin_headers, monkeypatch):
+        """Regression test: search_students previously called error_response()
+        without the required request_id argument and leaked raw exception
+        text via details={"error": str(e)}. A service-layer failure must now
+        produce a well-formed error response with no exception internals in
+        the body.
+        """
+        from backend.services.search_service import SearchService
+
+        def _boom(self, **kwargs):
+            raise RuntimeError("secret internal detail: table=students column=ssn")
+
+        monkeypatch.setattr(SearchService, "search_students", _boom)
+
+        response = client.get("/api/v1/search/students", params={"q": "test"}, headers=admin_headers)
+        assert response.status_code == 200
+        body = response.json()
+        assert body["success"] is False
+        assert "secret internal detail" not in response.text
+        assert "ssn" not in response.text

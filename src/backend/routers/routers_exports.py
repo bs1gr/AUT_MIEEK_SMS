@@ -747,6 +747,18 @@ def _csv_content(headers: list[str], rows: list[list[Any]]) -> str:
     return "\ufeff" + output.getvalue()
 
 
+def _students_by_id(db: Session, Student: Any) -> Dict[int, Any]:
+    """Preload all active students once, keyed by id, so per-row export loops
+    can look up the owning student without issuing a query per row."""
+    return {s.id: s for s in db.query(Student).filter(Student.deleted_at.is_(None)).all()}
+
+
+def _courses_by_id(db: Session, Course: Any) -> Dict[int, Any]:
+    """Preload all active courses once, keyed by id, so per-row export loops
+    can look up the owning course without issuing a query per row."""
+    return {c.id: c for c in db.query(Course).filter(Course.deleted_at.is_(None)).all()}
+
+
 def _build_attendance_analytics_csv_rows(
     rows: list[Any],
     lang: str,
@@ -1006,6 +1018,9 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
                 for s in students
             ]
             zf.writestr("students.csv", _csv_content(student_headers, student_rows))
+            # Reused below instead of re-querying per row for enrollments/grades/
+            # performance/highlights.
+            students_by_id = {s.id: s for s in students}
 
             # Courses
             courses = db.query(Course).filter(Course.deleted_at.is_(None)).all()
@@ -1024,6 +1039,7 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
                 for c in courses
             ]
             zf.writestr("courses.csv", _csv_content(course_headers, course_rows))
+            courses_by_id = {c.id: c for c in courses}
 
             # Attendance
             attendance = db.query(Attendance).filter(Attendance.deleted_at.is_(None)).all()
@@ -1071,8 +1087,8 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
             enrollment_headers = get_header_row("enrollments", lang)
             enrollment_rows = []
             for e in enrollments:
-                student = db.query(Student).filter(Student.id == e.student_id, Student.deleted_at.is_(None)).first()
-                course = db.query(Course).filter(Course.id == e.course_id, Course.deleted_at.is_(None)).first()
+                student = students_by_id.get(e.student_id)
+                course = courses_by_id.get(e.course_id)
                 enrollment_rows.append(
                     [
                         e.id,
@@ -1091,8 +1107,8 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
             grade_headers = get_header_row("all_grades", lang)
             grade_rows = []
             for g in grades:
-                student = db.query(Student).filter(Student.id == g.student_id, Student.deleted_at.is_(None)).first()
-                course = db.query(Course).filter(Course.id == g.course_id, Course.deleted_at.is_(None)).first()
+                student = students_by_id.get(g.student_id)
+                course = courses_by_id.get(g.course_id)
                 pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
                 grade_rows.append(
                     [
@@ -1117,8 +1133,8 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
             performance_headers = get_header_row("daily_performance", lang)
             performance_rows = []
             for p in performances:
-                student = db.query(Student).filter(Student.id == p.student_id, Student.deleted_at.is_(None)).first()
-                course = db.query(Course).filter(Course.id == p.course_id, Course.deleted_at.is_(None)).first()
+                student = students_by_id.get(p.student_id)
+                course = courses_by_id.get(p.course_id)
                 performance_rows.append(
                     [
                         p.id,
@@ -1141,7 +1157,7 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
             highlight_headers = get_header_row("highlights", lang)
             highlight_rows = []
             for h in highlights:
-                student = db.query(Student).filter(Student.id == h.student_id, Student.deleted_at.is_(None)).first()
+                student = students_by_id.get(h.student_id)
                 highlight_rows.append(
                     [
                         h.id,
@@ -2337,6 +2353,8 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         na_value = not_available(lang)
 
         enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
 
         wb = openpyxl.Workbook()
         ws: Any = wb.active
@@ -2349,8 +2367,8 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
             cell.alignment = Alignment(horizontal="center")
 
         for row, e in enumerate(enrollments, 2):
-            student = db.query(Student).filter(Student.id == e.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == e.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(e.student_id)
+            course = courses_by_id.get(e.course_id)
 
             ws.cell(row=row, column=1, value=e.id)
             ws.cell(row=row, column=2, value=e.student_id)
@@ -2407,11 +2425,13 @@ async def export_enrollments_csv(request: Request, db: Session = Depends(get_db)
         lang = get_lang(request)
         na_value = not_available(lang)
         enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
         headers = get_header_row("enrollments", lang)
         rows = []
         for e in enrollments:
-            student = db.query(Student).filter(Student.id == e.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == e.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(e.student_id)
+            course = courses_by_id.get(e.course_id)
             rows.append(
                 [
                     e.id,
@@ -2453,11 +2473,13 @@ async def export_enrollments_pdf(request: Request, db: Session = Depends(get_db)
         lang = get_lang(request)
         na_value = not_available(lang)
         enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
         headers = get_header_row("enrollments", lang)
         rows = []
         for e in enrollments:
-            student = db.query(Student).filter(Student.id == e.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == e.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(e.student_id)
+            course = courses_by_id.get(e.course_id)
             rows.append(
                 [
                     str(e.id),
@@ -2501,6 +2523,8 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         na_value = not_available(lang)
 
         grades = db.query(Grade).filter(Grade.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
 
         wb = openpyxl.Workbook()
         ws: Any = wb.active
@@ -2513,8 +2537,8 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
             cell.alignment = Alignment(horizontal="center")
 
         for row, g in enumerate(grades, 2):
-            student = db.query(Student).filter(Student.id == g.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == g.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(g.student_id)
+            course = courses_by_id.get(g.course_id)
             pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
 
             ws.cell(row=row, column=1, value=g.id)
@@ -2581,11 +2605,13 @@ async def export_all_grades_csv(request: Request, db: Session = Depends(get_db))
         lang = get_lang(request)
         na_value = not_available(lang)
         grades = db.query(Grade).filter(Grade.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
         headers = get_header_row("all_grades", lang)
         rows = []
         for g in grades:
-            student = db.query(Student).filter(Student.id == g.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == g.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(g.student_id)
+            course = courses_by_id.get(g.course_id)
             pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
             rows.append(
                 [
@@ -2633,11 +2659,13 @@ async def export_all_grades_pdf(request: Request, db: Session = Depends(get_db))
         lang = get_lang(request)
         na_value = not_available(lang)
         grades = db.query(Grade).filter(Grade.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
         headers = get_header_row("all_grades", lang)
         rows = []
         for g in grades:
-            student = db.query(Student).filter(Student.id == g.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == g.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(g.student_id)
+            course = courses_by_id.get(g.course_id)
             pct = (g.grade / g.max_grade) * 100 if g.max_grade else 0
             rows.append(
                 [
@@ -2687,6 +2715,8 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         na_value = not_available(lang)
 
         performances = db.query(DailyPerformance).filter(DailyPerformance.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
 
         wb = openpyxl.Workbook()
         ws: Any = wb.active
@@ -2699,8 +2729,8 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
             cell.alignment = Alignment(horizontal="center")
 
         for row, p in enumerate(performances, 2):
-            student = db.query(Student).filter(Student.id == p.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == p.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(p.student_id)
+            course = courses_by_id.get(p.course_id)
 
             ws.cell(row=row, column=1, value=p.id)
             ws.cell(row=row, column=2, value=p.student_id)
@@ -2761,11 +2791,13 @@ async def export_daily_performance_csv(request: Request, db: Session = Depends(g
         lang = get_lang(request)
         na_value = not_available(lang)
         performances = db.query(DailyPerformance).filter(DailyPerformance.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
         headers = get_header_row("daily_performance", lang)
         rows = []
         for p in performances:
-            student = db.query(Student).filter(Student.id == p.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == p.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(p.student_id)
+            course = courses_by_id.get(p.course_id)
             rows.append(
                 [
                     p.id,
@@ -2811,11 +2843,13 @@ async def export_daily_performance_pdf(request: Request, db: Session = Depends(g
         lang = get_lang(request)
         na_value = not_available(lang)
         performances = db.query(DailyPerformance).filter(DailyPerformance.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
+        courses_by_id = _courses_by_id(db, Course)
         headers = get_header_row("daily_performance", lang)
         rows = []
         for p in performances:
-            student = db.query(Student).filter(Student.id == p.student_id, Student.deleted_at.is_(None)).first()
-            course = db.query(Course).filter(Course.id == p.course_id, Course.deleted_at.is_(None)).first()
+            student = students_by_id.get(p.student_id)
+            course = courses_by_id.get(p.course_id)
             rows.append(
                 [
                     str(p.id),
@@ -2863,6 +2897,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         na_value = not_available(lang)
 
         highlights = db.query(Highlight).filter(Highlight.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
 
         wb = openpyxl.Workbook()
         ws: Any = wb.active
@@ -2875,7 +2910,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
             cell.alignment = Alignment(horizontal="center")
 
         for row, h in enumerate(highlights, 2):
-            student = db.query(Student).filter(Student.id == h.student_id, Student.deleted_at.is_(None)).first()
+            student = students_by_id.get(h.student_id)
 
             ws.cell(row=row, column=1, value=h.id)
             ws.cell(row=row, column=2, value=h.student_id)
@@ -2934,10 +2969,11 @@ async def export_highlights_csv(request: Request, db: Session = Depends(get_db))
         lang = get_lang(request)
         na_value = not_available(lang)
         highlights = db.query(Highlight).filter(Highlight.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
         headers = get_header_row("highlights", lang)
         rows = []
         for h in highlights:
-            student = db.query(Student).filter(Student.id == h.student_id, Student.deleted_at.is_(None)).first()
+            student = students_by_id.get(h.student_id)
             rows.append(
                 [
                     h.id,
@@ -2981,10 +3017,11 @@ async def export_highlights_pdf(request: Request, db: Session = Depends(get_db))
         lang = get_lang(request)
         na_value = not_available(lang)
         highlights = db.query(Highlight).filter(Highlight.deleted_at.is_(None)).all()
+        students_by_id = _students_by_id(db, Student)
         headers = get_header_row("highlights", lang)
         rows = []
         for h in highlights:
-            student = db.query(Student).filter(Student.id == h.student_id, Student.deleted_at.is_(None)).first()
+            student = students_by_id.get(h.student_id)
             rows.append(
                 [
                     str(h.id),

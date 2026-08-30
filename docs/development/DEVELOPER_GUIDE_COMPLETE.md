@@ -589,7 +589,7 @@ cd src/backend
 
 alembic revision --autogenerate -m "Add example table"
 
-# Review generated migration file in backend/alembic/versions/
+# Review generated migration file in backend/migrations/versions/
 
 # Apply migration
 
@@ -611,7 +611,7 @@ alembic downgrade -1
 ### Manual Migration Example
 
 ```python
-# backend/alembic/versions/example_add_column.py
+# backend/migrations/versions/example_add_column.py
 
 def upgrade():
     # Add column

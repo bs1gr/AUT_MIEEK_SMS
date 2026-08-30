@@ -319,14 +319,10 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
       return config;
     }
 
-    let token = authService.getAccessToken();
-    if (!token) {
-      try {
-        token = localStorage.getItem('sms_access_token') || localStorage.getItem('access_token');
-      } catch {
-        token = null;
-      }
-    }
+    // Tokens are kept in memory only (see authService.ts) - no localStorage
+    // fallback here, so a stray localStorage write (extension, XSS, stale
+    // browser state) can never be silently trusted as a valid session.
+    const token = authService.getAccessToken();
     if (token) {
       logApiDebug('[API] Attaching auth header for:', url);
       if (config.headers instanceof AxiosHeaders) {

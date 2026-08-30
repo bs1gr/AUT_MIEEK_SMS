@@ -168,6 +168,23 @@ def test_sessions_list_backups(client):
     assert "count" in data
 
 
+def test_sessions_backups_and_semesters_require_auth(client, monkeypatch):
+    """Regression test: /sessions/backups and /sessions/semesters must reject
+    unauthenticated requests. Both endpoints previously had no auth dependency
+    at all, letting anyone enumerate backup filenames and the server's backup
+    directory path.
+    """
+    from backend.config import settings
+
+    monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
+
+    resp = client.get("/api/v1/sessions/backups")
+    assert resp.status_code == 401
+
+    resp = client.get("/api/v1/sessions/semesters")
+    assert resp.status_code == 401
+
+
 def test_sessions_import_non_dry_run_creates_backup_and_persists(client):
     """Perform a real (non-dry-run) import and verify backup creation + subsequent export counts."""
     headers = get_auth_headers(client)

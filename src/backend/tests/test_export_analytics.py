@@ -1,5 +1,7 @@
+import csv
+import zipfile
 from datetime import date
-from io import BytesIO
+from io import BytesIO, StringIO
 
 from openpyxl import load_workbook
 
@@ -103,3 +105,70 @@ def test_attendance_analytics_export_contains_period_breakdown(client):
     assert student_one_row[7] == "Present"
     assert student_two_row[2] == 1
     assert student_two_row[5] == 1
+
+
+def test_export_all_zip_enriches_rows_from_preloaded_lookups(client):
+    """Regression test for the N+1 fix in export_all_zip: enrollments.csv,
+    all_grades.csv, and daily_performance.csv must still be enriched with the
+    correct student name and course code/name, now sourced from an in-memory
+    id->row lookup built once instead of a query per row.
+    """
+    student = _create_student(client, "ZIP001", 1)
+    course = _create_course(client, "ZIP101")
+
+    enroll_resp = client.post(
+        f"/api/v1/enrollments/course/{course['id']}", json={"student_ids": [student["id"]]}
+    )
+    assert enroll_resp.status_code == 200
+
+    grade_resp = client.post(
+        "/api/v1/grades/",
+        json={
+            "student_id": student["id"],
+            "course_id": course["id"],
+            "assignment_name": "Zip Assignment",
+            "category": "Homework",
+            "grade": 88.0,
+            "max_grade": 100.0,
+            "weight": 1.0,
+            "date_assigned": date.today().isoformat(),
+            "date_submitted": date.today().isoformat(),
+        },
+    )
+    assert grade_resp.status_code == 201
+
+    perf_resp = client.post(
+        "/api/v1/daily-performance/",
+        json={
+            "student_id": student["id"],
+            "course_id": course["id"],
+            "date": date.today().isoformat(),
+            "category": "Participation",
+            "score": 9.0,
+            "max_score": 10.0,
+            "notes": "Zip test",
+        },
+    )
+    assert perf_resp.status_code == 200
+
+    resp = client.get("/api/v1/export/all/zip")
+    assert resp.status_code == 200, resp.text
+
+    student_name = f"{student['first_name']} {student['last_name']}"
+    with zipfile.ZipFile(BytesIO(resp.content)) as zf:
+        enrollments_csv = zf.read("enrollments.csv").decode("utf-8-sig")
+        enrollment_row = next(r for r in csv.reader(StringIO(enrollments_csv)) if r and r[1] == str(student["id"]))
+        assert student_name in enrollment_row
+        assert course["course_code"] in enrollment_row
+
+        grades_csv = zf.read("all_grades.csv").decode("utf-8-sig")
+        grade_row = next(r for r in csv.reader(StringIO(grades_csv)) if r and r[1] == str(student["id"]))
+        assert student_name in grade_row
+        assert course["course_name"] in grade_row
+
+        performance_csv = zf.read("daily_performance.csv").decode("utf-8-sig")
+        performance_row = next(
+            r for r in csv.reader(StringIO(performance_csv)) if r and r[1] == str(student["id"])
+        )
+        assert student_name in performance_row
+        assert course["course_name"] in performance_row

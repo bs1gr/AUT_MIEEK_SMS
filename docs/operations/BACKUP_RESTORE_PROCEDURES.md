@@ -88,7 +88,7 @@ tar -czf "backups/config/config_$(date +%Y%m%d).tar.gz" \
   .env \
   .env.production.SECURE \
   docker/nginx.conf \
-  backend/alembic/versions/
+  backend/migrations/versions/
 
 # Verify archive
 tar -tzf "backups/config/config_$(date +%Y%m%d).tar.gz" | head -10

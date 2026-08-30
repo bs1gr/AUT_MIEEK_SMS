@@ -71,7 +71,6 @@ async def list_dashboards(
         return error_response(
             code="LIST_ERROR",
             message="Failed to list dashboards",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -148,8 +147,7 @@ async def create_dashboard(
         logger.error(f"Error creating dashboard: {type(e).__name__}: {str(e)}", exc_info=True)
         return error_response(
             code="CREATE_ERROR",
-            message=f"Failed to create dashboard: {str(e)}",
-            details={"error": str(e), "type": type(e).__name__},
+            message="Failed to create dashboard",
             request_id=request.state.request_id,
         )
 
@@ -200,7 +198,6 @@ async def get_dashboard(
         return error_response(
             code="GET_ERROR",
             message="Failed to get dashboard",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -250,7 +247,6 @@ async def update_dashboard(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update dashboard",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -287,7 +283,6 @@ async def delete_dashboard(
         return error_response(
             code="DELETE_ERROR",
             message="Failed to delete dashboard",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -330,6 +325,5 @@ async def set_default_dashboard(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to set default dashboard",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )

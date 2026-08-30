@@ -81,7 +81,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Default placeholder from i18n if not provided
-  const defaultPlaceholder = placeholder || t('search.search_placeholder', { defaultValue: 'Search students, courses, grades...' });
+  const defaultPlaceholder = placeholder || t('bar.placeholder', { defaultValue: 'Search students, courses, grades...' });
 
   /**
    * Handle input change with debounce
@@ -225,7 +225,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             htmlFor="search-input"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            {t('search.search_label', { defaultValue: 'Search' })}
+            {t('bar.label', { defaultValue: 'Search' })}
           </label>
           <div className="relative">
             <MagnifyingGlassIcon
@@ -245,7 +245,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 }
               }}
               placeholder={defaultPlaceholder}
-              aria-label={t('search.search_aria_label', { defaultValue: 'Search for students, courses, or grades' })}
+              aria-label={t('bar.ariaLabel', { defaultValue: 'Search for students, courses, or grades' })}
               aria-autocomplete="list"
               aria-expanded={showHistoryDropdown && searchHistory.length > 0}
               aria-controls="search-history-dropdown"
@@ -256,7 +256,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             {query && (
               <button
                 onClick={handleClear}
-                aria-label={t('search.clear_search', { defaultValue: 'Clear search' })}
+                aria-label={t('bar.clear', { defaultValue: 'Clear search' })}
                 className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
                 data-testid="clear-button"
               >
@@ -307,21 +307,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             htmlFor="entity-type-select"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            {t('search.filter_by_type', { defaultValue: 'Type' })}
+            {t('bar.filterByType', { defaultValue: 'Type' })}
           </label>
           <select
             id="entity-type-select"
             value={entityType}
             onChange={(e) => handleEntityTypeChange(e.target.value)}
-            aria-label={t('search.entity_type_aria_label', { defaultValue: 'Filter by entity type' })}
+            aria-label={t('bar.entityTypeAriaLabel', { defaultValue: 'Filter by entity type' })}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50"
             disabled={isLoading}
             data-testid="entity-type-select"
           >
-            <option value="all">{t('search.all_types', { defaultValue: 'All' })}</option>
-            <option value="students">{t('search.students', { defaultValue: 'Students' })}</option>
-            <option value="courses">{t('search.courses', { defaultValue: 'Courses' })}</option>
-            <option value="grades">{t('search.grades', { defaultValue: 'Grades' })}</option>
+            <option value="all">{t('bar.allTypes', { defaultValue: 'All' })}</option>
+            <option value="students">{t('bar.students', { defaultValue: 'Students' })}</option>
+            <option value="courses">{t('bar.courses', { defaultValue: 'Courses' })}</option>
+            <option value="grades">{t('bar.grades', { defaultValue: 'Grades' })}</option>
           </select>
         </div>
       </div>
@@ -331,10 +331,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <div
           className="mt-2 text-sm text-gray-500"
           role="status"
-          aria-label={t('search.loading', { defaultValue: 'Loading search results' })}
+          aria-label={t('bar.loading', { defaultValue: 'Loading search results' })}
           data-testid="loading-indicator"
         >
-          {t('search.searching', { defaultValue: 'Searching...' })}
+          {t('bar.searching', { defaultValue: 'Searching...' })}
         </div>
       )}
     </div>

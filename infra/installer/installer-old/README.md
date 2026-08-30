@@ -1,5 +1,12 @@
 # SMS Installer - v1.18.24
 
+> **This directory is live, not legacy.** Despite the `-old` suffix, this is
+> the only Inno Setup installer configuration in the repository and is
+> actively used by `infra/scripts/release/INSTALLER_BUILDER.ps1`. Do not
+> delete or archive it as dead code — doing so breaks the release build. If
+> you rename it, update every path reference in `INSTALLER_BUILDER.ps1` in
+> the same change and verify a build still succeeds.
+
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
 ## Installation Types

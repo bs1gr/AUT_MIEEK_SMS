@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { renderWithI18n } from '@/test-utils/i18n-test-wrapper';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import SearchBar from '../components/SearchBar';
 
 /**
@@ -383,5 +384,42 @@ describe('SearchBar Component', () => {
 
     const select = screen.getByTestId('entity-type-select');
     expect(select).toHaveValue('all');
+  });
+
+  /**
+   * Regression test: the component previously looked up i18n keys as
+   * 'search.search_placeholder' etc. while already namespaced to 'search',
+   * which could never resolve (and collided with existing `students`/
+   * `courses`/`grades` objects in the locale files), so every string
+   * silently fell back to the hardcoded English defaultValue regardless of
+   * the active language. Placeholder text must now actually be Greek when
+   * the language is Greek.
+   */
+  it('should render Greek placeholder text when language is el', async () => {
+    // LanguageProvider re-syncs i18n from localStorage('i18nextLng') on mount,
+    // so the persisted preference must be set too, not just testI18n directly.
+    const previousStored = localStorage.getItem('i18nextLng');
+    localStorage.setItem('i18nextLng', 'el');
+    await testI18n.changeLanguage('el');
+    try {
+      renderWithI18n(<SearchBar {...defaultProps} />);
+      await waitFor(() => {
+        const input = screen.getByTestId('search-input') as HTMLInputElement;
+        expect(input.placeholder).toBe('Αναζήτηση σπουδαστών, μαθημάτων, βαθμών...');
+      });
+      const input = screen.getByTestId('search-input') as HTMLInputElement;
+      expect(input.placeholder).not.toBe('Search students, courses, grades...');
+
+      const options = screen.getByTestId('entity-type-select').querySelectorAll('option');
+      const optionText = Array.from(options).map((o) => o.textContent);
+      expect(optionText).toEqual(['Όλα', 'Σπουδαστές', 'Μαθήματα', 'Βαθμοί']);
+    } finally {
+      await testI18n.changeLanguage('en');
+      if (previousStored === null) {
+        localStorage.removeItem('i18nextLng');
+      } else {
+        localStorage.setItem('i18nextLng', previousStored);
+      }
+    }
   });
 });

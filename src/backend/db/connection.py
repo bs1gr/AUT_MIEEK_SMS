@@ -5,6 +5,7 @@ Manages SQLAlchemy engine, session factory, and core database connectivity.
 
 from __future__ import annotations
 
+import logging
 from typing import Generator
 
 import sqlalchemy as sa
@@ -19,6 +20,7 @@ from backend import config as config_mod
 
 settings = config_mod.settings
 models = import_from_possible_locations("models")
+logger = logging.getLogger(__name__)
 
 # Create engine from configuration using models.init_db for dev convenience
 try:
@@ -77,6 +79,14 @@ def get_session(_: object | None = None) -> Generator[Session, None, None]:
 def _ensure_column(engine, table: str, column: str, coltype_sql: str, default_sql: str | None = None) -> None:
     """Ensure a column exists; if missing, add it with optional DEFAULT.
     Works on SQLite and other SQL dialects best-effort without Alembic.
+
+    This is a narrow, hardcoded-argument repair path for databases created
+    before a since-committed Alembic migration existed (e.g. an old SQLite
+    file predating `3f2b1a9c0d7e_add_absence_penalty_to_courses`) — it is
+    NOT a substitute for Alembic and must never be extended with
+    caller/user-controlled table or column names. Prefer a normal Alembic
+    migration for any new schema change; only add calls here for repairing
+    genuinely pre-existing drift.
     """
     try:
         with engine.connect() as conn:
@@ -101,8 +111,9 @@ def _ensure_column(engine, table: str, column: str, coltype_sql: str, default_sq
                     conn.execute(text(alter))
                     conn.commit()
     except Exception:
-        # Best effort; leave handling/logging to caller
-        pass
+        # Best-effort repair: log so operators can see a failed self-heal
+        # instead of it silently vanishing, but never fail startup over it.
+        logger.warning("ensure_schema: failed to repair %s.%s", table, column, exc_info=True)
 
 
 def ensure_schema(engine) -> None:

@@ -15,6 +15,23 @@ export default {
   },
   ariaLabel: 'Search',
   search: 'Search',
+  // Used by the SearchBar component (useTranslation('search') + t('bar.xxx')).
+  // Kept in its own group because `students`/`courses`/`grades` above are
+  // objects, not strings, so those names can't be flat keys at the root.
+  bar: {
+    placeholder: 'Search students, courses, grades...',
+    label: 'Search',
+    ariaLabel: 'Search for students, courses, or grades',
+    clear: 'Clear search',
+    filterByType: 'Type',
+    entityTypeAriaLabel: 'Filter by entity type',
+    allTypes: 'All',
+    students: 'Students',
+    courses: 'Courses',
+    grades: 'Grades',
+    loading: 'Loading search results',
+    searching: 'Searching...',
+  },
   noSuggestions: 'No suggestions found',
   unknown: 'Unknown',
   type: {

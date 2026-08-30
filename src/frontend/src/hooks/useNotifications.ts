@@ -55,25 +55,11 @@ export function useNotifications(): UseNotificationsReturn {
   const fetchInFlightRef = useRef(false);
   const rateLimitUntilRef = useRef(0);
 
-  const hasAccessToken = () => {
-    if (authService.getAccessToken()) {
-      return true;
-    }
-    try {
-      return Boolean(localStorage.getItem('sms_access_token') || localStorage.getItem('access_token'));
-    } catch {
-      return false;
-    }
-  };
-  const getAccessToken = () => {
-    const token = authService.getAccessToken();
-    if (token) return token;
-    try {
-      return localStorage.getItem('sms_access_token') || localStorage.getItem('access_token');
-    } catch {
-      return null;
-    }
-  };
+  // Tokens are kept in memory only (see authService.ts) - no localStorage
+  // fallback here, so a stray localStorage write can never be silently
+  // trusted as a valid session.
+  const hasAccessToken = () => Boolean(authService.getAccessToken());
+  const getAccessToken = () => authService.getAccessToken();
   const getUserId = (): number | null => {
     try {
       const raw = localStorage.getItem('sms_user_v1');
@@ -301,10 +287,11 @@ export function useNotifications(): UseNotificationsReturn {
 
       socketRef.current = io(WEBSOCKET_URL, {
         path: '/socket.io/',
-        auth: {
-          token,
-          user_id: userId,
-        },
+        // A function (not a plain object) so socket.io re-evaluates it on
+        // every automatic reconnect, not just the initial connect - a plain
+        // object would keep presenting the token captured at connect time
+        // even after a token refresh, silently breaking reconnects.
+        auth: (cb) => cb({ token: getAccessToken(), user_id: getUserId() }),
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: RECONNECT_DELAY,

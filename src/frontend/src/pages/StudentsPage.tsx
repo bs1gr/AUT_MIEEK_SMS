@@ -109,7 +109,7 @@ export default function StudentsPage() {
                 if (removedCourseNames.length) {
                   const courseList = removedCourseNames.map((name) => `• ${name}`).join('\n');
                   showToast(
-                    `Student unenrolled from:\n${courseList}`,
+                    t('studentUnenrolledFromCoursesWithNames', { courses: courseList }),
                     'success'
                   );
                 } else {

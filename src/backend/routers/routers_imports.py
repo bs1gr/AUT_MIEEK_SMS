@@ -1447,6 +1447,53 @@ async def import_preview(
                 )
             )
 
+        # Pre-fetch existing records referenced anywhere in the upload, once,
+        # instead of issuing a query per row inside the loop below.
+        existing_student_ids: set = set()
+        existing_student_emails: set = set()
+        existing_course_codes: set = set()
+        existing_course_pairs: set = set()
+        if norm == "students":
+            candidate_ids = {
+                obj.get("student_id")
+                for batch in data_batches
+                for obj in batch
+                if isinstance(obj, dict) and obj.get("student_id")
+            }
+            candidate_emails = {
+                obj.get("email") for batch in data_batches for obj in batch if isinstance(obj, dict) and obj.get("email")
+            }
+            if candidate_ids:
+                existing_student_ids = {
+                    s_id
+                    for (s_id,) in db.query(Student.student_id)
+                    .filter(Student.student_id.in_(candidate_ids), Student.deleted_at.is_(None))
+                    .all()
+                }
+            if candidate_emails:
+                existing_student_emails = {
+                    s_email
+                    for (s_email,) in db.query(Student.email)
+                    .filter(Student.email.in_(candidate_emails), Student.deleted_at.is_(None))
+                    .all()
+                }
+        else:  # courses
+            candidate_codes = {
+                obj.get("course_code")
+                for batch in data_batches
+                for obj in batch
+                if isinstance(obj, dict) and obj.get("course_code")
+            }
+            if candidate_codes:
+                for c_code, c_sem in (
+                    db.query(Course.course_code, Course.semester)
+                    .filter(Course.course_code.in_(candidate_codes), Course.deleted_at.is_(None))
+                    .all()
+                ):
+                    existing_course_codes.add(c_code)
+                    if c_sem:
+                        existing_course_pairs.add((c_code, c_sem))
+
         # Iterate over all batches
         for batch in data_batches:
             for obj in batch:
@@ -1487,15 +1534,9 @@ async def import_preview(
                     # Determine action based on existence in DB
                     exists = False
                     if sid:
-                        exists = (
-                            db.query(Student).filter(Student.student_id == sid, Student.deleted_at.is_(None)).first()
-                            is not None
-                        )
+                        exists = sid in existing_student_ids
                     if not exists and email:
-                        exists = (
-                            db.query(Student).filter(Student.email == email, Student.deleted_at.is_(None)).first()
-                            is not None
-                        )
+                        exists = email in existing_student_emails
                     action = "update" if exists else "create"
                     if exists and not allow_updates:
                         action = "skip"
@@ -1529,12 +1570,13 @@ async def import_preview(
 
                     exists = False
                     if code:
-                        q = db.query(Course).filter(Course.course_code == code, Course.deleted_at.is_(None))
-                        # If semester present, include it in existence check
+                        # If semester present, require an exact code+semester match;
+                        # otherwise any existing course with this code counts.
                         sem = obj.get("semester")
                         if sem:
-                            q = q.filter(Course.semester == sem)
-                        exists = q.first() is not None
+                            exists = (code, sem) in existing_course_pairs
+                        else:
+                            exists = code in existing_course_codes
                     action = "update" if exists else "create"
                     if exists and not allow_updates:
                         action = "skip"

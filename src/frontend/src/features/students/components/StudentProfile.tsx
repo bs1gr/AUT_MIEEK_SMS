@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -62,8 +62,17 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     }
   }, [attendanceCourseFilter, activeEnrollments]);
 
+  // Tracks which studentId the most recently started load is for, so that a
+  // slower in-flight request for a previous student can't overwrite the UI
+  // after the user has already navigated to a different student.
+  const activeStudentIdRef = useRef<number | null>(null);
+
   // Move loadStudentData here so effects can depend on it without referencing a later declaration
   const loadStudentData = useCallback(async () => {
+    const requestId = studentId;
+    activeStudentIdRef.current = requestId;
+    const isStale = () => activeStudentIdRef.current !== requestId;
+
     setLoading(true);
     setError(null);
     try {
@@ -73,6 +82,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         gradesAPI.getByStudent(studentId),
         attendanceAPI.getByStudent(studentId)
       ]);
+      if (isStale()) return;
 
       setStudent(studentData);
       setGrades(Array.isArray(gradesData) ? gradesData : []);
@@ -81,8 +91,10 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       // Try to load highlights, but don't fail if endpoint doesn't exist
       try {
         const highlightsData = await highlightsAPI.getByStudent(studentId);
+        if (isStale()) return;
         setHighlights(Array.isArray(highlightsData) ? highlightsData : []);
       } catch (highlightsError) {
+        if (isStale()) return;
         console.warn('Highlights endpoint not available:', highlightsError);
         setHighlights([]);
       }
@@ -92,7 +104,6 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         const enrRes = await apiClient.get(`/enrollments/student/${studentId}`);
         const enr = enrRes.data;
         const enrolls: CourseEnrollment[] = Array.isArray(enr) ? enr : [];
-        setEnrollments(enrolls);
         // Fetch unique courses
         const ids = Array.from(new Set(enrolls.map(e => e.course_id)));
         const dict: Record<number, Course> = {};
@@ -102,12 +113,16 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             dict[cid] = cRes.data;
           } catch {}
         }));
+        if (isStale()) return;
+        setEnrollments(enrolls);
         setCoursesById(dict);
       } catch {
+        if (isStale()) return;
         setEnrollments([]);
         setCoursesById({});
       }
     } catch (error) {
+      if (isStale()) return;
       console.error('Failed to load student data:', error);
       setError(t('failedToLoadStudentData', { ns: 'students' }));
       // Set empty arrays to prevent errors
@@ -117,7 +132,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       setEnrollments([]);
       setCoursesById({});
     } finally {
-      setLoading(false);
+      if (!isStale()) {
+        setLoading(false);
+      }
     }
   }, [studentId, t]);
 

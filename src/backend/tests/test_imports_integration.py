@@ -83,6 +83,62 @@ class TestImportPreviewEndpoint:
         resp = client.post("/api/v1/imports/preview", data={"import_type": "students"})
         assert resp.status_code == 400
 
+    def test_preview_detects_existing_student_as_update(self, client: TestClient):
+        """Regression test for the N+1 fix in the preview endpoint: existence
+        detection now comes from a bulk pre-fetch instead of a query per row,
+        so it must still correctly flag an already-existing student_id/email
+        as 'update' rather than 'create', for both the matched row and an
+        unrelated new row in the same batch.
+        """
+        existing = client.post(
+            "/api/v1/students/",
+            json={
+                "student_id": "PREV001",
+                "first_name": "Existing",
+                "last_name": "Student",
+                "email": "existing.preview@example.com",
+            },
+        )
+        assert existing.status_code == 201
+
+        payload = [
+            {"student_id": "PREV001", "first_name": "Existing", "last_name": "Student", "email": "existing.preview@example.com"},
+            {"student_id": "PREV999", "first_name": "New", "last_name": "Student", "email": "new.preview@example.com"},
+        ]
+        files = {"files": ("students.json", json.dumps(payload).encode("utf-8"), "application/json")}
+        resp = client.post(
+            "/api/v1/imports/preview", files=files, data={"import_type": "students", "allow_updates": "true"}
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        items = {item["data"]["student_id"]: item for item in body["items"]}
+        assert items["PREV001"]["action"] == "update"
+        assert items["PREV999"]["action"] == "create"
+
+    def test_preview_detects_existing_course_semester_scoping(self, client: TestClient):
+        """Regression test: course existence detection must still respect the
+        original semester scoping — an exact code+semester match is 'update',
+        while the same code in a different semester is still 'create'."""
+        existing = client.post(
+            "/api/v1/courses/",
+            json={"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Α' Εξάμηνο", "credits": 3},
+        )
+        assert existing.status_code == 201
+
+        payload = [
+            {"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Α' Εξάμηνο"},
+            {"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Β' Εξάμηνο"},
+        ]
+        files = {"files": ("courses.json", json.dumps(payload).encode("utf-8"), "application/json")}
+        resp = client.post(
+            "/api/v1/imports/preview", files=files, data={"import_type": "courses", "allow_updates": "true"}
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        by_semester = {item["data"]["semester"]: item for item in body["items"]}
+        assert by_semester["Α' Εξάμηνο"]["action"] == "update"
+        assert by_semester["Β' Εξάμηνο"]["action"] == "create"
+
     def test_preview_invalid_import_type(self, client: TestClient):
         """Preview should reject invalid import types."""
         payload = [{"student_id": "STU001"}]

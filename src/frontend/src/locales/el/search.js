@@ -24,6 +24,23 @@ export default {
   },
   ariaLabel: 'Αναζήτηση',
   search: 'Αναζήτηση',
+  // Used by the SearchBar component (useTranslation('search') + t('bar.xxx')).
+  // Kept in its own group because `students`/`courses`/`grades` below are
+  // objects, not strings, so those names can't be flat keys at the root.
+  bar: {
+    placeholder: 'Αναζήτηση σπουδαστών, μαθημάτων, βαθμών...',
+    label: 'Αναζήτηση',
+    ariaLabel: 'Αναζήτηση σπουδαστών, μαθημάτων ή βαθμών',
+    clear: 'Εκκαθάριση αναζήτησης',
+    filterByType: 'Τύπος',
+    entityTypeAriaLabel: 'Φιλτράρισμα κατά τύπο οντότητας',
+    allTypes: 'Όλα',
+    students: 'Σπουδαστές',
+    courses: 'Μαθήματα',
+    grades: 'Βαθμοί',
+    loading: 'Φόρτωση αποτελεσμάτων αναζήτησης',
+    searching: 'Αναζήτηση...',
+  },
   noSuggestions: 'Δεν βρέθηκαν προτάσεις',
   unknown: 'Άγνωστο',
   type: {

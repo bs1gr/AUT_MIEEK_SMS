@@ -193,6 +193,7 @@ def validate_import_data(import_data: Dict[str, Any]) -> tuple[bool, List[str]]:
 
 
 @router.get("/semesters")
+@require_permission("sessions:manage")
 async def list_semesters(request: Request, db: Session = Depends(get_db)):
     """
     List all unique semesters found in the system.
@@ -832,6 +833,7 @@ async def rollback_import(request: Request, backup_filename: str):
 
 
 @router.get("/backups")
+@require_permission("sessions:manage")
 async def list_backups(request: Request):
     """
     List available backup files for rollback.

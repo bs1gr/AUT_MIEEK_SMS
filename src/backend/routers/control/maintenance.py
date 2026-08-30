@@ -707,11 +707,11 @@ def update_auth_settings(payload: AuthSettingsUpdate, _request: Request, _auth=D
             },
         )
     except Exception as e:
+        logger.error(f"Failed to update authentication settings: {e}", exc_info=True)
         return OperationResult(
             success=False,
-            message=f"Failed to update authentication settings: {str(e)}",
+            message="Failed to update authentication settings",
             message_key="maintenance.auth.update_error",
-            details={"error": str(e), "type": type(e).__name__},
         )
 
 

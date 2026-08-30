@@ -449,6 +449,41 @@ describe('useNotifications Hook', () => {
       });
     });
 
+    it('should re-read the access token on every connect instead of capturing it once', async () => {
+      // Regression test: `auth` was previously a plain object built once at
+      // io() call time, so socket.io's automatic reconnection kept replaying
+      // the token captured at first connect - a token refresh never reached
+      // the server on reconnect. `auth` must now be a function so socket.io
+      // calls it fresh on every (re)connection attempt.
+      const { io } = await import('socket.io-client');
+      const { result } = renderHook(() => useNotifications());
+      setAuthToken();
+      setUserContext();
+
+      await act(async () => {
+        result.current.connect();
+      });
+
+      const ioMock = vi.mocked(io);
+      const options = ioMock.mock.calls[0][1] as { auth: (cb: (data: unknown) => void) => void };
+      expect(typeof options.auth).toBe('function');
+
+      let firstCallResult: unknown;
+      options.auth((data) => {
+        firstCallResult = data;
+      });
+      expect(firstCallResult).toEqual({ token: 'test-token', user_id: 1 });
+
+      // Simulate a token refresh happening after the initial connect, then
+      // let socket.io "reconnect" by invoking the same auth function again.
+      authService.setAccessToken('refreshed-token');
+      let secondCallResult: unknown;
+      options.auth((data) => {
+        secondCallResult = data;
+      });
+      expect(secondCallResult).toEqual({ token: 'refreshed-token', user_id: 1 });
+    });
+
     it('should have proper cleanup on unmount', async () => {
       const { result, unmount } = renderHook(() => useNotifications());
       setAuthToken();

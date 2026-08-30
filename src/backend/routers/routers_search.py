@@ -91,7 +91,9 @@ async def search_students(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching students: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to search students", details={"error": str(e)})
+        return error_response(
+            code="SEARCH_ERROR", message="Failed to search students", request_id=request.state.request_id
+        )
 
 
 @router.get(
@@ -133,7 +135,9 @@ async def search_courses(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching courses: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to search courses", details={"error": str(e)})
+        return error_response(
+            code="SEARCH_ERROR", message="Failed to search courses", request_id=request.state.request_id
+        )
 
 
 @router.get(
@@ -195,7 +199,9 @@ async def search_grades(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching grades: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to search grades", details={"error": str(e)})
+        return error_response(
+            code="SEARCH_ERROR", message="Failed to search grades", request_id=request.state.request_id
+        )
 
 
 @router.post(
@@ -306,7 +312,6 @@ async def advanced_search(
         return error_response(
             code="INVALID_FILTER",
             message="Invalid filter value",
-            details={"error": str(ve)},
             request_id=request.state.request_id,
         )
     except Exception as e:
@@ -314,7 +319,6 @@ async def advanced_search(
         return error_response(
             code="SEARCH_ERROR",
             message="Failed to perform advanced search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -370,7 +374,9 @@ async def get_suggestions(
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}")
         return error_response(
-            code="SUGGESTION_ERROR", message="Failed to get search suggestions", details={"error": str(e)}
+            code="SUGGESTION_ERROR",
+            message="Failed to get search suggestions",
+            request_id=request.state.request_id,
         )
 
 
@@ -421,7 +427,9 @@ async def get_statistics(
         return success_response(stats, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting statistics: {str(e)}")
-        return error_response(code="STATS_ERROR", message="Failed to get search statistics", details={"error": str(e)})
+        return error_response(
+            code="STATS_ERROR", message="Failed to get search statistics", request_id=request.state.request_id
+        )
 
 
 # ============================================================================
@@ -488,7 +496,6 @@ async def create_saved_search(
         return error_response(
             code="CREATE_ERROR",
             message="Failed to create saved search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -541,7 +548,6 @@ async def list_saved_searches(
         return error_response(
             code="LIST_ERROR",
             message="Failed to list saved searches",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -601,7 +607,6 @@ async def get_saved_search(
         return error_response(
             code="GET_ERROR",
             message="Failed to get saved search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -671,7 +676,6 @@ async def update_saved_search(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update saved search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -720,7 +724,6 @@ async def delete_saved_search(
         return error_response(
             code="DELETE_ERROR",
             message="Failed to delete saved search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -774,7 +777,6 @@ async def toggle_saved_search_favorite(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to toggle favorite",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -852,7 +854,6 @@ async def full_text_search_students(
         return error_response(
             code="SEARCH_ERROR",
             message="Failed to perform full-text search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -958,7 +959,6 @@ async def advanced_search_students(
         return error_response(
             code="SEARCH_ERROR",
             message="Failed to perform advanced search",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -1013,7 +1013,6 @@ async def get_student_facets(
         return error_response(
             code="FACET_ERROR",
             message="Failed to get student facets",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -1063,6 +1062,5 @@ async def get_course_facets(
         return error_response(
             code="FACET_ERROR",
             message="Failed to get course facets",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )

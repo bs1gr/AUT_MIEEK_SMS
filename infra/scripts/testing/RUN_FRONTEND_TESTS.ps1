@@ -29,7 +29,8 @@ $OriginalEncoding = [Console]::OutputEncoding
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $root = $PSScriptRoot
-$frontendPath = Join-Path $root 'frontend'
+$projectRoot = (Resolve-Path (Join-Path $root "..\..\..")).Path
+$frontendPath = Join-Path $projectRoot 'src\frontend'
 $resultsDir = Join-Path $root 'test-results\frontend'
 $outputFile = Join-Path $resultsDir 'vitest_output.txt'
 $summaryFile = Join-Path $resultsDir 'summary.txt'
@@ -53,7 +54,7 @@ try {
     Write-Host 'Skipping Vitest execution (-SkipRun active).' -ForegroundColor Yellow
     "Run skipped at $(Get-Date -Format o)" | Set-Content -Path $outputFile -Encoding UTF8
   } else {
-    $npmArgs = @('--prefix', 'frontend', 'run', 'test', '--')
+    $npmArgs = @('run', 'test', '--')
     if ($Pattern) {
       $npmArgs += $Pattern
     }
@@ -74,7 +75,7 @@ try {
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.UseShellExecute = $false
-    $psi.WorkingDirectory = $root
+    $psi.WorkingDirectory = $frontendPath
 
     $proc = New-Object System.Diagnostics.Process
     $proc.StartInfo = $psi

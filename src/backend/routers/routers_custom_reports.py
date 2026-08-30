@@ -96,7 +96,6 @@ async def create_report_template(
         return error_response(
             code="CREATE_ERROR",
             message="Failed to create report template",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -130,7 +129,6 @@ async def list_report_templates(
         return error_response(
             code="LIST_ERROR",
             message="Failed to list report templates",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -162,7 +160,6 @@ async def get_report_template(
         return error_response(
             code="GET_ERROR",
             message="Failed to get report template",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -195,7 +192,6 @@ async def update_report_template(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update report template",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -230,7 +226,6 @@ async def delete_report_template(
         return error_response(
             code="DELETE_ERROR",
             message="Failed to delete report template",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -258,7 +253,6 @@ async def import_default_templates(
         return error_response(
             code="IMPORT_ERROR",
             message="Failed to import default templates",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -290,7 +284,6 @@ async def create_custom_report(
         return error_response(
             code="CREATE_ERROR",
             message="Failed to create report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -324,7 +317,6 @@ async def list_custom_reports(
         return error_response(
             code="LIST_ERROR",
             message="Failed to list reports",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -350,7 +342,6 @@ async def get_report_statistics(
         return error_response(
             code="STATS_ERROR",
             message="Failed to get report statistics",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -383,7 +374,6 @@ async def get_custom_report(
         return error_response(
             code="GET_ERROR",
             message="Failed to get report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -417,7 +407,6 @@ async def update_custom_report(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -453,7 +442,6 @@ async def delete_custom_report(
         return error_response(
             code="DELETE_ERROR",
             message="Failed to delete report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -531,7 +519,6 @@ async def generate_report(
         return error_response(
             code="GENERATE_ERROR",
             message="Failed to generate report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -576,7 +563,6 @@ async def list_generated_reports(
         return error_response(
             code="LIST_ERROR",
             message="Failed to list generated reports",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -611,7 +597,6 @@ async def update_generated_report(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update generated report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -660,7 +645,6 @@ async def delete_generated_report(
         return error_response(
             code="DELETE_ERROR",
             message="Failed to delete generated report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -750,7 +734,6 @@ async def download_generated_report(
         return error_response(
             code="DOWNLOAD_ERROR",
             message="Failed to download report",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -818,6 +801,5 @@ async def bulk_generate_reports(
         return error_response(
             code="BULK_ERROR",
             message="Failed to generate reports",
-            details={"error": str(e)},
             request_id=request.state.request_id,
         )
