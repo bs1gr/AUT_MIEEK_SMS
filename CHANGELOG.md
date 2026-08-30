@@ -12,6 +12,46 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.35] - 2026-08-30
+
+### Bug Fixes
+- **security,cleanup**: IP spoofing, DB session leaks, dead code removal
+- **security,perf**: auth gaps, N+1 queries, exception leaks, i18n, race conditions
+- **security**: resolve student self-access IDOR and CI PR-title shell injection
+- **e2e**: eliminate localhost/127.0.0.1 origin mismatch breaking local login
+- **security**: require control-admin auth on 13 unprotected control panel routes
+- **security**: close remaining CodeQL alert #1804 (py/stack-trace-exposure)
+- **security**: close remaining CodeQL stack-trace-exposure alerts (#1792-1793,#1804)
+- **security**: stop leaking exception details in HTTP error responses, harden encrypted restore path
+- **ci**: scope trivy-scan.yml to schedule/manual only
+- **ci**: allow intentional cleartext in Android APK security gate
+- **i18n**: add missing enrollmentManagement and assignStudentsToCourse translations
+- **installer**: add timeouts to QNAP PostgreSQL connection checks
+- **security**: patch pyproject.toml to close Dependabot alerts #201-#203
+- **security**: upgrade python-socketio and python-engineio to patch DoS CVEs
+
+### Documentation
+- update CLAUDE.md version references to v1.18.34
+- update work plan — v1.18.34 released, wiki updated
+
+### Chores
+- **gitignore**: stop tracking playwright-report artifacts
+- **deps**: bump cryptography, js-yaml, linkify-it, axios, react-router, postcss, fast-uri, socket.io-parser, tar, sharp, esbuild
+- **deps-dev**: bump ws from 8.19.0 to 8.21.0 (#209)
+- **deps**: bump js-yaml and markdownlint-cli (#208)
+
+## [1.18.35] - 2026-08-30
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.34] - 2026-06-26
 
 ### Features
@@ -4757,6 +4797,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
