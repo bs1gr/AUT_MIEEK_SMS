@@ -135,7 +135,10 @@ export const formatAllGrades = (gpa: number): AllGradeFormats => {
 /**
  * Get letter grade from percentage using standard academic scale
  * A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86), B- (80-82),
- * C+ (77-79), C (70-76), D (60-69), F (0-59)
+ * C+ (77-79), C (65-76), D (50-64), F (0-49)
+ *
+ * Pass mark is 50%, matching the Greek 0-20 scale's pass threshold (10/20)
+ * used elsewhere in this file.
  */
 export const getLetterGrade = (percentage: number): string => {
   if (percentage >= 97) return 'A+';
@@ -145,7 +148,7 @@ export const getLetterGrade = (percentage: number): string => {
   if (percentage >= 83) return 'B';
   if (percentage >= 80) return 'B-';
   if (percentage >= 77) return 'C+';
-  if (percentage >= 70) return 'C';
-  if (percentage >= 60) return 'D';
+  if (percentage >= 65) return 'C';
+  if (percentage >= 50) return 'D';
   return 'F';
 };

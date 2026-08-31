@@ -215,8 +215,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const getLetterGrade = (percentage: number) => {
     if (percentage >= 90) return 'A';
     if (percentage >= 80) return 'B';
-    if (percentage >= 70) return 'C';
-    if (percentage >= 60) return 'D';
+    if (percentage >= 65) return 'C';
+    if (percentage >= 50) return 'D';
     return 'F';
   };
 

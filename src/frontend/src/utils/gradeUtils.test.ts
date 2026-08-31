@@ -131,22 +131,22 @@ describe('gradeUtils - Core Conversions', () => {
       expect(getLetterGrade(79)).toBe('C+');
     });
 
-    it('returns C for percentage 70-76', () => {
+    it('returns C for percentage 65-76', () => {
+      expect(getLetterGrade(65)).toBe('C');
       expect(getLetterGrade(70)).toBe('C');
-      expect(getLetterGrade(73)).toBe('C');
       expect(getLetterGrade(76)).toBe('C');
     });
 
-    it('returns D for percentage 60-69', () => {
-      expect(getLetterGrade(60)).toBe('D');
-      expect(getLetterGrade(65)).toBe('D');
-      expect(getLetterGrade(69)).toBe('D');
+    it('returns D for percentage 50-64', () => {
+      expect(getLetterGrade(50)).toBe('D');
+      expect(getLetterGrade(57)).toBe('D');
+      expect(getLetterGrade(64)).toBe('D');
     });
 
-    it('returns F for percentage < 60', () => {
+    it('returns F for percentage < 50', () => {
       expect(getLetterGrade(0)).toBe('F');
       expect(getLetterGrade(30)).toBe('F');
-      expect(getLetterGrade(59)).toBe('F');
+      expect(getLetterGrade(49)).toBe('F');
     });
   });
 

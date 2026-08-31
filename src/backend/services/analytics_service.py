@@ -344,7 +344,10 @@ class AnalyticsService:
         """Convert percentage to letter grade using standard academic scale.
 
         Scale: A+ (97-100), A (93-96), A- (90-92), B+ (87-89), B (83-86),
-               B- (80-82), C+ (77-79), C (70-76), D (60-69), F (0-59)
+               B- (80-82), C+ (77-79), C (65-76), D (50-64), F (0-49)
+
+        Pass mark is 50%, matching the Greek 0-20 scale's pass threshold
+        (10/20) used elsewhere in this system.
         """
         if percentage >= 97:
             return "A+"
@@ -360,9 +363,9 @@ class AnalyticsService:
             return "B-"
         if percentage >= 77:
             return "C+"
-        if percentage >= 70:
+        if percentage >= 65:
             return "C"
-        if percentage >= 60:
+        if percentage >= 50:
             return "D"
         return "F"
 
