@@ -67,6 +67,8 @@ export default {
   noHighlights: 'No highlights yet',
   enrolledCourses: 'Enrolled Courses',
   noEnrollments: 'No enrollments found',
+  academicHistory: 'Academic History',
+  academicHistoryDescription: 'Permanent record of courses this student has already passed and completed.',
   failedToLoadStudentData: 'Failed to load student data',
   performance: 'Performance',
   viewPerformance: 'View Performance',

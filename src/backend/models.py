@@ -205,6 +205,78 @@ class CourseEnrollment(SoftDeleteMixin, Base):
         return f"<Enrollment(student={self.student_id}, course={self.course_id})>"
 
 
+class SemesterArchiveExport(Base):
+    """One row per admin-triggered semester archive run (traceability/history).
+
+    Not soft-deletable: this is itself an audit trail of a destructive operation.
+    """
+
+    __tablename__ = "semester_archive_exports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    semester = Column(String(50), nullable=False, index=True)
+    status = Column(String(20), nullable=False, default="pending", index=True)
+    export_filename = Column(String(255), nullable=True)
+    pass_threshold = Column(Float, nullable=False)
+    students_affected = Column(Integer, nullable=False, default=0)
+    courses_affected = Column(Integer, nullable=False, default=0)
+    enrollments_archived = Column(Integer, nullable=False, default=0)
+    enrollments_skipped = Column(Integer, nullable=False, default=0)
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    triggered_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    def __repr__(self):
+        return f"<SemesterArchiveExport(semester={self.semester}, status={self.status})>"
+
+
+class StudentCoursePerformance(Base):
+    """Permanent compact record of a passed course, kept after the raw
+    CourseEnrollment/Grade/Attendance/DailyPerformance rows for it are deleted
+    by the semester archive operation. Course fields are snapshotted so this
+    record survives a later rename/delete of the Course row.
+
+    Not soft-deletable: this is the minimal permanent record the archive
+    feature exists to produce.
+    """
+
+    __tablename__ = "student_course_performance"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="SET NULL"), nullable=True, index=True)
+    course_code = Column(String(20), nullable=False)
+    course_name = Column(String(200), nullable=False)
+    credits = Column(Integer, nullable=True)
+    semester = Column(String(50), nullable=False, index=True)
+    final_grade = Column(Float, nullable=False)
+    letter_grade = Column(String(5), nullable=False)
+    gpa = Column(Float, nullable=True)
+    passed = Column(Boolean, nullable=False, default=True)
+    total_weight_used = Column(Float, nullable=False)
+    archived_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    archived_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    export_id = Column(Integer, ForeignKey("semester_archive_exports.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    student = relationship("Student")  # type: ignore[var-annotated]
+
+    __table_args__ = (
+        Index("idx_student_course_performance_student_semester", "student_id", "semester"),
+        Index("idx_student_course_performance_student_course", "student_id", "course_id"),
+        Index(
+            "idx_student_course_performance_unique",
+            "student_id",
+            "course_code",
+            "semester",
+            unique=True,
+        ),
+    )
+
+    def __repr__(self):
+        return f"<StudentCoursePerformance(student={self.student_id}, course_code={self.course_code}, semester={self.semester})>"
+
+
 class DailyPerformance(SoftDeleteMixin, Base):
     """Daily performance tracking with proper indexing"""
 

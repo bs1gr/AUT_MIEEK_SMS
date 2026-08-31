@@ -8,6 +8,7 @@ const AdminLayout: React.FC = () => {
   const adminPages = [
     { path: '/admin/permissions', label: 'Permissions' },
     { path: '/admin/import-export', label: 'Import/Export' },
+    { path: '/admin/semester-archive', label: 'Semester Archive' },
   ];
 
   const isActive = (path: string) => location.pathname === path;

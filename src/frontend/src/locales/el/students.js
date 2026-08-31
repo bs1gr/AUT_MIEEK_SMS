@@ -67,6 +67,8 @@ export default {
   noHighlights: 'Δεν υπάρχουν ακόμα επιτεύγματα',
   enrolledCourses: 'Εγγεγραμμένα Μαθήματα',
   noEnrollments: 'Δεν βρέθηκαν εγγραφές',
+  academicHistory: 'Ακαδημαϊκό Ιστορικό',
+  academicHistoryDescription: 'Μόνιμο αρχείο μαθημάτων που ο μαθητής έχει ήδη περάσει και ολοκληρώσει.',
   failedToLoadStudentData: 'Αποτυχία φόρτωσης δεδομένων σπουδαστή',
   performance: 'Επίδοση',
   viewPerformance: 'Προβολή Επίδοσης',

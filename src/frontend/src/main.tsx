@@ -29,6 +29,7 @@ import {
   PowerPage,
   AdminPermissionsPage,
   ImportExportPage,
+  SemesterArchivePage,
   AnalyticsPage,
   DashboardManagerPage,
   SearchPage,
@@ -106,6 +107,7 @@ void (async () => {
                 <Route element={<AdminLayout />}>
                   <Route path="/admin/permissions" element={<AdminPermissionsPage />} />
                   <Route path="/admin/import-export" element={<ImportExportPage />} />
+                  <Route path="/admin/semester-archive" element={<SemesterArchivePage />} />
                 </Route>
               </Route>
             </Route>

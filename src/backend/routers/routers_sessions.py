@@ -21,6 +21,14 @@ from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
 from backend.rbac import require_permission
 from backend.security.path_validation import validate_filename, validate_path
+from backend.services.session_data_service import fetch_semester_dataset
+from backend.services.session_data_service import serialize_attendance as _serialize_attendance
+from backend.services.session_data_service import serialize_course as _serialize_course
+from backend.services.session_data_service import serialize_enrollment as _serialize_enrollment
+from backend.services.session_data_service import serialize_grade as _serialize_grade
+from backend.services.session_data_service import serialize_highlight as _serialize_highlight
+from backend.services.session_data_service import serialize_performance as _serialize_performance
+from backend.services.session_data_service import serialize_student as _serialize_student
 
 logger = logging.getLogger(__name__)
 
@@ -239,12 +247,14 @@ async def export_session(
     Returns a JSON file containing all related data.
     """
     try:
-        Course, Student, CourseEnrollment, Grade, Attendance, DailyPerformance, Highlight = import_names(
-            "models", "Course", "Student", "CourseEnrollment", "Grade", "Attendance", "DailyPerformance", "Highlight"
-        )
-
-        # Get all courses for this semester
-        courses = db.query(Course).filter(Course.semester == semester, Course.deleted_at.is_(None)).all()
+        dataset = fetch_semester_dataset(db, semester)
+        courses = dataset["courses"]
+        students = dataset["students"]
+        enrollments = dataset["enrollments"]
+        grades = dataset["grades"]
+        attendance = dataset["attendance"]
+        daily_performance = dataset["daily_performance"]
+        highlights = dataset["highlights"]
 
         if not courses:
             raise http_error(
@@ -254,66 +264,6 @@ async def export_session(
                 request,
                 context={"semester": semester},
             )
-
-        course_ids = [c.id for c in courses]
-
-        # Get enrollments for these courses
-        enrollments = (
-            db.query(CourseEnrollment)
-            .filter(CourseEnrollment.course_id.in_(course_ids), CourseEnrollment.deleted_at.is_(None))
-            .all()
-        )
-
-        student_ids = list(set([e.student_id for e in enrollments]))
-
-        # Get all related data
-        students = (
-            db.query(Student).filter(Student.id.in_(student_ids), Student.deleted_at.is_(None)).all()
-            if student_ids
-            else []
-        )
-
-        grades = (
-            db.query(Grade)
-            .filter(Grade.course_id.in_(course_ids), Grade.student_id.in_(student_ids), Grade.deleted_at.is_(None))
-            .all()
-            if student_ids
-            else []
-        )
-
-        attendance = (
-            db.query(Attendance)
-            .filter(
-                Attendance.course_id.in_(course_ids),
-                Attendance.student_id.in_(student_ids),
-                Attendance.deleted_at.is_(None),
-            )
-            .all()
-            if student_ids
-            else []
-        )
-
-        daily_performance = (
-            db.query(DailyPerformance)
-            .filter(
-                DailyPerformance.course_id.in_(course_ids),
-                DailyPerformance.student_id.in_(student_ids),
-                DailyPerformance.deleted_at.is_(None),
-            )
-            .all()
-            if student_ids
-            else []
-        )
-
-        highlights = (
-            db.query(Highlight)
-            .filter(
-                Highlight.student_id.in_(student_ids), Highlight.semester == semester, Highlight.deleted_at.is_(None)
-            )
-            .all()
-            if student_ids
-            else []
-        )
 
         # Build export package
         export_data = {
@@ -870,95 +820,8 @@ async def list_backups(request: Request):
         )
 
 
-# Helper functions for serialization
-def _serialize_course(course) -> Dict[str, Any]:
-    return {
-        "course_code": course.course_code,
-        "course_name": course.course_name,
-        "semester": course.semester,
-        "credits": course.credits,
-        "hours_per_week": course.hours_per_week,
-        "periods_per_week": course.periods_per_week,
-        "description": course.description,
-        "evaluation_rules": course.evaluation_rules,
-        "teaching_schedule": course.teaching_schedule,
-        "absence_penalty": course.absence_penalty,
-    }
-
-
-def _serialize_student(student) -> Dict[str, Any]:
-    return {
-        "student_id": student.student_id,
-        "first_name": student.first_name,
-        "last_name": student.last_name,
-        "email": student.email,
-        "father_name": getattr(student, "father_name", None),
-        "mobile_phone": getattr(student, "mobile_phone", None),
-        "phone": getattr(student, "phone", None),
-        "study_year": getattr(student, "study_year", None),
-        "health_issue": getattr(student, "health_issue", None),
-        "enrollment_date": str(student.enrollment_date) if student.enrollment_date else None,
-        "is_active": student.is_active,
-    }
-
-
-def _serialize_enrollment(enrollment) -> Dict[str, Any]:
-    return {
-        "student_id_ref": enrollment.student.student_id if enrollment.student else None,
-        "course_code_ref": enrollment.course.course_code if enrollment.course else None,
-        "enrolled_at": str(enrollment.enrolled_at) if enrollment.enrolled_at else None,
-    }
-
-
-def _serialize_grade(grade) -> Dict[str, Any]:
-    return {
-        "student_id_ref": grade.student.student_id if grade.student else None,
-        "course_code_ref": grade.course.course_code if grade.course else None,
-        "assignment_name": grade.assignment_name,
-        "category": grade.category,
-        "grade": float(grade.grade),
-        "max_grade": float(grade.max_grade),
-        "weight": float(grade.weight) if grade.weight else None,
-        # component_type was removed from Grade model; export legacy value if attribute exists
-        "component_type": getattr(grade, "component_type", None),
-        "date_assigned": str(grade.date_assigned) if grade.date_assigned else None,
-        "date_submitted": str(grade.date_submitted) if grade.date_submitted else None,
-    }
-
-
-def _serialize_attendance(attendance) -> Dict[str, Any]:
-    return {
-        "student_id_ref": attendance.student.student_id if attendance.student else None,
-        "course_code_ref": attendance.course.course_code if attendance.course else None,
-        "date": str(attendance.date) if attendance.date else None,
-        "status": attendance.status,
-        "period_number": attendance.period_number,
-        "notes": attendance.notes,
-    }
-
-
-def _serialize_performance(performance) -> Dict[str, Any]:
-    return {
-        "student_id_ref": performance.student.student_id if performance.student else None,
-        "course_code_ref": performance.course.course_code if performance.course else None,
-        "date": str(performance.date) if performance.date else None,
-        "category": performance.category,
-        "score": float(performance.score),
-        "max_score": float(performance.max_score),
-        "notes": performance.notes,
-    }
-
-
-def _serialize_highlight(highlight) -> Dict[str, Any]:
-    return {
-        "student_id_ref": highlight.student.student_id if highlight.student else None,
-        "semester": highlight.semester,
-        "category": highlight.category,
-        "rating": highlight.rating,
-        "highlight_text": highlight.highlight_text,
-        "is_positive": highlight.is_positive,
-        "date_created": str(highlight.date_created) if highlight.date_created else None,
-    }
+# Serialization helpers (_serialize_*) now live in backend.services.session_data_service,
+# imported above, so the semester archive service can reuse the exact same output shape.
 
 
 # Helper functions for import

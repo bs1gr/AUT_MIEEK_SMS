@@ -20,7 +20,9 @@ from backend.schemas.enrollments import (
     EnrollmentStatusUpdate,
     StudentBrief,
 )
+from backend.schemas.semester_archive import StudentCoursePerformanceResponse
 from backend.services.enrollment_service import EnrollmentService
+from backend.services.semester_archive_service import SemesterArchiveService
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +83,26 @@ def list_student_enrollments(student_id: int, request: Request, db: Session = De
 
         logger.error(
             "Error listing enrollments for student",
+            extra=safe_log_context(student_id=student_id, error=str(exc)),
+            exc_info=True,
+        )
+        raise internal_server_error(request=request)
+
+
+@router.get("/student/{student_id}/performance-history", response_model=List[StudentCoursePerformanceResponse])
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
+def get_student_performance_history(student_id: int, request: Request, db: Session = Depends(get_db)):
+    """Get a student's permanent record of passed, archived courses."""
+    try:
+        return SemesterArchiveService(db).get_student_performance_history(student_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error getting student performance history",
             extra=safe_log_context(student_id=student_id, error=str(exc)),
             exc_info=True,
         )

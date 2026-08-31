@@ -72,6 +72,19 @@ export interface CourseEnrollment {
   status?: 'active' | 'completed' | 'dropped';
 }
 
+export interface StudentCoursePerformance {
+  id: number;
+  course_code: string;
+  course_name: string;
+  credits?: number;
+  semester: string;
+  final_grade: number;
+  letter_grade: string;
+  gpa?: number;
+  passed: boolean;
+  archived_at: string;
+}
+
 export interface DailyPerformance {
   id: number;
   student_id: number;

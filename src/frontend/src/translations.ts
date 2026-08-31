@@ -57,6 +57,8 @@ import systemEn from './locales/en/system.js';
 import systemEl from './locales/el/system.js';
 import offlineEn from './locales/en/offline.js';
 import offlineEl from './locales/el/offline.js';
+import semesterArchiveEn from './locales/en/semesterArchive.js';
+import semesterArchiveEl from './locales/el/semesterArchive.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -99,7 +101,8 @@ export const translationNamespaces = {
     customReports: customReportsEn,
     messages: messagesEn,
     system: systemEn,
-    offline: offlineEn
+    offline: offlineEn,
+    semesterArchive: semesterArchiveEn
   },
 
   el: {
@@ -125,7 +128,8 @@ export const translationNamespaces = {
     customReports: customReportsEl,
     messages: messagesEl,
     system: systemEl,
-    offline: offlineEl
+    offline: offlineEl,
+    semesterArchive: semesterArchiveEl
   }
 };
 

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import apiClient, { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { GradeBreakdownModal } from '@/features/grading';
 import StudentPerformanceReport from '@/components/StudentPerformanceReport';
-import type { Student, Grade, Attendance, Highlight, HighlightCreatePayload, Course, CourseEnrollment } from '@/types';
+import type { Student, Grade, Attendance, Highlight, HighlightCreatePayload, Course, CourseEnrollment, StudentCoursePerformance } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,6 +29,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [error, setError] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [coursesById, setCoursesById] = useState<Record<number, Course>>({});
+  const [performanceHistory, setPerformanceHistory] = useState<StudentCoursePerformance[]>([]);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
   const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
@@ -121,6 +122,17 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         setEnrollments([]);
         setCoursesById({});
       }
+
+      // Try to load archived performance history, but don't fail if none exists yet
+      try {
+        const historyRes = await apiClient.get(`/enrollments/student/${studentId}/performance-history`);
+        if (isStale()) return;
+        setPerformanceHistory(Array.isArray(historyRes.data) ? historyRes.data : []);
+      } catch (historyError) {
+        if (isStale()) return;
+        console.warn('Performance history endpoint not available:', historyError);
+        setPerformanceHistory([]);
+      }
     } catch (error) {
       if (isStale()) return;
       console.error('Failed to load student data:', error);
@@ -131,6 +143,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       setHighlights([]);
       setEnrollments([]);
       setCoursesById({});
+      setPerformanceHistory([]);
     } finally {
       if (!isStale()) {
         setLoading(false);
@@ -748,6 +761,34 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             </div>
           )}
         </div>
+
+        {/* Academic History (completed courses archived by a semester archive run) */}
+        {performanceHistory.length > 0 && (
+          <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">{t('academicHistory', { ns: 'students' })}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t('academicHistoryDescription', { ns: 'students' })}</p>
+            <div className="space-y-2">
+              {performanceHistory.map((record, idx) => (
+                <React.Fragment key={record.id}>
+                  <div className="flex items-center justify-between p-3 rounded border">
+                    <div>
+                      <div className="font-semibold text-gray-800">{record.course_code} — {record.course_name}</div>
+                      <div className="text-xs text-gray-500">{record.semester}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-bold text-sm">
+                        {record.letter_grade} ({record.final_grade.toFixed(1)}%)
+                      </span>
+                    </div>
+                  </div>
+                  {idx < performanceHistory.length - 1 && (
+                    <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" role="separator" aria-orientation="horizontal" />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent Grades */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">

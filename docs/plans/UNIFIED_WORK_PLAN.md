@@ -9,6 +9,51 @@
 
 ---
 
+## 🧩 Semester Archive Feature (August 31, 2026) — IN PROGRESS, UNRELEASED
+
+**Status**: 🔧 Implemented, not yet version-bumped or released.
+
+Adds an admin-only "semester archive" operation: pick a semester (grouped by the
+existing free-text `Course.semester` label), preview which student+course pairs
+have been passed and fully graded (weighted final grade vs. a configurable
+threshold, reusing `AnalyticsService.calculate_final_grade`), back up the whole
+semester's data (reuses the existing session-export dataset/serializers from
+`routers_sessions.py`, now extracted into `services/session_data_service.py`,
+persisted as an AES-256-GCM encrypted artifact via `BackupServiceEncrypted`),
+then replace the raw `CourseEnrollment`/`Grade`/`Attendance`/`DailyPerformance`
+rows for each passed course with one permanent `StudentCoursePerformance`
+record. Failed/dropped/still-in-progress enrollments are left untouched.
+Student profiles are never touched.
+
+### New/changed backend
+
+- `models.py`: `SemesterArchiveExport`, `StudentCoursePerformance` tables.
+- Migration `a3f7c9e2b5d1_add_semester_archive_tables.py` (head, on `e8f9a1b2c3d4`).
+- `services/session_data_service.py` (new — extracted from `routers_sessions.py`
+  so the semester export payload is built in exactly one place).
+- `services/semester_export_service.py`, `services/semester_archive_service.py` (new).
+- `routers/routers_semester_archive.py` (new, `optional_require_role("admin")` gated,
+  registered in `router_registry.py`); `GET /enrollments/student/{id}/performance-history`
+  added to `routers_enrollments.py`.
+- New `ErrorCode` entries (`SEMESTER_ARCHIVE_*`).
+- Tests: `test_semester_archive_service.py`, `test_semester_archive_router.py`.
+
+### New/changed frontend
+
+- `features/semesterArchive/` (`SemesterArchivePage.tsx` + `useSemesterArchive.ts`),
+  wired into `AdminLayout.tsx` as a third tab (`/admin/semester-archive`).
+- `StudentProfile.tsx`: new "Academic History" section reading the new endpoint.
+- New `semesterArchive` i18n namespace (en/el); `students.js` gained
+  `academicHistory`/`academicHistoryDescription` keys.
+
+### Not yet done
+
+- No dedicated `StudentProfile.tsx` test file exists in this codebase to extend
+  (none pre-existed); the new section wasn't given standalone test coverage.
+- Not yet version-bumped, tagged, or released — no installer built.
+
+---
+
 ## 🚀 v1.18.34 — Android Student Card Layout Fix + Tailscale CORS (June 26, 2026)
 
 **Status**: ✅ RELEASED | Tag `v1.18.34` | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.34
