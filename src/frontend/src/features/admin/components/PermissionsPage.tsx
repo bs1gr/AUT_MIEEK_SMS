@@ -90,7 +90,7 @@ export default function PermissionsPage() {
     queryKey: ['permissions', 'list'],
     queryFn: async () => {
       const res = await apiClient.get('/permissions');
-      return extractAPIResponseData(res) ?? [];
+      return extractAPIResponseData(res.data) ?? [];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -99,7 +99,7 @@ export default function PermissionsPage() {
     queryKey: ['permissions', 'by-resource'],
     queryFn: async () => {
       const res = await apiClient.get('/permissions/by-resource');
-      return extractAPIResponseData(res) ?? [];
+      return extractAPIResponseData(res.data) ?? [];
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -108,7 +108,7 @@ export default function PermissionsPage() {
     queryKey: ['permissions', 'stats'],
     queryFn: async () => {
       const res = await apiClient.get('/permissions/stats');
-      return extractAPIResponseData(res) ?? null;
+      return extractAPIResponseData(res.data) ?? null;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -117,7 +117,7 @@ export default function PermissionsPage() {
     queryKey: ['roles'],
     queryFn: async () => {
       const response = await apiClient.get('/rbac/roles');
-      return extractAPIResponseData(response) ?? [];
+      return extractAPIResponseData(response.data) ?? [];
     },
   });
 
@@ -127,7 +127,7 @@ export default function PermissionsPage() {
         role_name: roleName,
         permission_key: permissionKey,
       });
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
@@ -144,7 +144,7 @@ export default function PermissionsPage() {
         user_id: userId,
         permission_key: permissionKey,
       });
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
@@ -161,7 +161,7 @@ export default function PermissionsPage() {
         role_name: roleName,
         permission_key: permissionKey,
       });
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
@@ -178,7 +178,7 @@ export default function PermissionsPage() {
         user_id: userId,
         permission_key: permissionKey,
       });
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
@@ -194,7 +194,7 @@ export default function PermissionsPage() {
     enabled: Boolean(auditUserId),
     queryFn: async (): Promise<UserPermissionsResponse> => {
       const res = await apiClient.get(`/permissions/users/${auditUserId}`);
-      return extractAPIResponseData(res) as UserPermissionsResponse;
+      return extractAPIResponseData(res.data) as UserPermissionsResponse;
     },
     staleTime: 60 * 1000,
     retry: 1,
@@ -499,8 +499,8 @@ export default function PermissionsPage() {
 
           {userPermissionsQuery.isFetching && (
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" aria-label={t('common.loading') || 'Loading'} />
-              <span>{t('common.loading') || 'Loading...'}</span>
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" aria-label={t('loading', { ns: 'common' }) || 'Loading'} />
+              <span>{t('loading', { ns: 'common' }) || 'Loading...'}</span>
             </div>
           )}
 
@@ -526,7 +526,7 @@ export default function PermissionsPage() {
                   {t('directPermissions')}
                 </h4>
                 {userPermissionsQuery.data.direct_permissions.length === 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('noData', { ns: 'translation' })}</p>
                 ) : (
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                     {userPermissionsQuery.data.direct_permissions.map((perm: UserPermissionDetail) => (
@@ -548,7 +548,7 @@ export default function PermissionsPage() {
                   {t('rolePermissions')}
                 </h4>
                 {userPermissionsQuery.data.role_permissions.length === 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('noData', { ns: 'translation' })}</p>
                 ) : (
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                     {userPermissionsQuery.data.role_permissions.map((perm: RolePermissionDetail) => (
@@ -578,7 +578,7 @@ export default function PermissionsPage() {
             onChange={(e) => setSelectedResource(e.target.value)}
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm"
           >
-            <option value="all">{t('common.all')}</option>
+            <option value="all">{t('all', { ns: 'translation' })}</option>
             {resources.map((resource) => (
               <option key={resource} value={resource}>
                 {resource}
@@ -590,7 +590,7 @@ export default function PermissionsPage() {
         <div className="p-4">
           {filteredPermissions.length === 0 ? (
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              {t('common.noData') || 'No permissions found.'}
+              {t('noData', { ns: 'translation' }) || 'No permissions found.'}
             </p>
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -602,7 +602,7 @@ export default function PermissionsPage() {
                         <p className="font-medium text-gray-800 dark:text-gray-200">{perm.key}</p>
                         {!perm.is_active && (
                           <span className="px-2 py-0.5 text-xs rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                            {t('common.inactive')}
+                            {t('inactive', { ns: 'common' })}
                           </span>
                         )}
                       </div>
