@@ -42,7 +42,6 @@ export default {
    help: 'Help',
   powerTab: 'Power',
   power: 'Power',
-  adminTab: 'Admin',
   updates: 'Updates',
   diagnostics: 'Diagnostics',
   ports: 'Ports',

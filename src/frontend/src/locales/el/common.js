@@ -42,7 +42,6 @@ export default {
   help: 'Βοήθεια',
   powerTab: 'Πίνακας Ελέγχου',
   power: 'Power',
-  adminTab: 'Διαχείριση',
   updates: 'Ενημερώσεις',
   diagnostics: 'Διαγνωστικά',
   ports: 'Θύρες',

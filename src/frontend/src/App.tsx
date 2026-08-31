@@ -40,8 +40,6 @@ const NAV_TAB_CONFIG: NavigationTabConfig[] = [
   { key: 'system', labelKey: 'powerTab', path: '/power' },
 ];
 
-const ADMIN_NAV_TAB: NavigationTabConfig = { key: 'admin', labelKey: 'adminTab', path: '/admin/permissions' };
-
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,15 +86,13 @@ function AppLayout({ children }: AppLayoutProps) {
     setShowPasswordPrompt(false);
   };
 
-  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
-
   const navigationTabs = useMemo<NavigationTab[]>(
     () =>
-      (isAdmin ? [...NAV_TAB_CONFIG, ADMIN_NAV_TAB] : NAV_TAB_CONFIG).map(({ labelKey, ...tab }) => ({
+      NAV_TAB_CONFIG.map(({ labelKey, ...tab }) => ({
         ...tab,
         label: t(labelKey),
       })),
-    [t, isAdmin]
+    [t]
   );
 
   const isAuthenticated = Boolean(user || accessToken);
