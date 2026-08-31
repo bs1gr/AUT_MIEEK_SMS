@@ -266,7 +266,6 @@ export default {
   administratorSubtitle: 'Backups, restores, imports, and data resets powered by the Utilities → Maintenance toolkit.',
   administratorInfo: 'This tab reuses the proven Maintenance module from the Utilities tab so you can perform the same operations without leaving the Control Panel.',
   administratorUsersHeading: 'User Accounts',
-  permissionsHeading: 'Permissions',
   semesterArchiveHeading: 'Semester Archive',
   administratorUsersDescription: 'Review, create, update, or reset credentials for any account without leaving this dashboard.',
   refreshUsers: 'Refresh list',

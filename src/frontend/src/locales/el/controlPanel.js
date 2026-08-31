@@ -266,7 +266,6 @@ export default {
   administratorSubtitle: 'Αντίγραφα ασφαλείας, επαναφορές, εισαγωγές και καθαρισμοί δεδομένων από το εργαλείο Συντήρησης στην καρτέλα Utils.',
   administratorInfo: 'Η καρτέλα αυτή επαναχρησιμοποιεί το αξιόπιστο εργαλείο Συντήρησης από το Utilities → Maintenance ώστε να εκτελείτε τις ίδιες λειτουργίες χωρίς να φύγετε από τον Πίνακα Ελέγχου.',
   administratorUsersHeading: 'Λογαριασμοί Χρηστών',
-  permissionsHeading: 'Δικαιώματα',
   semesterArchiveHeading: 'Αρχειοθέτηση Εξαμήνου',
   administratorUsersDescription: 'Επισκόπηση, δημιουργία, ενημέρωση ή επαναφορά κωδικών χωρίς να φύγετε από τον Πίνακα Ελέγχου.',
   refreshUsers: 'Ανανέωση λίστας',

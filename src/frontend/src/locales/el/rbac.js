@@ -56,5 +56,6 @@ export default {
   grantPermissionTab: 'Ανάθεση Δικαιώματος',
   rolesLabel: 'Ρόλοι ({{count}})',
   permissionsLabel: 'Δικαιώματα ({{count}})',
-  settings: 'Ρυθμίσεις'
+  settings: 'Ρυθμίσεις',
+  permissionsTab: 'Κατάλογος Δικαιωμάτων'
 };

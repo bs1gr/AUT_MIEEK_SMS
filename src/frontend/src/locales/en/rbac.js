@@ -56,5 +56,6 @@ export default {
   grantPermissionTab: 'Grant Permission',
   rolesLabel: 'Roles ({{count}})',
   permissionsLabel: 'Permissions ({{count}})',
-  settings: 'Settings'
+  settings: 'Settings',
+  permissionsTab: 'Permissions Catalog'
 };

@@ -8,6 +8,7 @@ import { useApiMutation, useApiQuery } from '@/hooks/useApiWithRecovery';
 import apiClient, { isAuthOrPermissionError, rbacAPI, type Role, type RBACSummary } from '@/api/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import PermissionsPage from '@/features/admin/components/PermissionsPage';
 
 export const RBACPanel: React.FC = () => {
   const { t } = useLanguage();
@@ -218,6 +219,7 @@ export const RBACPanel: React.FC = () => {
     { id: 'users', label: t('rbac.users') || 'Users' },
     { id: 'assign-role', label: t('rbac.assignRoleTab') || t('rbac.assignRole') },
     { id: 'grant-permission', label: t('rbac.grantPermissionTab') || t('rbac.grantPermission') },
+    { id: 'permissions', label: t('rbac.permissionsTab') || 'Permissions Catalog' },
     { id: 'settings', label: t('rbac.settings') || 'Settings' },
   ];
 
@@ -532,6 +534,9 @@ export const RBACPanel: React.FC = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Permissions Catalog Tab - full permission grant/revoke/audit UI */}
+          {activeTab === 'permissions' && <PermissionsPage />}
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (
