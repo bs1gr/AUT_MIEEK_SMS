@@ -367,6 +367,78 @@ function Test-Npm {
     }
 }
 
+function Stop-OrphanedMultiprocessingWorkers {
+    <#
+    .SYNOPSIS
+    Stop orphaned Python multiprocessing.spawn worker processes.
+    .DESCRIPTION
+    uvicorn --reload restarts its worker on every code change; if a prior
+    worker had already spawned multiprocessing children (e.g. a process
+    pool) and the reload/kill cycle did not sweep them (taskkill /T only
+    catches children of a PID that is still alive at kill time), those
+    children are orphaned: their parent_pid no longer exists, so their IPC
+    pipe back to the parent is permanently broken and they can do nothing
+    useful. On Windows they can also keep an inherited duplicate handle to
+    the parent's old listening socket alive, silently serving requests with
+    whatever code was loaded before the reload - so they must be swept
+    independently of the parent-signature match above, which only matches
+    the uvicorn process's own command line and never sees an already-dead
+    parent's children. Safe to kill unconditionally: an orphaned spawn
+    worker is inert by construction, regardless of which application spawned
+    it.
+    #>
+    param([switch]$Quiet)
+
+    $killedCount = 0
+
+    try {
+        $candidates = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+            $_.Name -ieq 'python.exe' -and
+            $_.CommandLine -and
+            $_.CommandLine -match 'multiprocessing\.spawn.*spawn_main\(parent_pid=(\d+)'
+        }
+
+        foreach ($candidate in $candidates) {
+            if ($candidate.CommandLine -notmatch 'parent_pid=(\d+)') {
+                continue
+            }
+            $parentPid = [int]$Matches[1]
+            $parentAlive = $false
+            if ($parentPid -gt 0) {
+                $parentAlive = [bool](Get-Process -Id $parentPid -ErrorAction SilentlyContinue)
+            }
+            if ($parentAlive) {
+                continue
+            }
+
+            $targetPid = [int]$candidate.ProcessId
+            if ($targetPid -le 0) {
+                continue
+            }
+
+            try {
+                cmd /c "taskkill /PID $targetPid /F /T" 2>$null | Out-Null
+                $killedCount++
+                if (-not $Quiet) {
+                    Write-Info "Stopped orphaned multiprocessing worker (PID $targetPid, dead parent $parentPid)"
+                }
+            }
+            catch {
+                if (-not $Quiet) {
+                    Write-Warning "Failed to stop orphaned multiprocessing worker (PID $targetPid)"
+                }
+            }
+        }
+    }
+    catch {
+        if (-not $Quiet) {
+            Write-Warning "Could not enumerate orphaned multiprocessing workers: $_"
+        }
+    }
+
+    return $killedCount
+}
+
 function Stop-BackendUvicornBySignature {
     <#
     .SYNOPSIS
@@ -375,7 +447,11 @@ function Stop-BackendUvicornBySignature {
     Some Windows environments can leave listeners bound to port 8000 where PID
     lookups intermittently fail. This helper targets python processes whose
     command line matches the backend uvicorn entrypoint and force-terminates
-    them (including child processes) to prevent stale code paths.
+    them (including child processes) to prevent stale code paths. It also
+    sweeps orphaned multiprocessing workers left over from earlier reload
+    cycles, since those survive a parent-signature-only sweep (see
+    Stop-OrphanedMultiprocessingWorkers) and can otherwise keep serving
+    pre-fix code indefinitely across restarts.
     #>
     param([switch]$Quiet)
 
@@ -413,6 +489,8 @@ function Stop-BackendUvicornBySignature {
             Write-Warning "Could not enumerate backend uvicorn processes by signature: $_"
         }
     }
+
+    $killedCount += Stop-OrphanedMultiprocessingWorkers -Quiet:$Quiet
 
     if ($killedCount -gt 0) {
         Start-Sleep -Milliseconds 500
