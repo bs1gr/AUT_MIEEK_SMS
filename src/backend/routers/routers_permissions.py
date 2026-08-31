@@ -490,7 +490,7 @@ async def get_user_permissions_detail(
             JOIN role_permissions rp ON p.id = rp.permission_id
             JOIN user_roles ur ON rp.role_id = ur.role_id
             JOIN roles r ON ur.role_id = r.id
-            WHERE ur.user_id = :user_id AND p.is_active = 1
+            WHERE ur.user_id = :user_id AND p.is_active IS TRUE
         """),
         {"user_id": user_id},
     )
