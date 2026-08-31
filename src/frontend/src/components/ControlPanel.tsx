@@ -160,7 +160,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
   const [expandDatabase, setExpandDatabase] = useState<boolean>(false);
   const [expandPermissions, setExpandPermissions] = useState<boolean>(false);
-  const [expandSemesterArchive, setExpandSemesterArchive] = useState<boolean>(false);
   const [uptime, setUptime] = useState<string>('');
   const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -1138,13 +1137,21 @@ function formatUptime(seconds: number): string {
                 />
               </button>
               {expandDevTools && (
-                <div className="p-6">
+                <div className="p-6 space-y-6">
                   <DevToolsPanel
                     variant="embedded"
                     showOperationsMonitorSummary={false}
                     hideLegacyDatabaseTools
                     onToast={handleToast}
                   />
+                  {user?.role === 'admin' && (
+                    <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                        {t('semesterArchiveHeading') || 'Semester Archive'}
+                      </h4>
+                      <SemesterArchivePage />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1173,55 +1180,30 @@ function formatUptime(seconds: number): string {
               )}
             </div>
 
-            {/* Permissions / Semester Archive: Admin only - Collapsible */}
+            {/* Permissions: Admin only - Collapsible */}
             {user?.role === 'admin' && (
-              <>
-                <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setExpandPermissions(!expandPermissions)}
-                    className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                      {t('permissionsHeading') || 'Permissions'}
-                    </h3>
-                    <ChevronDown
-                      size={20}
-                      className={`text-gray-500 dark:text-gray-400 transition-transform ${
-                        expandPermissions ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {expandPermissions && (
-                    <div className="p-6">
-                      <PermissionsPage />
-                    </div>
-                  )}
-                </div>
-
-                <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setExpandSemesterArchive(!expandSemesterArchive)}
-                    className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                      {t('semesterArchiveHeading') || 'Semester Archive'}
-                    </h3>
-                    <ChevronDown
-                      size={20}
-                      className={`text-gray-500 dark:text-gray-400 transition-transform ${
-                        expandSemesterArchive ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {expandSemesterArchive && (
-                    <div className="p-6">
-                      <SemesterArchivePage />
-                    </div>
-                  )}
-                </div>
-              </>
+              <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setExpandPermissions(!expandPermissions)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {t('permissionsHeading') || 'Permissions'}
+                  </h3>
+                  <ChevronDown
+                    size={20}
+                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                      expandPermissions ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {expandPermissions && (
+                  <div className="p-6">
+                    <PermissionsPage />
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
