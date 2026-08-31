@@ -30,7 +30,6 @@ import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
 import DatabasePanel from './ControlPanel/DatabasePanel';
 import { CONTROL_API_BASE, controlApiClient } from '@/api/api';
 import { PermissionsPage } from '@/features/admin';
-import ImportExportPage from '@/pages/admin/ImportExportPage';
 import SemesterArchivePage from '@/features/semesterArchive/SemesterArchivePage';
 
 // TypeScript interfaces
@@ -161,7 +160,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
   const [expandDatabase, setExpandDatabase] = useState<boolean>(false);
   const [expandPermissions, setExpandPermissions] = useState<boolean>(false);
-  const [expandImportExport, setExpandImportExport] = useState<boolean>(false);
   const [expandSemesterArchive, setExpandSemesterArchive] = useState<boolean>(false);
   const [uptime, setUptime] = useState<string>('');
   const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -1175,7 +1173,7 @@ function formatUptime(seconds: number): string {
               )}
             </div>
 
-            {/* Permissions / Import-Export / Semester Archive: Admin only - Collapsible */}
+            {/* Permissions / Semester Archive: Admin only - Collapsible */}
             {user?.role === 'admin' && (
               <>
                 <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
@@ -1197,29 +1195,6 @@ function formatUptime(seconds: number): string {
                   {expandPermissions && (
                     <div className="p-6">
                       <PermissionsPage />
-                    </div>
-                  )}
-                </div>
-
-                <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setExpandImportExport(!expandImportExport)}
-                    className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                      {t('importExportHeading') || 'Import / Export'}
-                    </h3>
-                    <ChevronDown
-                      size={20}
-                      className={`text-gray-500 dark:text-gray-400 transition-transform ${
-                        expandImportExport ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {expandImportExport && (
-                    <div className="p-6">
-                      <ImportExportPage />
                     </div>
                   )}
                 </div>
