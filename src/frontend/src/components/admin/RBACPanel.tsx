@@ -102,8 +102,6 @@ export const RBACPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [userId, setUserId] = useState<number | null>(null);
   const [roleName, setRoleName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);  // Store role name
-  const [selectedPermission, setSelectedPermission] = useState<string | null>(null);  // Store permission key
   const {
     data: rbacData,
     isLoading: isSummaryLoading,
@@ -178,18 +176,6 @@ export const RBACPanel: React.FC = () => {
     }
   );
 
-  // Grant permission mutation
-  const grantPermissionMutation = useApiMutation<{ status: string }, Error, { role_name: string; permission_name: string }>(
-    async (data) => rbacAPI.grantPermission(data.role_name, data.permission_name),
-    {
-      onSuccess: () => {
-        setSelectedRole(null);
-        setSelectedPermission(null);
-        refetchSummary();
-      },
-    }
-  );
-
   const handleEnsureDefaults = async () => {
     await ensureDefaultsMutation.mutate({});
   };
@@ -209,16 +195,11 @@ export const RBACPanel: React.FC = () => {
     }
   };
 
-  const handleGrantPermission = async () => {
-    if (!selectedRole || !selectedPermission) return;
-    await grantPermissionMutation.mutate({ role_name: selectedRole, permission_name: selectedPermission });
-  };
 
   const tabs = [
     { id: 'overview', label: t('rbac.overview') || 'Overview' },
     { id: 'users', label: t('rbac.users') || 'Users' },
     { id: 'assign-role', label: t('rbac.assignRoleTab') || t('rbac.assignRole') },
-    { id: 'grant-permission', label: t('rbac.grantPermissionTab') || t('rbac.grantPermission') },
     { id: 'permissions', label: t('rbac.permissionsTab') || 'Permissions Catalog' },
     { id: 'settings', label: t('rbac.settings') || 'Settings' },
   ];
@@ -470,72 +451,7 @@ export const RBACPanel: React.FC = () => {
             </Card>
           )}
 
-          {/* Grant Permission Tab */}
-          {activeTab === 'grant-permission' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">{t('rbac.grantPermission')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label htmlFor="grant-role-select" className="text-sm font-medium">{t('rbac.roleName')}</label>
-                  <select
-                    id="grant-role-select"
-                    value={selectedRole || ''}
-                    onChange={(e) => setSelectedRole(e.target.value || null)}
-                    className="w-full p-2 border rounded"
-                    aria-label="Select role to grant permission"
-                  >
-                    <option value="">{t('rbac.selectRole')}</option>
-                    {rbacData?.roles.map((role) => (
-                      <option key={role.id} value={role.name}>
-                        {t(`controlPanel.roles.${role.name}`) || role.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="permission-select" className="text-sm font-medium">{t('rbac.permission')}</label>
-                  <select
-                    id="permission-select"
-                    value={selectedPermission || ''}
-                    onChange={(e) => setSelectedPermission(e.target.value || null)}
-                    className="w-full p-2 border rounded"
-                    aria-label="Select permission to grant"
-                  >
-                    <option value="">{t('rbac.selectPermission')}</option>
-                    {rbacData?.permissions.map((perm) => (
-                      <option key={perm.id} value={perm.key || perm.name}>
-                        {translatePermission(perm.key || perm.name)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Button
-                  onClick={handleGrantPermission}
-                  disabled={!selectedRole || !selectedPermission || grantPermissionMutation.isPending}
-                  className="w-full"
-                >
-                  {grantPermissionMutation.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
-                  {t('rbac.grantPermission')}
-                </Button>
-                {grantPermissionMutation.isSuccess && (
-                  <div className="flex items-center gap-2 text-green-600 text-sm">
-                    <CheckCircle className="h-4 w-4" />
-                    {t('rbac.permissionGrantedSuccess')}
-                  </div>
-                )}
-                {grantPermissionMutation.isError && (
-                  <div className="flex items-center gap-2 text-red-600 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    {t('rbac.permissionGrantedError')}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Permissions Catalog Tab - full permission grant/revoke/audit UI */}
+          {/* Permissions Catalog Tab - full permission grant/revoke/audit UI (role or user, plus revoke) */}
           {activeTab === 'permissions' && <PermissionsPage />}
 
           {/* Settings Tab */}
