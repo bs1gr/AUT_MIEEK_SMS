@@ -24,7 +24,7 @@ interface RateLimitAdjusterProps {
 }
 
 export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
-  const { t } = useTranslation();
+  const { t } = useTranslation('controlPanel');
   const [settings, setSettings] = useState<RateLimitSettings | null>(null);
   const [defaults, setDefaults] = useState<RateLimitSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,13 +53,13 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       setChanges({});
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : 'Failed to load rate limit settings',
+        err instanceof Error ? err.message : t('rateLimits.loadError'),
         'error'
       );
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   useEffect(() => {
     loadSettings();
@@ -83,13 +83,13 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       });
 
       await loadSettings();
-      showToast('Rate limits updated successfully', 'success');
+      showToast(t('rateLimits.updateSuccess'), 'success');
     } catch (err: unknown) {
       const errorMsg = isAxiosError(err)
-        ? err.response?.data?.detail || `Failed to save: ${err.response?.status}`
+        ? err.response?.data?.detail || `${t('rateLimits.saveError')}: ${err.response?.status}`
         : err instanceof Error
         ? err.message
-        : 'Failed to save changes';
+        : t('rateLimits.saveError');
       showToast(errorMsg, 'error');
     } finally {
       setSaving(false);
@@ -97,7 +97,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
   };
 
   const resetToDefaults = async () => {
-    if (!window.confirm('Reset all rate limits to defaults?')) return;
+    if (!window.confirm(t('rateLimits.confirmReset'))) return;
 
     setSaving(true);
     try {
@@ -106,13 +106,13 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       });
 
       await loadSettings();
-      showToast('Rate limits reset to defaults', 'success');
+      showToast(t('rateLimits.resetSuccess'), 'success');
     } catch (err: unknown) {
       const errorMsg = isAxiosError(err)
-        ? err.response?.data?.detail || `Failed to reset: ${err.response?.status}`
+        ? err.response?.data?.detail || `${t('rateLimits.resetError')}: ${err.response?.status}`
         : err instanceof Error
         ? err.message
-        : 'Failed to reset limits';
+        : t('rateLimits.resetError');
       showToast(errorMsg, 'error');
     } finally {
       setSaving(false);
@@ -122,7 +122,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
   if (loading) {
     return (
       <div className="p-4 bg-gray-50 rounded border border-gray-300">
-        <p className="text-gray-600">{t('loading') || 'Loading...'}</p>
+        <p className="text-gray-600">{t('rateLimits.loading')}</p>
       </div>
     );
   }
@@ -130,17 +130,17 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
   if (!settings || !defaults) {
     return (
       <div className="p-4 bg-red-50 rounded border border-red-300">
-        <p className="text-red-700">{t('error') || 'Error loading rate limit settings'}</p>
+        <p className="text-red-700">{t('rateLimits.loadError')}</p>
       </div>
     );
   }
 
   const limitTypes = [
-    { key: 'read' as const, label: t('rateLimits.read') || 'Read (queries/min)', desc: 'GET requests' },
-    { key: 'write' as const, label: t('rateLimits.write') || 'Write (updates/min)', desc: 'POST/PUT requests' },
-    { key: 'heavy' as const, label: t('rateLimits.heavy') || 'Heavy (reports/min)', desc: 'Heavy operations' },
-    { key: 'auth' as const, label: t('rateLimits.auth') || 'Auth (logins/min)', desc: 'Login attempts' },
-    { key: 'teacher_import' as const, label: t('rateLimits.teacherImport') || 'Import (bulk/min)', desc: 'Bulk imports' },
+    { key: 'read' as const, label: t('rateLimits.read'), desc: t('rateLimits.descRead') },
+    { key: 'write' as const, label: t('rateLimits.write'), desc: t('rateLimits.descWrite') },
+    { key: 'heavy' as const, label: t('rateLimits.heavy'), desc: t('rateLimits.descHeavy') },
+    { key: 'auth' as const, label: t('rateLimits.auth'), desc: t('rateLimits.descAuth') },
+    { key: 'teacher_import' as const, label: t('rateLimits.teacherImport'), desc: t('rateLimits.descImport') },
   ];
 
   return (
@@ -156,8 +156,8 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       <div className="bg-blue-50 border border-blue-200 rounded p-4 flex gap-3">
         <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700">
-          <p className="font-semibold">{t('rateLimits.info') || 'Rate Limit Configuration'}</p>
-          <p className="text-xs mt-1">{t('rateLimits.adjustInfo') || 'Adjust these limits if users experience 429 (Too Many Requests) errors.'}</p>
+          <p className="font-semibold">{t('rateLimits.info')}</p>
+          <p className="text-xs mt-1">{t('rateLimits.adjustInfo')}</p>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
                 </div>
                 {isChanged && (
                   <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                    {t('modified') || 'Modified'}
+                    {t('rateLimits.modified')}
                   </span>
                 )}
               </div>
@@ -208,10 +208,10 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
                 {/* Info row */}
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">{t('rateLimits.requestsPerMin') || 'req/min'}</span>
+                  <span className="text-xs text-gray-600">{t('rateLimits.requestsPerMin')}</span>
                   <div className="flex gap-2 items-center">
                     <span className="text-xs text-gray-500">
-                      {t('rateLimits.default') || 'Default'}: <span className="font-semibold">{defaults[key]}</span>
+                      {t('rateLimits.default')}: <span className="font-semibold">{defaults[key]}</span>
                     </span>
                     {isAboveDefault && (
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
@@ -233,7 +233,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
-          {saving ? (t('saving') || 'Saving...') : (t('save') || 'Save Changes')}
+          {saving ? t('rateLimits.saving') : t('rateLimits.saveChanges')}
         </button>
 
         <button
@@ -242,7 +242,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
           className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <RotateCw className="w-4 h-4" />
-          {t('reset') || 'Reset Defaults'}
+          {t('rateLimits.resetButton')}
         </button>
       </div>
     </div>

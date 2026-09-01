@@ -16,10 +16,11 @@ ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build && rm -rf node_modules src test .git
 
 # 2) Backend runtime
-# Using python:3.11.8-slim-bookworm for latest security patches
+# Using python:3.13-slim-bookworm to match the project's required Python
+# version (pyproject.toml requires-python >=3.13, CI pins 3.13).
 # -slim: Minimal Python image (no build tools)
 # -bookworm: Debian 12 (stable, security-hardened)
-FROM python:3.11.8-slim-bookworm
+FROM python:3.13-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     SERVE_FRONTEND=1 \

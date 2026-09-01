@@ -1,7 +1,7 @@
 """
 Seed script for RBAC permissions system.
 
-Populates the database with 52 default permissions across all resources
+Populates the database with 53 default permissions across all resources
 and assigns them to the appropriate roles (admin, staff, teacher, student).
 
 Usage:
@@ -9,7 +9,7 @@ Usage:
 
 Features:
 - Idempotent: Safe to run multiple times
-- Creates all 52 permissions from RBAC_PERMISSION_MATRIX.md
+- Creates all 53 permissions from RBAC_PERMISSION_MATRIX.md
 - Assigns permissions to roles based on the matrix
 - Handles missing roles gracefully
 """
@@ -358,12 +358,18 @@ PERMISSIONS = [
         "action": "execute",
         "description": "Run maintenance tasks",
     },
+    {
+        "key": "sessions:manage",
+        "resource": "sessions",
+        "action": "manage",
+        "description": "Export, import, roll back, and back up semester session data",
+    },
 ]
 
 # Role-Permission mappings based on RBAC_PERMISSION_MATRIX.md
 ROLE_PERMISSIONS = {
     "admin": [
-        # All 52 permissions
+        # All 53 permissions
         "students:view",
         "students:view_all",
         "students:create",
@@ -417,6 +423,7 @@ ROLE_PERMISSIONS = {
         "backups:create",
         "backups:restore",
         "maintenance:execute",
+        "sessions:manage",
     ],
     "staff": [
         # 33 permissions

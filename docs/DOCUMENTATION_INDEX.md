@@ -1,16 +1,16 @@
 # Documentation Index
 
-**Last Updated**: 2026-06-14
+**Last Updated**: 2026-09-01
 **Project Version (documented)**: 1.18.35
 **Version**: 1.18.35
 **Current Branch**: `main`
-**Status**: ✅ **`v1.18.27` IS THE LATEST PUBLISHED RELEASE** (installer: SMS_Installer_1.18.27.exe, 24.97 MB)
+**Status**: ✅ **`v1.18.35` IS THE LATEST PUBLISHED RELEASE** (Semester Archive feature, RBAC/Permissions unification, and several post-release fixes have shipped on top of it — no new installer built yet)
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (June 15, 2026)**: v1.18.27 is the latest published release (installer: SMS_Installer_1.18.27.exe, 24.97 MB)
+> **Current Status (September 1, 2026)**: v1.18.35 is the latest published release
+> - Semester Archive (backup/archive passed courses per semester) shipped; RBAC Configuration now unifies Permissions as a tab
 > - Source structure flattened to `src/backend`, `src/frontend`, `infra/` (see CHANGELOG for v1.18.26 details)
-> - 929 backend tests passing, ~1,939 frontend tests passing, 82 E2E tests passing
 > - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
 > - Documentation navigation source of truth: this file (`docs/DOCUMENTATION_INDEX.md`)
 > - `docs/ACTIVE_WORK_STATUS.md` is a historical stub only; do not use for active planning

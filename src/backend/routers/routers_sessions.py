@@ -435,7 +435,12 @@ async def import_session(
 
                 if db_path.exists():
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    backup_filename = f"pre_import_backup_{semester.replace(' ', '_')}_{timestamp}.db"
+                    safe_semester = "".join(
+                        ch if ch in _ALLOWED_BACKUP_CHARS else "_" for ch in semester
+                    )[:64] or "unnamed"
+                    backup_filename = f"pre_import_backup_{safe_semester}_{timestamp}.db"
+                    if not is_safe_backup_filename(backup_filename):
+                        raise ValueError(f"Refusing unsafe backup filename: {backup_filename!r}")
                     backup_path = backup_dir / backup_filename
 
                     import shutil

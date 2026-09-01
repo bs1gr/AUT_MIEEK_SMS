@@ -9,7 +9,9 @@ encryption logic.
 """
 
 import json
+import os
 import re
+import stat
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,6 +23,10 @@ from backend.services.backup_service_encrypted import BackupServiceEncrypted
 from backend.services.session_data_service import build_semester_export_payload
 
 SEMESTER_ARCHIVE_DIR = Path(__file__).resolve().parents[2] / "backups" / "semester_archives"
+# Plaintext staging directory for the export JSON before it's encrypted.
+# Kept alongside the (already access-controlled) backups tree instead of the
+# shared OS temp dir, since the plaintext payload contains student PII/grades.
+_STAGING_DIR = SEMESTER_ARCHIVE_DIR / ".staging"
 
 
 def _slugify_semester(semester: str) -> str:
@@ -45,9 +51,20 @@ class SemesterExportService:
 
         json_str = json.dumps(payload, indent=2, ensure_ascii=False, default=str)
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as tmp:
+        _STAGING_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(_STAGING_DIR, stat.S_IRWXU)  # 0700: owner-only, no-op on Windows
+        except OSError:
+            pass
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8", dir=_STAGING_DIR
+        ) as tmp:
             tmp.write(json_str)
             tmp_path = Path(tmp.name)
+        try:
+            os.chmod(tmp_path, stat.S_IRUSR | stat.S_IWUSR)  # 0600: owner-only, no-op on Windows
+        except OSError:
+            pass
 
         try:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")

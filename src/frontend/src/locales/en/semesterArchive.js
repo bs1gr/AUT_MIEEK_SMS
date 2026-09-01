@@ -44,4 +44,5 @@ export default {
   loadFailed: 'Failed to load semesters',
   previewFailed: 'Failed to load preview',
   executeFailed: 'Archive run failed',
+  downloadFailed: 'Download failed',
 };

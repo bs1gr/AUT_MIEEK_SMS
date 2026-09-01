@@ -170,6 +170,7 @@ Fine-grained permission-based access control system replacing the current role-b
 | backups:create         | Trigger manual backup          |   ✅   |       |         |         |
 | backups:restore        | Restore from backup            |   ✅   |       |         |         |
 | maintenance:execute    | Run maintenance tasks          |   ✅   |       |         |         |
+| sessions:manage        | Export/import/rollback/backup semester session data |   ✅   |       |         |         |
 
 ---
 
@@ -177,7 +178,7 @@ Fine-grained permission-based access control system replacing the current role-b
 
 | Role    | Total Permissions | View/Read | Create | Edit | Delete | Manage |
 |---------|-------------------|-----------|--------|------|--------|--------|
-| Admin   | 52                | 20        | 13     | 13   | 11     | 6      |
+| Admin   | 53                | 20        | 13     | 13   | 11     | 7      |
 | Staff   | 33                | 18        | 9      | 8    | 3      | 0      |
 | Teacher | 25                | 15        | 6      | 6    | 0      | 0      |
 | Student | 11                | 10        | 0      | 1    | 0      | 0      |
@@ -546,11 +547,11 @@ PERMISSIONS = [
     {"key": "courses:delete", "resource": "courses", "action": "delete", "description": "Soft-delete courses"},
     {"key": "courses:export", "resource": "courses", "action": "export", "description": "Export course data"},
 
-    # ... (all 52 permissions)
+    # ... (all 53 permissions)
 ]
 
 ROLE_PERMISSIONS = {
-    "admin": [...],  # All 52 permissions
+    "admin": [...],  # All 53 permissions
     "staff": [...],  # 33 permissions
     "teacher": [...],  # 25 permissions
     "student": [...],  # 11 permissions
@@ -678,7 +679,7 @@ def test_endpoint_permission_enforcement(client: TestClient):
 
 ## ✅ Success Criteria
 
-- [ ] 52 permissions defined across all resources
+- [ ] 53 permissions defined across all resources
 - [ ] Database schema created with proper indexes
 - [ ] `@require_permission()` decorator functional
 - [ ] Backward compatibility with existing role system

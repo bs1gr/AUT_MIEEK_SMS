@@ -44,4 +44,5 @@ export default {
   loadFailed: 'Αποτυχία φόρτωσης εξαμήνων',
   previewFailed: 'Αποτυχία φόρτωσης προεπισκόπησης',
   executeFailed: 'Η εκτέλεση αρχειοθέτησης απέτυχε',
+  downloadFailed: 'Η λήψη απέτυχε',
 };

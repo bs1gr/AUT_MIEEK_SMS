@@ -12,77 +12,12 @@ import PermissionsPage from '@/features/admin/components/PermissionsPage';
 
 export const RBACPanel: React.FC = () => {
   const { t } = useLanguage();
-  const { i18n } = useTranslation('rbac');
+  const { t: tRbac } = useTranslation('rbac');
   const { user, updateUser } = useAuth();
 
-  // Permission translation map - hardcoded for reliability
-  const isGreek = i18n.language === 'el';
-  const permissionTranslations = {
-    analytics: isGreek ? 'Αναλυτικά' : 'Analytics',
-    'analytics:export': isGreek ? 'Εξαγωγή Αναλυτικών' : 'Export Analytics',
-    'analytics:view': isGreek ? 'Προβολή Αναλυτικών' : 'View Analytics',
-    attendance: isGreek ? 'Παρουσίες' : 'Attendance',
-    'attendance:create': isGreek ? 'Δημιουργία Παρουσιών' : 'Create Attendance',
-    'attendance:delete': isGreek ? 'Διαγραφή Παρουσιών' : 'Delete Attendance',
-    'attendance:edit': isGreek ? 'Επεξεργασία Παρουσιών' : 'Edit Attendance',
-    'attendance:export': isGreek ? 'Εξαγωγή Παρουσιών' : 'Export Attendance',
-    'attendance:view': isGreek ? 'Προβολή Παρουσιών' : 'View Attendance',
-    'attendance:view_all': isGreek ? 'Προβολή Όλων Παρουσιών' : 'View All Attendance',
-    audit: isGreek ? 'Έλεγχος' : 'Audit',
-    'audit:export': isGreek ? 'Εξαγωγή Ελέγχου' : 'Export Audit',
-    'audit:view': isGreek ? 'Προβολή Ελέγχου' : 'View Audit',
-    backups: isGreek ? 'Αντίγραφα Ασφαλείας' : 'Backups',
-    'backups:create': isGreek ? 'Δημιουργία Αντιγράφων' : 'Create Backups',
-    'backups:restore': isGreek ? 'Επαναφορά Αντιγράφων' : 'Restore Backups',
-    'backups:view': isGreek ? 'Προβολή Αντιγράφων' : 'View Backups',
-    courses: isGreek ? 'Μαθήματα' : 'Courses',
-    'courses:create': isGreek ? 'Δημιουργία Μαθημάτων' : 'Create Courses',
-    'courses:delete': isGreek ? 'Διαγραφή Μαθημάτων' : 'Delete Courses',
-    'courses:edit': isGreek ? 'Επεξεργασία Μαθημάτων' : 'Edit Courses',
-    'courses:view': isGreek ? 'Προβολή Μαθημάτων' : 'View Courses',
-    grades: isGreek ? 'Βαθμοί' : 'Grades',
-    'grades:create': isGreek ? 'Δημιουργία Βαθμών' : 'Create Grades',
-    'grades:delete': isGreek ? 'Διαγραφή Βαθμών' : 'Delete Grades',
-    'grades:edit': isGreek ? 'Επεξεργασία Βαθμών' : 'Edit Grades',
-    'grades:export': isGreek ? 'Εξαγωγή Βαθμών' : 'Export Grades',
-    'grades:view': isGreek ? 'Προβολή Βαθμών' : 'View Grades',
-    import: isGreek ? 'Εισαγωγή' : 'Import',
-    'import:execute': isGreek ? 'Εκτέλεση Εισαγωγής' : 'Execute Import',
-    'import:view': isGreek ? 'Προβολή Εισαγωγής' : 'View Import',
-    logs: isGreek ? 'Αρχεία Καταγραφής' : 'Logs',
-    'logs:export': isGreek ? 'Εξαγωγή Αρχείων' : 'Export Logs',
-    'logs:view': isGreek ? 'Προβολή Αρχείων' : 'View Logs',
-    monitoring: isGreek ? 'Παρακολούθηση' : 'Monitoring',
-    'monitoring:control': isGreek ? 'Έλεγχος Παρακολούθησης' : 'Control Monitoring',
-    'monitoring:view': isGreek ? 'Προβολή Παρακολούθησης' : 'View Monitoring',
-    rbac: isGreek ? 'RBAC' : 'RBAC',
-    'rbac:assign': isGreek ? 'Ανάθεση RBAC' : 'Assign RBAC',
-    'rbac:view': isGreek ? 'Προβολή RBAC' : 'View RBAC',
-    reports: isGreek ? 'Αναφορές' : 'Reports',
-    'reports:create': isGreek ? 'Δημιουργία Αναφορών' : 'Create Reports',
-    'reports:export': isGreek ? 'Εξαγωγή Αναφορών' : 'Export Reports',
-    'reports:view': isGreek ? 'Προβολή Αναφορών' : 'View Reports',
-    settings: isGreek ? 'Ρυθμίσεις' : 'Settings',
-    'settings:edit': isGreek ? 'Επεξεργασία Ρυθμίσεων' : 'Edit Settings',
-    'settings:view': isGreek ? 'Προβολή Ρυθμίσεων' : 'View Settings',
-    students: isGreek ? 'Σπουδαστές' : 'Students',
-    'students:create': isGreek ? 'Δημιουργία Σπουδαστών' : 'Create Students',
-    'students:delete': isGreek ? 'Διαγραφή Σπουδαστών' : 'Delete Students',
-    'students:edit': isGreek ? 'Επεξεργασία Σπουδαστών' : 'Edit Students',
-    'students:export': isGreek ? 'Εξαγωγή Σπουδαστών' : 'Export Students',
-    'students:view': isGreek ? 'Προβολή Σπουδαστών' : 'View Students',
-    system: isGreek ? 'Σύστημα' : 'System',
-    'system:control': isGreek ? 'Έλεγχος Συστήματος' : 'Control System',
-    'system:view': isGreek ? 'Προβολή Συστήματος' : 'View System',
-    users: isGreek ? 'Χρήστες' : 'Users',
-    'users:create': isGreek ? 'Δημιουργία Χρηστών' : 'Create Users',
-    'users:delete': isGreek ? 'Διαγραφή Χρηστών' : 'Delete Users',
-    'users:edit': isGreek ? 'Επεξεργασία Χρηστών' : 'Edit Users',
-    'users:view': isGreek ? 'Προβολή Χρηστών' : 'View Users',
-  };
-
   const translatePermission = (permName: string): string => {
-    return permissionTranslations[permName as keyof typeof permissionTranslations] || permName;
+    const translated = tRbac(`permissionNames.${permName}`);
+    return translated === `permissionNames.${permName}` ? permName : translated;
   };
 
   const getTranslationValue = (key: string): string => {

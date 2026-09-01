@@ -89,6 +89,7 @@ def _import_from_possible_locations(module_basename: str, names: Iterable[str]) 
 (settings,) = _import_from_possible_locations("config", ["settings"])
 get_db, engine = _import_from_possible_locations("db", ["get_session", "engine"])
 Student, Course, Grade, Base = _import_from_possible_locations("models", ["Student", "Course", "Grade", "Base"])
+(run_migrations,) = _import_from_possible_locations("run_migrations", ["run_migrations"])
 
 # Create router
 router = APIRouter()
@@ -144,7 +145,7 @@ async def health_check(db: Session = Depends(get_db)):
 
 @router.post("/reset-database")
 async def reset_database(_auth=Depends(require_control_admin)):
-    """Drop all tables and recreate them (WARNING: Deletes all data!)"""
+    """Drop all tables and recreate the schema via Alembic (WARNING: Deletes all data!)"""
     try:
         # Close all connections
         engine.dispose()
@@ -152,8 +153,11 @@ async def reset_database(_auth=Depends(require_control_admin)):
         # Drop all tables
         Base.metadata.drop_all(bind=engine)
 
-        # Recreate all tables
-        Base.metadata.create_all(bind=engine)
+        # Recreate schema through Alembic so the resulting DB is stamped with
+        # the correct head revision, matching every other schema-creation path
+        # in the project (never Base.metadata.create_all() outside migrations).
+        if not run_migrations(verbose=False):
+            raise RuntimeError("Alembic upgrade to head failed after drop_all")
 
         return {"message": "Database reset successfully"}
     except Exception:

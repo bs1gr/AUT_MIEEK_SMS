@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import apiClient from '@/api/api';
 
 export interface SemesterListItem {
@@ -68,6 +69,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 }
 
 export function useSemesterArchive() {
+  const { t } = useTranslation('semesterArchive');
   const [semesters, setSemesters] = useState<SemesterListItem[]>([]);
   const [preview, setPreview] = useState<SemesterArchivePreview | null>(null);
   const [exports, setExports] = useState<SemesterArchiveExportListItem[]>([]);
@@ -83,12 +85,12 @@ export function useSemesterArchive() {
       const res = await apiClient.get('/semester-archive/semesters');
       setSemesters(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to load semesters'));
+      setError(extractErrorMessage(err, t('loadFailed')));
       setSemesters([]);
     } finally {
       setLoadingSemesters(false);
     }
-  }, []);
+  }, [t]);
 
   const loadExports = useCallback(async () => {
     try {
@@ -111,12 +113,12 @@ export function useSemesterArchive() {
       setPreview(res.data);
       return res.data as SemesterArchivePreview;
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to load preview'));
+      setError(extractErrorMessage(err, t('previewFailed')));
       return null;
     } finally {
       setLoadingPreview(false);
     }
-  }, []);
+  }, [t]);
 
   const execute = useCallback(
     async (semester: string, passThreshold: number, confirmText: string): Promise<SemesterArchiveExecuteResult | null> => {
@@ -131,13 +133,13 @@ export function useSemesterArchive() {
         await loadExports();
         return res.data as SemesterArchiveExecuteResult;
       } catch (err) {
-        setError(extractErrorMessage(err, 'Archive run failed'));
+        setError(extractErrorMessage(err, t('executeFailed')));
         return null;
       } finally {
         setExecuting(false);
       }
     },
-    [loadExports]
+    [loadExports, t]
   );
 
   const downloadExport = useCallback(async (exportId: number, filename: string) => {
@@ -152,9 +154,9 @@ export function useSemesterArchive() {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      setError(extractErrorMessage(err, 'Download failed'));
+      setError(extractErrorMessage(err, t('downloadFailed')));
     }
-  }, []);
+  }, [t]);
 
   return {
     semesters,

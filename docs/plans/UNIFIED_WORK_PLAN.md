@@ -1,17 +1,37 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.34
-**Last Updated**: June 26, 2026
-**Status**: ✅ **v1.18.34 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.34.exe, ~97MB) | CI GREEN | Wiki updated**
+**Current Version**: 1.18.35
+**Last Updated**: September 1, 2026
+**Status**: ✅ **v1.18.35 IS THE LATEST PUBLISHED RELEASE (VERSION file bumped in `ada862ced`) | Semester Archive, RBAC/Permissions unification, and follow-on fixes have landed on `main` since — no new installer built yet**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.34 maintenance
+**Current Phase**: Active Development | Post-v1.18.35 maintenance
 **Current Branch**: `main`
 
 ---
 
-## 🧩 Semester Archive Feature (August 31, 2026) — IN PROGRESS, UNRELEASED
+## 📋 Post-v1.18.35 Accumulation (August 31 – September 1, 2026) — UNRELEASED (no installer built yet)
 
-**Status**: 🔧 Implemented, not yet version-bumped or released.
+| Hash | Area | Description |
+|------|------|-------------|
+| `7aa22e0f6` | Fix | Correct CodeQL path-injection suppression syntax on validated paths |
+| `dab7f5b23` | Fix | Sweep orphaned multiprocessing workers on backend restart/stop |
+| `a0dd54321` | Fix | User permission lookup 500 error on PostgreSQL |
+| `404965139` | Fix | PermissionsPage showed 0 permissions and raw i18n keys |
+| `8f0bc0696` | Fix | Remove redundant Grant Permission tab from RBAC Configuration |
+| `182a6276b` | Fix | Unify Permissions into RBAC Configuration as a tab |
+| `68071b242` | Fix | Shift letter-grade scale to align with a 50% pass mark |
+| `3d6b5537b` | Fix | Nest Semester Archive inside System Operations instead of its own section |
+| `a30319d21` | Fix | Remove duplicate Import/Export section from Control Panel maintenance tab |
+| `cfc65e0e5` | Fix | Move admin pages into System > Control Panel > Maintenance |
+| `3b88bf974` | Fix | Expose admin section (Permissions/Import-Export/Semester Archive) in main nav |
+| `737d2f602` | Feat | Add semester archive - back up and archive passed courses per semester |
+| `ada862ced` | Release | Bump version to 1.18.35 and update docs |
+
+---
+
+## 🧩 Semester Archive Feature (shipped in v1.18.35, commit `737d2f602`)
+
+**Status**: ✅ Implemented and released as part of v1.18.35.
 
 Adds an admin-only "semester archive" operation: pick a semester (grouped by the
 existing free-text `Course.semester` label), preview which student+course pairs
@@ -46,11 +66,21 @@ Student profiles are never touched.
 - New `semesterArchive` i18n namespace (en/el); `students.js` gained
   `academicHistory`/`academicHistoryDescription` keys.
 
-### Not yet done
+### Still outstanding (as of 2026-09-01 codebase review)
 
 - No dedicated `StudentProfile.tsx` test file exists in this codebase to extend
-  (none pre-existed); the new section wasn't given standalone test coverage.
-- Not yet version-bumped, tagged, or released — no installer built.
+  (none pre-existed); the new "Academic History" section still has no standalone
+  test coverage.
+- Version was bumped and tagged as v1.18.35 (commit `ada862ced`), but no new
+  installer has been built/published since — `VERSION` and git are ahead of the
+  last GitHub release.
+- No negative test proves the semester-archive download path-traversal guard
+  (`routers_semester_archive.py`'s `is_relative_to` check on `export_filename`)
+  actually rejects a manipulated filename.
+- `sessions:manage` permission (used by `routers_sessions.py` export/import/
+  rollback/backup endpoints) was missing from `ROLE_PERMISSIONS`/`PERMISSIONS`
+  in `scripts/seed_permissions.py` — fixed 2026-09-01; re-run the seed script
+  against any existing database to pick it up.
 
 ---
 
