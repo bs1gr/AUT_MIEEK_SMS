@@ -13,6 +13,10 @@
 
 | Hash | Area | Description |
 |------|------|-------------|
+| _pending_ | Test | Add `test_download_rejects_path_traversal_export_filename` (semester-archive download guard) + `StudentProfile.test.tsx` (Academic History coverage) |
+| `3dd499418` | Fix | Consolidate all backup paths (session-import, semester-archive, admin DB, Postgres) to a single `Settings.BACKUPS_DIR` source of truth |
+| `1a9665502` | Refactor | Rename `docker-old`→`compose`/`installer-old`→`windows`, dedupe session-import lookups, fix N+1 queries in semester archive preview/execute |
+| `3d14b91b4` | Fix | Security/correctness gaps from codebase review: Docker AUTH_MODE=strict default, `sessions:manage` RBAC seed gap, session-import filename path-traversal sanitization, `/control/reset-database` via Alembic, plaintext export staging dir hardening, i18n fallback fixes |
 | `7aa22e0f6` | Fix | Correct CodeQL path-injection suppression syntax on validated paths |
 | `dab7f5b23` | Fix | Sweep orphaned multiprocessing workers on backend restart/stop |
 | `a0dd54321` | Fix | User permission lookup 500 error on PostgreSQL |
@@ -68,19 +72,24 @@ Student profiles are never touched.
 
 ### Still outstanding (as of 2026-09-01 codebase review)
 
-- No dedicated `StudentProfile.tsx` test file exists in this codebase to extend
-  (none pre-existed); the new "Academic History" section still has no standalone
-  test coverage.
 - Version was bumped and tagged as v1.18.35 (commit `ada862ced`), but no new
   installer has been built/published since — `VERSION` and git are ahead of the
   last GitHub release.
-- No negative test proves the semester-archive download path-traversal guard
-  (`routers_semester_archive.py`'s `is_relative_to` check on `export_filename`)
-  actually rejects a manipulated filename.
 - `sessions:manage` permission (used by `routers_sessions.py` export/import/
   rollback/backup endpoints) was missing from `ROLE_PERMISSIONS`/`PERMISSIONS`
   in `scripts/seed_permissions.py` — fixed 2026-09-01; re-run the seed script
   against any existing database to pick it up.
+
+### Resolved 2026-09-01
+
+- ✅ `StudentProfile.test.tsx` added (`src/frontend/src/features/students/components/`)
+  covering the "Academic History" section: hidden when empty, renders archived
+  records, hides on a failed fetch.
+- ✅ `test_download_rejects_path_traversal_export_filename` added to
+  `test_semester_archive_router.py`, proving the `is_relative_to` guard on
+  `routers_semester_archive.py`'s download endpoint rejects a `../`-escaped
+  `export_filename` even when a file exists at the resolved (out-of-bounds)
+  path — isolates the 404 to the guard rather than a plain not-found.
 
 ---
 

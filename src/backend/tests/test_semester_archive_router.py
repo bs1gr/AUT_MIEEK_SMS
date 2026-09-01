@@ -5,7 +5,7 @@ from datetime import date
 from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
 
-from backend.models import Course, CourseEnrollment, Grade, Student
+from backend.models import Course, CourseEnrollment, Grade, SemesterArchiveExport, Student
 from backend.routers.routers_auth import optional_require_role
 
 SEMESTER = "API Test Semester 2026"
@@ -108,6 +108,36 @@ def test_execute_archives_and_download_works(client, db, tmp_path, monkeypatch):
     download_resp = client.get(f"/api/v1/semester-archive/exports/{export_id}/download")
     assert download_resp.status_code == 200
     assert download_resp.content
+
+
+def test_download_rejects_path_traversal_export_filename(client, db, tmp_path, monkeypatch):
+    from backend.services import semester_export_service
+
+    backup_dir = tmp_path / "semester_archives"
+    backup_dir.mkdir()
+    monkeypatch.setattr(semester_export_service, "SEMESTER_ARCHIVE_DIR", backup_dir)
+
+    # A file that genuinely exists *outside* the configured backup directory,
+    # so a 404 here can only come from the is_relative_to guard rejecting the
+    # escaped path -- not from a plain "file doesn't exist" check.
+    secret_dir = tmp_path / "outside"
+    secret_dir.mkdir()
+    secret_file = secret_dir / "secret.enc"
+    secret_file.write_bytes(b"should never be served")
+
+    export_row = SemesterArchiveExport(
+        semester=SEMESTER,
+        status="completed",
+        export_filename="../outside/secret",
+        pass_threshold=60.0,
+    )
+    db.add(export_row)
+    db.commit()
+    db.refresh(export_row)
+
+    resp = client.get(f"/api/v1/semester-archive/exports/{export_row.id}/download")
+    assert resp.status_code == 404
+    assert b"should never be served" not in resp.content
 
 
 def test_optional_require_role_rejects_wrong_role_when_auth_enabled(monkeypatch):
