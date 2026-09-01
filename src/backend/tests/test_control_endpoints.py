@@ -13,6 +13,7 @@ from starlette.requests import Request
 import backend.main as main
 import backend.routers.routers_control as control
 from backend import environment
+from backend.config import settings
 from backend.errors import ErrorCode
 from backend.tests.conftest import get_error_detail
 
@@ -236,7 +237,7 @@ def test_docker_update_volume_when_docker_not_running(monkeypatch, client):
 
 
 def test_download_database_backup_success(tmp_path, client):
-    backup_dir = Path(control.__file__).resolve().parents[2] / "backups" / "database"
+    backup_dir = Path(settings.BACKUPS_DIR) / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"test_backup_{uuid.uuid4().hex}.db"
@@ -254,7 +255,7 @@ def test_download_database_backup_success(tmp_path, client):
 
 
 def test_list_database_backups_includes_sql(client):
-    backup_dir = Path(control.__file__).resolve().parents[2] / "backups" / "database"
+    backup_dir = Path(settings.BACKUPS_DIR) / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"test_backup_{uuid.uuid4().hex}.sql"

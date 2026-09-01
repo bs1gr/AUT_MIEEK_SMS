@@ -192,7 +192,7 @@ async def backup_database(encrypt: bool = True, _auth=Depends(require_control_ad
 
         # Create backups directory if it doesn't exist
         # Use database subdirectory where encrypted backups are actually stored
-        backup_root = pathlib.Path("backups/database")
+        backup_root = pathlib.Path(settings.BACKUPS_DIR) / "database"
         backup_root.mkdir(parents=True, exist_ok=True)
 
         # Generate timestamp for backup
@@ -322,7 +322,7 @@ async def restore_encrypted_backup(
         safe_output_filename = _validate_restore_filename(output_filename)
 
         # Use database subdirectory where encrypted backups are actually stored
-        backup_root = pathlib.Path("backups/database").resolve()
+        backup_root = (pathlib.Path(settings.BACKUPS_DIR) / "database").resolve()
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
         # Create temporary output directory
@@ -367,7 +367,7 @@ async def list_encrypted_backups(_auth=Depends(require_control_admin)):
     """
     try:
         # Use database subdirectory where encrypted backups are actually stored
-        backup_root = pathlib.Path("backups/database")
+        backup_root = pathlib.Path(settings.BACKUPS_DIR) / "database"
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
         backups = backup_service.list_encrypted_backups()

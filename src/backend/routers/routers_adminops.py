@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from backend.config import settings
 from backend.db import engine as db_engine
 from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
@@ -29,7 +30,7 @@ _THIS_FILE = Path(__file__).resolve()
 _BACKEND_DIR = _THIS_FILE.parents[1]
 _PROJECT_ROOT = _THIS_FILE.parents[2]
 
-BACKUPS_DIR = str((_PROJECT_ROOT / "backups").resolve())
+BACKUPS_DIR = str(Path(settings.BACKUPS_DIR).resolve())
 COURSES_DIR = str((_PROJECT_ROOT / "templates" / "courses").resolve())
 STUDENTS_DIR = str((_PROJECT_ROOT / "templates" / "students").resolve())
 

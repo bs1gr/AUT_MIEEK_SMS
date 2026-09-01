@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from backend.config import settings
 from backend.security.path_validation import validate_path
 from backend.services.encryption_service import EncryptionService
 
@@ -35,7 +36,7 @@ class BackupServiceEncrypted:
             backup_dir: Directory to store backups
             enable_encryption: Enable encryption for backups
         """
-        self.backup_dir = backup_dir or Path(__file__).parent.parent.parent / "backups"
+        self.backup_dir = backup_dir or Path(settings.BACKUPS_DIR)
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         self.enable_encryption = enable_encryption
         self.encryption_service = EncryptionService()

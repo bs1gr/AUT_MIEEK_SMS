@@ -18,7 +18,7 @@ def test_database_upload_valid(client):
     assert data["success"] is True
     assert data["details"]["filename"].endswith("test.db")
     # Clean up uploaded file
-    uploaded = Path("backups/database") / data["details"]["filename"]
+    uploaded = Path(backend_config.settings.BACKUPS_DIR) / "database" / data["details"]["filename"]
     if uploaded.exists():
         uploaded.unlink()
 
@@ -53,7 +53,7 @@ def test_database_restore_auto_migrates_on_postgres(client, monkeypatch):
         raising=False,
     )
 
-    backups_dir = Path(__file__).resolve().parents[2] / "backups" / "database"
+    backups_dir = Path(backend_config.settings.BACKUPS_DIR) / "database"
     backups_dir.mkdir(parents=True, exist_ok=True)
     backup_name = "uploaded_test_restore.db"
     backup_path = backups_dir / backup_name
@@ -79,7 +79,7 @@ def test_database_restore_returns_error_when_migration_fails(client, monkeypatch
         raising=False,
     )
 
-    backups_dir = Path(__file__).resolve().parents[2] / "backups" / "database"
+    backups_dir = Path(backend_config.settings.BACKUPS_DIR) / "database"
     backups_dir.mkdir(parents=True, exist_ok=True)
     backup_name = "uploaded_test_restore_fail.db"
     backup_path = backups_dir / backup_name

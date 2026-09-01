@@ -19,10 +19,11 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy.orm import Session
 
+from backend.config import settings
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
 from backend.services.session_data_service import build_semester_export_payload
 
-SEMESTER_ARCHIVE_DIR = Path(__file__).resolve().parents[2] / "backups" / "semester_archives"
+SEMESTER_ARCHIVE_DIR = Path(settings.BACKUPS_DIR) / "semester_archives"
 # Plaintext staging directory for the export JSON before it's encrypted.
 # Kept alongside the (already access-controlled) backups tree instead of the
 # shared OS temp dir, since the plaintext payload contains student PII/grades.

@@ -189,7 +189,7 @@ async def upload_database(request: Request, file: UploadFile = File(...), _auth=
             request,
             context={"filename": file.filename},
         )
-    backups_dir = Path(__file__).resolve().parents[3] / "backups" / "database"
+    backups_dir = Path(get_settings().BACKUPS_DIR) / "database"
     backups_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -313,7 +313,7 @@ async def create_database_backup(
 
         # Create backups directory
         project_root = Path(__file__).resolve().parents[3]
-        backup_dir = project_root / "backups" / "database"
+        backup_dir = Path(settings.BACKUPS_DIR) / "database"
         backup_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate timestamp
@@ -587,8 +587,7 @@ async def create_database_backup(
 
 @router.get("/operations/database-backups")
 async def list_database_backups(request: Request, _auth=Depends(require_control_admin)):
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = project_root / "backups" / "database"
+    backup_dir = Path(get_settings().BACKUPS_DIR) / "database"
     if not backup_dir.exists():
         return {"backups": [], "message": "No backups directory found"}
     backups = []
@@ -608,8 +607,7 @@ async def list_database_backups(request: Request, _auth=Depends(require_control_
 
 @router.get("/operations/database-backups/{backup_filename:path}/download")
 async def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     target_path = (backup_dir / backup_filename).resolve()
     if not target_path.is_relative_to(backup_dir):
         raise http_error(
@@ -635,8 +633,7 @@ async def download_backups_zip(request: Request, _auth=Depends(require_control_a
     import io
     import zipfile
 
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
     files = sorted(_list_backup_files(backup_dir), reverse=True)
@@ -658,8 +655,7 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
     import io
     import zipfile
 
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
     files = sorted(_list_backup_files(backup_dir), reverse=True)
@@ -678,7 +674,7 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
     if raw_dest_path.is_absolute() or ".." in raw_dest_path.parts:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     # Sanitize: prevent path traversal and restrict to allowed base directory
-    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    allowed_base = (Path(get_settings().BACKUPS_DIR) / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
     # Stricter path check: ensure resolved path is relative to allowed_base
     try:
@@ -710,8 +706,7 @@ async def download_selected_backups_zip(
     import io
     import zipfile
 
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
     selected: List[Path] = []
@@ -746,8 +741,7 @@ async def save_selected_backups_zip_to_path(
     import io
     import zipfile
 
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
     selected: List[Path] = []
@@ -776,7 +770,7 @@ async def save_selected_backups_zip_to_path(
     if raw_dest_path.is_absolute() or ".." in raw_dest_path.parts:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     # Sanitize: prevent path traversal and restrict to allowed base directory
-    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    allowed_base = (Path(get_settings().BACKUPS_DIR) / "exports").resolve()
     dest_candidate = (allowed_base / raw_dest).resolve()
     # Stricter path check: ensure resolved path is relative to allowed_base
     try:
@@ -805,8 +799,7 @@ async def save_selected_backups_zip_to_path(
 async def delete_selected_backups(
     request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_control_admin)
 ):
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
     deleted: List[str] = []
@@ -844,8 +837,7 @@ async def delete_selected_backups(
 async def save_database_backup_to_path(
     request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_control_admin)
 ):
-    project_root = Path(__file__).resolve().parents[3]
-    backup_dir = (project_root / "backups" / "database").resolve()
+    backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     # Reject any path traversal attempts outright and require a simple backup filename
     bf_path = Path(backup_filename)
     if (
@@ -891,7 +883,7 @@ async def save_database_backup_to_path(
     if dest_path_candidate.is_absolute() or ".." in dest_path_candidate.parts or dest_path_candidate.name != raw_dest:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
 
-    allowed_base = (Path(__file__).resolve().parents[3] / "backups" / "exports").resolve()
+    allowed_base = (Path(get_settings().BACKUPS_DIR) / "exports").resolve()
     allowed_base.mkdir(parents=True, exist_ok=True)
     dest_path = (allowed_base / dest_path_candidate.name).resolve()
     try:
@@ -919,8 +911,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         from backend.config import settings
         from backend.scripts.migrate_sqlite_to_postgres import main as migrate_sqlite_to_postgres
 
-        project_root = Path(__file__).resolve().parents[3]
-        backup_dir = (project_root / "backups" / "database").resolve()
+        backup_dir = (Path(settings.BACKUPS_DIR) / "database").resolve()
         # Reject traversal before resolving
         if (
             Path(backup_filename).name != backup_filename

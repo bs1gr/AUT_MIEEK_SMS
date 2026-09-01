@@ -70,7 +70,10 @@ pdfs-courses/
 data/*.db
 data/*.db.pre-restore-*
 backups/*.db
-backups/
+# NOTE: "backups/*" (not "backups/") so the !backups/.gitkeep negation below
+# actually applies — a bare "backups/" excludes the directory itself and Git
+# won't recurse into it to evaluate per-file negations.
+backups/*
 !backups/.gitkeep
 !data/.gitkeep
 *.db-shm

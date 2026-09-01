@@ -28,6 +28,7 @@ def test_create_encrypted_backup_default(client, admin_token, tmp_path):
     # Patch DATABASE_URL for this test
     with patch("backend.routers.control.operations.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
+        mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
         # Create encrypted backup (default encrypt=True)
         response = client.post(
@@ -65,6 +66,7 @@ def test_create_unencrypted_backup(client, admin_token, tmp_path):
     # Patch DATABASE_URL for this test
     with patch("backend.routers.control.operations.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
+        mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
         # Create unencrypted backup (encrypt=False)
         response = client.post(
@@ -97,6 +99,7 @@ def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
     # Patch DATABASE_URL for this test
     with patch("backend.routers.control.operations.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
+        mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
         response = client.post(
             "/control/api/operations/database-backup",
@@ -128,6 +131,7 @@ def test_backup_encryption_details(client, admin_token, tmp_path):
     # Patch DATABASE_URL for this test
     with patch("backend.routers.control.operations.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
+        mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
         response = client.post(
             "/control/api/operations/database-backup",
@@ -164,6 +168,7 @@ def test_unencrypted_backup_no_encryption_details(client, admin_token, tmp_path)
     # Patch DATABASE_URL for this test
     with patch("backend.routers.control.operations.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
+        mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
         response = client.post(
             "/control/api/operations/database-backup",
@@ -195,6 +200,7 @@ def test_postgres_backup_fallback_when_pg_dump_missing(client, admin_token, tmp_
 
     class _MockSettings:
         DATABASE_URL = "postgresql://test_user:test%21pass@localhost:5432/test_db"
+        BACKUPS_DIR = str(tmp_path)
 
     fallback_sql = tmp_path / "fallback_postgres.sql"
     fallback_sql.write_text("-- fallback postgres backup", encoding="utf-8")

@@ -424,7 +424,7 @@ async def import_session(
 
             from backend.config import settings
 
-            backup_dir = Path("backups")
+            backup_dir = Path(settings.BACKUPS_DIR)
             backup_dir.mkdir(exist_ok=True)
 
             # Extract database path from DATABASE_URL (sqlite:///path/to/db.db)
@@ -669,7 +669,7 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": backup_filename},
             )
-        backup_dir = Path("backups").resolve()
+        backup_dir = Path(settings.BACKUPS_DIR).resolve()
         # Validate filename using centralized path validation
         try:
             validate_filename(backup_filename, allowed_extensions=[".db", ".enc", ".backup"])
@@ -798,7 +798,9 @@ async def list_backups(request: Request):
     try:
         from pathlib import Path
 
-        backup_dir = Path("backups")
+        from backend.config import settings
+
+        backup_dir = Path(settings.BACKUPS_DIR)
         if not backup_dir.exists():
             return {"backups": [], "count": 0}
 

@@ -109,6 +109,16 @@ else:
     # For relative/Windows paths, we need the full sqlite:///
     _DEFAULT_SQLITE_URL = f"sqlite:///{_DEFAULT_DB_PATH}"
 
+# Backups directory (container uses the /app/backups volume mounted from the
+# host's ./backups/ by docker-compose; native mode anchors to the project
+# root so every entry point — session import, semester archive export, admin
+# DB backup/restore — resolves the exact same physical directory regardless
+# of the process's current working directory).
+if _IS_DOCKER_MODE:
+    _DEFAULT_BACKUPS_DIR = "/app/backups"
+else:
+    _DEFAULT_BACKUPS_DIR = (_PROJECT_ROOT / "backups").as_posix()
+
 # When running inside Docker Desktop, containers can reach host services via this DNS name
 # Use it to allow the API container to talk to monitoring services (Grafana/Prometheus/Loki)
 _DEFAULT_MONITORING_HOST = "host.docker.internal" if _IS_DOCKER_MODE else "localhost"
@@ -162,6 +172,11 @@ class Settings(BaseSettings):
     POSTGRES_SSLMODE: Literal["disable", "allow", "prefer", "require", "verify-ca", "verify-full"] = "prefer"
     POSTGRES_OPTIONS: str | None = None
     DATABASE_URL: str = ""
+
+    # Backups (database backups, session-import safety copies, semester archive
+    # exports). Single source of truth for every backup-writing/reading code
+    # path — see _DEFAULT_BACKUPS_DIR above.
+    BACKUPS_DIR: str = _DEFAULT_BACKUPS_DIR
 
     # API Pagination
     DEFAULT_PAGE_SIZE: int = 100

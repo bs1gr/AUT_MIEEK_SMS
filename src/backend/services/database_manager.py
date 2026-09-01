@@ -39,14 +39,7 @@ def _get_backup_dir() -> Path:
         return _BACKUP_DIR
 
     settings = get_settings()
-    # Docker uses /data volume; native uses project-root/backups/postgres
-    if settings.SMS_EXECUTION_MODE == "docker":
-        _BACKUP_DIR = Path("/data/backups/postgres")
-    else:
-        from backend.config import _PROJECT_ROOT
-
-        _BACKUP_DIR = _PROJECT_ROOT / "backups" / "postgres"
-
+    _BACKUP_DIR = Path(settings.BACKUPS_DIR) / "postgres"
     _BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     return _BACKUP_DIR
 
