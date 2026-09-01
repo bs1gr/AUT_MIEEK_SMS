@@ -204,6 +204,13 @@ $versionChecks = @(
         Replace = "Version: $VersionCore"
         Description = "INSTALLER_BUILDER.ps1 version"
         Critical = $false
+    },
+    @{
+        File = "pyproject.toml"
+        Pattern = '(?m)^version = "\d+\.\d+\.\d+"'
+        Replace = "version = `"$VersionCore`""
+        Description = "Root pyproject.toml version"
+        Critical = $false
     }
 )
 

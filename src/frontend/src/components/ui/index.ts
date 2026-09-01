@@ -33,9 +33,6 @@ export {
   ListSkeleton
 } from './Skeleton';
 
-// Virtual scrolling
-export { VirtualList } from './VirtualList';
-
 // Custom components (keep our Modal for now)
 export { default as Modal } from './Modal';
 export type { ModalProps } from './Modal';

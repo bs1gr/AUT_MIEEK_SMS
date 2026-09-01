@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 # Project root is 3 levels up from infra/scripts/diagnostics/
 PROJECT_ROOT = ROOT.parent.parent.parent
-INSTALLER_DIR = PROJECT_ROOT / "infra" / "installer" / "installer-old"
+INSTALLER_DIR = PROJECT_ROOT / "infra" / "installer" / "windows"
 VERSION_FILE = PROJECT_ROOT / "VERSION"
 
 

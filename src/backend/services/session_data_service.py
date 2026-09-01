@@ -8,7 +8,7 @@ is queried and serialized in exactly one place.
 from datetime import datetime
 from typing import Any, Dict, List
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from backend.import_resolver import import_names
 
@@ -24,6 +24,7 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
 
     enrollments = (
         db.query(CourseEnrollment)
+        .options(selectinload(CourseEnrollment.student), selectinload(CourseEnrollment.course))
         .filter(CourseEnrollment.course_id.in_(course_ids), CourseEnrollment.deleted_at.is_(None))
         .all()
         if course_ids
@@ -40,6 +41,7 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
 
     grades = (
         db.query(Grade)
+        .options(selectinload(Grade.student), selectinload(Grade.course))
         .filter(Grade.course_id.in_(course_ids), Grade.student_id.in_(student_ids), Grade.deleted_at.is_(None))
         .all()
         if student_ids
@@ -48,6 +50,7 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
 
     attendance = (
         db.query(Attendance)
+        .options(selectinload(Attendance.student), selectinload(Attendance.course))
         .filter(
             Attendance.course_id.in_(course_ids),
             Attendance.student_id.in_(student_ids),
@@ -60,6 +63,7 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
 
     daily_performance = (
         db.query(DailyPerformance)
+        .options(selectinload(DailyPerformance.student), selectinload(DailyPerformance.course))
         .filter(
             DailyPerformance.course_id.in_(course_ids),
             DailyPerformance.student_id.in_(student_ids),
@@ -72,6 +76,7 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
 
     highlights = (
         db.query(Highlight)
+        .options(selectinload(Highlight.student))
         .filter(
             Highlight.student_id.in_(student_ids), Highlight.semester == semester, Highlight.deleted_at.is_(None)
         )

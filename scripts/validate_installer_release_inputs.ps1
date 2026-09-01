@@ -25,7 +25,7 @@ Set-StrictMode -Version Latest
 
 $RepoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $InstallerScriptPath) {
-    $InstallerScriptPath = Join-Path $RepoRoot 'infra\installer\installer-old\SMS_Installer.iss'
+    $InstallerScriptPath = Join-Path $RepoRoot 'infra\installer\windows\SMS_Installer.iss'
 }
 
 if (-not (Test-Path $InstallerScriptPath)) {
@@ -37,16 +37,16 @@ $InstallerScriptPath = [System.IO.Path]::GetFullPath($InstallerScriptPath)
 $InstallerDir = Split-Path -Parent $InstallerScriptPath
 
 $generatedAllowlist = @(
-    'infra\installer\installer-old\installer_welcome_el.rtf',
-    'infra\installer\installer-old\installer_complete_el.rtf',
-    'infra\installer\installer-old\wizard_image.bmp',
-    'infra\installer\installer-old\wizard_small.bmp',
-    'infra\installer\installer-old\dist\SMS_Manager.exe'
+    'infra\installer\windows\installer_welcome_el.rtf',
+    'infra\installer\windows\installer_complete_el.rtf',
+    'infra\installer\windows\wizard_image.bmp',
+    'infra\installer\windows\wizard_small.bmp',
+    'infra\installer\windows\dist\SMS_Manager.exe'
 )
 
 # Optional generated artifacts (don't block build if missing)
 $optionalGeneratedAllowlist = @(
-    'infra\installer\installer-old\dist\SMS_Lite.exe'  # Built separately via PyInstaller, optional for Docker Edition
+    'infra\installer\windows\dist\SMS_Lite.exe'  # Built separately via PyInstaller, optional for Docker Edition
 )
 
 $dangerousPayloadPatterns = @(

@@ -3,7 +3,7 @@ services:
     image: sms-backend:${VERSION:-latest}
     build:
       context: ../../..
-      dockerfile: infra/docker/docker-old/Dockerfile.backend
+      dockerfile: infra/docker/compose/Dockerfile.backend
       args:
         - VERSION=${VERSION:-latest}
         - BUILD_DATE=${BUILD_DATE:-unknown}
@@ -91,7 +91,7 @@ services:
     image: sms-frontend:${VERSION:-latest}
     build:
       context: ../../..
-      dockerfile: infra/docker/docker-old/Dockerfile.frontend
+      dockerfile: infra/docker/compose/Dockerfile.frontend
       args:
         - VITE_API_URL=/api/v1
         - VERSION=${VERSION:-latest}

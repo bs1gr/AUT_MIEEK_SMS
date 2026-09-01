@@ -42,7 +42,7 @@ LABEL org.opencontainers.image.title="Student Management System - Frontend" \
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
 # Nginx configuration
-COPY infra/docker/docker-old/nginx.conf /etc/nginx/conf.d/default.conf
+COPY infra/docker/compose/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Ensure nginx cache/run dirs are writable
 RUN mkdir -p /var/cache/nginx/client_temp /var/run \

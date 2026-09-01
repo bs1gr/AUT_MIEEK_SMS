@@ -830,6 +830,16 @@ async def list_backups(request: Request):
 
 
 # Helper functions for import
+def _resolve_student(db: Session, Student, student_id_ref: Optional[str]):
+    """Look up a Student by its external student_id_ref, ignoring soft-deleted rows."""
+    return db.query(Student).filter(Student.student_id == student_id_ref, Student.deleted_at.is_(None)).first()
+
+
+def _resolve_course(db: Session, Course, course_code_ref: Optional[str]):
+    """Look up a Course by its course_code_ref, ignoring soft-deleted rows."""
+    return db.query(Course).filter(Course.course_code == course_code_ref, Course.deleted_at.is_(None)).first()
+
+
 def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: str, results: Dict):
     """Import course enrollments"""
     CourseEnrollment, Student, Course = import_names("models", "CourseEnrollment", "Student", "Course")
@@ -837,17 +847,8 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
     for enroll_data in enrollments:
         try:
             # Find student and course by reference IDs
-            student = (
-                db.query(Student)
-                .filter(Student.student_id == enroll_data.get("student_id_ref"), Student.deleted_at.is_(None))
-                .first()
-            )
-
-            course = (
-                db.query(Course)
-                .filter(Course.course_code == enroll_data.get("course_code_ref"), Course.deleted_at.is_(None))
-                .first()
-            )
+            student = _resolve_student(db, Student, enroll_data.get("student_id_ref"))
+            course = _resolve_course(db, Course, enroll_data.get("course_code_ref"))
 
             if not student or not course:
                 results["summary"]["enrollments"]["errors"].append(
@@ -898,17 +899,8 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
 
     for grade_data in grades:
         try:
-            student = (
-                db.query(Student)
-                .filter(Student.student_id == grade_data.get("student_id_ref"), Student.deleted_at.is_(None))
-                .first()
-            )
-
-            course = (
-                db.query(Course)
-                .filter(Course.course_code == grade_data.get("course_code_ref"), Course.deleted_at.is_(None))
-                .first()
-            )
+            student = _resolve_student(db, Student, grade_data.get("student_id_ref"))
+            course = _resolve_course(db, Course, grade_data.get("course_code_ref"))
 
             if not student or not course:
                 results["summary"]["grades"]["errors"].append(
@@ -972,17 +964,8 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
 
     for att_data in attendance_records:
         try:
-            student = (
-                db.query(Student)
-                .filter(Student.student_id == att_data.get("student_id_ref"), Student.deleted_at.is_(None))
-                .first()
-            )
-
-            course = (
-                db.query(Course)
-                .filter(Course.course_code == att_data.get("course_code_ref"), Course.deleted_at.is_(None))
-                .first()
-            )
+            student = _resolve_student(db, Student, att_data.get("student_id_ref"))
+            course = _resolve_course(db, Course, att_data.get("course_code_ref"))
 
             if not student or not course:
                 results["summary"]["attendance"]["errors"].append("Missing student or course for attendance record")
@@ -1034,17 +1017,8 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
 
     for perf_data in performance_records:
         try:
-            student = (
-                db.query(Student)
-                .filter(Student.student_id == perf_data.get("student_id_ref"), Student.deleted_at.is_(None))
-                .first()
-            )
-
-            course = (
-                db.query(Course)
-                .filter(Course.course_code == perf_data.get("course_code_ref"), Course.deleted_at.is_(None))
-                .first()
-            )
+            student = _resolve_student(db, Student, perf_data.get("student_id_ref"))
+            course = _resolve_course(db, Course, perf_data.get("course_code_ref"))
 
             if not student or not course:
                 results["summary"]["daily_performance"]["errors"].append(
@@ -1100,11 +1074,7 @@ def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str,
 
     for highlight_data in highlights:
         try:
-            student = (
-                db.query(Student)
-                .filter(Student.student_id == highlight_data.get("student_id_ref"), Student.deleted_at.is_(None))
-                .first()
-            )
+            student = _resolve_student(db, Student, highlight_data.get("student_id_ref"))
 
             if not student:
                 results["summary"]["highlights"]["errors"].append("Missing student for highlight")

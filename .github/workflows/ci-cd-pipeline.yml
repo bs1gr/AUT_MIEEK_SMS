@@ -1043,7 +1043,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./infra/docker/docker-old/Dockerfile.fullstack
+          file: ./infra/docker/compose/Dockerfile.fullstack
           # Push policy (explicit rules to avoid accidental pushes):
           # - On release tags (v1.*.*): Always push to GHCR
           # - On main branch: Push only if GHCR_TOKEN explicitly configured

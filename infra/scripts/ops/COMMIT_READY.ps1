@@ -1070,11 +1070,7 @@ function Invoke-InstallerReleaseInputValidation {
         return $true
     }
 
-    # The legacy .iss file is in infra/installer/installer-old/ and its relative
-    # source paths predate the directory flattening — they no longer resolve correctly.
-    # Releases are now built by CI (INSTALLER_BUILDER.ps1); this guard is informational only.
-    $issPath = Join-Path $PROJECT_ROOT "infra\installer\installer-old\SMS_Installer.iss"
-    $isLegacyInstaller = $issPath -match 'installer-old'
+    $issPath = Join-Path $PROJECT_ROOT "infra\installer\windows\SMS_Installer.iss"
 
     try {
         $output = & $validator -InstallerScriptPath $issPath 2>&1
@@ -1083,12 +1079,6 @@ function Invoke-InstallerReleaseInputValidation {
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Installer release input validation passed"
             Add-Result "Linting" "Installer Input Guard" $true
-            return $true
-        }
-
-        if ($isLegacyInstaller) {
-            Write-Warning-Msg "Legacy installer (installer-old) source paths are stale after directory restructure — non-blocking"
-            Add-Result "Linting" "Installer Input Guard" $true "Skipped (legacy installer-old; CI builds releases)"
             return $true
         }
 

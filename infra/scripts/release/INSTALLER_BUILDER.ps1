@@ -117,7 +117,7 @@ Set-StrictMode -Version Latest
 
 # Script lives at infra/scripts/release/ — project root is three levels up
 $ProjectRoot = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
-$InstallerDir = Join-Path $ProjectRoot "infra\installer\installer-old"
+$InstallerDir = Join-Path $ProjectRoot "infra\installer\windows"
 $DistDir = Join-Path $ProjectRoot "infra\installer\dist"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 

@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 def _get_client_identifier(request: Request) -> Optional[str]:
     """Extract a client identifier (IP address) from the request for throttling/lockout purposes.
 
-    Prefers X-Real-IP because the bundled nginx config (infra/docker/docker-old/
+    Prefers X-Real-IP because the bundled nginx config (infra/docker/compose/
     nginx.conf) sets it via direct assignment (`X-Real-IP: $remote_addr`),
     which always reflects the real peer address nginx observed and cannot be
     influenced by a client-supplied header. X-Forwarded-For, by contrast, is

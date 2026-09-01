@@ -167,13 +167,13 @@ $ROOT_ENV = Join-Path $PROJECT_ROOT "config\.env"
 $ROOT_ENV_EXAMPLE = Join-Path $PROJECT_ROOT "config\.env.example"
 
 # Installer places docker files at {app}\docker\ and backend at {app}\backend\.
-# Dev repo has them at infra\docker\docker-old\ and src\backend\.
+# Dev repo has them at infra\docker\compose\ and src\backend\.
 $_isInstalledLayout = Test-Path (Join-Path $PROJECT_ROOT "docker\docker-compose.yml")
 if ($_isInstalledLayout) {
     $DOCKER_DIR  = Join-Path $PROJECT_ROOT "docker"
     $BACKEND_DIR = Join-Path $PROJECT_ROOT "backend"
 } else {
-    $DOCKER_DIR  = Join-Path $PROJECT_ROOT "infra\docker\docker-old"
+    $DOCKER_DIR  = Join-Path $PROJECT_ROOT "infra\docker\compose"
     $BACKEND_DIR = Join-Path $PROJECT_ROOT "src\backend"
 }
 $MONITORING_COMPOSE_FILE = Join-Path $DOCKER_DIR "docker-compose.monitoring.yml"

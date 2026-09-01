@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
@@ -94,6 +94,7 @@ class SemesterArchiveService:
     def _active_enrollments_for_semester(self, semester: str) -> List[Any]:
         return (
             self.db.query(self.CourseEnrollment)
+            .options(selectinload(self.CourseEnrollment.student), selectinload(self.CourseEnrollment.course))
             .join(self.Course, self.CourseEnrollment.course_id == self.Course.id)
             .filter(
                 self.Course.semester == semester,
@@ -103,7 +104,59 @@ class SemesterArchiveService:
             .all()
         )
 
-    def _evaluate_pair(self, enrollment: Any, pass_threshold: float) -> Dict[str, Any]:
+    def _fetch_grading_records_for_pairs(self, course_ids: List[int], student_ids: List[int]) -> Dict[str, Any]:
+        """Batch-fetch every Grade/DailyPerformance/Attendance row for the given
+        course/student sets in 3 queries total, grouped by (student_id, course_id),
+        so `_evaluate_pair` never needs a per-enrollment round trip."""
+        if not course_ids or not student_ids:
+            return {"grades": {}, "daily": {}, "attendance": {}}
+
+        def _group_by_pair(rows: List[Any]) -> Dict[Any, List[Any]]:
+            grouped: Dict[Any, List[Any]] = {}
+            for row in rows:
+                grouped.setdefault((row.student_id, row.course_id), []).append(row)
+            return grouped
+
+        grades = (
+            self.db.query(self.Grade)
+            .filter(
+                self.Grade.course_id.in_(course_ids),
+                self.Grade.student_id.in_(student_ids),
+                self.Grade.deleted_at.is_(None),
+            )
+            .all()
+        )
+        daily = (
+            self.db.query(self.DailyPerformance)
+            .filter(
+                self.DailyPerformance.course_id.in_(course_ids),
+                self.DailyPerformance.student_id.in_(student_ids),
+                self.DailyPerformance.deleted_at.is_(None),
+            )
+            .all()
+        )
+        attendance = (
+            self.db.query(self.Attendance)
+            .filter(
+                self.Attendance.course_id.in_(course_ids),
+                self.Attendance.student_id.in_(student_ids),
+                self.Attendance.deleted_at.is_(None),
+            )
+            .all()
+        )
+        return {
+            "grades": _group_by_pair(grades),
+            "daily": _group_by_pair(daily),
+            "attendance": _group_by_pair(attendance),
+        }
+
+    def _evaluate_pair(
+        self,
+        enrollment: Any,
+        pass_threshold: float,
+        already_archived: Optional[set] = None,
+        grading_records: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         student = enrollment.student
         course = enrollment.course
 
@@ -115,22 +168,36 @@ class SemesterArchiveService:
             "course_name": course.course_name,
         }
 
-        already = (
-            self.db.query(self.StudentCoursePerformance)
-            .filter(
-                self.StudentCoursePerformance.student_id == student.id,
-                self.StudentCoursePerformance.course_code == course.course_code,
-                self.StudentCoursePerformance.semester == course.semester,
+        if already_archived is not None:
+            already = (student.id, course.course_code, course.semester) in already_archived
+        else:
+            already = (
+                self.db.query(self.StudentCoursePerformance)
+                .filter(
+                    self.StudentCoursePerformance.student_id == student.id,
+                    self.StudentCoursePerformance.course_code == course.course_code,
+                    self.StudentCoursePerformance.semester == course.semester,
+                )
+                .first()
+                is not None
             )
-            .first()
-        )
         if already:
             return {**base, "eligible": False, "reason": "already_archived"}
 
         if not course.evaluation_rules:
             return {**base, "eligible": False, "reason": "no_evaluation_rules"}
 
-        result = self.analytics.calculate_final_grade(student.id, course.id)
+        if grading_records is not None:
+            pair_key = (student.id, course.id)
+            result = self.analytics._calculate_final_grade_from_records(
+                student.id,
+                course,
+                grading_records["grades"].get(pair_key, []),
+                grading_records["daily"].get(pair_key, []),
+                grading_records["attendance"].get(pair_key, []),
+            )
+        else:
+            result = self.analytics.calculate_final_grade(student.id, course.id)
         if "error" in result:
             return {**base, "eligible": False, "reason": "no_evaluation_rules"}
 
@@ -171,10 +238,28 @@ class SemesterArchiveService:
         """Dry run: evaluate every active enrollment for `semester` without writing anything."""
         enrollments = self._active_enrollments_for_semester(semester)
 
+        course_ids = list({e.course_id for e in enrollments})
+        student_ids = list({e.student_id for e in enrollments})
+
+        already_archived_rows = (
+            self.db.query(
+                self.StudentCoursePerformance.student_id,
+                self.StudentCoursePerformance.course_code,
+                self.StudentCoursePerformance.semester,
+            )
+            .filter(self.StudentCoursePerformance.semester == semester)
+            .all()
+            if student_ids
+            else []
+        )
+        already_archived = set(already_archived_rows)
+
+        grading_records = self._fetch_grading_records_for_pairs(course_ids, student_ids)
+
         eligible: List[Dict[str, Any]] = []
         excluded: List[Dict[str, Any]] = []
         for enrollment in enrollments:
-            pair = self._evaluate_pair(enrollment, pass_threshold)
+            pair = self._evaluate_pair(enrollment, pass_threshold, already_archived, grading_records)
             if pair["eligible"]:
                 eligible.append(pair)
             else:
