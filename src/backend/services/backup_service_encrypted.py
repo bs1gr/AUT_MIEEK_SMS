@@ -197,14 +197,14 @@ class BackupServiceEncrypted:
         )
 
         # Save metadata
-        # CodeQL [python/path-injection]: Safe - metadata_path from _resolve_backup_path()
-        # which validates backup_name preventing directory traversal attacks
+        # metadata_path from _resolve_backup_path(), which validates backup_name
+        # preventing directory traversal attacks
         metadata_path: Path = self._resolve_backup_path(backup_name, ".json", base_dir=self.metadata_dir)
-        with open(str(metadata_path), "w") as f:
+        with open(str(metadata_path), "w") as f:  # codeql[py/path-injection] metadata_path resolved via _resolve_backup_path()
             json.dump(metadata, f, indent=2)
 
         # Get file info
-        backup_size = backup_path.stat().st_size
+        backup_size = backup_path.stat().st_size  # codeql[py/path-injection] backup_path resolved via _resolve_backup_path()
 
         return {
             "success": True,
