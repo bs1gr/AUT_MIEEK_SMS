@@ -1,19 +1,19 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.35
+**Current Version**: 1.18.36
 **Last Updated**: September 1, 2026
-**Status**: ✅ **v1.18.35 IS THE LATEST PUBLISHED RELEASE (VERSION file bumped in `ada862ced`) | Semester Archive, RBAC/Permissions unification, and follow-on fixes have landed on `main` since — no new installer built yet**
+**Status**: ✅ **v1.18.35 published 2026-08-30 (tag → `ada862ced`, installer + Android APK already on GitHub Releases). 16 commits landed on `main` since — cut as v1.18.36.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.35 maintenance
+**Current Phase**: Active Development | v1.18.36 release in progress
 **Current Branch**: `main`
 
 ---
 
-## 📋 Post-v1.18.35 Accumulation (August 31 – September 1, 2026) — UNRELEASED (no installer built yet)
+## 📋 v1.18.36 (September 1, 2026) — commits since v1.18.35
 
 | Hash | Area | Description |
 |------|------|-------------|
-| _pending_ | Test | Add `test_download_rejects_path_traversal_export_filename` (semester-archive download guard) + `StudentProfile.test.tsx` (Academic History coverage) |
+| `e54f8a089` | Test | Add `test_download_rejects_path_traversal_export_filename` (semester-archive download guard) + `StudentProfile.test.tsx` (Academic History coverage) |
 | `3dd499418` | Fix | Consolidate all backup paths (session-import, semester-archive, admin DB, Postgres) to a single `Settings.BACKUPS_DIR` source of truth |
 | `1a9665502` | Refactor | Rename `docker-old`→`compose`/`installer-old`→`windows`, dedupe session-import lookups, fix N+1 queries in semester archive preview/execute |
 | `3d14b91b4` | Fix | Security/correctness gaps from codebase review: Docker AUTH_MODE=strict default, `sessions:manage` RBAC seed gap, session-import filename path-traversal sanitization, `/control/reset-database` via Alembic, plaintext export staging dir hardening, i18n fallback fixes |
@@ -72,9 +72,6 @@ Student profiles are never touched.
 
 ### Still outstanding (as of 2026-09-01 codebase review)
 
-- Version was bumped and tagged as v1.18.35 (commit `ada862ced`), but no new
-  installer has been built/published since — `VERSION` and git are ahead of the
-  last GitHub release.
 - `sessions:manage` permission (used by `routers_sessions.py` export/import/
   rollback/backup endpoints) was missing from `ROLE_PERMISSIONS`/`PERMISSIONS`
   in `scripts/seed_permissions.py` — fixed 2026-09-01; re-run the seed script

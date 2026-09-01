@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Last Updated**: 2026-09-01
-**Project Version (documented)**: 1.18.35
-**Version**: 1.18.35
+**Project Version (documented)**: 1.18.36
+**Version**: 1.18.36
 **Current Branch**: `main`
 **Status**: ✅ **`v1.18.35` IS THE LATEST PUBLISHED RELEASE** (Semester Archive feature, RBAC/Permissions unification, and several post-release fixes have shipped on top of it — no new installer built yet)
 

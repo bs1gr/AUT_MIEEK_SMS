@@ -13,6 +13,33 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.36] - 2026-09-01
+
+### Features
+- add semester archive - back up and archive passed courses per semester
+
+### Bug Fixes
+- consolidate all backup paths to a single source of truth
+- security/correctness gaps from codebase review (auth defaults, path traversal, RBAC seed, i18n)
+- correct CodeQL path-injection suppression syntax on validated paths
+- sweep orphaned multiprocessing workers on backend restart/stop
+- user permission lookup 500 error on PostgreSQL
+- PermissionsPage showed 0 permissions and raw i18n keys
+- remove redundant Grant Permission tab from RBAC Configuration
+- unify Permissions into RBAC Configuration as a tab
+- shift letter-grade scale to align with a 50% pass mark
+- nest Semester Archive inside System Operations instead of its own section
+- remove duplicate Import/Export section from Control Panel maintenance tab
+- move admin pages into System > Control Panel > Maintenance
+- expose admin section (Permissions/Import-Export/Semester Archive) in main nav
+
+### Refactoring
+- medium-priority cleanup from codebase review (rename legacy dirs, dedupe, N+1 fixes)
+
+### Tests
+- add semester-archive path-traversal negative test and StudentProfile Academic History coverage
+
 ## [1.18.35] - 2026-08-30
 
 ### Bug Fixes
@@ -4797,6 +4824,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
