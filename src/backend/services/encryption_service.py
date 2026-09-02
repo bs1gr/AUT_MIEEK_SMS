@@ -210,8 +210,10 @@ class EncryptionService:
         encrypted_data = self.encrypt(data, associated_data=metadata_bytes)
 
         # Write encrypted file
-        output_path.parent.mkdir(parents=True, exist_ok=True)  # codeql[py/path-injection] callers resolve output_path via _resolve_backup_path()
-        with open(output_path, "wb") as f:  # codeql[py/path-injection] callers resolve output_path via _resolve_backup_path()
+        # codeql[py/path-injection] callers resolve output_path via _resolve_backup_path()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        # codeql[py/path-injection] callers resolve output_path via _resolve_backup_path()
+        with open(output_path, "wb") as f:
             # Write header: encrypted package size (4 bytes, big-endian)
             # This allows detection of encrypted vs unencrypted files
             f.write(len(encrypted_data).to_bytes(4, byteorder="big"))
