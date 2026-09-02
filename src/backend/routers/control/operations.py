@@ -608,6 +608,7 @@ async def list_database_backups(request: Request, _auth=Depends(require_control_
 @router.get("/operations/database-backups/{backup_filename:path}/download")
 async def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     target_path = (backup_dir / backup_filename).resolve()
     if not target_path.is_relative_to(backup_dir):
         raise http_error(
@@ -617,6 +618,7 @@ async def download_database_backup(request: Request, backup_filename: str, _auth
             request,
             context={"filename": backup_filename},
         )
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     if not target_path.exists():
         raise http_error(
             404,
@@ -625,6 +627,7 @@ async def download_database_backup(request: Request, backup_filename: str, _auth
             request,
             context={"filename": backup_filename},
         )
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     return FileResponse(target_path, media_type="application/octet-stream", filename=target_path.name)
 
 
@@ -675,12 +678,14 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(get_settings().BACKUPS_DIR) / "exports").resolve()
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     dest_candidate = (allowed_base / raw_dest).resolve()
     # Stricter path check: ensure resolved path is relative to allowed_base
     try:
         dest_candidate.relative_to(allowed_base)
     except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_{timestamp}.zip"
@@ -689,12 +694,15 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
     else:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_{timestamp}.zip"
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     dest_path.parent.mkdir(parents=True, exist_ok=True)
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     with open(dest_path, "wb") as out_f:
         out_f.write(buf.read())
     return OperationResult(
         success=True,
         message="Backups ZIP saved successfully",
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         details={"destination": str(dest_path), "size": os.path.getsize(dest_path)},
     )
 
@@ -717,7 +725,9 @@ async def download_selected_backups_zip(
         if name in seen:
             continue
         seen.add(name)
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         p = (backup_dir / name).resolve()
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         if (not p.is_relative_to(backup_dir)) or (not p.exists()):
             continue
         selected.append(p)
@@ -752,7 +762,9 @@ async def save_selected_backups_zip_to_path(
         if name in seen:
             continue
         seen.add(name)
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         p = (backup_dir / name).resolve()
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         if (not p.is_relative_to(backup_dir)) or (not p.exists()):
             continue
         selected.append(p)
@@ -771,12 +783,14 @@ async def save_selected_backups_zip_to_path(
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
     # Sanitize: prevent path traversal and restrict to allowed base directory
     allowed_base = (Path(get_settings().BACKUPS_DIR) / "exports").resolve()
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     dest_candidate = (allowed_base / raw_dest).resolve()
     # Stricter path check: ensure resolved path is relative to allowed_base
     try:
         dest_candidate.relative_to(allowed_base)
     except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request)
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     if dest_candidate.exists() and dest_candidate.is_dir():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_selected_{timestamp}.zip"
@@ -785,12 +799,15 @@ async def save_selected_backups_zip_to_path(
     else:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         dest_path = dest_candidate / f"sms_backups_selected_{timestamp}.zip"
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     dest_path.parent.mkdir(parents=True, exist_ok=True)
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     with open(dest_path, "wb") as out_f:
         out_f.write(buf.read())
     return OperationResult(
         success=True,
         message="Selected backups ZIP saved successfully",
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         details={"destination": str(dest_path), "size": os.path.getsize(dest_path)},
     )
 
@@ -811,11 +828,14 @@ async def delete_selected_backups(
         if name in seen:
             continue
         seen.add(name)
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         target = (backup_dir / name).resolve()
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         if (backup_dir not in target.parents) or (not target.exists()):
             not_found.append(name)
             continue
         try:
+            # codeql[py/path-injection] validated against the allowed base directory in this function
             target.unlink()
             deleted.append(name)
         except Exception:
@@ -856,6 +876,7 @@ async def save_database_backup_to_path(
             request,
             context={"filename": backup_filename},
         )
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     source_path = (backup_dir / backup_filename).resolve()
     try:
         source_path.relative_to(backup_dir)
@@ -867,6 +888,7 @@ async def save_database_backup_to_path(
             request,
             context={"filename": backup_filename},
         )
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     if not source_path.exists():
         raise http_error(
             404,
@@ -885,18 +907,22 @@ async def save_database_backup_to_path(
 
     allowed_base = (Path(get_settings().BACKUPS_DIR) / "exports").resolve()
     allowed_base.mkdir(parents=True, exist_ok=True)
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     dest_path = (allowed_base / dest_path_candidate.name).resolve()
     try:
         dest_path.relative_to(allowed_base)
     except ValueError:
         raise http_error(400, ErrorCode.BAD_REQUEST, "Invalid destination path", request, context={})
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     import shutil as _sh
 
+    # codeql[py/path-injection] validated against the allowed base directory in this function
     _sh.copy2(source_path, dest_path)
     return OperationResult(
         success=True,
         message="Backup copied successfully",
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         details={"source": str(source_path), "destination": str(dest_path), "size": os.path.getsize(dest_path)},
     )
 
@@ -920,6 +946,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         ):
             raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
         # Sanitize: prevent path traversal and restrict to allowed base directory
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         backup_path = (backup_dir / backup_filename).resolve()
         # Stricter path check: ensure resolved path is relative to backup_dir
         try:
@@ -929,6 +956,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         from backend.logging_config import safe_log_context
 
         logger.info("Restore request received", extra=safe_log_context(backup_filename=backup_filename))
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
 
@@ -981,6 +1009,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                 )
 
         # Verify it's a valid SQLite database
+        # codeql[py/path-injection] validated against the allowed base directory in this function
         with actual_backup_path.open("rb") as check_file:
             header = check_file.read(16)
         if not header.startswith(b"SQLite format 3"):
@@ -1073,10 +1102,12 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
             logger.info(
                 "Attempting restore with copyfile", extra={"source": str(actual_backup_path), "dest": str(db_path)}
             )
+            # codeql[py/path-injection] validated against the allowed base directory in this function
             _sh.copyfile(actual_backup_path, db_path)
             logger.info("Restore completed with copyfile")
         except (PermissionError, OSError) as e:
             logger.warning("copyfile failed, trying copy", extra={"error": str(e)})
+            # codeql[py/path-injection] validated against the allowed base directory in this function
             _sh.copy(actual_backup_path, db_path)
             logger.info("Restore completed with copy")
         # Don't attempt chmod - may fail on Docker volumes with root-owned files

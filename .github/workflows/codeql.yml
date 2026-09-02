@@ -36,4 +36,19 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
+        id: analyze
         uses: github/codeql-action/analyze@v4
+
+      # Auto-dismisses alerts covered by an inline `codeql[rule-id]` suppression
+      # comment (see AlertSuppression.ql) so reviewed false positives don't need
+      # to be re-dismissed by hand on every scan. Restricted to non-PR runs
+      # (schedule/workflow_dispatch) because dismissal is a repo-global action
+      # and PR runs analyze the PR head rather than main.
+      - name: Dismiss suppressed alerts
+        if: github.event_name != 'pull_request'
+        uses: advanced-security/dismiss-alerts@v2
+        with:
+          sarif-id: ${{ steps.analyze.outputs.sarif-id }}
+          sarif-file: ${{ steps.analyze.outputs.sarif-output }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
