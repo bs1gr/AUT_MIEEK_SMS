@@ -11,6 +11,9 @@ concurrency:
   group: codeql-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   analyze:
     name: Analyze
@@ -39,16 +42,54 @@ jobs:
         id: analyze
         uses: github/codeql-action/analyze@v4
 
+      # Stash the SARIF results (plus the id GitHub assigned the upload) as an
+      # artifact so the dismiss-alerts job below can process each language
+      # sequentially instead of every matrix leg calling the dismissal API in
+      # parallel, which was racing and silently dropping some dismissals.
+      - name: Save SARIF results for dismissal
+        if: github.event_name != 'pull_request'
+        run: echo "${{ steps.analyze.outputs.sarif-id }}" > "${{ steps.analyze.outputs.sarif-output }}/sarif-id.txt"
+
+      - name: Upload SARIF results artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sarif-${{ matrix.language }}
+          path: ${{ steps.analyze.outputs.sarif-output }}
+          retention-days: 1
+
+  dismiss-alerts:
+    name: Dismiss suppressed alerts (${{ matrix.language }})
+    needs: analyze
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      # One language at a time: two parallel dismiss-alerts calls against the
+      # same repo raced and only dismissed a subset of matching alerts.
+      max-parallel: 1
+      matrix:
+        language: [ 'python', 'javascript' ]
+    steps:
+      - name: Download SARIF results artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: sarif-${{ matrix.language }}
+          path: sarif-results
+
+      - name: Read SARIF id
+        id: sarif-id
+        run: echo "id=$(cat sarif-results/sarif-id.txt)" >> "$GITHUB_OUTPUT"
+
       # Auto-dismisses alerts covered by an inline `codeql[rule-id]` suppression
       # comment (see AlertSuppression.ql) so reviewed false positives don't need
-      # to be re-dismissed by hand on every scan. Restricted to non-PR runs
-      # (schedule/workflow_dispatch) because dismissal is a repo-global action
-      # and PR runs analyze the PR head rather than main.
+      # to be re-dismissed by hand on every scan.
       - name: Dismiss suppressed alerts
-        if: github.event_name != 'pull_request'
         uses: advanced-security/dismiss-alerts@v2
         with:
-          sarif-id: ${{ steps.analyze.outputs.sarif-id }}
-          sarif-file: ${{ steps.analyze.outputs.sarif-output }}
+          sarif-id: ${{ steps.sarif-id.outputs.id }}
+          sarif-file: sarif-results
         env:
           GITHUB_TOKEN: ${{ github.token }}
