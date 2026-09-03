@@ -120,15 +120,6 @@ export default {
     asc: 'Ascending',
     desc: 'Descending'
   },
-  sortLabel: 'Sort by',
-  sortDirectionLabel: 'Sort direction',
-  sortRelevance: 'Relevance',
-  sortName: 'Name',
-  sortEmail: 'Email',
-  sortCreated: 'Created',
-  sortUpdated: 'Updated',
-  sortAsc: 'Ascending',
-  sortDesc: 'Descending',
   pagination: {
     range: '{{start}}-{{end}} of {{total}} results'
   },

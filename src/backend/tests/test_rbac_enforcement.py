@@ -43,6 +43,9 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
     adminops_mod = importlib.import_module("backend.routers.routers_adminops")
     importlib.reload(adminops_mod)
 
+    search_mod = importlib.import_module("backend.routers.routers_search")
+    importlib.reload(search_mod)
+
     # Minimal FastAPI app for these routers
     from backend.app_factory import create_app
 
@@ -61,6 +64,7 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
     app.include_router(auth_mod.router, prefix="/api/v1", tags=["Auth"])
     app.include_router(attendance_mod.router, prefix="/api/v1", tags=["Attendance"])
     app.include_router(adminops_mod.router, prefix="/api/v1", tags=["AdminOps"])
+    app.include_router(search_mod.router, prefix="/api/v1", tags=["Search"])
 
     # In-memory DB with overrides
     from backend import models
@@ -183,3 +187,51 @@ def test_rbac_teacher_can_write_but_not_admin_ops(rbac_client: TestClient):
     # Admin can perform admin-only operation
     r3 = client.post("/api/v1/adminops/backup", headers={"Authorization": f"Bearer {admin_token}"})
     assert r3.status_code in (200, 201, 404), r3.text
+
+
+def test_rbac_blocks_anonymous_on_search(rbac_client: TestClient):
+    """Search endpoints must reject unauthenticated requests under AUTH_MODE=strict.
+
+    Regression test: /search/students, /search/courses, /search/grades, and
+    POST /search/advanced previously had no auth dependency at all, so they
+    ignored AUTH_MODE entirely and exposed student PII/grades to anonymous
+    callers even in strict mode (unlike every other RBAC-protected router,
+    which at minimum requires a bearer token once AUTH_MODE=strict).
+    """
+    client = rbac_client
+
+    import backend.config as config
+
+    config.settings.AUTH_MODE = "strict"
+
+    r = client.get("/api/v1/search/students", params={"q": "John"})
+    assert r.status_code in (401, 403), r.text
+
+    r = client.get("/api/v1/search/courses", params={"q": "Math"})
+    assert r.status_code in (401, 403), r.text
+
+    r = client.get("/api/v1/search/grades")
+    assert r.status_code in (401, 403), r.text
+
+    r = client.post("/api/v1/search/advanced", json={"entity": "students", "query": "John"})
+    assert r.status_code in (401, 403), r.text
+
+
+def test_rbac_allows_permitted_role_on_search(rbac_client: TestClient):
+    """A role holding the view permission (teacher) can use search once authenticated."""
+    client = rbac_client
+
+    strong_password = "Str0ngPass!123"  # pragma: allowlist secret
+    _register_user(client, "teacher2@example.com", strong_password, role="teacher")
+    teacher_token = _login(client, "teacher2@example.com", strong_password)
+    headers = {"Authorization": f"Bearer {teacher_token}"}
+
+    r = client.get("/api/v1/search/students", params={"q": "John"}, headers=headers)
+    assert r.status_code not in (401, 403), r.text
+
+    r = client.post(
+        "/api/v1/search/advanced",
+        json={"entity": "courses", "query": "Math"},
+        headers=headers,
+    )
+    assert r.status_code not in (401, 403), r.text

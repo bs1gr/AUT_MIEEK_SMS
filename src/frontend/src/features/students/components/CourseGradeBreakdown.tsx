@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useMemo, useState, useCallback } from 'react';
 import type { Grade, Course } from '@/types';
+import { coursesAPI } from '@/api/api';
 import { percentageToGreekScale, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
 
@@ -13,7 +14,6 @@ interface CourseGradeBreakdownProps {
  * Memoized CourseGradeBreakdown component
  * Displays grade breakdown by course with calculations memoized
  */
-const API_BASE_URL: string = (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
 const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
   gradesList,
@@ -32,18 +32,12 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
     }
 
     let cancelled = false;
-    const normalizedBase = API_BASE_URL.replace(/\/$/, '');
 
       const fetchMissingCourses = async () => {
         const fetchedEntries = await Promise.all(
           missingCourseIds.map(async (courseId) => {
             try {
-              const response = await fetch(`${normalizedBase}/courses/${courseId}`);
-              if (!response.ok) {
-                console.warn(`Failed to fetch course ${courseId}: ${response.status} ${response.statusText}`);
-                return null;
-              }
-              const course: Course = await response.json();
+              const course = await coursesAPI.getById(courseId);
               return { courseId, course };
             } catch (error) {
               console.warn('Failed to load course info', courseId, error);

@@ -24,6 +24,9 @@ services:
       - POSTGRES_OPTIONS=${POSTGRES_OPTIONS:-}
       # Allow frontend served from compose to call backend
       - CORS_ORIGINS=http://localhost:8080
+      # Extra hosts allowed through TrustedHostMiddleware (LAN IP, Tailscale hostname,
+      # custom domain), comma-separated. localhost/127.0.0.1/backend are always allowed.
+      - TRUSTED_HOSTS=${TRUSTED_HOSTS:-}
       - SMS_ENV=${SMS_ENV:-production}
       - SMS_EXECUTION_MODE=docker
       # SECRET_KEY is required - no default provided for security

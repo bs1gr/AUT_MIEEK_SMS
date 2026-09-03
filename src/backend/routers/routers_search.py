@@ -19,6 +19,8 @@ from sqlalchemy.orm import Session
 import logging
 
 from backend.dependencies import get_db
+from backend.errors import ErrorCode, http_error
+from backend.rbac import has_permission
 from backend.security.permissions import optional_require_permission
 from backend.security.current_user import get_current_user, require_auth_even_if_disabled
 from backend.models import User
@@ -64,6 +66,7 @@ async def search_students(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for students by name, email, or enrollment number.
@@ -108,6 +111,7 @@ async def search_courses(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_permission("courses:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for courses by name, code, or description.
@@ -158,6 +162,7 @@ async def search_grades(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_permission("grades:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for grades with optional text query and filtering.
@@ -216,6 +221,7 @@ async def advanced_search(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Perform advanced search with complex filter combinations.
@@ -265,6 +271,19 @@ async def advanced_search(
                 code="INVALID_ENTITY",
                 message="Invalid entity. Must be 'students', 'courses', or 'grades'",
                 request_id=request.state.request_id,
+            )
+
+        required_permission = f"{entity}:view"
+        if not has_permission(current_user, required_permission, db):
+            raise http_error(
+                403,
+                ErrorCode.FORBIDDEN,
+                f"Missing permission: {required_permission}",
+                request,
+                context={
+                    "required_permission": required_permission,
+                    "current_role": getattr(current_user, "role", None),
+                },
             )
 
         search_service = SearchService(db)

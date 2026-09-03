@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
-import { attendanceAPI, gradesAPI, coursesAPI } from '@/api/api';
+import { attendanceAPI, gradesAPI, coursesAPI, analyticsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
 import type { Student, Attendance, Grade, Course } from '@/types';
@@ -11,7 +11,6 @@ import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeU
 import StudentCard from './StudentCard';
 import type { StudentStats } from './studentTypes';
 import { eventBus, EVENTS } from '@/utils/events';
-import { getApiBaseUrl } from '@/utils/serverUrl';
 
 interface StudentsViewProps {
   students: Student[];
@@ -91,13 +90,15 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
   const loadStats = useCallback(async (studentId: number): Promise<void> => {
     try {
-      const [attendance, grades, finalGradeSummary] = await Promise.all([
+      const [attendance, grades, finalGradeSummaryRaw] = await Promise.all([
         attendanceAPI.getByStudent(studentId),
         gradesAPI.getByStudent(studentId),
-        fetch(`${getApiBaseUrl()}/analytics/student/${studentId}/all-courses-summary`)
-          .then(res => res.ok ? res.json() : null)
-          .catch(() => null),
+        analyticsAPI.getAllCoursesSummary(studentId).catch(() => null),
       ]);
+      const finalGradeSummary = finalGradeSummaryRaw as {
+        overall_gpa?: number;
+        courses?: StudentStats['courseSummary'];
+      } | null;
       const total = attendance.length;
       const present = attendance.filter((a: Attendance) => a.status === 'Present').length;
       const absent = attendance.filter((a: Attendance) => a.status === 'Absent').length;

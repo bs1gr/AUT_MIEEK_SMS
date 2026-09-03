@@ -13,6 +13,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends
 
+from backend.routers.routers_auth import optional_require_role
 from backend.security.current_user import get_current_user
 from backend.models import User
 from backend.websocket_config import connection_manager
@@ -61,7 +62,9 @@ async def websocket_stats():
 
 
 @router.post("/websocket/cleanup")
-async def cleanup_stale_connections(timeout_seconds: int = 300, current_user: User = Depends(get_current_user)):
+async def cleanup_stale_connections(
+    timeout_seconds: int = 300, current_admin: User = Depends(optional_require_role("admin"))
+):
     """
     Cleanup stale WebSocket connections (admin only).
 
@@ -71,7 +74,6 @@ async def cleanup_stale_connections(timeout_seconds: int = 300, current_user: Us
     Returns:
         - cleaned_up: Number of stale sessions removed
     """
-    # Note: Would need admin check or permission here
     stale_sessions = connection_manager.get_stale_sessions(timeout_seconds)
     logger.info(f"Found {len(stale_sessions)} stale sessions")
     # Actual cleanup would be done in background task

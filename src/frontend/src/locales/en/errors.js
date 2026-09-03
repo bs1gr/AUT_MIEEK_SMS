@@ -42,6 +42,8 @@ export default {
   databaseError: 'A database error occurred. Please try again or contact support if the problem persists.',
   internalError: 'An unexpected error occurred. Our team has been notified. Please try again later.',
   unknown: 'Unknown error',
+  networkError: 'Network connection failed. Please check your internet connection and try again.',
+  validationError: 'Please check your input and try again.',
 
   // Generic error titles
   errorTitle: 'Error',

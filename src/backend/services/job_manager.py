@@ -9,9 +9,11 @@ Handles:
 """
 
 import logging
+import threading
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Iterator, List, Optional
 
 from backend.cache import redis_cache
 from backend.schemas.jobs import (
@@ -31,6 +33,39 @@ USER_JOBS_KEY_PREFIX = "jobs:user:"
 
 # Job expiration (keep completed jobs for 24 hours)
 JOB_TTL = timedelta(hours=24)
+
+# Serializes read-modify-write access to a job-list key when Redis is
+# disabled (single-process fallback cache, no cross-process concurrency).
+_job_list_local_lock = threading.Lock()
+
+
+@contextmanager
+def _locked_job_list(key: str) -> Iterator[None]:
+    """Guard the get -> mutate -> set sequence on a job-list entry.
+
+    Without this, two concurrent job creations can both read the same list
+    snapshot; the second write then clobbers the first, silently dropping an
+    entry from the `/jobs/` listing (the job itself still exists under its
+    own key). Uses a distributed Redis lock when Redis is enabled (safe
+    across worker processes); falls back to a process-local lock otherwise.
+    """
+    if redis_cache.enabled and redis_cache.client:
+        lock = redis_cache.client.lock(f"lock:{key}", timeout=5, blocking_timeout=5)
+        acquired = False
+        try:
+            acquired = bool(lock.acquire())
+            if not acquired:
+                logger.warning("Could not acquire lock for %s within timeout; proceeding unlocked", key)
+            yield
+        finally:
+            if acquired:
+                try:
+                    lock.release()
+                except Exception:
+                    pass
+    else:
+        with _job_list_local_lock:
+            yield
 
 
 class JobManager:
@@ -71,19 +106,21 @@ class JobManager:
         redis_cache.set(job_key, job_data, JOB_TTL)
 
         # Add to job list (stored as JSON array)
-        job_list = redis_cache.get(JOB_LIST_KEY) or []
-        job_list.insert(0, {"id": job_id, "timestamp": now.timestamp()})  # Newest first
-        # Keep only last 1000 jobs
-        job_list = job_list[:1000]
-        redis_cache.set(JOB_LIST_KEY, job_list, JOB_TTL)
+        with _locked_job_list(JOB_LIST_KEY):
+            job_list = redis_cache.get(JOB_LIST_KEY) or []
+            job_list.insert(0, {"id": job_id, "timestamp": now.timestamp()})  # Newest first
+            # Keep only last 1000 jobs
+            job_list = job_list[:1000]
+            redis_cache.set(JOB_LIST_KEY, job_list, JOB_TTL)
 
         # Add to user's job list if user_id provided
         if job_create.user_id:
             user_key = f"{USER_JOBS_KEY_PREFIX}{job_create.user_id}"
-            user_jobs = redis_cache.get(user_key) or []
-            user_jobs.insert(0, {"id": job_id, "timestamp": now.timestamp()})
-            user_jobs = user_jobs[:100]  # Keep last 100 per user
-            redis_cache.set(user_key, user_jobs, JOB_TTL)
+            with _locked_job_list(user_key):
+                user_jobs = redis_cache.get(user_key) or []
+                user_jobs.insert(0, {"id": job_id, "timestamp": now.timestamp()})
+                user_jobs = user_jobs[:100]  # Keep last 100 per user
+                redis_cache.set(user_key, user_jobs, JOB_TTL)
 
         logger.info(f"Created job {job_id} of type {job_create.job_type.value}")
         return job_id
@@ -104,6 +141,15 @@ class JobManager:
 
         if not job_data:
             return None
+
+        # Work on a shallow copy: the in-memory fallback cache (used whenever
+        # REDIS_ENABLED is not set) returns the stored dict by reference, not
+        # a deserialized copy like real Redis does. Mutating the ISO date
+        # strings below into datetime objects in place would otherwise
+        # permanently corrupt the cached entry, breaking every subsequent
+        # get_job() call for this job with a "fromisoformat: argument must
+        # be str" TypeError.
+        job_data = dict(job_data)
 
         # Convert datetime strings back to datetime objects
         if job_data.get("created_at"):
@@ -316,9 +362,10 @@ class JobManager:
 
         if deleted:
             # Remove from job list
-            job_list = redis_cache.get(JOB_LIST_KEY) or []
-            job_list = [j for j in job_list if j.get("id") != job_id]
-            redis_cache.set(JOB_LIST_KEY, job_list, JOB_TTL)
+            with _locked_job_list(JOB_LIST_KEY):
+                job_list = redis_cache.get(JOB_LIST_KEY) or []
+                job_list = [j for j in job_list if j.get("id") != job_id]
+                redis_cache.set(JOB_LIST_KEY, job_list, JOB_TTL)
 
             logger.info(f"Deleted job {job_id}")
 

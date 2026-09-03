@@ -48,6 +48,13 @@ COPY infra/docker/compose/nginx.conf /etc/nginx/conf.d/default.conf
 RUN mkdir -p /var/cache/nginx/client_temp /var/run \
       && chown -R nginx:nginx /var/cache/nginx /var/run /usr/share/nginx/html /etc/nginx/conf.d
 
-# Run as root so entrypoint can initialize configs; nginx worker runs as nginx
-EXPOSE 8080
+# The container's PID 1 (nginx master) stays root because it must bind port
+# 80, a privileged port on Linux; the base image's own /etc/nginx/nginx.conf
+# (not overridden here — we only replace conf.d/default.conf) already sets
+# `user nginx;`, so worker processes that actually handle requests already
+# drop to the unprivileged nginx user.
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD wget -q -O /dev/null http://127.0.0.1:80/ || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]

@@ -149,7 +149,9 @@ export const notificationsEL = {
     empty: 'Δεν υπάρχουν ειδοποιήσεις',
     loading: 'Φόρτωση ειδοποιήσεων...',
     updateAvailable: 'Διαθέσιμη Ενημέρωση',
-    updateVersion: 'Έκδοση {{version}}',    dismissUpdate: 'Απόρριψη ειδοποίησης ενημέρωσης',  },
+    updateVersion: 'Έκδοση {{version}}',
+    dismissUpdate: 'Απόρριψη ειδοποίησης ενημέρωσης',
+  },
 
   // Item component
   item: {

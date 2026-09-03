@@ -68,7 +68,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       else if (apiError?.request && !apiError?.response) {
         errorState = {
           code: 'NETWORK_ERROR',
-          message: t('errors.NETWORK_ERROR', { defaultValue: 'Network connection failed' }),
+          message: t('errors.networkError', { defaultValue: 'Network connection failed' }),
           details: apiError.message as string | undefined,
         };
       }
@@ -76,7 +76,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       else if (apiError?.validation) {
         errorState = {
           code: 'VALIDATION_ERROR',
-          message: t('errors.VALIDATION_ERROR', { defaultValue: 'Please check your input' }),
+          message: t('errors.validationError', { defaultValue: 'Please check your input' }),
           details: apiError.validation as string | Record<string, unknown> | undefined,
         };
       }
@@ -84,7 +84,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       else {
         errorState = {
           code: (apiError?.code as string) || 'UNKNOWN_ERROR',
-          message: fallbackMessage || (apiError?.message as string) || t('errors.UNKNOWN_ERROR', { defaultValue: 'An error occurred' }),
+          message: fallbackMessage || (apiError?.message as string) || t('errors.unknown', { defaultValue: 'An error occurred' }),
           details: apiError?.details as string | Record<string, unknown> | undefined,
         };
       }

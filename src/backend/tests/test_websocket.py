@@ -235,6 +235,79 @@ class TestNotificationService:
         assert unread_count == 1
 
 
+class TestWebSocketRouterAuth:
+    """HTTP-level auth tests for routers_websocket.router.
+
+    Note: this router is not currently mounted by app_factory/router_registry
+    (verified via repo-wide search — only stale planning docs under archive/
+    reference it), so these tests exercise it standalone. They lock in the
+    /websocket/cleanup admin-only check as a regression test for whenever the
+    router does get wired into the live app.
+    """
+
+    def _build_app(self, clean_db, monkeypatch, auth_mode: str):
+        from backend.app_factory import create_app
+        from backend.db import get_session
+        from backend.routers import routers_websocket
+
+        monkeypatch.setattr("backend.config.settings.AUTH_ENABLED", True)
+        monkeypatch.setattr("backend.config.settings.AUTH_MODE", auth_mode)
+
+        app = create_app()
+
+        def override_get_session():
+            yield clean_db
+
+        app.dependency_overrides[get_session] = override_get_session
+        app.include_router(routers_websocket.router)
+        return app
+
+    def test_cleanup_blocks_anonymous_under_strict_auth(self, clean_db, monkeypatch):
+        from starlette.testclient import TestClient
+
+        app = self._build_app(clean_db, monkeypatch, "strict")
+        response = TestClient(app).post("/api/v1/notifications/websocket/cleanup")
+        assert response.status_code == 401, response.text
+
+    def test_cleanup_denies_non_admin(self, clean_db, monkeypatch):
+        from starlette.testclient import TestClient
+
+        from backend.models import User
+        from backend.routers.routers_auth import create_access_token
+
+        user = User(email="teacher-ws@test.com", hashed_password="dummy", is_active=True, role="teacher")
+        clean_db.add(user)
+        clean_db.commit()
+        clean_db.refresh(user)
+
+        app = self._build_app(clean_db, monkeypatch, "permissive")
+        token = create_access_token(subject=user.email, role=user.role)
+        response = TestClient(app).post(
+            "/api/v1/notifications/websocket/cleanup",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 403, response.text
+
+    def test_cleanup_allows_admin(self, clean_db, monkeypatch):
+        from starlette.testclient import TestClient
+
+        from backend.models import User
+        from backend.routers.routers_auth import create_access_token
+
+        user = User(email="admin-ws@test.com", hashed_password="dummy", is_active=True, role="admin")
+        clean_db.add(user)
+        clean_db.commit()
+        clean_db.refresh(user)
+
+        app = self._build_app(clean_db, monkeypatch, "permissive")
+        token = create_access_token(subject=user.email, role=user.role)
+        response = TestClient(app).post(
+            "/api/v1/notifications/websocket/cleanup",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert response.status_code == 200, response.text
+
+
 @pytest.fixture(scope="session")
 def pytest_configure(config):
     """Configure pytest with markers"""

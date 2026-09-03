@@ -16,8 +16,11 @@ def register_middlewares(app):
     # TrustedHostMiddleware - must come BEFORE other middleware to properly handle forwarded headers
     # This allows the backend to understand it's behind a reverse proxy and use X-Forwarded-* headers
     if settings.SMS_EXECUTION_MODE.lower() == "docker":
-        # In Docker, allow traffic from nginx reverse proxy
-        app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "backend", "*"])
+        # In Docker, allow traffic from nginx reverse proxy, plus any operator-configured
+        # LAN IP / Tailscale hostname / domain (see settings.TRUSTED_HOSTS). No wildcard:
+        # "*" would disable Host-header validation entirely.
+        allowed_hosts = ["localhost", "127.0.0.1", "backend", *settings.TRUSTED_HOSTS_LIST]
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
     # Request ID tracking middleware
     try:

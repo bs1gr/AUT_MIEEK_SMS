@@ -292,4 +292,10 @@ export default {
   helpDailyPerformanceAffectAnswer: 'Yes, when included in evaluation rules, daily performance contributes with its configured multiplier.',
   helpWhatIsGreekGrade: 'What is Greek grading scale output?',
   helpGreekGradeAnswer: 'The system can present equivalent score output on the Greek 0–20 scale alongside percentage/GPA views.',
+  helpTopPerformersTooltips: 'How do the Top Performers tooltips explain the scores?',
+  helpTopPerformersTooltipsAnswer: 'The tooltips summarize the calculation sources: Academic Performance uses the evaluation rules and grade categories, Participation & Attendance combines daily performance with attendance impact, and Continuous Assessment comes from the corresponding category when present. The Overall Score is the average of per-course results after applying the daily performance multipliers and any absence penalty.',
+  helpPerformanceAuditView: 'What is the performance audit view?',
+  helpPerformanceAuditViewAnswer: 'The performance audit view is an exportable report that lists the grade and attendance records used in analytics. It helps you confirm which assignments, categories, and attendance entries contributed to a student’s Top Performers scores.',
+  helpExportPerformanceBreakdown: 'How do I export a per-student performance breakdown?',
+  helpExportPerformanceBreakdownAnswer: 'Go to Operations → Reports → Templates and use the "Student Performance Breakdown - Grades" template. Filter by student_id (and optionally course_id/date range), then generate the report as Excel or PDF. For an attendance audit, use the "Student Performance Audit - Attendance" template.',
 };

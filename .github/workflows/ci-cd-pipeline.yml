@@ -56,6 +56,9 @@ jobs:
   version-verification:
     name: 🔍 Version Consistency Check
     runs-on: windows-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -138,6 +141,9 @@ jobs:
   workflow-version-policy:
     name: 🛡️ Workflow Version Normalization Policy
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -179,6 +185,9 @@ jobs:
     name: 🔍 Backend Linting (Python)
     runs-on: ubuntu-latest
     needs: [version-verification, workflow-version-policy]
+    permissions:
+      contents: read
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -212,6 +221,9 @@ jobs:
     name: 🔍 Frontend Linting (TypeScript/React)
     runs-on: ubuntu-latest
     needs: [version-verification, workflow-version-policy]
+    permissions:
+      contents: read
+    timeout-minutes: 25
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -268,6 +280,9 @@ jobs:
     name: "🕵️ Secret Scanning (Gitleaks)"
     runs-on: ubuntu-latest
     needs: [lint-backend, lint-frontend]
+    permissions:
+      contents: read
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -325,6 +340,9 @@ jobs:
   determine-test-scope:
     name: Determine Test Scope
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    timeout-minutes: 5
     outputs:
       run_full_tests: ${{ steps.scope.outputs.run_full }}
       run_e2e: ${{ steps.scope.outputs.run_e2e }}
@@ -389,6 +407,9 @@ jobs:
     name: 🧪 Backend Tests (Pytest)
     runs-on: ubuntu-latest
     needs: [lint-backend]
+    permissions:
+      contents: read
+    timeout-minutes: 40
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -556,6 +577,9 @@ jobs:
     name: 🧪 Frontend Tests (Vitest)
     runs-on: ubuntu-latest
     needs: [lint-frontend]
+    permissions:
+      contents: read
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -640,6 +664,9 @@ jobs:
     name: 💨 Smoke Tests (Server Startup Verification)
     runs-on: ubuntu-latest
     needs: [test-backend, test-frontend]
+    permissions:
+      contents: read
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -713,6 +740,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [determine-test-scope, smoke-tests]
     if: needs.determine-test-scope.outputs.run_e2e == 'true'
+    permissions:
+      contents: read
     timeout-minutes: 30
     continue-on-error: ${{ github.ref != 'refs/heads/main' && github.event_name == 'pull_request' }}
     steps:
@@ -855,6 +884,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [determine-test-scope, smoke-tests]
     if: needs.determine-test-scope.outputs.run_load == 'true'
+    permissions:
+      contents: read
     timeout-minutes: 30
     continue-on-error: ${{ github.ref != 'refs/heads/main' && github.event_name == 'pull_request' }}
     steps:
@@ -962,6 +993,9 @@ jobs:
     name: 🏗️ Build Frontend (Production)
     runs-on: ubuntu-latest
     needs: [smoke-tests]
+    permissions:
+      contents: read
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -1005,6 +1039,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    timeout-minutes: 25
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
       labels: ${{ steps.meta.outputs.labels }}
@@ -1066,6 +1101,10 @@ jobs:
     name: 🔒 Security Scan (Backend)
     runs-on: ubuntu-latest
     needs: [version-verification, workflow-version-policy]
+    permissions:
+      contents: read
+      security-events: write
+    timeout-minutes: 15
     # Parallelized: runs after linting, not after testing
     # pip-audit is the single source of truth for CVE detection (faster, more accurate than Safety)
     steps:
@@ -1247,6 +1286,10 @@ jobs:
     name: 🔒 Security Scan (Frontend)
     runs-on: ubuntu-latest
     needs: [version-verification, workflow-version-policy]
+    permissions:
+      contents: read
+      security-events: write
+    timeout-minutes: 15
     # Parallelized: runs after linting, not after testing
     steps:
       - name: Checkout repository
@@ -1373,6 +1416,7 @@ jobs:
     permissions:
       security-events: write
       contents: read
+    timeout-minutes: 15
     # Non-blocking on all events - Trivy is informational, not a blocker
     # Failures should not prevent deployment (informational only)
     continue-on-error: true
@@ -1381,7 +1425,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Run Trivy on local filesystem for Dockerfiles
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: 'fs'
           scan-ref: './infra/docker'
@@ -1411,6 +1455,7 @@ jobs:
     if: always()
     permissions:
       security-events: write
+    timeout-minutes: 10
     continue-on-error: true
     steps:
       - name: Checkout repository
@@ -1450,6 +1495,9 @@ jobs:
     name: 📚 Documentation & Cleanup Validation
     runs-on: ubuntu-latest
     needs: [version-verification, workflow-version-policy]
+    permissions:
+      contents: read
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -1511,6 +1559,9 @@ jobs:
   release-asset-lock:
     name: 🔐 Release Asset Mutation Lock
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -1582,6 +1633,8 @@ jobs:
     name: 🚦 Evaluate Staging Deployment Gate
     runs-on: ubuntu-latest
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    permissions: {}
+    timeout-minutes: 5
     # Pattern: evaluate policy once, then export normalized values for the real deploy job.
     outputs:
       should_deploy: ${{ steps.gate.outputs.should_deploy }}
@@ -1639,6 +1692,8 @@ jobs:
     name: 🚦 Evaluate Production Deployment Gate
     runs-on: ubuntu-latest
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    permissions: {}
+    timeout-minutes: 5
     # Pattern: evaluate policy once, then export normalized values for the real deploy job.
     outputs:
       should_deploy: ${{ steps.gate.outputs.should_deploy }}
@@ -1694,6 +1749,10 @@ jobs:
     needs: [staging-deploy-gate]
     # Execution job pattern: consume gate outputs only; avoid embedding policy logic here.
     if: needs.staging-deploy-gate.outputs.should_deploy == 'true'
+    permissions:
+      contents: read
+      deployments: write
+    timeout-minutes: 30
     environment:
       name: staging
       url: ${{ needs.staging-deploy-gate.outputs.staging_url }}
@@ -1950,6 +2009,10 @@ jobs:
     needs: [production-deploy-gate]
     # Execution job pattern: consume gate outputs only; avoid embedding policy logic here.
     if: needs.production-deploy-gate.outputs.should_deploy == 'true'
+    permissions:
+      contents: read
+      deployments: write
+    timeout-minutes: 30
     environment:
       name: production
       url: ${{ needs.production-deploy-gate.outputs.prod_url }}
@@ -2170,6 +2233,8 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     needs: [production-deploy-gate, deploy-production]
+    permissions: {}
+    timeout-minutes: 15
     # Monitoring reuses the normalized production URL from the gate job.
     if: startsWith(github.ref, 'refs/tags/v1.') && needs.deploy-production.result == 'success'
     env:
@@ -2243,6 +2308,8 @@ jobs:
   notify-completion:
     name: 📣 Notify Pipeline Completion
     runs-on: ubuntu-latest
+    permissions: {}
+    timeout-minutes: 10
     needs:
       [
         determine-test-scope,
@@ -2298,7 +2365,7 @@ jobs:
 
       - name: Send notification
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
         with:
           webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook

@@ -192,6 +192,12 @@ class Settings(BaseSettings):
     # Operators can override via CORS_ORIGINS env var when running in different environments.
     CORS_ORIGINS: str = "http://localhost:5173, http://127.0.0.1:5173, http://localhost:5174, http://127.0.0.1:5174"
 
+    # TrustedHostMiddleware (Docker mode only). "localhost", "127.0.0.1", and "backend"
+    # (the nginx reverse-proxy's internal Docker DNS name) are always allowed; operators
+    # reachable via an additional LAN IP, Tailscale hostname, or custom domain should add
+    # it here rather than relying on a wildcard, which disables Host-header validation.
+    TRUSTED_HOSTS: str = ""
+
     # Security / JWT
     # Names aligned with .env.example
     # The placeholder SECRET_KEY below is intentionally rejected during startup
@@ -304,6 +310,25 @@ class Settings(BaseSettings):
         if not s:
             return []
         # Accept JSON-looking list or comma-separated
+        if s.startswith("[") and s.endswith("]"):
+            try:
+                import json
+
+                data = json.loads(s)
+                if isinstance(data, list):
+                    return [str(x).strip() for x in data if str(x).strip()]
+            except Exception:
+                pass
+        return [part.strip() for part in s.split(",") if part.strip()]
+
+    @property
+    def TRUSTED_HOSTS_LIST(self) -> List[str]:
+        v: Any = getattr(self, "TRUSTED_HOSTS", "")
+        if isinstance(v, list):
+            return [str(x).strip() for x in v if str(x).strip()]
+        s = str(v or "").strip()
+        if not s:
+            return []
         if s.startswith("[") and s.endswith("]"):
             try:
                 import json

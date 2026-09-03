@@ -19,8 +19,9 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$RootPath = "D:\SMS\student-management-system"
-$FrontendPath = "$RootPath\frontend"
+$RootPath = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
+$FrontendPath = "$RootPath\src\frontend"
+$NativeScript = "$RootPath\infra\scripts\dev\NATIVE.ps1"
 
 if ($Direct) {
     $SkipChecks = $true
@@ -56,11 +57,11 @@ if ($SkipChecks) {
 Write-Host "`nStep 1: Ensuring services are running..." -ForegroundColor Yellow
 
 # Show current status
-& "$RootPath\NATIVE.ps1" -Status
+& $NativeScript -Status
 
 # Start services (NATIVE.ps1 handles idempotency)
 Write-Host "Starting services via NATIVE.ps1..." -ForegroundColor Cyan
-& "$RootPath\NATIVE.ps1" -Start
+& $NativeScript -Start
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to start services via NATIVE.ps1" -ForegroundColor Red
     exit 1
