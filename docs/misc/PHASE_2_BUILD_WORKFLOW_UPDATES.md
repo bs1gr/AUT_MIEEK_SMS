@@ -1,4 +1,4 @@
-# Phase 2: Build Workflow Updates - vvv1.18.25 Installer
+# Phase 2: Build Workflow Updates - v1.18.25 Installer
 
 **Status:** Ready for Implementation  
 **Date:** 2026-06-02  
@@ -172,7 +172,7 @@ After Phase 2 implementation, the installer build should:
 
 1. **Implement Phase 2:** Update INSTALLER_BUILDER.ps1
 2. **Test locally:** Run installer for both edition types
-3. **Build final installer:** For vvv1.18.25 release
+3. **Build final installer:** For v1.18.25 release
 4. **Phase 3:** Greek translations and documentation updates
 
 ---
@@ -204,7 +204,7 @@ If Phase 2 implementation causes issues:
 
 See Also:
 - [Phase 1 Implementation Report](INSTALLER_REAL_TESTING_REPORT.md)
-- [Windows Installer Review](INSTALLER_REVIEW_vvv1.18.25.md)
+- [Windows Installer Review](INSTALLER_REVIEW_v1.18.25.md)
 - [Installer Script Reference](installer/SMS_Installer.iss)
 
 

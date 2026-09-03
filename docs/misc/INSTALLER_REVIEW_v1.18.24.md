@@ -1,7 +1,7 @@
-# Windows Installer Review & Enhancement Plan - vvv1.18.25
+# Windows Installer Review & Enhancement Plan - v1.18.25
 
 **Date:** 2026-06-01  
-**Status:** ✅ Review Complete - Ready for vvv1.18.25 Enhancement  
+**Status:** ✅ Review Complete - Ready for v1.18.25 Enhancement  
 **Current Version:** 1.18.11  
 **Target Version:** 1.18.24  
 
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The current Windows installer (vvv1.18.25) is **production-ready** but requires **enhancement for vvv1.18.25** to properly support the new **SMS Native Lite Edition** alongside the existing Docker production build. This review identifies:
+The current Windows installer (v1.18.25) is **production-ready** but requires **enhancement for v1.18.25** to properly support the new **SMS Native Lite Edition** alongside the existing Docker production build. This review identifies:
 
 ✅ **What's Working Well:**
 - Proper Docker production installation
@@ -24,7 +24,7 @@ The current Windows installer (vvv1.18.25) is **production-ready** but requires 
 - Release workflow doesn't distinguish between Docker and Lite installers
 - No separate installer for Native Lite (currently only in SMS_Native_Lite_Edition/ folder)
 
-🎯 **Recommendation for vvv1.18.25:**
+🎯 **Recommendation for v1.18.25:**
 Add an **Installation Type selection page** to offer both:
 1. **Docker Production** (current default behavior)
 2. **Native Lite Edition** (new lightweight standalone exe)
@@ -119,7 +119,7 @@ english.InstallDevEnvironmentDesc=Add Node.js, Python, native development files
 ## Current Installation Flow
 
 ```
-SMS_Installer.exe (vvv1.18.25)
+SMS_Installer.exe (v1.18.25)
   ├─ Language Selection (English/Greek)
   ├─ Welcome Page
   ├─ Installation Type (EXISTS but NON-FUNCTIONAL)
@@ -137,7 +137,7 @@ SMS_Installer.exe (vvv1.18.25)
 
 ---
 
-## What's Missing for vvv1.18.25
+## What's Missing for v1.18.25
 
 ### 1. Native Lite Edition Support
 
@@ -192,7 +192,7 @@ Source: "installer\dist\SMS_Manager.exe"; DestDir: "{app}";
 
 ---
 
-## Recommendations for vvv1.18.25
+## Recommendations for v1.18.25
 
 ### Priority 1: Enable Installation Type Selection (MUST HAVE)
 
@@ -275,7 +275,7 @@ Source: "SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs";
 **Files to Update:**
 1. `installer/README.md` - Add Lite edition section
 2. `installer/SMS_Installer.iss` - Comment explains new installation types
-3. Create `INSTALLER_vvv1.18.25_RELEASE_NOTES.md`
+3. Create `INSTALLER_v1.18.25_RELEASE_NOTES.md`
 
 **Documentation Should Cover:**
 - Installation type selection process
@@ -297,7 +297,7 @@ Source: "SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs";
 
 ---
 
-## Testing Checklist for vvv1.18.25
+## Testing Checklist for v1.18.25
 
 ### Build Validation
 - [ ] `INSTALLER_BUILDER.ps1` successfully builds SMS_Installer_1.18.24.exe
@@ -308,7 +308,7 @@ Source: "SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs";
 
 ### Docker Installation (Unchanged)
 - [ ] Fresh install: Docker edition selected → SMS_Manager.exe launches
-- [ ] Upgrade from vvv1.18.25: Docker edition → Data preserved
+- [ ] Upgrade from v1.18.25: Docker edition → Data preserved
 - [ ] QNAP PostgreSQL: Credentials file accepted
 - [ ] SQLite fallback: Works when QNAP unavailable
 
@@ -354,7 +354,7 @@ Source: "SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs";
 ### Phase 4: Release & Validation (Week 2)
 - [ ] Build final SMS_Installer_1.18.24.exe
 - [ ] Sign with AUT MIEEK certificate
-- [ ] Upload to vvv1.18.25 GitHub release
+- [ ] Upload to v1.18.25 GitHub release
 - [ ] Verify digest and asset integrity
 
 ---
@@ -391,7 +391,7 @@ Source: "SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs";
 
 ---
 
-## Success Criteria for vvv1.18.25
+## Success Criteria for v1.18.25
 
 ✅ **Installer includes both installation types**
 ✅ **User can select Docker or Lite edition during setup**
@@ -406,13 +406,13 @@ Source: "SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs";
 
 ## Conclusion
 
-The current Windows installer (vvv1.18.25) is **well-architected** and **production-ready**. For vvv1.18.25, it requires **minimal but strategic enhancements** to support the new SMS Native Lite Edition alongside the existing Docker production build.
+The current Windows installer (v1.18.25) is **well-architected** and **production-ready**. For v1.18.25, it requires **minimal but strategic enhancements** to support the new SMS Native Lite Edition alongside the existing Docker production build.
 
 **Effort Estimate:** 2-3 days (mostly testing)  
 **Complexity:** Low-to-Medium (using existing patterns)  
 **Risk Level:** Low (well-tested Inno Setup framework)  
 
-**Recommendation:** **Proceed with implementation** for vvv1.18.25 release.
+**Recommendation:** **Proceed with implementation** for v1.18.25 release.
 
 ---
 

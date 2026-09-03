@@ -1,7 +1,7 @@
 # Pull Request Review Analysis
 
 **Date:** June 6, 2026  
-**System:** Student Management System vvv1.18.25  
+**System:** Student Management System v1.18.25  
 **PRs Reviewed:** 3 (PR #195, #194, #193)  
 
 ---

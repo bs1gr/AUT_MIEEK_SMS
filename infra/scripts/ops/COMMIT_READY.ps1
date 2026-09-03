@@ -72,7 +72,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: vvvv1.18.25
+Version: v1.18.25
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -730,8 +730,12 @@ function Update-TextFileVersionLines {
         $newContent = $content -replace '(?m)^\s*Version:\s*\d+\.\d+\.\d+', "Version: $Version"
         if ($newContent -ne $content) { $updated = $true }
 
-        # Replace standalone banner versions vX.Y.Z within known headers
-        $newContent2 = $newContent -replace '(?m)(v)\d+\.\d+\.\d+', "`$1$Version"
+        # Replace standalone banner versions vX.Y.Z within known headers.
+        # $Version already includes its own "v" prefix (Get-Version reads the
+        # VERSION file raw, e.g. "v1.18.36"), so the match itself - not a
+        # captured "v" plus $Version - must be replaced, or the result
+        # doubles up into "v1.18.36".
+        $newContent2 = $newContent -replace '(?m)v\d+\.\d+\.\d+', "$Version"
         if ($newContent2 -ne $newContent) { $updated = $true }
 
         # Inno Setup script header comments ("; Version: X.Y.Z")

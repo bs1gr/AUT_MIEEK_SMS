@@ -16,7 +16,7 @@
 
 ### Version & Compliance ✅
 
-- **Fixed malformed version references** in documentation (vvvvv1.18.3 → 1.17.6)
+- **Fixed malformed version references** in documentation (v1.18.3 → 1.17.6)
 - **Ensured v1.x.x format compliance** across all version references
 - **Propagated version** to 8 core files (backend, frontend, docs, scripts)
 

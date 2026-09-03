@@ -1,6 +1,6 @@
 # Lite Edition QNAP Configuration - File Selection UI
 
-**Version:** vvv1.18.25  
+**Version:** v1.18.25  
 **Date:** June 3, 2026  
 **Installer:** SMS_Installer_1.18.24.exe
 
@@ -319,7 +319,7 @@ After file selection, fields show extracted values but remain editable:
 ---
 
 **Status:** ✅ Ready for Production  
-**Version:** vvv1.18.25  
+**Version:** v1.18.25  
 **Built:** June 3, 2026
 
 

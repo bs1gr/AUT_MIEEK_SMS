@@ -1,15 +1,15 @@
-# SMS vvv1.18.25 - RELEASE READY ✅
+# SMS v1.18.25 - RELEASE READY ✅
 
 **Release Status:** COMPLETE & READY FOR DEPLOYMENT  
 **Date:** 2026-06-02  
 **Version:** 1.18.24  
-**Git Tag:** vvv1.18.25 (pushed to GitHub)  
+**Git Tag:** v1.18.25 (pushed to GitHub)  
 
 ---
 
 ## 🎉 Release Summary
 
-SMS vvv1.18.25 has been **fully tested and is production ready** for deployment.
+SMS v1.18.25 has been **fully tested and is production ready** for deployment.
 
 ### ✅ What's Ready
 
@@ -44,7 +44,7 @@ SMS vvv1.18.25 has been **fully tested and is production ready** for deployment.
 
 ### Phase 1: Installation (4/4) ✅
 - Fresh installation
-- Upgrade from vvv1.18.25 (data preserved)
+- Upgrade from v1.18.25 (data preserved)
 - Uninstall (keep data)
 - Uninstall (delete data)
 
@@ -139,7 +139,7 @@ All test results are documented in 4 comprehensive files:
 
 **Features:**
 - ✅ Fresh installation
-- ✅ Upgrade from vvv1.18.25 (with data preservation)
+- ✅ Upgrade from v1.18.25 (with data preservation)
 - ✅ Uninstall (with optional data preservation)
 - ✅ Pre-upgrade backups
 - ✅ Configuration preservation
@@ -152,7 +152,7 @@ All test results are documented in 4 comprehensive files:
 ## 🚀 Deployment Status
 
 ### Git Status
-- ✅ Release tag: vvv1.18.25
+- ✅ Release tag: v1.18.25
 - ✅ Tag pushed to GitHub
 - ✅ Commit: 8b2b6be67
 - ✅ Latest docs committed: 2ae8a7d7f
@@ -164,7 +164,7 @@ All test results are documented in 4 comprehensive files:
 - ✅ Release artifact upload: Ready
 
 ### Next Actions
-1. ✅ Tag already created: vvv1.18.25
+1. ✅ Tag already created: v1.18.25
 2. ✅ Tag already pushed to GitHub
 3. ⏳ GitHub Actions builds installer (automatic on tag)
 4. ⏳ Verify build completion
@@ -211,7 +211,7 @@ All test results are documented in 4 comprehensive files:
 - [ ] Create: Release notes on GitHub
 - [ ] Add: Download links
 - [ ] Include: SHA256 hash for verification
-- [ ] Document: What's new in vvv1.18.25
+- [ ] Document: What's new in v1.18.25
 
 ### User Announcement (Manual)
 - [ ] Email: Notify users of new release
@@ -225,7 +225,7 @@ All test results are documented in 4 comprehensive files:
 
 ### GitHub Repositories & Release
 - Repository: https://github.com/bs1gr/AUT_MIEEK_SMS
-- Release Tag: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.25
+- Release Tag: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 - Releases Page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
 - Actions: https://github.com/bs1gr/AUT_MIEEK_SMS/actions
 
@@ -263,7 +263,7 @@ All test results are documented in 4 comprehensive files:
 ### Release Components
 - [x] Installer ready (92.96 MB)
 - [x] Code signed (AUT MIEEK)
-- [x] Git tag created (vvv1.18.25)
+- [x] Git tag created (v1.18.25)
 - [x] Tag pushed to GitHub
 - [x] GitHub Actions configured
 
@@ -288,7 +288,7 @@ Users will enjoy:
 
 ### Feature Highlights
 - ✅ Fresh install: Works from scratch
-- ✅ Upgrade: Seamless data migration from vvv1.18.25
+- ✅ Upgrade: Seamless data migration from v1.18.25
 - ✅ Docker: Optional containerized deployment
 - ✅ Native Lite: Standalone executable option
 - ✅ Bilingual: Complete English/Greek support
@@ -315,7 +315,7 @@ Users will enjoy:
 
 ## 🏁 Conclusion
 
-**SMS vvv1.18.25 is PRODUCTION READY and APPROVED FOR RELEASE.**
+**SMS v1.18.25 is PRODUCTION READY and APPROVED FOR RELEASE.**
 
 All comprehensive testing has been completed with:
 - ✅ 14/14 tests passed (100% success rate)
@@ -338,7 +338,7 @@ The release tag is already created and pushed to GitHub. GitHub Actions will aut
 | 2026-06-02 | Comprehensive testing completed |
 | 2026-06-02 | All 14 tests passed |
 | 2026-06-02 | Test documentation generated |
-| 2026-06-02 | Release tag vvv1.18.25 created |
+| 2026-06-02 | Release tag v1.18.25 created |
 | 2026-06-02 | Tag pushed to GitHub |
 | 2026-06-02 | Release marked READY |
 | 2026-06-02+ | GitHub Actions builds installer |
@@ -364,6 +364,6 @@ Once GitHub Actions completes the build:
 4. Monitor GitHub Issues
 5. Track deployment success
 
-**The SMS vvv1.18.25 release is ready to go! 🚀**
+**The SMS v1.18.25 release is ready to go! 🚀**
 
 

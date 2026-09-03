@@ -1,6 +1,6 @@
-## What's New in vvvv1.18.25
+## What's New in v1.18.25
 
-### 📊 What's Included in vvvv1.18.25
+### 📊 What's Included in v1.18.25
 
 - **Complete documentation** - Release report, migration guide, cleanup audit
 
@@ -20,9 +20,9 @@
 
 ### 📚 Documentation
 
-- **[Migration Guide](docs/guides/MIGRATION_vvvv1.18.25.md)** - How to update your code
-- **[Release Report](docs/releases/reports/RELEASE_REPORT_vvvv1.18.25.md)** - Executive summary and impact assessment
-- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_vvvv1.18.25.md)** - Detailed cleanup audit
+- **[Migration Guide](docs/guides/MIGRATION_v1.18.25.md)** - How to update your code
+- **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.18.25.md)** - Executive summary and impact assessment
+- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.25.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history
 
 

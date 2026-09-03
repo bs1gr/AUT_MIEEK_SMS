@@ -109,7 +109,7 @@
 
 **Code & Configuration:**
 - [ ] All Phase 5 commits verified
-- [ ] Version in VERSION file correct (vvv1.18.25)
+- [ ] Version in VERSION file correct (v1.18.25)
 - [ ] Environment variables configured
 - [ ] Database migrations prepared
 - [ ] SSL/TLS certificates valid

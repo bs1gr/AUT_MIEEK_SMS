@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-01  
 **Status:** ✅ COMPLETE - All 30 alerts addressed  
-**Branch:** `feature/native-lite-headless-vvv1.18.25`  
+**Branch:** `feature/native-lite-headless-v1.18.25`  
 **Commit:** d2ec51200 (security fix commit)
 
 ---
@@ -235,7 +235,7 @@ backend\tests\test_path_traversal_security.py .......................... [100%]
 
 ## Ready for Release
 
-**Status:** ✅ **APPROVED FOR vvv1.18.25 RELEASE**
+**Status:** ✅ **APPROVED FOR v1.18.25 RELEASE**
 
 All 30 security vulnerabilities have been addressed:
 - ✅ 23 path injection vulnerabilities fixed
@@ -248,8 +248,8 @@ All 30 security vulnerabilities have been addressed:
 ### Next Steps
 1. Push security fix commit to feature branch (DONE)
 2. Re-run GitHub code scanning to verify all alerts resolved
-3. Merge feature/native-lite-headless-vvv1.18.25 to main
-4. Create vvv1.18.25 release tag
+3. Merge feature/native-lite-headless-v1.18.25 to main
+4. Create v1.18.25 release tag
 5. Announce release to users
 
 ---

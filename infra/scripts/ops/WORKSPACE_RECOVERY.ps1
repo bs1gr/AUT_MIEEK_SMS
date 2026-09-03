@@ -179,12 +179,12 @@ Write-Step "PHASE 3: Fixing Version String Corruption"
 $filesToFix = @(
     @{
         Path = "COMMIT_READY.ps1"
-        OldPattern = "Version: vvvvv1.18.0"
+        OldPattern = "Version: v1.18.0"
         NewString = "Version: 1.18.0"
     },
     @{
         Path = "INSTALLER_BUILDER.ps1"
-        OldPattern = "Version: vvvvv1.18.0"
+        OldPattern = "Version: v1.18.0"
         NewString = "Version: 1.18.0"
     }
 )

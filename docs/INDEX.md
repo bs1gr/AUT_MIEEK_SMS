@@ -57,8 +57,8 @@ This is the main entry point for navigating all project documentation. For detai
 
 ### Release Documentation
 - **[Releases](releases/)** - Release notes and version history
-  - [Release Notes](releases/RELEASE_NOTES_vvvv1.18.25.md) - Latest release notes
-  - [GitHub Releases](releases/GITHUB_RELEASE_vvvv1.18.25.md) - GitHub release documentation
+  - [Release Notes](releases/RELEASE_NOTES_v1.18.25.md) - Latest release notes
+  - [GitHub Releases](releases/GITHUB_RELEASE_v1.18.25.md) - GitHub release documentation
   - [Release Reports](releases/reports/) - Release verification reports
 
 ### CI/CD Documentation

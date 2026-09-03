@@ -1,4 +1,4 @@
-# Git LFS Migration - vvv1.18.25 Release
+# Git LFS Migration - v1.18.25 Release
 
 **Date:** June 3, 2026  
 **Status:** ✅ COMPLETE  

@@ -1,4 +1,4 @@
-# Security Documentation Index - SMS vvv1.18.25
+# Security Documentation Index - SMS v1.18.25
 
 **Purpose:** Complete reference guide to all security documentation  
 **Last Updated:** 2026-06-02  

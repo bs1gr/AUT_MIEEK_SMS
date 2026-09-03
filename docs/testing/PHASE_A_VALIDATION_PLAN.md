@@ -12,7 +12,7 @@
 
 **Prerequisites:**
 - [ ] Staging database cloned from production
-- [ ] Staging backend deployed (vv1.18.25 base)
+- [ ] Staging backend deployed (v1.18.25 base)
 - [ ] Staging frontend deployed
 - [ ] Phase A code deployed to staging
 - [ ] Database migration applied
@@ -319,7 +319,7 @@ export default function () {
 
 ## Phase 4: Performance Benchmarking (Day 2 - 3 hours)
 
-### Baseline Metrics (Current Production vv1.18.25)
+### Baseline Metrics (Current Production v1.18.25)
 
 **Measure Before Phase A Deploy:**
 ```bash

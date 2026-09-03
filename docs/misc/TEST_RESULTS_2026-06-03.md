@@ -1,4 +1,4 @@
-# SMS vvv1.18.25 Installer Real Test Results
+# SMS v1.18.25 Installer Real Test Results
 
 **Date:** June 3, 2026  
 **Tester:** User (Vasilis)  
@@ -15,9 +15,9 @@
 
 ### Test 2: Correct Application Version
 - **Status:** ✅ PASSED  
-- **Result:** SMS_Lite.exe shows vvv1.18.25 (NOT vvv1.18.25)
+- **Result:** SMS_Lite.exe shows v1.18.25 (NOT v1.18.25)
 - **Verified:** ✅ Version string is correct
-- **Previous Issue:** FIXED - No longer shows vvv1.18.25
+- **Previous Issue:** FIXED - No longer shows v1.18.25
 
 ### Test 3: Application Launches
 - **Status:** ✅ PASSED
@@ -127,7 +127,7 @@ Since the file selection feature has a bug, I've created a credentials file manu
 |-----------|--------|-------|
 | Installation | ✅ PASS | Successful |
 | App Launch | ✅ PASS | Works correctly |
-| Version | ✅ PASS | Correct vvv1.18.25 |
+| Version | ✅ PASS | Correct v1.18.25 |
 | SQLite DB | ✅ PASS | Auto-created |
 | Completion Page | ⚠️ ISSUE | Shows Docker info |
 | QNAP File Select | ❌ FAIL | Doesn't auto-populate |
