@@ -1,7 +1,7 @@
 # Documentation Index
 
 **Last Updated**: 2026-09-03
-**Current Version**: See `VERSION` (repo root) — this file does not track a version number of its own, to avoid drifting out of sync with every release.
+**Version**: 1.18.36 (kept in sync with the root `VERSION` file by `COMMIT_READY.ps1`'s doc-sync step; do not hand-edit this line)
 
 This is the top-level entry point into `docs/`. It exists to get you to the right
 section index quickly — it does not try to enumerate every document (that's each
