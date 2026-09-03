@@ -17,16 +17,7 @@ Documentation for deploying and operating the Student Management System in produ
 
 ### Deployment Guides
 
-- **[../../DEPLOYMENT_GUIDE.md](../../DEPLOYMENT_GUIDE.md)** - Full deployment guide
-  - Docker deployment
-  - Native deployment
-  - Environment configuration
-  - Database setup
-
-- **[../../DEPLOYMENT_CHECKLIST.md](../../DEPLOYMENT_CHECKLIST.md)** - Deployment verification
-  - Pre-deployment checks
-  - Post-deployment validation
-  - Smoke tests
+- **[DEPLOY.md](DEPLOY.md)** - Deployment procedures (Docker + native)
 
 ### Historical Rollout Packets
 
@@ -62,27 +53,27 @@ Documentation for deploying and operating the Student Management System in produ
   - Volume management
   - Network configuration
 
-- **[../DOCKER_NAMING_CONVENTIONS.md](../DOCKER_NAMING_CONVENTIONS.md)** - Docker naming standards
+- **[../operations/DOCKER_NAMING_CONVENTIONS.md](../operations/DOCKER_NAMING_CONVENTIONS.md)** - Docker naming standards
 - **[../reference/DOCKER_CLEANUP_GUIDE.md](../reference/DOCKER_CLEANUP_GUIDE.md)** - Docker cleanup procedures (canonical)
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
-- **[../FRESH_DEPLOYMENT_TROUBLESHOOTING.md](../FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Fresh deployment issues
+- **[../operations/FRESH_DEPLOYMENT_TROUBLESHOOTING.md](../operations/FRESH_DEPLOYMENT_TROUBLESHOOTING.md)** - Fresh deployment issues
   - Database initialization errors
   - Port conflicts
   - Permission issues
   - CORS configuration
 
-- **[../REBUILD_TROUBLESHOOTING.md](../REBUILD_TROUBLESHOOTING.md)** - Rebuild & migration issues
+- **[../operations/REBUILD_TROUBLESHOOTING.md](../operations/REBUILD_TROUBLESHOOTING.md)** - Rebuild & migration issues
   - Alembic migration conflicts
   - Database schema mismatches
   - Docker build failures
 
 ### Emergency Procedures
 
-- **[../OPERATOR_EMERGENCY_GUIDE.md](../OPERATOR_EMERGENCY_GUIDE.md)** - Emergency response guide
+- **[../operations/OPERATOR_EMERGENCY_GUIDE.md](../operations/OPERATOR_EMERGENCY_GUIDE.md)** - Emergency response guide
   - Service down procedures
   - Database recovery
   - Backup restoration
@@ -144,17 +135,17 @@ git pull origin main
 
 # Fast update with backup
 
-.\DOCKER.ps1 -Update
+.\infra\scripts\dev\DOCKER.ps1 -Update
 
 # Or clean rebuild (no cache)
 
-.\DOCKER.ps1 -UpdateClean
+.\infra\scripts\dev\DOCKER.ps1 -UpdateClean
 
 # Or manual Docker rebuild
 
-docker compose -f docker/docker-compose.yml down
-docker compose -f docker/docker-compose.yml build
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f infra/docker/compose/docker-compose.yml down
+docker compose -f infra/docker/compose/docker-compose.yml build
+docker compose -f infra/docker/compose/docker-compose.yml up -d
 
 ```text
 ### Database Migrations
@@ -178,15 +169,14 @@ alembic downgrade -1
 ### Backup & Restore
 
 ```bash
-# Backup database
+# Docker mode: built into DOCKER.ps1
 
-.\scripts\ops\backup-database.ps1
+.\infra\scripts\dev\DOCKER.ps1 -Backup
 
-# Restore database
+# Native/bash (SQLite file copy)
 
-.\scripts\ops\restore-database.ps1 -BackupFile path\to\backup.db
-
-```text
+scripts/backup-database.sh
+```
 ## 🐳 Docker Deployment
 
 ### Production Setup
@@ -194,19 +184,19 @@ alembic downgrade -1
 ```bash
 # Build production images
 
-docker compose -f docker-compose.prod.yml build
+docker compose -f infra/docker/compose/docker-compose.prod.yml build
 
 # Start services
 
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f infra/docker/compose/docker-compose.prod.yml up -d
 
 # Check status
 
-docker compose -f docker-compose.prod.yml ps
+docker compose -f infra/docker/compose/docker-compose.prod.yml ps
 
 # View logs
 
-docker compose -f docker-compose.prod.yml logs -f
+docker compose -f infra/docker/compose/docker-compose.prod.yml logs -f
 
 ```text
 ### Environment Variables
@@ -245,7 +235,6 @@ DATABASE_URL=sqlite:////data/student_management.db
 ## 📦 Release Management
 
 - **[../releases/](../releases/)** - Version-specific release notes
-- **Asset Tracking**: [../DEPLOYMENT_ASSET_TRACKER.md](../DEPLOYMENT_ASSET_TRACKER.md)
 - **Current release workflow**: [../processes/RELEASE_SCRIPTS_OVERVIEW.md](../processes/RELEASE_SCRIPTS_OVERVIEW.md)
 
 ## 🔒 Security Operations
@@ -286,11 +275,11 @@ Access the web-based control panel:
 ```bash
 # Docker (recommended)
 
-.\DOCKER.ps1 -Start
+.\infra\scripts\dev\DOCKER.ps1 -Start
 
 # Native development
 
-.\NATIVE.ps1 -Start
+.\infra\scripts\dev\NATIVE.ps1 -Start
 
 ```text
 ### Stop Services
@@ -298,15 +287,15 @@ Access the web-based control panel:
 ```bash
 # Docker stop
 
-.\DOCKER.ps1 -Stop
+.\infra\scripts\dev\DOCKER.ps1 -Stop
 
 # Native stop
 
-.\NATIVE.ps1 -Stop
+.\infra\scripts\dev\NATIVE.ps1 -Stop
 
 # Docker compose directly
 
-docker compose -f docker/docker-compose.yml down
+docker compose -f infra/docker/compose/docker-compose.yml down
 
 ```text
 ### Check Status
@@ -314,15 +303,15 @@ docker compose -f docker/docker-compose.yml down
 ```bash
 # Docker status
 
-.\DOCKER.ps1 -Status
+.\infra\scripts\dev\DOCKER.ps1 -Status
 
 # Native status
 
-.\NATIVE.ps1 -Status
+.\infra\scripts\dev\NATIVE.ps1 -Status
 
 # Docker compose
 
-docker compose -f docker/docker-compose.yml ps
+docker compose -f infra/docker/compose/docker-compose.yml ps
 
 # Health check
 
@@ -334,4 +323,4 @@ curl http://localhost:8080/health
 - Review troubleshooting guides above
 - Check [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
 - Contact system administrator
-- Emergency guide: [../OPERATOR_EMERGENCY_GUIDE.md](../OPERATOR_EMERGENCY_GUIDE.md)
+- Emergency guide: [../operations/OPERATOR_EMERGENCY_GUIDE.md](../operations/OPERATOR_EMERGENCY_GUIDE.md)

@@ -6,7 +6,7 @@ Technical documentation for developers contributing to the Student Management Sy
 
 ### System Architecture
 
-- **[ARCHITECTURE.md](../ARCHITECTURE.md)** - System design overview
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design overview
   - Dual deployment modes (Docker/Native)
   - Component architecture
   - Database schema
@@ -16,12 +16,6 @@ Technical documentation for developers contributing to the Student Management Sy
   - Sequence diagrams
   - Component diagrams
   - Data flow diagrams
-
-- **[../../ROUTING_VALIDATION_FIXES.md](../../ROUTING_VALIDATION_FIXES.md)** - React Router v7 routing (NEW - 1.9.9)
-  - Layout route pattern validation
-  - Type-safe route parameters (StudentProfileParams)
-  - Route configuration validation
-  - Frontend routing best practices
 
 ### Authentication & Security
 
@@ -40,7 +34,7 @@ Technical documentation for developers contributing to the Student Management Sy
   - CSRF protection
   - Rate limiting
 
-- **[../../backend/security/README.md](../../backend/security/README.md)** - Security module documentation
+- **[`src/backend/security/`](../../src/backend/security/)** - Security module source (permissions, password hashing, JWT)
 
 ## 🚀 Getting Started
 
@@ -74,18 +68,13 @@ Technical documentation for developers contributing to the Student Management Sy
 
 ### Backend Testing
 
-- **[../../backend/tests/README.md](../../backend/tests/README.md)** - Backend test guide
-  - Unit tests with pytest
-  - Test fixtures
-  - Coverage reports
+- **[`src/backend/tests/`](../../src/backend/tests/)** - Backend test suite (pytest, fixtures in `conftest.py`)
+  - Run via `infra/scripts/testing/RUN_TESTS_BATCH.ps1` (never `pytest` directly locally — see root `CLAUDE.md`)
 
 ### Frontend Testing
 
-- **[../../frontend/tests/e2e/README.md](../../frontend/tests/e2e/README.md)** - E2E testing guide
-  - Playwright setup
-  - Test helpers
-  - Running E2E tests
-  - Debugging tests
+- **[`src/frontend/src/__e2e__/`](../../src/frontend/src/__e2e__/)** - E2E testing (Playwright)
+  - Test helpers, `critical-flows.spec.ts`
 
 ### Performance Testing
 
@@ -104,7 +93,7 @@ Technical documentation for developers contributing to the Student Management Sy
 ## 📦 Project Structure
 
 ```text
-backend/
+src/backend/
 ├── routers/          # API endpoints
 ├── services/         # Business logic layer
 ├── models.py         # SQLAlchemy models
@@ -113,18 +102,15 @@ backend/
 ├── middleware/       # Request middleware
 └── tests/            # Backend tests
 
-frontend/
-├── src/
-│   ├── api/          # API client
-│   ├── components/   # Reusable components
-│   ├── features/     # Feature modules
-│   ├── hooks/        # Custom React hooks
-│   ├── stores/       # Zustand state stores
-│   └── utils/        # Utility functions
-└── tests/
-    └── e2e/          # Playwright E2E tests
-
-```text
+src/frontend/
+└── src/
+    ├── api/          # API client
+    ├── components/   # Reusable components
+    ├── features/     # Feature modules
+    ├── hooks/        # Custom React hooks
+    ├── __e2e__/      # Playwright E2E tests
+    └── utils/        # Utility functions
+```
 ## 🔧 Development Tools
 
 ### Backend
