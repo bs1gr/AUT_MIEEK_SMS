@@ -557,6 +557,17 @@ def _excel_response(wb: Any, filename: str) -> StreamingResponse:
     )
 
 
+def _export_failure(request: Request, message: str, exc: Exception) -> HTTPException:
+    """Build the standard 500 response for an export endpoint with no audit-log entry.
+
+    Only for endpoints whose except block is log+raise with no audit.log_from_request
+    call — the bulk endpoints that DO audit-log failures keep their own except blocks
+    since the AuditResource/action/format vary per endpoint and don't collapse cleanly.
+    """
+    logger.error(message, exc, exc_info=True)
+    return http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
+
+
 def _auto_fit_columns(ws: Any):
     for column_cells in ws.columns:
         max_length = 0
@@ -1381,25 +1392,12 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
             )
         for col in range(1, 9):
             ws.column_dimensions[get_column_letter(col)].width = 18
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"grades_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export grades excel failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export grades excel failed: %s", exc)
 
 
 @router.get("/attendance/excel/{student_id}")
@@ -1438,25 +1436,12 @@ async def export_student_attendance_excel(student_id: int, request: Request, db:
             ws.cell(row=row, column=7, value=r.notes or "")
         _auto_fit_columns(ws)
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"attendance_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export student attendance excel failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export student attendance excel failed: %s", exc)
 
 
 @router.get("/performance/excel/{student_id}")
@@ -1506,25 +1491,12 @@ async def export_student_performance_excel(student_id: int, request: Request, db
             ws.cell(row=row, column=11, value=r.notes or "")
         _auto_fit_columns(ws)
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"performance_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export student performance excel failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export student performance excel failed: %s", exc)
 
 
 @router.get("/highlights/excel/{student_id}")
@@ -1564,25 +1536,12 @@ async def export_student_highlights_excel(student_id: int, request: Request, db:
             ws.cell(row=row, column=9, value=yes_no(bool(h.is_positive), lang))
         _auto_fit_columns(ws)
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"highlights_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export student highlights excel failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export student highlights excel failed: %s", exc)
 
 
 @router.get("/enrollments/excel/{student_id}")
@@ -1625,25 +1584,12 @@ async def export_student_enrollments_excel(student_id: int, request: Request, db
             ws.cell(row=row, column=7, value=format_date_value(e.enrolled_at, lang))
         _auto_fit_columns(ws)
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"enrollments_{student.student_id}_{datetime.now().strftime('%Y%m%d')}.xlsx"
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export student enrollments excel failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export student enrollments excel failed: %s", exc)
 
 
 def _letter_grade(percentage: float) -> str:
@@ -1707,13 +1653,7 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
         filename = f"students_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         return _pdf_table_response(t("student_directory_title", lang), headers, rows, filename)
     except Exception as exc:
-        logger.error("Export students pdf failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export students pdf failed: %s", exc)
 
 
 @router.get("/attendance/excel")
@@ -2097,23 +2037,10 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
                 daily_ws.cell(row=row_idx, column=col, value=value)
         _auto_fit_columns(daily_ws)
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
-        logger.error("Export attendance analytics excel failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export attendance analytics excel failed: %s", exc)
 
 
 @router.get("/attendance/analytics/csv")
@@ -2151,8 +2078,7 @@ async def export_attendance_analytics_csv(request: Request, db: Session = Depend
         headers = get_header_row("overview", lang)
         return _csv_response(headers, flat_rows, filename)
     except Exception as exc:
-        logger.error("Export attendance analytics csv failed: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
+        raise _export_failure(request, "Export attendance analytics csv failed: %s", exc)
 
 
 @router.get("/attendance/analytics/pdf")
@@ -2226,8 +2152,7 @@ async def export_attendance_analytics_pdf(request: Request, db: Session = Depend
         filename = f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         return _pdf_table_response(t("title_attendance_export", lang), headers, rows_data, filename)
     except Exception as exc:
-        logger.error("Export attendance analytics pdf failed: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
+        raise _export_failure(request, "Export attendance analytics pdf failed: %s", exc)
 
 
 @router.get("/courses/excel")
@@ -3192,13 +3117,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export student report pdf failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export student report pdf failed: %s", exc)
 
 
 @router.get("/courses/pdf")
@@ -3231,13 +3150,7 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
         ]
         return _pdf_table_response(t("title_course_catalog", lang), headers, rows, filename)
     except Exception as exc:
-        logger.error("Export courses pdf failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export courses pdf failed: %s", exc)
 
 
 @router.get("/analytics/course/{course_id}/pdf")
@@ -3403,10 +3316,4 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error("Export course analytics pdf failed: %s", exc, exc_info=True)
-        raise http_error(
-            500,
-            ErrorCode.EXPORT_FAILED,
-            "Export failed",
-            request,
-        )
+        raise _export_failure(request, "Export course analytics pdf failed: %s", exc)
