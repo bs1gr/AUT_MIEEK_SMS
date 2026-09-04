@@ -40,11 +40,9 @@ def test_docker_mode_includes_operator_configured_trusted_hosts(monkeypatch):
     app = FastAPI()
     register_middlewares(app)
 
-    allowed_hosts = _get_trusted_host_kwargs(app)["allowed_hosts"]
+    allowed_hosts = set(_get_trusted_host_kwargs(app)["allowed_hosts"])
     assert "*" not in allowed_hosts
-    assert "sms.example.com" in allowed_hosts
-    assert "100.64.0.5" in allowed_hosts
-    assert {"localhost", "127.0.0.1", "backend"}.issubset(set(allowed_hosts))
+    assert allowed_hosts == {"localhost", "127.0.0.1", "backend", "sms.example.com", "100.64.0.5"}
 
 
 def test_native_mode_does_not_register_trusted_host_middleware(monkeypatch):
