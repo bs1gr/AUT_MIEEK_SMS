@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useLanguage } from '@/LanguageContext';
@@ -13,6 +13,9 @@ import { themeStyles } from './AppearanceThemeSelector';
 import { useAppearanceTheme } from '@/contexts/AppearanceThemeContext';
 import DevToolsBackupManager from './DevToolsBackupManager';
 import DevToolsOperationsMonitor from './DevToolsOperationsMonitor';
+import DevToolsDatabaseTools from './DevToolsDatabaseTools';
+import DevToolsClearCard from './DevToolsClearCard';
+import DevToolsImportCard from './DevToolsImportCard';
 import { RAW_API_BASE } from './devToolsBackendUrl';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
@@ -731,16 +734,6 @@ const DevToolsPanel = ({
     }
   };
 
-  const rawDatabaseLabel = typeof health?.database === 'string'
-    ? health.database
-    : typeof health?.db === 'string'
-      ? health.db
-      : '';
-  const normalizedDatabaseLabel = rawDatabaseLabel.trim().toLowerCase();
-  const isDatabaseKnown = rawDatabaseLabel.trim().length > 0;
-  const isSqliteDatabase = normalizedDatabaseLabel.includes('sqlite');
-  const isPostgresqlDatabase = normalizedDatabaseLabel.includes('postgres');
-  const canBackup = !isDatabaseKnown || isSqliteDatabase || isPostgresqlDatabase;
   const legacyDatabaseToolsVisible = hideLegacyDatabaseTools ?? variant === 'standalone';
 
   return (
@@ -768,168 +761,41 @@ const DevToolsPanel = ({
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {legacyDatabaseToolsVisible ? (
-          <>
-            <div className={theme.card}>
-              <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.backupDatabase')}</h4>
-              <p className={`mb-4 text-xs ${theme.mutedText}`}>{t('utils.backupDesc')}</p>
-              <div className="mb-4 space-y-2">
-                <div className={`text-[11px] font-semibold uppercase tracking-wide ${theme.mutedText}`}>
-                  {t('utils.backupModeLabel') || 'Backup format'}
-                </div>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <label className={`flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-xs ${theme.text}`}>
-                    <input
-                      type="radio"
-                      name="backup-mode"
-                      checked={backupMode === 'encrypted'}
-                      onChange={() => setBackupMode('encrypted')}
-                    />
-                    <span>{t('utils.backupModeEncrypted') || 'Encrypted (.enc)'}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-xs ${theme.text}`}>
-                    <input
-                      type="radio"
-                      name="backup-mode"
-                      checked={backupMode === 'unencrypted'}
-                      onChange={() => setBackupMode('unencrypted')}
-                    />
-                    <span>{t('utils.backupModeUnencrypted') || 'Unencrypted (.db/.sql)'}</span>
-                  </label>
-                </div>
-                <p className={`text-xs ${theme.mutedText}`}>
-                  {backupMode === 'encrypted'
-                    ? (t('utils.backupModeEncryptedHint') || 'Recommended for secure offsite storage.')
-                    : (t('utils.backupModeUnencryptedHint') || 'Creates a plain backup for direct inspection or migration.')}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleBackup}
-                disabled={opLoading === 'backup' || !canBackup}
-                className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-                aria-disabled={opLoading === 'backup' || !canBackup}
-              >
-                {opLoading === 'backup' ? t('loading') : t('utils.backupDatabase')}
-              </button>
-              {!canBackup && (
-                <p className={`mt-2 text-xs ${theme.mutedText}`}>
-                  {t('utils.backupSqliteOnly')}
-                </p>
-              )}
-            </div>
+        <DevToolsDatabaseTools
+          theme={theme}
+          t={t}
+          legacyDatabaseToolsVisible={legacyDatabaseToolsVisible}
+          health={health}
+          backupMode={backupMode}
+          setBackupMode={setBackupMode}
+          opLoading={opLoading}
+          onBackup={() => void handleBackup()}
+          restoreFile={restoreFile}
+          setRestoreFile={setRestoreFile}
+          onRestore={() => void handleRestore()}
+        />
 
-            <div className={theme.card}>
-              <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.resetDatabase')}</h4>
-              <p className={`mb-3 text-xs ${theme.mutedText}`}>{t('utils.uploadPreviouslySavedBackup')}</p>
-              <div className="flex flex-col items-stretch gap-2 md:flex-row md:items-center">
-                <label className={`${theme.secondaryButton} flex flex-1 cursor-pointer items-center gap-2`}>
-                  <span>{t('chooseFile')}</span>
-                  <span className={`flex-1 truncate text-[11px] ${theme.mutedText}`}>
-                    {restoreFile ? restoreFile.name : t('noFileChosen')}
-                  </span>
-                  <input
-                    type="file"
-                    accept=".db"
-                    className="hidden"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) => setRestoreFile(event.target.files?.[0] ?? null)}
-                    aria-label={t('utils.selectBackupFile')}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={handleRestore}
-                  disabled={!restoreFile || opLoading === 'restore'}
-                  className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-                >
-                  {opLoading === 'restore' ? t('loading') : t('utils.restoreDb')}
-                </button>
-              </div>
-              {!isSqliteDatabase && isDatabaseKnown && (
-                <p className={`mt-2 text-xs ${theme.mutedText}`}>
-                  {t('utils.restoreAutoMigrateHint')}
-                </p>
-              )}
-              <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{t('utils.appMayNeedRefresh')}</p>
-            </div>
-          </>
-        ) : (
-          <div className={`${theme.card} md:col-span-2`}>
-            <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>
-              {t('db.title') || 'Database Management'}
-            </h4>
-            <p className={`text-xs ${theme.mutedText}`}>
-              {t('utils.databaseToolsMoved') || 'Backup, restore, and backup files are managed from the Database tab to avoid duplicate database references.'}
-            </p>
-          </div>
-        )}
+        <DevToolsClearCard
+          theme={theme}
+          t={t}
+          clearConfirm={clearConfirm}
+          setClearConfirm={setClearConfirm}
+          clearScope={clearScope}
+          setClearScope={setClearScope}
+          opLoading={opLoading}
+          onClear={() => void handleClear()}
+        />
 
-        <div className={theme.card}>
-          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.clear')}</h4>
-          <p className={`mb-3 text-xs ${theme.mutedText}`}>{t('utils.deleteDataChooseScope')}</p>
-          <label className={`mb-3 flex items-center gap-2 text-sm ${theme.text}`}>
-            <input
-              type="checkbox"
-              checked={clearConfirm}
-              onChange={(event) => setClearConfirm(event.target.checked)}
-            />
-            {t('confirm')}
-          </label>
-          <select
-            value={clearScope}
-            onChange={(event) => setClearScope(event.target.value as ClearScope)}
-            className={`mb-3 w-full ${theme.input}`}
-            aria-label={t('utils.selectClearScope')}
-          >
-            <option value="all">{t('utils.allCoursesStudentsRecords')}</option>
-            <option value="data_only">{t('utils.dataOnlyKeepCoursesStudents')}</option>
-          </select>
-          <button
-            type="button"
-            onClick={handleClear}
-            disabled={!clearConfirm || opLoading === 'clear'}
-            className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-          >
-            {opLoading === 'clear' ? t('loading') : t('utils.clearDb')}
-          </button>
-        </div>
-
-        <div className={theme.card}>
-          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.uploadJsonToImport')}</h4>
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <select
-              value={importType}
-              onChange={(event) => setImportType(event.target.value as ImportType)}
-              className={`w-full md:w-48 ${theme.input}`}
-              aria-label={t('utils.selectImportType')}
-            >
-              <option value="courses">{t('courses')}</option>
-              <option value="students">{t('students')}</option>
-            </select>
-            <label className={`${theme.secondaryButton} flex flex-1 cursor-pointer items-center gap-2`}>
-              <span>{t('chooseFile')}</span>
-              <span className={`flex-1 truncate text-[11px] ${theme.mutedText}`}>
-                {importFile ? `${importFile.name}` : t('noFilesSelected')}
-              </span>
-              <input
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
-                aria-label={t('utils.selectJsonFiles')}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={handleImport}
-              disabled={opLoading === 'upload'}
-              className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-            >
-              {opLoading === 'upload' ? t('loading') : t('utils.importUpload')}
-            </button>
-          </div>
-          <p className={`mt-2 text-xs ${theme.mutedText}`}>{t('utils.selectJsonFiles')}</p>
-        </div>
+        <DevToolsImportCard
+          theme={theme}
+          t={t}
+          importType={importType}
+          setImportType={setImportType}
+          importFile={importFile}
+          setImportFile={setImportFile}
+          opLoading={opLoading}
+          onImport={() => void handleImport()}
+        />
 
         {legacyDatabaseToolsVisible && (
           <DevToolsBackupManager
