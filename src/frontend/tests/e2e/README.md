@@ -16,10 +16,13 @@ End-to-end tests using Playwright to verify critical user workflows in the Stude
 - ✅ Mark student attendance
 - ✅ View student analytics with final grade calculation
 
-### Authentication (`register.spec.ts`, `ui-register.spec.ts`)
+### Authentication (`register.spec.ts`, `ui-register.spec.ts`, `login.spec.ts`)
 
 - ✅ User registration flow
 - ✅ Login with refresh token cookie
+- ✅ Wrong credentials show an error and do not navigate away from login
+- ✅ UI login → dashboard → logout clears the session (refresh cookie removed)
+- ✅ `RequireAdmin` redirects a non-admin user away from an admin-only route
 
 ## Running Tests
 
