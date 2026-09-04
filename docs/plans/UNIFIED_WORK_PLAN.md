@@ -57,6 +57,8 @@ Cut via `.\infra\scripts\release\RELEASE_READY.ps1 -ReleaseVersion "1.18.37" -Ta
 
 ## 📋 Post-v1.18.36 Codebase Review (September 4, 2026)
 
+**Status**: ✅ CLOSED — both todo items done, released as `v1.18.37` (2026-09-04).
+
 **Scope**: 22 commits landed on `main` since the `v1.18.36` tag (router dedup,
 4 large-component splits, new router test coverage, CI/CodeQL fixes, dependency
 bumps). Reviewed by reading the diffs directly (backgrounded multi-agent review
@@ -70,10 +72,10 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
 
 - [x] Update `CHANGELOG.md` with an entry for these 22 commits — added an
       `[Unreleased]` section (2026-09-04).
-- [ ] Bump `VERSION` past `v1.18.36` as part of the next release — it still
-      matches the last tag even though 22 commits sit on top of it. Deferred:
-      bumping the version number is tied to actually cutting the release
-      (Phase 1-3 in CLAUDE.md's Release Workflow), not a standalone edit.
+- [x] Bump `VERSION` past `v1.18.36` as part of the next release — done
+      2026-09-04: cut and published as `v1.18.37` (see the section above),
+      which also carried the AttendanceView save/offline-sync extraction and
+      a Docker CI fix landed the same day.
 
 ### Todo — small cleanup found during review
 
