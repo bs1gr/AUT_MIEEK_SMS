@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
-import { Calendar as CalIcon, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
+import { Calendar as CalIcon, AlertCircle, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import type { Course, Student, TeachingScheduleEntry } from '@/types';
@@ -27,6 +27,8 @@ import {
 import AttendanceCalendar from './AttendanceCalendar';
 import AttendanceQuickActions from './AttendanceQuickActions';
 import AttendanceAnalyticsSnapshot from './AttendanceAnalyticsSnapshot';
+import AttendanceStudentList from './AttendanceStudentList';
+import AttendancePerformanceModal from './AttendancePerformanceModal';
 
 // Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
 // the correct server URL dynamically and injects the Authorization header.
@@ -1579,239 +1581,45 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       />
 
       {/* Student List */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate ? formatDate(selectedDate) : t('noDateSelected') || 'No date selected'}</h3>
-        </div>
-
-        <div className="space-y-3">
-          {(enrolledStudents && enrolledStudents.length > 0 && selectedDate ? enrolledStudents : []).map((s) => {
-            const periodStatuses = getStudentPeriodStatuses(s.id);
-            const aggregatedStatus = getAggregatedStatus(s.id);
-            const uniformStatus = aggregatedStatus.status;
-            const isAbsentAllDay = uniformStatus === 'Absent';
-
-            const perPeriodButtons = (period: number, periodStatus?: string) => (
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1 w-full sm:w-auto">
-                <button
-                  onClick={() => setAttendance(s.id, 'Present', period)}
-                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}
-                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('present') || 'Present'}`}
-                >
-                  <CheckCircle size={12} />
-                </button>
-                <button
-                  onClick={() => setAttendance(s.id, 'Absent', period)}
-                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Absent' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700'}`}
-                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('absent') || 'Absent'}`}
-                >
-                  <XCircle size={12} />
-                </button>
-                <button
-                  onClick={() => setAttendance(s.id, 'Late', period)}
-                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}
-                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('late') || 'Late'}`}
-                >
-                  <Clock size={12} />
-                </button>
-                <button
-                  onClick={() => setAttendance(s.id, 'Excused', period)}
-                  className={`px-2 py-1 rounded text-xs ${periodStatus === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}
-                  aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('excused') || 'Excused'}`}
-                >
-                  <AlertCircle size={12} />
-                </button>
-                {periodStatus && periodStatus !== 'Present' && (
-                  <button
-                    onClick={() => clearPeriodAttendance(s.id, period)}
-                    className="px-2 py-1 rounded text-xs bg-gray-200 text-gray-700"
-                  >
-                    {t('clear') || 'Clear'}
-                  </button>
-                )}
-              </div>
-            );
-
-            return (
-              <div key={s.id} className="bg-gray-50 rounded border p-3 space-y-3">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full text-white flex items-center justify-center font-bold">{String(s.first_name || '').charAt(0)}{String(s.last_name || '').charAt(0)}</div>
-                    <div>
-                      <div className="font-semibold text-gray-800">{s.first_name} {s.last_name}</div>
-                      <div className="text-xs text-gray-500">{s.student_id}</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
-                    <button onClick={() => setAttendance(s.id, 'Present')} aria-label={`${t('present') || 'Present'} - ${s.first_name} ${s.last_name}`} title={t('present') || 'Present'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}><CheckCircle size={14} /></button>
-                    <button onClick={() => setAttendance(s.id, 'Absent')} aria-label={`${t('absent') || 'Absent'} - ${s.first_name} ${s.last_name}`} title={t('absent') || 'Absent'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Absent' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700'}`}><XCircle size={14} /></button>
-                    <button onClick={() => setAttendance(s.id, 'Late')} aria-label={`${t('late') || 'Late'} - ${s.first_name} ${s.last_name}`} title={t('late') || 'Late'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}><Clock size={14} /></button>
-                    <button onClick={() => setAttendance(s.id, 'Excused')} aria-label={`${t('excused') || 'Excused'} - ${s.first_name} ${s.last_name}`} title={t('excused') || 'Excused'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}><AlertCircle size={14} /></button>
-                    {aggregatedStatus.isMixed && (
-                      <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                        {t('mixedStatus') || 'Mixed periods'}
-                      </span>
-                    )}
-                    {evaluationCategories.length > 0 && (
-                      <button
-                        onClick={() => { setSelectedStudentForPerformance(s); setShowPerformanceModal(true); }}
-                        disabled={isAbsentAllDay}
-                        className={`ml-2 px-3 py-1 rounded text-sm flex items-center gap-1 ${isAbsentAllDay ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
-                      >
-                        <TrendingUp size={14} /> {t('rate') || 'Rate'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {hasMultiplePeriods && (
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleStudentPeriods(s.id)}
-                      className="w-full flex items-center justify-between text-xs font-semibold text-gray-700 bg-white border rounded-lg px-3 py-2"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Clock size={12} className="text-indigo-500" />
-                        {isStudentExpanded(s.id) ? (t('hidePerPeriod') || 'Hide per-period attendance') : (t('showPerPeriod') || 'Show per-period attendance')}
-                      </span>
-                      {isStudentExpanded(s.id) ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
-                    </button>
-                    {isStudentExpanded(s.id) && (
-                      <div className="space-y-2">
-                        <div className="space-y-2">
-                          {activePeriods.map((period) => (
-                            <div key={period} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white border rounded-lg p-2">
-                              <span className="text-xs font-semibold text-gray-700">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
-                              {perPeriodButtons(period, periodStatuses[period])}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex flex-wrap gap-2 pt-2 border-t border-dashed border-gray-200">
-                          <button
-                            onClick={() => setAttendance(s.id, 'Absent')}
-                            className="px-3 py-1 rounded text-xs bg-red-100 text-red-700 flex items-center gap-1"
-                          >
-                            <XCircle size={12} /> {t('markAllPeriodsAbsent') || 'Mark all periods absent'}
-                          </button>
-                          <button
-                            onClick={() => clearStudentAttendance(s.id)}
-                            className="px-3 py-1 rounded text-xs bg-gray-200 text-gray-700"
-                          >
-                            {t('clear') || 'Clear'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {selectedCourse && enrolledStudents.length === 0 && (
-            <div className="text-sm text-gray-500">{t('noStudentsEnrolled') || 'No students enrolled for this course'}</div>
-          )}
-        </div>
-      </div>
+      <AttendanceStudentList
+        t={t}
+        formatDate={formatDate}
+        selectedDate={selectedDate}
+        selectedCourse={selectedCourse}
+        enrolledStudents={enrolledStudents}
+        evaluationCategories={evaluationCategories}
+        hasMultiplePeriods={hasMultiplePeriods}
+        activePeriods={activePeriods}
+        getStudentPeriodStatuses={getStudentPeriodStatuses}
+        getAggregatedStatus={getAggregatedStatus}
+        isStudentExpanded={isStudentExpanded}
+        toggleStudentPeriods={toggleStudentPeriods}
+        setAttendance={setAttendance}
+        clearPeriodAttendance={clearPeriodAttendance}
+        clearStudentAttendance={clearStudentAttendance}
+        setSelectedStudentForPerformance={setSelectedStudentForPerformance}
+        setShowPerformanceModal={setShowPerformanceModal}
+      />
 
       {/* Performance Modal */}
       {showPerformanceModal && selectedStudentForPerformance && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
-            <div className="flex items-center gap-2 justify-between mb-4">
-              <h4 className="text-base sm:text-xl font-bold min-w-0 flex-1 truncate">{t('dailyPerformance') || 'Daily Performance'} — {selectedStudentForPerformance.first_name} {selectedStudentForPerformance.last_name}</h4>
-              <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="flex-shrink-0 p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
-            </div>
-            <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate ? `${formatWeekday(selectedDate, localeOverride)} ${formatDate(selectedDate)}` : ''}</p>
-
-            {(() => {
-              const modalStatus = getAggregatedStatus(selectedStudentForPerformance.id).status;
-              const isAbsent = modalStatus === 'Absent';
-
-              return (
-                <>
-                  {isAbsent && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-700 font-semibold">{t('studentMarkedAbsent') || 'Student is marked as Absent. Performance rating is disabled.'}</p>
-                    </div>
-                  )}
-                  <div className="space-y-4">
-                    {evaluationCategories.map((rule, idx) => {
-                      const key = `${selectedStudentForPerformance.id}-${rule.category}`;
-                      const existingScore = dailyPerformance[key];
-                      const curr = typeof existingScore === 'number' ? existingScore : 0;
-                      const specialScoreWhenChecked = getSpecialParticipationScore(rule.category);
-                      const isSpecialOption = specialScoreWhenChecked !== null;
-                      const isChecked = typeof existingScore === 'number' ? existingScore < 10 : false;
-                      const displayScore = isSpecialOption
-                        ? (typeof existingScore === 'number' ? existingScore : 10)
-                        : curr;
-                      const isCustomSpecialScore = isSpecialOption
-                        && typeof existingScore === 'number'
-                        && existingScore < 10
-                        && Math.abs(existingScore - specialScoreWhenChecked) > 0.01;
-                      return (
-                        <div key={idx} className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <div className="font-semibold text-gray-800">{translateCategory(rule.category)}</div>
-                              <div className="text-xs text-gray-500">{t('weightInFinalGrade') || 'Weight in final grade'}: {rule.weight}%</div>
-                            </div>
-                            <div className="text-right">
-                              <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{displayScore}</div>
-                              <div className="text-[11px] text-indigo-700">{t('outOf10') || 'out of 10'}</div>
-                            </div>
-                          </div>
-                          {isSpecialOption ? (
-                            <label className="flex items-center gap-3 text-sm text-gray-700">
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={(e) => setSpecialParticipationOption(selectedStudentForPerformance.id, rule.category, e.target.checked)}
-                                disabled={isAbsent}
-                                aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                                title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                                className={`w-4 h-4 text-indigo-600 border-gray-300 rounded ${isAbsent ? 'cursor-not-allowed' : ''}`}
-                              />
-                              <span>
-                                {isChecked
-                                  ? (isCustomSpecialScore
-                                    ? `${t('applied') || 'Applied'} (${displayScore}/10, custom)`
-                                    : `${t('applied') || 'Applied'} (${specialScoreWhenChecked}/10)`)
-                                  : `${t('notApplied') || 'Not applied'} (10/10)`}
-                              </span>
-                            </label>
-                          ) : (
-                            <>
-                              <input
-                                type="range"
-                                min={0}
-                                max={10}
-                                step={0.5}
-                                value={curr}
-                                onChange={(e) => setPerformanceScore(selectedStudentForPerformance.id, rule.category, e.target.value)}
-                                disabled={isAbsent}
-                                aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                                title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                                className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
-                              />
-                              <div className="flex justify-between text-[11px] text-indigo-700"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })()}
-
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => setShowPerformanceModal(false)} className="flex-1 border px-3 py-2 rounded">{t('close') || 'Close'}</button>
-              <button onClick={() => { setShowPerformanceModal(false); showToast(t('performanceScoresRecorded') || 'Scores recorded', 'success'); }} className="flex-1 bg-indigo-600 text-white px-3 py-2 rounded">{t('done') || 'Done'}</button>
-            </div>
-          </div>
-        </div>
+        <AttendancePerformanceModal
+          t={t}
+          formatDate={formatDate}
+          formatWeekday={formatWeekday}
+          localeOverride={localeOverride}
+          selectedDate={selectedDate}
+          selectedStudentForPerformance={selectedStudentForPerformance}
+          evaluationCategories={evaluationCategories}
+          dailyPerformance={dailyPerformance}
+          getAggregatedStatus={getAggregatedStatus}
+          translateCategory={translateCategory}
+          getSpecialParticipationScore={getSpecialParticipationScore}
+          setPerformanceScore={setPerformanceScore}
+          setSpecialParticipationOption={setSpecialParticipationOption}
+          setShowPerformanceModal={setShowPerformanceModal}
+          showToast={showToast}
+        />
       )}
     </div>
   );
