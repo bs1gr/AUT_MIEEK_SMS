@@ -12,6 +12,7 @@ import { courseKeys } from '@/hooks/useCoursesQuery';
 import { useStudentsStore, useCoursesStore } from '@/stores';
 import { AppearanceThemeSelectorWidget, themeStyles } from './AppearanceThemeSelector';
 import { useAppearanceTheme } from '@/contexts/AppearanceThemeContext';
+import DevToolsBackupManager from './DevToolsBackupManager';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
 
@@ -47,6 +48,7 @@ type DevToolsVariant = 'standalone' | 'embedded';
 type ImportType = 'courses' | 'students';
 type ClearScope = 'all' | 'data_only';
 type BackupMode = 'encrypted' | 'unencrypted';
+export type BackupItem = { filename: string; path: string; size: number; created: string };
 
 export interface DevToolsPanelProps {
   variant?: DevToolsVariant;
@@ -139,7 +141,6 @@ const DevToolsPanel = ({
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [result, setResult] = useState<OperationResult>(null);
   // Backups management state
-  type BackupItem = { filename: string; path: string; size: number; created: string };
   const [backups, setBackups] = useState<BackupItem[] | null>(null);
   const [backupsLoading, setBackupsLoading] = useState(false);
   // destination path field not currently used in this build
@@ -1191,101 +1192,28 @@ const DevToolsPanel = ({
         </div>
 
         {legacyDatabaseToolsVisible && (
-          <div className={`${theme.card} md:col-span-2`}>
-            <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
-
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
-                {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}
-              </button>
-              <button type="button" onClick={downloadAllZip} className={theme.secondaryButton}>
-                {t('utils.downloadAllAsZip') || 'Download All as ZIP'}
-              </button>
-              <button type="button" onClick={downloadSelectedZip} className={theme.secondaryButton}>
-                {t('utils.downloadSelectedAsZip') || 'Download Selected as ZIP'}
-              </button>
-              <button
-                type="button"
-                onClick={deleteSelectedBackups}
-                className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:border-rose-700 dark:hover:bg-rose-900/20`}
-              >
-                {t('utils.deleteSelected') || 'Delete Selected'}
-              </button>
-            </div>
-            <div className={`mb-3 text-xs ${theme.mutedText}`}>
-              {t('utils.backupZipIncludesEncrypted')}
-            </div>
-
-            {Array.isArray(backups) ? (
-              backups.length === 0 ? (
-                <div className={`text-xs ${theme.mutedText}`}>{t('utils.noBackupsFound') || 'No backups found'}</div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className={`text-xs ${theme.mutedText}`}>{t('utils.availableBackups') || 'Available Backups'}:</div>
-                    <label className={`flex items-center gap-2 text-xs ${theme.text}`}>
-                      <input
-                        ref={selectAllBackupsRef}
-                        type="checkbox"
-                        checked={allBackupsSelected}
-                        disabled={backupFilenames.length === 0}
-                        onChange={(event) => toggleSelectAllBackups(event.target.checked)}
-                        aria-label={t('utils.selectAllBackups') || 'Select all backups'}
-                      />
-                      <span>{t('utils.selectAllBackups') || 'Select all'}</span>
-                    </label>
-                  </div>
-                  {backups.map((b) => (
-                      <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedBackups.has(b.filename)}
-                          onChange={(e) => toggleSelected(b.filename, e.target.checked)}
-                          aria-label={b.filename}
-                        />
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <div className={`text-sm ${theme.text}`}>{b.filename}</div>
-                            <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
-                              {getBackupTypeLabel(b.filename)}
-                            </span>
-                          </div>
-                          <div className={`text-xs ${theme.mutedText}`}>
-                            {t('utils.created')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void handleRestoreFromServer(b.filename)}
-                          disabled={opLoading === `restore-${b.filename}` || !isRestorableBackupType(b.filename)}
-                          className={`${theme.button} disabled:opacity-50 disabled:cursor-not-allowed`}
-                          title={
-                            isRestorableBackupType(b.filename)
-                              ? (t('utils.restoreBackup') || 'Restore this backup')
-                              : (t('utils.restoreUnsupportedType') || 'Restore not supported for this backup type')
-                          }
-                        >
-                          {opLoading === `restore-${b.filename}` ? (t('utils.restoring') || 'Restoring...') : (t('utils.restore') || 'Restore')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void downloadBackup(b.filename)}
-                          className={theme.secondaryButton}
-                        >
-                          {t('utils.download') || 'Download'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            ) : (
-              <div className={`text-xs ${theme.mutedText}`}>{t('utils.clickViewBackups') || 'Click "View Backups" to load list'}</div>
-            )}
-          </div>
+          <DevToolsBackupManager
+            theme={theme}
+            t={t}
+            backups={backups}
+            backupsLoading={backupsLoading}
+            opLoading={opLoading}
+            selectedBackups={selectedBackups}
+            backupFilenames={backupFilenames}
+            allBackupsSelected={allBackupsSelected}
+            selectAllBackupsRef={selectAllBackupsRef}
+            formatDateTime={formatDateTime}
+            getBackupTypeLabel={getBackupTypeLabel}
+            isRestorableBackupType={isRestorableBackupType}
+            onLoadBackups={() => void loadBackups()}
+            onDownloadAllZip={downloadAllZip}
+            onDownloadSelectedZip={downloadSelectedZip}
+            onDeleteSelectedBackups={deleteSelectedBackups}
+            onToggleSelectAllBackups={toggleSelectAllBackups}
+            onToggleSelected={toggleSelected}
+            onRestoreFromServer={(filename) => void handleRestoreFromServer(filename)}
+            onDownloadBackup={(filename) => void downloadBackup(filename)}
+          />
         )}
       </div>
 

@@ -158,6 +158,8 @@ export const themeStyles: Record<AppearanceThemeVariant, {
   },
 };
 
+export type ThemeStyle = (typeof themeStyles)[AppearanceThemeVariant];
+
 export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: ThemeSelectorProps) => {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
