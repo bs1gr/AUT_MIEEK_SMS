@@ -14,6 +14,59 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.37] - 2026-09-04
+
+### Bug Fixes
+- replace deprecated datetime.utcnow() in feedback router; add Unreleased changelog
+- rewrite trusted-hosts test assertion to avoid CodeQL substring-check false positive
+- correct doubled-v version-string corruption (script bug + cleanup)
+- codebase review round 2 - auth gaps, race condition, dead code cleanup
+- correct CodeQL inline-suppression comment placement
+
+### Refactoring
+- extract AttendanceView save/offline-sync/autosave logic into a hook
+- extract Student List grid + Performance Modal from AttendanceView.tsx
+- extend Excel-response and error-handling dedup to remaining export endpoints
+- extract calendar, quick-actions, and analytics snapshot from AttendanceView.tsx
+- split AnalyticsDashboard.tsx into filter bar + class/student view components
+- split OperationsView.tsx into per-tab components
+- extract backup/restore/clear/import cards from DevToolsPanel.tsx
+- extract Operations Monitor section from DevToolsPanel.tsx
+- extract Manage Backups section from DevToolsPanel.tsx
+- dedupe Excel header styling + response building in exports router
+
+### Documentation
+- record AttendanceView JSX-extraction refactor in changelog and work plan
+- log post-v1.18.36 codebase review findings in work plan
+- fix DOCUMENTATION_INDEX.md and rewrite it to stop going stale
+
+### Tests
+- **e2e**: add login flow coverage (wrong creds, logout, RequireAdmin guard)
+- add coverage for auth components and GradeBreakdownModal; remove dead code
+- add smoke test coverage for routers_exports.py (31 endpoints, previously zero)
+- add router coverage for adminops, dashboards, feedback, diagnostics, highlights
+
+### CI/CD
+- run CodeQL alert dismissal sequentially, not per-matrix
+- auto-dismiss suppressed CodeQL alerts on scan
+
+### Chores
+- **deps**: bump @xmldom/xmldom from 0.9.10 to 0.9.12 in /src/frontend (#227)
+- **deps-dev**: bump browserslist in /src/frontend (#226)
+- **deps**: bump postcss-selector-parser in /src/frontend (#225)
+
+## [1.18.37] - 2026-09-04
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [Unreleased]
 
 ### Refactoring
@@ -4856,6 +4909,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
