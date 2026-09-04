@@ -22,16 +22,18 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
 
 ### Todo — before next release
 
-- [ ] Update `CHANGELOG.md` with an entry for these 22 commits (last dated
-      section is still "v1.18.36 (2026-09-01)").
+- [x] Update `CHANGELOG.md` with an entry for these 22 commits — added an
+      `[Unreleased]` section (2026-09-04).
 - [ ] Bump `VERSION` past `v1.18.36` as part of the next release — it still
-      matches the last tag even though 22 commits sit on top of it.
+      matches the last tag even though 22 commits sit on top of it. Deferred:
+      bumping the version number is tied to actually cutting the release
+      (Phase 1-3 in CLAUDE.md's Release Workflow), not a standalone edit.
 
 ### Todo — small cleanup found during review
 
-- [ ] `src/backend/routers/routers_feedback.py:218` uses `datetime.utcnow()`,
-      which is deprecated (surfaced as a warning by `test_feedback_router.py`) —
-      switch to `datetime.now(datetime.UTC)`.
+- [x] `src/backend/routers/routers_feedback.py:218` used `datetime.utcnow()`,
+      which is deprecated — switched to `datetime.now(timezone.utc)` to match
+      the pattern used elsewhere in the backend (2026-09-04).
 
 ### Known outstanding (unchanged by this batch, confirmed not newly broken)
 

@@ -14,6 +14,36 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+## [Unreleased]
+
+### Refactoring
+- extract calendar, quick-actions, and analytics snapshot from AttendanceView.tsx
+- split AnalyticsDashboard.tsx into filter bar + class/student view components
+- split OperationsView.tsx into per-tab components
+- extract backup/restore/clear/import cards and Operations Monitor / Manage Backups sections from DevToolsPanel.tsx
+- dedupe Excel header styling + response building in exports router, extend to remaining export endpoints
+- rewrite trusted-hosts test assertion to avoid a CodeQL substring-check false positive
+
+### Bug Fixes
+- codebase review round 2: auth gaps, race condition, dead code cleanup
+- correct doubled-`v` version-string corruption (script bug + cleanup)
+
+### Tests
+- add smoke test coverage for routers_exports.py (31 endpoints, previously zero)
+- add router coverage for adminops, dashboards, feedback, diagnostics, highlights
+- add coverage for auth components and GradeBreakdownModal; remove dead code
+- add e2e login flow coverage (wrong creds, logout, RequireAdmin guard)
+
+### CI
+- auto-dismiss suppressed CodeQL alerts on scan, run dismissal sequentially
+
+### Documentation
+- fix DOCUMENTATION_INDEX.md and rewrite it to stop going stale
+- log post-v1.18.36 codebase review findings in work plan
+
+### Dependencies
+- bump @xmldom/xmldom, browserslist, postcss-selector-parser in src/frontend
+
 ## [1.18.36] - 2026-09-01
 
 ### Features

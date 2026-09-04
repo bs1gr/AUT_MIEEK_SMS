@@ -5,7 +5,7 @@ Also supports listing feedback and importing GitHub feedback entries.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -215,7 +215,7 @@ async def archive_feedback_entry(
 
     details = entry.details or {}
     details["archived"] = True
-    details["archived_at"] = datetime.utcnow().isoformat()
+    details["archived_at"] = datetime.now(timezone.utc).isoformat()
     details["original_action"] = entry.action
     details["source"] = "github" if entry.action == "feedback_github" else "app"
     entry.details = details
