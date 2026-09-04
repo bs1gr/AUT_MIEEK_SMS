@@ -44,13 +44,45 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
       click-through against `NATIVE.ps1` (course select, day pick, mark
       Present, Rate modal, checkbox toggle, autosave "File saved
       successfully" toast) — screenshots confirmed identical rendering.
-- **Still outstanding, deliberately untouched**: the ~700-line save/
-      offline-sync/autosave block (`performSave`, `syncSnapshotToServer`,
-      `queueAttendanceSnapshot`, `flushQueuedSnapshots`) — the actual
-      highest-risk logic in the app. Extracting this into a hook is a
-      separate, higher-risk decision (stale-closure/dependency-array risk in
-      the daily-use save path) that needs its own dedicated session with
-      heavier manual testing, not a JSX-only pass.
+- **Save/offline-sync/autosave block — extracted 2026-09-04** (dedicated
+      session, as called for above): `performSave`, `syncSnapshotToServer`,
+      `queueAttendanceSnapshot`, `flushQueuedSnapshots`, `refreshAttendancePrefill`
+      and their helpers moved into `src/frontend/src/features/attendance/hooks/useAttendanceSaveSync.ts`
+      (605 lines). All state stayed owned by `AttendanceView.tsx` (passed to
+      the hook as explicit params/setters, mirroring the exact prior closure)
+      — a pure logic relocation, not a state-ownership redesign, to keep the
+      risk surface minimal in this daily-use save path.
+      `AttendanceView.tsx`: 1,452 → 939 lines.
+      - Added `useAttendanceSaveSync.test.ts` (12 tests) — this logic had
+        **zero** prior test coverage (the existing
+        `AttendanceView.specialParticipation.test.tsx` mocks `useAutosave`
+        and the offline queue module to no-ops). New tests cover PUT/POST
+        fallback, 404→POST fallback, DELETE of pending-removal performance
+        records, offline queueing, network-error→queue fallback, genuine-error
+        surfacing + rethrow, queue drain/stop-at-first-failure, and
+        request de-dup in `refreshAttendancePrefill`.
+      - Verified via `tsc`, `eslint` (0 errors), the full attendance test
+        suite (16/16 passing, including the untouched
+        `specialParticipation` test), and a real click-through against
+        `NATIVE.ps1` + the actual dev Postgres backend (Playwright,
+        deleted after use): course/date select, mark Present → "Saving" →
+        "File saved successfully" toast → `Coverage: 100%`, reload
+        persistence, then DevTools-equivalent offline simulation (mark
+        Absent while offline → "Offline: changes queued..." toast +
+        "1 queued for sync" badge) → reconnect (`window` `online` event) →
+        "1 queued change set(s) synced." toast. All screenshots confirmed.
+      - Flagged but **not acted on**: `performSave` and
+        `syncSnapshotToServer` independently reimplement ~150 lines of
+        near-identical PUT/POST-fallback/DELETE logic (one against live
+        state, one against a queued snapshot). Deduplicating that is a
+        legitimate future cleanup, deliberately deferred to avoid combining
+        a logic dedup with a logic relocation in the same change.
+      - Also noted, out of scope: the dev Postgres DB has ~148 stray
+        "Test Course \*"/"Test\* Student\*" rows accumulated from prior e2e
+        sessions using `tests/e2e/helpers.ts`'s data generators (not created
+        by this session beyond a handful during verification, indistinguishable
+        from the rest) — left alone rather than bulk-deleting shared dev data
+        without explicit confirmation.
 
 ---
 

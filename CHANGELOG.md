@@ -17,6 +17,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [Unreleased]
 
 ### Refactoring
+- extract save/offline-sync/autosave logic from AttendanceView.tsx into `useAttendanceSaveSync` hook (1,452 → 939 lines); state ownership unchanged, adds 12 new tests for previously-untested save/sync logic
 - extract Student List grid + Performance Modal from AttendanceView.tsx (1,821 → 1,629 lines)
 - extract calendar, quick-actions, and analytics snapshot from AttendanceView.tsx
 - split AnalyticsDashboard.tsx into filter bar + class/student view components
