@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { useDashboardData } from '@/api/hooks/useAnalytics';
 import { useAnalyticsExport } from '../hooks/useAnalyticsExport';
-import { useDashboards, type Dashboard } from '../hooks/useDashboards';
+import { useDashboards } from '../hooks/useDashboards';
 import apiClient, {
   extractAPIResponseData,
   enrollmentsAPI,
@@ -14,16 +14,6 @@ import apiClient, {
 } from '@/api/api';
 import type { Course, Student, CourseEnrollment, Grade, Attendance } from '@/types';
 import {
-  PerformanceChart,
-  GradeDistributionChart,
-  AttendanceChart,
-  TrendChart,
-  StatsPieChart,
-  ScatterPlot,
-  GradeHeatmap,
-  StudentProgressionSankey,
-  PerformanceTreemap,
-  GradeDistributionBoxPlot,
   type PerformanceDataPoint,
   type GradeDistributionData,
   type AttendanceData,
@@ -38,6 +28,9 @@ import {
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
+import AnalyticsFilterBar from './AnalyticsFilterBar';
+import AnalyticsClassView from './AnalyticsClassView';
+import AnalyticsStudentView from './AnalyticsStudentView';
 
 /**
  * Summary Card Component
@@ -122,7 +115,7 @@ export const AnalyticsDashboard: React.FC = () => {
         'boxplot',
       ]);
     }
-    return new Set(activeDashboard.configuration.charts);
+    return new Set(activeDashboard.configuration.charts as string[]);
   }, [activeDashboard]);
 
   const activeStudents = useMemo(
@@ -1111,127 +1104,25 @@ export const AnalyticsDashboard: React.FC = () => {
         />
       </div>
 
-      <div className="flex flex-wrap items-end gap-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-600">
-            {t('analytics.viewMode')}
-          </label>
-          <div className="mt-1 flex gap-2 rounded-xl border border-slate-200 bg-white p-1">
-            <button
-              onClick={() => {
-                setViewMode('student');
-                setSelectedDivision('');
-              }}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                viewMode === 'student'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t('analytics.studentView')}
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('class');
-                setSelectedStudent(null);
-              }}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                viewMode === 'class'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t('analytics.classView')}
-            </button>
-          </div>
-        </div>
-
-        {viewMode === 'student' && (
-          <div>
-            <label className="block text-sm font-medium text-slate-600">
-              {t('analytics.studentLabel')}
-            </label>
-            <select
-              value={effectiveSelectedStudent ?? ''}
-              onChange={(e) => setSelectedStudent(e.target.value ? Number(e.target.value) : null)}
-              className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-            >
-              <option value="">{t('analytics.selectStudent')}</option>
-              {activeStudents.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.first_name} {student.last_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {viewMode === 'class' && (
-          <div>
-            <label className="block text-sm font-medium text-slate-600">
-              {t('analytics.divisionLabel')}
-            </label>
-            <select
-              value={selectedDivision}
-              onChange={(e) => setSelectedDivision(e.target.value)}
-              className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-            >
-              <option value="">{t('analytics.selectDivision')}</option>
-              {Array.from(new Set(students.map((s) => normalizeDivisionLabel(s.class_division)).filter(Boolean)))
-                .sort()
-                .map((division) => (
-                  <option key={division as string} value={division as string}>
-                    {division as string}
-                  </option>
-                ))}
-            </select>
-          </div>
-        )}
-        {viewMode === 'student' && effectiveSelectedStudent && (
-          <div>
-            <label className="block text-sm font-medium text-slate-600">
-              {t('analytics.courseLabel')}
-            </label>
-            <select
-              value={effectiveSelectedCourse ?? ''}
-              onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
-              className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-            >
-              <option value="">{t('analytics.selectCourse')}</option>
-              {selectableCourses.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.course_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-slate-600">
-            {t('dashboard.selectDashboard')}
-          </label>
-          <select
-            value={selectedDashboardId ?? ''}
-            onChange={(e) => setSelectedDashboardId(e.target.value ? Number(e.target.value) : null)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          >
-            <option value="">{t('dashboard.defaultDashboard')}</option>
-            {dashboards.map((d: Dashboard) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          onClick={() => navigate('/dashboard-manager')}
-          className="self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-          title={t('dashboard.manageDashboards')}
-        >
-          {t('dashboard.manage')}
-        </button>
-      </div>
+      <AnalyticsFilterBar
+        t={t}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        setSelectedDivision={setSelectedDivision}
+        setSelectedStudent={setSelectedStudent}
+        effectiveSelectedStudent={effectiveSelectedStudent}
+        activeStudents={activeStudents}
+        selectedDivision={selectedDivision}
+        students={students}
+        normalizeDivisionLabel={normalizeDivisionLabel}
+        effectiveSelectedCourse={effectiveSelectedCourse}
+        setSelectedCourse={setSelectedCourse}
+        selectableCourses={selectableCourses}
+        selectedDashboardId={selectedDashboardId}
+        setSelectedDashboardId={setSelectedDashboardId}
+        dashboards={dashboards}
+        onManageDashboards={() => navigate('/dashboard-manager')}
+      />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -1242,284 +1133,43 @@ export const AnalyticsDashboard: React.FC = () => {
           <p className="text-slate-600">{t('analytics.selectStudentFirst')}</p>
         </div>
       ) : viewMode === 'class' ? (
-        <div className="space-y-8">
-          {(visibleCharts.has('performance') || visibleCharts.has('gradeDistribution')) && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {visibleCharts.has('performance') && (
-                <PerformanceChart
-                  data={selectedDivision ? divisionPerformanceData : effectiveSelectedStudent ? performanceData : []}
-                  title={t('analytics.chartStudentPerformance')}
-                  height={350}
-                />
-              )}
-              {visibleCharts.has('gradeDistribution') && (
-                <GradeDistributionChart
-                  data={selectedDivision ? divisionGradeDistributionData : effectiveSelectedCourse ? gradeDistributionData : []}
-                  title={t('analytics.chartGradeDistribution')}
-                  height={350}
-                />
-              )}
-            </div>
-          )}
-
-          {(visibleCharts.has('attendance') || visibleCharts.has('trend')) && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {visibleCharts.has('attendance') && (
-                <AttendanceChart
-                  data={selectedDivision ? divisionAttendanceData : effectiveSelectedStudent ? attendanceData : []}
-                  title={t('analytics.chartAttendanceRate')}
-                  height={350}
-                />
-              )}
-              {visibleCharts.has('trend') && (
-                <TrendChart
-                  data={selectedDivision ? divisionTrendData : effectiveSelectedStudent ? trendData : []}
-                  title={t('analytics.chartPerformanceTrend')}
-                  height={350}
-                />
-              )}
-            </div>
-          )}
-
-          {(visibleCharts.has('pieChart') || visibleCharts.has('scatter')) && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {visibleCharts.has('pieChart') && (
-                <StatsPieChart
-                  data={pieChartData}
-                  title={t('analytics.chartStudentStatus')}
-                  height={350}
-                />
-              )}
-              {visibleCharts.has('scatter') && (
-                <ScatterPlot
-                  data={selectedDivision ? divisionScatterData : []}
-                  title={t('analytics.chartAttendanceGradeCorrelation')}
-                  xAxisLabel={t('analytics.attendance')}
-                  yAxisLabel={t('analytics.grade')}
-                  height={350}
-                />
-              )}
-            </div>
-          )}
-
-          {visibleCharts.has('heatmap') && (
-            <div className="w-full">
-              <GradeHeatmap
-                data={selectedDivision ? divisionHeatmapData : []}
-                title={t('analytics.chartGradeHeatmap')}
-                height={300}
-              />
-            </div>
-          )}
-
-          {visibleCharts.has('sankey') && (
-            <div className="w-full">
-              <StudentProgressionSankey
-                data={selectedDivision ? divisionSankeyData : []}
-                title={t('analytics.chartStudentProgression')}
-                height={350}
-              />
-            </div>
-          )}
-
-          {visibleCharts.has('treemap') && (
-            <div className="w-full">
-              <PerformanceTreemap
-                data={selectedDivision ? divisionTreemapData : []}
-                title={t('analytics.chartPerformanceHierarchy')}
-                height={350}
-              />
-            </div>
-          )}
-
-          {visibleCharts.has('boxplot') && (
-            <div className="w-full">
-              <GradeDistributionBoxPlot
-                data={selectedDivision ? divisionBoxPlotData : []}
-                title={t('analytics.chartDistributionAnalysis')}
-                height={400}
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {t('analytics.quickReportTitle')}
-              </h3>
-              <div className="mt-4 space-y-3 text-sm text-slate-600">
-                <p>
-                  <span className="font-medium text-slate-700">{t('analytics.quickReportActiveStudents')}</span>{' '}
-                  {quickReportStats.activeStudents}/{quickReportStats.totalStudents}
-                </p>
-                <p>
-                  <span className="font-medium text-slate-700">{t('analytics.quickReportAverageGrade')}</span>{' '}
-                  {quickReportStats.averageGrade.toFixed(2)}%
-                </p>
-                <p>
-                  <span className="font-medium text-slate-700">
-                    {t('analytics.quickReportAverageAttendance')}
-                  </span>{' '}
-                  {quickReportStats.averageAttendance.toFixed(2)}%
-                </p>
-                <p>
-                  <span className="font-medium text-slate-700">{t('analytics.quickReportTotalGrades')}</span>{' '}
-                  {quickReportStats.totalGrades}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {t('analytics.classAverageSummaryTitle')}
-              </h3>
-              <div className="mt-4 space-y-3">
-                {filteredClassAggregates.length === 0 ? (
-                  <p className="text-sm text-slate-500">{t('analytics.noClassData')}</p>
-                ) : (
-                  filteredClassAggregates.map((entry) => (
-                    <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
-                      <div>
-                        <div className="font-medium text-slate-700">{entry.label}</div>
-                        <div className="text-xs text-slate-500">
-                          {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
-                        </div>
-                      </div>
-                      <span className="font-semibold text-slate-900">{entry.count}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {t('analytics.courseAverageSummaryTitle')}
-              </h3>
-              <div className="mt-4 space-y-3">
-                {filteredCourseAggregates.length === 0 ? (
-                  <p className="text-sm text-slate-500">{t('analytics.noCourseData')}</p>
-                ) : (
-                  filteredCourseAggregates.map((entry) => (
-                    <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
-                      <div>
-                        <div className="font-medium text-slate-700">{entry.label}</div>
-                        <div className="text-xs text-slate-500">
-                          {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
-                        </div>
-                      </div>
-                      <span className="font-semibold text-slate-900">
-                        {entry.count} {t('analytics.enrolledLabel')}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {t('analytics.divisionAverageSummaryTitle')}
-              </h3>
-              <div className="mt-4 space-y-3">
-                {divisionAggregates.length === 0 ? (
-                  <p className="text-sm text-slate-500">{t('analytics.noDivisionData')}</p>
-                ) : (
-                  divisionAggregates.map((entry) => (
-                    <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
-                      <div>
-                        <div className="font-medium text-slate-700">
-                          {normalizeDivisionLabel(entry.label)}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
-                        </div>
-                      </div>
-                      <span className="font-semibold text-slate-900">{entry.count}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <AnalyticsClassView
+          t={t}
+          visibleCharts={visibleCharts}
+          selectedDivision={selectedDivision}
+          effectiveSelectedStudent={effectiveSelectedStudent}
+          effectiveSelectedCourse={effectiveSelectedCourse}
+          performanceData={performanceData}
+          divisionPerformanceData={divisionPerformanceData}
+          gradeDistributionData={gradeDistributionData}
+          divisionGradeDistributionData={divisionGradeDistributionData}
+          attendanceData={attendanceData}
+          divisionAttendanceData={divisionAttendanceData}
+          trendData={trendData}
+          divisionTrendData={divisionTrendData}
+          pieChartData={pieChartData}
+          divisionScatterData={divisionScatterData}
+          divisionHeatmapData={divisionHeatmapData}
+          divisionSankeyData={divisionSankeyData}
+          divisionTreemapData={divisionTreemapData}
+          divisionBoxPlotData={divisionBoxPlotData}
+          quickReportStats={quickReportStats}
+          filteredClassAggregates={filteredClassAggregates}
+          filteredCourseAggregates={filteredCourseAggregates}
+          divisionAggregates={divisionAggregates}
+          normalizeDivisionLabel={normalizeDivisionLabel}
+        />
       ) : (
-        <div className="space-y-8">
-          {(visibleCharts.has('performance') || visibleCharts.has('gradeDistribution')) && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {visibleCharts.has('performance') && (
-                <PerformanceChart
-                  data={performanceData}
-                  title={t('analytics.chartStudentPerformance')}
-                  height={350}
-                />
-              )}
-              {visibleCharts.has('gradeDistribution') && effectiveSelectedCourse && (
-                <GradeDistributionChart
-                  data={gradeDistributionData}
-                  title={t('analytics.chartGradeDistribution')}
-                  height={350}
-                />
-              )}
-            </div>
-          )}
-
-          {(visibleCharts.has('attendance') || visibleCharts.has('trend')) && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              {visibleCharts.has('attendance') && (
-                <AttendanceChart
-                  data={attendanceData}
-                  title={t('analytics.chartAttendanceRate')}
-                  height={350}
-                />
-              )}
-              {visibleCharts.has('trend') && (
-                <TrendChart
-                  data={trendData}
-                  title={t('analytics.chartPerformanceTrend')}
-                  height={350}
-                />
-              )}
-            </div>
-          )}
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t('analytics.quickReportTitle')}
-            </h3>
-            <div className="mt-4 space-y-3 text-sm text-slate-600">
-              {effectiveSelectedStudent ? (
-                <>
-                  <p>
-                    <span className="font-medium text-slate-700">{t('analytics.quickReportAverageGrade')}</span>{' '}
-                    {performanceData.length > 0
-                      ? (performanceData.reduce((sum, item) => sum + item.grade, 0) / performanceData.length).toFixed(2)
-                      : '0.00'}
-                    %
-                  </p>
-                  <p>
-                    <span className="font-medium text-slate-700">
-                      {t('analytics.quickReportAverageAttendance')}
-                    </span>{' '}
-                    {attendanceData.length > 0
-                      ? (attendanceData.reduce((sum, item) => sum + item.rate, 0) / attendanceData.length).toFixed(2)
-                      : '0.00'}
-                    %
-                  </p>
-                  <p>
-                    <span className="font-medium text-slate-700">{t('analytics.quickReportTotalGrades')}</span>{' '}
-                    {performanceData.length}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-slate-500">{t('analytics.selectStudentFirst')}</p>
-              )}
-            </div>
-          </div>
-        </div>
+        <AnalyticsStudentView
+          t={t}
+          visibleCharts={visibleCharts}
+          performanceData={performanceData}
+          gradeDistributionData={gradeDistributionData}
+          effectiveSelectedCourse={effectiveSelectedCourse}
+          attendanceData={attendanceData}
+          trendData={trendData}
+          effectiveSelectedStudent={effectiveSelectedStudent}
+        />
       )}
 
       <div className="flex flex-wrap gap-3">
