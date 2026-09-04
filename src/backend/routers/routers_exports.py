@@ -528,12 +528,33 @@ def _normalize_status(status: str | None) -> str:
     return normalized or "Present"
 
 
-def _apply_table_header(ws: Worksheet, headers, row: int = 1):
+def _apply_table_header(
+    ws: Worksheet,
+    headers,
+    row: int = 1,
+    *,
+    center: bool = True,
+    vertical: str | None = "center",
+):
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=row, column=col, value=header)
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = HEADER_FILL
-        cell.alignment = Alignment(horizontal="center", vertical="center")
+        if center:
+            cell.alignment = Alignment(horizontal="center", vertical=vertical) if vertical else Alignment(
+                horizontal="center"
+            )
+
+
+def _excel_response(wb: Any, filename: str) -> StreamingResponse:
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 def _auto_fit_columns(ws: Any):
@@ -1224,11 +1245,7 @@ async def export_students_excel(
         ws: Any = wb.active
         ws.title = t("sheet_students", lang)
         headers = get_header_row("students", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
+        _apply_table_header(ws, headers, vertical=None)
         for row, s in enumerate(students, 2):
             ws.cell(row=row, column=1, value=s.id)
             ws.cell(row=row, column=2, value=s.first_name)
@@ -1239,9 +1256,6 @@ async def export_students_excel(
             ws.cell(row=row, column=7, value=t("status_active", lang) if s.is_active else t("status_inactive", lang))
         for col in range(1, len(headers) + 1):
             ws.column_dimensions[get_column_letter(col)].width = 18
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"students_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -1251,11 +1265,7 @@ async def export_students_excel(
             details={"count": len(students), "requested_limit": limit, "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export students excel failed: %s", exc, exc_info=True)
         # Log failed export
@@ -1719,10 +1729,7 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
         ws: Any = wb.active
         ws.title = t("sheet_attendance", lang)
         headers = get_header_row("attendance", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+        _apply_table_header(ws, headers, center=False)
         for row, r in enumerate(records, 2):
             ws.cell(row=row, column=1, value=r.id)
             ws.cell(row=row, column=2, value=r.student_id)
@@ -1733,9 +1740,6 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
             ws.cell(row=row, column=7, value=r.notes or "")
         for col in range(1, 8):
             ws.column_dimensions[get_column_letter(col)].width = 15
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"attendance_{datetime.now().strftime('%Y%m%d')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -1745,11 +1749,7 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
             details={"count": len(records), "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export attendance excel failed: %s", exc, exc_info=True)
         # Log failed export
@@ -2245,11 +2245,7 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
         ws: Any = wb.active
         ws.title = t("sheet_courses", lang)
         headers = get_header_row("courses", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
+        _apply_table_header(ws, headers, vertical=None)
 
         for row, c in enumerate(courses, 2):
             ws.cell(row=row, column=1, value=c.id)
@@ -2264,9 +2260,6 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
         for col in range(1, 9):
             ws.column_dimensions[get_column_letter(col)].width = 20
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"courses_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -2276,11 +2269,7 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
             details={"count": len(courses), "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export courses excel failed: %s", exc, exc_info=True)
         # Log failed export
@@ -2360,11 +2349,7 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         ws: Any = wb.active
         ws.title = t("sheet_enrollments", lang)
         headers = get_header_row("enrollments", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
+        _apply_table_header(ws, headers, vertical=None)
 
         for row, e in enumerate(enrollments, 2):
             student = students_by_id.get(e.student_id)
@@ -2381,9 +2366,6 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
         for col in range(1, 8):
             ws.column_dimensions[get_column_letter(col)].width = 18
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"enrollments_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -2393,11 +2375,7 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
             details={"count": len(enrollments), "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export enrollments excel failed: %s", exc, exc_info=True)
         # Log failed export
@@ -2530,11 +2508,7 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         ws: Any = wb.active
         ws.title = t("sheet_all_grades", lang)
         headers = get_header_row("all_grades", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
+        _apply_table_header(ws, headers, vertical=None)
 
         for row, g in enumerate(grades, 2):
             student = students_by_id.get(g.student_id)
@@ -2561,9 +2535,6 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
         for col in range(1, 13):
             ws.column_dimensions[get_column_letter(col)].width = 15
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"all_grades_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -2573,11 +2544,7 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
             details={"count": len(grades), "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export all grades excel failed: %s", exc, exc_info=True)
         # Log failed export
@@ -2722,11 +2689,7 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         ws: Any = wb.active
         ws.title = t("sheet_daily_performance", lang)
         headers = get_header_row("daily_performance", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
+        _apply_table_header(ws, headers, vertical=None)
 
         for row, p in enumerate(performances, 2):
             student = students_by_id.get(p.student_id)
@@ -2747,9 +2710,6 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
         for col in range(1, 12):
             ws.column_dimensions[get_column_letter(col)].width = 15
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"daily_performance_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -2759,11 +2719,7 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
             details={"count": len(performances), "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export daily performance excel failed: %s", exc, exc_info=True)
         # Log failed export
@@ -2903,11 +2859,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         ws: Any = wb.active
         ws.title = t("sheet_highlights", lang)
         headers = get_header_row("highlights", lang)
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
+        _apply_table_header(ws, headers, vertical=None)
 
         for row, h in enumerate(highlights, 2):
             student = students_by_id.get(h.student_id)
@@ -2925,9 +2877,6 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
         for col in range(1, 10):
             ws.column_dimensions[get_column_letter(col)].width = 18
 
-        output = BytesIO()
-        wb.save(output)
-        output.seek(0)
         filename = f"highlights_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         # Log successful export
         audit.log_from_request(
@@ -2937,11 +2886,7 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
             details={"count": len(highlights), "format": "excel", "filename": filename},
             success=True,
         )
-        return StreamingResponse(
-            output,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
+        return _excel_response(wb, filename)
     except Exception as exc:
         logger.error("Export highlights excel failed: %s", exc, exc_info=True)
         # Log failed export
