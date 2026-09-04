@@ -9,6 +9,40 @@
 
 ---
 
+## 📋 Post-v1.18.36 Codebase Review (September 4, 2026)
+
+**Scope**: 22 commits landed on `main` since the `v1.18.36` tag (router dedup,
+4 large-component splits, new router test coverage, CI/CodeQL fixes, dependency
+bumps). Reviewed by reading the diffs directly (backgrounded multi-agent review
+hit the session rate limit before finishing) and verifying with `tsc --noEmit`
+(clean), `eslint` on the touched directories (clean), `ruff` on the touched
+backend files (clean), and running the 10 new/touched backend test files
+directly (125 passed). No functional regressions found — extractions correctly
+preserve auth gating, alignment/logging quirks, and prop wiring.
+
+### Todo — before next release
+
+- [ ] Update `CHANGELOG.md` with an entry for these 22 commits (last dated
+      section is still "v1.18.36 (2026-09-01)").
+- [ ] Bump `VERSION` past `v1.18.36` as part of the next release — it still
+      matches the last tag even though 22 commits sit on top of it.
+
+### Todo — small cleanup found during review
+
+- [ ] `src/backend/routers/routers_feedback.py:218` uses `datetime.utcnow()`,
+      which is deprecated (surfaced as a warning by `test_feedback_router.py`) —
+      switch to `datetime.now(datetime.UTC)`.
+
+### Known outstanding (unchanged by this batch, confirmed not newly broken)
+
+- [ ] `AttendanceView`'s attendance-marking grid + offline-sync logic is still
+      the one un-refactored, high-risk area. This session's `AttendanceView`
+      split (commit `3b9e1a399`: calendar, quick-actions, analytics-snapshot)
+      deliberately didn't touch it — confirmed no offline/sync code was in
+      that diff. Still needs a dedicated session.
+
+---
+
 ## 📋 v1.18.36 (September 1, 2026) — commits since v1.18.35
 
 | Hash | Area | Description |
