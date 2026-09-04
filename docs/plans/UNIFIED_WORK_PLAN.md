@@ -1,11 +1,57 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.36
-**Last Updated**: September 1, 2026
-**Status**: ✅ **v1.18.35 published 2026-08-30 (tag → `ada862ced`, installer + Android APK already on GitHub Releases). 16 commits landed on `main` since — cut as v1.18.36.**
+**Current Version**: 1.18.37
+**Last Updated**: September 4, 2026
+**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | v1.18.36 release in progress
+**Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🚀 v1.18.37 (September 4, 2026) — release + CI fix
+
+**Status**: ✅ RELEASED | Tag `v1.18.37` | Installer + Android APK uploaded to GitHub Releases | `CI/CD Pipeline` and `E2E Tests` green on `main`
+
+Cut via `.\infra\scripts\release\RELEASE_READY.ps1 -ReleaseVersion "1.18.37" -TagRelease` (full Lite rebuild, not `-SkipLiteBuild` — the pre-built `SMS_Lite.exe` was from 2026-06-18, ~2.5 months stale). Installer Authenticode-signed and verified; release workflow (`Release - Build & Upload Installer`, `Release - Build & Upload Android APK`) both succeeded.
+
+**Real CI break found and fixed post-tag** (`main`'s `CI/CD Pipeline` failed twice after the release commit, both times at the `🐳 Build Docker Images` job):
+- `node:22-slim`'s bundled `npm 10.9.8` has a reproducible arborist crash
+  (`Cannot read properties of null (reading 'edgesOut')`, in
+  `#loadPeerSet`) resolving this project's peer-dependency graph — hit
+  during `Dockerfile.fullstack`'s frontend-stage `RUN npm install` (which
+  deliberately installs from `package.json` alone, no lockfile, so it does
+  a fresh dependency-graph resolution on every cache-miss — normally
+  masked by Docker layer caching, exposed here because the release
+  commit's `package.json` version bump invalidated that `COPY` layer).
+  Reproduced locally via `docker build`/`docker buildx build` after
+  starting Docker Desktop; root-caused via `npm verbose` stack trace.
+- First fix attempt (commit `12c8e58c7`): removed a genuine bug — commit
+  `3e5f5dc5e` had accidentally added `@vitest/coverage-v8` to **both**
+  `dependencies` (`^4.0.16`) and `devDependencies` (`^4.0.8`) with
+  conflicting ranges (pure test-tool, never imported from app code — the
+  `dependencies` entry was always wrong). Real bug, worth having fixed,
+  but **did not** fix the Docker CI crash — confirmed by a second failed
+  CI run on that exact commit.
+- Actual fix (commit `07fea9cbf`): pin `npm install -g npm@11` before
+  `npm install` in `Dockerfile.fullstack`'s frontend stage. npm 11
+  resolves the same graph without crashing. Verified via a full local
+  `docker buildx build -f infra/docker/compose/Dockerfile.fullstack .`
+  (both stages) plus a container smoke run (migrations applied, admin
+  user created, all routers registered, SPA served).
+- **Self-inflicted gotcha while debugging, worth remembering**: testing
+  `npm install`/`npm run build` inside a container with a **writable**
+  bind mount of `src/frontend` (`-v "${PWD}\src\frontend:/app/frontend"`)
+  overwrites the host's `node_modules` with Linux-native binaries
+  (`@rollup/rollup-linux-*` etc.), breaking the Windows host's dev
+  environment (`Cannot find module '@rollup/rollup-win32-x64-msvc'`,
+  `'eslint' is not recognized`) — this is npm/cli#4828's optional-deps
+  bug, self-triggered. Fix: `Remove-Item -Recurse -Force node_modules`
+  + `npm install` on the host to restore Windows-native binaries. For any
+  future Docker-based repro of a frontend build issue, mount `package.json`
+  read-only and a **separate empty writable directory** for `node_modules`
+  (or just don't reuse the host's real `src/frontend` as the container's
+  `WORKDIR` bind mount) to avoid this.
 
 ---
 
