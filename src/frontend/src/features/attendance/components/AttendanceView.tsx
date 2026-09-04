@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
-import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
+import { Calendar as CalIcon, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import type { Course, Student, TeachingScheduleEntry } from '@/types';
@@ -24,6 +24,9 @@ import {
   getPendingAttendanceSyncCount,
   removeAttendanceSyncSnapshot,
 } from '@/features/attendance/utils/offlineAttendanceQueue';
+import AttendanceCalendar from './AttendanceCalendar';
+import AttendanceQuickActions from './AttendanceQuickActions';
+import AttendanceAnalyticsSnapshot from './AttendanceAnalyticsSnapshot';
 
 // Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
 // the correct server URL dynamically and injects the Authorization header.
@@ -1503,72 +1506,19 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={previousMonth} aria-label={t('previousMonth') || 'Previous month'} title={t('previousMonth') || 'Previous month'} className="p-2 hover:bg-gray-100 rounded"><ChevronLeft size={20} /></button>
-            <h3 className="text-lg font-semibold">{monthYear}</h3>
-            <button onClick={nextMonth} aria-label={t('nextMonth') || 'Next month'} title={t('nextMonth') || 'Next month'} className="p-2 hover:bg-gray-100 rounded"><ChevronRight size={20} /></button>
-          </div>
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {dayNamesShort.map((dayName: string, idx: number) => (
-              <div key={idx} className="text-center text-xs font-semibold py-1 text-gray-600">
-                {dayName}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {days.map((day, idx) => {
-              if (!day) {
-                return <div key={idx} className="aspect-square" />;
-              }
-
-              const teaching = isTeachingDay(day);
-              const today = isToday(day);
-              const selected = isSelected(day);
-              const hasAttendance = datesWithAttendance.has(formatLocalDate(day));
-
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => teaching && setSelectedDate(day)}
-                  disabled={!teaching}
-                  className={`aspect-square p-2 rounded text-center transition relative ${
-                    !teaching ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50' : ''
-                  } ${
-                    teaching && today ? 'ring-2 ring-indigo-500' : ''
-                  } ${
-                    teaching && selected ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-bold shadow' : ''
-                  } ${
-                    teaching && !selected && hasAttendance ? 'bg-green-100 hover:bg-green-200 text-gray-700 font-semibold' : ''
-                  } ${
-                    teaching && !selected && !hasAttendance ? 'bg-gray-50 hover:bg-indigo-100 text-gray-700' : ''
-                  }`}
-                >
-                  {day.getDate()}
-                  {teaching && hasAttendance && !selected && (
-                    <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {/* Legend */}
-          <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded bg-green-100 border border-green-300"></div>
-              <span>{t('attendanceRecorded') || 'Attendance recorded'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded bg-gray-50 border border-gray-300"></div>
-              <span>{t('noAttendanceYet') || 'No attendance yet'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-600 to-purple-600"></div>
-              <span>{t('selectedDate') || 'Selected date'}</span>
-            </div>
-          </div>
-        </div>
+        <AttendanceCalendar
+          t={t}
+          previousMonth={previousMonth}
+          nextMonth={nextMonth}
+          monthYear={monthYear}
+          dayNamesShort={dayNamesShort}
+          days={days}
+          isTeachingDay={isTeachingDay}
+          isToday={isToday}
+          isSelected={isSelected}
+          datesWithAttendance={datesWithAttendance}
+          setSelectedDate={setSelectedDate}
+        />
 
         {/* Sidebar */}
         <div className="space-y-4">
@@ -1607,82 +1557,26 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       </div>
 
       {/* Quick Select All */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl shadow p-6 border border-indigo-200">
-        <div className="flex items-center gap-2 mb-3">
-          <Users size={20} className="text-indigo-600" />
-          <h4 className="font-semibold">{t('quickActions') || 'Quick Actions'}</h4>
-        </div>
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-          <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-green-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><CheckCircle size={14} className="flex-shrink-0" /> {t('present') || 'Present'}</button>
-          <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><XCircle size={14} className="flex-shrink-0" /> {t('absent') || 'Absent'}</button>
-          <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><Clock size={14} className="flex-shrink-0" /> {t('late') || 'Late'}</button>
-          <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><AlertCircle size={14} className="flex-shrink-0" /> {t('excused') || 'Excused'}</button>
-          <button onClick={clearAllAttendance} className="w-full sm:w-auto col-span-2 sm:col-span-1 px-2 py-1.5 text-xs sm:text-sm rounded bg-gray-700 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2 hover:bg-gray-800">{t('clear') || 'Clear'}</button>
-        </div>
-      </div>
+      <AttendanceQuickActions
+        t={t}
+        selectAllAttendance={selectAllAttendance}
+        clearAllAttendance={clearAllAttendance}
+      />
 
       {/* Analytics Snapshot */}
-      <div className="bg-white rounded-2xl shadow p-6 border border-gray-100">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="bg-indigo-100 text-indigo-700 rounded-xl p-2"><BarChart3 size={20} /></div>
-            <div>
-              <h4 className="font-semibold text-gray-800">{t('attendanceInsights') || 'Attendance insights'}</h4>
-              <p className="text-xs text-gray-500">{t('overallSummary') || 'Overall summary for this day'}</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-semibold text-gray-800">{t('coverageLabel') || 'Coverage'}: {coveragePercent}%</p>
-            <p className="text-xs text-gray-500">{attendanceAnalytics.recordedSlots}/{attendanceAnalytics.totalSlots || 0} {t('recordsTracked') || 'records tracked'}</p>
-            {attendanceAnalytics.pendingSlots > 0 && (
-              <p className="text-xs text-amber-600">
-                {t('pendingRecords', { count: attendanceAnalytics.pendingSlots }) || `${attendanceAnalytics.pendingSlots} pending`}
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {statusOrder.map((status) => (
-            <div key={status} className={`rounded-xl border px-3 py-2 text-center ${statusBadgeClasses[status] || 'border-gray-200 bg-gray-50 text-gray-700'}`}>
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-indigo-700">{translateStatusLabel(status)}</p>
-              <p className="text-xl font-bold">{attendanceAnalytics.overall[status] || 0}</p>
-            </div>
-          ))}
-        </div>
-        {hasMultiplePeriods && (
-          <div className="mt-6 space-y-3">
-            <button
-              type="button"
-              onClick={() => setShowPeriodBreakdown((prev) => !prev)}
-              className="w-full flex items-center justify-between text-xs font-semibold text-gray-700 bg-white border rounded-lg px-3 py-2"
-            >
-              <span>{showPeriodBreakdown ? (t('hidePeriodBreakdown') || 'Hide per-period breakdown') : (t('showPeriodBreakdown') || 'Show per-period breakdown')}</span>
-              {showPeriodBreakdown ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
-            </button>
-            {showPeriodBreakdown && (
-              <>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('perPeriodBreakdown') || 'Per-period breakdown'}</p>
-                {activePeriods.map((period) => (
-                  <div key={period} className="border rounded-2xl p-3">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between mb-3">
-                      <span className="font-semibold text-gray-800">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
-                      <span className="text-xs text-gray-500">{t('studentsTracked', { count: enrolledStudents?.length || 0 }) || `${enrolledStudents?.length || 0} students`}</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                      {statusOrder.map((status) => (
-                        <div key={`${period}-${status}`} className="bg-gray-50 rounded-lg p-2 text-center">
-                          <p className="text-[11px] text-indigo-700">{translateStatusLabel(status)}</p>
-                          <p className="text-lg font-semibold text-gray-900">{attendanceAnalytics.perPeriod[period]?.[status] || 0}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      <AttendanceAnalyticsSnapshot
+        t={t}
+        coveragePercent={coveragePercent}
+        attendanceAnalytics={attendanceAnalytics}
+        statusOrder={statusOrder}
+        statusBadgeClasses={statusBadgeClasses}
+        translateStatusLabel={translateStatusLabel}
+        hasMultiplePeriods={hasMultiplePeriods}
+        showPeriodBreakdown={showPeriodBreakdown}
+        setShowPeriodBreakdown={setShowPeriodBreakdown}
+        activePeriods={activePeriods}
+        enrolledStudentsCount={enrolledStudents?.length || 0}
+      />
 
       {/* Student List */}
       <div className="bg-white rounded-2xl shadow p-6">
