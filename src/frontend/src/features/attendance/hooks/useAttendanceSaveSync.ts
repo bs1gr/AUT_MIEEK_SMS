@@ -31,6 +31,161 @@ const isResponseLike = (e: unknown): e is { response?: { status?: number } } => 
   typeof e === 'object' && e !== null && 'response' in e
 );
 
+// Attendance keys are always built by AttendanceView's getAttendanceKey() as
+// `${studentId}|${periodNumber}|${dateStr}` — every setAttendanceRecords call
+// site uses it, so re-parsing and rebuilding the key here is a no-op in
+// production. Kept as an explicit normalization step (rather than assuming
+// the raw key is already canonical) because it's the one place both the
+// live-save and offline-sync paths share, and the shape isn't obvious from
+// the key alone.
+const parseAttendanceKey = (key: string, fallbackDate: string) => {
+  const tokens = key.includes('|') ? key.split('|') : key.split('-');
+  const [studentIdStr, periodNumberStr, storedDate] = tokens;
+  const studentId = parseInt(studentIdStr, 10);
+  const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
+  return {
+    studentId,
+    periodNumber: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
+    payloadDate: storedDate || fallbackDate,
+  };
+};
+
+const parseDailyPerformanceKey = (key: string) => {
+  const separatorIdx = key.indexOf('-');
+  if (separatorIdx <= 0) {
+    return { studentId: NaN, category: '' };
+  }
+  const studentId = parseInt(key.slice(0, separatorIdx), 10);
+  const category = key.slice(separatorIdx + 1);
+  return { studentId, category };
+};
+
+const isValidRecordId = (id: unknown): id is number => Number.isInteger(id) && (id as number) > 0;
+
+export interface SyncAttendanceAndPerformanceOptions {
+  courseId: number;
+  fallbackDate: string;
+  attendanceRecords: Record<string, string>;
+  attendanceIdMap: Record<string, number>;
+  dailyPerformance: Record<string, number>;
+  performanceIdMap: Record<string, number>;
+  performanceDeleteKeys: string[];
+  onPerformanceIdAssigned?: (key: string, id: number) => void;
+}
+
+// Shared by performSave (live-state autosave) and syncSnapshotToServer
+// (offline-queue flush): builds a PUT-with-404-fallback-to-POST request per
+// attendance/daily-performance record, plus a DELETE-with-404-tolerance per
+// pending deletion, executed in chunks of 30 with a 200ms pause between
+// chunks. Both callers resolve their own id maps first (from React state or
+// from a server GET) — this function only needs the resolved maps.
+export async function syncAttendanceAndPerformanceRequests(
+  options: SyncAttendanceAndPerformanceOptions
+): Promise<void> {
+  const {
+    courseId,
+    fallbackDate,
+    attendanceRecords,
+    attendanceIdMap,
+    dailyPerformance,
+    performanceIdMap,
+    performanceDeleteKeys,
+    onPerformanceIdAssigned,
+  } = options;
+
+  const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
+    const parsed = parseAttendanceKey(key, fallbackDate);
+    if (!parsed.studentId) return Promise.resolve(null);
+
+    const normalizedKey = `${parsed.studentId}|${parsed.periodNumber}|${parsed.payloadDate}`;
+    const recordId = attendanceIdMap[normalizedKey];
+
+    if (isValidRecordId(recordId)) {
+      return apiClient.put(`/attendance/${recordId}`, { status }).catch((error) => {
+        if (isResponseLike(error) && error.response?.status === 404) {
+          return apiClient.post(`/attendance/`, {
+            student_id: parsed.studentId,
+            course_id: courseId,
+            date: parsed.payloadDate,
+            status,
+            period_number: parsed.periodNumber,
+            notes: '',
+          });
+        }
+        throw error;
+      });
+    }
+
+    return apiClient.post(`/attendance/`, {
+      student_id: parsed.studentId,
+      course_id: courseId,
+      date: parsed.payloadDate,
+      status,
+      period_number: parsed.periodNumber,
+      notes: '',
+    });
+  });
+
+  const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
+    const { studentId, category } = parseDailyPerformanceKey(key);
+    if (!studentId || !category) return Promise.resolve(null);
+
+    const recordId = performanceIdMap[key];
+    if (isValidRecordId(recordId)) {
+      return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 }).catch((error) => {
+        if (isResponseLike(error) && error.response?.status === 404) {
+          return apiClient.post(`/daily-performance/`, {
+            student_id: studentId,
+            course_id: courseId,
+            date: fallbackDate,
+            category,
+            score,
+            max_score: 10.0,
+            notes: '',
+          }).then((res) => {
+            if (res?.data?.id) onPerformanceIdAssigned?.(key, res.data.id);
+            return res;
+          });
+        }
+        throw error;
+      });
+    }
+
+    return apiClient.post(`/daily-performance/`, {
+      student_id: studentId,
+      course_id: courseId,
+      date: fallbackDate,
+      category,
+      score,
+      max_score: 10.0,
+      notes: '',
+    }).then((res) => {
+      if (res?.data?.id) onPerformanceIdAssigned?.(key, res.data.id);
+      return res;
+    });
+  });
+
+  const performanceDeletePromises = performanceDeleteKeys.map((key) => {
+    const recordId = performanceIdMap[key];
+    if (!isValidRecordId(recordId)) return Promise.resolve(null);
+    return apiClient.delete(`/daily-performance/${recordId}`).catch((error) => {
+      if (isResponseLike(error) && error.response?.status === 404) {
+        return Promise.resolve(null);
+      }
+      throw error;
+    });
+  });
+
+  const allPromises = [...attendancePromises, ...performancePromises, ...performanceDeletePromises];
+  const CHUNK_SIZE = 30;
+  for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
+    await Promise.all(allPromises.slice(i, i + CHUNK_SIZE));
+    if (i + CHUNK_SIZE < allPromises.length) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
+}
+
 interface UseAttendanceSaveSyncParams {
   selectedCourse: number | '';
   selectedDate: Date | null;
@@ -89,28 +244,6 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
   const updatePendingSyncCount = useCallback(() => {
     setPendingSyncCount(getPendingAttendanceSyncCount());
   }, [setPendingSyncCount]);
-
-  const parseAttendanceKey = useCallback((key: string, fallbackDate: string) => {
-    const tokens = key.includes('|') ? key.split('|') : key.split('-');
-    const [studentIdStr, periodNumberStr, storedDate] = tokens;
-    const studentId = parseInt(studentIdStr, 10);
-    const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
-    return {
-      studentId,
-      periodNumber: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
-      payloadDate: storedDate || fallbackDate,
-    };
-  }, []);
-
-  const parseDailyPerformanceKey = useCallback((key: string) => {
-    const separatorIdx = key.indexOf('-');
-    if (separatorIdx <= 0) {
-      return { studentId: NaN, category: '' };
-    }
-    const studentId = parseInt(key.slice(0, separatorIdx), 10);
-    const category = key.slice(separatorIdx + 1);
-    return { studentId, category };
-  }, []);
 
   const isOfflineNetworkError = useCallback((error: unknown) => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
@@ -188,92 +321,16 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       }
     }
 
-    const attendancePromises = Object.entries(snapshot.attendanceRecords).map(([key, status]) => {
-      const parsed = parseAttendanceKey(key, snapshot.date);
-      if (!parsed.studentId) return Promise.resolve(null);
-
-      const normalizedKey = `${parsed.studentId}|${parsed.periodNumber}|${parsed.payloadDate}`;
-      const recordId = attendanceIdMap[normalizedKey];
-
-      if (recordId) {
-        return apiClient.put(`/attendance/${recordId}`, { status }).catch((error) => {
-          if (isResponseLike(error) && error.response?.status === 404) {
-            return apiClient.post(`/attendance/`, {
-              student_id: parsed.studentId,
-              course_id: snapshot.courseId,
-              date: parsed.payloadDate,
-              status,
-              period_number: parsed.periodNumber,
-              notes: '',
-            });
-          }
-          throw error;
-        });
-      }
-
-      return apiClient.post(`/attendance/`, {
-        student_id: parsed.studentId,
-        course_id: snapshot.courseId,
-        date: parsed.payloadDate,
-        status,
-        period_number: parsed.periodNumber,
-        notes: '',
-      });
+    await syncAttendanceAndPerformanceRequests({
+      courseId: snapshot.courseId,
+      fallbackDate: snapshot.date,
+      attendanceRecords: snapshot.attendanceRecords,
+      attendanceIdMap,
+      dailyPerformance: snapshot.dailyPerformance,
+      performanceIdMap,
+      performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
     });
-
-    const performancePromises = Object.entries(snapshot.dailyPerformance).map(([key, score]) => {
-      const { studentId, category } = parseDailyPerformanceKey(key);
-      if (!studentId || !category) return Promise.resolve(null);
-
-      const recordId = performanceIdMap[key];
-      if (recordId) {
-        return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 }).catch((error) => {
-          if (isResponseLike(error) && error.response?.status === 404) {
-            return apiClient.post(`/daily-performance/`, {
-              student_id: studentId,
-              course_id: snapshot.courseId,
-              date: snapshot.date,
-              category,
-              score,
-              max_score: 10.0,
-              notes: '',
-            });
-          }
-          throw error;
-        });
-      }
-
-      return apiClient.post(`/daily-performance/`, {
-        student_id: studentId,
-        course_id: snapshot.courseId,
-        date: snapshot.date,
-        category,
-        score,
-        max_score: 10.0,
-        notes: '',
-      });
-    });
-
-    const performanceDeletePromises = (snapshot.dailyPerformanceDeletes || []).map((key) => {
-      const recordId = performanceIdMap[key];
-      if (!recordId) return Promise.resolve(null);
-      return apiClient.delete(`/daily-performance/${recordId}`).catch((error) => {
-        if (isResponseLike(error) && error.response?.status === 404) {
-          return Promise.resolve(null);
-        }
-        throw error;
-      });
-    });
-
-    const allPromises = [...attendancePromises, ...performancePromises, ...performanceDeletePromises];
-    const CHUNK_SIZE = 30;
-    for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
-      await Promise.all(allPromises.slice(i, i + CHUNK_SIZE));
-      if (i + CHUNK_SIZE < allPromises.length) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-    }
-  }, [parseAttendanceKey, parseDailyPerformanceKey]);
+  }, []);
 
   const refreshAttendancePrefill = useCallback(async () => {
     if (!selectedCourse || !selectedDateStr) return;
@@ -437,144 +494,17 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
         }
       }
 
-      console.warn('[Attendance] Saving - attendanceRecords:', attendanceRecords);
-      console.warn('[Attendance] Saving - recordIds:', attendanceRecordIds);
-
-      const attendancePromises = Object.entries(attendanceRecords).map(([key, status]) => {
-        const recordId = attendanceRecordIds[key];
-        const tokens = key.includes('|') ? key.split('|') : key.split('-');
-        const [studentIdStr, periodNumberStr, storedDate] = tokens;
-        const studentId = parseInt(studentIdStr, 10);
-        if (!studentId) return Promise.resolve(null);
-        const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
-        const payloadDate = storedDate || dateStr;
-
-        // If record has an ID from API, use PUT to update; otherwise POST to create
-        if (recordId) {
-          console.warn(`[Attendance] PUT /attendance/${recordId} - status: ${status}`);
-          return apiClient.put(`/attendance/${recordId}`, { status })
-            .then(res => {
-              console.warn(`[Attendance] PUT response: success`);
-              return res;
-            })
-              .catch(error => {
-              // If record doesn't exist (404), create it instead
-              if (isResponseLike(error) && error.response?.status === 404) {
-                console.warn(`[Attendance] Record ${recordId} not found, creating new record`);
-                return apiClient.post(`/attendance/`, {
-                  student_id: studentId,
-                  course_id: selectedCourse,
-                  date: payloadDate,
-                  status,
-                  period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
-                  notes: '',
-                }).then(res => {
-                  console.warn(`[Attendance] POST response (fallback): success`);
-                  return res;
-                });
-              }
-              throw error;
-            });
-        } else {
-          console.warn(`[Attendance] POST /attendance - student: ${studentId}, status: ${status}`);
-          return apiClient.post(`/attendance/`, {
-            student_id: studentId,
-            course_id: selectedCourse,
-            date: payloadDate,
-            status,
-            period_number: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
-            notes: '',
-          }).then(res => {
-            console.warn(`[Attendance] POST response: success`);
-            return res;
-          });
-        }
+      const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
+      await syncAttendanceAndPerformanceRequests({
+        courseId,
+        fallbackDate: dateStr,
+        attendanceRecords,
+        attendanceIdMap: attendanceRecordIds,
+        dailyPerformance,
+        performanceIdMap: dailyPerformanceIds,
+        performanceDeleteKeys: Array.from(pendingPerformanceDeleteKeys),
+        onPerformanceIdAssigned: (key, id) => setDailyPerformanceIds(prev => ({ ...prev, [key]: id })),
       });
-
-      const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
-        const recordId = dailyPerformanceIds[key];
-        const { studentId, category } = parseDailyPerformanceKey(key);
-        if (!studentId || !category) return Promise.resolve(null);
-        // Validate recordId: must be a positive integer
-        const isValidId = Number.isInteger(recordId) && recordId > 0;
-        console.warn(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
-        if (isValidId) {
-          const url = `/daily-performance/${recordId}`;
-          console.warn(`[Performance] PUT ${url} - score: ${score}`);
-          return apiClient.put(url, { score, max_score: 10.0 })
-            .then(res => {
-              console.warn(`[Performance] PUT response: success`);
-              return res;
-            })
-            .catch(error => {
-              // If record doesn't exist (404), create it instead
-              if (isResponseLike(error) && error.response?.status === 404) {
-                console.warn(`[Performance] Record ${recordId} not found, creating new record`);
-                return apiClient.post(`/daily-performance/`, {
-                  student_id: studentId,
-                  course_id: selectedCourse,
-                  date: dateStr,
-                  category,
-                  score,
-                  max_score: 10.0,
-                  notes: ''
-                }).then(res => {
-                  // Update dailyPerformanceIds with new ID from response
-                  if (res?.data?.id) {
-                    setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
-                  }
-                  return res;
-                });
-              }
-              throw error;
-            });
-        } else {
-          // Always use POST if recordId is not valid
-          return apiClient.post(`/daily-performance/`, {
-            student_id: studentId,
-            course_id: selectedCourse,
-            date: dateStr,
-            category,
-            score,
-            max_score: 10.0,
-            notes: ''
-          }).then(res => {
-            // Update dailyPerformanceIds with new ID from response
-            if (res?.data?.id) {
-              setDailyPerformanceIds(prev => ({ ...prev, [key]: res.data.id }));
-            }
-            return res;
-          });
-        }
-      });
-
-      const performanceDeletePromises = Array.from(pendingPerformanceDeleteKeys).map((key) => {
-        const recordId = dailyPerformanceIds[key];
-        if (!(Number.isInteger(recordId) && (recordId as number) > 0)) {
-          return Promise.resolve(null);
-        }
-        return apiClient.delete(`/daily-performance/${recordId}`).catch((error) => {
-          if (isResponseLike(error) && error.response?.status === 404) {
-            return Promise.resolve(null);
-          }
-          throw error;
-        });
-      });
-
-      // Process requests in chunks to avoid overwhelming the server
-      // With 200/min limit, we can safely process 30 concurrent requests
-      const allPromises = [...attendancePromises, ...performancePromises, ...performanceDeletePromises];
-      const CHUNK_SIZE = 30; // Process 30 at a time for faster saves
-
-      for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
-        const chunk = allPromises.slice(i, i + CHUNK_SIZE);
-        await Promise.all(chunk);
-
-        // Small delay only if there are more chunks to prevent server overload
-        if (i + CHUNK_SIZE < allPromises.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-      }
 
       // Emit events to notify other components that attendance/performance changed
       // Extract unique student IDs from the records
@@ -629,7 +559,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       showToast(t('saveFailed') || 'Save failed', 'error');
       throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, pendingPerformanceDeleteKeys, t, refreshAttendancePrefill, isOfflineNetworkError, parseDailyPerformanceKey, queueAttendanceSnapshot, showToast, setDailyPerformanceIds, setPendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance]);
+  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, pendingPerformanceDeleteKeys, t, refreshAttendancePrefill, isOfflineNetworkError, queueAttendanceSnapshot, showToast, setDailyPerformanceIds, setPendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance]);
 
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
