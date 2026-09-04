@@ -9,7 +9,12 @@ WORKDIR /app/frontend
 # esbuild/rollup binaries correctly. Alpine musl issues also avoided by using slim.
 COPY src/frontend/package.json ./
 COPY VERSION /VERSION
-RUN npm install
+# node:22-slim ships npm 10.9.8, whose arborist has a reproducible crash
+# ("Cannot read properties of null (reading 'edgesOut')") resolving this
+# project's peer-dependency graph (vite/vitest's optional @vitejs/devtools*
+# and @vitest/browser-playwright peers). npm 11 fixes it; pin the major
+# version rather than tracking latest.
+RUN npm install -g npm@11 && npm install
 COPY src/frontend/ .
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
