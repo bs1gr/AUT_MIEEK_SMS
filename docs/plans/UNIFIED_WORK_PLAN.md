@@ -35,13 +35,22 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
       which is deprecated — switched to `datetime.now(timezone.utc)` to match
       the pattern used elsewhere in the backend (2026-09-04).
 
-### Known outstanding (unchanged by this batch, confirmed not newly broken)
+### AttendanceView.tsx — JSX extraction completed 2026-09-04 (commit `ae5f38b83`)
 
-- [ ] `AttendanceView`'s attendance-marking grid + offline-sync logic is still
-      the one un-refactored, high-risk area. This session's `AttendanceView`
-      split (commit `3b9e1a399`: calendar, quick-actions, analytics-snapshot)
-      deliberately didn't touch it — confirmed no offline/sync code was in
-      that diff. Still needs a dedicated session.
+- [x] Student List attendance-marking grid → `AttendanceStudentList.tsx`
+- [x] Performance/Rate modal → `AttendancePerformanceModal.tsx`
+- `AttendanceView.tsx`: 1,821 → 1,629 lines. Verified via `tsc`/`eslint`, the
+      existing `AttendanceView.specialParticipation.test.tsx`, and a real
+      click-through against `NATIVE.ps1` (course select, day pick, mark
+      Present, Rate modal, checkbox toggle, autosave "File saved
+      successfully" toast) — screenshots confirmed identical rendering.
+- **Still outstanding, deliberately untouched**: the ~700-line save/
+      offline-sync/autosave block (`performSave`, `syncSnapshotToServer`,
+      `queueAttendanceSnapshot`, `flushQueuedSnapshots`) — the actual
+      highest-risk logic in the app. Extracting this into a hook is a
+      separate, higher-risk decision (stale-closure/dependency-array risk in
+      the daily-use save path) that needs its own dedicated session with
+      heavier manual testing, not a JSX-only pass.
 
 ---
 

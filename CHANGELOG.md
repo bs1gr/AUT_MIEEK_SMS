@@ -17,6 +17,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [Unreleased]
 
 ### Refactoring
+- extract Student List grid + Performance Modal from AttendanceView.tsx (1,821 → 1,629 lines)
 - extract calendar, quick-actions, and analytics snapshot from AttendanceView.tsx
 - split AnalyticsDashboard.tsx into filter bar + class/student view components
 - split OperationsView.tsx into per-tab components
