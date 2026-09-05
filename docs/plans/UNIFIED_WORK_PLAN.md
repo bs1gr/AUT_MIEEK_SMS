@@ -165,6 +165,26 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
         by this session beyond a handful during verification, indistinguishable
         from the rest) — left alone rather than bulk-deleting shared dev data
         without explicit confirmation.
+      - **Cleaned up 2026-09-05**: confirmed with the owner and hard-deleted.
+        Matched via the exact generator patterns from `helpers.ts`
+        (`generateStudentData`/`generateCourseData`): students with
+        `email LIKE '%@test.edu'` (96 rows) and courses with
+        `course_name LIKE 'Test Course %'` (53 rows) — a broad `Test%` sweep
+        on both tables returned identical counts, confirming no real data
+        matched loosely. 95 of the 96 students were live (`is_active=true`,
+        not soft-deleted) and would have been occupying slots in the
+        paginated (limit=100) students list referenced in the
+        [[project_remaining_backlog_2026_09]] Attendance gotcha; all 53
+        courses were already `is_active=false` but not soft-deleted. Deleted
+        via a single transaction in dependency order (attendances → grades →
+        daily_performances → highlights → course_enrollments →
+        `student_course_performance` (0 matched) → courses → students) since
+        `Course`'s SQLAlchemy relationships to `Attendance`/`Grade`/
+        `DailyPerformance` carry no cascade (only `CourseEnrollment` does),
+        so a plain ORM/ondelete cascade would not have covered them. 2
+        attendance rows and 9 enrollment rows were removed as dependents;
+        verified 0 remaining matches on both the narrow and broad patterns
+        after commit.
 
 ---
 
