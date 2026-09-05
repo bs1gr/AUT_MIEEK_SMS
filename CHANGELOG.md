@@ -23,6 +23,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Bug Fixes
 - remove duplicate `@vitest/coverage-v8` entry from `dependencies` (conflicted with `devDependencies`, never fixed the Docker CI crash by itself)
 - pin `npm@11` in `Dockerfile.fullstack`'s frontend build stage — `node:22-slim`'s bundled npm 10.9.8 has a reproducible arborist crash resolving this project's peer-dependency graph, broke `CI/CD Pipeline`'s Docker image build after the v1.18.37 release commit
+- replace `Math.random()` with `crypto.getRandomValues()` (via a shared `generateLocalId()` helper) for offline-queue and search-history IDs, fixing CodeQL's `js/insecure-randomness` alert
 
 ## [1.18.37] - 2026-09-04
 
