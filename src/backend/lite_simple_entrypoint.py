@@ -7,6 +7,7 @@ Auto-connects to QNAP PostgreSQL if credentials available, otherwise uses SQLite
 import os
 import sys
 import io
+import secrets
 import time
 import webbrowser
 import threading
@@ -90,6 +91,26 @@ os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
 os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
 os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
 
+# Generate (once) and persist a real SECRET_KEY for this installation. There is no
+# bundled backend/.env in the frozen exe, so backend.config.Settings would otherwise
+# fall back to its placeholder default, which its security validator now rejects
+# outright (see check_secret_key in backend/config.py). Persisting it — rather than
+# generating fresh on every launch — keeps existing JWTs/sessions valid across restarts.
+if 'SECRET_KEY' not in os.environ:
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        secret_key_file = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets' / 'secret_key.txt'
+        try:
+            if secret_key_file.exists():
+                os.environ['SECRET_KEY'] = secret_key_file.read_text(encoding='utf-8').strip()
+            else:
+                secret_key_file.parent.mkdir(parents=True, exist_ok=True)
+                generated_key = secrets.token_urlsafe(48)
+                secret_key_file.write_text(generated_key, encoding='utf-8')
+                os.environ['SECRET_KEY'] = generated_key
+        except Exception as e:
+            print(f"WARNING: Failed to persist SECRET_KEY ({e}); generating an in-memory one for this run only", file=sys.stderr)
+            os.environ['SECRET_KEY'] = secrets.token_urlsafe(48)
+
 
 # ---------------------------------------------------------------------------
 # Lite-mode auto-shutdown state
@@ -136,7 +157,7 @@ def _debug_log(msg: str) -> None:
     if getattr(sys, 'frozen', False):
         log_path = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'debug.log'
         try:
-            with open(log_path, 'a') as f:
+            with open(log_path, 'a', encoding='utf-8', errors='replace') as f:
                 f.write(f'{msg}\n')
                 f.flush()
         except Exception:
@@ -207,7 +228,7 @@ def main() -> None:
     except Exception as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] Migration error: {type(e).__name__}: {str(e)[:500]}')
-        _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:1000]}')
+        _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[-1500:]}')
 
     # Fallback: if Alembic migrations failed in the frozen EXE context (e.g. alembic.ini
     # path resolution fails inside _MEIPASS), create the schema directly so the app can
@@ -224,7 +245,7 @@ def main() -> None:
         except Exception as fallback_err:
             import traceback as _tb
             _debug_log(f'[lite_simple_entrypoint] Fallback also failed: {type(fallback_err).__name__}: {str(fallback_err)[:500]}')
-            _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:1000]}')
+            _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[-1500:]}')
             _debug_log('[lite_simple_entrypoint] ⚠️  WARNING: Schema initialization failed - app may not work')
 
     # Ensure default admin account exists (even if migrations were skipped)
@@ -274,7 +295,7 @@ def main() -> None:
     except Exception as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] ERROR creating app: {type(e).__name__}: {str(e)[:300]}')
-        _debug_log(_tb.format_exc()[:1000])
+        _debug_log(_tb.format_exc()[-1500:])
         sys.exit(1)
 
     # -----------------------------------------------------------------------
@@ -442,7 +463,7 @@ def main() -> None:
     except BaseException as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] Server error: {type(e).__name__}: {str(e)[:500]}')
-        _debug_log(_tb.format_exc()[:1000])
+        _debug_log(_tb.format_exc()[-1500:])
         sys.exit(1)
 
 
