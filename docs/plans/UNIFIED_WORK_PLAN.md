@@ -1,11 +1,130 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.37
-**Last Updated**: September 4, 2026
-**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below.**
+**Last Updated**: September 5, 2026
+**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below. 2026-09-05: full 4-mode smoke test ahead of v1.18.38 found and fixed a CodeQL insecure-randomness alert and a completely broken SMS_Lite.exe — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🧪 Full 4-mode smoke test ahead of v1.18.38 (September 5, 2026)
+
+**Status**: ✅ DONE — all four deployment modes verified end-to-end (health check,
+login, authenticated API fetch); one real bug found and fixed per mode area.
+
+Scope requested: smoke test Native + Docker + Lite + Android before deciding
+whether to cut v1.18.38 (candidate scope: the npm CI fix, the
+performSave/syncSnapshotToServer dedup, and a CodeQL fix — see the sections
+below).
+
+- **Native** (`NATIVE.ps1 -Start`): ✅ pass. Health check, login, authenticated
+  `/api/v1/students` fetch, frontend on :5173 all healthy, version correctly
+  reports `v1.18.37`.
+- **Docker** (`DOCKER.ps1 -Start`, fresh image build — first local build to
+  exercise the `npm@11` pin fix from earlier in this file): ✅ pass
+  functionally (health, login, authenticated fetch on :8080). One cosmetic
+  gap found: `/health` reports `"version": "unknown"` instead of `v1.18.37`
+  (`getattr(self.app_state, "version", "unknown")` in `health_checks.py` —
+  `app.state.version` isn't populated in the Docker entrypoint). Not fixed
+  yet — low priority, doesn't affect functionality.
+- **Lite** (`SMS_Lite.exe`, fresh PyInstaller build): ❌→✅ **found and fixed
+  a completely broken build** — see the dedicated section below. This had
+  clearly not been smoke-tested since well before the June 2026 security
+  hardening that (correctly) added strict `SECRET_KEY` placeholder rejection.
+- **Android** (`npm run build:android` + `gradlew assembleDebug`): build
+  verified only — `app-debug.apk` (6.19 MB) built successfully. No AVD or
+  physical device was available in this session to install/run it (past
+  sessions used a physical device over Tailscale); functional on-device
+  testing is still outstanding.
+- Also found and fixed the same session: GitHub code-scanning alert #1857
+  (`js/insecure-randomness`) — see the CodeQL section below.
+
+### 🐛 SMS_Lite.exe was completely broken — fixed (commit `907292fd7`)
+
+**Status**: ✅ FIXED. Two independent, real bugs, both now confirmed fixed via
+a clean rebuild + repeated launches (health, login, authenticated fetch,
+frontend serving all pass).
+
+1. **`pydantic_core`'s compiled binary was never bundled.**
+   `pyinstaller-hooks-contrib`'s `hook-pydantic.py` only collects the
+   pure-Python `pydantic` package's submodules — there is no
+   `hook-pydantic_core.py` in the installed hooks-contrib version (2026.6),
+   so the separate compiled `_pydantic_core.cp313-win_amd64.pyd` extension
+   was never picked up by PyInstaller's automatic analysis in onefile mode.
+   Manifested as a different `ModuleNotFoundError` on almost every launch
+   (`unicodedata`, `_overlapped`, `pydantic_core._pydantic_core`) —
+   confusing because it looked non-deterministic/AV-related but was fully
+   reproducible (3/3, then 3/3 again after a `--clean` rebuild). Fixed in
+   `lite_simple_entrypoint.spec` via `collect_all('pydantic_core')`, merging
+   its `binaries`/`datas`/`hiddenimports` into the `Analysis`. Confirmed via
+   `pyi-archive_viewer` that the `.pyd` is now actually inside the onefile
+   archive.
+2. **No real `SECRET_KEY` was ever available to the frozen exe** — the real
+   root cause, only visible after fixing (1). There's no bundled
+   `backend/.env` in the exe, and `lite_simple_entrypoint.py` never set
+   `SECRET_KEY`, so `backend.config.Settings`' `check_secret_key` validator
+   (added during the June 2026 security audit) correctly rejected the
+   placeholder default and raised, crashing app creation every time.
+   `lite_simple_entrypoint.py` now generates a secure `SECRET_KEY` with
+   `secrets.token_urlsafe(48)` on first run and persists it under
+   `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\secret_key.txt`
+   (same pattern as the existing `qnap-credentials.json`), so existing
+   JWTs/sessions survive app restarts instead of a new key invalidating them
+   every launch.
+   - **Diagnostic dead-end worth remembering**: the real `SECRET_KEY`
+     `ValidationError` was invisible for most of this investigation because
+     `lite_simple_entrypoint.py`'s exception logging truncated
+     `traceback.format_exc()` from the **head** (`[:1000]`) — but the actual
+     exception message is always the **last** lines of a traceback, so long
+     import-chain tracebacks silently hid the real error and showed
+     unrelated frames instead. Fixed to truncate from the tail (`[-1500:]`).
+     Also fixed `_debug_log()` to open its log file with explicit
+     `encoding='utf-8'` (was relying on the OS locale codepage — this is a
+     Greek-locale machine — which likely explains some of the short
+     one-line error summaries silently failing to write at all).
+
+---
+
+## 🔒 CodeQL js/insecure-randomness fix (September 5, 2026, commit `efa56ed1c`)
+
+**Status**: ✅ FIXED, verified via manual `workflow_dispatch` CodeQL re-run —
+alert #1857 confirmed `state: fixed`.
+
+`offlineAttendanceQueue.ts`, `offlineGradesQueue.ts`,
+`offlineStudentUpdateQueue.ts`, and `useSearchHistory.ts` each built local
+IDs with `Math.random()`. Not actual security-sensitive values (client-side
+offline-queue/history dedup keys, never used for auth or crypto), but a
+legitimate CodeQL finding worth fixing correctly: added a shared
+`generateLocalId()` helper (`src/frontend/src/utils/randomId.ts`) using
+`crypto.getRandomValues()` with a `Math.random()` fallback for environments
+without Web Crypto, matching the existing pattern already in
+`calendarUtils.ts`. Note for future CI awareness: this repo's
+`codeql.yml` only runs on PRs to `main`, a weekly Monday-2am schedule, or
+manual `workflow_dispatch` — **not** on direct pushes to `main` (this is a
+solo-dev repo that commits straight to `main`), so alerts don't auto-close
+until one of those triggers fires; triggered a manual dispatch to confirm.
+
+---
+
+## 🗄️ Dev-DB stray E2E test data cleanup (September 5, 2026)
+
+**Status**: ✅ DONE, owner-confirmed before executing.
+
+Deleted 96 stray students (`email LIKE '%@test.edu'`) and 53 stray courses
+(`course_name LIKE 'Test Course %'`) — leftover `tests/e2e/helpers.ts`
+generator artifacts noted but deliberately left alone in the
+2026-09-04 AttendanceView session (see the archive/memory for that note).
+Matched via the exact generator patterns; a broader `Test%` sweep on both
+tables returned identical counts, confirming no real data was at risk. 95 of
+the 96 students were live (not soft-deleted) and were occupying slots in the
+paginated (`limit=100`) students list. Deleted dependents first (attendances
+→ grades → daily_performances → highlights → course_enrollments →
+`student_course_performance`) in one transaction, since `Course`'s
+SQLAlchemy relationships to `Attendance`/`Grade`/`DailyPerformance` carry no
+cascade (only `CourseEnrollment` does) — a plain ORM delete would have hit
+an `IntegrityError`.
 
 ---
 
