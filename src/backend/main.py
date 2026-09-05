@@ -79,11 +79,18 @@ def _spawn_restart_thread(_command, _delay_seconds=0.75):
 
 
 def get_version() -> str:
-    """Read version from VERSION file."""
+    """Read version from the VERSION file at the project root.
+
+    Checked at multiple ancestor depths — see app_factory.get_version()'s
+    docstring for why (native vs. Docker layouts place this module at
+    different depths relative to VERSION).
+    """
     try:
-        version_file = Path(__file__).resolve().parent.parent.parent / "VERSION"
-        if version_file.exists():
-            return version_file.read_text().strip()
+        here = Path(__file__).resolve()
+        for ancestor in (here.parent, here.parent.parent, here.parent.parent.parent):
+            version_file = ancestor / "VERSION"
+            if version_file.exists():
+                return version_file.read_text().strip()
     except Exception:
         pass
     return "unknown"
