@@ -2,10 +2,44 @@
 
 **Current Version**: 1.18.37
 **Last Updated**: September 4, 2026
-**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day — see below.**
+**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## ♻️ performSave/syncSnapshotToServer dedup (September 4, 2026, post-release)
+
+**Status**: ✅ DONE | commit `afc1b62c0` | the deliberately-deferred follow-up from the AttendanceView save/offline-sync extraction earlier this session
+
+`performSave` and `syncSnapshotToServer` in `useAttendanceSaveSync.ts` independently
+reimplemented ~150 near-identical lines (PUT-with-404-fallback-to-POST per
+attendance/daily-performance record, DELETE-with-404-tolerance per pending
+deletion, chunked in batches of 30 with a 200ms pause between chunks).
+Extracted into a shared, independently-testable module-level function
+`syncAttendanceAndPerformanceRequests` — each caller still resolves its own
+id map first (React state vs. a server GET, unchanged) and calls the shared
+function. Standardized 3 small pre-existing inconsistencies between the two
+functions (attendance-key normalization, record-id validity strictness,
+dropped 12 debug `console.warn` calls) on the stricter/safer existing
+behavior, confirmed safe by tracing every call site.
+
+Design was independently verified by a Plan agent against the actual file
+content before implementation (not just self-reviewed). Added 6 new tests
+(direct coverage of the shared function + an equivalence test proving both
+callers now produce identical request shapes) — the existing 12 tests
+needed zero changes. Verified via `tsc`, `eslint`, the full 22-test
+attendance suite, and a real click-through against `NATIVE.ps1` + the dev
+backend with status verified via **direct API reads** (not just UI
+proxies) after both the online-save and offline-queue-sync paths.
+
+**Test-methodology note for future E2E work against this same dev DB**:
+repeated runs against the same course/student record can leave it already
+in the "target" state, silently no-op-ing a click (no diff → autosave never
+fires → nothing to assert on). Read the actual persisted value via the API
+first and pick actions guaranteed to differ from it, rather than assuming
+"click Present" is a real state change.
 
 ---
 
@@ -119,12 +153,12 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
         Absent while offline → "Offline: changes queued..." toast +
         "1 queued for sync" badge) → reconnect (`window` `online` event) →
         "1 queued change set(s) synced." toast. All screenshots confirmed.
-      - Flagged but **not acted on**: `performSave` and
+      - Flagged, deliberately deferred to avoid combining a logic dedup with
+        a logic relocation in the same change: `performSave` and
         `syncSnapshotToServer` independently reimplement ~150 lines of
-        near-identical PUT/POST-fallback/DELETE logic (one against live
-        state, one against a queued snapshot). Deduplicating that is a
-        legitimate future cleanup, deliberately deferred to avoid combining
-        a logic dedup with a logic relocation in the same change.
+        near-identical PUT/POST-fallback/DELETE logic. **Done same day as a
+        separate follow-up** — see the "performSave/syncSnapshotToServer
+        dedup" section above.
       - Also noted, out of scope: the dev Postgres DB has ~148 stray
         "Test Course \*"/"Test\* Student\*" rows accumulated from prior e2e
         sessions using `tests/e2e/helpers.ts`'s data generators (not created
