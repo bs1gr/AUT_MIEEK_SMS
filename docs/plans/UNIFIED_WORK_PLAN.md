@@ -25,10 +25,20 @@ below).
 - **Docker** (`DOCKER.ps1 -Start`, fresh image build — first local build to
   exercise the `npm@11` pin fix from earlier in this file): ✅ pass
   functionally (health, login, authenticated fetch on :8080). One cosmetic
-  gap found: `/health` reports `"version": "unknown"` instead of `v1.18.37`
-  (`getattr(self.app_state, "version", "unknown")` in `health_checks.py` —
-  `app.state.version` isn't populated in the Docker entrypoint). Not fixed
-  yet — low priority, doesn't affect functionality.
+  gap found and **fixed same day** (commit `54cde030a`): `/health` reported
+  `"version": "unknown"` instead of `v1.18.37` because `app_factory.py`'s
+  `get_version()` (and its duplicate in `main.py`) hardcoded the `VERSION`
+  file at exactly 3 ancestor levels above the module — correct for the
+  native/source layout (`src/backend/` → repo root) but wrong for Docker's
+  flatter layout (`Dockerfile.fullstack` copies to `/app/backend` +
+  `/app/VERSION`, only 1 level up). Now checks 1–3 levels. Verified by
+  rebuilding the image directly (note: `DOCKER.ps1 -Update`'s "fast rebuild"
+  path is broken — hardcodes a stale `docker/Dockerfile.fullstack` relative
+  path left over from the June 12 flattening, unlike `-Start`'s correct
+  `infra/docker/compose/Dockerfile.fullstack`, and swallows the real error
+  with `2>&1 | Out-Null`; not fixed, out of scope for this session) and
+  confirming `/health` now reports the real version with login/fetch still
+  working.
 - **Lite** (`SMS_Lite.exe`, fresh PyInstaller build): ❌→✅ **found and fixed
   a completely broken build** — see the dedicated section below. This had
   clearly not been smoke-tested since well before the June 2026 security
