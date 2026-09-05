@@ -24,6 +24,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - remove duplicate `@vitest/coverage-v8` entry from `dependencies` (conflicted with `devDependencies`, never fixed the Docker CI crash by itself)
 - pin `npm@11` in `Dockerfile.fullstack`'s frontend build stage — `node:22-slim`'s bundled npm 10.9.8 has a reproducible arborist crash resolving this project's peer-dependency graph, broke `CI/CD Pipeline`'s Docker image build after the v1.18.37 release commit
 - replace `Math.random()` with `crypto.getRandomValues()` (via a shared `generateLocalId()` helper) for offline-queue and search-history IDs, fixing CodeQL's `js/insecure-randomness` alert
+- fix `SMS_Lite.exe` (PyInstaller onefile Lite build), which crashed on every launch: `pydantic_core`'s compiled binary was never bundled (no `hook-pydantic_core.py` in the installed hooks-contrib version — fixed via explicit `collect_all`), and the frozen exe had no way to supply a real `SECRET_KEY` so `Settings`' security validator correctly rejected the placeholder default; now generates and persists one under AppData on first run
 
 ## [1.18.37] - 2026-09-04
 
