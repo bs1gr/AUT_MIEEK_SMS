@@ -15,6 +15,41 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.38] - 2026-09-05
+
+### Bug Fixes
+- correct VERSION file lookup depth for Docker layout
+- repair SMS_Lite.exe (PyInstaller onefile build was completely broken)
+- replace Math.random() with crypto.getRandomValues() for local queue/history IDs
+- pin npm 11 in Dockerfile.fullstack frontend build stage
+- remove duplicate @vitest/coverage-v8 entry from dependencies
+
+### Refactoring
+- dedup performSave/syncSnapshotToServer request-building logic
+
+### Documentation
+- record Docker version-reporting fix and DOCKER.ps1 -Update bug
+- record full 4-mode smoke test ahead of v1.18.38
+- log SMS_Lite.exe fix in Unreleased changelog
+- log insecure-randomness fix in Unreleased changelog
+- record dev-DB stray E2E test data cleanup
+- record performSave/syncSnapshotToServer dedup completion
+- fix stale content and split historical log out of UNIFIED_WORK_PLAN.md
+- close out post-v1.18.36 review todos in work plan
+- record v1.18.37 release and the Docker CI npm-arborist fix
+
+## [1.18.38] - 2026-09-05
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [Unreleased]
 
 ### Refactoring
@@ -4921,6 +4956,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
