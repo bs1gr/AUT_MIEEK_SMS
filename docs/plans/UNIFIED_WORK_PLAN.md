@@ -119,12 +119,21 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
         Absent while offline → "Offline: changes queued..." toast +
         "1 queued for sync" badge) → reconnect (`window` `online` event) →
         "1 queued change set(s) synced." toast. All screenshots confirmed.
-      - Flagged but **not acted on**: `performSave` and
-        `syncSnapshotToServer` independently reimplement ~150 lines of
-        near-identical PUT/POST-fallback/DELETE logic (one against live
-        state, one against a queued snapshot). Deduplicating that is a
-        legitimate future cleanup, deliberately deferred to avoid combining
-        a logic dedup with a logic relocation in the same change.
+      - **Dedup completed 2026-09-04** (commit `afc1b62c0`): `performSave`
+        and `syncSnapshotToServer` no longer independently reimplement the
+        ~150 near-identical PUT/POST-fallback/DELETE lines flagged above.
+        Extracted into a shared, independently-testable
+        `syncAttendanceAndPerformanceRequests` function in
+        `useAttendanceSaveSync.ts`; each caller resolves its own id map
+        (from React state vs. a server GET) and calls the shared helper.
+        Standardized three pre-existing inconsistencies onto the stricter
+        behavior (attendance-key normalization, `Number.isInteger && > 0`
+        id-validity checks everywhere) and dropped 12 dead `console.warn`
+        calls. Added 6 tests (direct coverage of the shared function plus
+        a request-shape equivalence test between the two callers).
+        Verified via `tsc`, `eslint`, the full 22-test attendance suite,
+        and a real click-through against `NATIVE.ps1` + the dev backend
+        (online save, offline queueing, sync-on-reconnect).
       - Also noted, out of scope: the dev Postgres DB has ~148 stray
         "Test Course \*"/"Test\* Student\*" rows accumulated from prior e2e
         sessions using `tests/e2e/helpers.ts`'s data generators (not created
