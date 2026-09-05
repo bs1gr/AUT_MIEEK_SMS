@@ -1,5 +1,6 @@
 import type { StudentFormData } from '@/types';
 import { getItem, setItem } from '@/utils/appStorage';
+import { generateLocalId } from '@/utils/randomId';
 
 export interface QueuedStudentUpdate {
   id: string;
@@ -48,7 +49,7 @@ export const enqueueStudentUpdate = (
 ): QueuedStudentUpdate => {
   const queue = readQueue();
   const item: QueuedStudentUpdate = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    id: generateLocalId(),
     studentId,
     data,
     enqueuedAt: new Date().toISOString(),
