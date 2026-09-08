@@ -20,6 +20,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Bug Fixes
 - remove duplicate `@vitest/coverage-v8` entry from `dependencies` (conflicted with `devDependencies`, never fixed the Docker CI crash by itself)
 - pin `npm@11` in `Dockerfile.fullstack`'s frontend build stage — `node:22-slim`'s bundled npm 10.9.8 has a reproducible arborist crash resolving this project's peer-dependency graph, broke `CI/CD Pipeline`'s Docker image build after the v1.18.37 release commit
+- URL-encode the QNAP username/password/dbname when `SMS_Lite.exe` builds `DATABASE_URL` from `qnap-credentials.json` — any special character in the password (`@`, `:`, `/`, `#`, `%`, etc.) previously corrupted the connection string and made a correct QNAP PostgreSQL password appear to fail authentication; now matches the `quote_plus()` pattern already used in `config.py`/`database_manager.py`/`routers/control/database.py`
 
 ### Refactoring
 - dedup `performSave`/`syncSnapshotToServer` request-building logic in `useAttendanceSaveSync.ts` into a shared `syncAttendanceAndPerformanceRequests` function
