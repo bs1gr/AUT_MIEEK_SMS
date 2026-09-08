@@ -1,5 +1,6 @@
 import type { Grade } from '@/types';
 import { getItem, setItem } from '@/utils/appStorage';
+import { generateLocalId } from '@/utils/randomId';
 
 export interface QueuedGradeMutation {
   id: string;
@@ -46,7 +47,7 @@ export const getQueuedGradeMutationCount = (): number => getQueuedGradeMutations
 export const enqueueGradeMutation = (input: Omit<QueuedGradeMutation, 'id' | 'enqueuedAt'>): QueuedGradeMutation => {
   const queue = readQueue();
   const item: QueuedGradeMutation = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    id: generateLocalId(),
     op: input.op,
     gradeId: input.gradeId,
     payload: input.payload,

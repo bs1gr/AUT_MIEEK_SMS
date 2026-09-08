@@ -1,11 +1,192 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.37
-**Last Updated**: September 4, 2026
-**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day — see below.**
+**Last Updated**: September 5, 2026
+**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below. 2026-09-05: full 4-mode smoke test ahead of v1.18.38 found and fixed a CodeQL insecure-randomness alert and a completely broken SMS_Lite.exe — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🧪 Full 4-mode smoke test ahead of v1.18.38 (September 5, 2026)
+
+**Status**: ✅ DONE — all four deployment modes verified end-to-end (health check,
+login, authenticated API fetch); one real bug found and fixed per mode area.
+
+Scope requested: smoke test Native + Docker + Lite + Android before deciding
+whether to cut v1.18.38 (candidate scope: the npm CI fix, the
+performSave/syncSnapshotToServer dedup, and a CodeQL fix — see the sections
+below).
+
+- **Native** (`NATIVE.ps1 -Start`): ✅ pass. Health check, login, authenticated
+  `/api/v1/students` fetch, frontend on :5173 all healthy, version correctly
+  reports `v1.18.37`.
+- **Docker** (`DOCKER.ps1 -Start`, fresh image build — first local build to
+  exercise the `npm@11` pin fix from earlier in this file): ✅ pass
+  functionally (health, login, authenticated fetch on :8080). One cosmetic
+  gap found and **fixed same day** (commit `54cde030a`): `/health` reported
+  `"version": "unknown"` instead of `v1.18.37` because `app_factory.py`'s
+  `get_version()` (and its duplicate in `main.py`) hardcoded the `VERSION`
+  file at exactly 3 ancestor levels above the module — correct for the
+  native/source layout (`src/backend/` → repo root) but wrong for Docker's
+  flatter layout (`Dockerfile.fullstack` copies to `/app/backend` +
+  `/app/VERSION`, only 1 level up). Now checks 1–3 levels. Verified by
+  rebuilding the image directly (note: `DOCKER.ps1 -Update`'s "fast rebuild"
+  path is broken — hardcodes a stale `docker/Dockerfile.fullstack` relative
+  path left over from the June 12 flattening, unlike `-Start`'s correct
+  `infra/docker/compose/Dockerfile.fullstack`, and swallows the real error
+  with `2>&1 | Out-Null`; not fixed, out of scope for this session) and
+  confirming `/health` now reports the real version with login/fetch still
+  working.
+- **Lite** (`SMS_Lite.exe`, fresh PyInstaller build): ❌→✅ **found and fixed
+  a completely broken build** — see the dedicated section below. This had
+  clearly not been smoke-tested since well before the June 2026 security
+  hardening that (correctly) added strict `SECRET_KEY` placeholder rejection.
+- **Android** (`npm run build:android` + `gradlew assembleDebug`): build
+  verified only — `app-debug.apk` (6.19 MB) built successfully. No AVD or
+  physical device was available in this session to install/run it (past
+  sessions used a physical device over Tailscale); functional on-device
+  testing is still outstanding.
+- Also found and fixed the same session: GitHub code-scanning alert #1857
+  (`js/insecure-randomness`) — see the CodeQL section below.
+
+### 🐛 SMS_Lite.exe was completely broken — fixed (commit `907292fd7`)
+
+**Status**: ✅ FIXED. Two independent, real bugs, both now confirmed fixed via
+a clean rebuild + repeated launches (health, login, authenticated fetch,
+frontend serving all pass).
+
+1. **`pydantic_core`'s compiled binary was never bundled.**
+   `pyinstaller-hooks-contrib`'s `hook-pydantic.py` only collects the
+   pure-Python `pydantic` package's submodules — there is no
+   `hook-pydantic_core.py` in the installed hooks-contrib version (2026.6),
+   so the separate compiled `_pydantic_core.cp313-win_amd64.pyd` extension
+   was never picked up by PyInstaller's automatic analysis in onefile mode.
+   Manifested as a different `ModuleNotFoundError` on almost every launch
+   (`unicodedata`, `_overlapped`, `pydantic_core._pydantic_core`) —
+   confusing because it looked non-deterministic/AV-related but was fully
+   reproducible (3/3, then 3/3 again after a `--clean` rebuild). Fixed in
+   `lite_simple_entrypoint.spec` via `collect_all('pydantic_core')`, merging
+   its `binaries`/`datas`/`hiddenimports` into the `Analysis`. Confirmed via
+   `pyi-archive_viewer` that the `.pyd` is now actually inside the onefile
+   archive.
+2. **No real `SECRET_KEY` was ever available to the frozen exe** — the real
+   root cause, only visible after fixing (1). There's no bundled
+   `backend/.env` in the exe, and `lite_simple_entrypoint.py` never set
+   `SECRET_KEY`, so `backend.config.Settings`' `check_secret_key` validator
+   (added during the June 2026 security audit) correctly rejected the
+   placeholder default and raised, crashing app creation every time.
+   `lite_simple_entrypoint.py` now generates a secure `SECRET_KEY` with
+   `secrets.token_urlsafe(48)` on first run and persists it under
+   `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\secret_key.txt`
+   (same pattern as the existing `qnap-credentials.json`), so existing
+   JWTs/sessions survive app restarts instead of a new key invalidating them
+   every launch.
+   - **Diagnostic dead-end worth remembering**: the real `SECRET_KEY`
+     `ValidationError` was invisible for most of this investigation because
+     `lite_simple_entrypoint.py`'s exception logging truncated
+     `traceback.format_exc()` from the **head** (`[:1000]`) — but the actual
+     exception message is always the **last** lines of a traceback, so long
+     import-chain tracebacks silently hid the real error and showed
+     unrelated frames instead. Fixed to truncate from the tail (`[-1500:]`).
+     Also fixed `_debug_log()` to open its log file with explicit
+     `encoding='utf-8'` (was relying on the OS locale codepage — this is a
+     Greek-locale machine — which likely explains some of the short
+     one-line error summaries silently failing to write at all).
+
+### 🐛 QNAP credentials URL-encoding bug in SMS_Lite.exe (September 8, 2026, PR #228)
+
+**Status**: ✅ FIXED, not yet released.
+
+Reported by the owner after installing SMS_Lite on a laptop: QNAP PostgreSQL
+credentials "failing" even though correct. Root cause:
+`lite_simple_entrypoint.py` built `DATABASE_URL` from
+`qnap-credentials.json` by raw f-string interpolation of `user`/`password`/
+`dbname`, the only place in the codebase doing so — `config.py`,
+`database_manager.py`, and `routers/control/database.py` all already
+`quote_plus()`-encode the same fields when building this kind of URL. Any
+QNAP password containing a URL-special character (`@`, `:`, `/`, `#`, `%`,
+etc.) corrupted the connection string, so a correct password looked like a
+rejected/wrong credential. Fixed to match the existing `quote_plus()`
+pattern. No test added — `lite_simple_entrypoint.py` has import-time side
+effects (PyInstaller bundle detection, env var mutation) with no existing
+test harness; building one was judged out of scope for this fix.
+
+---
+
+## 🔒 CodeQL js/insecure-randomness fix (September 5, 2026, commit `efa56ed1c`)
+
+**Status**: ✅ FIXED, verified via manual `workflow_dispatch` CodeQL re-run —
+alert #1857 confirmed `state: fixed`.
+
+`offlineAttendanceQueue.ts`, `offlineGradesQueue.ts`,
+`offlineStudentUpdateQueue.ts`, and `useSearchHistory.ts` each built local
+IDs with `Math.random()`. Not actual security-sensitive values (client-side
+offline-queue/history dedup keys, never used for auth or crypto), but a
+legitimate CodeQL finding worth fixing correctly: added a shared
+`generateLocalId()` helper (`src/frontend/src/utils/randomId.ts`) using
+`crypto.getRandomValues()` with a `Math.random()` fallback for environments
+without Web Crypto, matching the existing pattern already in
+`calendarUtils.ts`. Note for future CI awareness: this repo's
+`codeql.yml` only runs on PRs to `main`, a weekly Monday-2am schedule, or
+manual `workflow_dispatch` — **not** on direct pushes to `main` (this is a
+solo-dev repo that commits straight to `main`), so alerts don't auto-close
+until one of those triggers fires; triggered a manual dispatch to confirm.
+
+---
+
+## 🗄️ Dev-DB stray E2E test data cleanup (September 5, 2026)
+
+**Status**: ✅ DONE, owner-confirmed before executing.
+
+Deleted 96 stray students (`email LIKE '%@test.edu'`) and 53 stray courses
+(`course_name LIKE 'Test Course %'`) — leftover `tests/e2e/helpers.ts`
+generator artifacts noted but deliberately left alone in the
+2026-09-04 AttendanceView session (see the archive/memory for that note).
+Matched via the exact generator patterns; a broader `Test%` sweep on both
+tables returned identical counts, confirming no real data was at risk. 95 of
+the 96 students were live (not soft-deleted) and were occupying slots in the
+paginated (`limit=100`) students list. Deleted dependents first (attendances
+→ grades → daily_performances → highlights → course_enrollments →
+`student_course_performance`) in one transaction, since `Course`'s
+SQLAlchemy relationships to `Attendance`/`Grade`/`DailyPerformance` carry no
+cascade (only `CourseEnrollment` does) — a plain ORM delete would have hit
+an `IntegrityError`.
+
+---
+
+## ♻️ performSave/syncSnapshotToServer dedup (September 4, 2026, post-release)
+
+**Status**: ✅ DONE | commit `afc1b62c0` | the deliberately-deferred follow-up from the AttendanceView save/offline-sync extraction earlier this session
+
+`performSave` and `syncSnapshotToServer` in `useAttendanceSaveSync.ts` independently
+reimplemented ~150 near-identical lines (PUT-with-404-fallback-to-POST per
+attendance/daily-performance record, DELETE-with-404-tolerance per pending
+deletion, chunked in batches of 30 with a 200ms pause between chunks).
+Extracted into a shared, independently-testable module-level function
+`syncAttendanceAndPerformanceRequests` — each caller still resolves its own
+id map first (React state vs. a server GET, unchanged) and calls the shared
+function. Standardized 3 small pre-existing inconsistencies between the two
+functions (attendance-key normalization, record-id validity strictness,
+dropped 12 debug `console.warn` calls) on the stricter/safer existing
+behavior, confirmed safe by tracing every call site.
+
+Design was independently verified by a Plan agent against the actual file
+content before implementation (not just self-reviewed). Added 6 new tests
+(direct coverage of the shared function + an equivalence test proving both
+callers now produce identical request shapes) — the existing 12 tests
+needed zero changes. Verified via `tsc`, `eslint`, the full 22-test
+attendance suite, and a real click-through against `NATIVE.ps1` + the dev
+backend with status verified via **direct API reads** (not just UI
+proxies) after both the online-save and offline-queue-sync paths.
+
+**Test-methodology note for future E2E work against this same dev DB**:
+repeated runs against the same course/student record can leave it already
+in the "target" state, silently no-op-ing a click (no diff → autosave never
+fires → nothing to assert on). Read the actual persisted value via the API
+first and pick actions guaranteed to differ from it, rather than assuming
+"click Present" is a real state change.
 
 ---
 
@@ -119,27 +300,38 @@ preserve auth gating, alignment/logging quirks, and prop wiring.
         Absent while offline → "Offline: changes queued..." toast +
         "1 queued for sync" badge) → reconnect (`window` `online` event) →
         "1 queued change set(s) synced." toast. All screenshots confirmed.
-      - **Dedup completed 2026-09-04** (commit `afc1b62c0`): `performSave`
-        and `syncSnapshotToServer` no longer independently reimplement the
-        ~150 near-identical PUT/POST-fallback/DELETE lines flagged above.
-        Extracted into a shared, independently-testable
-        `syncAttendanceAndPerformanceRequests` function in
-        `useAttendanceSaveSync.ts`; each caller resolves its own id map
-        (from React state vs. a server GET) and calls the shared helper.
-        Standardized three pre-existing inconsistencies onto the stricter
-        behavior (attendance-key normalization, `Number.isInteger && > 0`
-        id-validity checks everywhere) and dropped 12 dead `console.warn`
-        calls. Added 6 tests (direct coverage of the shared function plus
-        a request-shape equivalence test between the two callers).
-        Verified via `tsc`, `eslint`, the full 22-test attendance suite,
-        and a real click-through against `NATIVE.ps1` + the dev backend
-        (online save, offline queueing, sync-on-reconnect).
+      - Flagged, deliberately deferred to avoid combining a logic dedup with
+        a logic relocation in the same change: `performSave` and
+        `syncSnapshotToServer` independently reimplement ~150 lines of
+        near-identical PUT/POST-fallback/DELETE logic. **Done same day as a
+        separate follow-up** — see the "performSave/syncSnapshotToServer
+        dedup" section above.
       - Also noted, out of scope: the dev Postgres DB has ~148 stray
         "Test Course \*"/"Test\* Student\*" rows accumulated from prior e2e
         sessions using `tests/e2e/helpers.ts`'s data generators (not created
         by this session beyond a handful during verification, indistinguishable
         from the rest) — left alone rather than bulk-deleting shared dev data
         without explicit confirmation.
+      - **Cleaned up 2026-09-05**: confirmed with the owner and hard-deleted.
+        Matched via the exact generator patterns from `helpers.ts`
+        (`generateStudentData`/`generateCourseData`): students with
+        `email LIKE '%@test.edu'` (96 rows) and courses with
+        `course_name LIKE 'Test Course %'` (53 rows) — a broad `Test%` sweep
+        on both tables returned identical counts, confirming no real data
+        matched loosely. 95 of the 96 students were live (`is_active=true`,
+        not soft-deleted) and would have been occupying slots in the
+        paginated (limit=100) students list referenced in the
+        [[project_remaining_backlog_2026_09]] Attendance gotcha; all 53
+        courses were already `is_active=false` but not soft-deleted. Deleted
+        via a single transaction in dependency order (attendances → grades →
+        daily_performances → highlights → course_enrollments →
+        `student_course_performance` (0 matched) → courses → students) since
+        `Course`'s SQLAlchemy relationships to `Attendance`/`Grade`/
+        `DailyPerformance` carry no cascade (only `CourseEnrollment` does),
+        so a plain ORM/ondelete cascade would not have covered them. 2
+        attendance rows and 9 enrollment rows were removed as dependents;
+        verified 0 remaining matches on both the narrow and broad patterns
+        after commit.
 
 ---
 

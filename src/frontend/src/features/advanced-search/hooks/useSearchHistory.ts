@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { SearchHistoryEntry } from '@/features/advanced-search/types/search';
 import { safeLocalStorage, ErrorHandler } from '@/utils/errorHandling';
+import { generateLocalId } from '@/utils/randomId';
 
 const STORAGE_KEY = 'sms.search.history';
 const MAX_ENTRIES = 10;
@@ -30,7 +31,7 @@ export const useSearchHistory = () => {
   const [entries, setEntries] = useState<SearchHistoryEntry[]>(() => loadHistory());
 
   const addEntry = useCallback((query: string, entity_type?: string) => {
-    const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = generateLocalId();
     const newEntry: SearchHistoryEntry = {
       id,
       query,

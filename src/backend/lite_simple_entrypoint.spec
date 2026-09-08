@@ -10,19 +10,28 @@ import os
 # Collect passlib submodules (handlers, etc.)
 passlib_hiddenimports = collect_submodules('passlib')
 
+# pydantic_core is a separate compiled (Rust) extension package from pydantic.
+# pyinstaller-hooks-contrib's hook-pydantic.py only covers the pure-Python
+# `pydantic` package's submodules — it does not ship a hook-pydantic_core.py,
+# so the compiled `_pydantic_core` binary is not reliably collected by PyInstaller's
+# automatic analysis in onefile mode. Explicitly collect it (binaries + datas +
+# hiddenimports) to avoid an intermittent `ModuleNotFoundError: No module named
+# 'pydantic_core._pydantic_core'` at runtime.
+pydantic_core_binaries, pydantic_core_datas, pydantic_core_hiddenimports = collect_all('pydantic_core')
+
 block_cipher = None
 
 a = Analysis(
     ['lite_simple_entrypoint.py'],
     pathex=[],
-    binaries=[],
+    binaries=[] + pydantic_core_binaries,
     datas=[
         # Frontend React build (dist or dist_lite/)
         ('../frontend/dist', 'frontend/dist'),
         # Database migrations (Alembic) - CRITICAL: alembic.ini must be in backend/ directory
         ('alembic.ini', 'backend'),
         ('migrations', 'backend/migrations'),
-    ] + collect_data_files('bottle', includes=['**/*']),
+    ] + collect_data_files('bottle', includes=['**/*']) + pydantic_core_datas,
     hiddenimports=[
         # Core dependencies
         'backend',
@@ -106,7 +115,7 @@ a = Analysis(
         'slowapi',
         # Scheduler
         'apscheduler',
-    ] + collect_submodules('backend') + passlib_hiddenimports,
+    ] + collect_submodules('backend') + passlib_hiddenimports + pydantic_core_hiddenimports,
     hookspath=['backend/pyinstaller_hooks'],  # Use custom hooks to override problematic ones
     hooksconfig={},
     runtime_hooks=[],

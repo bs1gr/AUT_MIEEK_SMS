@@ -1,4 +1,5 @@
 import { getItem, setItem } from '@/utils/appStorage';
+import { generateLocalId } from '@/utils/randomId';
 
 export interface AttendanceSyncSnapshot {
   id: string;
@@ -53,7 +54,7 @@ export const enqueueAttendanceSyncSnapshot = (
 ): AttendanceSyncSnapshot => {
   const queue = getAttendanceSyncQueue();
   const snapshot: AttendanceSyncSnapshot = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    id: generateLocalId(),
     courseId: input.courseId,
     date: input.date,
     attendanceRecords: input.attendanceRecords,
