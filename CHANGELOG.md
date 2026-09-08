@@ -16,6 +16,24 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.39] - 2026-09-08
+
+### Bug Fixes
+- URL-encode QNAP credentials in SMS_Lite DATABASE_URL construction (#228)
+- **lite**: switch SMS_Lite to onedir PyInstaller build, no UPX
+
+## [1.18.39] - 2026-09-08
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.38] - 2026-09-05
 
 ### Bug Fixes
@@ -4949,6 +4967,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
