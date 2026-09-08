@@ -60,12 +60,13 @@ if qnap_creds_file:
     # Use QNAP PostgreSQL database
     try:
         import json
+        from urllib.parse import quote_plus
         with open(qnap_creds_file) as f:
             creds = json.load(f)
         print(f"[DEBUG] Loaded QNAP credentials from: {qnap_creds_file}", file=sys.stderr)
         os.environ['DATABASE_URL'] = (
-            f'postgresql+psycopg://{creds["user"]}:{creds["password"]}'
-            f'@{creds["host"]}:{creds["port"]}/{creds["dbname"]}'
+            f'postgresql+psycopg://{quote_plus(creds["user"])}:{quote_plus(creds["password"])}'
+            f'@{creds["host"]}:{creds["port"]}/{quote_plus(creds["dbname"])}'
         )
         os.environ['POSTGRES_SSLMODE'] = creds.get('sslmode', 'disable')
         print(f"[DEBUG] DATABASE_URL set to PostgreSQL: {creds['host']}:{creds['port']}/{creds['dbname']}", file=sys.stderr)

@@ -52,15 +52,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 ## [Unreleased]
 
-### Refactoring
-- dedup `performSave`/`syncSnapshotToServer` request-building logic in `useAttendanceSaveSync.ts` into a shared, independently-tested `syncAttendanceAndPerformanceRequests` function; adds 6 new tests including an equivalence test
-
 ### Bug Fixes
-- remove duplicate `@vitest/coverage-v8` entry from `dependencies` (conflicted with `devDependencies`, never fixed the Docker CI crash by itself)
-- pin `npm@11` in `Dockerfile.fullstack`'s frontend build stage — `node:22-slim`'s bundled npm 10.9.8 has a reproducible arborist crash resolving this project's peer-dependency graph, broke `CI/CD Pipeline`'s Docker image build after the v1.18.37 release commit
-- replace `Math.random()` with `crypto.getRandomValues()` (via a shared `generateLocalId()` helper) for offline-queue and search-history IDs, fixing CodeQL's `js/insecure-randomness` alert
-- fix `SMS_Lite.exe` (PyInstaller onefile Lite build), which crashed on every launch: `pydantic_core`'s compiled binary was never bundled (no `hook-pydantic_core.py` in the installed hooks-contrib version — fixed via explicit `collect_all`), and the frozen exe had no way to supply a real `SECRET_KEY` so `Settings`' security validator correctly rejected the placeholder default; now generates and persists one under AppData on first run
-- fix Docker's `/health` endpoint reporting `"version": "unknown"` — `get_version()` looked for the `VERSION` file at a fixed ancestor depth that matches the native/source layout but not Docker's flatter `/app/backend` + `/app/VERSION` layout; now checks multiple depths
+- URL-encode the QNAP username/password/dbname when `SMS_Lite.exe` builds `DATABASE_URL` from `qnap-credentials.json` — any special character in the password (`@`, `:`, `/`, `#`, `%`, etc.) previously corrupted the connection string and made a correct QNAP PostgreSQL password appear to fail authentication; now matches the `quote_plus()` pattern already used in `config.py`/`database_manager.py`/`routers/control/database.py`
 
 ## [1.18.37] - 2026-09-04
 

@@ -95,6 +95,24 @@ frontend serving all pass).
      Greek-locale machine — which likely explains some of the short
      one-line error summaries silently failing to write at all).
 
+### 🐛 QNAP credentials URL-encoding bug in SMS_Lite.exe (September 8, 2026, PR #228)
+
+**Status**: ✅ FIXED, not yet released.
+
+Reported by the owner after installing SMS_Lite on a laptop: QNAP PostgreSQL
+credentials "failing" even though correct. Root cause:
+`lite_simple_entrypoint.py` built `DATABASE_URL` from
+`qnap-credentials.json` by raw f-string interpolation of `user`/`password`/
+`dbname`, the only place in the codebase doing so — `config.py`,
+`database_manager.py`, and `routers/control/database.py` all already
+`quote_plus()`-encode the same fields when building this kind of URL. Any
+QNAP password containing a URL-special character (`@`, `:`, `/`, `#`, `%`,
+etc.) corrupted the connection string, so a correct password looked like a
+rejected/wrong credential. Fixed to match the existing `quote_plus()`
+pattern. No test added — `lite_simple_entrypoint.py` has import-time side
+effects (PyInstaller bundle detection, env var mutation) with no existing
+test harness; building one was judged out of scope for this fix.
+
 ---
 
 ## 🔒 CodeQL js/insecure-randomness fix (September 5, 2026, commit `efa56ed1c`)
