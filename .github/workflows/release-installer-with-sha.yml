@@ -350,17 +350,22 @@ jobs:
             exit 1
           }
 
-          # lite_simple_entrypoint.spec outputs SMS_Lite.exe directly (no rename needed)
-          $builtExe = "dist\SMS_Lite.exe"
+          # lite_simple_entrypoint.spec builds onedir (not onefile): a folder containing
+          # SMS_Lite.exe plus its _internal/ dependencies, rather than a single exe.
+          $builtExe = "dist\SMS_Lite\SMS_Lite.exe"
           if (-not (Test-Path $builtExe)) {
             Write-Error "SMS_Lite.exe was not created by PyInstaller"
             Write-Host "Contents of dist directory:"
             Get-ChildItem dist -File | ForEach-Object { Write-Host "  - $($_.Name)" }
+            if (Test-Path "dist\SMS_Lite") {
+              Write-Host "Contents of dist\SMS_Lite directory:"
+              Get-ChildItem "dist\SMS_Lite" -File | ForEach-Object { Write-Host "  - $($_.Name)" }
+            }
             exit 1
           }
 
-          $size = [math]::Round((Get-Item "dist\SMS_Lite.exe").Length / 1MB, 2)
-          Write-Host "✓ SMS_Lite.exe built successfully ($size MB)"
+          $size = [math]::Round(((Get-ChildItem "dist\SMS_Lite" -Recurse | Measure-Object Length -Sum).Sum) / 1MB, 2)
+          Write-Host "✓ SMS_Lite built successfully ($size MB)"
 
       - name: Validate installer tracked inputs
         shell: pwsh
