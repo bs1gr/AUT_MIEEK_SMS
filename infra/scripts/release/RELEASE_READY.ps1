@@ -295,11 +295,11 @@ function Invoke-InstallerBuild {
     }
     Write-Host ""
 
-    # Pre-build SMS_Lite.exe when not skipped and not already staged
+    # Pre-build SMS_Lite when not skipped and not already staged (onedir: a folder, not a single exe)
     if (-not $SkipLiteBuild) {
-        $liteExePath = Join-Path $PROJECT_ROOT "infra\installer\dist\SMS_Lite.exe"
+        $liteExePath = Join-Path $PROJECT_ROOT "infra\installer\dist\SMS_Lite\SMS_Lite.exe"
         if (-not (Test-Path $liteExePath)) {
-            Write-Host "SMS_Lite.exe not found — invoking Invoke-NativeLiteBuild via INSTALLER_BUILDER..." -ForegroundColor Cyan
+            Write-Host "SMS_Lite not found — invoking Invoke-NativeLiteBuild via INSTALLER_BUILDER..." -ForegroundColor Cyan
             & $installerBuilderScript -Action build -Version $Version -AutoFix
             # INSTALLER_BUILDER's build action includes Invoke-NativeLiteBuild automatically
             if ($LASTEXITCODE -ne 0) {

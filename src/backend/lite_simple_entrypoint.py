@@ -157,8 +157,10 @@ def _debug_log(msg: str) -> None:
     if getattr(sys, 'frozen', False):
         log_path = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'debug.log'
         try:
+            from datetime import datetime as _dt
+            ts = _dt.now().strftime('%H:%M:%S.%f')[:-3]
             with open(log_path, 'a', encoding='utf-8', errors='replace') as f:
-                f.write(f'{msg}\n')
+                f.write(f'[{ts}] {msg}\n')
                 f.flush()
         except Exception:
             pass

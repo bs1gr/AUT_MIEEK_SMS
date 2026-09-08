@@ -189,11 +189,14 @@ Source: "..\..\..\infra\scripts\ops\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
 ; Native Lite Edition (SMS_Lite.exe) - built via PyInstaller in GitHub Actions
-; Note: SMS_Lite.exe is optional and only included if available (built separately via PyInstaller)
+; Note: SMS_Lite is optional and only included if available (built separately via PyInstaller).
+; PyInstaller builds it as a onedir bundle (SMS_Lite.exe + an _internal/ folder of
+; dependencies) rather than a single self-extracting exe, so the whole folder is staged
+; into {app} — recursesubdirs/createallsubdirs brings _internal along with it.
 #ifdef SMS_LITE_AVAILABLE
-Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
+Source: "dist\SMS_Lite\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 #else
-; SMS_Lite.exe not available - Docker Edition will be installed instead
+; SMS_Lite not available - Docker Edition will be installed instead
 #endif
 ; SMS_Native_Lite_Edition directory was removed during directory restructuring
 ; Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Check: IsLiteInstall

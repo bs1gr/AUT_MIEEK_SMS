@@ -422,14 +422,14 @@ function Invoke-InstallerCompilation {
         Push-Location $InstallerDir
         Write-Result Info "Running Inno Setup compiler. This can take a few minutes..."
 
-        # Check if SMS_Lite.exe exists for preprocessing
-        $smsLiteExe = Join-Path $InstallerDir "dist\SMS_Lite.exe"
+        # Check if the SMS_Lite onedir folder exists for preprocessing
+        $smsLiteExe = Join-Path $InstallerDir "dist\SMS_Lite\SMS_Lite.exe"
         $innoArgs = @("SMS_Installer.iss")
         if (Test-Path $smsLiteExe) {
-            Write-Result Info "SMS_Lite.exe found - including in build"
+            Write-Result Info "SMS_Lite found - including in build"
             $innoArgs += "/dSMS_LITE_AVAILABLE"
         } else {
-            Write-Result Info "SMS_Lite.exe not found - Docker Edition only"
+            Write-Result Info "SMS_Lite not found - Docker Edition only"
         }
 
         & $iscc $innoArgs 2>&1 | ForEach-Object { Write-Result Info "  $_" }
@@ -469,11 +469,14 @@ function Invoke-InstallerCompilation {
 function Invoke-NativeLiteBuild {
     <#
     .SYNOPSIS
-        Builds SMS_Lite.exe via PyInstaller (frontend build + bundled Python server).
+        Builds SMS_Lite via PyInstaller (frontend build + bundled Python server).
     .NOTES
         Requires PyInstaller in the active venv. Frontend dist is built automatically
-        if missing. Output is placed at infra/installer/dist/SMS_Lite.exe so the
-        subsequent Copy-NativeLiteExecutable step can pick it up.
+        if missing. PyInstaller now builds a onedir (not onefile) bundle — the output
+        is a folder (dist/SMS_Lite/SMS_Lite.exe + _internal/) rather than a single exe,
+        which avoids onefile's per-launch extract-to-%TEMP% step. Output is staged as a
+        folder at infra/installer/dist/SMS_Lite/ so the subsequent
+        Copy-NativeLiteExecutable step can pick it up.
     #>
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "NATIVE LITE EDITION BUILD (PyInstaller)"
@@ -483,7 +486,8 @@ function Invoke-NativeLiteBuild {
     $BackendDir     = Join-Path $ProjectRoot "src\backend"
     $FrontendIndex  = Join-Path $FrontendDir "dist\index.html"
     $LiteSpec       = Join-Path $BackendDir "lite_simple_entrypoint.spec"
-    $PyInstallerOut = Join-Path $BackendDir "dist\SMS_Lite.exe"
+    $PyInstallerOutDir = Join-Path $BackendDir "dist\SMS_Lite"
+    $PyInstallerOut = Join-Path $PyInstallerOutDir "SMS_Lite.exe"
 
     # Step 1: Ensure PyInstaller is available
     Write-Result Info "Checking PyInstaller..."
@@ -546,14 +550,17 @@ function Invoke-NativeLiteBuild {
         return $false
     }
 
-    # Step 4: Stage to infra/installer/dist/ for subsequent copy step
+    # Step 4: Stage the onedir folder to infra/installer/dist/ for subsequent copy step
     if (-not (Test-Path $DistDir)) {
         New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
     }
-    $staged = Join-Path $DistDir "SMS_Lite.exe"
-    Copy-Item $PyInstallerOut $staged -Force
-    $sizeMB = [Math]::Round((Get-Item $staged).Length / 1MB, 1)
-    Write-Result Success "SMS_Lite.exe built and staged ($sizeMB MB) ✓"
+    $stagedDir = Join-Path $DistDir "SMS_Lite"
+    if (Test-Path $stagedDir) {
+        Remove-Item $stagedDir -Recurse -Force
+    }
+    Copy-Item $PyInstallerOutDir $stagedDir -Recurse -Force
+    $sizeMB = [Math]::Round(((Get-ChildItem $stagedDir -Recurse | Measure-Object Length -Sum).Sum) / 1MB, 1)
+    Write-Result Success "SMS_Lite built and staged ($sizeMB MB) ✓"
     return $true
 }
 
@@ -562,25 +569,28 @@ function Copy-NativeLiteExecutable {
     Write-Result Info "NATIVE LITE EDITION SETUP"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
 
-    $LiteSourcePath = Join-Path $DistDir "SMS_Lite.exe"
+    # PyInstaller now builds onedir (not onefile): a folder containing SMS_Lite.exe
+    # plus its _internal/ dependencies, rather than a single self-extracting exe.
+    $LiteSourceDir = Join-Path $DistDir "SMS_Lite"
+    $LiteSourceExe = Join-Path $LiteSourceDir "SMS_Lite.exe"
     $InstallerDistDir = Join-Path $InstallerDir "dist"
-    $LiteDestPath = Join-Path $InstallerDistDir "SMS_Lite.exe"
+    $LiteDestDir = Join-Path $InstallerDistDir "SMS_Lite"
 
     # Auto-build if missing — runs the full PyInstaller pipeline
-    if (-not (Test-Path $LiteSourcePath)) {
-        Write-Result Warning "SMS_Lite.exe not found — triggering auto-build..."
+    if (-not (Test-Path $LiteSourceExe)) {
+        Write-Result Warning "SMS_Lite not found — triggering auto-build..."
         if (-not (Invoke-NativeLiteBuild)) {
             Write-Result Warning "Auto-build failed. Lite Edition will not be included."
             Write-Result Info "To build manually:"
             Write-Result Info "  1. npm --prefix src/frontend run build"
             Write-Result Info "  2. cd src/backend && python -m PyInstaller lite_simple_entrypoint.spec"
-            Write-Result Info "  3. Copy src/backend/dist/SMS_Lite.exe to infra/installer/dist/"
+            Write-Result Info "  3. Copy src/backend/dist/SMS_Lite/ (folder) to infra/installer/dist/SMS_Lite/"
             return $false
         }
     }
 
-    $liteSize = (Get-Item $LiteSourcePath).Length / 1MB
-    Write-Result Success "SMS_Lite.exe found ($([Math]::Round($liteSize, 2)) MB)"
+    $liteSize = ((Get-ChildItem $LiteSourceDir -Recurse | Measure-Object Length -Sum).Sum) / 1MB
+    Write-Result Success "SMS_Lite found ($([Math]::Round($liteSize, 2)) MB)"
 
     # Ensure installer dist directory exists
     if (-not (Test-Path $InstallerDistDir)) {
@@ -588,17 +598,20 @@ function Copy-NativeLiteExecutable {
         New-Item -ItemType Directory -Path $InstallerDistDir -Force | Out-Null
     }
 
-    # Copy Lite executable to installer dist for Inno Setup inclusion
+    # Copy Lite folder to installer dist for Inno Setup inclusion
     try {
-        Write-Result Info "Copying SMS_Lite.exe to installer dist..."
-        Copy-Item -Path $LiteSourcePath -Destination $LiteDestPath -Force
-        Write-Result Success "Lite Edition executable ready for Inno Setup ✓"
+        Write-Result Info "Copying SMS_Lite folder to installer dist..."
+        if (Test-Path $LiteDestDir) {
+            Remove-Item $LiteDestDir -Recurse -Force
+        }
+        Copy-Item -Path $LiteSourceDir -Destination $LiteDestDir -Recurse -Force
+        Write-Result Success "Lite Edition ready for Inno Setup ✓"
         Write-Result Info "Both editions will be available in installer:"
         Write-Result Info "  • Docker Edition: SMS_Manager.exe (Docker container)"
         Write-Result Info "  • Lite Edition: SMS_Native_Lite.exe (Standalone)"
         return $true
     } catch {
-        Write-Result Error "Failed to copy Lite executable: $_"
+        Write-Result Error "Failed to copy Lite folder: $_"
         return $false
     }
 }

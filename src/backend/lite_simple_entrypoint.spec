@@ -145,23 +145,34 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# onedir build: EXE holds only the bootstrap + Python bytecode (exclude_binaries=True
+# defers the DLLs/pyd/data below to COLLECT). This avoids onefile's per-launch
+# extract-to-%TEMP% step, which on this bundle's size dominated startup time
+# (~70s to become reachable) and drew heavy Windows Defender scanning on every run.
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='SMS_Lite',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
+    upx=False,  # UPX adds decompression overhead and is a common AV heuristic trigger
     console=False,  # No terminal window — logs go to debug.log in AppData
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
     icon='../installer/assets/sms_icon.ico' if os.path.exists('../installer/assets/sms_icon.ico') else None,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name='SMS_Lite',
 )
