@@ -44,9 +44,10 @@ $generatedAllowlist = @(
     'infra\installer\windows\dist\SMS_Manager.exe'
 )
 
-# Optional generated artifacts (don't block build if missing)
+# Optional generated artifacts (don't block build if missing). Folder roots here are
+# matched against wildcard Source: lines (e.g. "dist\SMS_Lite\*"), not single-file ones.
 $optionalGeneratedAllowlist = @(
-    'infra\installer\windows\dist\SMS_Lite.exe'  # Built separately via PyInstaller, optional for Docker Edition
+    'infra\installer\windows\dist\SMS_Lite'  # Built separately via PyInstaller, optional for Docker Edition
 )
 
 $dangerousPayloadPatterns = @(
@@ -312,8 +313,16 @@ foreach ($reference in $references) {
 foreach ($wildcardSource in $wildcardSources) {
     $sourceRoot = Get-InstallerSourceRoot -Reference $wildcardSource.Reference
     $repoRelativeRoot = Get-RepoRelativePath -AbsolutePath $sourceRoot
+    $isOptionalGenerated = $optionalGeneratedAllowlist -contains $repoRelativeRoot
 
     if (-not (Test-Path $sourceRoot)) {
+        # Optional generated artifacts (like SMS_Lite's onedir folder) are allowed
+        # to be missing on a clean checkout — they're built separately via PyInstaller.
+        if ($isOptionalGenerated) {
+            Write-Host "⚠️  [optional-generated] $repoRelativeRoot (not required for Docker Edition)" -ForegroundColor Yellow
+            continue
+        }
+
         $failures.Add("$($wildcardSource.Kind) line $($wildcardSource.Line): $($wildcardSource.Reference) -> $repoRelativeRoot (wildcard source root missing from workspace)")
         continue
     }

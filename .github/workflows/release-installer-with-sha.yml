@@ -271,15 +271,18 @@ jobs:
             exit 1
           }
 
-      - name: Clean dist before build
+      - name: Clean installer dist before build
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          if (Test-Path "dist") {
-            Write-Host "Cleaning existing dist artifacts to prevent stale installer pickup..."
-            Get-ChildItem "dist" -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+          # infra\installer\windows\dist is the canonical location Inno Setup consumes
+          # for both SMS_Manager.exe and SMS_Lite — clean it to prevent stale pickup.
+          $installerDist = "infra\installer\windows\dist"
+          if (Test-Path $installerDist) {
+            Write-Host "Cleaning existing installer dist artifacts to prevent stale pickup..."
+            Remove-Item (Join-Path $installerDist "SMS_Lite") -Recurse -Force -ErrorAction SilentlyContinue
           }
-          New-Item -ItemType Directory -Path "dist" -Force | Out-Null
+          New-Item -ItemType Directory -Path $installerDist -Force | Out-Null
 
       - name: Import code signing certificate (from secrets)
         id: import_cert
@@ -344,7 +347,11 @@ jobs:
             exit 1
           }
 
-          python -m PyInstaller $specPath --distpath ./dist --workpath ./build
+          # PyInstaller has no notion of a spec-relative output path (dist/build
+          # always resolve against the CWD at invocation) — write straight to the
+          # canonical location Inno Setup consumes, no staging/copy step needed.
+          $distRoot = "infra\installer\windows\dist"
+          python -m PyInstaller $specPath --distpath $distRoot --workpath ./build
           if ($LASTEXITCODE -ne 0) {
             Write-Error "PyInstaller build failed for SMS_Lite.exe"
             exit 1
@@ -352,19 +359,20 @@ jobs:
 
           # lite_simple_entrypoint.spec builds onedir (not onefile): a folder containing
           # SMS_Lite.exe plus its _internal/ dependencies, rather than a single exe.
-          $builtExe = "dist\SMS_Lite\SMS_Lite.exe"
+          $builtExe = Join-Path $distRoot "SMS_Lite\SMS_Lite.exe"
           if (-not (Test-Path $builtExe)) {
             Write-Error "SMS_Lite.exe was not created by PyInstaller"
-            Write-Host "Contents of dist directory:"
-            Get-ChildItem dist -File | ForEach-Object { Write-Host "  - $($_.Name)" }
-            if (Test-Path "dist\SMS_Lite") {
-              Write-Host "Contents of dist\SMS_Lite directory:"
-              Get-ChildItem "dist\SMS_Lite" -File | ForEach-Object { Write-Host "  - $($_.Name)" }
+            Write-Host "Contents of $distRoot directory:"
+            Get-ChildItem $distRoot -File | ForEach-Object { Write-Host "  - $($_.Name)" }
+            $liteDir = Join-Path $distRoot "SMS_Lite"
+            if (Test-Path $liteDir) {
+              Write-Host "Contents of $liteDir directory:"
+              Get-ChildItem $liteDir -File | ForEach-Object { Write-Host "  - $($_.Name)" }
             }
             exit 1
           }
 
-          $size = [math]::Round(((Get-ChildItem "dist\SMS_Lite" -Recurse | Measure-Object Length -Sum).Sum) / 1MB, 2)
+          $size = [math]::Round(((Get-ChildItem (Join-Path $distRoot "SMS_Lite") -Recurse | Measure-Object Length -Sum).Sum) / 1MB, 2)
           Write-Host "✓ SMS_Lite built successfully ($size MB)"
 
       - name: Validate installer tracked inputs

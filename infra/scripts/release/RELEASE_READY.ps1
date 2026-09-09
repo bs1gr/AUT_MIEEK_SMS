@@ -28,7 +28,8 @@
     Skip installer build step
 
 .PARAMETER SkipLiteBuild
-    Skip building SMS_Lite.exe via PyInstaller (use pre-built exe in infra/installer/dist/).
+    Skip building SMS_Lite.exe via PyInstaller (use pre-built exe in
+    infra/installer/windows/dist/SMS_Lite/).
     Without this flag the build auto-triggers the full PyInstaller pipeline (~15-20 min extra).
 
 .PARAMETER AutoFix
@@ -295,9 +296,9 @@ function Invoke-InstallerBuild {
     }
     Write-Host ""
 
-    # Pre-build SMS_Lite when not skipped and not already staged (onedir: a folder, not a single exe)
+    # Pre-build SMS_Lite when not skipped and not already built (onedir: a folder, not a single exe)
     if (-not $SkipLiteBuild) {
-        $liteExePath = Join-Path $PROJECT_ROOT "infra\installer\dist\SMS_Lite\SMS_Lite.exe"
+        $liteExePath = Join-Path $PROJECT_ROOT "infra\installer\windows\dist\SMS_Lite\SMS_Lite.exe"
         if (-not (Test-Path $liteExePath)) {
             Write-Host "SMS_Lite not found — invoking Invoke-NativeLiteBuild via INSTALLER_BUILDER..." -ForegroundColor Cyan
             & $installerBuilderScript -Action build -Version $Version -AutoFix
