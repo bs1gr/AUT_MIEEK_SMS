@@ -16,7 +16,7 @@ markers = [
 
 [project]
 name = "student-management-system"
-version = "1.18.40"
+version = "1.18.41"
 description = "A comprehensive student management system"
 readme = "README.md"
 requires-python = ">=3.13"
