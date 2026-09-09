@@ -1,11 +1,52 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.37
-**Last Updated**: September 5, 2026
-**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below. 2026-09-05: full 4-mode smoke test ahead of v1.18.38 found and fixed a CodeQL insecure-randomness alert and a completely broken SMS_Lite.exe — see below.**
+**Current Version**: 1.18.39
+**Last Updated**: September 9, 2026
+**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below. 2026-09-05: full 4-mode smoke test ahead of v1.18.38 found and fixed a CodeQL insecure-randomness alert and a completely broken SMS_Lite.exe — see below. 2026-09-08/09: v1.18.39 published; SMS_Lite switched from PyInstaller onefile to onedir, then its build/output path was consolidated to a single canonical location across all four scripts that referenced it — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 📦 SMS_Lite onefile → onedir switch + build-path consolidation (September 8–9, 2026)
+
+**Status**: ✅ DONE, released as part of `v1.18.39`.
+
+1. **Onefile → onedir, no UPX** (commit `78abe1068`). Onefile mode re-extracted
+   the whole bundle to a fresh `%TEMP%` dir on every launch; onedir keeps
+   files on disk after install for faster, more consistent startup. UPX
+   compression dropped too (adds decompression overhead and is a common AV
+   heuristic trigger). `INSTALLER_BUILDER.ps1`, `RELEASE_READY.ps1`, and
+   `SMS_Installer.iss` updated to stage/package the onedir folder (`exe` +
+   `_internal/`) instead of a single exe. Also timestamped
+   `lite_simple_entrypoint.py`'s debug-log entries for startup-timing
+   diagnosis, and excluded `dist/`/`build/` from `config/mypy.ini` (onedir
+   leaves loose vendored `.py` files, e.g. `pydantic_core/core_schema.py`,
+   that mypy was failing on).
+2. **CI release workflow still checked the old onefile path** (commit
+   `7d7793295`). `release-installer-with-sha.yml`'s pre-build validation
+   still looked for `dist\SMS_Lite.exe`; after (1) the real output was
+   `dist\SMS_Lite\SMS_Lite.exe`, so the workflow failed immediately after a
+   successful PyInstaller build — blocking the `v1.18.39` release. Fixed the
+   path check and the size-reporting logic (folder size via
+   `Get-ChildItem -Recurse` instead of a single file).
+3. **Four scripts had drifted onto four different on-disk output paths**
+   (commit `60abe0433`, confirmed failing on PR #229). `INSTALLER_BUILDER.ps1`,
+   `RELEASE_READY.ps1`, the CI release workflow, and
+   `validate_installer_release_inputs.ps1` each independently re-derived
+   "where does the SMS_Lite PyInstaller output live" after the onefile→onedir
+   switch. Consolidated to one canonical path:
+   `infra/installer/windows/dist/SMS_Lite/` — PyInstaller now writes there
+   directly via explicit `-distpath`, removing the build→stage→copy chain
+   entirely (`Copy-NativeLiteExecutable` renamed to
+   `Confirm-NativeLiteEditionReady`, since there's nothing left to copy).
+   Also fixed a live regression this drift caused: the validator's
+   optional-generated allowlist still referenced the old onefile single-file
+   path, so it never matched the new onedir wildcard `Source:` line — turning
+   a missing `SMS_Lite` folder into a hard failure on any clean checkout
+   instead of the intended optional skip, which had been failing
+   COMMIT_READY's installer guard on every CI run since the onedir switch.
 
 ---
 
