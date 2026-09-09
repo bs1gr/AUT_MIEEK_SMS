@@ -17,6 +17,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.40] - 2026-09-09
+
+### Bug Fixes
+- **installer**: make infra/installer/windows/dist/SMS_Lite the single canonical SMS_Lite build path
+- **ci**: check onedir SMS_Lite output path in release workflow
+
+### Documentation
+- record SMS_Lite onedir switch + build-path consolidation in work plan
+
+## [1.18.40] - 2026-09-09
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.39] - 2026-09-08
 
 ### Bug Fixes
@@ -4967,6 +4988,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
