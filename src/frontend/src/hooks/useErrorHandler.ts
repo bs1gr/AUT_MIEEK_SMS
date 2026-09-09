@@ -55,16 +55,26 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
       // Handle API response errors (from axios)
       if (apiError?.response?.data) {
         const extracted = extractAPIError(apiError.response);
+        // The backend reached the request but couldn't reach the database (unreachable
+        // host, refused connection, connect timeout) — a distinct, actionable state from
+        // both "no HTTP response at all" (NETWORK_ERROR, below) and a generic server bug.
+        const isDatabaseUnavailable = extracted.code === 'DATABASE_UNAVAILABLE';
         errorState = {
-          code: extracted.code,
-          message: extracted.message,
+          code: isDatabaseUnavailable ? 'DATABASE_UNAVAILABLE' : extracted.code,
+          message: isDatabaseUnavailable
+            ? t('errors.databaseUnavailable', {
+                defaultValue: 'Cannot reach the database. Check your network connection and database server, then try again.',
+              })
+            : extracted.message,
           details: extracted.details as string | Record<string, unknown> | undefined,
           path: extracted.path,
           request_id: extracted.request_id,
           status: extracted.status,
         };
       }
-      // Handle network errors
+      // Handle network errors — the request never got a response at all (e.g. the local
+      // backend process itself is down/unreachable), as opposed to DATABASE_UNAVAILABLE
+      // above where the backend responded but its own DB connection failed.
       else if (apiError?.request && !apiError?.response) {
         errorState = {
           code: 'NETWORK_ERROR',

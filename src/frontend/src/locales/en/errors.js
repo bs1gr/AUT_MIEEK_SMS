@@ -43,6 +43,7 @@ export default {
   internalError: 'An unexpected error occurred. Our team has been notified. Please try again later.',
   unknown: 'Unknown error',
   networkError: 'Network connection failed. Please check your internet connection and try again.',
+  databaseUnavailable: 'Cannot reach the database. Check your network connection and database server, then try again.',
   validationError: 'Please check your input and try again.',
 
   // Generic error titles

@@ -3,7 +3,8 @@ import logging
 from fastapi import HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from sqlalchemy.exc import OperationalError
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_503_SERVICE_UNAVAILABLE
 
 from backend.error_messages import get_error_message
 from backend.schemas.response import error_response
@@ -106,6 +107,34 @@ def register_error_handlers(app):
         )
 
         return JSONResponse(status_code=422, content=response.model_dump(mode="json"))
+
+    @app.exception_handler(OperationalError)
+    async def database_unavailable_handler(request: Request, exc: OperationalError):
+        """Handle DB connectivity failures (unreachable host, refused connection, connect
+        timeout) distinctly from other unhandled errors, so a network/DB-access problem
+        doesn't look identical to an application bug or a bare client-side network error."""
+        request_id = getattr(request.state, "request_id", "unknown")
+
+        logger.error("Database unavailable: %s", exc, exc_info=exc)
+
+        details = None
+        try:
+            from backend.config import settings
+
+            if str(getattr(settings, "SMS_ENV", "")).lower() in {"development", "dev", "local"}:
+                details = {"error": str(exc.orig) if exc.orig else str(exc)}
+        except Exception:
+            details = None
+
+        response = error_response(
+            code="DATABASE_UNAVAILABLE",
+            message="Cannot reach the database. Check your network connection and database server, then try again.",
+            request_id=request_id,
+            details=details,
+            path=str(request.url.path) if hasattr(request, "url") else None,
+        )
+
+        return JSONResponse(status_code=HTTP_503_SERVICE_UNAVAILABLE, content=response.model_dump(mode="json"))
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception):

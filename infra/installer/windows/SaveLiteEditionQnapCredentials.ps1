@@ -8,8 +8,17 @@ This script saves QNAP PostgreSQL connection details to a credentials file
 that SMS_Lite.exe will read on startup. This allows Lite Edition to connect
 to a shared QNAP PostgreSQL database instead of using local SQLite.
 
+The credentials file is written under %LOCALAPPDATA%\SMS_Native_Lite_Simple\
+local-secrets\ — the exact path lite_simple_entrypoint.py checks when frozen
+(Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets').
+It is NOT written under the install directory: the frozen exe never looks
+there, so credentials saved to {app}\local-secrets\ would be silently
+ignored and Lite Edition would fall back to a fresh local SQLite database.
+
 .PARAMETER InstallPath
-Installation directory (set by installer as {app})
+Installation directory (set by installer as {app}). Kept for interface
+compatibility with the installer's call signature; not used to locate the
+credentials file (see DESCRIPTION).
 
 .PARAMETER PgHost
 PostgreSQL host (QNAP IP or DNS name)
@@ -66,8 +75,11 @@ if ([string]::IsNullOrWhiteSpace($PgHost) -or [string]::IsNullOrWhiteSpace($PgDb
 }
 
 try {
-    # Create local-secrets directory
-    $SecretsDir = Join-Path $InstallPath "local-secrets"
+    # Write to %LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets — this must match
+    # the path lite_simple_entrypoint.py checks at runtime (see DESCRIPTION above).
+    # $InstallPath is intentionally NOT used here.
+    $AppDataDir = [Environment]::GetFolderPath("LocalApplicationData")
+    $SecretsDir = Join-Path $AppDataDir "SMS_Native_Lite_Simple\local-secrets"
     if (-not (Test-Path $SecretsDir)) {
         New-Item -ItemType Directory -Path $SecretsDir -Force | Out-Null
         Write-Host "Created directory: $SecretsDir"

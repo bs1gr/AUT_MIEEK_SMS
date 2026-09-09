@@ -8,6 +8,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [Unreleased]
+
+### Bug Fixes
+- **installer**: fix SMS_Lite QNAP credentials wizard writing to the install directory instead of `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\`, the only path the frozen exe actually reads — credentials entered during setup on a new/remote machine were silently discarded, causing a silent fallback to a fresh, empty local SQLite database instead of the shared QNAP PostgreSQL database
+- **backend**: fail fast (5s `connect_timeout`) instead of hanging on the OS TCP timeout when the PostgreSQL host is unreachable, and return a distinct `503 DATABASE_UNAVAILABLE` response instead of a generic 500 — a DB connectivity failure during login (or any other DB-backed request) previously looked identical to bad credentials or an application bug
+- **lite**: `SMS_Lite.exe` now probes QNAP PostgreSQL reachability at startup and falls back to local SQLite (instead of leaving every future request to fail against an unreachable host), logging a clear reachability message directly to `debug.log`
+
+### Localization
+- **i18n**: add `errors.databaseUnavailable` EN/EL translations, shown distinctly from the generic network-error message when the backend reports a DB connectivity failure
+
+### Tests
+- add coverage confirming login returns `503 DATABASE_UNAVAILABLE` (not a generic 500) when the database is unreachable
 
 
 

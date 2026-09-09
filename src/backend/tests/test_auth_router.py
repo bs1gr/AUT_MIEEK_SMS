@@ -48,6 +48,28 @@ def test_login_wrong_password(client):
     assert r2.status_code == 400
 
 
+def test_login_returns_503_when_database_unavailable(client, db, monkeypatch):
+    """An unreachable/down database must surface as a distinct 503
+    DATABASE_UNAVAILABLE error, not the generic 500 "Login failed" that a real
+    application bug or bad credentials would also produce — otherwise the user
+    (or whoever is troubleshooting for them) has no way to tell them apart."""
+    from sqlalchemy.exc import OperationalError
+
+    def _raise_operational_error(*_args, **_kwargs):
+        raise OperationalError("SELECT 1", {}, Exception("connection refused"))
+
+    monkeypatch.setattr(db, "query", _raise_operational_error)
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "anyone@example.com", "password": "whatever"},
+    )
+    assert response.status_code == 503
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "DATABASE_UNAVAILABLE"
+
+
 @pytest.mark.parametrize(
     ("idx", "password"),
     [

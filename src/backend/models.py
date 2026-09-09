@@ -1110,11 +1110,18 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
                     "max_overflow": 10,  # Extra connections beyond pool_size (default: 10)
                     "pool_pre_ping": True,  # Test connections before use (detect stale connections)
                     "pool_recycle": 3600,  # Recycle connections after 1 hour (prevent stale connections)
+                    # Without this, an unreachable host (wrong network, firewall, offline QNAP)
+                    # hangs for the OS-level TCP timeout — tens of seconds to minutes — before
+                    # psycopg raises. That made connectivity failures indistinguishable from a
+                    # hung server on the client side. 5s fails fast, well inside the frontend's
+                    # 10s request timeout, so the client actually gets a distinguishable error
+                    # (see error_handlers.py's OperationalError handler) instead of a bare timeout.
+                    "connect_args": {"connect_timeout": 5},
                 }
             )
             logger.info(
                 "PostgreSQL connection pooling configured: "
-                "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s"
+                "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s, connect_timeout=5s"
             )
         elif is_sqlite:
             # SQLite-specific configuration

@@ -7,6 +7,7 @@ from typing import Any, Optional
 import jwt
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from backend import models
@@ -643,6 +644,16 @@ async def login(
         return Token(access_token=access_token)
     except HTTPException:
         logger.exception("HTTPException during login")
+        raise
+    except OperationalError:
+        # Let this propagate to error_handlers.py's dedicated OperationalError handler
+        # instead of the generic `except Exception` below — that handler distinguishes
+        # "can't reach the database" (unreachable host, refused connection, connect
+        # timeout) from a generic application bug. Without this, an unreachable DB
+        # collapses into the same "Login failed" 500 as everything else, which reads
+        # identically to bad credentials or a real server error and gives the user
+        # nothing to act on.
+        logger.exception("Database unavailable during login")
         raise
     except Exception as exc:
         logger.exception("Unhandled exception during login")

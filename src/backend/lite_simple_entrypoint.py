@@ -70,6 +70,44 @@ if qnap_creds_file:
         )
         os.environ['POSTGRES_SSLMODE'] = creds.get('sslmode', 'disable')
         print(f"[DEBUG] DATABASE_URL set to PostgreSQL: {creds['host']}:{creds['port']}/{creds['dbname']}", file=sys.stderr)
+
+        # Probe actual reachability now, at startup, instead of letting the first login
+        # attempt discover it. connect_timeout=5 means an unreachable QNAP host (wrong
+        # network, firewall, offline) fails in seconds, not the OS's TCP timeout (which
+        # can be minutes) — and this state is worth its own clear message, distinct from
+        # "credentials file missing/invalid" below, since the fix is different (network
+        # reachability vs. re-running setup_lite_qnap_remote.ps1).
+        try:
+            import psycopg
+            with psycopg.connect(
+                host=creds["host"], port=creds["port"], dbname=creds["dbname"],
+                user=creds["user"], password=creds["password"],
+                sslmode=creds.get('sslmode', 'disable'), connect_timeout=5,
+            ):
+                pass
+            print(f"[DEBUG] QNAP PostgreSQL reachable: {creds['host']}:{creds['port']}", file=sys.stderr)
+        except Exception as conn_err:
+            qnap_msg = (
+                f"WARNING: QNAP PostgreSQL unreachable at {creds['host']}:{creds['port']} "
+                f"({conn_err}) - falling back to local SQLite for this session"
+            )
+            print(qnap_msg, file=sys.stderr)
+            # Write straight to debug.log too: in frozen console=False builds stderr is
+            # redirected to devnull (see top of file), so this would otherwise never be
+            # visible to anyone troubleshooting a "network error" / "can't log in" report.
+            if getattr(sys, 'frozen', False):
+                try:
+                    _early_log_path = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'debug.log'
+                    _early_log_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(_early_log_path, 'a', encoding='utf-8', errors='replace') as _early_log_f:
+                        _early_log_f.write(f'{qnap_msg}\n')
+                except Exception:
+                    pass
+            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+                appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple'
+                os.environ['DATABASE_URL'] = f'sqlite:///{appdata / "sms_lite.db"}'
+            else:
+                os.environ['DATABASE_URL'] = 'sqlite:///./data/sms_lite.db'
     except Exception as e:
         print(f"WARNING: Failed to load QNAP credentials: {e}, falling back to SQLite")
         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
