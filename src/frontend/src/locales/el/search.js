@@ -54,7 +54,6 @@ export default {
     grades: 'Βαθμοί'
   },
   // Γενικές ετικέτες για τη λίστα αποθηκευμένων αναζητήσεων
-  filters: 'φίλτρα',
   noSavedSearches: 'Δεν υπάρχουν αποθηκευμένες αναζητήσεις',
   noFavoriteSearches: 'Δεν βρέθηκαν αγαπημένες αναζητήσεις',
   createFirstSearch: 'Δημιουργήστε την πρώτη σας αναζήτηση για να ξεκινήσετε',
@@ -158,32 +157,6 @@ export default {
       suspended: 'Αναστολή',
       'full-time': 'Πλήρης φοίτηση',
       'part-time': 'Μερική φοίτηση'
-    }
-  },
-  advancedFilters: {
-    title: 'Προχωρημένα Φίλτρα',
-    addFilter: 'Προσθήκη Φίλτρου',
-    clearAll: 'Εκκαθάριση Όλων',
-    removeFilter: 'Αφαίρεση αυτού του φίλτρου',
-    empty: 'Δεν έχουν προστεθεί φίλτρα',
-    min: 'Ελάχιστη τιμή',
-    max: 'Μέγιστη τιμή',
-    condition: {
-      field: 'Πεδίο',
-      operator: 'Τελεστής',
-      value: 'Τιμή',
-      selectField: 'Επιλέξτε πεδίο...',
-      selectOperator: 'Επιλέξτε τελεστή...'
-    },
-    operators: {
-      equals: 'Ισούται',
-      contains: 'Περιέχει',
-      startsWith: 'Ξεκινά με',
-      greaterThan: 'Μεγαλύτερο από',
-      lessThan: 'Μικρότερο από',
-      between: 'Μεταξύ',
-      isEmpty: 'Είναι κενό',
-      isNotEmpty: 'Δεν είναι κενό'
     }
   },
   results: {

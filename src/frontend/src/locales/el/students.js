@@ -24,7 +24,6 @@ export default {
   // Προφίλ Σπουδαστή
   backToStudents: 'Πίσω στους Σπουδαστές',
   studentNotFound: 'Ο σπουδαστής δεν βρέθηκε',
-  enrolled: 'Εγγράφηκε',
   gpaOutOf: 'Μ.Ο. στα 4.0',
   highlights: 'Επιτεύγματα',
   totalAchievements: 'Συνολικά Επιτεύγματα',

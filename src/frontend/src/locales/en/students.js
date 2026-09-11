@@ -24,7 +24,6 @@ export default {
   // Student Profile
   backToStudents: 'Back to Students',
   studentNotFound: 'Student not found',
-  enrolled: 'Enrolled',
   gpaOutOf: 'GPA out of 4.0',
   highlights: 'Highlights',
   totalAchievements: 'Total Achievements',

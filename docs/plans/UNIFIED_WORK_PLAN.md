@@ -1,11 +1,93 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.41
-**Last Updated**: September 11, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages.**
+**Last Updated**: September 12, 2026
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🧹 Fixed all 128 pre-existing duplicate-key lint errors, repo-wide (September 12, 2026, early hours)
+
+**Status**: ✅ FIXED, not yet released. This closes out the full bug list from the in-app Help
+audit session — bugs #1-#4 are now all addressed (2 fixed by wiring/adding, 1 fixed by deleting,
+1 fixed by deduping), plus every new finding surfaced along the way is logged for later.
+
+Before fixing bug #4 (`el/help.js`'s 90 `no-dupe-keys` errors), ran `eslint` across every
+locale file in the repo rather than just the one file already known about — per the note left
+in bug #3's fix that this "merged-content-block" duplicate-key disease had already been
+confirmed in a second file pair (`common.js`). The sweep found it in **9 files, 128 errors
+total**, not just the 2 already known:
+
+| File | Duplicate keys |
+|---|---|
+| `en/analytics.js` / `el/analytics.js` | 6 each (`template`, `dataseries`, `charttype`, `filters`, `preview`, `reportName` — all under `analytics.builder.step`/`analytics.builder`, the now-deleted `CustomReportBuilder`'s translation keys from bug #2) |
+| `en/common.js` / `el/common.js` | 10 each (already found while fixing bug #3) |
+| `el/help.js` | 90 (`en/help.js` has none — the duplication is asymmetric, Greek-only) |
+| `en/search.js` / `el/search.js` | 2 each (`filters`, `advancedFilters`) |
+| `en/students.js` / `el/students.js` | 1 each (`enrolled`) |
+
+### Approach: AST-based removal, not hand-editing 128 spots
+
+Wrote a throwaway Node script (`_dedupe_locale_keys.cjs`, deleted after use) using the
+TypeScript compiler API to parse each file, find every object literal (recursing into nested
+ones, since `analytics.js`'s duplicates are nested under `builder.step`), group properties by
+key name within each literal, and remove every occurrence but the **last** — matching plain JS
+object-literal semantics (last definition silently wins at runtime), so this is guaranteed to
+preserve exactly the behavior already in effect, not change it. Removal is whole-line-based
+(from the property's start line to its end line inclusive, so multi-line object-valued
+duplicates like `template: { desc: '...' }` are removed cleanly without leftover blank lines
+or dangling commas).
+
+### Verifying "keep last" was actually correct, not just convenient
+
+Before trusting the mechanical rule blindly, spot-checked the non-trivial cases where the two
+duplicate definitions had genuinely different shapes (not just reworded text):
+
+- `search.js`'s `advancedFilters`: the **removed** (first) definition was a fully-built nested
+  object (`title`, `addFilter`, `clearAll`, `condition.field/operator/value`,
+  `operators.equals/contains/...`). The **kept** (last) definition is a flat string plus
+  separate top-level keys (`addFilter`, `filterField`, `filterOperator`, `resetFilters`, ...).
+  Grepped actual component usage before trusting this: `features/search/AdvancedFilters.tsx`
+  calls exactly the flat, kept structure (`t('advancedFilters', {ns:'search'})`,
+  `t('filterField', ...)`, top-level `t('equals'/'contains'/...)`) — confirming the kept
+  version is what real code actually uses. The nested version's caller,
+  `features/advanced-search/components/AdvancedFilters.tsx`, turned out to read from a
+  completely different key path (`t('search.advancedFilters.title', ...)`, default namespace,
+  not the `search` namespace file at all) — unaffected by this change either way.
+- `analytics.js`'s `builder.*` subtree: confirmed via grep that only one key from this whole
+  now-mostly-dead subtree (`analytics.builder.step.template`) still has a live caller
+  (`SavedReportsPanel.tsx`, which already passes a hardcoded English fallback default —
+  defensive code that was likely added because this exact key was already broken). Left the
+  subtree as-is structurally (didn't additionally clean up the now-fully-dead siblings
+  `dataseries`/`charttype`/`filters`/`preview`/`reportName`/`title`/`ui` — that's dead-content
+  removal, a different, judgment-heavier task than a mechanical lint fix; noted below instead
+  of scope-creeping into it).
+
+Verified: `eslint` across all 9 files — 0 errors (was 128). `tsc --noEmit` clean. A full vitest
+run across every touched feature area (`i18n`, `search`, `advanced-search`, `students`,
+`dashboard`, `components/tools`) — 470/470 passing, unchanged. `git diff` reviewed file-by-file
+before committing, not just trusted the script.
+
+### Root cause of why COMMIT_READY never caught this: fixed
+
+`src/frontend/package.json`'s `lint` script was `eslint "src/**/*.{ts,tsx}"` — the glob never
+included `.js` at all, so every plain-`.js` file under `src/`, every locale file included, has
+been completely unlinted by `COMMIT_READY.ps1` (and therefore CI) for as long as that script
+has existed. Widened it to `"src/**/*.{ts,tsx,js}"` after confirming via a direct
+`npx eslint "src/**/*.js"` run (post-dedup) that this surfaces zero new errors — the only thing
+it exposes is exactly the bug class just fixed, so enabling it now is safe. `npm run lint`
+afterward: 0 errors, 4 pre-existing unrelated `testing-library` warnings.
+
+### New finding, not fixed this session
+
+`analytics.js`'s `builder.*` subtree (title, ui, and 5 of its 6 step/detail sub-objects) is now
+confirmed fully dead content in both languages — the same "translations for a component that
+no longer exists" situation as bug #2, just not yet cleaned up. Only `builder.step.template`
+has a real caller and should be kept (ideally promoted out of the dead subtree, or at minimum
+verified it renders correctly given the `SavedReportsPanel.tsx` fallback dependency).
 
 ---
 
@@ -274,29 +356,30 @@ renders (not raw i18n keys), screenshotted both languages.
    v1.18.36 section below is now, in effect, actually true for all four
    admin features (Permissions, Semester Archive, Email Configuration,
    Import/Export), just not under a separately-labeled "Admin" section.
-4. **`el/help.js` has 90 pre-existing ESLint `no-dupe-keys` errors**
+4. ~~**`el/help.js` has 90 pre-existing ESLint `no-dupe-keys` errors**~~
+   **FIXED same session, see "Fixed all 128 pre-existing duplicate-key lint
+   errors, repo-wide" above** — the repo-wide sweep that section describes
+   found this same disease in 9 files (128 errors total), not just
+   `el/help.js`, and fixed all of them via an AST-based script rather than
+   hand-editing each spot. The "why doesn't `COMMIT_READY` catch this"
+   question below remains open — worth answering even though the
+   duplicates themselves are now gone, in case something else is slipping
+   through the same gap.
    (confirmed present on `main` before this session, via `git stash` +
    direct `npx eslint src/locales/el/help.js` — unrelated to tonight's
-   edits, which added no new duplicates). Roughly 45 keys are defined
+   edits, which added no new duplicates). Roughly 45 keys were defined
    twice in the file; JS object-literal semantics mean the second
-   definition silently wins, so the first copy of each is dead text.
-   **Not caught by `COMMIT_READY.ps1`'s ESLint phase** — that phase passed
-   clean in this session despite the duplicates, meaning whatever ESLint
-   invocation/scope `COMMIT_READY` uses does not lint this file the same
-   way a direct `npx eslint <path>` does. Worth a dedicated cleanup session
-   (large, mechanical, but each duplicate pair needs a diff to confirm
-   which of the two copies is the better/newer text before deleting the
-   other) and worth understanding why `COMMIT_READY` misses it, since that
-   gap could be hiding lint errors in other files too.
-   **Update (bug #3 fix session): confirmed a second instance** — both
-   `en/common.js` and `el/common.js` already carry 10 pre-existing
-   duplicate keys each (`info`, `classes`, `final`, `overall`, `attendance`,
-   `present`, `averageScore`, `credits`, `previous`, `next`), found while
-   adding new `common.js` keys for the Import/Export fix and confirmed
-   pre-existing via `git stash`. The "worth a repo-wide sweep" concern above
-   is no longer hypothetical — this is the same disease in a second file
-   pair, so the eventual cleanup should check every locale file, not just
-   `el/help.js`.
+   definition silently won, so the first copy of each was dead text.
+   **Root cause found and fixed**: `COMMIT_READY.ps1`'s "Frontend: ESLint"
+   phase runs `npm run lint`, and `package.json`'s `lint` script was
+   `eslint "src/**/*.{ts,tsx}"` — no `.js` extension at all, so it silently
+   skipped every plain-`.js` file under `src/`, locale files included, for
+   as long as that script has existed. Widened it to
+   `"src/**/*.{ts,tsx,js}"` after confirming (via a direct
+   `npx eslint "src/**/*.js"` run, post-dedup) that doing so surfaces zero
+   new errors — the only thing this widening exposes is exactly the class
+   of bug just fixed, so it's safe to turn on now. `npm run lint` afterward:
+   0 errors, 4 pre-existing unrelated `testing-library` warnings.
 5. **New finding (bug #3 fix session): `features/importExport/*` is a third
    instance of the dead-duplicate-component pattern** first seen in bug #2.
    `ImportWizard.tsx`, `HistoryTable.tsx`, `ExportDialog.tsx` (each with

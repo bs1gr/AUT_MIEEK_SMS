@@ -137,23 +137,18 @@ export default {
       recommended: 'Recommended',
     },
     step: {
-      template: 'Report Template',
       template: {
         desc: 'Select a template or start custom',
       },
-      dataseries: 'Data Series',
       dataseries: {
         desc: 'Choose metrics to include',
       },
-      charttype: 'Chart Type',
       charttype: {
         desc: 'Select visualization type',
       },
-      filters: 'Filters',
       filters: {
         desc: 'Configure data filters',
       },
-      preview: 'Preview',
       preview: {
         desc: 'Review your report',
       },
@@ -194,7 +189,6 @@ export default {
       isrequired: 'is required',
       info: 'After saving, you can generate the report with specific filter values and download it as PDF or Excel.',
     },
-    reportName: 'Report Name',
     reportName: {
       placeholder: 'e.g., Q1 Performance Analysis',
       hint: 'This name will appear in your reports list',

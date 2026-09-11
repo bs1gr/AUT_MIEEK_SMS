@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "test": "node --max-old-space-size=6144 ./node_modules/vitest/vitest.mjs run",
     "test:watch": "vitest",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx,js}\"",
     "e2e": "playwright test",
     "generate-icons": "node ../../scripts/generate-pwa-icons.js",
     "build:android": "npm run prebuild && vite build --mode android && npx cap sync android",
