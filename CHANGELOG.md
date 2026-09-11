@@ -12,24 +12,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.18.41] - 2026-09-09
 
 ### Bug Fixes
-- **lite**: fix QNAP credential save path and surface DB-unavailable errors clearly
-
-## [1.18.41] - 2026-09-09
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [Unreleased]
-
-### Bug Fixes
-- **installer**: fix SMS_Lite QNAP credentials wizard writing to the install directory instead of `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\`, the only path the frozen exe actually reads — credentials entered during setup on a new/remote machine were silently discarded, causing a silent fallback to a fresh, empty local SQLite database instead of the shared QNAP PostgreSQL database
-- **backend**: fail fast (5s `connect_timeout`) instead of hanging on the OS TCP timeout when the PostgreSQL host is unreachable, and return a distinct `503 DATABASE_UNAVAILABLE` response instead of a generic 500 — a DB connectivity failure during login (or any other DB-backed request) previously looked identical to bad credentials or an application bug
+- **installer**: fix SMS_Lite QNAP credentials wizard writing to the install directory instead of `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\`, the only path the frozen exe actually reads - credentials entered during setup on a new/remote machine were silently discarded, causing a silent fallback to a fresh, empty local SQLite database instead of the shared QNAP PostgreSQL database
+- **backend**: fail fast (5s `connect_timeout`) instead of hanging on the OS TCP timeout when the PostgreSQL host is unreachable, and return a distinct `503 DATABASE_UNAVAILABLE` response instead of a generic 500 - a DB connectivity failure during login (or any other DB-backed request) previously looked identical to bad credentials or an application bug
 - **lite**: `SMS_Lite.exe` now probes QNAP PostgreSQL reachability at startup and falls back to local SQLite (instead of leaving every future request to fail against an unreachable host), logging a clear reachability message directly to `debug.log`
 
 ### Localization
@@ -38,14 +22,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Tests
 - add coverage confirming login returns `503 DATABASE_UNAVAILABLE` (not a generic 500) when the database is unreachable
 
-
-
-
-
-
-
-
-
+---
 
 ## [1.18.40] - 2026-09-09
 
@@ -56,32 +33,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Documentation
 - record SMS_Lite onedir switch + build-path consolidation in work plan
 
-## [1.18.40] - 2026-09-09
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
 ---
+
 ## [1.18.39] - 2026-09-08
 
 ### Bug Fixes
 - URL-encode QNAP credentials in SMS_Lite DATABASE_URL construction (#228)
 - **lite**: switch SMS_Lite to onedir PyInstaller build, no UPX
-
-## [1.18.39] - 2026-09-08
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
 
 ---
 ## [1.18.38] - 2026-09-05

@@ -228,34 +228,12 @@ function Update-VersionReferences {
     # Avoid rewriting historical/version-example text in README; only bump the explicit current version field.
     (Get-Content "README.md") -replace '(\*\*Current Version\*\*:\s*)[0-9]+\.[0-9]+\.[0-9]+', ('$1' + $NewVersion) | Set-Content "README.md"
 
-    # Add new section to CHANGELOG.md
-    $changelogLines = Get-Content "CHANGELOG.md"
-    $date = Get-Date -Format "yyyy-MM-dd"
-    $newSection = @"
-## [$NewVersion] - $date
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-"@
-    # Find insertion point (first version header)
-    $insertIndex = 0
-    for ($i = 0; $i -lt $changelogLines.Count; $i++) {
-        if ($changelogLines[$i] -match '^## \[') {
-            $insertIndex = $i
-            break
-        }
-    }
-
-    $preamble = if ($insertIndex -gt 0) { $changelogLines[0..($insertIndex - 1)] } else { @() }
-    $rest = $changelogLines[$insertIndex..($changelogLines.Count - 1)]
-    Set-Content "CHANGELOG.md" -Value (($preamble + $newSection.Split("`n") + $rest) -join "`n")
+    # CHANGELOG.md is updated later in this script by GENERATE_RELEASE_DOCS.ps1, which
+    # writes a real entry categorized from actual commit messages since the last tag
+    # (and folds in any "## [Unreleased]" notes). Do not also insert a generic
+    # "Automated release workflow improvements" placeholder here — doing both produced
+    # a duplicate "## [$NewVersion]" header on every release (see CHANGELOG.md history
+    # for v1.18.36 through v1.18.41 before this fix).
 
     # Update Greek installer text
     Write-Host "Updating Greek installer text..."

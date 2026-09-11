@@ -493,10 +493,22 @@ if ($Preview) {
         if (Test-Path "CHANGELOG.md") {
             $changelog = Get-Content "CHANGELOG.md" -Raw
 
+            if ($changelog -match "(?m)^## \[$([regex]::Escape($Version))\]") {
+                Write-Info "CHANGELOG.md already has an entry for [$Version], skipping update"
+            }
             # Insert new entry after header
-            if ($changelog -match '(?s)(# Changelog.*?(?=## \[|\z))') {
+            elseif ($changelog -match '(?s)(# Changelog.*?(?=## \[|\z))') {
                 $header = $matches[1]
                 $rest = $changelog.Substring($header.Length)
+
+                # A pre-existing "## [Unreleased]" section holds notes added by commits
+                # since the last release (see e.g. CHANGELOG.md's history of "log X in
+                # Unreleased changelog" commits). Its content is about to ship as this
+                # version, so drop the section here instead of leaving it behind as a
+                # stale duplicate of what $changelogEntry (generated from the same
+                # commits) now documents under the real version header.
+                $rest = $rest -replace '(?ms)^## \[Unreleased\].*?(?=^## \[|\z)', ''
+
                 $newChangelog = $header + "`n" + $changelogEntry + $rest
                 $newChangelog | Set-Content -Path "CHANGELOG.md" -Encoding UTF8
                 Write-Success "Updated: CHANGELOG.md"

@@ -3370,19 +3370,20 @@ function Update-Application {
     if ($Clean) {
         Write-Info "Clean rebuild (no cache)..."
         Invoke-DockerCleanup -All | Out-Null
-        $buildArgs = @("build", "--pull", "--no-cache", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
+        $buildArgs = @("build", "--pull", "--no-cache", "-t", $IMAGE_TAG, "-f", $DOCKERFILE_FULLSTACK, ".")
     } else {
         Write-Info "Fast rebuild (cached)..."
         # Remove --pull to allow proper content-based cache detection
-        $buildArgs = @("build", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
+        $buildArgs = @("build", "-t", $IMAGE_TAG, "-f", $DOCKERFILE_FULLSTACK, ".")
     }
 
     Push-Location $PROJECT_ROOT
     try {
-        & docker @buildArgs 2>&1 | Out-Null
+        $buildOutput = & docker @buildArgs 2>&1
 
         if ($LASTEXITCODE -ne 0) {
             Write-Error-Message "Build failed"
+            $buildOutput | ForEach-Object { Write-Host $_ }
             return 1
         }
 

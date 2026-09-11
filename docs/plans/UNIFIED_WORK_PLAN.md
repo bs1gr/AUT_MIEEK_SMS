@@ -1,11 +1,80 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.39
-**Last Updated**: September 9, 2026
-**Status**: ✅ **v1.18.37 published 2026-09-04 (tag → `140997840`, installer + Android APK on GitHub Releases). AttendanceView save/offline-sync refactor + a real Docker CI break (npm 10.9.8 arborist crash) fixed same day. Post-release follow-up (performSave/syncSnapshotToServer dedup) also done same day — see below. 2026-09-05: full 4-mode smoke test ahead of v1.18.38 found and fixed a CodeQL insecure-randomness alert and a completely broken SMS_Lite.exe — see below. 2026-09-08/09: v1.18.39 published; SMS_Lite switched from PyInstaller onefile to onedir, then its build/output path was consolidated to a single canonical location across all four scripts that referenced it — see below.**
+**Current Version**: 1.18.41
+**Last Updated**: September 11, 2026
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🧹 Release pipeline: duplicate CHANGELOG.md headers + DOCKER.ps1 -Update path bug (September 11, 2026)
+
+**Status**: ✅ FIXED, not yet released.
+
+Routine state review found `CHANGELOG.md` had carried a duplicate `## [x.y.z]`
+header on every release since v1.18.36: `RELEASE_READY.ps1`'s version-bump
+step unconditionally inserted a generic "Automated release workflow
+improvements" placeholder section, and then the same run later called
+`GENERATE_RELEASE_DOCS.ps1` (its documented Phase 3 docs step), which
+unconditionally inserted its own real, commit-categorized entry for the same
+version — neither script checked whether an entry for that version already
+existed. A `## [Unreleased]` section (used by same-day fix commits to record
+notes ahead of the next release) was never consumed by either script either,
+so it lingered permanently once its content shipped, duplicating whatever the
+next release's generated entry said.
+
+- Removed `RELEASE_READY.ps1`'s redundant generic changelog insert —
+  `GENERATE_RELEASE_DOCS.ps1`'s categorized entry (from actual commit
+  messages) is the only one needed and already ran later in the same script.
+- `GENERATE_RELEASE_DOCS.ps1` now skips inserting if an entry for the target
+  version already exists, and strips a pre-existing `## [Unreleased]` section
+  when writing the new version entry instead of leaving it behind stale.
+- Cleaned up the existing duplicate/stale entries for v1.18.39–v1.18.41 in
+  `CHANGELOG.md` (older duplicates from v1.18.36–v1.18.38 left as-is — pure
+  historical text, not worth the risk of a larger rewrite for a cosmetic
+  issue). Verified via `[System.Management.Automation.Language.Parser]` syntax
+  checks on both edited scripts and by tracing the regex against sample
+  content; not verified via an actual `RELEASE_READY.ps1` run (that script
+  performs real version bumps, npm installs, and git commits/tags — out of
+  scope to execute just to test a changelog-formatting fix).
+- Also fixed a known, previously-flagged `DOCKER.ps1 -Update` bug while in
+  the area: its fast-rebuild path hardcoded a stale `docker/Dockerfile.fullstack`
+  relative path left over from the June 12 flattening (should be
+  `$DOCKERFILE_FULLSTACK`, i.e. `infra/docker/compose/Dockerfile.fullstack`,
+  as every other build call site in the script already uses) and swallowed
+  the real build error with `2>&1 | Out-Null` on failure. Both fixed;
+  `-UpdateClean`'s no-cache path had the same hardcoded-path bug and is fixed
+  too.
+
+---
+
+## 🐛 QNAP credential save path + DB-unavailable error clarity (September 9, 2026, commit `e5eb1e2b6`)
+
+**Status**: ✅ FIXED, released as part of `v1.18.41`.
+
+Owner-reported after installing SMS_Lite on a laptop: QNAP PostgreSQL
+credentials entered via the installer wizard "failed" even though correct.
+Root cause: `SaveLiteEditionQnapCredentials.ps1` wrote credentials to
+`{InstallPath}\local-secrets\qnap-credentials.json`, but the frozen
+`SMS_Lite.exe` only ever reads `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\`
+(`lite_simple_entrypoint.py`) — credentials entered on a fresh/remote machine
+were silently discarded, so the app fell back to a new empty local SQLite
+database instead of the shared QNAP database, surfacing as an unexplained
+login failure. Fixed to write to the path the app actually reads.
+
+Also, since a DB-connectivity failure and a real application bug both used to
+collapse into the same generic 500 "Login failed": added a 5s
+`connect_timeout` on the PostgreSQL engine (`models.py`) so an unreachable
+host fails fast instead of hanging on the OS TCP timeout; a global
+`OperationalError` handler (`error_handlers.py`) now returns a distinct `503
+DATABASE_UNAVAILABLE`; `routers_auth.py`'s login no longer swallows that into
+the generic exception path; `lite_simple_entrypoint.py` probes QNAP
+reachability at startup and falls back to local SQLite, logging the outcome
+to `debug.log`; frontend (`useErrorHandler.ts` + EN/EL i18n) shows a distinct,
+actionable message for this case. New test:
+`test_login_returns_503_when_database_unavailable`.
 
 ---
 
