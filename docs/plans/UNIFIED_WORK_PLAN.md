@@ -2,10 +2,55 @@
 
 **Current Version**: 1.18.41
 **Last Updated**: September 11, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below.**
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🗑️ Deleted the dead 8-chart-type report builder (September 11, 2026, later still)
+
+**Status**: ✅ FIXED (deleted), not yet released. Owner picked bug #2 from the list below to
+fix next; investigation showed "delete" was the right call, not "wire up."
+
+Before deciding, checked git history and the actual data each component saves:
+
+- `ChartTypeSelector.tsx`/`CustomReportBuilder.tsx` (in `features/dashboard/`)
+  were added 2026-03-01/02 as part of an "Analytics dashboard and prediction
+  system" feature. `CustomReportBuilder`'s `ReportConfig` shape (`template`,
+  `dataSeries`, `chartType: string`, `filters`, `name`, `description`) predates
+  the current `CustomReport` backend schema (`report_type`, `fields`,
+  `export_format`, `include_charts: boolean`, ... — see
+  `src/frontend/src/api/customReportsAPI.ts`). Even though it calls the same
+  `useCreateReport()` hook the real, routed `ReportBuilder.tsx` uses, the
+  payload shape doesn't match what the backend model expects — wiring it to a
+  route would not have produced working saves, just a differently-broken
+  feature.
+- The problem it was solving — "let a user pick which chart types to include
+  in a personalized view" — was already fully solved 2026-06-09 by the
+  Dashboard Manager feature (`DashboardManager.tsx` /
+  `CreateEditDashboardDialog.tsx` / `useDashboards.ts`, documented in the
+  in-app Help "Custom Dashboards" section added earlier this session): a
+  working, routed, schema-correct 10-chart-type checkbox picker.
+  `CustomReportBuilder` hasn't been touched since except a mechanical
+  June 12 path-flatten — genuinely abandoned, not just forgotten.
+
+Deleted the whole isolated cluster (confirmed via grep that nothing outside
+it imports any of these — safe, no other feature depends on them):
+`features/dashboard/components/CustomReportBuilder.tsx`, its test
+(`__tests__/CustomReportBuilder.test.tsx`), and the entire
+`components/builder-steps/` directory (`ChartTypeSelector.tsx`,
+`DataSeriesPicker.tsx`, `FilterConfiguration.tsx`, `ReportPreview.tsx`,
+`ReportTemplate.tsx`, `index.ts`) — 8 files total. Removed the corresponding
+exports from `features/dashboard/index.ts`. Left `PredictiveAnalyticsPanel`
+alone (same March 2026 feature batch, different component, not part of this
+bug and not audited this session).
+
+Verified: `tsc --noEmit` clean, `eslint` clean, the dashboard feature's full
+test suite (57/57, same count as before minus the deleted
+`CustomReportBuilder.test.tsx`'s own tests), and a full production
+`npm run build` (no broken imports, all chunks generated normally).
 
 ---
 
@@ -141,16 +186,13 @@ renders (not raw i18n keys), screenshotted both languages.
    `smtp_override.py` outside the UI). (`ExportScheduler` itself — the
    recurring full-data-export scheduler, as opposed to `EmailConfigPanel` —
    remains unwired; only the email settings panel was mounted.)
-2. **The 8-chart-type picker (`ChartTypeSelector.tsx`, in
-   `features/dashboard/components/builder-steps/`) is also dead code.**
-   It belongs to `CustomReportBuilder`, which is exported from
-   `features/dashboard/index.ts` but never imported by any routed page
-   (`DashboardManagerPage.tsx` does not use it; the actually-reachable
-   report builder is a different component — `features/custom-reports/
-   components/ReportBuilder.tsx` — which only exposes a boolean
-   "include charts" toggle, no chart-type choice). The "8 chart types"
-   feature recorded as shipped in the 2026-06-15 post-v1.18.28 session
-   summary was apparently never fully wired into a reachable page.
+2. ~~**The 8-chart-type picker (`ChartTypeSelector.tsx`, in
+   `features/dashboard/components/builder-steps/`) is also dead code.**~~
+   **DELETED same day, see the "Deleted the dead 8-chart-type report
+   builder" section above** — investigation showed it predated and was
+   incompatible with the current `CustomReport` backend schema, and its use
+   case was already solved properly by the June 2026 Dashboard Manager
+   feature, so removal (not wiring) was the right call.
 3. **`/admin/import-export` has no click-path at all** — reachable only by
    typing the URL directly (admin-only via `RequireAdmin`). Its siblings
    `/admin/permissions` and `/admin/semester-archive` are technically
