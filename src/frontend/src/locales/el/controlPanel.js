@@ -268,6 +268,7 @@ export default {
   administratorUsersHeading: 'Λογαριασμοί Χρηστών',
   semesterArchiveHeading: 'Αρχειοθέτηση Εξαμήνου',
   emailConfigurationHeading: 'Ρύθμιση Email',
+  importExportHeading: 'Εισαγωγή/Εξαγωγή',
   administratorUsersDescription: 'Επισκόπηση, δημιουργία, ενημέρωση ή επαναφορά κωδικών χωρίς να φύγετε από τον Πίνακα Ελέγχου.',
   refreshUsers: 'Ανανέωση λίστας',
   userLoadFailed: 'Αποτυχία φόρτωσης χρηστών',

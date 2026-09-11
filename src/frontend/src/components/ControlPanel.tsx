@@ -31,6 +31,7 @@ import DatabasePanel from './ControlPanel/DatabasePanel';
 import { CONTROL_API_BASE, controlApiClient } from '@/api/api';
 import SemesterArchivePage from '@/features/semesterArchive/SemesterArchivePage';
 import EmailSettingsPanel from '@/features/export-admin/components/EmailSettingsPanel';
+import ImportExportPage from '@/pages/admin/ImportExportPage';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -158,6 +159,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(false);
   const [expandRBAC, setExpandRBAC] = useState<boolean>(false);
   const [expandEmailConfig, setExpandEmailConfig] = useState<boolean>(false);
+  const [expandImportExport, setExpandImportExport] = useState<boolean>(false);
   const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
   const [expandDatabase, setExpandDatabase] = useState<boolean>(false);
   const [uptime, setUptime] = useState<string>('');
@@ -1140,6 +1142,32 @@ function formatUptime(seconds: number): string {
                 {expandEmailConfig && (
                   <div className="p-6">
                     <EmailSettingsPanel />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Import/Export Panel: Only visible to admins - Collapsible */}
+            {user?.role === 'admin' && (
+              <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setExpandImportExport(!expandImportExport)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {t('importExportHeading') || 'Import/Export'}
+                  </h3>
+                  <ChevronDown
+                    size={20}
+                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                      expandImportExport ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {expandImportExport && (
+                  <div className="p-6">
+                    <ImportExportPage />
                   </div>
                 )}
               </div>

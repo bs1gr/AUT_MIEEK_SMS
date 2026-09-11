@@ -268,6 +268,7 @@ export default {
   administratorUsersHeading: 'User Accounts',
   semesterArchiveHeading: 'Semester Archive',
   emailConfigurationHeading: 'Email Configuration',
+  importExportHeading: 'Import/Export',
   administratorUsersDescription: 'Review, create, update, or reset credentials for any account without leaving this dashboard.',
   refreshUsers: 'Refresh list',
   userLoadFailed: 'Unable to load users',

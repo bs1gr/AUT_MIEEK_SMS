@@ -2,10 +2,75 @@
 
 **Current Version**: 1.18.41
 **Last Updated**: September 11, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below.**
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 📥 Import/Export click-path added + ~35 missing i18n keys fixed (September 11, 2026, past midnight)
+
+**Status**: ✅ FIXED, not yet released. Owner picked bug #3 from the list below; investigation
+showed the underlying feature was real and actively maintained (not a duplicate like bug #2),
+so "wire it up" — and asked to complete the fix fully rather than defer the i18n gap it exposed.
+
+Investigated whether `components/import-export/*` (behind `/admin/import-export`) was a live
+feature or another abandoned duplicate — unlike bug #2, it wasn't: it was touched as recently
+as 2026-09-01 for a deliberate dedupe/cleanup pass, and its sibling
+`features/importExport/*` (a genuinely unused duplicate, imported nowhere) is the real dead
+copy — flagged below as a new, separate finding, not fixed this session.
+
+Chose the "complete the existing pattern" option from two nav approaches (offered to and picked
+by the owner): added Import/Export as a 4th collapsible section in `ControlPanel.tsx`'s
+Maintenance tab, matching RBAC Configuration/Email Configuration/Semester Archive exactly —
+`Power → Show Control Panel → Maintenance → Import/Export`, admin-only. Considered but did not
+pursue adding a new top-level "Admin" nav tab (bigger, riskier UX change, not requested).
+
+### Missing i18n discovered and fixed
+
+Clicking all the way through (History table → Export dialog → Import wizard) showed the base
+History view, the Export dialog, and the Import wizard rendering almost entirely as raw
+camelCase keys (`format`, `dateRange`, `includeHeaders`, `csv`, `allTime`, even the modal title
+`importWizard`) — a pre-existing gap invisible until this page had any click-path at all.
+Mapped every `t(...)` call across `ExportDialog.tsx`, `ImportWizard.tsx`, and `HistoryTable.tsx`
+(28 distinct keys across the `export` and `common` namespaces) and added every missing one, in
+both `en` and `el`:
+
+- `common.js`: `noData`, `status`, `user`, `download`, `import`, `unknownError`, `refresh` (7 keys).
+- `export.js`: `format`, `csv`, `excel`, `pdf`, `dateRange`, `allTime`, `thisMonth`, `thisYear`,
+  `includeHeaders`, `import`, `export`, `type`, `entity`, `records`, `viewError`,
+  `invalidFileFormat`, `fileTooLarge`, `uploadFailed`, `importFailed`, `importTimeout`,
+  `importWizard`, `dragDropFile`, `selectedFile`, `readyToImport`, `processing`,
+  `selectDifferent` (26 keys).
+
+**Self-caught mistake worth remembering**: while adding `common.js`'s `export` key, discovered
+it already existed — at a different, inconsistent indentation (3 spaces vs. the file's normal
+2), which is why an initial anchored grep (`^  export:`) missed it and produced a false
+"missing" positive. Caused a real `no-dupe-keys` ESLint failure; caught immediately by running
+lint before committing, removed the duplicate. Worth checking for irregular indentation before
+trusting a "key doesn't exist" grep result in these locale files.
+
+**New finding, not fixed this session**: while confirming `common.js`'s `export` collision,
+`eslint` surfaced 10 *other* pre-existing duplicate keys already on `main` in both
+`en/common.js` and `el/common.js` (`info`, `classes`, `final`, `overall`, `attendance`,
+`present`, `averageScore`, `credits`, `previous`, `next`) — confirmed via `git stash` that
+these predate this session. This is the same "merged-content-block" duplicate-key disease as
+`el/help.js` (bug #4 below), now confirmed present in a second (`common.js`, both languages)
+and almost certainly not the last locale file affected — worth a repo-wide sweep, not just
+`el/help.js`, whenever bug #4 gets picked up.
+
+**New finding, not fixed this session**: `features/importExport/*` (`ImportWizard.tsx`,
+`HistoryTable.tsx`, `ExportDialog.tsx`, each with their own passing test) is a fully orphaned
+duplicate of `components/import-export/*` — imported nowhere in the app. Same dead-duplicate
+shape as bug #2's `CustomReportBuilder`, just not yet investigated for deletion.
+
+Verified: `tsc --noEmit` clean, `eslint` clean on every touched file (confirmed the 10
+`common.js` duplicates are pre-existing via `git stash`), `translations.test.ts` (key parity),
+and a full bilingual Playwright click-through against `NATIVE.ps1` + the real dev backend
+(deleted after use) — History table, Export dialog (format/date-range/include-headers/
+cancel/export), and Import wizard (title/drag-drop/select-file/cancel/import), in both English
+and Greek, screenshotted, zero raw-key leaks, zero console/network errors.
 
 ---
 
@@ -124,10 +189,11 @@ renders the form, zero console/network errors — confirmed in English; not
 re-confirmed in Greek this round (the EN/EL translation keys were verified
 statically via `translations.test.ts`, not re-screenshotted).
 
-**Still open** (unchanged from the original bug list — not addressed by this
-fix): `/admin/import-export` still has no click-path; the 8-chart-type
-`ChartTypeSelector`/`CustomReportBuilder` is still dead code; `el/help.js`
-still has its 90 pre-existing duplicate-key lint errors.
+**Still open at the time this section was written** (bugs #2 and #3 below were fixed later the
+same session — see their own sections above): `/admin/import-export` still has no click-path;
+the 8-chart-type `ChartTypeSelector`/`CustomReportBuilder` is still dead code; `el/help.js`
+still has its 90 pre-existing duplicate-key lint errors (the last of these, bug #4, remains
+open).
 
 ---
 
@@ -193,17 +259,21 @@ renders (not raw i18n keys), screenshotted both languages.
    incompatible with the current `CustomReport` backend schema, and its use
    case was already solved properly by the June 2026 Dashboard Manager
    feature, so removal (not wiring) was the right call.
-3. **`/admin/import-export` has no click-path at all** — reachable only by
-   typing the URL directly (admin-only via `RequireAdmin`). Its siblings
-   `/admin/permissions` and `/admin/semester-archive` are technically
-   reachable, but only via a buried, unlabeled path: Power tab → "Show
-   Control Panel" → "Maintenance" tab → expand "RBAC Configuration" (embeds
-   the same `PermissionsPage` as `/admin/permissions`) or "System
+3. ~~**`/admin/import-export` has no click-path at all**~~ **FIXED same day,
+   see the "Import/Export click-path added" section above.** Was reachable
+   only by typing the URL directly (admin-only via `RequireAdmin`). Its
+   siblings `/admin/permissions` and `/admin/semester-archive` are
+   technically reachable, but only via a buried, unlabeled path: Power tab →
+   "Show Control Panel" → "Maintenance" tab → expand "RBAC Configuration"
+   (embeds the same `PermissionsPage` as `/admin/permissions`) or "System
    Operations" → "Semester Archive" (embeds the same `SemesterArchivePage`).
-   This does not match the "Move admin pages into System > Control Panel >
-   Maintenance" consolidation recorded as done in the v1.18.36 section
-   below — the components are reused, but there is no labeled "Admin"
-   section a user would discover unprompted.
+   Owner chose to complete this existing embedded pattern (adding
+   Import/Export as a 4th Maintenance-tab section) rather than build a new
+   top-level "Admin" nav entry — the "Move admin pages into System >
+   Control Panel > Maintenance" consolidation recorded as done in the
+   v1.18.36 section below is now, in effect, actually true for all four
+   admin features (Permissions, Semester Archive, Email Configuration,
+   Import/Export), just not under a separately-labeled "Admin" section.
 4. **`el/help.js` has 90 pre-existing ESLint `no-dupe-keys` errors**
    (confirmed present on `main` before this session, via `git stash` +
    direct `npx eslint src/locales/el/help.js` — unrelated to tonight's
@@ -218,6 +288,23 @@ renders (not raw i18n keys), screenshotted both languages.
    which of the two copies is the better/newer text before deleting the
    other) and worth understanding why `COMMIT_READY` misses it, since that
    gap could be hiding lint errors in other files too.
+   **Update (bug #3 fix session): confirmed a second instance** — both
+   `en/common.js` and `el/common.js` already carry 10 pre-existing
+   duplicate keys each (`info`, `classes`, `final`, `overall`, `attendance`,
+   `present`, `averageScore`, `credits`, `previous`, `next`), found while
+   adding new `common.js` keys for the Import/Export fix and confirmed
+   pre-existing via `git stash`. The "worth a repo-wide sweep" concern above
+   is no longer hypothetical — this is the same disease in a second file
+   pair, so the eventual cleanup should check every locale file, not just
+   `el/help.js`.
+5. **New finding (bug #3 fix session): `features/importExport/*` is a third
+   instance of the dead-duplicate-component pattern** first seen in bug #2.
+   `ImportWizard.tsx`, `HistoryTable.tsx`, `ExportDialog.tsx` (each with
+   their own passing test) duplicate `components/import-export/*` (the real,
+   now-reachable copy used by `/admin/import-export`) but are imported
+   nowhere in the app. Not yet investigated for deletion — do the same
+   git-history + payload-compatibility check bug #2 did before removing it,
+   don't assume it's safe to delete on shape alone.
 
 ---
 
