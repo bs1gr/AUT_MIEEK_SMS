@@ -2,10 +2,63 @@
 
 **Current Version**: 1.18.41
 **Last Updated**: September 11, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below.**
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🔧 Session housekeeping: custom subagents, vitest security bump, AGP/Gradle 9 upgrade (September 11, 2026, later same day)
+
+**Status**: ✅ DONE, not yet released.
+
+- **`0bc758cf1`** — bumped `vitest` 4.1.9→4.1.11, fixing Dependabot alerts
+  #262/#263 (`@vitest/mocker` path-traversal / arbitrary file read via a
+  redirect mock — dev-dependency only, no runtime/production exposure).
+  Supersedes Dependabot PR #229, which was stuck failing CI on a stale
+  branch that predated the installer-guard fix already on `main`
+  (`60abe0433`). Verified: `npm audit` reports 0 vulnerabilities, all 122
+  frontend test files (1940 tests) pass on vitest 4.1.11, lint/`tsc` clean.
+- **`28dc337e1`** — added `test-runner` and `release-manager` custom
+  subagents (`.claude/agents/`). `test-runner` wraps
+  `RUN_TESTS_BATCH.ps1` and reports pass/fail without ever invoking pytest
+  directly on the full suite; `release-manager` encodes this file's
+  Release Workflow phase order so a release can be delegated end-to-end
+  without re-deriving the script order each time.
+- **`43a71e0f7`** — committed an AGP `8.13.2→9.4.0` / Gradle `8.13→9.6.0`
+  upgrade in `src/frontend/android/` that was already sitting uncommitted
+  in the working tree at session start — almost certainly Android
+  Studio's AGP Upgrade Assistant ran on last IDE open, not a deliberate
+  hand-edit (no prior commit had touched those files besides the original
+  Capacitor setup). Verified before committing: `gradlew assembleDebug`
+  succeeded (177/177 tasks), then installed and launched on a physical
+  Galaxy A55 over Wi-Fi ADB (USB was too flaky) — app loaded, no
+  `AndroidRuntime` crash, process stayed alive. `COMMIT_READY.ps1 -Quick`
+  passed clean with these changes present (1053/1053 backend tests, all
+  lint/type checks).
+- **`bd84bc29d`** — added a `plan-review` skill (`.claude/skills/`) that
+  audits this file against `git log`/tags and spot-checks its technical
+  claims against the actual code, for repeatable staleness checks going
+  forward. This entry is itself an example of the gap it caught: the three
+  commits above had landed with no corresponding entry here until now.
+
+### Open follow-ups (not yet done)
+
+- 7 of the 10 flags added to `src/frontend/android/gradle.properties` by
+  the AGP upgrade assistant are already deprecated and will be removed in
+  AGP 10.0 (`usesSdkInManifest.disallowed`,
+  `sdk.defaultTargetSdkToCompileSdkIfUnset`, `enableAppCompileTimeRClass`,
+  `builtInKotlin`, `newDsl`, `r8.optimizedResourceShrinking`,
+  `defaults.buildfeatures.resvalues`) — safe cosmetic cleanup whenever
+  convenient.
+- Found (not fixed, unrelated to the AGP/Gradle change) — a pre-existing
+  frontend bug: `Uncaught (in promise) Error: "Preferences.then()" is not
+  implemented on android`, logged via Capacitor/Console on every app
+  launch. Likely a `.then()` call chained onto the Capacitor `Preferences`
+  plugin's promise-returning API in a way Android's implementation doesn't
+  support. Needs investigation in the frontend code that calls
+  `Preferences.*`.
 
 ---
 
