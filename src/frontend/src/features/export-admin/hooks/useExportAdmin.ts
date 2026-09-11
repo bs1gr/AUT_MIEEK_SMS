@@ -18,7 +18,7 @@ import {
   APIResponse,
 } from '../types/export';
 
-const API_BASE = '/api/v1/import-export';
+const API_BASE = '/import-export';
 
 // ===== Export Jobs Hooks =====
 

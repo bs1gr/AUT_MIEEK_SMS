@@ -267,6 +267,7 @@ export default {
   administratorInfo: 'Η καρτέλα αυτή επαναχρησιμοποιεί το αξιόπιστο εργαλείο Συντήρησης από το Utilities → Maintenance ώστε να εκτελείτε τις ίδιες λειτουργίες χωρίς να φύγετε από τον Πίνακα Ελέγχου.',
   administratorUsersHeading: 'Λογαριασμοί Χρηστών',
   semesterArchiveHeading: 'Αρχειοθέτηση Εξαμήνου',
+  emailConfigurationHeading: 'Ρύθμιση Email',
   administratorUsersDescription: 'Επισκόπηση, δημιουργία, ενημέρωση ή επαναφορά κωδικών χωρίς να φύγετε από τον Πίνακα Ελέγχου.',
   refreshUsers: 'Ανανέωση λίστας',
   userLoadFailed: 'Αποτυχία φόρτωσης χρηστών',

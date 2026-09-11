@@ -46,6 +46,9 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
     search_mod = importlib.import_module("backend.routers.routers_search")
     importlib.reload(search_mod)
 
+    import_export_mod = importlib.import_module("backend.routers.routers_import_export")
+    importlib.reload(import_export_mod)
+
     # Minimal FastAPI app for these routers
     from backend.app_factory import create_app
 
@@ -65,6 +68,7 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
     app.include_router(attendance_mod.router, prefix="/api/v1", tags=["Attendance"])
     app.include_router(adminops_mod.router, prefix="/api/v1", tags=["AdminOps"])
     app.include_router(search_mod.router, prefix="/api/v1", tags=["Search"])
+    app.include_router(import_export_mod.router, prefix="/api/v1", tags=["Import/Export"])
 
     # In-memory DB with overrides
     from backend import models
@@ -187,6 +191,39 @@ def test_rbac_teacher_can_write_but_not_admin_ops(rbac_client: TestClient):
     # Admin can perform admin-only operation
     r3 = client.post("/api/v1/adminops/backup", headers={"Authorization": f"Bearer {admin_token}"})
     assert r3.status_code in (200, 201, 404), r3.text
+
+
+def test_rbac_admin_can_access_email_settings(rbac_client: TestClient):
+    """Regression test: routers_import_export's email settings endpoints used to
+    call optional_require_role(["admin"]) (a list) instead of optional_require_role
+    ("admin") (the correct variadic call). Because the role-checker does a plain
+    `role not in roles` membership test, passing a list made every real admin fail
+    the check ("admin" is never a member of (["admin"],)) — a genuine admin got a
+    403 with the checker's own error message claiming "Your role: admin" didn't
+    satisfy "Required role: ['admin']". This was invisible under AUTH_ENABLED=False
+    (the default in this test suite), which short-circuits the role check entirely,
+    so it only ever surfaced when auth was actually enabled.
+    """
+    client = rbac_client
+    strong_password = "Str0ngPass!123"  # pragma: allowlist secret
+
+    _register_user(client, "admin@example.com", strong_password, role="admin")
+    _register_user(client, "teacher@example.com", strong_password, role="teacher")
+
+    admin_token = _login(client, "admin@example.com", strong_password)
+    teacher_token = _login(client, "teacher@example.com", strong_password)
+
+    r_admin = client.get(
+        "/api/v1/import-export/settings/email",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert r_admin.status_code == 200, r_admin.text
+
+    r_teacher = client.get(
+        "/api/v1/import-export/settings/email",
+        headers={"Authorization": f"Bearer {teacher_token}"},
+    )
+    assert r_teacher.status_code == 403, r_teacher.text
 
 
 def test_rbac_blocks_anonymous_on_search(rbac_client: TestClient):

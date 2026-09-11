@@ -2,10 +2,87 @@
 
 **Current Version**: 1.18.41
 **Last Updated**: September 11, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below.**
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 📧 Email Configuration wired up + 2 latent bugs found fixing it (September 11, 2026, late night)
+
+**Status**: ✅ FIXED, not yet released. Owner picked bug #1 from the list below to fix next;
+fixing it surfaced 2 more real, previously-undetected bugs in the same code path.
+
+Wired the dead `EmailConfigPanel`/SMTP settings UI (bug #1 in the section below) into
+`ControlPanel.tsx`'s "Maintenance" tab, admin-only, alongside the existing RBAC
+Configuration and System Operations sections — same collapsible-section pattern
+already used for those two. Chose this over deleting the code because the
+backend (`GET/PUT /api/v1/import-export/settings/email`, `POST .../test`) was
+fully built, admin-gated, and covered by `test_email_settings.py` — a genuine
+finished feature that was simply never mounted anywhere in the routed UI.
+
+- New `src/frontend/src/features/export-admin/components/EmailSettingsPanel.tsx`:
+  a small self-contained wrapper around the existing `EmailConfigPanel` using
+  the existing `useEmailConfig`/`useUpdateEmailConfig`/`useTestEmailConfig`
+  hooks — deliberately does *not* pull in the rest of `ExportDashboard.tsx`
+  (jobs/schedules/metrics/analytics tabs), which duplicates functionality the
+  app already exposes elsewhere and is a separate, bigger, unreviewed surface.
+- Registered the `exportAdmin` i18n namespace (existing, complete EN/EL
+  translations in `features/export-admin/locales/translations.ts` — already
+  written back in Jan/June 2026, just never wired into `translations.ts` /
+  `i18n/config.ts`'s namespace list).
+- Added `emailConfigurationHeading` to `controlPanel.js` (en/el), matching the
+  `administratorUsersHeading`/`semesterArchiveHeading` pattern.
+
+### 🐛 2 more real bugs found while verifying this end-to-end (both fixed)
+
+1. **`useExportAdmin.ts`'s `API_BASE` constant duplicated the `/api/v1`
+   prefix** (`const API_BASE = '/api/v1/import-export'`) that the shared
+   `apiClient` already adds via its `baseURL` — every hook in that file was
+   requesting `/api/v1/api/v1/import-export/...` and 404ing. Every other
+   hook file in the codebase (e.g. `useDashboards.ts`) calls `apiClient` with
+   a bare relative path and no such constant. Fixed to `'/import-export'`.
+   This bug affects every hook in `useExportAdmin.ts`, not just email — the
+   export-jobs/schedules/metrics hooks have the same latent bug, currently
+   unobservable because nothing routes to `ExportDashboard.tsx` either (see
+   the still-open `/admin/import-export` gap below).
+2. **`routers_import_export.py`'s 3 email-settings endpoints called
+   `optional_require_role(["admin"])` — a list — instead of
+   `optional_require_role("admin")`.** The checker's signature is
+   `def optional_require_role(*roles: str)`; passing a single list argument
+   makes `roles = (["admin"],)`, so the membership test
+   `role not in normalized_roles` compares the string `"admin"` against a
+   tuple containing one list — never equal, so **every real admin got a 403**
+   ("Access denied. Required role: ['admin']. Your role: admin" — the
+   checker's own error message shows the mismatch). `routers_import_export.py`
+   was the only file in the entire backend using the list form; every other
+   router already uses the correct bare-string form. Invisible to
+   `test_email_settings.py` because the whole test suite runs with
+   `AUTH_ENABLED=False`, which short-circuits `optional_require_role` before
+   it ever reaches the role-matching code — the bug only manifests when auth
+   is actually enabled, i.e. never under CI/local test conditions, always in
+   a real deployment. Added a regression test,
+   `test_rbac_admin_can_access_email_settings` in
+   `test_rbac_enforcement.py` (that file's existing `build_app_with_auth_enabled()`
+   harness builds a real app with `AUTH_ENABLED=True`) — confirmed it fails
+   with the bug present (reverted via `git stash` to check) and passes with
+   the fix.
+
+Verified: `tsc`, `eslint` (0 errors on all touched files), the full
+`export-admin` test suite (57/57, unchanged), `translations.test.ts` (key
+parity), `test_rbac_enforcement.py` (5/5 including the new regression test),
+and a real click-through against `NATIVE.ps1` + the real dev Postgres backend
+(Playwright, deleted after use) as a genuine admin: Power → Show Control
+Panel → Maintenance → Email Configuration now loads real data (200, not 403),
+renders the form, zero console/network errors — confirmed in English; not
+re-confirmed in Greek this round (the EN/EL translation keys were verified
+statically via `translations.test.ts`, not re-screenshotted).
+
+**Still open** (unchanged from the original bug list — not addressed by this
+fix): `/admin/import-export` still has no click-path; the 8-chart-type
+`ChartTypeSelector`/`CustomReportBuilder` is still dead code; `el/help.js`
+still has its 90 pre-existing duplicate-key lint errors.
 
 ---
 
@@ -51,8 +128,9 @@ renders (not raw i18n keys), screenshotted both languages.
 
 ### 🐛 Bugs found while verifying click-paths (not fixed — logged for later)
 
-1. **`EmailConfigPanel`/`ExportScheduler` (SMTP server configuration) is
-   dead code.** `features/export-admin/components/ExportDashboard.tsx`
+1. ~~**`EmailConfigPanel`/`ExportScheduler` (SMTP server configuration) is
+   dead code.**~~ **FIXED same day, see the "Email Configuration wired up"
+   section above.** `features/export-admin/components/ExportDashboard.tsx`
    contains a full "Email Settings" tab (host/port/username/password/admin
    emails) but no route or nav link anywhere in the app imports
    `ExportDashboard` — grep shows it's referenced only by its own test
@@ -60,7 +138,9 @@ renders (not raw i18n keys), screenshotted both languages.
    running app, by URL or otherwise. The per-report "Enable email delivery"
    checkbox in the real Report Builder has no working SMTP backend to send
    through as a result (unless one is set via backend env vars/
-   `smtp_override.py` outside the UI).
+   `smtp_override.py` outside the UI). (`ExportScheduler` itself — the
+   recurring full-data-export scheduler, as opposed to `EmailConfigPanel` —
+   remains unwired; only the email settings panel was mounted.)
 2. **The 8-chart-type picker (`ChartTypeSelector.tsx`, in
    `features/dashboard/components/builder-steps/`) is also dead code.**
    It belongs to `CustomReportBuilder`, which is exported from

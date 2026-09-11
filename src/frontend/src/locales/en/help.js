@@ -229,7 +229,7 @@ export default {
   helpWhatIsDevTools: 'What are Dev Tools?',
   helpDevToolsAnswer: 'Dev Tools provide maintenance actions such as diagnostics, backups, restore workflows, and operational health checks.',
   helpHowToAccessControlPanel: 'How do I access the Control Panel?',
-  helpControlPanelAnswer: 'Go to the "Power" tab in the main navigation, then click "Show Control Panel". Its "Maintenance" tab groups User Accounts, RBAC Configuration, and System Operations (including Semester Archive) for administrators.',
+  helpControlPanelAnswer: 'Go to the "Power" tab in the main navigation, then click "Show Control Panel". Its "Maintenance" tab groups User Accounts, RBAC Configuration, Email Configuration, and System Operations (including Semester Archive) for administrators.',
   helpWhatIsServerControl: 'What is Server Control?',
   helpServerControlAnswer: 'Server Control displays backend/frontend service status and helps verify runtime health from one place.',
 
@@ -340,7 +340,7 @@ export default {
   // 📧 REPORT EMAIL DELIVERY & SCHEDULING
   // ===========================
   helpCanReportsEmail: 'Can a report be emailed automatically?',
-  helpReportsEmailAnswer: 'In the Report Builder, check "Enable email delivery" to reveal an "Email Recipients" field — list the addresses that should receive the generated file. Actual delivery depends on the server\'s outgoing email being configured by an administrator.',
+  helpReportsEmailAnswer: 'In the Report Builder, check "Enable email delivery" to reveal an "Email Recipients" field — list the addresses that should receive the generated file. Actual delivery requires an administrator to configure the outgoing mail server first (Power → Show Control Panel → Maintenance → Email Configuration).',
   helpCanReportsSchedule: 'Can a report run on a schedule?',
   helpReportsScheduleAnswer: 'In the Report Builder, check "Schedule Report" to reveal a frequency option (daily, weekly, monthly, or a custom schedule). The report regenerates — and emails, if enabled — automatically on that schedule.',
 };

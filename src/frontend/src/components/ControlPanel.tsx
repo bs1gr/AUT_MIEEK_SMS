@@ -30,6 +30,7 @@ import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
 import DatabasePanel from './ControlPanel/DatabasePanel';
 import { CONTROL_API_BASE, controlApiClient } from '@/api/api';
 import SemesterArchivePage from '@/features/semesterArchive/SemesterArchivePage';
+import EmailSettingsPanel from '@/features/export-admin/components/EmailSettingsPanel';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -156,6 +157,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   // Maintenance panel collapse states (closed by default)
   const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(false);
   const [expandRBAC, setExpandRBAC] = useState<boolean>(false);
+  const [expandEmailConfig, setExpandEmailConfig] = useState<boolean>(false);
   const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
   const [expandDatabase, setExpandDatabase] = useState<boolean>(false);
   const [uptime, setUptime] = useState<string>('');
@@ -1112,6 +1114,32 @@ function formatUptime(seconds: number): string {
                 {expandRBAC && (
                   <div className="p-6">
                     <RBACPanel />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Email Configuration Panel: Only visible to admins - Collapsible */}
+            {user?.role === 'admin' && (
+              <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setExpandEmailConfig(!expandEmailConfig)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {t('emailConfigurationHeading') || 'Email Configuration'}
+                  </h3>
+                  <ChevronDown
+                    size={20}
+                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                      expandEmailConfig ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {expandEmailConfig && (
+                  <div className="p-6">
+                    <EmailSettingsPanel />
                   </div>
                 )}
               </div>

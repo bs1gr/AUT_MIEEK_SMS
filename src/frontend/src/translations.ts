@@ -59,6 +59,7 @@ import offlineEn from './locales/en/offline.js';
 import offlineEl from './locales/el/offline.js';
 import semesterArchiveEn from './locales/en/semesterArchive.js';
 import semesterArchiveEl from './locales/el/semesterArchive.js';
+import { exportAdminEN, exportAdminEL } from './features/export-admin/locales/translations';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -102,7 +103,8 @@ export const translationNamespaces = {
     messages: messagesEn,
     system: systemEn,
     offline: offlineEn,
-    semesterArchive: semesterArchiveEn
+    semesterArchive: semesterArchiveEn,
+    exportAdmin: exportAdminEN
   },
 
   el: {
@@ -129,7 +131,8 @@ export const translationNamespaces = {
     messages: messagesEl,
     system: systemEl,
     offline: offlineEl,
-    semesterArchive: semesterArchiveEl
+    semesterArchive: semesterArchiveEl,
+    exportAdmin: exportAdminEL
   }
 };
 

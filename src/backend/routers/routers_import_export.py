@@ -623,7 +623,7 @@ from backend.services import smtp_override as _smtp  # noqa: E402
 @router.get("/settings/email")
 async def get_email_settings(
     request: Request,
-    current_user: Any = Depends(optional_require_role(["admin"])),
+    current_user: Any = Depends(optional_require_role("admin")),
 ) -> APIResponse[dict]:
     """Return current SMTP configuration (password masked)."""
     override = _smtp.load()
@@ -646,7 +646,7 @@ async def get_email_settings(
 async def update_email_settings(
     request: Request,
     payload: dict,
-    current_user: Any = Depends(optional_require_role(["admin"])),
+    current_user: Any = Depends(optional_require_role("admin")),
 ) -> APIResponse[dict]:
     """Persist SMTP settings and apply them to the running process."""
     override = _smtp.load()
@@ -670,7 +670,7 @@ async def update_email_settings(
 async def test_email_settings(
     request: Request,
     payload: dict,
-    current_user: Any = Depends(optional_require_role(["admin"])),
+    current_user: Any = Depends(optional_require_role("admin")),
 ) -> APIResponse[dict]:
     """Send a test email using the current SMTP configuration."""
     recipient = (payload.get("recipient_email") or "").strip()

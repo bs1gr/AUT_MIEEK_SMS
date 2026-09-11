@@ -39,7 +39,8 @@ i18n
         messages: translationNamespaces.en.messages,
         customReports: translationNamespaces.en.customReports,
         system: translationNamespaces.en.system,
-        semesterArchive: translationNamespaces.en.semesterArchive
+        semesterArchive: translationNamespaces.en.semesterArchive,
+        exportAdmin: translationNamespaces.en.exportAdmin
       },
       el: {
         translation: translations.el,
@@ -65,10 +66,11 @@ i18n
         messages: translationNamespaces.el.messages,
         customReports: translationNamespaces.el.customReports,
         system: translationNamespaces.el.system,
-        semesterArchive: translationNamespaces.el.semesterArchive
+        semesterArchive: translationNamespaces.el.semesterArchive,
+        exportAdmin: translationNamespaces.el.exportAdmin
       }
     },
-    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system', 'semesterArchive'],
+    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system', 'semesterArchive', 'exportAdmin'],
     defaultNS: 'translation',
     lng: isTestEnvironment ? 'en' : undefined,
     fallbackLng: 'en',
