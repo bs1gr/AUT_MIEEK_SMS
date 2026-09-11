@@ -2,10 +2,100 @@
 
 **Current Version**: 1.18.41
 **Last Updated**: September 11, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below.**
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 📚 In-app Help audit: 3 missing sections added + 4 real bugs found (September 11, 2026, evening)
+
+**Status**: ✅ Documentation DONE, not yet released. Bugs found but **not fixed this session** —
+logged below for a future session, per explicit owner decision (docs now, bugs later).
+
+Reviewed `HelpDocumentation.tsx` (the in-app FAQ under Operations → Help) against
+shipped-but-undocumented features. Before writing new FAQ entries, verified the
+actual click-path for each feature by reading the routing/component code
+directly (rather than assuming nav labels), which surfaced that several
+supposedly-shipped features are only partially wired into the UI.
+
+### Documentation added
+
+Added 3 new expandable sections to `HelpDocumentation.tsx` (+ matching
+`en/help.js` / `el/help.js` keys, both languages) and 2 new items to the
+existing "Custom Reports & Templates" section:
+
+- **🧩 Custom Dashboards** — the `/dashboard-manager` CRUD feature (create,
+  edit, delete, set-default; 10 selectable chart types). Documented the real
+  click-path: Dashboard tab → "Analytics" sub-tab → "Manage" button — this
+  path was non-obvious since there is no top-level "Analytics" nav item.
+- **🗄️ Semester Archive** — explicitly distinguished from the pre-existing
+  "Session Export/Import" FAQ entries (which describe a different, older,
+  non-destructive feature). Documented what it does, how it differs, the
+  real (buried) admin click-path, and where results surface (student
+  profile's "Academic History" section).
+- **🔐 Roles & Permissions** — RBAC Configuration and User Accounts
+  management, previously undocumented entirely.
+- Two items added to Custom Reports: per-report email delivery
+  (`Enable email delivery` + `Email Recipients`) and scheduling
+  (`Schedule Report` + frequency).
+
+Verified via the frontend's `translations.test.ts` (key parity), `tsc`,
+`eslint` (on the 3 touched files — see bug below re: pre-existing `el/help.js`
+lint debt this didn't catch), and a real click-through against `NATIVE.ps1`
+using a small throwaway Playwright script (deleted after use): logged in,
+opened Operations → Help in both English and Greek, expanded all 3 new
+sections plus the extended Reports section, confirmed real translated text
+renders (not raw i18n keys), screenshotted both languages.
+
+### 🐛 Bugs found while verifying click-paths (not fixed — logged for later)
+
+1. **`EmailConfigPanel`/`ExportScheduler` (SMTP server configuration) is
+   dead code.** `features/export-admin/components/ExportDashboard.tsx`
+   contains a full "Email Settings" tab (host/port/username/password/admin
+   emails) but no route or nav link anywhere in the app imports
+   `ExportDashboard` — grep shows it's referenced only by its own test
+   files. There is currently no way to configure outgoing email from the
+   running app, by URL or otherwise. The per-report "Enable email delivery"
+   checkbox in the real Report Builder has no working SMTP backend to send
+   through as a result (unless one is set via backend env vars/
+   `smtp_override.py` outside the UI).
+2. **The 8-chart-type picker (`ChartTypeSelector.tsx`, in
+   `features/dashboard/components/builder-steps/`) is also dead code.**
+   It belongs to `CustomReportBuilder`, which is exported from
+   `features/dashboard/index.ts` but never imported by any routed page
+   (`DashboardManagerPage.tsx` does not use it; the actually-reachable
+   report builder is a different component — `features/custom-reports/
+   components/ReportBuilder.tsx` — which only exposes a boolean
+   "include charts" toggle, no chart-type choice). The "8 chart types"
+   feature recorded as shipped in the 2026-06-15 post-v1.18.28 session
+   summary was apparently never fully wired into a reachable page.
+3. **`/admin/import-export` has no click-path at all** — reachable only by
+   typing the URL directly (admin-only via `RequireAdmin`). Its siblings
+   `/admin/permissions` and `/admin/semester-archive` are technically
+   reachable, but only via a buried, unlabeled path: Power tab → "Show
+   Control Panel" → "Maintenance" tab → expand "RBAC Configuration" (embeds
+   the same `PermissionsPage` as `/admin/permissions`) or "System
+   Operations" → "Semester Archive" (embeds the same `SemesterArchivePage`).
+   This does not match the "Move admin pages into System > Control Panel >
+   Maintenance" consolidation recorded as done in the v1.18.36 section
+   below — the components are reused, but there is no labeled "Admin"
+   section a user would discover unprompted.
+4. **`el/help.js` has 90 pre-existing ESLint `no-dupe-keys` errors**
+   (confirmed present on `main` before this session, via `git stash` +
+   direct `npx eslint src/locales/el/help.js` — unrelated to tonight's
+   edits, which added no new duplicates). Roughly 45 keys are defined
+   twice in the file; JS object-literal semantics mean the second
+   definition silently wins, so the first copy of each is dead text.
+   **Not caught by `COMMIT_READY.ps1`'s ESLint phase** — that phase passed
+   clean in this session despite the duplicates, meaning whatever ESLint
+   invocation/scope `COMMIT_READY` uses does not lint this file the same
+   way a direct `npx eslint <path>` does. Worth a dedicated cleanup session
+   (large, mechanical, but each duplicate pair needs a diff to confirm
+   which of the two copies is the better/newer text before deleting the
+   other) and worth understanding why `COMMIT_READY` misses it, since that
+   gap could be hiding lint errors in other files too.
 
 ---
 

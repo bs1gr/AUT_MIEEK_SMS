@@ -229,7 +229,7 @@ export default {
   helpWhatIsDevTools: 'What are Dev Tools?',
   helpDevToolsAnswer: 'Dev Tools provide maintenance actions such as diagnostics, backups, restore workflows, and operational health checks.',
   helpHowToAccessControlPanel: 'How do I access the Control Panel?',
-  helpControlPanelAnswer: 'Open Utilities/Operations and select the Control Panel area to use administrative maintenance features.',
+  helpControlPanelAnswer: 'Go to the "Power" tab in the main navigation, then click "Show Control Panel". Its "Maintenance" tab groups User Accounts, RBAC Configuration, and System Operations (including Semester Archive) for administrators.',
   helpWhatIsServerControl: 'What is Server Control?',
   helpServerControlAnswer: 'Server Control displays backend/frontend service status and helps verify runtime health from one place.',
 
@@ -298,4 +298,49 @@ export default {
   helpPerformanceAuditViewAnswer: 'The performance audit view is an exportable report that lists the grade and attendance records used in analytics. It helps you confirm which assignments, categories, and attendance entries contributed to a student’s Top Performers scores.',
   helpExportPerformanceBreakdown: 'How do I export a per-student performance breakdown?',
   helpExportPerformanceBreakdownAnswer: 'Go to Operations → Reports → Templates and use the "Student Performance Breakdown - Grades" template. Filter by student_id (and optionally course_id/date range), then generate the report as Excel or PDF. For an attendance audit, use the "Student Performance Audit - Attendance" template.',
+
+  // ===========================
+  // 🧩 CUSTOM DASHBOARDS
+  // ===========================
+  helpCustomDashboards: '🧩 Custom Dashboards',
+  helpWhatAreCustomDashboards: 'What are custom dashboards?',
+  helpCustomDashboardsAnswer: 'Personal analytics dashboards you build by picking which charts to show together: Performance, Grade Distribution, Attendance, Trend, Student Status, Scatter Plot, Heatmap, Sankey, Treemap, and Box Plot. One dashboard can be marked as your default.',
+  helpHowToCreateDashboard: 'How do I create a dashboard?',
+  helpCreateDashboardAnswer: '1. Go to the "Dashboard" tab\n2. Switch to the "Analytics" sub-tab\n3. Click "Manage" (Manage Dashboards)\n4. Click "New Dashboard"\n5. Name it (optionally add a description)\n6. Check the charts to include\n7. Click "Save"\n\n✓ At least one chart is required.',
+  helpHowToSetDefaultDashboard: 'How do I set my default dashboard?',
+  helpSetDefaultDashboardAnswer: "In Dashboard Manager, click the star icon on any dashboard to make it your default — that's the one loaded automatically.",
+  helpHowToEditDeleteDashboard: 'How do I edit or delete a dashboard?',
+  helpEditDeleteDashboardAnswer: 'In Dashboard Manager: click the pencil icon to change its name, description, or chart selection; click the trash icon and confirm to delete it permanently.',
+
+  // ===========================
+  // 🗄️ SEMESTER ARCHIVE
+  // ===========================
+  helpSemesterArchive: '🗄️ Semester Archive',
+  helpWhatIsSemesterArchive: 'What is Semester Archive?',
+  helpSemesterArchiveAnswer: "An admin-only operation that permanently converts a student's fully graded, passed course into one summary academic record, then removes that course's detailed enrollment, grade, attendance, and daily-performance rows. Failed, dropped, or still-in-progress enrollments are left untouched, and the student's profile itself is never altered directly.",
+  helpSemesterArchiveVsSessionExport: 'How is this different from Session Export/Import?',
+  helpSemesterArchiveVsSessionExportAnswer: "Session Export/Import (in the Export Center) copies a semester's full data to a JSON file — non-destructive, meant for backup or moving data between installations. Semester Archive instead changes the live database: it replaces a passed course's detailed records with one permanent record (an encrypted backup of the removed data is still made automatically as part of the process).",
+  helpHowToRunSemesterArchive: 'How do I run a Semester Archive? (Admin only)',
+  helpRunSemesterArchiveAnswer: '1. Go to the "Power" tab\n2. Click "Show Control Panel"\n3. Open the "Maintenance" tab\n4. Expand "System Operations" → "Semester Archive"\n5. Pick a semester, review which student+course pairs qualify (passed and fully graded), then confirm\n\n⚠️ This is permanent — the underlying records are removed after archiving.',
+  helpWhereIsAcademicHistory: "Where do I see a student's archived courses?",
+  helpAcademicHistoryAnswer: 'Open the student\'s profile page and look for the "Academic History" section. It only appears once at least one course has been archived for that student.',
+
+  // ===========================
+  // 🔐 ROLES & PERMISSIONS
+  // ===========================
+  helpRolesPermissions: '🔐 Roles & Permissions',
+  helpWhatIsRBACConfiguration: 'What is RBAC Configuration?',
+  helpRBACConfigurationAnswer: 'Role-Based Access Control settings that determine which roles (admin, teacher, etc.) can use which features and API actions across the whole system.',
+  helpHowToManagePermissions: 'How do I manage roles and permissions? (Admin only)',
+  helpManagePermissionsAnswer: '1. Go to the "Power" tab\n2. Click "Show Control Panel"\n3. Open the "Maintenance" tab\n4. Expand "RBAC Configuration"\n5. Use the "Permissions Catalog" tab to review the full permission list, or the role tabs to assign permissions to roles',
+  helpHowToManageUserAccounts: 'How do I manage user accounts? (Admin only)',
+  helpManageUserAccountsAnswer: 'Same "Maintenance" tab as above — expand "User Accounts" to view accounts and change a user\'s role.',
+
+  // ===========================
+  // 📧 REPORT EMAIL DELIVERY & SCHEDULING
+  // ===========================
+  helpCanReportsEmail: 'Can a report be emailed automatically?',
+  helpReportsEmailAnswer: 'In the Report Builder, check "Enable email delivery" to reveal an "Email Recipients" field — list the addresses that should receive the generated file. Actual delivery depends on the server\'s outgoing email being configured by an administrator.',
+  helpCanReportsSchedule: 'Can a report run on a schedule?',
+  helpReportsScheduleAnswer: 'In the Report Builder, check "Schedule Report" to reveal a frequency option (daily, weekly, monthly, or a custom schedule). The report regenerates — and emails, if enabled — automatically on that schedule.',
 };

@@ -414,6 +414,82 @@ const HelpDocumentation = () => {
         {
           question: t('helpWhereAreGeneratedReports'),
           answer: t('helpGeneratedReportsAnswer')
+        },
+        {
+          question: t('helpCanReportsEmail'),
+          answer: t('helpReportsEmailAnswer')
+        },
+        {
+          question: t('helpCanReportsSchedule'),
+          answer: t('helpReportsScheduleAnswer')
+        }
+      ]
+    },
+    {
+      id: 'dashboards',
+      title: t('helpCustomDashboards'),
+      icon: Book,
+      color: 'text-violet-600',
+      items: [
+        {
+          question: t('helpWhatAreCustomDashboards'),
+          answer: t('helpCustomDashboardsAnswer')
+        },
+        {
+          question: t('helpHowToCreateDashboard'),
+          answer: t('helpCreateDashboardAnswer')
+        },
+        {
+          question: t('helpHowToSetDefaultDashboard'),
+          answer: t('helpSetDefaultDashboardAnswer')
+        },
+        {
+          question: t('helpHowToEditDeleteDashboard'),
+          answer: t('helpEditDeleteDashboardAnswer')
+        }
+      ]
+    },
+    {
+      id: 'semester-archive',
+      title: t('helpSemesterArchive'),
+      icon: HelpCircle,
+      color: 'text-rose-600',
+      items: [
+        {
+          question: t('helpWhatIsSemesterArchive'),
+          answer: t('helpSemesterArchiveAnswer')
+        },
+        {
+          question: t('helpSemesterArchiveVsSessionExport'),
+          answer: t('helpSemesterArchiveVsSessionExportAnswer')
+        },
+        {
+          question: t('helpHowToRunSemesterArchive'),
+          answer: t('helpRunSemesterArchiveAnswer')
+        },
+        {
+          question: t('helpWhereIsAcademicHistory'),
+          answer: t('helpAcademicHistoryAnswer')
+        }
+      ]
+    },
+    {
+      id: 'roles-permissions',
+      title: t('helpRolesPermissions'),
+      icon: MessageCircle,
+      color: 'text-sky-600',
+      items: [
+        {
+          question: t('helpWhatIsRBACConfiguration'),
+          answer: t('helpRBACConfigurationAnswer')
+        },
+        {
+          question: t('helpHowToManagePermissions'),
+          answer: t('helpManagePermissionsAnswer')
+        },
+        {
+          question: t('helpHowToManageUserAccounts'),
+          answer: t('helpManageUserAccountsAnswer')
         }
       ]
     },
