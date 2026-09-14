@@ -8,6 +8,7 @@ on:
       - 'src/frontend/package.json'
       - 'src/frontend/package-lock.json'
       - '.github/workflows/frontend-deps.yml'
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
