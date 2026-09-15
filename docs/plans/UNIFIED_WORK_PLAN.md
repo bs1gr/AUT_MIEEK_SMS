@@ -141,29 +141,62 @@ version propagation reached all 9 tracked references plus `package-lock.json` (b
 which were silent no-ops until `9c95d93e0`, and the lockfile edit stayed surgical at 2
 lines), and the `[1.18.42]` CHANGELOG header appeared exactly once.
 
-### 🐛 Three release-pipeline traps caught during this release (NOT yet fixed)
+### 🐛 Three release-pipeline traps caught during this release — ✅ ALL FIXED
 
-Worth fixing before the next release — each silently ships wrong content rather than
-failing:
+Each silently shipped wrong content rather than failing, which is why none had ever been
+noticed. Found by cutting the release by hand; fixed immediately afterwards.
 
-1. **`RELEASE_READY.ps1`'s SMS_Lite auto-build only triggers when `SMS_Lite.exe` is
-   absent, never when it is stale** (line ~292, `if (-not (Test-Path $liteExePath))`). The
-   pre-built Lite here was from 2026-09-08 — a week old, predating every fix in this
-   release — and would have shipped *even without* `-SkipLiteBuild`. Had to delete the
-   folder by hand to force a rebuild.
-2. **`INSTALLER_BUILDER.ps1`'s `Invoke-NativeLiteBuild` only rebuilds the frontend if
-   `dist/index.html` is missing** (line ~512). It therefore bundles whatever happens to be
-   in `src/frontend/dist`. During this release that was an **Android-mode** bundle left
-   over from `npm run build:android` during the APK work — so the desktop installer would
-   have shipped an Android-mode frontend. Also had to be cleared by hand.
-   Together, 1 and 2 mean installer contents are not reproducibly fresh.
-3. **`GENERATE_RELEASE_DOCS.ps1` emits a broken GitHub release description**: three links
-   to documents it never generates (`MIGRATION_`, `RELEASE_REPORT_`,
-   `CLEANUP_EXECUTION_`), two pre-flatten script paths (`.\DOCKER.ps1`, `.\NATIVE.ps1`)
-   dead since June, and backticks mangled by PowerShell escaping so fenced code blocks and
-   inline code render as literal backslashes. Its commit *counting* is also wrong ("575
-   commits, 546 unrecognized" for a 29-commit range) though the categorised output itself
-   was correct. The description was hand-written for this release instead.
+1. **Stale SMS_Lite was reused, never rebuilt.** Both `RELEASE_READY.ps1` (line ~292) and
+   `INSTALLER_BUILDER.ps1`'s `Confirm-NativeLiteEditionReady` (line ~578) guarded the
+   build with `if (-not (Test-Path $LiteOutExe))` — an existence test, not a freshness
+   test. The Lite build on disk was from 2026-09-08, predating every fix in this release,
+   and would have shipped *even without* `-SkipLiteBuild`. **Fixed**: rebuilding is now
+   the default; reuse is opt-in via a new `-ReuseLiteBuild`, which logs the artifact's age
+   in days when used. `RELEASE_READY`'s `-SkipLiteBuild` maps onto it.
+2. **The frontend `dist/` was reused as-is.** `Invoke-NativeLiteBuild` only ran
+   `npm run build` if `dist/index.html` was missing, so it bundled whatever was there —
+   and `dist/` is shared with other build modes. During this release it held an
+   **Android-mode** bundle from `npm run build:android` during the APK work, so the
+   *desktop* installer would have shipped an Android frontend. A mode mismatch is
+   invisible in the packaged output, so absence is not a safe freshness test. **Fixed**:
+   always rebuilds (and clears `dist/` first, since asset names are content-hashed and
+   orphans would otherwise survive), with `-ReuseFrontendDist` as an explicit escape
+   hatch. Costs ~20s against a 10-20 min PyInstaller step.
+3. **The generated GitHub release description was broken.** Traced to
+   `scripts/generate-release-github-description.ps1` (not `GENERATE_RELEASE_DOCS.ps1` as
+   first assumed). Three links to documents the pipeline never generates, two pre-flatten
+   script paths dead since June, and backticks mangled because **the backtick is
+   PowerShell's escape character** — `` "\`SMS_Installer...\`" `` emitted a backslash and
+   ``"``powershell"`` emitted a single backtick, so every release up to v1.18.41 published
+   `\SMS_Installer_x.y.z.exe\` and unrendered code blocks. **Fixed**: literals are now
+   single-quoted, paths corrected, and optional docs linked only when the file actually
+   exists, with absolute URLs (relative links do not resolve in a GitHub release body).
+   The sibling generator in `GENERATE_RELEASE_DOCS.ps1` also advertised
+   `StudentManagementSystem_<ver>_Setup.exe`, an asset name this project has never
+   published — corrected to `SMS_Installer_<ver>.exe`.
+
+### 🐛 Two further bugs found while fixing the above — ✅ both fixed
+
+4. **Commit parsing counted lines, not commits.** `GENERATE_RELEASE_DOCS.ps1` used
+   `--pretty=format:'%H|%s|%b|%an|%ae|%ad'` and consumed the output line by line, but `%b`
+   is the multi-line commit body — so a 29-commit range parsed as "575 commits, 546
+   unrecognized", and any newline in a body shifted every field after it. **Fixed**: body
+   moved last (so a `|` inside it cannot misalign the rest) with an explicit record
+   separator, plus a cross-check against `git rev-list --count` that warns when the parsed
+   total disagrees — the absence of which is why this survived so long.
+5. **Any exclamation mark marked the release as breaking.** `BreakingChangeMarkers`
+   contained a bare `'!'`, regex-matched against subject *and* body. Masked by bug 4;
+   fixing that exposed it, and it fired on a commit body quoting the password
+   `"SMSCodeSign2025!"` — which would have published a **"⚠️ BREAKING CHANGES - MAJOR
+   Release"** banner, complete with a migration-required warning, on an ordinary patch
+   release. **Fixed**: proper Conventional Commits detection — `!` immediately before the
+   colon in the subject, or a `BREAKING CHANGE:` footer.
+
+Also noted while fixing 1: `RELEASE_READY`'s Lite pre-build block `return $true`d
+immediately after building, **skipping the installer verification** that follows — so a
+missing or truncated installer went unreported on exactly the runs that built Lite from
+scratch. That block was redundant (both branches called the same builder) and is gone, so
+there is now a single build path and verification always runs.
 
 ### Minor, pre-existing
 
