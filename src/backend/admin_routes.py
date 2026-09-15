@@ -123,7 +123,7 @@ _server_start_time = time.time()
 
 
 @router.get("/health")
-async def health_check(db: Session = Depends(get_db)):
+async def health_check(db: Session = Depends(get_db), _auth=Depends(require_control_admin)):
     """Check system health and database status"""
     try:
         students_count = db.query(Student).count()

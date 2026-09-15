@@ -50,6 +50,15 @@ if (-not $CertPath) {
     $CertPath = $DefaultCertPath
 }
 
+# CREATE_CERTIFICATE.ps1 writes the generated password to a gitignored file
+# next to the .pfx (no password is ever hardcoded in a tracked script).
+if (-not $CertPassword) {
+    $DefaultPasswordPath = "$DefaultCertPath.password.txt"
+    if (Test-Path $DefaultPasswordPath) {
+        $CertPassword = (Get-Content $DefaultPasswordPath -Raw).Trim()
+    }
+}
+
 # Find installer if not specified
 if (-not $InstallerPath) {
     $DistDir = Join-Path $ProjectRoot "dist"

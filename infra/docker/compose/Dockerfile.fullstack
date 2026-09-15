@@ -46,8 +46,10 @@ RUN python -m pip install --upgrade pip && \
     pip install --no-cache-dir -r /app/backend/requirements.txt && \
     rm -rf /root/.cache/pip
 
-# Copy app code and built frontend
+# Copy app code and built frontend (excluding .env, which may carry a
+# developer's local dev-mode secrets if present at build time)
 COPY src/backend /app/backend
+RUN rm -f /app/backend/.env
 COPY --from=fe /app/frontend/dist /app/frontend/dist
 COPY VERSION /app/VERSION
 RUN find /app -type d -name __pycache__ -exec rm -rf {} +

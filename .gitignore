@@ -307,8 +307,9 @@ SMS-Docker-Image-*.tar
 # Deprecated/Legacy Artifacts
 dockspace/
 
-# Code signing private key
+# Code signing private key + its generated password
 *.pfx
+*.pfx.password.txt
 AUT_MIEEK_CodeSign.pfx
 
 # Test artifacts & reporting

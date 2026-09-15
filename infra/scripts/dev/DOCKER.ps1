@@ -1909,12 +1909,31 @@ function Show-ComposeFailureDiagnostics {
     }
 }
 
+function New-SecureRandomString {
+    # Get-Random uses System.Random, which is not cryptographically secure and is
+    # predictable if an attacker learns its seed/state. SECRET_KEY signs JWTs, so
+    # it needs a CSPRNG. RandomNumberGenerator works on both Windows PowerShell 5.1
+    # and PowerShell 7+.
+    param(
+        [int]$Length,
+        [string]$Charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    )
+    $bytes = [byte[]]::new($Length)
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $rng.GetBytes($bytes)
+    } finally {
+        $rng.Dispose()
+    }
+    -join ($bytes | ForEach-Object { $Charset[$_ % $Charset.Length] })
+}
+
 function Initialize-EnvironmentFiles {
     Write-Info "Checking environment configuration..."
 
     $configured = $false
-    $secretKey = -join ((48..57) + (65..90) + (97..122) + (45,95) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
-    $postgresPassword = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
+    $secretKey = New-SecureRandomString -Length 64 -Charset "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    $postgresPassword = New-SecureRandomString -Length 32
 
     # Root .env
     $rootEnvExistedBefore = Test-Path $ROOT_ENV
@@ -2938,6 +2957,23 @@ function Start-Application {
         $dockerVersionString = Get-DockerVersionString
         if ($dockerVersionString) {
             $env:HOST_DOCKER_VERSION = $dockerVersionString
+        }
+
+        # docker-compose.yml's build args (VERSION/BUILD_DATE/VCS_REF) fall
+        # back to "latest"/"unknown"/"unknown" unless these are set — .env's
+        # own VERSION= is only written once on first-run setup and otherwise
+        # drifts from the real VERSION file. Process env vars take priority
+        # over --env-file for compose interpolation, so setting them here
+        # keeps every build's baked-in VERSION label current.
+        $env:VERSION = $VERSION
+        $env:BUILD_DATE = (Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ssZ')
+        try {
+            $vcsRef = (git rev-parse --short HEAD 2>$null)
+            if ($LASTEXITCODE -eq 0 -and $vcsRef) {
+                $env:VCS_REF = $vcsRef.Trim()
+            }
+        } catch {
+            # Not fatal — compose falls back to "unknown" for VCS_REF.
         }
 
         if (-not (Test-Path $COMPOSE_BASE) -or -not (Test-Path $COMPOSE_PROD)) {

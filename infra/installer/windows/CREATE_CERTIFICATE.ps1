@@ -75,7 +75,7 @@ $Messages = @{
         ValidFrom = "Valid From:"
         ValidUntil = "Valid Until:"
         FilesCreated = "Files Created:"
-        PrivateKey = "private key, password:"
+        PrivateKey = "private key (password saved to .password.txt, gitignored)"
         PublicKey = "public key"
         NextSteps = "Next Steps:"
         InstallCert = "Install certificate to trust stores:"
@@ -106,7 +106,7 @@ $Messages = @{
         ValidFrom = "Ισχύει από:"
         ValidUntil = "Ισχύει μέχρι:"
         FilesCreated = "Αρχεία που Δημιουργήθηκαν:"
-        PrivateKey = "ιδιωτικό κλειδί, κωδικός:"
+        PrivateKey = "ιδιωτικό κλειδί (ο κωδικός αποθηκεύτηκε στο .password.txt, εξαιρείται από το git)"
         PublicKey = "δημόσιο κλειδί"
         NextSteps = "Επόμενα Βήματα:"
         InstallCert = "Εγκαταστήστε το πιστοποιητικό στους χώρους αξιοπιστίας:"
@@ -121,9 +121,21 @@ $Msg = $Messages[$Language]
 
 # Certificate configuration
 $CertSubject = "CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY"
-$CertPassword = "SMSCodeSign2025!"
+# Generated fresh each run with a CSPRNG rather than hardcoded — a literal
+# password in a git-tracked script is permanently exposed in history the
+# moment it's committed, regardless of later edits.
+$PasswordCharset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*-_"
+$PasswordBytes = [byte[]]::new(32)
+$Rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+    $Rng.GetBytes($PasswordBytes)
+} finally {
+    $Rng.Dispose()
+}
+$CertPassword = -join ($PasswordBytes | ForEach-Object { $PasswordCharset[$_ % $PasswordCharset.Length] })
 $PfxPath = Join-Path $ScriptDir "AUT_MIEEK_CodeSign.pfx"
 $CerPath = Join-Path $ScriptDir "AUT_MIEEK_CodeSign.cer"
+$PasswordPath = Join-Path $ScriptDir "AUT_MIEEK_CodeSign.pfx.password.txt"
 $ValidYears = 3
 
 Write-Host "`n╔═══════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -180,6 +192,12 @@ $SecurePassword = ConvertTo-SecureString -String $CertPassword -Force -AsPlainTe
 Export-PfxCertificate -Cert $cert -FilePath $PfxPath -Password $SecurePassword | Out-Null
 Write-Host "  ✅ $($Msg.Exported) $PfxPath" -ForegroundColor Green
 
+# Save the generated password to a local, gitignored file next to the .pfx
+# rather than printing it to the console — console/CI logs are easy to leak
+# accidentally, whereas this file only ever exists on disk.
+Set-Content -Path $PasswordPath -Value $CertPassword -NoNewline
+Write-Host "  ✅ Password saved to $PasswordPath (gitignored — not committed)" -ForegroundColor Green
+
 # Export to CER (public key only)
 Write-Host "$($Msg.ExportingCer)" -ForegroundColor Cyan
 Export-Certificate -Cert $cert -FilePath $CerPath | Out-Null
@@ -198,16 +216,16 @@ Write-Host "  $($Msg.ValidFrom)   $($cert.NotBefore)" -ForegroundColor White
 Write-Host "  $($Msg.ValidUntil)  $($cert.NotAfter)" -ForegroundColor White
 
 Write-Host "`n$($Msg.FilesCreated)" -ForegroundColor Cyan
-Write-Host "  • $PfxPath ($($Msg.PrivateKey) $CertPassword)" -ForegroundColor White
+Write-Host "  • $PfxPath ($($Msg.PrivateKey))" -ForegroundColor White
 Write-Host "  • $CerPath ($($Msg.PublicKey))" -ForegroundColor White
 
 Write-Host "`n$($Msg.NextSteps)" -ForegroundColor Yellow
 Write-Host "  1. $($Msg.InstallCert)" -ForegroundColor White
 Write-Host "     .\INSTALL_CERTIFICATE.ps1" -ForegroundColor Cyan
 Write-Host "  2. $($Msg.ReSign)" -ForegroundColor White
-Write-Host "     .\SIGN_INSTALLER.ps1 -InstallerPath ..\dist\SMS_Installer_1.9.4.exe" -ForegroundColor Cyan
+Write-Host "     .\SIGN_INSTALLER.ps1   (reads the saved password automatically)" -ForegroundColor Cyan
 Write-Host "  3. $($Msg.Verify)" -ForegroundColor White
-Write-Host "     Get-AuthenticodeSignature ..\dist\SMS_Installer_1.9.4.exe" -ForegroundColor Cyan
+Write-Host "     Get-AuthenticodeSignature dist\SMS_Installer_<version>.exe" -ForegroundColor Cyan
 Write-Host ""
 
 # Clean up from certificate store (optional - keeping it there is fine)
