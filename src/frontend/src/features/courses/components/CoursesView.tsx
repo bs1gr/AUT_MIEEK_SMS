@@ -11,13 +11,22 @@ import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
 import { CourseCardSkeleton, ListSkeleton } from '@/components/ui';
 import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
 import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI } from '@/api/api';
+import {
+  DEFAULT_DAY_SCHEDULE,
+  calculateEndTime,
+  calculateTotalHours as calculateScheduleHours,
+  findScheduleOverlaps,
+  getTotalWeight as sumRuleWeights,
+  normalizeTeachingSchedule,
+  scheduleToList,
+  type DaySchedule,
+  type Rule,
+  type TeachingScheduleItem,
+} from '@/features/courses/utils/courseSchedule';
 
 // API_BASE_URL not required; API is accessed via centralized api client
 
 // ---- Types ----
-type Rule = { category: string; weight: string | number; description?: string };
-type DaySchedule = { periods: number; start_time: string; duration: number };
-type TeachingScheduleItem = { day: string; periods: number; start_time: string; duration: number };
 type CourseUpdatePayload = {
   evaluation_rules: Rule[];
   teaching_schedule: TeachingScheduleItem[];
@@ -148,27 +157,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     const course = courses.find((c) => c.id === selectedCourse!);
     if (course) {
       setEvaluationRules((course.evaluation_rules as Rule[]) || []);
-
-      // Fix: Convert array format to Record format for weeklySchedule
-      let scheduleRecord: Record<string, DaySchedule> = {};
-      if (course.teaching_schedule) {
-        if (Array.isArray(course.teaching_schedule)) {
-          // Backend stores as array, convert to Record
-          (course.teaching_schedule as TeachingScheduleItem[]).forEach((item) => {
-            if (item.day) {
-              scheduleRecord[item.day] = {
-                periods: item.periods || 1,
-                start_time: item.start_time || '17:00',
-                duration: item.duration || 45
-              };
-            }
-          });
-        } else {
-          // Already in Record format
-          scheduleRecord = course.teaching_schedule as Record<string, DaySchedule>;
-        }
-      }
-      setWeeklySchedule(scheduleRecord);
+      setWeeklySchedule(normalizeTeachingSchedule(course.teaching_schedule));
       setHoursPerWeek(course.hours_per_week || 0);
     } else {
       setEvaluationRules([]);
@@ -202,9 +191,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       return false;
     }
 
-    const totalWeight = evaluationRules.reduce((sum, rule) => {
-      return sum + (parseFloat(String(rule.weight)) || 0);
-    }, 0);
+    const totalWeight = sumRuleWeights(evaluationRules);
 
     if (Math.abs(totalWeight - 100) > 0.01) {
       showToast(`${t('totalWeight')} ${totalWeight.toFixed(1)}%. ${t('totalMustEqual')}`, 'error');
@@ -229,11 +216,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         delete newSchedule[dayEn];
       } else {
         // Default: 45 minutes periods starting at 17:00 (5:00 PM)
-        newSchedule[dayEn] = {
-          periods: 1,
-          start_time: '17:00',
-          duration: 45
-        };
+        newSchedule[dayEn] = { ...DEFAULT_DAY_SCHEDULE };
       }
       return newSchedule;
     });
@@ -249,15 +232,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }));
   };
 
-  const calculateTotalHours = () => {
-    let total = 0;
-    Object.values(weeklySchedule as Record<string, DaySchedule>).forEach((day) => {
-      if (day.periods && day.duration) {
-        total += (day.periods || 0) * ((day.duration || 0) / 60);
-      }
-    });
-    return total.toFixed(1);
-  };
+  const calculateTotalHours = () => calculateScheduleHours(weeklySchedule);
 
   // Check for schedule conflicts with other courses (year-based)
   const checkScheduleConflicts = useCallback(async (): Promise<ScheduleConflict[]> => {
@@ -306,55 +281,15 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
             const otherCourse = courses.find(c => c.id === enrollment.course_id);
             if (!otherCourse || !otherCourse.teaching_schedule) continue;
 
-            // Convert other course schedule to Record format
-            let otherSchedule: Record<string, DaySchedule> = {};
-            if (Array.isArray(otherCourse.teaching_schedule)) {
-              (otherCourse.teaching_schedule as TeachingScheduleItem[]).forEach((item) => {
-                if (item.day) {
-                  otherSchedule[item.day] = {
-                    periods: item.periods || 1,
-                    start_time: item.start_time || '17:00',
-                    duration: item.duration || 45
-                  };
-                }
+            const otherSchedule = normalizeTeachingSchedule(otherCourse.teaching_schedule);
+
+            for (const overlap of findScheduleOverlaps(weeklySchedule, otherSchedule)) {
+              conflicts.push({
+                student: `${student.first_name} ${student.last_name}`,
+                studentYear: student.study_year || 'Unknown',
+                course: `${otherCourse.course_code} - ${otherCourse.course_name}`,
+                ...overlap,
               });
-            } else {
-              otherSchedule = otherCourse.teaching_schedule as Record<string, DaySchedule>;
-            }
-
-            // Check for overlapping days and times
-            for (const [day, schedule] of Object.entries(weeklySchedule)) {
-              if (otherSchedule[day]) {
-                const currentStart = schedule.start_time;
-                const currentDuration = schedule.duration * schedule.periods;
-                const otherStart = otherSchedule[day].start_time;
-                const otherDuration = otherSchedule[day].duration * otherSchedule[day].periods;
-
-                // Convert times to minutes for comparison
-                const timeToMinutes = (timeStr: string) => {
-                  const [hours, minutes] = timeStr.split(':').map(Number);
-                  return hours * 60 + minutes;
-                };
-
-                const currentStartMin = timeToMinutes(currentStart);
-                const currentEndMin = currentStartMin + currentDuration;
-                const otherStartMin = timeToMinutes(otherStart);
-                const otherEndMin = otherStartMin + otherDuration;
-
-                // Check for time overlap: Two time periods overlap if one starts before the other ends
-                const hasOverlap = (currentStartMin < otherEndMin) && (otherStartMin < currentEndMin);
-
-                if (hasOverlap) {
-                  conflicts.push({
-                    student: `${student.first_name} ${student.last_name}`,
-                    studentYear: student.study_year || 'Unknown',
-                    course: `${otherCourse.course_code} - ${otherCourse.course_name}`,
-                    day,
-                    time: currentStart,
-                    conflictTime: otherStart
-                  });
-                }
-              }
             }
           }
         }
@@ -412,12 +347,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       const calculatedHours = parseFloat(calculateTotalHours());
 
       // Convert weeklySchedule (Record) to list of day objects expected by backend schema
-      const scheduleList: TeachingScheduleItem[] = Object.entries(weeklySchedule || {}).map(([dayEn, cfg]) => ({
-        day: dayEn,
-        periods: Number(cfg.periods) || 0,
-        start_time: cfg.start_time || '08:00',
-        duration: Number(cfg.duration) || 0,
-      }));
+      const scheduleList: TeachingScheduleItem[] = scheduleToList(weeklySchedule);
 
       // Validate hours_per_week backend constraint (>= 0.5) when schedule is provided
       if ((scheduleList?.length || 0) > 0 && (!Number.isFinite(calculatedHours) || calculatedHours < 0.5)) {
@@ -448,14 +378,6 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const calculateEndTime = (startTime: string, durationMinutes: number): string => {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60) % 24;
-    const endMinutes = totalMinutes % 60;
-    return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
   };
 
   const handleExportSchedule = () => {
@@ -502,13 +424,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
 
 
-  const getTotalWeight = () => {
-    return evaluationRules.reduce((sum, rule) => {
-      return sum + (parseFloat(String(rule.weight)) || 0);
-    }, 0);
-  };
-
-  const totalWeight = getTotalWeight();
+  const totalWeight = sumRuleWeights(evaluationRules);
   const isValidTotal = Math.abs(totalWeight - 100) < 0.01;
   const calculatedHours = calculateTotalHours();
   const hasSchedule = Object.keys(weeklySchedule || {}).length > 0;
