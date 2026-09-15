@@ -115,7 +115,11 @@ $script:Config = @{
         'chore'    = @{ Label = 'Chores'; Icon = '🧹'; Priority = 11 }
         'revert'   = @{ Label = 'Reverts'; Icon = '⏪'; Priority = 12 }
     }
-    BreakingChangeMarkers = @('BREAKING CHANGE', 'BREAKING-CHANGE', '!')
+    # Kept for reference only — breaking-change detection is done with explicit
+    # Conventional Commits regexes at the categorisation step, not by substring match.
+    # A bare '!' here was matched as a regex against subject and body, flagging any
+    # message containing an exclamation mark as a breaking change.
+    BreakingChangeMarkers = @('BREAKING CHANGE', 'BREAKING-CHANGE')
 }
 
 # Step 1: Detect version
@@ -159,23 +163,32 @@ Write-Success "Analyzing commits since: $Since"
 # Step 3: Parse git commits
 Write-Step "3/7: Parsing commits"
 $commits = @()
+# One record per COMMIT, not per line. The previous format was
+# '%H|%s|%b|%an|%ae|%ad' consumed line-by-line, but %b is the commit body and is
+# usually multi-line, so PowerShell saw one element per line: a 29-commit range with
+# detailed messages parsed as "575 commits, 546 unrecognized". Body is now last (so a
+# '|' inside it cannot shift the other fields) and records are separated by a marker
+# that cannot occur in a message, so bodies may span as many lines as they like.
+$RecordSep = '@@SMS-COMMIT-RECORD@@'
 try {
-    $gitLog = git log "$Since..HEAD" --pretty=format:'%H|%s|%b|%an|%ae|%ad' --date=short 2>$null
+    $gitLog = (git log "$Since..HEAD" --pretty=format:"%H|%s|%an|%ae|%ad|%b$RecordSep" --date=short 2>$null) -join "`n"
     if (-not $gitLog) {
         Write-Warning "No commits found since $Since"
         $commits = @()
     } else {
-        foreach ($line in $gitLog) {
-            if ($line) {
-                $parts = $line -split '\|', 6
-                $commits += @{
-                    Hash      = $parts[0]
-                    Subject   = $parts[1]
-                    Body      = $parts[2]
-                    Author    = $parts[3]
-                    Email     = $parts[4]
-                    Date      = $parts[5]
-                }
+        $records = $gitLog -split [regex]::Escape($RecordSep)
+        foreach ($record in $records) {
+            $record = $record.Trim("`r", "`n")
+            if (-not $record) { continue }
+            $parts = $record -split '\|', 6
+            if ($parts.Count -lt 5) { continue }
+            $commits += @{
+                Hash      = $parts[0]
+                Subject   = $parts[1]
+                Author    = $parts[2]
+                Email     = $parts[3]
+                Date      = $parts[4]
+                Body      = if ($parts.Count -ge 6) { $parts[5] } else { '' }
             }
         }
     }
@@ -184,6 +197,13 @@ try {
     exit 1
 }
 Write-Success "Found $($commits.Count) commits"
+
+# Cross-check against git's own count — if these disagree the parser is mis-splitting
+# again, which is how the 575-vs-29 discrepancy went unnoticed for so long.
+$expectedCount = [int](git rev-list --count "$Since..HEAD" 2>$null)
+if ($expectedCount -gt 0 -and $commits.Count -ne $expectedCount) {
+    Write-Warning "Parsed $($commits.Count) commits but git reports $expectedCount in $Since..HEAD — commit parsing is unreliable, review the generated notes."
+}
 
 # Step 4: Categorize commits
 Write-Step "4/7: Categorizing commits"
@@ -195,14 +215,21 @@ foreach ($commit in $commits) {
     $subject = $commit.Subject
     $body = $commit.Body
 
-    # Check for breaking changes
-    $isBreaking = $false
-    foreach ($marker in $script:Config.BreakingChangeMarkers) {
-        if ($subject -match $marker -or $body -match $marker) {
-            $isBreaking = $true
-            $breakingChanges += $commit
-            break
-        }
+    # Check for breaking changes.
+    #
+    # Conventional Commits defines exactly two markers: a "!" placed immediately before
+    # the colon in the subject (feat(api)!: drop v1 endpoints), or a "BREAKING CHANGE:"
+    # / "BREAKING-CHANGE:" footer. The previous implementation regex-matched each entry
+    # of BreakingChangeMarkers against the subject OR body, and one of those entries was
+    # a bare "!" — so any message containing an exclamation mark anywhere marked the
+    # whole release as breaking. It was masked by the commit-parsing bug above; with
+    # bodies parsed correctly it fired on a commit body quoting a password that ended
+    # in "!", which would have published a "BREAKING CHANGES - MAJOR Release" banner on
+    # an ordinary patch release.
+    $isBreaking = ($subject -match '^\w+(\([^)]*\))?!:') -or
+                  ($body -match '(?m)^\s*BREAKING[ -]CHANGE\s*:')
+    if ($isBreaking) {
+        $breakingChanges += $commit
     }
 
     # Extract conventional commit type
@@ -411,12 +438,15 @@ function Get-GitHubReleaseDescription {
     [void]$sb.AppendLine("See [CHANGELOG.md](CHANGELOG.md) for complete details.")
     [void]$sb.AppendLine()
 
-    # Installation (avoid fenced code blocks to keep Actions script safe)
+    # Installation (avoid fenced code blocks to keep Actions script safe).
+    # The asset name here was "StudentManagementSystem_<ver>_Setup.exe", which this
+    # project has never published — the real asset is SMS_Installer_<ver>.exe. The
+    # Docker path was also the pre-flatten .\DOCKER.ps1, moved in June 2026.
     [void]$sb.AppendLine("### 📦 Installation")
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("Windows Installer: Download StudentManagementSystem_${Version}_Setup.exe from the assets below.")
+    [void]$sb.AppendLine("Windows Installer: Download SMS_Installer_${Version}.exe from the assets below.")
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("Docker: Run .\\DOCKER.ps1 -Update to pull the new version.")
+    [void]$sb.AppendLine("Docker: Run .\\infra\\scripts\\dev\\DOCKER.ps1 -Update to pull the new version.")
     [void]$sb.AppendLine()
 
     # Documentation changes (aggregate across workspace)

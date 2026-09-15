@@ -86,11 +86,18 @@ function Get-ComprehensiveGitHubReleaseDescription {
         [void]$sb.AppendLine("- Configuration files")
         [void]$sb.AppendLine()
 
-        # Migration guide link
-        [void]$sb.AppendLine("### 📖 Migration Guide")
-        [void]$sb.AppendLine()
-        [void]$sb.AppendLine("**[⬆️ FULL MIGRATION GUIDE](docs/guides/MIGRATION_v${Version}.md)** - Complete instructions with code examples for updating imports.")
-        [void]$sb.AppendLine()
+        # Migration guide link — only when the guide actually exists. Nothing in this
+        # pipeline generates it, so linking unconditionally produced a dead link.
+        $migrationDoc = "docs/guides/MIGRATION_v${Version}.md"
+        if (Test-Path (Join-Path (Split-Path -Parent $PSScriptRoot) $migrationDoc)) {
+            [void]$sb.AppendLine("### 📖 Migration Guide")
+            [void]$sb.AppendLine()
+            [void]$sb.AppendLine("**[⬆️ FULL MIGRATION GUIDE]($migrationDoc)** - Complete instructions with code examples for updating imports.")
+            [void]$sb.AppendLine()
+        } else {
+            [void]$sb.AppendLine("> A migration guide has not been written for this release. The breaking changes listed above are the complete set.")
+            [void]$sb.AppendLine()
+        }
     } else {
         [void]$sb.AppendLine("## What's New in v$Version")
         [void]$sb.AppendLine()
@@ -113,32 +120,63 @@ function Get-ComprehensiveGitHubReleaseDescription {
     if ($BreakingChanges.Count -gt 0) {
         [void]$sb.AppendLine("- **Deprecated modules removed** - Clean codebase, reduced maintenance")
     }
-    [void]$sb.AppendLine("- **Complete documentation** - Release report, migration guide, cleanup audit")
     [void]$sb.AppendLine()
 
-    # Installation section
-    [void]$sb.AppendLine("### 📦 Installation")
+    # Installation section.
+    #
+    # Every literal below is single-quoted on purpose. In a double-quoted PowerShell
+    # string the BACKTICK is the escape character, so the previous "\`SMS_Installer...\`"
+    # emitted a backslash (the backtick escaped the following letter away) and "``powershell"
+    # emitted a single backtick instead of a fence. Published releases up to v1.18.41
+    # therefore showed "\SMS_Installer_x.y.z.exe\" and unrendered code blocks.
+    [void]$sb.AppendLine('### 📦 Installation')
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("**Windows:** Download \`SMS_Installer_${Version}.exe\` from the assets below.")
+    [void]$sb.AppendLine('**Windows:** Download `SMS_Installer_' + $Version + '.exe` from the assets below. The installer is signed by AUT MIEEK; Windows shows that name in the security prompt.')
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("**Docker:**")
-    [void]$sb.AppendLine("``powershell")
-    [void]$sb.AppendLine(".\DOCKER.ps1 -Update")
-    [void]$sb.AppendLine("``")
+    [void]$sb.AppendLine('**Docker:**')
+    [void]$sb.AppendLine('```powershell')
+    [void]$sb.AppendLine('.\infra\scripts\dev\DOCKER.ps1 -Update')
+    [void]$sb.AppendLine('```')
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("**Native (Development):**")
-    [void]$sb.AppendLine("``powershell")
-    [void]$sb.AppendLine(".\NATIVE.ps1 -Start")
-    [void]$sb.AppendLine("``")
+    [void]$sb.AppendLine('**Native (Development):**')
+    [void]$sb.AppendLine('```powershell')
+    [void]$sb.AppendLine('.\infra\scripts\dev\NATIVE.ps1 -Start')
+    [void]$sb.AppendLine('```')
     [void]$sb.AppendLine()
 
-    # Documentation links
-    [void]$sb.AppendLine("### 📚 Documentation")
+    # Documentation links.
+    #
+    # Only link documents that actually exist. The migration/release-report/cleanup-report
+    # links were emitted unconditionally, but nothing in this pipeline ever generates those
+    # files, so every release since they were added shipped three dead links. Relative links
+    # do not resolve in a GitHub release body either, so these are absolute.
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+    $repoUrl  = 'https://github.com/bs1gr/AUT_MIEEK_SMS'
+    try {
+        $origin = git -C $repoRoot remote get-url origin 2>$null
+        if ($origin) {
+            $origin = $origin.Trim() -replace '\.git$', '' -replace '^git@github\.com:', 'https://github.com/'
+            if ($origin -match '^https://github\.com/') { $repoUrl = $origin }
+        }
+    } catch { }
+
+    $docLinks = @()
+    $optionalDocs = @(
+        @{ Path = "docs/guides/MIGRATION_v${Version}.md";                        Label = 'Migration Guide';  Note = 'How to update your code' },
+        @{ Path = "docs/releases/reports/RELEASE_REPORT_v${Version}.md";         Label = 'Release Report';   Note = 'Executive summary and impact assessment' },
+        @{ Path = "docs/releases/reports/CLEANUP_EXECUTION_REPORT_v${Version}.md"; Label = 'Cleanup Report'; Note = 'Detailed cleanup audit' }
+    )
+    foreach ($doc in $optionalDocs) {
+        if (Test-Path (Join-Path $repoRoot $doc.Path)) {
+            $docLinks += "- **[$($doc.Label)]($repoUrl/blob/main/$($doc.Path))** - $($doc.Note)"
+        }
+    }
+    $docLinks += "- **[CHANGELOG]($repoUrl/blob/main/CHANGELOG.md)** - Full list of changes in this release"
+    $docLinks += "- **[User Guide]($repoUrl/blob/main/docs/user/USER_GUIDE_COMPLETE.md)** - End-user documentation"
+
+    [void]$sb.AppendLine('### 📚 Documentation')
     [void]$sb.AppendLine()
-    [void]$sb.AppendLine("- **[Migration Guide](docs/guides/MIGRATION_v${Version}.md)** - How to update your code")
-    [void]$sb.AppendLine("- **[Release Report](docs/releases/reports/RELEASE_REPORT_v${Version}.md)** - Executive summary and impact assessment")
-    [void]$sb.AppendLine("- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v${Version}.md)** - Detailed cleanup audit")
-    [void]$sb.AppendLine("- **[CHANGELOG](CHANGELOG.md)** - Full commit history")
+    foreach ($link in $docLinks) { [void]$sb.AppendLine($link) }
     [void]$sb.AppendLine()
 
     return $sb.ToString()
