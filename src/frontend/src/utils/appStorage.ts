@@ -36,9 +36,20 @@ function _isCapacitor(): boolean {
   return Capacitor.isNativePlatform();
 }
 
+/**
+ * Loads the Preferences plugin, wrapped in a plain object.
+ *
+ * The wrapper is load-bearing: never let the plugin proxy itself be the
+ * resolution value of a promise. Capacitor's proxy answers *any* unknown
+ * property with a native-call stub, `then` included, so a bare
+ * `return Preferences` from an async function makes the engine's thenable
+ * check invoke `Preferences.then()` over the bridge — which Android has no
+ * implementation for. That rejects the load, leaving Preferences unusable
+ * and silently degrading this module to localStorage-only.
+ */
 async function _getPrefs() {
   const { Preferences } = await import('@capacitor/preferences');
-  return Preferences;
+  return { prefs: Preferences };
 }
 
 /** Resolves after `ms` milliseconds. Used as a timeout race. */
@@ -52,12 +63,12 @@ export async function init(): Promise<void> {
   try {
     // Race against a 3-second timeout — if the native bridge is broken or
     // version-mismatched, we must not block React from mounting.
-    const Preferences = await Promise.race([_getPrefs(), _timeout(3000)]);
+    const { prefs } = await Promise.race([_getPrefs(), _timeout(3000)]);
     _prefsReady = true;
     await Promise.race([
       Promise.all(
         KNOWN_KEYS.map(async (key) => {
-          const { value } = await Preferences.get({ key });
+          const { value } = await prefs.get({ key });
           if (value !== null) {
             cache[key] = value;
             try { localStorage.setItem(key, value); } catch { /* ignore */ }
@@ -74,11 +85,11 @@ export async function init(): Promise<void> {
 
 function _persistAsync(key: string, value: string | null): void {
   if (!_prefsReady) return;
-  _getPrefs().then((Preferences) => {
+  _getPrefs().then(({ prefs }) => {
     if (value === null) {
-      Preferences.remove({ key }).catch(() => { /* ignore */ });
+      prefs.remove({ key }).catch(() => { /* ignore */ });
     } else {
-      Preferences.set({ key, value }).catch(() => { /* ignore */ });
+      prefs.set({ key, value }).catch(() => { /* ignore */ });
     }
   }).catch(() => { /* ignore */ });
 }

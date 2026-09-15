@@ -1,11 +1,218 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.41
-**Last Updated**: September 12, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below.**
+**Last Updated**: September 15, 2026
+**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below. 2026-09-14/15: ran a four-agent workspace audit (CI/CD, backend, frontend, infra) and closed everything it found — 5 security findings, a Greek-users-see-English i18n bug, 3 duplicate/dead workflows, the version-sync chain broken since the June flatten, ~700 lines of confirmed-dead code, and all 4 remaining oversized frontend components refactored with ~120 new tests. 2026-09-15 (later): fixed a Capacitor thenable bug that had been silently disabling Preferences-backed storage on Android completely — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🐛 Capacitor Preferences was dead on Android — `Preferences.then()` (September 15, 2026)
+
+**Status**: ✅ FIXED, not yet released. This closes the "Preferences.then() is not
+implemented on android" follow-up logged (as an unexplained console error) in the
+September 11 housekeeping section below. Investigation showed it was **not** a cosmetic
+log line: it disabled `appStorage`'s entire reason for existing on Android.
+
+### What was actually happening
+
+`src/frontend/src/utils/appStorage.ts` loaded the plugin like this:
+
+```ts
+async function _getPrefs() {
+  const { Preferences } = await import('@capacitor/preferences');
+  return Preferences;   // ← the bug
+}
+```
+
+Returning the plugin object bare from an `async` function puts it on the promise
+resolution path, and promise resolution performs a **thenable check** — it reads
+`.then` off the resolution value and, if callable, calls it.
+
+Capacitor's `registerPlugin` returns a `Proxy` whose `get` trap special-cases only
+`$$typeof`, `toJSON`, `addListener` and `removeListener`, then falls through to
+`createPluginMethodWrapper(prop)` for *everything else* (verified directly in
+`node_modules/@capacitor/core/dist/index.js`). So `Preferences.then` resolved to a
+real bridge-call stub, the engine invoked it as `then(resolve, reject)`, the native
+side had no `then` method, and the wrapper threw
+`` `"${pluginName}.${prop}()" is not implemented on ${platform}` `` — the exact
+string seen in logcat.
+
+The wrapper rejects its own internal promise and never calls the `resolve`/`reject`
+it was handed, so `_getPrefs()` **never settles**. The chain of consequences:
+
+1. `init()`'s `Promise.race([_getPrefs(), _timeout(3000)])` could only ever be won by
+   the timeout — so every Android launch stalled the full 3 seconds here.
+2. The timeout rejects, the `catch` sets `_prefsReady = false`.
+3. `_persistAsync` early-returns on `!_prefsReady`, so **nothing was ever written to
+   Preferences**, and nothing was ever read back at startup.
+4. The unhandled rejection from the stub surfaced as the logged
+   `Uncaught (in promise)` error.
+
+Net effect: `appStorage` silently degraded to localStorage-only on Android — exactly
+the failure mode this module was written to prevent, since Android can wipe
+localStorage under memory pressure. Server URL, auth token and the three offline
+mutation queues were all unprotected. The 3-second timeout, added as a safety net
+against a broken bridge, is what kept the bug invisible.
+
+### Fix
+
+Wrap the plugin so it is never itself a resolution value — `return { prefs: Preferences }`
+— and destructure at the two call sites. The module header now explains why the
+wrapper is load-bearing, so it doesn't get "simplified" back into the bug.
+
+### Verification
+
+`appStorage.ts` had **zero** test coverage; added `appStorage.test.ts` (7 tests) whose
+plugin mock reproduces Capacitor's proxy semantics faithfully — any non-implemented
+property still returns a callable bridge stub, `then` included.
+
+Confirmed the tests actually catch the bug rather than just passing alongside the fix:
+reverted `appStorage.ts` to its `HEAD` state and re-ran them — 4 of 7 failed, and the
+recorded property-access log for the whole run was exactly `['then']`. `get`, `set` and
+`remove` were never reached even once, which is the direct proof that Preferences was
+100% unused on Android before this fix. Restored, all 7 pass; `eslint` and a full
+project `tsc --noEmit` are clean.
+
+**Not yet verified on a physical device** — the mechanism and the fix are proven at the
+unit level, but an on-device launch (watching logcat for the absence of the error, and
+confirming values survive an app kill) is still worth doing before release.
+
+---
+
+## 🔍 Four-agent workspace audit + full remediation (September 14–15, 2026)
+
+**Status**: ✅ DONE, not yet released. Eleven commits, `b644ee42c..8fbf66ee0`. Four
+parallel sub-agents audited CI/CD, backend, frontend and infra; every finding was then
+either fixed or explicitly ruled out. The audit's oversized-component list is now
+**fully closed**.
+
+### Security — `10c55b328`
+
+- `/api/v1/admin/health` leaked student/course counts with **no auth dependency at
+  all**, while every other route in that router requires `require_control_admin`.
+- `DOCKER.ps1` generated `SECRET_KEY`/`POSTGRES_PASSWORD` with `Get-Random`
+  (`System.Random`, not a CSPRNG) — directly contradicting the script's own warning
+  about weak `SECRET_KEY` enabling JWT forgery. Now `RandomNumberGenerator`.
+- `CREATE_CERTIFICATE.ps1` had the code-signing PFX password as a **hardcoded literal
+  committed to git** (`"SMSCodeSign2025!"`, duplicated in `README.md`). Now CSPRNG-
+  generated into a gitignored `.password.txt`, read automatically by
+  `SIGN_INSTALLER.ps1`. ⚠️ The old password remains in git history — treat as
+  compromised if the signing cert is ever regenerated.
+- `Dockerfile.fullstack` copied `src/backend` without stripping `.env` first
+  (`Dockerfile.backend` already did), so local dev secrets could be baked into a
+  production image.
+
+**Reverted deliberately**: a stricter admin-path guard in `security/permissions.py`.
+`COMMIT_READY`'s test gate caught it breaking 7 deliberate, passing tests in
+`test_adminops_router.py`. **Gotcha worth remembering** — a substring guard on
+`"/admin"` also matches `"/adminops"`, and `AUTH_ENABLED=False` intentionally allows
+`/adminops/*` (backup/restore/clear) in this project's tested contract, unlike genuine
+`/admin/*` routes.
+
+### i18n — `72b73c376`
+
+`EnhancedAttendanceCalendar.tsx` passed raw English sentences into `t()` instead of
+the real keys, which already existed in both locale files. i18next returns a missing
+key verbatim, so **English users saw correct text purely by coincidence while Greek
+users got untranslated English toasts** on course-selection and save errors.
+
+### CI/CD — `6be8c6cb6`, `755414837`, `b644ee42c`
+
+- `maintenance-consolidated.yml` and `stale.yml` ran an identical `actions/stale@v9`
+  config on an identical daily cron. The former's docstring claimed to replace three
+  workflows, none of which were ever removed — deleted it.
+- `cleanup-workflow-runs.yml` (weekly, keep-count) was superseded in practice by
+  `orchestrated-maintenance.yml`'s own daily age-based job — deleted.
+- `orchestrated-maintenance.yml`'s `stale-cleanup`/`security-audit` jobs only ran
+  `gh workflow run` against workflows that already have their own schedules — a
+  same-day duplicate trigger costing Actions minutes for no effect. Removed both, and
+  wired the orphaned `run_health_check` output (computed but consumed by no job, so the
+  "health-check" dispatch option silently did nothing) to the real health-check workflow.
+- `pr-hygiene.yml` duplicated standalone `dependency-review.yml` while also gating it
+  behind two unrelated jobs — removed the duplicate.
+- `deploy.yml` (reusable `workflow_call`) was referenced nowhere — deleted.
+- `installer.yml` checked `.\installer\SMS_Manager\SMS_Manager.csproj`, a pre-flatten
+  path that has **never existed there**, so the check always no-op'd and CI always
+  embedded a stale pre-built launcher. Repointed at the real path.
+- Added `workflow_dispatch` to the dependency audit workflows; bumped `pytest` to
+  `>=9.0.3` for CVE-2025-71176.
+
+### Release version-sync chain, broken since the June flatten — `fccb5a301`
+
+`COMMIT_READY.ps1`'s version propagation targeted **repo-root paths that stopped
+existing when the June 2026 flatten moved these scripts into `infra/scripts/*`**.
+`Update-TextFileVersionLines` silently no-ops on a missing path, so this ran on every
+release without touching a single real file — proven by `COMMIT_READY.ps1`'s own
+`.NOTES Version:` banner still reading `v1.18.25` against a real `v1.18.41`.
+
+`RELEASE_READY.ps1`'s `Update-VersionReferences` had an independent bug on the same
+files: its regex `'Version: [0-9\.]+'` requires a digit immediately after `"Version: "`,
+but the banner reads `Version: v1.18.x` — so it was a permanent no-op regardless of the
+path fix. Now captures an optional `v` and preserves it (`INSTALLER_BUILDER.ps1`'s
+banner has no `v`, and is still handled correctly).
+
+Also: `docker-compose.yml`'s `VERSION`/`BUILD_DATE`/`VCS_REF` build args fell back to
+`latest`/`unknown`/`unknown` on every build because nothing set them. `DOCKER.ps1` now
+sets them alongside `FRONTEND_VERSION`, instead of relying on `.env`'s `VERSION=`, which
+is written once at first-run setup and drifts thereafter. This closes the
+"Docker version-unknown health-check gap" noted after the September 5 smoke test.
+
+### Dead code removal — `14e3a1eb4` (19 files, ~1,700 deletions)
+
+- `dependencies.py` trimmed ~300 lines to the only two symbols with live callers
+  (`get_db`, `get_notification_service`), confirmed by repo-wide grep — removed an
+  unused exception hierarchy, `ValidationMixin`, five validators, `paginate_query`, two
+  logging helpers, two session context managers, and a duplicate `setup_logging()` that
+  ran as an unused import-time side effect.
+- Archived `migrations/005_websocket_notifications.py` (sat outside
+  `migrations/versions/`; no `down_revision` in the real chain ever pointed at it — the
+  actual tables come from `aabbccdd2025_add_notification_tables.py`).
+- Deleted orphaned `src/scripts/VERIFY_VERSION.ps1`, a stale diverged fork of the real
+  script; repointed the one test asserting its existence.
+- Deleted `features/importExport/*` (8 files) + `hooks/useImportExport.ts` — zero
+  importers; the live UI is `components/import-export/*`. **This closes open finding #5
+  in the Help-audit bug list below.**
+- Trimmed `analytics.js`'s dead `builder.*` i18n subtree in both languages down to the
+  one key with a real caller. That key was itself a nested object rather than a string,
+  so it could never resolve through `t()` and always fell back to hardcoded English even
+  for Greek users — now a plain string with a real Greek translation ("Πρότυπο").
+- `infra/docker/.dockerignore` was never read by any build (all compose builds use
+  `context: ../../..`, and Docker only reads `.dockerignore` from the context root) —
+  moved to the repo root with paths updated for the flatten, and `SMS_Installer.iss`
+  repointed.
+
+**Corrected audit finding**: `routers_imports.py` and `routers_import_export.py` were
+flagged as duplicates. They are not — both are live. Left alone.
+
+### Oversized components — all 4 now closed (~120 new tests)
+
+| Commit | Component | Lines | Shape of the problem |
+|---|---|---|---|
+| `5e8dacdae` | `GradingView` | 988 → — | Tangled state+API+render → `useGradeEntrySync` hook (23 tests) |
+| `05fca562f` | `ExportCenter` | 1383 → 633 | **Colocation**, not tangled state → file split (42 tests) |
+| `8742b644e` | `ControlPanel` | 1190 → 922 | Data layer → `useControlPanelData` (21 tests) |
+| `8fbf66ee0` | `CoursesView` | 1068 → 991 | Duplicated logic → `features/courses/utils/courseSchedule.ts` (30 tests) |
+
+Two things worth carrying forward:
+
+- **Diagnose the shape before picking the technique.** `ExportCenter` needed a *file
+  split* (three components plus pure helpers crammed in one file), not the hook
+  extraction `GradingView` needed. Applying `GradingView`'s approach there would have
+  been wrong.
+- **The audit's own claims needed verifying.** It described `ControlPanel.tsx` as "only
+  3 state hooks — mostly JSX orchestration"; it actually had 17 `useState` calls, a
+  hand-rolled TTL response cache, five per-tab fetchers, a status auto-refresh with a
+  derived uptime ticker and two operation runners. That was one of two audit claims that
+  didn't survive inspection.
+
+Real bugs found and fixed along the way: a latent blank-grade-list bug in `GradingView`,
+and a schedule-normalization written twice in `CoursesView` (the second copy inside
+`checkScheduleConflicts`), now deduped with the previously-unstated schedule-conflict
+overlap rules pinned down in tests — back-to-back sessions don't clash, the occupied
+span is `duration × periods`, overlap is symmetric, one entry reported per clashing day.
 
 ---
 
@@ -380,14 +587,16 @@ renders (not raw i18n keys), screenshotted both languages.
    new errors — the only thing this widening exposes is exactly the class
    of bug just fixed, so it's safe to turn on now. `npm run lint` afterward:
    0 errors, 4 pre-existing unrelated `testing-library` warnings.
-5. **New finding (bug #3 fix session): `features/importExport/*` is a third
-   instance of the dead-duplicate-component pattern** first seen in bug #2.
-   `ImportWizard.tsx`, `HistoryTable.tsx`, `ExportDialog.tsx` (each with
-   their own passing test) duplicate `components/import-export/*` (the real,
-   now-reachable copy used by `/admin/import-export`) but are imported
-   nowhere in the app. Not yet investigated for deletion — do the same
-   git-history + payload-compatibility check bug #2 did before removing it,
-   don't assume it's safe to delete on shape alone.
+5. ~~**New finding (bug #3 fix session): `features/importExport/*` is a third
+   instance of the dead-duplicate-component pattern** first seen in bug #2.~~
+   **DELETED 2026-09-15 in `14e3a1eb4`, see the workspace-audit section
+   above.** `ImportWizard.tsx`, `HistoryTable.tsx`, `ExportDialog.tsx` (each
+   with their own passing test) duplicated `components/import-export/*` (the
+   real, now-reachable copy used by `/admin/import-export`) but were imported
+   nowhere in the app. The git-history + payload-compatibility check bug #2
+   used was repeated here before removal, rather than deleting on shape
+   alone — 8 files plus `hooks/useImportExport.ts`, zero importers confirmed
+   by repo-wide grep.
 
 ---
 
@@ -434,13 +643,17 @@ renders (not raw i18n keys), screenshotted both languages.
   `builtInKotlin`, `newDsl`, `r8.optimizedResourceShrinking`,
   `defaults.buildfeatures.resvalues`) — safe cosmetic cleanup whenever
   convenient.
-- Found (not fixed, unrelated to the AGP/Gradle change) — a pre-existing
+- ~~Found (not fixed, unrelated to the AGP/Gradle change) — a pre-existing
   frontend bug: `Uncaught (in promise) Error: "Preferences.then()" is not
   implemented on android`, logged via Capacitor/Console on every app
-  launch. Likely a `.then()` call chained onto the Capacitor `Preferences`
-  plugin's promise-returning API in a way Android's implementation doesn't
-  support. Needs investigation in the frontend code that calls
-  `Preferences.*`.
+  launch.~~ **FIXED 2026-09-15 — see the "Capacitor Preferences was dead on
+  Android" section at the top of this file.** The guess recorded here (a
+  `.then()` chained onto the plugin's API) was close but not the mechanism:
+  nothing in our code called `.then()` on the plugin. `appStorage.ts`
+  returned the plugin proxy bare from an `async` function, and *promise
+  resolution itself* probed `.then` — which Capacitor answers with a native
+  bridge stub. It was also not cosmetic: it disabled Preferences-backed
+  storage on Android entirely and stalled every launch by 3 seconds.
 
 ---
 
