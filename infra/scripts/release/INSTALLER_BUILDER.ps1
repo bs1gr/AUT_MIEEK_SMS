@@ -55,6 +55,19 @@
 .PARAMETER AutoFix
     Automatically regenerate wizard images if versions don't match
 
+.PARAMETER ReuseFrontendDist
+    Package the existing src/frontend/dist instead of rebuilding it. Off by default —
+    a release build always rebuilds, because dist/ is shared with other build modes
+    (`npm run build:android` writes an Android-mode bundle to the same folder) and a
+    mode mismatch is invisible in the packaged output. Only use this when you know
+    dist/ was produced by `npm run build` for this exact revision.
+
+.PARAMETER ReuseLiteBuild
+    Package the existing SMS_Lite build instead of rebuilding it via PyInstaller.
+    Off by default — saves 10-20 min, but ships whatever was last built regardless of
+    age, which is indistinguishable from a current build once packaged. Use only for
+    iterating on installer packaging itself, never for a release.
+
 .PARAMETER Verbose
     Show detailed build output and timings
 
@@ -105,7 +118,14 @@ param(
     [switch]$SkipTest,
     [switch]$TagAndPush,
     [switch]$NoUpload,
-    [switch]$AutoFix
+    [switch]$AutoFix,
+
+    # Both default to OFF, i.e. rebuild. Reusing an existing artifact used to be the
+    # implicit behaviour (anything already on disk was kept regardless of age), which
+    # silently shipped stale or wrong content — see the v1.18.42 release notes in
+    # docs/plans/UNIFIED_WORK_PLAN.md. Freshness is now the default and reuse is opt-in.
+    [switch]$ReuseFrontendDist,
+    [switch]$ReuseLiteBuild
 )
 
 $ErrorActionPreference = 'Stop'
@@ -486,7 +506,8 @@ function Invoke-NativeLiteBuild {
 
     $FrontendDir    = Join-Path $ProjectRoot "src\frontend"
     $BackendDir     = Join-Path $ProjectRoot "src\backend"
-    $FrontendIndex  = Join-Path $FrontendDir "dist\index.html"
+    $FrontendDist   = Join-Path $FrontendDir "dist"
+    $FrontendIndex  = Join-Path $FrontendDist "index.html"
     $LiteSpec       = Join-Path $BackendDir "lite_simple_entrypoint.spec"
     $LiteDistRoot   = Join-Path $InstallerDir "dist"
     $LiteOutDir     = Join-Path $LiteDistRoot "SMS_Lite"
@@ -508,9 +529,26 @@ function Invoke-NativeLiteBuild {
         Write-Result Info "PyInstaller: $pyVer"
     }
 
-    # Step 2: Build frontend dist if missing
-    if (-not (Test-Path $FrontendIndex)) {
-        Write-Result Info "Frontend dist not found — building (npm run build)..."
+    # Step 2: Build the frontend.
+    #
+    # This rebuilds every time rather than reusing whatever is already in dist/.
+    # The old behaviour ("build only if dist/index.html is missing") silently bundled
+    # whatever happened to be there, and dist/ is shared with other build modes:
+    # `npm run build:android` writes an ANDROID-mode bundle to the same folder. During
+    # the v1.18.42 release that left an Android bundle sitting in dist/ after APK work,
+    # which this function would have packaged straight into the desktop installer.
+    # A mode mismatch is invisible in the output, so absence is not a safe freshness
+    # test — only a fresh build is. It costs ~20s against a 10-20 min PyInstaller step.
+    if ($ReuseFrontendDist -and (Test-Path $FrontendIndex)) {
+        Write-Result Warning "Reusing existing frontend dist (-ReuseFrontendDist) — NOT verified to match this build mode"
+    } else {
+        if (Test-Path $FrontendDist) {
+            # Asset filenames are content-hashed, so a plain rebuild would leave orphans
+            # from the previous bundle behind. Clear it so dist/ holds only this build.
+            Write-Result Info "Clearing previous frontend dist..."
+            Remove-Item -Recurse -Force $FrontendDist -ErrorAction SilentlyContinue
+        }
+        Write-Result Info "Building frontend (npm run build)..."
         Push-Location $FrontendDir
         try {
             npm run build 2>&1 | ForEach-Object { Write-Result Info "  $_" }
@@ -525,8 +563,10 @@ function Invoke-NativeLiteBuild {
         } finally {
             Pop-Location
         }
-    } else {
-        Write-Result Success "Frontend dist already present ✓"
+        if (-not (Test-Path $FrontendIndex)) {
+            Write-Result Error "Frontend build reported success but produced no dist/index.html"
+            return $false
+        }
     }
 
     # Step 3: Run PyInstaller (~10-20 min), writing directly to the canonical
@@ -575,15 +615,32 @@ function Confirm-NativeLiteEditionReady {
     $LiteOutDir = Join-Path $InstallerDir "dist\SMS_Lite"
     $LiteOutExe = Join-Path $LiteOutDir "SMS_Lite.exe"
 
-    if (-not (Test-Path $LiteOutExe)) {
-        Write-Result Warning "SMS_Lite not found — triggering auto-build..."
+    # Rebuild unless explicitly told to reuse. The old test was "exists?", which is not a
+    # freshness test: during the v1.18.42 release the SMS_Lite on disk was a week old and
+    # predated every fix being shipped, yet would have been packaged as-is. A stale bundle
+    # is indistinguishable from a current one in the installer, so age cannot be inferred
+    # after the fact — rebuild by default and make reuse a deliberate, logged choice.
+    if ($ReuseLiteBuild -and (Test-Path $LiteOutExe)) {
+        $liteAge = [Math]::Round(((Get-Date) - (Get-Item $LiteOutExe).LastWriteTime).TotalDays, 1)
+        Write-Result Warning "Reusing existing SMS_Lite build (-ReuseLiteBuild) — built $liteAge day(s) ago, NOT rebuilt from current source"
+    } else {
+        if (Test-Path $LiteOutExe) {
+            Write-Result Info "Rebuilding SMS_Lite from current source (pass -ReuseLiteBuild to keep the existing build)..."
+        } else {
+            Write-Result Info "SMS_Lite not present — building..."
+        }
         if (-not (Invoke-NativeLiteBuild)) {
-            Write-Result Warning "Auto-build failed. Lite Edition will not be included."
+            Write-Result Warning "Build failed. Lite Edition will not be included."
             Write-Result Info "To build manually:"
             Write-Result Info "  1. npm --prefix src/frontend run build"
             Write-Result Info "  2. cd src/backend && python -m PyInstaller lite_simple_entrypoint.spec --distpath ..\..\infra\installer\windows\dist"
             return $false
         }
+    }
+
+    if (-not (Test-Path $LiteOutExe)) {
+        Write-Result Error "SMS_Lite.exe missing after build step: $LiteOutExe"
+        return $false
     }
 
     $liteSize = ((Get-ChildItem $LiteOutDir -Recurse | Measure-Object Length -Sum).Sum) / 1MB

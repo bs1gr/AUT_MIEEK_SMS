@@ -28,9 +28,10 @@
     Skip installer build step
 
 .PARAMETER SkipLiteBuild
-    Skip building SMS_Lite.exe via PyInstaller (use pre-built exe in
-    infra/installer/windows/dist/SMS_Lite/).
-    Without this flag the build auto-triggers the full PyInstaller pipeline (~15-20 min extra).
+    Package the EXISTING SMS_Lite build in infra/installer/windows/dist/SMS_Lite/ instead
+    of rebuilding it via PyInstaller (~15-20 min extra). Not for releases: it ships that
+    build whatever its age, and a stale bundle is indistinguishable from a current one
+    once packaged. Without this flag SMS_Lite is always rebuilt from current source.
 
 .PARAMETER AutoFix
     Automatically fix version inconsistencies
@@ -278,32 +279,28 @@ function Invoke-InstallerBuild {
 
     Write-Host "Building installer for version $Version..." -ForegroundColor Cyan
     if ($SkipLiteBuild) {
-        Write-Host "Note: -SkipLiteBuild set — using pre-built SMS_Lite.exe (if present)" -ForegroundColor Gray
+        Write-Host "Note: -SkipLiteBuild set — packaging the EXISTING SMS_Lite build, whatever its age" -ForegroundColor Yellow
         Write-Host "Expected build time: ~5-8 min (SMS_Manager + Inno Setup only)" -ForegroundColor Gray
     } else {
-        Write-Host "Note: SMS_Lite.exe will be built via PyInstaller if not already present" -ForegroundColor Gray
-        Write-Host "Expected build time: ~20-30 min first run, ~5-8 min if pre-built" -ForegroundColor Gray
+        Write-Host "Note: SMS_Lite.exe will be rebuilt from current source via PyInstaller" -ForegroundColor Gray
+        Write-Host "Expected build time: ~20-30 min" -ForegroundColor Gray
     }
     Write-Host ""
 
-    # Pre-build SMS_Lite when not skipped and not already built (onedir: a folder, not a single exe)
-    if (-not $SkipLiteBuild) {
-        $liteExePath = Join-Path $PROJECT_ROOT "infra\installer\windows\dist\SMS_Lite\SMS_Lite.exe"
-        if (-not (Test-Path $liteExePath)) {
-            Write-Host "SMS_Lite not found — invoking Invoke-NativeLiteBuild via INSTALLER_BUILDER..." -ForegroundColor Cyan
-            & $installerBuilderScript -Action build -Version $Version -AutoFix
-            # INSTALLER_BUILDER's build action includes Invoke-NativeLiteBuild automatically
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "❌ Installer build failed" -ForegroundColor Red
-                return $false
-            }
-            return $true
-        }
-    }
+    # NOTE: a block here used to pre-build SMS_Lite "if not already present" and then
+    # `return $true` immediately — which both duplicated the INSTALLER_BUILDER call below
+    # and skipped the installer verification that follows it, so a missing or truncated
+    # installer went unnoticed on exactly the runs that built Lite from scratch. The
+    # freshness decision now lives in INSTALLER_BUILDER (-ReuseLiteBuild), so there is a
+    # single build path and verification always runs.
 
     try {
-        # Full installer build with auto-fix and code signing
-        & $installerBuilderScript -Action build -Version $Version -AutoFix
+        # Full installer build with auto-fix and code signing. Pass -ReuseLiteBuild only
+        # when the caller explicitly asked to skip the Lite rebuild; otherwise the builder
+        # rebuilds SMS_Lite and the frontend from current source.
+        $builderArgs = @('-Action', 'build', '-Version', $Version, '-AutoFix')
+        if ($SkipLiteBuild) { $builderArgs += '-ReuseLiteBuild' }
+        & $installerBuilderScript @builderArgs
 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "❌ Installer build failed" -ForegroundColor Red
