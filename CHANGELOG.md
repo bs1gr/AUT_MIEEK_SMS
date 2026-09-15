@@ -9,6 +9,48 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.18.42] - 2026-09-15
+
+### Bug Fixes
+- **android**: unbreak release builds by dropping the stale Kotlin 1.8.22 pin
+- **release**: repair the last three no-op paths in the version-sync chain
+- **android**: restore Capacitor Preferences storage, dead since it was added
+- **release**: repair version-sync chain broken since the June flatten
+- **i18n**: stop showing raw English toasts to Greek users in attendance calendar
+- **security**: close 5 findings from workspace security review
+- **deps**: bump pytest to >=9.0.3, fixes CVE-2025-71176
+- **i18n**: remove 128 pre-existing duplicate-key lint errors, widen lint scope
+- **admin**: give /admin/import-export a real click-path, fix ~35 missing i18n keys
+- **export-admin**: wire up dead Email Configuration panel, fix 2 latent bugs
+- **release**: stop CHANGELOG.md duplicate version headers; fix DOCKER.ps1 -Update path
+
+### Refactoring
+- **courses**: extract course schedule logic from CoursesView, add 30 tests
+- **control-panel**: extract control-API data layer into useControlPanelData
+- **exports**: split ExportCenter into focused modules, add 42 tests
+- **grading**: extract grade-entry/offline-sync logic into useGradeEntrySync
+
+### Documentation
+- **plan**: record the Android release-build fix and AGP flag cleanup
+- **plan**: record on-device verification of the Android Preferences fix
+- **plan**: record the version-sync chain follow-on fix
+- **help**: add Custom Dashboards, Semester Archive, Roles & Permissions FAQ sections
+- record subagents/vitest/AGP-Gradle9 commits in work plan
+
+### CI/CD
+- consolidate duplicate maintenance/dependency-review workflows, fix broken paths
+- add workflow_dispatch to dependency audit workflows
+
+### Chores
+- **android**: remove the 7 deprecated AGP 9 compatibility flags
+- remove dead code and duplicate files found in the workspace audit
+- **dashboard**: remove dead CustomReportBuilder/ChartTypeSelector cluster
+- **skills**: add plan-review skill for UNIFIED_WORK_PLAN.md audits
+- **android**: upgrade AGP 8.13.2 -> 9.4.0 and Gradle 8.13 -> 9.6.0
+- **agents**: add test-runner and release-manager custom subagents
+- **deps-dev**: bump vitest 4.1.9 -> 4.1.11 (fixes GHSA path-traversal advisory)
+
 ## [1.18.41] - 2026-09-09
 
 ### Bug Fixes
@@ -76,11 +118,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Automated release workflow improvements
 
 ---
-## [Unreleased]
-
-### Bug Fixes
-- URL-encode the QNAP username/password/dbname when `SMS_Lite.exe` builds `DATABASE_URL` from `qnap-credentials.json` — any special character in the password (`@`, `:`, `/`, `#`, `%`, etc.) previously corrupted the connection string and made a correct QNAP PostgreSQL password appear to fail authentication; now matches the `quote_plus()` pattern already used in `config.py`/`database_manager.py`/`routers/control/database.py`
-
 ## [1.18.37] - 2026-09-04
 
 ### Bug Fixes
@@ -133,38 +170,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Automated release workflow improvements
 
 ---
-## [Unreleased]
-
-### Refactoring
-- extract save/offline-sync/autosave logic from AttendanceView.tsx into `useAttendanceSaveSync` hook (1,452 → 939 lines); state ownership unchanged, adds 12 new tests for previously-untested save/sync logic
-- extract Student List grid + Performance Modal from AttendanceView.tsx (1,821 → 1,629 lines)
-- extract calendar, quick-actions, and analytics snapshot from AttendanceView.tsx
-- split AnalyticsDashboard.tsx into filter bar + class/student view components
-- split OperationsView.tsx into per-tab components
-- extract backup/restore/clear/import cards and Operations Monitor / Manage Backups sections from DevToolsPanel.tsx
-- dedupe Excel header styling + response building in exports router, extend to remaining export endpoints
-- rewrite trusted-hosts test assertion to avoid a CodeQL substring-check false positive
-
-### Bug Fixes
-- codebase review round 2: auth gaps, race condition, dead code cleanup
-- correct doubled-`v` version-string corruption (script bug + cleanup)
-
-### Tests
-- add smoke test coverage for routers_exports.py (31 endpoints, previously zero)
-- add router coverage for adminops, dashboards, feedback, diagnostics, highlights
-- add coverage for auth components and GradeBreakdownModal; remove dead code
-- add e2e login flow coverage (wrong creds, logout, RequireAdmin guard)
-
-### CI
-- auto-dismiss suppressed CodeQL alerts on scan, run dismissal sequentially
-
-### Documentation
-- fix DOCUMENTATION_INDEX.md and rewrite it to stop going stale
-- log post-v1.18.36 codebase review findings in work plan
-
-### Dependencies
-- bump @xmldom/xmldom, browserslist, postcss-selector-parser in src/frontend
-
 ## [1.18.36] - 2026-09-01
 
 ### Features
@@ -797,10 +802,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **maintenance**: add Copilot guidance and clean legacy workflow docs
 - **cleanup**: archive obsolete scripts and align active docs
 
-## [Unreleased]
-
-- No unreleased changes.
-
 ## [1.18.12] - 2026-03-10
 
 ### Fixed
@@ -1349,17 +1350,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Listed all 4 core auto-activation commits
 
 ---
-## [Unreleased]
-
-### Features
-- (New features for next release)
-
-### Bug Fixes
-- (Upcoming bug fixes)
-
----
-
-
 ## [1.17.9] - 2026-02-13
 
 ### Features
@@ -2132,23 +2122,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Automated release workflow improvements
 
 ---
-## [Unreleased]
-
-### Performance
-- **control api**: Add caching + concurrency for status/diagnostics/ports/environment to reduce latency.
-- **control api**: Defer heavy control calls to tab activation; increase control API timeout to prevent premature failures.
-
-### Bug Fixes
-- **control panel**: Correct control API base routing in native dev (use /control/api via dedicated client).
-- **devserver**: Proxy /control to backend in Vite to support native mode control endpoints.
-- **ui**: Fix JSX structure in GradingView and align label styling across Control Panel, Search, and Grading.
-
-### Localization
-- **i18n**: Add EN/EL translations for grading section labels and search findings label.
-
-### Chores
-- **misc**: Maintenance updates across installer/docs/test artifacts tracked in repo.
-
 ## [1.17.7] - 2026-02-04
 
 ### ⚠️ BREAKING CHANGES
@@ -2599,8 +2572,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Automated release workflow improvements
 
 ---
-## [Unreleased]
-
 ## [1.18.0] - 2026-01-22
 
 ### 🚀 PWA & Mobile Experience
@@ -2719,113 +2690,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 **GitHub Workflow Improvements**
 - Created 9 Phase 2 tracking issues (#116-#124)
 - All Phase 2 tasks documented and linked to PHASE2_CONSOLIDATED_PLAN.md
-
----
-
-## [Unreleased] - Phase 2 Week 2 & 3 Backend (In Development)
-
-### 🔐 RBAC System Implementation (Phase 2)
-
-**Endpoint Refactoring (Week 2) - 100% COMPLETE**
-- Refactored all **79 API endpoints** across 11 routers with permission-based access control
-- Implemented **13 unique permissions** across 8 domains:
-  - Students: view, create, edit, delete (11 endpoints)
-  - Courses: view, create, edit, delete (15 endpoints)
-  - Grades: view, edit, delete (8 endpoints)
-  - Attendance: view, edit, delete (10 endpoints)
-  - Enrollments: view, manage (7 endpoints)
-  - Reports: view (7 endpoints)
-  - Analytics: view (5 endpoints + 4 endpoints)
-  - Audit: view (2 endpoints)
-  - Permissions: view, manage (12 endpoints)
-- Enhanced `@require_permission` decorator to support both db-injection and service-based endpoints
-- All **370/370 backend tests passing** with zero regressions
-- Created comprehensive API documentation (540+ lines)
-
-**Permission Management API (Week 3) - 100% COMPLETE**
-- Implemented **12 permission management endpoints**:
-  - List all permissions (with grouping and statistics)
-  - CRUD operations for permissions
-  - Grant/revoke permissions to users and roles
-  - Get user's effective permissions
-- Permission seeding infrastructure:
-  - 26 permissions across 8 domains
-  - 3 default roles (admin, teacher, viewer)
-  - 44 role-permission mappings
-  - Idempotent seeding with dry-run and verify modes
-- All **14/14 permission API tests passing**
-
-**Documentation (Week 3) - 100% COMPLETE**
-- Created **PERMISSION_MANAGEMENT_GUIDE.md** (930 lines)
-  - Complete workflows for seeding, role management, user permissions
-  - Troubleshooting guide with SQL queries and API examples
-  - Security best practices and common scenarios
-  - Backup & restore procedures
-- Created **RBAC_OPERATIONS_GUIDE.md** (1,050 lines)
-  - Daily/weekly/monthly operational checklists
-  - Monitoring & alerting procedures
-  - Incident response runbooks (4 scenarios)
-  - Performance optimization guide
-- Created **rbac_monitor.py** monitoring script
-  - 5 automated health checks
-  - Daily monitoring capability
-  - Colored terminal output with exit codes
-- Created **API_PERMISSIONS_REFERENCE.md** (540 lines)
-  - All 79 endpoints documented with permission requirements
-  - Error response formats
-  - Testing examples
-
-**Files Modified/Created**:
-- Backend routers: 11 files refactored (routers_*.py)
-- Admin documentation: 6 comprehensive guides created
-- Monitoring: 1 automated health check script
-- Total documentation: **3,470+ lines** of operational guides
-
-**Git Commits** (Phase 2 - Jan 8, 2026):
-1. `735a8dd1a` - Complete analytics/metrics/reports endpoint refactoring
-2. `680734826` - Refactor permissions API to use @require_permission decorator
-3. `bc7dbb0b0` - Mark RBAC endpoint audit as 100% complete
-4. `96dc30c75` - Add comprehensive Permission Management Guide
-5. `51523ad89` - Add RBAC Operations Guide and monitoring script
-6. `63b98a210` - Update UNIFIED_WORK_PLAN with Week 2 & 3 completion status
-
-**Status**: Backend RBAC system fully functional and production-ready. Frontend UI tasks remain optional for Phase 3.
-- Issue templates and labels standardized
-
-### 📚 Documentation
-
-- New: `docs/operations/E2E_CI_MONITORING.md` - Monitoring dashboard and baselines
-- New: `docs/operations/E2E_MONITORING_PROCEDURES.md` - Weekly runbook and procedures
-- New: `docs/operations/E2E_MONITORING_DELIVERY_SUMMARY.md` - Delivery documentation
-- New: `scripts/e2e_metrics_collector.py` - Automated metrics extraction
-- New: `scripts/e2e_failure_detector.py` - Failure pattern detection
-- Updated: `UNIFIED_WORK_PLAN.md` - Post-Phase 1 Polish marked 100% complete
-
-### ✅ Test Results
-
-- Backend: 370/370 tests passing (100%)
-- Frontend: 1,249/1,249 tests passing (100%)
-- E2E: 19/24 tests passing (100% critical path coverage)
-- Coverage: Backend 92%+, Frontend 88%+
-
-### 🐛 Known Issues
-
-- Notification broadcast test failures (5/12 tests) - 403 Forbidden on test endpoint
-  - Root cause: Permission check on test broadcast endpoint
-  - Workaround: None; use manual testing for notification features
-  - Timeline: Addressed in $11.18.3
-
-### 🔄 Changes from 1.15.2
-
-No breaking changes. All APIs remain backward compatible with 1.15.2.
-
-### ⬆️ Upgrade Instructions
-
-From 1.15.2: Simply pull latest code, no database migrations required.
-```bash
-git pull origin main
-# Restart application
-```
 
 ---
 
@@ -4975,6 +4839,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
