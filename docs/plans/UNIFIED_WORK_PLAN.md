@@ -110,6 +110,66 @@ running; change it on the device when testing against something else.
 
 ---
 
+## 🤖 Android release builds were broken + AGP flag cleanup (September 15, 2026)
+
+**Status**: ✅ FIXED, not yet released. Commits `64ab67b77` (release-build fix) and
+`f1dac0d46` (flag removal).
+
+### 🐛 `assembleRelease` had been failing since the AGP 9 upgrade
+
+Found while establishing a baseline *before* touching the deprecated flags — the point
+of a baseline being to tell a pre-existing failure from one you caused. It was
+pre-existing, reproducing on a clean tree:
+
+```
+Execution failed for task ':capacitor-android:lintVitalAnalyzeRelease'
+> 'kotlin.sequences.Sequence kotlin.sequences.SequencesKt.sequenceOf(java.lang.Object)'
+```
+
+(and the same for `:capacitor-app`.) The root `build.gradle` forced **every**
+`org.jetbrains.kotlin` dependency to `1.8.22` through `configurations.all`. That arrived
+with the original Capacitor setup (`324f63d20`, June 2026) and was harmless under AGP
+8.13.2 — but AGP 9.4.0's lint is compiled against a Kotlin 2.x stdlib, and
+`configurations.all` reaches **AGP's own internal lint classpath**, so lint ran against a
+stdlib nine minor versions too old and died on a missing `sequenceOf` overload.
+
+**Why it went unnoticed**: `lintVital` only runs for *release* variants, and the AGP 9
+upgrade was verified on-device with `assembleDebug` alone. So the APK that ships with
+releases could not have been built at all — a genuine release blocker, sitting on `main`
+since 2026-09-11.
+
+Removed the pin rather than raising it: Capacitor manages Kotlin versions for its own
+modules via `kotlin-bom` (defaulting to 1.9.25), this project has no Kotlin sources or
+plugin, and a blanket `configurations.all` override is the wrong tool for pinning one
+module's dependency.
+
+**Lesson**: verifying an Android toolchain upgrade with `assembleDebug` only is not
+enough — `assembleRelease` exercises lintVital, R8 and shrinking, none of which debug
+touches.
+
+### Deprecated AGP flags removed
+
+Seven of the ten flags the upgrade assistant added were already deprecated. Each was
+checked against what this project actually uses before removal — all seven proved inert
+here (no `resValue()` anywhere, `targetSdkVersion` set explicitly, no `<uses-sdk>` in any
+manifest, `shrinkResources` not enabled, no Kotlin sources or plugin, single app module,
+build files already parsing under the new DSL). The three non-deprecated flags stay, with
+a comment in the file recording the reasoning for the eventual AGP 10 upgrade.
+
+### Verification
+
+Clean `assembleDebug` + `assembleRelease` (405 tasks) both succeed, no new AGP option
+warnings, and both APKs match their pre-change sizes (debug 6.28 MB, release 3.30 MB).
+
+On-device on the Galaxy A55 with the resulting debug APK: launches with no crash or
+`AndroidRuntime` error, process stays alive, rehydrates the server URL from Capacitor
+Preferences, **logs in against a live `NATIVE.ps1` backend and renders real student
+data**. Preferences keeps persisting correctly (`sms_user_v1` written alongside the server
+keys); the access token is correctly *absent* from storage, since it is held in memory
+only per the June 2026 security audit.
+
+---
+
 ## 🔧 Version-sync chain: the last three no-op paths (September 15, 2026, `9c95d93e0`)
 
 **Status**: ✅ FIXED, not yet released. Follow-on to `fccb5a301` below, which fixed the
@@ -702,13 +762,21 @@ renders (not raw i18n keys), screenshotted both languages.
 
 ### Open follow-ups (not yet done)
 
-- 7 of the 10 flags added to `src/frontend/android/gradle.properties` by
+- ~~7 of the 10 flags added to `src/frontend/android/gradle.properties` by
   the AGP upgrade assistant are already deprecated and will be removed in
   AGP 10.0 (`usesSdkInManifest.disallowed`,
   `sdk.defaultTargetSdkToCompileSdkIfUnset`, `enableAppCompileTimeRClass`,
   `builtInKotlin`, `newDsl`, `r8.optimizedResourceShrinking`,
   `defaults.buildfeatures.resvalues`) — safe cosmetic cleanup whenever
-  convenient.
+  convenient.~~ **DONE 2026-09-15 in `f1dac0d46`** — but the "safe cosmetic
+  cleanup" framing here was wrong and worth correcting: the assistant writes
+  these flags to *preserve* AGP 8 behaviour, so removing them opts into AGP 9
+  defaults. That is a behavioural change needing a real build and device test,
+  not a text edit. Each was checked against what this project actually uses
+  before removal (all seven turned out inert here) and verified with a clean
+  `assembleDebug` + `assembleRelease` plus an on-device smoke test — see the
+  section at the top of this file. Doing it properly is also what surfaced the
+  broken release build below.
 - ~~Found (not fixed, unrelated to the AGP/Gradle change) — a pre-existing
   frontend bug: `Uncaught (in promise) Error: "Preferences.then()" is not
   implemented on android`, logged via Capacitor/Console on every app
