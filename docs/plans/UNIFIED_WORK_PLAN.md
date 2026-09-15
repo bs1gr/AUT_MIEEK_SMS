@@ -82,6 +82,44 @@ confirming values survive an app kill) is still worth doing before release.
 
 ---
 
+## 🔧 Version-sync chain: the last three no-op paths (September 15, 2026, `9c95d93e0`)
+
+**Status**: ✅ FIXED, not yet released. Follow-on to `fccb5a301` below, which fixed the
+flatten-stale paths in `COMMIT_READY.ps1` and the v-prefix regex in `RELEASE_READY.ps1`
+but left the **same two bug classes alive in `VERIFY_VERSION.ps1`**. Both had been
+surfacing as `[WARN] Pattern not found in file` on every `COMMIT_READY` run — a warning
+easy to read as noise, which is how they survived the audit.
+
+1. The `COMMIT_READY.ps1` entry used `'Version:\s*\d+\.\d+\.\d+'`, requiring a digit
+   immediately after `"Version: "`, but that file's banner reads `Version: v1.18.x` with
+   a literal `v`. The check could never pass, never fail meaningfully and never repair —
+   which is why **the very banner `fccb5a301` cited as proof the chain was broken was
+   still reading `v1.18.25`** against a real `v1.18.41`. Now captures the optional `v`
+   and restores it, so `INSTALLER_BUILDER.ps1`'s v-less banner keeps its own shape. With
+   the pattern fixed the check immediately reported the real drift, and `-Update`
+   corrected the banner.
+2. Dropped the dead `**Project Version (documented)**` entry — that line was removed when
+   `DOCUMENTATION_INDEX.md` was rewritten on 2026-09-03 and exists nowhere in the repo.
+3. The `package-lock.json` block had **never run to completion**: `ConvertFrom-Json`
+   throws on the `packages.""` key without `-AsHashtable`, so every invocation landed in
+   the catch. Switching to `-AsHashtable` would have worked but its `ConvertTo-Json`
+   round-trip reserializes all ~13,700 lines and reorders keys — not a diff worth taking
+   for one version field — so the two project-version fields are now edited as text,
+   capped at one replacement each.
+
+**Gotcha worth keeping**: the 4-argument static `[regex]::Replace` overload takes
+`RegexOptions`, **not** a count, so passing `1` there silently means `IgnoreCase` and
+replaces every match. Doing this rewrote all 980 dependency versions in the lockfile;
+caught on the diff before it went anywhere. The count-limited form is the *instance*
+`.Replace(input, replacement, count)` method.
+
+Verified both directions on the lockfile: already-in-sync runs are a true no-op leaving
+the file byte-identical, and after deliberately drifting both project-version fields the
+run restores it to byte-identical with the committed state — 2 lines repaired, the other
+13,694 untouched. All 9 version checks now report OK with no warnings.
+
+---
+
 ## 🔍 Four-agent workspace audit + full remediation (September 14–15, 2026)
 
 **Status**: ✅ DONE, not yet released. Eleven commits, `b644ee42c..8fbf66ee0`. Four
