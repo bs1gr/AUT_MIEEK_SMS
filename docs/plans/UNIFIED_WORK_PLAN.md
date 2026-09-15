@@ -209,13 +209,16 @@ there is now a single build path and verification always runs.
   all 78 versions retained.
   - **Two stubs deliberately kept** (1.12.6, 1.18.28) — each is that version's *only*
     block, so deleting it would drop the version from the changelog entirely.
-  - **Three versions still carry duplicate headers, on purpose**: `1.9.8`, `1.12.8` and
-    `1.15.0` each have two real content blocks with **conflicting dates** (e.g. 1.15.0 at
-    2026-01-07 and 2026-01-05) and predate tagging, so there is no tag to settle which is
-    the real release date. Merging would mean asserting a ship date for released history
-    on a guess. They need an owner decision — pick the authoritative date per version, or
-    leave them as a faithful record that the history itself is ambiguous. (`1.18.0` had
-    the same conflict but its tag settled it at 2026-02-16, so it was merged.)
+  - **Three versions keep their duplicate headers — DECIDED, not outstanding**: `1.9.8`,
+    `1.12.8` and `1.15.0` each have two real content blocks with **conflicting dates**
+    (e.g. 1.15.0 at 2026-01-07 and 2026-01-05) and predate tagging, so nothing records
+    which date the version actually shipped on. Owner decision on 2026-09-16: **leave them
+    as an honest record that the history is genuinely ambiguous**, rather than collapsing
+    them and presenting a guessed release date as fact. A note in `CHANGELOG.md`'s
+    preamble explains this in place, so the entries do not read as a cleanup that missed
+    three versions and do not get "fixed" later. Do not merge these without a new
+    decision. (`1.18.0` had the same conflict but its git tag settled it at 2026-02-16,
+    so it was merged.)
   - Cosmetic leftover: `1.14.0`'s merged entry lists its `⚠️ BREAKING CHANGES` section in
     the middle rather than first, because sections were kept in first-appearance order
     rather than reordered. Content is complete; only the ordering is unconventional.

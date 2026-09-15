@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 This project adheres to Keep a Changelog principles and uses semantic versioning.
 
 > **Note**: For historical changes prior to 1.9.8, see `archive/pre-1.9.8/CHANGELOG_ARCHIVE.md`.
+>
+> **Note**: `1.9.8`, `1.12.8` and `1.15.0` each appear twice below, with different dates
+> (for example `1.15.0` is listed under both 2026-01-07 and 2026-01-05). This is left in
+> place deliberately, not an oversight. Those releases predate git tagging, so nothing
+> records which date the version actually shipped on, and both entries hold real content.
+> Collapsing them would mean picking a release date by guesswork and presenting it as
+> fact. They are kept as-is so the record shows the history is genuinely ambiguous rather
+> than hiding it behind a confident-looking single entry. Every other duplicate header —
+> 44 of them, left by a release-automation bug fixed in September 2026 — was removed on
+> 2026-09-15.
 
 ---
 
