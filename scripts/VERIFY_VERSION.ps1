@@ -184,17 +184,20 @@ $versionChecks = @(
         Description = "Documentation index version"
         Critical = $false
     },
-    @{
-        File = "docs/DOCUMENTATION_INDEX.md"
-        Pattern = '\*\*Project Version \(documented\)\*\*:\s*\d+\.\d+\.\d+'
-        Replace = "**Project Version (documented)**: $VersionCore"
-        Description = "Documentation index documented project version"
-        Critical = $false
-    },
+    # NOTE: a "**Project Version (documented)**" entry used to sit here, but that
+    # line no longer exists in DOCUMENTATION_INDEX.md (removed when the index was
+    # rewritten on 2026-09-03) and exists nowhere else in the repo, so the check
+    # could only ever report "Pattern not found". Dropped rather than left to
+    # emit a permanent warning.
     @{
         File = "infra/scripts/ops/COMMIT_READY.ps1"
-        Pattern = 'Version:\s*\d+\.\d+\.\d+'
-        Replace = "Version: $VersionCore"
+        # This file's banner is "Version: v1.18.x" — a literal "v" prefix — so a
+        # pattern demanding a digit straight after "Version: " never matched and
+        # this check could only ever warn, never verify or repair. Capture the
+        # optional "v" and put it back, so a banner without one (as in
+        # INSTALLER_BUILDER.ps1 below) keeps its own shape.
+        Pattern = 'Version:\s*(v?)\d+\.\d+\.\d+'
+        Replace = "Version: `${1}$VersionCore"
         Description = "COMMIT_READY.ps1 version"
         Critical = $false
     },
@@ -313,23 +316,38 @@ foreach ($check in $versionChecks) {
 if ($Update) {
     $packageLockPath = Join-Path $PROJECT_ROOT "src/frontend/package-lock.json"
     if (Test-Path $packageLockPath) {
+        # Edited as text, deliberately, rather than parsed as JSON. Two reasons:
+        #   1. ConvertFrom-Json throws on the packages."" key ("a property whose
+        #      name is an empty string") without -AsHashtable, so the previous
+        #      implementation here always landed in the catch below and never
+        #      once updated this file.
+        #   2. -AsHashtable would fix that, but the ConvertTo-Json round-trip
+        #      reserializes all ~13,700 lines and reorders keys, which is a
+        #      terrible diff and risks breaking `npm ci` over one version field.
+        # Each replacement is capped at 1 occurrence: the root "version" is the
+        # first 2-space-indented one, and packages."" is the first entry in
+        # packages, so its "version" is the first 6-space-indented one. Every
+        # other "version" in the file is a dependency's and must not be touched.
+        # The cap must come from the *instance* .Replace(input, replacement, count)
+        # method: the 4-argument static [regex]::Replace overload takes
+        # RegexOptions, not a count, so passing 1 there silently means
+        # IgnoreCase and rewrites every dependency version in the file.
         try {
             $lockContent = Get-Content $packageLockPath -Raw
-            $lockJson = $lockContent | ConvertFrom-Json -Depth 100
+            $originalLock = $lockContent
 
-            # Update only the root-level version
-            $lockJson.version = $VersionCore
+            $rootVersionRx = [regex]::new('(?m)^(\s{2}"version":\s*")[^"]*(")')
+            $selfVersionRx = [regex]::new('(?m)^(\s{6}"version":\s*")[^"]*(")')
+            $lockContent = $rootVersionRx.Replace($lockContent, "`${1}$VersionCore`${2}", 1)
+            $lockContent = $selfVersionRx.Replace($lockContent, "`${1}$VersionCore`${2}", 1)
 
-            # Update the packages."" version (represents the project itself)
-            if ($lockJson.packages -and $lockJson.packages.PSObject.Properties['']) {
-                $lockJson.packages.''.version = $VersionCore
+            if ($lockContent -ne $originalLock) {
+                Set-Content -Path $packageLockPath -Value $lockContent -NoNewline -Encoding UTF8
+                Write-Success "Frontend package-lock.json: Updated project version to $VersionCore (dependencies unchanged)"
+                $results.Updated++
+            } else {
+                Write-Success "Frontend package-lock.json: $VersionCore (correct)"
             }
-
-            # Convert back to JSON with proper formatting
-            $updatedContent = $lockJson | ConvertTo-Json -Depth 100
-            Set-Content -Path $packageLockPath -Value $updatedContent -Encoding UTF8
-            Write-Success "Frontend package-lock.json: Updated project version to $VersionCore (dependencies unchanged)"
-            $results.Updated++
         } catch {
             Write-Warning "Could not update package-lock.json: $($_.Exception.Message)"
             Write-Info "Run 'cd frontend && npm install' to regenerate the lock file"
