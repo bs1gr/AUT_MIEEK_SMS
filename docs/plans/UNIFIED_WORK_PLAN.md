@@ -76,9 +76,37 @@ recorded property-access log for the whole run was exactly `['then']`. `get`, `s
 100% unused on Android before this fix. Restored, all 7 pass; `eslint` and a full
 project `tsc --noEmit` are clean.
 
-**Not yet verified on a physical device** — the mechanism and the fix are proven at the
-unit level, but an on-device launch (watching logcat for the absence of the error, and
-confirming values survive an app kill) is still worth doing before release.
+### On-device verification (Galaxy A55, SM-A556B, Wi-Fi ADB)
+
+Confirmed on real hardware, not just at unit level. The sequence gives a genuine
+before/after because the device still had the **pre-fix** build installed from the
+2026-09-11 AGP session:
+
+1. **Before state — the decisive one.** The installed pre-fix app had been launched and
+   used (it had `CapWebViewSettings.xml`, `WebViewChromiumPrefs.xml` and
+   `AwOriginVisitLoggerPrefs.xml`, all dated 2026-09-11 21:16), yet
+   `/data/data/cy.mieek.sms/shared_prefs/CapacitorStorage.xml` — the file
+   `@capacitor/preferences` writes into — **did not exist at all**. Direct hardware
+   proof that Preferences was never written to even once.
+2. Built and installed the fixed debug APK (`npm run build:android`, `gradlew
+   assembleDebug`, 177 tasks, 6.2 MB). Cleared logcat, launched: **no
+   `"Preferences.then()" is not implemented on android`**, no `Capacitor/Console`
+   errors, no crash.
+3. Configured Local Network → `172.16.0.15:8000` against a running `NATIVE.ps1` backend.
+   `CapacitorStorage.xml` was **created** and contained
+   `sms_server_url=http://172.16.0.15:8000/api/v1` and `sms_server_type=local`. This
+   can only happen if `init()` succeeded, since `_persistAsync` returns early while
+   `_prefsReady` is false.
+4. **The scenario this module exists for.** Force-stopped the app, deleted the WebView's
+   entire `app_webview/Default/Local Storage` directory (simulating Android evicting
+   localStorage under memory pressure) while leaving `shared_prefs` intact, and
+   relaunched. The app went **straight to the login screen**, not back to the
+   connection-type wizard — it rehydrated the server URL from Preferences. Pre-fix this
+   would have lost the server entirely, since localStorage was the only copy.
+
+Screenshots captured at each step. Note the test device is now pointed at
+`172.16.0.15:8000`, a dev-machine LAN address that only resolves while `NATIVE.ps1` is
+running; change it on the device when testing against something else.
 
 ---
 
