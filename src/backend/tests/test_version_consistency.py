@@ -299,8 +299,8 @@ def test_all_versions_consistent(project_root: Path, version_file: str, version_
 
 def test_verify_version_script_exists(project_root: Path):
     """Ensure VERIFY_VERSION.ps1 script exists for CI/CD."""
-    script_path = project_root / "src" / "scripts" / "VERIFY_VERSION.ps1"
-    assert script_path.exists(), "src/scripts/VERIFY_VERSION.ps1 script must exist for CI/CD version validation"
+    script_path = project_root / "scripts" / "VERIFY_VERSION.ps1"
+    assert script_path.exists(), "scripts/VERIFY_VERSION.ps1 script must exist for CI/CD version validation"
 
     # Verify script has proper execution permissions (on Windows, just check readability)
     content = script_path.read_text(encoding="utf-8")

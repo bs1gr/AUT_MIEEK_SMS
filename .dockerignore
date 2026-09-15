@@ -1,0 +1,46 @@
+# Docker only reads a .dockerignore from the build context root (or a
+# Dockerfile-specific one also placed at the context root) - all of this
+# project's compose builds use context: ../../.. (the repo root) from
+# infra/docker/compose/, so this is the only .dockerignore that is ever
+# actually applied. A copy previously lived at infra/docker/.dockerignore
+# and was never read by any build; moved here with paths updated for the
+# June 2026 structure flatten (backend/ -> src/backend/, frontend/ ->
+# src/frontend/).
+
+# VCS
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+src/backend/venv/
+src/backend/.pytest_cache/
+src/backend/.mypy_cache/
+src/backend/.coverage
+src/backend/htmlcov/
+**/.env
+**/.env.local
+
+# Node
+src/frontend/node_modules/
+src/frontend/.vite/
+src/frontend/dist/
+src/frontend/.eslintcache
+
+# Builds & artifacts
+build/
+dist/
+coverage/
+.backups/
+backups/
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+**/.dockerignore
+**/Dockerfile*

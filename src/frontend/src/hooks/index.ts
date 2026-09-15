@@ -5,7 +5,6 @@ export * from './useCoursesQuery';
 export * from './useErrorHandler';
 export * from './useErrorRecovery';
 export * from './useFormValidation';
-export * from './useImportExport';
 export * from './useModal';
 export * from './useNotifications';
 export * from './usePerformanceMonitor';

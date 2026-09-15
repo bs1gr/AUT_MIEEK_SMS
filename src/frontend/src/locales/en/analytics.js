@@ -129,72 +129,17 @@ export default {
     },
     error: 'Predictive Analysis Error',
   },
+  // Only step.template is live (SavedReportsPanel.tsx). The rest of this
+  // subtree (title/ui/template/dataseries/charttype/filters/preview/
+  // reportName/error) was for the deleted CustomReportBuilder component and
+  // had zero callers - removed 2026-09 workspace audit. step.template was
+  // itself a nested object ({ desc: ... }) instead of a plain string, so
+  // t('analytics.builder.step.template', 'Template') could never actually
+  // resolve a translation and always fell through to the hardcoded English
+  // fallback, even for Greek users - fixed by making it a plain string.
   builder: {
-    title: 'Custom Report Builder',
-    ui: {
-      checkmark: '✓',
-      isRequired: ' is required',
-      recommended: 'Recommended',
-    },
     step: {
-      template: {
-        desc: 'Select a template or start custom',
-      },
-      dataseries: {
-        desc: 'Choose metrics to include',
-      },
-      charttype: {
-        desc: 'Select visualization type',
-      },
-      filters: {
-        desc: 'Configure data filters',
-      },
-      preview: {
-        desc: 'Review your report',
-      },
-    },
-    template: {
-      description: 'Choose a template to get started quickly or customize from scratch',
-      custom: 'Start from scratch with full customization',
-      class_summary: 'Class Summary',
-      grade_analysis: 'Grade Analysis',
-      performance_trend: 'Performance Trends',
-      attendance_report: 'Attendance Report',
-    },
-    dataseries: {
-      description: 'Choose which metrics to include in your report',
-      selected: 'Selected series',
-    },
-    charttype: {
-      description: 'Choose the visualization that best represents your data',
-      info: 'You can change this type later in the preview',
-    },
-    filters: {
-      description: 'Choose which filters to apply to refine your data',
-      daterange: 'Date Range',
-      additional: 'Additional Filters',
-      includeinreport: 'Include in report filtering',
-      active: 'Active Filters',
-      info: 'Filters narrow the data included in your report. You can modify filter values when generating the report.',
-    },
-    preview: {
-      description: 'Review your report configuration and give it a name',
-      configuration: 'Configuration Summary',
       template: 'Template',
-      charttype: 'Chart Type',
-      dataseries: 'Data Series',
-      filters: 'Filters',
-      incomplete: 'Incomplete Configuration',
-      atleastone: 'At least one data series is required',
-      isrequired: 'is required',
-      info: 'After saving, you can generate the report with specific filter values and download it as PDF or Excel.',
-    },
-    reportName: {
-      placeholder: 'e.g., Q1 Performance Analysis',
-      hint: 'This name will appear in your reports list',
-    },
-    error: {
-      noName: 'Please enter a report name',
     },
   },
   charttype: {
