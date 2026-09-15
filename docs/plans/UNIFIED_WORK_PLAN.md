@@ -1,8 +1,8 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.41
+**Current Version**: 1.18.42
 **Last Updated**: September 15, 2026
-**Status**: ✅ **v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below. 2026-09-14/15: ran a four-agent workspace audit (CI/CD, backend, frontend, infra) and closed everything it found — 5 security findings, a Greek-users-see-English i18n bug, 3 duplicate/dead workflows, the version-sync chain broken since the June flatten, ~700 lines of confirmed-dead code, and all 4 remaining oversized frontend components refactored with ~120 new tests. 2026-09-15 (later): fixed a Capacitor thenable bug that had been silently disabling Preferences-backed storage on Android completely — see below.**
+**Status**: ✅ **v1.18.42 published 2026-09-15 — installer + APK, all workflows green; see the release section below, including three release-pipeline traps found during it that are not yet fixed. Previously: v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below. 2026-09-14/15: ran a four-agent workspace audit (CI/CD, backend, frontend, infra) and closed everything it found — 5 security findings, a Greek-users-see-English i18n bug, 3 duplicate/dead workflows, the version-sync chain broken since the June flatten, ~700 lines of confirmed-dead code, and all 4 remaining oversized frontend components refactored with ~120 new tests. 2026-09-15 (later): fixed a Capacitor thenable bug that had been silently disabling Preferences-backed storage on Android completely — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
@@ -107,6 +107,72 @@ before/after because the device still had the **pre-fix** build installed from t
 Screenshots captured at each step. Note the test device is now pointed at
 `172.16.0.15:8000`, a dev-machine LAN address that only resolves while `NATIVE.ps1` is
 running; change it on the device when testing against something else.
+
+---
+
+## 🚀 v1.18.42 (September 15, 2026) — released
+
+**Status**: ✅ RELEASED | Tag `v1.18.42` | commit `ac63f81b6` |
+<https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.42>
+
+Ships everything logged below since v1.18.41 (2026-09-09): the in-app Help audit fixes,
+the four-agent workspace audit remediation, four component refactors (~120 new tests),
+the Android Preferences fix, the version-sync chain repairs, and the Android release-build
+fix.
+
+**Assets**: `SMS_Installer_1.18.42.exe` (74.86 MB) and `SMS_Android_1.18.42.apk` (3.3 MB).
+All workflows green — release-on-tag, Android APK, installer (with its mandatory signature
+gate), E2E.
+
+### Verification
+
+Full `RUN_TESTS_BATCH` (38/38 batches, 1054 tests, zero failures), `COMMIT_READY -Quick`
+(10/10 lint, 4/4 suites), locally-built installer signed and Authenticode-**Valid**
+(AUT MIEEK Limassol, DigiCert timestamped), smoke test passing with file *and* product
+version both `v1.18.42`.
+
+**The Android release-build fix landed just in time.** The APK workflow runs
+`./gradlew assembleRelease`, and `v1.18.41` predates the AGP 9 upgrade — so this was the
+**first release to exercise it**. Without `64ab67b77` the APK step would have failed
+*after* the tag was already pushed and immutable.
+
+Two fixes from earlier today were confirmed working on their first real release: the
+version propagation reached all 9 tracked references plus `package-lock.json` (both of
+which were silent no-ops until `9c95d93e0`, and the lockfile edit stayed surgical at 2
+lines), and the `[1.18.42]` CHANGELOG header appeared exactly once.
+
+### 🐛 Three release-pipeline traps caught during this release (NOT yet fixed)
+
+Worth fixing before the next release — each silently ships wrong content rather than
+failing:
+
+1. **`RELEASE_READY.ps1`'s SMS_Lite auto-build only triggers when `SMS_Lite.exe` is
+   absent, never when it is stale** (line ~292, `if (-not (Test-Path $liteExePath))`). The
+   pre-built Lite here was from 2026-09-08 — a week old, predating every fix in this
+   release — and would have shipped *even without* `-SkipLiteBuild`. Had to delete the
+   folder by hand to force a rebuild.
+2. **`INSTALLER_BUILDER.ps1`'s `Invoke-NativeLiteBuild` only rebuilds the frontend if
+   `dist/index.html` is missing** (line ~512). It therefore bundles whatever happens to be
+   in `src/frontend/dist`. During this release that was an **Android-mode** bundle left
+   over from `npm run build:android` during the APK work — so the desktop installer would
+   have shipped an Android-mode frontend. Also had to be cleared by hand.
+   Together, 1 and 2 mean installer contents are not reproducibly fresh.
+3. **`GENERATE_RELEASE_DOCS.ps1` emits a broken GitHub release description**: three links
+   to documents it never generates (`MIGRATION_`, `RELEASE_REPORT_`,
+   `CLEANUP_EXECUTION_`), two pre-flatten script paths (`.\DOCKER.ps1`, `.\NATIVE.ps1`)
+   dead since June, and backticks mangled by PowerShell escaping so fenced code blocks and
+   inline code render as literal backslashes. Its commit *counting* is also wrong ("575
+   commits, 546 unrecognized" for a 29-commit range) though the categorised output itself
+   was correct. The description was hand-written for this release instead.
+
+### Minor, pre-existing
+
+- 26 historical CHANGELOG versions carry duplicate `## [x.y.z]` headers, scars from the
+  bug fixed in September. This release added none; cleaning the old ones is cosmetic.
+- The code-signing password exposed in git history (found in `10c55b328`) is **less severe
+  than that commit implies**: no `.pfx` was ever committed and `*.pfx` is gitignored, so it
+  is password-only exposure and cannot sign anything without the certificate file. The
+  "rotate if the cert is ever regenerated" caveat still applies.
 
 ---
 
