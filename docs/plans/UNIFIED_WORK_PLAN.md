@@ -110,6 +110,74 @@ running; change it on the device when testing against something else.
 
 ---
 
+## 🧹 Post-release cleanup: Credits panel + three dead items (September 16, 2026)
+
+**Status**: ✅ DONE, not yet released. Commits `570935e3e` (feature) and `6c6874b2a`
+(cleanup).
+
+### Credits panel added to the System tab (`570935e3e`)
+
+A collapsible **Credits** card below Control Panel on `/#/power`, matching the existing
+System Health / Control Panel card pattern (same toggle styling, `aria-expanded`/
+`aria-controls`, and a `?showCredits=1` param alongside the existing ones). Shows the AUT
+credits logo, app name and build version, the author with a LinkedIn link, the institution,
+the MIT licence and copyright, and the open-source projects the system is built on.
+
+Decisions worth keeping:
+
+- The LinkedIn link uses `rel="noopener noreferrer"` — `target="_blank"` alone lets the
+  opened page reach back through `window.opener` — plus an sr-only "(opens in a new
+  window)" so the behaviour is announced rather than implied by an icon.
+- The LinkedIn mark is an **inline SVG**, so the panel renders without a third-party
+  request.
+- Version comes from `VITE_APP_VERSION`, the same build-time value the footer uses, rather
+  than a second hardcoded copy.
+- The copyright year is pinned to **2025 to match the `LICENSE` file**, not
+  `new Date().getFullYear()`, so the notice cannot drift from the licence it cites.
+- The stack list was read from `package.json` and `requirements.txt` rather than assumed.
+- Image lives in `src/frontend/public/` and is referenced as `/AUT_Logo_realistic_Credits.jpg`,
+  matching the existing `/logo.png` usage; Capacitor serves from `https://localhost/`, so
+  the root-absolute path also resolves on Android despite that build's relative base.
+
+EN + EL translations both added (translation-integrity check passes). E2E coverage in
+`tests/e2e/credits.spec.ts` (3 tests), including two that are more than box-ticking: the
+logo is asserted via `naturalWidth > 0` so a missing file **fails** instead of passing on a
+broken-image placeholder, and one asserts no raw `system.credits*` key leaks into the UI,
+since i18next echoes missing keys back verbatim and would otherwise render them silently.
+
+### Three dead items removed (`6c6874b2a`)
+
+1. **`src/frontend/src/pages/PowerPage.tsx`** — zero references repo-wide. `routes.ts`
+   exports the *name* `PowerPage` but lazy-loads `SystemPage`, so this file had not
+   rendered since v1.17.5 despite its own docstring saying exactly that.
+2. **`src/frontend/src/__e2e__/`** — **unrunnable**, not merely unused: its spec imports
+   `login`/`logout`/`ensureTestUserExists` from a **0-byte** `helpers.ts`, so it cannot
+   compile. Also excluded from vitest and outside Playwright's `testDir`. Its only commit
+   is the June flatten. Checked for unique coverage first — its "Responsive Design" block
+   looked unique but Playwright already runs the **whole** suite under Mobile Chrome
+   (Pixel 5) and Mobile Safari (iPhone 12) projects, and `custom-dashboards.spec.ts` has
+   its own responsive block at the same viewports. Nothing lost.
+3. **`src/backend/data/data/`** (20 files) — runtime artifacts tracked because of a
+   **doubled path**. The correct `data/exports/` and `data/imports/` are gitignored
+   (`.gitignore:300-301`); the doubled path is not, so 17 zero-byte export CSVs and 3
+   trivial import leftovers got committed while the real directories stayed clean. Same
+   doubling disease `38f2d3e6b` fixed for `backend/backend`/`frontend/frontend`, missed
+   here. Timestamps are the flatten date and nothing has written there since, so it was a
+   leftover, not a live bug — no gitignore change needed.
+
+### ⚠️ Flaky commit gate observed once (not reproduced)
+
+During this work `COMMIT_READY -Quick` failed with backend batch 2 aborting **in 0.7s** —
+far too fast to have run its tests. Not caused by the deletions: the same 5 files passed
+directly (69 tests), and the suite then went green three times, including COMMIT_READY's
+exact `-BatchSize 5 -FastFail` invocation where that batch took 14.5s. Worth knowing the
+gate can flake this way, because `-FastFail` turns one bad batch into a full gate failure
+and the batch runner's log **does not capture pytest output** for a failing batch, so
+there is nothing to diagnose after the fact. If it recurs, that missing output is the first
+thing to fix.
+
+---
+
 ## 🚀 v1.18.42 (September 15, 2026) — released
 
 **Status**: ✅ RELEASED | Tag `v1.18.42` | commit `ac63f81b6` |
