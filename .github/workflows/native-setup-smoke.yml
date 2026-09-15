@@ -6,6 +6,9 @@ on:
       - 'infra/scripts/dev/NATIVE.ps1'
       - '.github/workflows/**'
 
+permissions:
+  contents: read
+
 jobs:
   setup-smoke:
     name: Run .\NATIVE.ps1 -Setup (Windows smoke)
@@ -15,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.13
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'

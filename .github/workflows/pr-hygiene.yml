@@ -53,17 +53,7 @@ jobs:
         shell: pwsh
         run: ./infra/scripts/ops/COMMIT_READY.ps1 -Quick -NonInteractive
 
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    needs: [version-consistency, commit-ready]
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          comment-summary-in-pr: always
-          deny-licenses: GPL-3.0, AGPL-3.0
+  # Dependency review runs unconditionally on every PR to main via the
+  # standalone dependency-review.yml workflow — kept out of this job list so
+  # it isn't gated behind version-consistency/commit-ready finishing first.
 

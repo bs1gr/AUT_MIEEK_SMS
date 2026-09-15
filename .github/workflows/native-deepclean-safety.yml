@@ -6,6 +6,9 @@ on:
       - 'infra/scripts/dev/NATIVE.ps1'
       - '.github/workflows/**'
 
+permissions:
+  contents: read
+
 jobs:
   dry-run-check:
     name: Dry-run listing should succeed

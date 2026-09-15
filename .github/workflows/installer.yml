@@ -24,6 +24,9 @@ on:
         default: 'dist/installer'
         type: string
 
+permissions:
+  contents: write
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
@@ -74,7 +77,7 @@ jobs:
       - name: Build SMS Manager launcher
         shell: pwsh
         run: |
-          $csproj = '.\installer\SMS_Manager\SMS_Manager.csproj'
+          $csproj = '.\infra\installer\windows\SMS_Manager\SMS_Manager.csproj'
           if (-not (Test-Path $csproj)) {
             Write-Warning "SMS_Manager.csproj not found — skipping launcher build (INSTALLER_BUILDER.ps1 embeds a pre-built launcher if present)"
             exit 0
@@ -83,7 +86,7 @@ jobs:
           dotnet restore $csproj
           dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true
 
-          $managerExe = '.\installer\dist\SMS_Manager.exe'
+          $managerExe = '.\infra\installer\windows\dist\SMS_Manager.exe'
           if (-not (Test-Path $managerExe)) {
             Write-Error "SMS_Manager.exe was not produced at expected path: $managerExe"
             exit 1

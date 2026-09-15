@@ -13,13 +13,11 @@ on:
         type: choice
         options:
           - all
-          - stale-cleanup
           - workflow-cleanup
           - artifact-cleanup
           - health-check
           - deps-check
           - docs-validate
-          - security-audit
           - branch-protection
       cleanup_level:
         description: '[DEPRECATED - use task parameter] Cleanup level'
@@ -31,6 +29,9 @@ on:
           - standard
           - aggressive
 
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,18 +40,23 @@ jobs:
   # ============================================================================
   # TASK DETERMINATION (Consolidation 1: Unified task selector)
   # ============================================================================
+  #
+  # NOTE: stale-issue cleanup and security scanning are intentionally NOT tasks
+  # here. stale.yml (cron '0 4 * * *') and codeql.yml/trivy-scan.yml (weekly)
+  # already run on their own real schedules — this workflow used to also
+  # dispatch them daily via `gh workflow run`, which just meant they ran twice
+  # for no benefit. Trigger them directly (workflow_dispatch on those files)
+  # if you need an out-of-band run.
 
   determine-tasks:
     name: 🎯 Determine Tasks to Run
     runs-on: ubuntu-latest
     outputs:
-      run_stale: ${{ steps.tasks.outputs.run_stale }}
       run_workflow_cleanup: ${{ steps.tasks.outputs.run_workflow_cleanup }}
       run_artifact_cleanup: ${{ steps.tasks.outputs.run_artifact_cleanup }}
       run_health_check: ${{ steps.tasks.outputs.run_health_check }}
       run_deps_check: ${{ steps.tasks.outputs.run_deps_check }}
       run_docs_validate: ${{ steps.tasks.outputs.run_docs_validate }}
-      run_security_audit: ${{ steps.tasks.outputs.run_security_audit }}
       run_branch_protection: ${{ steps.tasks.outputs.run_branch_protection }}
     steps:
       - name: Determine which tasks to run
@@ -60,24 +66,20 @@ jobs:
 
           # Default: run all if not specified
           if [ "$TASK" = "all" ] || [ -z "$TASK" ]; then
-            echo "run_stale=true" >> $GITHUB_OUTPUT
             echo "run_workflow_cleanup=true" >> $GITHUB_OUTPUT
             echo "run_artifact_cleanup=true" >> $GITHUB_OUTPUT
-            echo "run_health_check=true" >> $GITHUB_OUTPUT
+            echo "run_health_check=false" >> $GITHUB_OUTPUT  # Health check is manual-only
             echo "run_deps_check=true" >> $GITHUB_OUTPUT
             echo "run_docs_validate=true" >> $GITHUB_OUTPUT
-            echo "run_security_audit=true" >> $GITHUB_OUTPUT
             echo "run_branch_protection=true" >> $GITHUB_OUTPUT
             echo "🎯 Running all maintenance tasks"
           else
             # Run only specified task
-            echo "run_stale=$([ "$TASK" = "stale-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_workflow_cleanup=$([ "$TASK" = "workflow-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_artifact_cleanup=$([ "$TASK" = "artifact-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_health_check=$([ "$TASK" = "health-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_deps_check=$([ "$TASK" = "deps-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_docs_validate=$([ "$TASK" = "docs-validate" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-            echo "run_security_audit=$([ "$TASK" = "security-audit" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_branch_protection=$([ "$TASK" = "branch-protection" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "🎯 Running task: $TASK"
           fi
@@ -90,6 +92,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: determine-tasks
     if: needs.determine-tasks.outputs.run_workflow_cleanup == 'true'
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -132,6 +137,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: determine-tasks
     if: needs.determine-tasks.outputs.run_artifact_cleanup == 'true'
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -175,25 +183,14 @@ jobs:
   # MAINTENANCE JOBS
   # ============================================================================
 
-  stale-cleanup:
-    name: 👻 Close Stale Issues and PRs
-    runs-on: ubuntu-latest
-    needs: determine-tasks
-    if: needs.determine-tasks.outputs.run_stale == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Run stale workflow
-        run: |
-          echo "👻 Triggering stale issues/PRs workflow..."
-          gh workflow run stale.yml --ref main 2>&1 || echo "Stale workflow triggered or already running"
-
   branch-protection:
     name: 🛡️ Apply Branch Protection
     runs-on: ubuntu-latest
     needs: determine-tasks
     if: needs.determine-tasks.outputs.run_branch_protection == 'true'
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -202,6 +199,23 @@ jobs:
         run: |
           echo "🛡️ Ensuring branch protection rules are in place..."
           gh workflow run apply-branch-protection.yml --ref main 2>&1 || echo "Branch protection workflow triggered or already running"
+
+  health-check:
+    name: 🏥 Production Health Check
+    runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_health_check == 'true'
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Trigger production health check
+        run: |
+          echo "🏥 Triggering production health check (self-hosted runner, real pass/fail assertions)..."
+          gh workflow run scheduled-production-health-check.yml --ref main 2>&1 || echo "Health check workflow triggered or already running"
 
   # ============================================================================
   # VERSION & DEPENDENCY CHECKS
@@ -286,29 +300,6 @@ jobs:
           echo "Skipping link validation (requires external tool)"
 
   # ============================================================================
-  # SECURITY CHECKS
-  # ============================================================================
-
-  security-audit:
-    name: 🔒 Run Security Audit
-    runs-on: ubuntu-latest
-    needs: determine-tasks
-    if: needs.determine-tasks.outputs.run_security_audit == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Run CodeQL analysis
-        run: |
-          echo "🔒 Triggering CodeQL analysis..."
-          gh workflow run codeql.yml --ref main 2>&1 || echo "CodeQL workflow triggered or already running"
-
-      - name: Run Trivy scan
-        run: |
-          echo "🔒 Triggering Trivy vulnerability scan..."
-          gh workflow run trivy-scan.yml --ref main 2>&1 || echo "Trivy workflow triggered or already running"
-
-  # ============================================================================
   # REPORTING
   # ============================================================================
 
@@ -318,11 +309,10 @@ jobs:
     needs:
       - cleanup-workflow-runs
       - cleanup-artifacts
-      - stale-cleanup
       - branch-protection
+      - health-check
       - check-outdated-deps
       - validate-docs
-      - security-audit
     if: always()
     steps:
       - name: Checkout
@@ -340,14 +330,15 @@ jobs:
           echo "## Cleanup Tasks" >> /tmp/summary.md
           echo "- ✅ Workflow runs cleanup" >> /tmp/summary.md
           echo "- ✅ Artifacts cleanup" >> /tmp/summary.md
-          echo "- ✅ Stale issues/PRs processing" >> /tmp/summary.md
           echo "- ✅ Branch protection verification" >> /tmp/summary.md
           echo "" >> /tmp/summary.md
 
           echo "## Checks Completed" >> /tmp/summary.md
           echo "- ✅ Dependency audit" >> /tmp/summary.md
           echo "- ✅ Documentation validation" >> /tmp/summary.md
-          echo "- ✅ Security scans (CodeQL & Trivy)" >> /tmp/summary.md
+          echo "" >> /tmp/summary.md
+
+          echo "Note: stale-issue cleanup (stale.yml) and security scans (codeql.yml, trivy-scan.yml) run on their own independent schedules and are no longer duplicated here." >> /tmp/summary.md
           echo "" >> /tmp/summary.md
 
           echo "## Status" >> /tmp/summary.md

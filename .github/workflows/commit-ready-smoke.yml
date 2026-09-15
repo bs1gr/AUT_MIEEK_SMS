@@ -17,6 +17,9 @@ concurrency:
   group: commit-ready-smoke-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
   PYTHON_VERSION: '3.13'
