@@ -200,8 +200,25 @@ there is now a single build path and verification always runs.
 
 ### Minor, pre-existing
 
-- 26 historical CHANGELOG versions carry duplicate `## [x.y.z]` headers, scars from the
-  bug fixed in September. This release added none; cleaning the old ones is cosmetic.
+- ~~26 historical CHANGELOG versions carry duplicate `## [x.y.z]` headers, scars from the
+  bug fixed in September.~~ **CLEANED 2026-09-15 (`2369e1a88`)** — 125 headers for 78
+  versions, now 81. Two passes: 36 pure-boilerplate stub blocks removed (nothing but
+  "Release Type / Focus / Version references updated"), then 6 versions with genuinely
+  multiple content blocks merged section-by-section. Verified against a backup: content
+  lines 3197 → 3178, the difference being exactly 19 reported exact-duplicate bullets,
+  all 78 versions retained.
+  - **Two stubs deliberately kept** (1.12.6, 1.18.28) — each is that version's *only*
+    block, so deleting it would drop the version from the changelog entirely.
+  - **Three versions still carry duplicate headers, on purpose**: `1.9.8`, `1.12.8` and
+    `1.15.0` each have two real content blocks with **conflicting dates** (e.g. 1.15.0 at
+    2026-01-07 and 2026-01-05) and predate tagging, so there is no tag to settle which is
+    the real release date. Merging would mean asserting a ship date for released history
+    on a guess. They need an owner decision — pick the authoritative date per version, or
+    leave them as a faithful record that the history itself is ambiguous. (`1.18.0` had
+    the same conflict but its tag settled it at 2026-02-16, so it was merged.)
+  - Cosmetic leftover: `1.14.0`'s merged entry lists its `⚠️ BREAKING CHANGES` section in
+    the middle rather than first, because sections were kept in first-appearance order
+    rather than reordered. Content is complete; only the ordering is unconventional.
 - The code-signing password exposed in git history (found in `10c55b328`) is **less severe
   than that commit implies**: no `.pfx` was ever committed and `*.pfx` is gitignored, so it
   is password-only exposure and cannot sign anything without the certificate file. The
