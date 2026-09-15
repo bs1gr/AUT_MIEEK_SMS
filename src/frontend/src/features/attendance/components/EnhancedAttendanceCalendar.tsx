@@ -149,7 +149,7 @@ const EnhancedAttendanceCalendar = () => {
 
   const performSave = useCallback(async () => {
     if (!selectedCourse) {
-      showToast(t('Please select a course'), 'error');
+      showToast(t('pleaseSelectCourse'), 'error');
       return;
     }
 
@@ -191,12 +191,12 @@ const EnhancedAttendanceCalendar = () => {
 
       await Promise.all([...attendancePromises, ...performancePromises]);
 
-      showToast(t('Attendance and performance saved successfully!'), 'success');
+      showToast(t('attendanceAndPerformanceSaved'), 'success');
       setAttendanceRecords({});
       setDailyPerformance({});
     } catch (error) {
       console.error('Save error:', error);
-      showToast(t('Failed to save data'), 'error');
+      showToast(t('failedToSaveData'), 'error');
       throw error; // Re-throw for autosave error handling
     } finally {
       setLoading(false);
