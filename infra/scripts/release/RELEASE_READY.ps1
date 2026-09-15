@@ -215,13 +215,25 @@ function Update-VersionReferences {
     # Root DOCUMENTATION_INDEX.md is a generated/staged artifact (ignored in git); keep canonical index under docs/.
 
     # Update scripts
+    # Note: COMMIT_READY.ps1's banner is "Version: v1.18.x" (literal "v"
+    # prefix) while $NewVersion never carries one (e.g. "1.18.42") — the old
+    # pattern 'Version: [0-9\.]+' required digits immediately after "Version:
+    # ", so it silently never matched that "v" and the banner drifted stale
+    # (stuck at v1.18.25) despite this function running on every release.
+    # Capture the optional "v" and preserve it in the replacement rather than
+    # forcing "v" onto INSTALLER_BUILDER.ps1's banner (which already
+    # correctly has no prefix). The backtick before $ stops PowerShell from
+    # interpolating `${1}` as a variable, so .NET regex's own backreference
+    # substitution handles it instead — and `${1}` (not `$1`) is required
+    # because $NewVersion starts with a digit, which .NET would otherwise
+    # fold into the group number (`$1` + "1.18.42" parses as group "11").
     $commitReadyScript = Join-Path $PROJECT_ROOT "infra\scripts\ops\COMMIT_READY.ps1"
     if (Test-Path $commitReadyScript) {
-        (Get-Content $commitReadyScript) -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content $commitReadyScript
+        (Get-Content $commitReadyScript) -replace 'Version: (v?)[0-9\.]+', "Version: `${1}$NewVersion" | Set-Content $commitReadyScript
     }
     $installerBuilderScript = Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1"
     if (Test-Path $installerBuilderScript) {
-        (Get-Content $installerBuilderScript) -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content $installerBuilderScript
+        (Get-Content $installerBuilderScript) -replace 'Version: (v?)[0-9\.]+', "Version: `${1}$NewVersion" | Set-Content $installerBuilderScript
     }
 
     # Optionally update README.md (if version appears)

@@ -783,16 +783,20 @@ function Invoke-VersionPropagationAndDocs {
 
     # 2) Update known documentation/version banners
     if ($UpdateDocs -or $AutoFix -or ($Mode -in @('standard','full'))) {
+        # Paths below are post-flatten (June 2026): these scripts moved from
+        # the repo root into infra/scripts/*, and the three one-off
+        # RELEASE_SUMMARY/COMMIT_SUMMARY/PERFORMANCE_AUDIT files from that era
+        # no longer exist. The old root-level paths silently no-op'd here
+        # (Update-TextFileVersionLines returns early on a missing path), which
+        # is how COMMIT_READY.ps1's and INSTALLER_BUILDER.ps1's own
+        # ".NOTES Version:" banners went stale for months.
         $targets = @(
             (Join-Path $PROJECT_ROOT 'README.md'),
-            (Join-Path $PROJECT_ROOT 'COMMIT_READY.ps1'),
-            (Join-Path $PROJECT_ROOT 'DOCKER.ps1'),
-            (Join-Path $PROJECT_ROOT 'NATIVE.ps1'),
             (Join-Path $PROJECT_ROOT 'CHANGELOG.md'),
-            (Join-Path $PROJECT_ROOT 'INSTALLER_BUILDER.ps1'),
-            (Join-Path $PROJECT_ROOT 'COMMIT_SUMMARY.md'),
-            (Join-Path $PROJECT_ROOT 'RELEASE_SUMMARY_1.9.7.md'),
-            (Join-Path $PROJECT_ROOT 'PERFORMANCE_AUDIT_2025-12-03.md')
+            (Join-Path $PROJECT_ROOT 'infra\scripts\ops\COMMIT_READY.ps1'),
+            (Join-Path $PROJECT_ROOT 'infra\scripts\dev\DOCKER.ps1'),
+            (Join-Path $PROJECT_ROOT 'infra\scripts\dev\NATIVE.ps1'),
+            (Join-Path $PROJECT_ROOT 'infra\scripts\release\INSTALLER_BUILDER.ps1')
         )
 
         foreach ($t in $targets) {
@@ -839,14 +843,14 @@ function Get-WorkspaceVersionRefs {
         } catch {}
     }
 
-    # Explicit files and docs banners
+    # Explicit files and docs banners (post-flatten paths — see the matching
+    # comment in Invoke-VersionPropagationAndDocs for why this matters)
     $explicitTargets = @(
         (Join-Path $PROJECT_ROOT 'README.md'),
         (Join-Path $PROJECT_ROOT 'CHANGELOG.md'),
-        (Join-Path $PROJECT_ROOT 'COMMIT_SUMMARY.md'),
-        (Join-Path $PROJECT_ROOT 'DOCKER.ps1'),
-        (Join-Path $PROJECT_ROOT 'NATIVE.ps1'),
-        (Join-Path $PROJECT_ROOT 'COMMIT_READY.ps1')
+        (Join-Path $PROJECT_ROOT 'infra\scripts\dev\DOCKER.ps1'),
+        (Join-Path $PROJECT_ROOT 'infra\scripts\dev\NATIVE.ps1'),
+        (Join-Path $PROJECT_ROOT 'infra\scripts\ops\COMMIT_READY.ps1')
     ) | Where-Object { Test-Path $_ }
 
     foreach ($t in $explicitTargets) {
