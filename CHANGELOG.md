@@ -107,17 +107,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - close out post-v1.18.36 review todos in work plan
 - record v1.18.37 release and the Docker CI npm-arborist fix
 
-## [1.18.38] - 2026-09-05
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.37] - 2026-09-04
 
 ### Bug Fixes
@@ -159,17 +148,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **deps-dev**: bump browserslist in /src/frontend (#226)
 - **deps**: bump postcss-selector-parser in /src/frontend (#225)
 
-## [1.18.37] - 2026-09-04
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.36] - 2026-09-01
 
 ### Features
@@ -224,17 +202,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **deps-dev**: bump ws from 8.19.0 to 8.21.0 (#209)
 - **deps**: bump js-yaml and markdownlint-cli (#208)
 
-## [1.18.35] - 2026-08-30
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.34] - 2026-06-26
 
 ### Features
@@ -253,17 +220,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Chores
 - add .backend.port to .gitignore (native server runtime file)
 
-## [1.18.34] - 2026-06-26
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.33] - 2026-06-25
 
 ### ⚠️ BREAKING CHANGES
@@ -330,17 +286,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **security**: rotate Android signing keystore — old password was in git history
 - untrack runtime files + stale test artifacts; fix gitignore paths
 
-## [1.18.33] - 2026-06-25
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.32] - 2026-06-21
 
 ### Features
@@ -360,28 +305,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Documentation
 - update work plan to v1.18.31
 
-## [1.18.32] - 2026-06-21
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.18.31] - 2026-06-19
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.31] - 2026-06-19
 
 ### Bug Fixes
@@ -534,17 +457,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - fix .gitignore for flattened structure, remove tracked runtime artifacts
 - add .trivyignore for Docker security scanning
 
-## [1.18.26] - 2026-06-14
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.25] - 2026-06-11
 
 ### Bug Fixes
@@ -555,17 +467,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Chores
 - apply COMMIT_READY.ps1 version sync and pre-commit fixes (v1.18.25)
 
-## [1.18.25] - 2026-06-11
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.22] - 2026-05-24
 
 ### Features
@@ -588,35 +489,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **release**: bump version to v1.18.25 and update docs/scripts headers
 - **workflows**: add GitHub CLI availability guard for gh-dependent workflow steps
 
-## [1.18.22] - 2026-05-24
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.21] - 2026-04-29
 
 ### Documentation
 - add release documentation for v1.18.25
 - update changelog for v1.18.25 release
-
-## [1.18.21] - 2026-04-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.18.21] - 2026-04-29
 
 ### Features
 - **attendance**: add custom special score display with test coverage
@@ -633,33 +510,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Bug Fixes
 - **release**: avoid stale root doc index
 
-## [1.18.20] - 2026-04-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.19] - 2026-04-17
 
 ### Bug Fixes
 - **release**: keep version checks green
 
-## [1.18.19] - 2026-04-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.18] - 2026-04-17
 
 ### Bug Fixes
@@ -669,17 +524,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **deps**: fix dependabot security alerts
 - **release**: record v1.18.25 publication evidence
 
-## [1.18.18] - 2026-04-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.17] - 2026-04-08
 
 ### Bug Fixes
@@ -890,17 +734,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Chores
 - **gitignore**: add Visual Studio solution files to ignore list
 
-## [1.18.8] - 2026-03-08
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.7] - 2026-03-05
 
 **Release Type**: Feature Release
@@ -1154,6 +987,12 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **grading**: filter active selections and mypy cleanup
 - **courses**: populate course description field in edit modal
 - **courses**: correct evaluation weights for AUT0207 and AUT0305
+- **tests**: fix course modal test failures after auto-activation UI enhancement
+  - Updated `AddCourseModal.test.tsx` to use `[data-testid="semester-year-input"]` selector
+  - Updated `EditCourseModal.test.tsx` to match new input field structure
+  - Fixed 5 failing tests across both modal components
+  - Changed type expectations from `number` to `text` for year inputs
+  - Restored frontend test suite to 100% passing (1854/1854 tests)
 
 ### Refactoring
 - **courses**: remove redundant year field from course modals
@@ -1164,6 +1003,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **release**: update versioned release docs
 - **courses**: document auto-activation enhancements in changelog and work plan
 - **changelog**: document $11.18.3 course management improvements
+- **releases**: update $11.18.3 documentation with comprehensive auto-activation coverage
+  - Added detailed scheduled job documentation (3:00 AM UTC daily)
+  - Documented UI indicators (color-coded badges: green/amber/blue)
+  - Added monitoring and audit logging details
+  - Listed all 4 core auto-activation commits
 
 ### Styling
 - **formatting**: apply ruff formatting to migration and PDF extractor
@@ -1180,50 +1024,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - clean workspace - remove temp files and update gitignore
 - remove legacy course template and finalize $11.18.3 course data
 
-## [1.18.1] - 2026-02-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.18.1] - 2026-02-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.18.1] - 2026-02-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.18.1] - 2026-02-17
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.0] - 2026-02-16
 
 ### Features
@@ -1311,8 +1111,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Chores
 - **frontend**: gate API client debug logs behind VITE_API_DEBUG
 
----
-
+### 🚀 PWA & Mobile Experience
+**PWA Capabilities**
+- **Installable App**: Full PWA manifest and service worker support.
+- **Offline Support**: Caching strategies for assets and API responses.
+- **Data Persistence**: `persistQueryClient` integration for offline data access.
+- **Mobile Optimizations**: Enhanced viewport handling and touch interactions.
+**User Experience**
+- **Update Notification**: Smart prompts for app updates.
+- **Install Prompt**: Custom UI for installation on supported devices.
+- **Mobile Layout**: Optimized CSS for notched devices and touch targets.
 
 ## [1.18.2] - 2026-02-20
 
@@ -1332,24 +1140,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - `SMS_Installer_1.18.2.exe.sha256` published and verified
 
 
-## [1.18.1] - 2026-02-17
-
-### Bug Fixes
-- **tests**: fix course modal test failures after auto-activation UI enhancement
-  - Updated `AddCourseModal.test.tsx` to use `[data-testid="semester-year-input"]` selector
-  - Updated `EditCourseModal.test.tsx` to match new input field structure
-  - Fixed 5 failing tests across both modal components
-  - Changed type expectations from `number` to `text` for year inputs
-  - Restored frontend test suite to 100% passing (1854/1854 tests)
-
-### Documentation
-- **releases**: update $11.18.3 documentation with comprehensive auto-activation coverage
-  - Added detailed scheduled job documentation (3:00 AM UTC daily)
-  - Documented UI indicators (color-coded badges: green/amber/blue)
-  - Added monitoring and audit logging details
-  - Listed all 4 core auto-activation commits
-
----
 ## [1.17.9] - 2026-02-13
 
 ### Features
@@ -2100,28 +1890,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **pre-commit**: apply end-of-file fixes from hooks
 - **version**: sync version references to $11.18.3 (auto-fix)
 
-## [1.17.8] - 2026-02-11
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.17.8] - 2026-02-11
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.17.7] - 2026-02-04
 
 ### ⚠️ BREAKING CHANGES
@@ -2394,17 +2162,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - finalize version enforcement infrastructure and advance Feature #127 to Phase 4
 - minor documentation and escaping fixes in COMMIT_READY.ps1
 
-## [1.17.4] - 2026-01-26
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.17.3] - 2026-01-22
 
 ### ⚠️ BREAKING CHANGES
@@ -2419,7 +2176,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **phase-3**: Complete Phase 3 implementation - Features 125, 126, 127
 - Add timing middleware and enhance test isolation
 - Add state snapshot system and fix pre-commit exit code handling
-- implement Feature #127 backend and version enforcement
 - implement Feature #127 backend and version enforcement
 - **import-export**: Add Feature #127 Phase 3 - API endpoints and backend implementation
 - Implement 4-layer version format enforcement system
@@ -2465,7 +2221,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - trim trailing whitespace in scripts and docs
 - trim trailing whitespace in docs and scripts
 - resolve CI linting errors (explicit any, ts-expect-error)
-- resolve frontend TypeScript errors and git hook execution on Windows
 - resolve frontend TypeScript errors and git hook execution on Windows
 - resolve frontend TypeScript errors and type mismatches
 - Correct SocketIO async_mode from 'aiohttp' to 'asgi' for FastAPI compatibility
@@ -2561,47 +2316,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - finalize version enforcement infrastructure and advance Feature #127 to Phase 4
 - minor documentation and escaping fixes in COMMIT_READY.ps1
 
-## [1.17.3] - 2026-01-22
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.18.0] - 2026-01-22
-
-### 🚀 PWA & Mobile Experience
-
-**PWA Capabilities**
-- **Installable App**: Full PWA manifest and service worker support.
-- **Offline Support**: Caching strategies for assets and API responses.
-- **Data Persistence**: `persistQueryClient` integration for offline data access.
-- **Mobile Optimizations**: Enhanced viewport handling and touch interactions.
-
-**User Experience**
-- **Update Notification**: Smart prompts for app updates.
-- **Install Prompt**: Custom UI for installation on supported devices.
-- **Mobile Layout**: Optimized CSS for notched devices and touch targets.
-
-## [1.17.3] - 2026-01-22
-
 ### 🚀 Performance & Security Patch
-
 **Performance Optimizations**
 - **Virtual Scrolling**: Implemented `useVirtualScroll` hook for Student List (1000+ items support).
 - **Memoization**: Applied `React.memo` to `StudentRow` and `AdvancedFilters`.
 - **Skeleton Loading**: Added `SkeletonLoader` for better UX.
 - **Code Splitting**: Implemented `LazyLoad` infrastructure.
-
 **Security Hardening**
 - **CSRF Protection**: Added Axios interceptor for `X-CSRF-TOKEN`.
 - **Rate Limiting**: Added `useRateLimit` hook for form submissions.
 - **Authorization**: Validated backend ownership checks for Saved Searches.
-
 **Resilience**
 - **Smart Error Recovery**: Added `useErrorRecovery` hook with exponential backoff.
 - **Error Retry UI**: Added `ErrorRetry` component.
@@ -2869,17 +2593,6 @@ To all contributors who participated in Phase 1 development and testing.
 - Update .secrets.baseline after requirements.txt change
 - Update detect-secrets baseline for false positives
 
-## [1.14.3] - 2026-01-05
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.15.0] - 2026-01-05
 
 **Release Type**: Major Feature Release (Phase 1 Complete)
@@ -3052,6 +2765,10 @@ To all contributors who participated in Phase 1 development and testing.
 
 ### Documentation
 - release notes and changelog for 1.14.2
+- normalize line endings for 1.14.2 release artifacts
+- add release documentation generator integration guide
+- improve release notes with proper breaking changes documentation
+- release 1.13.0 documentation
 
 ### CI/CD
 - fix encoding script output + install missing types and vitest coverage deps
@@ -3061,42 +2778,6 @@ To all contributors who participated in Phase 1 development and testing.
 ### Chores
 - pre-commit validation complete
 - E2E - improve timeout handling and add VITE_API_URL env variable
-
-## [1.14.0] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.14.0] - 2025-12-29
-
-### Bug Fixes
-- Docker security scan - use filesystem scan on Dockerfile directory instead of image-ref
-- Docker security scan - build and load image locally for Trivy scanning
-- E2E test database initialization and seeding\n\n- Add force reseed step to ensure test user (test@example.com) exists even if admin user created by bootstrap\n- Remove DISABLE_STARTUP_TASKS flag to allow migrations to run properly on startup\n- Ensures tables exist and test user is present before E2E login\n\nThis should address E2E login 400 errors seen previously.
-- disable login lockouts in E2E environment and make E2E tests non-blocking in CI
-- handle Bandit encoding issues by using CSV output format
-- replace remaining Boolean defaults (0/1 -> FALSE/TRUE) for PostgreSQL
-- use TRUE/FALSE for Boolean migrations (PostgreSQL compatibility) + adjust coverage threshold
-- replace Unicode ticks in Greek encoding script for Windows CI
-- replace Unicode arrow with ASCII in Greek encoding script
-- add required inputs to workflow_call trigger in CI/CD pipeline
-
-### CI/CD
-- fix encoding script output + install missing types and vitest coverage deps
-- run gitleaks via CLI for policy compliance
-- remove default on workflow_call input
-
-### Chores
-- pre-commit validation complete
-- E2E - improve timeout handling and add VITE_API_URL env variable
-
-## [1.14.0] - 2025-12-29
 
 ### ⚠️ BREAKING CHANGES
 - docs: improve release notes with proper breaking changes documentation
@@ -3104,31 +2785,10 @@ To all contributors who participated in Phase 1 development and testing.
 ### Features
 - add comprehensive release documentation generator script
 
-### Documentation
-- normalize line endings for 1.14.2 release artifacts
-- add release documentation generator integration guide
-- improve release notes with proper breaking changes documentation
-- release notes and changelog for 1.14.2
-- release 1.13.0 documentation
-
-## [1.14.0] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.14.0] - 2025-12-29
-
 **Release Type**: Maintenance Release
 **Focus**: Release automation clean-up, backlog check removal, TypeScript E2E fixes, line-ending normalization
 
 ### Changed
-
 - Removed legacy backlog file from all scripts/checks
 - Normalized line endings across scripts and docs
 - Fixed TypeScript E2E tests and Playwright logging/hooks
@@ -3212,50 +2872,12 @@ See [Migration Guide](docs/guides/MIGRATION_$11.18.3.md) for complete details.
 
 ## [1.12.9] - 2025-12-29
 
-## [1.12.9] - 2025-12-29
-
 ### Documentation
 - update documentation for 1.14.0
-- update documentation for 1.14.0
-
-## [1.12.9] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.9] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.9] - 2025-12-29
 
 ### CI/CD
 - Fix VERIFY_VERSION parameter error and enhance release automation
 
-## [1.12.8] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.12.8] - 2025-12-29
 
 ### Features
@@ -3317,72 +2939,6 @@ See [Migration Guide](docs/guides/MIGRATION_$11.18.3.md) for complete details.
 - **release**: bump version to 1.12.8 and update docs
 - finalize pre-commit validation fixes (1.12.8)
 
-## [1.12.8] - 2025-12-29
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.8] - 2025-12-27
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.8] - 2025-12-27
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.8] - 2025-12-27
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.8] - 2025-12-27
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
-## [1.12.8] - 2025-12-27
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.12.8] - 2025-12-27
 
 **Release Type**: Patch Release
