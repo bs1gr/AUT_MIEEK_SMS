@@ -1,18 +1,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
-import apiClient, { gradesAPI, enrollmentsAPI } from '@/api/api';
+import apiClient, { enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
-import { Student, Course, Grade, FinalGrade } from '@/types';
-import { eventBus, EVENTS } from '@/utils/events';
+import { Student, Course, Grade } from '@/types';
 import { formatLocalDate } from '@/utils/date';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
-import {
-  enqueueGradeMutation,
-  getQueuedGradeMutationCount,
-  getQueuedGradeMutations,
-  removeQueuedGradeMutation,
-} from '@/features/grading/utils/offlineGradesQueue';
+import { useGradeEntrySync } from '@/features/grading/hooks/useGradeEntrySync';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -118,26 +112,22 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     sessionStorage.removeItem('grading_filter_student');
     sessionStorage.removeItem('grading_filter_course');
   }, []);
-  const [category, setCategory] = useState('Midterm');
-  const [gradeValue, setGradeValue] = useState<string>('');
-  const [maxGrade, setMaxGrade] = useState<string>('100');
-  const [weight, setWeight] = useState<string>('');
-  const [assignmentName, setAssignmentName] = useState('');
-  const [finalSummary, setFinalSummary] = useState<FinalGrade | null>(null);
-  const [grades, setGrades] = useState<Grade[]>([]);
+
   const [filteredStudents, setFilteredStudents] = useState<Student[]>(students || []);
   const [filteredCourses, setFilteredCourses] = useState<CourseWithEvaluationRules[]>(courses || []);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
-  const [historyDate, setHistoryDate] = useState<string>('');
-  const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getQueuedGradeMutationCount());
   const [rulesByCourseOverride, setRulesByCourseOverride] = useState<Record<number, EvaluationRule[]>>({});
   const [specialWeights, setSpecialWeights] = useState<Record<string, string>>({});
   const [savingSpecialWeights, setSavingSpecialWeights] = useState(false);
   const [specialWeightsMessage, setSpecialWeightsMessage] = useState<string | null>(null);
   const todayStr = formatLocalDate(new Date());
-  const isHistoricalMode = Boolean(historyDate && historyDate !== todayStr);
+
+  // Grade-entry form state, grade list, final-grade summary, and offline
+  // sync are all owned by this hook - see
+  // features/grading/hooks/useGradeEntrySync.ts for why they're grouped
+  // together (mirrors useAttendanceSaveSync's save/offline-sync extraction).
+  const gradeEntry = useGradeEntrySync({ studentId, courseId, setStudentId, setCourseId, todayStr, t });
+
+  const isHistoricalMode = Boolean(gradeEntry.historyDate && gradeEntry.historyDate !== todayStr);
   const summaryReportLink = useMemo(() => {
     const params = new URLSearchParams();
     params.set('templateName', 'Student Performance Breakdown - Grades');
@@ -149,113 +139,6 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     }
     return `/operations/reports/builder?${params.toString()}`;
   }, [studentId, courseId]);
-
-  const updatePendingSyncCount = useCallback(() => {
-    setPendingSyncCount(getQueuedGradeMutationCount());
-  }, []);
-
-  const isOfflineNetworkError = useCallback((error: unknown) => {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
-    if (typeof error !== 'object' || error === null) return false;
-
-    const maybeError = error as {
-      code?: string;
-      message?: string;
-      response?: { status?: number };
-      request?: unknown;
-    };
-
-    const message = String(maybeError.message || '');
-    return (
-      maybeError.code === 'ERR_NETWORK' ||
-      maybeError.response?.status === 0 ||
-      (!maybeError.response && Boolean(maybeError.request)) ||
-      /Network Error|Failed to fetch|offline/i.test(message)
-    );
-  }, []);
-
-  const refreshGrades = useCallback(async () => {
-    if (!studentId) return;
-    try {
-      const res = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-      const gradesData = res.data?.items || (Array.isArray(res.data) ? res.data : []);
-      setGrades(gradesData as Grade[]);
-    } catch {
-      // ignore refresh errors
-    }
-  }, [studentId, courseId]);
-
-  const flushQueuedGradeMutations = useCallback(async () => {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
-
-    const queue = getQueuedGradeMutations();
-    if (!queue.length) {
-      updatePendingSyncCount();
-      return;
-    }
-
-    let syncedCount = 0;
-    for (const item of queue) {
-      try {
-        if (item.op === 'update' && item.gradeId) {
-          await gradesAPI.update(item.gradeId, item.payload).catch(async (error: unknown) => {
-            const status =
-              typeof error === 'object' && error !== null && 'response' in error
-                ? (error as { response?: { status?: number } }).response?.status
-                : undefined;
-            if (status === 404) {
-              await gradesAPI.create(item.payload);
-              return;
-            }
-            throw error;
-          });
-        } else {
-          await gradesAPI.create(item.payload);
-        }
-
-        removeQueuedGradeMutation(item.id);
-        syncedCount += 1;
-      } catch (error) {
-        if (isOfflineNetworkError(error)) {
-          break;
-        }
-        console.error('[GradingView] Failed to sync queued mutation:', error);
-        break;
-      }
-    }
-
-    updatePendingSyncCount();
-    if (syncedCount > 0) {
-      await refreshGrades();
-      setError(null);
-    }
-  }, [isOfflineNetworkError, refreshGrades, updatePendingSyncCount]);
-
-  useEffect(() => {
-    updatePendingSyncCount();
-
-    const handleOnline = () => {
-      void flushQueuedGradeMutations();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-    }
-
-    if (typeof navigator === 'undefined' || navigator.onLine) {
-      void flushQueuedGradeMutations();
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', handleOnline);
-      }
-    };
-  }, [flushQueuedGradeMutations, updatePendingSyncCount]);
-
-  // loadFinal is declared below and memoized with useCallback. Do not define a separate
-  // non-memoized loadFinal here — keep the single useCallback instance to satisfy
-  // react-hooks/exhaustive-deps and avoid re-creating the function each render.
 
   const activeStudents = useMemo(
     () => (students || []).filter((student) => student.is_active !== false),
@@ -331,81 +214,6 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     run();
   }, [studentId, coursesString, courseId, activeCourses]); // Use coursesString to avoid infinite loop and include courseId
 
-  const loadFinal = useCallback(async () => {
-    setFinalSummary(null);
-    setError(null);
-    if (!studentId || !courseId) return;
-    try {
-      const res = await apiClient.get(`/analytics/student/${studentId}/course/${courseId}/final-grade`);
-      const data: FinalGrade = res.data;
-      setFinalSummary(data);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load final grade');
-    }
-  }, [studentId, courseId]);
-
-  useEffect(() => { loadFinal(); }, [loadFinal]);
-
-  useEffect(() => {
-    const loadGrades = async () => {
-      setGrades([]);
-      if (!studentId) return;
-      try {
-        const params: Record<string, string | number | boolean | undefined> = {
-          student_id: studentId,
-          course_id: courseId || undefined,
-        };
-        if (historyDate && historyDate !== todayStr) {
-          params.start_date = historyDate;
-          params.end_date = historyDate;
-          params.use_submitted = true;
-        }
-        const res = await apiClient.get('/grades/', { params });
-        // API returns paginated response with items array
-        const gradesData = res.data?.items || (Array.isArray(res.data) ? res.data : []);
-        setGrades(gradesData as Grade[]);
-      } catch {
-        // noop; errors surfaced during submission
-      }
-    };
-    loadGrades();
-  }, [studentId, courseId, historyDate, todayStr]);
-
-  // Normalize category for comparison (EN/EL & common variants)
-  const normalizeCategory = (name?: string): 'midterm' | 'final' | 'other' => {
-    const n = (name || '').toString().trim().toLowerCase();
-    const midtermNeedles = ['midterm', 'midterm exam', 'ενδιάμεση', 'ενδιάμεση εξέταση', 'ενδιαμεση', 'ενδιαμεση εξεταση'];
-    const finalNeedles = ['final', 'final exam', 'τελική', 'τελική εξέταση', 'τελικη', 'τελικη εξεταση'];
-    if (midtermNeedles.some(x => n.includes(x))) return 'midterm';
-    if (finalNeedles.some(x => n.includes(x))) return 'final';
-    return 'other';
-  };
-
-  // Auto-fill assignment name and default max grade when choosing Midterm/Final
-  useEffect(() => {
-    const catNorm = normalizeCategory(category);
-    if (!studentId || !courseId) return;
-    if (catNorm === 'midterm' || catNorm === 'final') {
-      const attempts = grades.filter(g => normalizeCategory(g.category) === catNorm).length;
-      const baseTitle = catNorm === 'midterm' ? 'Midterm Exam' : 'Final Exam';
-      const suffix = attempts >= 1 ? 'B' : 'A';
-
-      // Only override if empty or if previously auto-generated for the same family
-      setAssignmentName(prev => {
-        const current = (prev || '').trim().toLowerCase();
-        const isAutoPattern = current.startsWith('midterm') || current.startsWith('final');
-        if (!prev || isAutoPattern) return `${baseTitle} ${suffix}`;
-        return prev;
-      });
-
-      setMaxGrade(prev => {
-        const numeric = Number(prev || 0);
-        if (prev === '' || numeric <= 0) return '100';
-        return prev;
-      });
-    }
-  }, [category, grades, studentId, courseId]);
-
   const selectedCourse = useMemo(() => courses.find((c) => c.id === courseId), [courses, courseId]);
   const evaluationRules: EvaluationRule[] = useMemo(() => {
     if (!courseId) return [];
@@ -472,14 +280,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       await apiClient.put(`/courses/${courseId}`, { evaluation_rules: mergedRules });
       setRulesByCourseOverride((prev) => ({ ...prev, [courseId]: mergedRules }));
       setSpecialWeightsMessage('Special participation weights saved.');
-      await loadFinal();
+      await gradeEntry.loadFinal();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to save special participation weights.';
       setSpecialWeightsMessage(message);
     } finally {
       setSavingSpecialWeights(false);
     }
-  }, [courseId, evaluationRules, loadFinal, specialWeights]);
+  }, [courseId, evaluationRules, gradeEntry, specialWeights]);
 
   // Category options with display names
   const categoryOptions: CategoryOption[] = useMemo(() => {
@@ -498,185 +306,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     return [...base, ...customRules];
   }, [evaluationRules, t]);
 
-  // Force Midterm/Final Exam to weight=1
-  useEffect(() => {
-    if (category === 'Midterm Exam' || category === 'Final Exam') {
-      setWeight('1');
-    }
-  }, [category]);
-
-  const handleEditGrade = useCallback((grade: Grade) => {
-    setEditingGradeId(grade.id);
-    setStudentId(grade.student_id);
-    setCourseId(grade.course_id);
-    setAssignmentName(grade.assignment_name || '');
-    setCategory(grade.category || 'Midterm');
-    setGradeValue(String(grade.grade));
-    setMaxGrade(String(grade.max_grade || 100));
-    setWeight(String(grade.weight || 1));
-    // Always set the date when editing (use grade's date or today)
-    const rawDate = grade.date_submitted || grade.date_assigned || new Date().toISOString();
-    const normalized = rawDate ? formatLocalDate(rawDate) : todayStr;
-    setHistoryDate(normalized);
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [todayStr]);
-
-  useEffect(() => {
-    const recallIdRaw = sessionStorage.getItem('grading_recall_grade_id');
-    if (!recallIdRaw) return;
-    const recallId = Number(recallIdRaw);
-    if (!Number.isFinite(recallId) || recallId <= 0) {
-      sessionStorage.removeItem('grading_recall_grade_id');
-      return;
-    }
-
-    const fetchRecall = async () => {
-      try {
-        // eslint-disable-next-line testing-library/no-await-sync-queries
-        const grade = await gradesAPI.getById(recallId);
-        if (grade && typeof grade === 'object') {
-          handleEditGrade(grade as Grade);
-        }
-      } finally {
-        sessionStorage.removeItem('grading_recall_grade_id');
-      }
-    };
-    fetchRecall();
-  }, [handleEditGrade]);
-
-  const handleCancelEdit = () => {
-    setEditingGradeId(null);
-    setAssignmentName('');
-    setCategory('Midterm');
-    setGradeValue('');
-    setMaxGrade('100');
-    setWeight('');
-    setHistoryDate('');
-  };
-
-  const handleDeleteGrade = async (gradeId: number) => {
-    if (!window.confirm(t('confirmDeleteGrade') || 'Are you sure you want to delete this grade?')) {
-      return;
-    }
-    try {
-      await gradesAPI.delete(gradeId);
-      eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
-      await loadFinal();
-      // Refresh grade list
-      try {
-        const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-        setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
-      } catch {}
-    } catch (e: unknown) {
-      let apiMsg: string | undefined;
-      if (typeof e === 'object' && e !== null && 'response' in e) {
-        try {
-          const ev = e as { response?: { data?: unknown }; message?: string };
-          const data = ev.response?.data;
-          if (typeof data === 'string') apiMsg = data;
-          else if (typeof data === 'object' && data !== null) {
-            const detail = (data as Record<string, unknown>)['detail'];
-            apiMsg = typeof detail === 'string' ? detail : JSON.stringify(data);
-          } else if (typeof ev.message === 'string') apiMsg = ev.message;
-        } catch {}
-      }
-      if (!apiMsg) {
-        if (e instanceof Error) apiMsg = e.message;
-        else apiMsg = String(e);
-      }
-      setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
-    }
-  };
-
-  const submitGrade = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!studentId || !courseId) { setError(t('selectStudentAndCourseError')); return; }
-    if (!assignmentName || String(assignmentName).trim().length === 0) { setError(t('assignmentNameRequired')); return; }
-    if (gradeValue === '' || maxGrade === '') { setError(t('fillRequiredFields')); return; }
-    const gv = Number(gradeValue.replace(',', '.')); const mg = Number(maxGrade.replace(',', '.') || 100);
-    if (!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0) { setError(t('invalidScoreMaxValues')); return; }
-    if (gv < 0 || gv > mg) { setError(t('scoreMustBeBetween0AndMax')); return; }
-    setSubmitting(true); setError(null);
-    const payload: Omit<Grade, 'id'> = {
-      student_id: Number(studentId),
-      course_id: Number(courseId),
-      assignment_name: assignmentName,
-      category,
-      grade: gv,
-      max_grade: mg,
-      weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
-      date_submitted: historyDate && historyDate !== todayStr ? historyDate : formatLocalDate(new Date()),
-      // optional fields not set: date_assigned, notes
-    };
-    try {
-      // Update existing grade or create new one
-      if (editingGradeId) {
-        await gradesAPI.update(editingGradeId, payload);
-        setEditingGradeId(null);
-      } else {
-        await gradesAPI.create(payload);
-      }
-      // Emit event to notify other components that grades changed
-      eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
-      await loadFinal();
-      // refresh grade list
-      try {
-        const res2 = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
-        setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
-      } catch {}
-      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
-      setHistoryDate('');
-    } catch (e: unknown) {
-      if (isOfflineNetworkError(e)) {
-        enqueueGradeMutation({
-          op: editingGradeId ? 'update' : 'create',
-          gradeId: editingGradeId || undefined,
-          payload,
-        });
-        updatePendingSyncCount();
-        setError(t('offlineQueued') || 'Offline: grade changes queued and will sync when connection returns.');
-        if (editingGradeId) {
-          setEditingGradeId(null);
-        }
-        setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
-        setHistoryDate('');
-        return;
-      }
-
-      // Attempt to extract common API error formats without using `any`
-      let apiMsg: string | undefined;
-      if (typeof e === 'object' && e !== null && 'response' in e) {
-        try {
-          // Narrow known shapes safely
-          const ev = e as { response?: { data?: unknown }; message?: string };
-          const data = ev.response?.data;
-          if (typeof data === 'string') apiMsg = data;
-          else if (typeof data === 'object' && data !== null) {
-            const detail = (data as Record<string, unknown>)['detail'];
-            apiMsg = typeof detail === 'string' ? detail : JSON.stringify(data);
-          } else if (typeof ev.message === 'string') apiMsg = ev.message;
-        } catch {
-          // ignore
-        }
-      }
-      if (!apiMsg) {
-        if (e instanceof Error) apiMsg = e.message;
-        else apiMsg = String(e);
-      }
-      setError(typeof apiMsg === 'string' ? apiMsg : JSON.stringify(apiMsg));
-    }
-    finally { setSubmitting(false); }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">{t('addGrade') || 'Add Grade'}</h2>
         <div className="flex items-center gap-2">
-          {pendingSyncCount > 0 && (
+          {gradeEntry.pendingSyncCount > 0 && (
             <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded" data-testid="grading-offline-queue-indicator">
-              {t('queuedSyncCount', { count: pendingSyncCount }) || `${pendingSyncCount} queued for sync`}
+              {t('queuedSyncCount', { count: gradeEntry.pendingSyncCount }) || `${gradeEntry.pendingSyncCount} queued for sync`}
             </span>
           )}
           <button
@@ -701,10 +338,10 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           <option value="">{t('selectCourse')}</option>
           {filteredCourses.map(c => (<option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>))}
         </select>
-        <button className="border rounded px-3 py-2" onClick={loadFinal}>{t('refreshFinal')}</button>
+        <button className="border rounded px-3 py-2" onClick={gradeEntry.loadFinal}>{t('refreshFinal')}</button>
       </div>
 
-      {editingGradeId && (
+      {gradeEntry.editingGradeId && (
         <div className="flex flex-col md:flex-row md:items-center gap-3 bg-white border rounded-xl p-4">
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600" htmlFor="grading-history-date">
@@ -714,31 +351,31 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
               id="grading-history-date"
               type="date"
               className="border rounded px-3 py-1.5 text-sm"
-              value={historyDate}
-              onChange={(e) => setHistoryDate(e.target.value)}
+              value={gradeEntry.historyDate}
+              onChange={(e) => gradeEntry.setHistoryDate(e.target.value)}
             />
           </div>
           {isHistoricalMode && (
             <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded">
-              {t('historicalModeBanner') || 'Editing past date'} — {formatDate(historyDate)}
+              {t('historicalModeBanner') || 'Editing past date'} — {formatDate(gradeEntry.historyDate)}
             </div>
           )}
         </div>
       )}
 
-      <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">
+      <form onSubmit={gradeEntry.submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
             {t('gradeEntry') || 'Grade Entry'}
           </p>
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-slate-900">
-              {editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
+              {gradeEntry.editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
             </h3>
-            {editingGradeId && (
+            {gradeEntry.editingGradeId && (
               <button
                 type="button"
-                onClick={handleCancelEdit}
+                onClick={gradeEntry.handleCancelEdit}
                 className="text-sm text-gray-600 hover:text-gray-800 underline"
               >
                 {t('cancel') || 'Cancel'}
@@ -746,20 +383,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             )}
           </div>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {gradeEntry.error && <p className="text-sm text-red-600">{gradeEntry.error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             name="assignmentName"
             className="border rounded px-3 py-2"
             placeholder={t('assignmentNamePlaceholder')}
-            value={assignmentName}
-            onChange={e=>setAssignmentName(e.target.value)}
+            value={gradeEntry.assignmentName}
+            onChange={e=>gradeEntry.setAssignmentName(e.target.value)}
           />
           <select
             name="category"
             className="border rounded px-3 py-2"
-            value={category}
-            onChange={e=>setCategory(e.target.value)}
+            value={gradeEntry.category}
+            onChange={e=>gradeEntry.setCategory(e.target.value)}
             aria-label={t('categoryLabel') || 'Category'}
           >
             {categoryOptions.map((opt) => (
@@ -772,9 +409,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             inputMode="decimal"
             className="border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400"
             placeholder={t('weightPlaceholder')}
-            value={weight}
-            onChange={e => setWeight(e.target.value)}
-            disabled={category==='Midterm' || category==='Final Exam'}
+            value={gradeEntry.weight}
+            onChange={e => gradeEntry.setWeight(e.target.value)}
+            disabled={gradeEntry.category==='Midterm' || gradeEntry.category==='Final Exam'}
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -784,8 +421,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             inputMode="decimal"
             className="border rounded px-3 py-2"
             placeholder={t('gradePlaceholder')}
-            value={gradeValue}
-            onChange={e => setGradeValue(e.target.value)}
+            value={gradeEntry.gradeValue}
+            onChange={e => gradeEntry.setGradeValue(e.target.value)}
           />
           <input
             name="max_grade"
@@ -793,10 +430,10 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             inputMode="decimal"
             className="border rounded px-3 py-2"
             placeholder={t('maxGradePlaceholder')}
-            value={maxGrade}
-            onChange={e => setMaxGrade(e.target.value)}
+            value={gradeEntry.maxGrade}
+            onChange={e => gradeEntry.setMaxGrade(e.target.value)}
           />
-          <button disabled={submitting} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50" type="submit">{submitting? t('saving') : t('saveGrade')}</button>
+          <button disabled={gradeEntry.submitting} className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 disabled:opacity-50" type="submit">{gradeEntry.submitting? t('saving') : t('saveGrade')}</button>
         </div>
       </form>
 
@@ -817,25 +454,25 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         </div>
         {!studentId || !courseId ? (
           <p className="text-sm text-gray-500">{t('selectStudentAndCourse')}</p>
-        ) : finalSummary ? (
+        ) : gradeEntry.finalSummary ? (
           <div className="text-sm">
-            <p><span className="font-semibold">{t('final')}:</span> {finalSummary.final_grade ?? '-'}%</p>
-            <p><span className="font-semibold">{t('gpa')}:</span> {finalSummary.gpa ?? '-'}</p>
-            <p><span className="font-semibold">{t('letterGrade')}:</span> {finalSummary.letter_grade ?? '-'}</p>
-            {typeof finalSummary.gpa === 'number' && (
+            <p><span className="font-semibold">{t('final')}:</span> {gradeEntry.finalSummary.final_grade ?? '-'}%</p>
+            <p><span className="font-semibold">{t('gpa')}:</span> {gradeEntry.finalSummary.gpa ?? '-'}</p>
+            <p><span className="font-semibold">{t('letterGrade')}:</span> {gradeEntry.finalSummary.letter_grade ?? '-'}</p>
+            {typeof gradeEntry.finalSummary.gpa === 'number' && (
               <>
-                <p className={`mt-1 ${getGreekGradeColor(gpaToGreekScale(finalSummary.gpa))}`}>
-                  <span className="font-semibold">{t('greek')}:</span> {gpaToGreekScale(finalSummary.gpa).toFixed(1)}{t('outOf20')} {t('bullet')} {getGreekGradeDescription(gpaToGreekScale(finalSummary.gpa))}
+                <p className={`mt-1 ${getGreekGradeColor(gpaToGreekScale(gradeEntry.finalSummary.gpa))}`}>
+                  <span className="font-semibold">{t('greek')}:</span> {gpaToGreekScale(gradeEntry.finalSummary.gpa).toFixed(1)}{t('outOf20')} {t('bullet')} {getGreekGradeDescription(gpaToGreekScale(gradeEntry.finalSummary.gpa))}
                 </p>
-                <p className="text-gray-600">{gpaToPercentage(finalSummary.gpa).toFixed(1)}%</p>
+                <p className="text-gray-600">{gpaToPercentage(gradeEntry.finalSummary.gpa).toFixed(1)}%</p>
               </>
             )}
-            {finalSummary.category_breakdown && (
+            {gradeEntry.finalSummary.category_breakdown && (
               <div className="mt-2">
                 <p className="font-semibold">{t('categoryBreakdown')}</p>
                 <ul className="list-disc ml-5">
-                  {Object.keys(finalSummary.category_breakdown).map(k=> (
-                    <li key={k}>{t('categoryBreakdownItem', { category: translateCategory(k), average: finalSummary.category_breakdown[k].average.toFixed(1), weight: finalSummary.category_breakdown[k].weight })}</li>
+                  {Object.keys(gradeEntry.finalSummary.category_breakdown).map(k=> (
+                    <li key={k}>{t('categoryBreakdownItem', { category: translateCategory(k), average: gradeEntry.finalSummary!.category_breakdown[k].average.toFixed(1), weight: gradeEntry.finalSummary!.category_breakdown[k].weight })}</li>
                   ))}
                 </ul>
               </div>
@@ -915,7 +552,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             </p>
             <h3 className="text-lg font-semibold text-slate-900">{t('gradeHistory')}</h3>
           </div>
-          {grades.length === 0 ? (
+          {gradeEntry.grades.length === 0 ? (
             <p className="text-sm text-gray-500">{t('noGradesRecorded')}</p>
           ) : (
             <div className="overflow-x-auto">
@@ -933,7 +570,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {grades.map((g) => {
+                  {gradeEntry.grades.map((g: Grade) => {
                     const pct = (Number(g.grade) / Number(g.max_grade || 100)) * 100;
                     const letter = getLetterGrade(pct);
                     const color = pct >= 90 ? 'text-green-600' : pct >= 80 ? 'text-blue-600' : pct >= 70 ? 'text-yellow-600' : pct >= 60 ? 'text-orange-600' : 'text-red-600';
@@ -956,14 +593,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                         <td className="px-4 py-2 text-center">
                           <div className="flex gap-2 justify-center">
                             <button
-                              onClick={() => handleEditGrade(g)}
+                              onClick={() => gradeEntry.handleEditGrade(g)}
                               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                               title={t('edit') || 'Edit'}
                             >
                               {t('edit') || 'Edit'}
                             </button>
                             <button
-                              onClick={() => handleDeleteGrade(g.id)}
+                              onClick={() => gradeEntry.handleDeleteGrade(g.id)}
                               className="text-red-600 hover:text-red-800 text-sm font-medium"
                               title={t('delete') || 'Delete'}
                             >
