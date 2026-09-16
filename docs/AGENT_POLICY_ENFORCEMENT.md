@@ -402,7 +402,7 @@ function MyComponent() {
 ```powershell
 # ALWAYS run before commit
 
-.\COMMIT_READY.ps1 -Quick         # Quick validation (2-3 min)
+.\COMMIT_READY.ps1 -Quick         # Quick validation (~8-9 min: lint + full backend batch suite)
 .\COMMIT_READY.ps1 -Standard      # Standard checks (5-8 min)
 .\COMMIT_READY.ps1 -Full          # Full validation (15-20 min)
 

@@ -10,6 +10,10 @@
     - Use -RetestFailed flag to re-run only previously failed tests
     - Eliminates need to re-run entire test suite after failures
 
+    A batch that exits non-zero having printed nothing did not run tests - the process
+    died - and is retried once. Reported test failures always print output and are never
+    retried.
+
 .PARAMETER BatchSize
     Number of test files per batch (default: 5)
 .PARAMETER Verbose
@@ -260,29 +264,42 @@ foreach ($batch in $batches) {
 
     # Run pytest from the backend directory
     $backendDir = "$projectRoot/src/backend"
-    Push-Location $backendDir -ErrorAction Stop | Out-Null
 
-    try {
-        # Set PYTHONPATH to project root to ensure local backend package is used
-        $env:PYTHONPATH = $projectRoot
+    # A batch that exits non-zero without printing anything never ran its tests - the
+    # process died. That happened once during a commit gate (2026-09-16) and was not
+    # reproducible, so it is retried once: a real test failure always prints something and
+    # is never retried, and a genuine crash fails twice and still fails the run.
+    $attempt = 0
+    $retryAttempted = $false
+    while ($true) {
+        $attempt++
+        Push-Location $backendDir -ErrorAction Stop | Out-Null
+        try {
+            # Set PYTHONPATH to project root to ensure local backend package is used
+            $env:PYTHONPATH = $projectRoot
 
-        if ($Verbose) {
-            $output = python -m pytest $testFiles -v --tb=short 2>&1
-        } else {
-            $output = python -m pytest $testFiles -q --tb=line 2>&1
+            if ($Verbose) {
+                $output = python -m pytest $testFiles -v --tb=short 2>&1
+            } else {
+                $output = python -m pytest $testFiles -q --tb=line 2>&1
+            }
+
+            $exitCode = $LASTEXITCODE
+        } finally {
+            Pop-Location
+            # Clean up PYTHONPATH
+            Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
         }
 
-        $exitCode = $LASTEXITCODE
-    } finally {
-        Pop-Location
-        # Clean up PYTHONPATH
-        Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
+        $outputStr = $output -join "`n"
+        $abortedSilently = ($exitCode -ne 0) -and [string]::IsNullOrWhiteSpace($outputStr)
+        if (-not ($abortedSilently -and $attempt -eq 1)) { break }
+
+        $retryAttempted = $true
+        Write-Warning "Batch $batchCount aborted with no output (exit code $exitCode) - retrying once"
     }
 
     $batchDuration = (Get-Date) - $batchStart
-
-    # Parse output
-    $outputStr = $output -join "`n"
 
     # Count test results from pytest dot-notation progress lines.
     # The final "N passed in Xs" summary line is NOT emitted to captured stdout on Windows
@@ -334,7 +351,8 @@ foreach ($batch in $batches) {
             default { "not a pytest exit code - the interpreter itself aborted" }
         }
         $exitHex = '0x{0:X8}' -f $exitCode
-        Write-ErrorMsg "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s (exit code $exitCode / $exitHex - $exitMeaning)"
+        $retryNote = if ($retryAttempted) { ", failed twice" } else { "" }
+        Write-ErrorMsg "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s (exit code $exitCode / $exitHex - $exitMeaning$retryNote)"
 
         # A batch that exits non-zero having printed nothing did not run any tests:
         # pytest was killed or the interpreter aborted before flushing its buffers.

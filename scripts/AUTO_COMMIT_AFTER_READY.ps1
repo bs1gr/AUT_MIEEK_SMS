@@ -98,26 +98,26 @@ function Write-Info {
 function Test-ValidationCheckpoint {
     Write-Info "Checking validation checkpoint..."
 
-    $checkpointFile = ".commit-ready-validated"
-    $maxAgeMinutes = 90
-
-    if (-not (Test-Path $checkpointFile)) {
-        Write-Error-Msg "No validation checkpoint found"
-        Write-Info "Run: .\COMMIT_READY.ps1 -Quick first"
+    # Delegate to the guard instead of keeping a separate rule. This used to enforce its
+    # own 90-minute age limit on the same file, while the guard treated it as valid
+    # forever and the pre-commit hook claimed a 5-minute window - three policies for one
+    # checkpoint. The guard now compares the checkpoint against the content being
+    # committed, which is the only question that matters here too.
+    $guard = Join-Path (Split-Path -Parent $PSScriptRoot) "scripts/ENFORCE_COMMIT_READY_GUARD.ps1"
+    if (-not (Test-Path $guard)) {
+        $guard = Join-Path $PSScriptRoot "ENFORCE_COMMIT_READY_GUARD.ps1"
+    }
+    if (-not (Test-Path $guard)) {
+        Write-Error-Msg "Validation guard not found: $guard"
         return $false
     }
 
-    $lastValidated = Get-Item $checkpointFile | Select-Object -ExpandProperty LastWriteTime
-    $age = (Get-Date) - $lastValidated
-    $ageMinutes = [math]::Round($age.TotalMinutes, 1)
-
-    if ($ageMinutes -gt $maxAgeMinutes) {
-        Write-Error-Msg "Validation checkpoint expired ($ageMinutes min old, max $maxAgeMinutes min)"
-        Write-Info "Run: .\COMMIT_READY.ps1 -Quick to refresh"
+    & $guard -ValidateOnly
+    if ($LASTEXITCODE -ne 0) {
+        Write-Info "Run: .\infra\scripts\ops\COMMIT_READY.ps1 -Quick"
         return $false
     }
 
-    Write-Success "Validation checkpoint valid ($ageMinutes min old)"
     return $true
 }
 

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Pre-commit hook for the Student Management System.
+#
+# Install with: pwsh ./scripts/install-git-hooks.ps1 -Force   (or ./scripts/install-git-hooks.sh --force)
+# The installers copy this file verbatim into .git/hooks/, so the filename must stay
+# "pre-commit" - it was previously "commit-ready-precommit.sample", which git never runs,
+# so installing the hooks quietly installed nothing.
+#
+# This hook is deliberately fast. It does NOT run the full COMMIT_READY gate: that takes
+# minutes and nobody would keep it. It checks that COMMIT_READY has already validated the
+# exact content being committed, and that the version format is intact.
+#
+# COMMIT_READY.ps1 writes an equivalent hook itself, so these two must stay in step.
+
+HOOKS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+REPO_ROOT="$( cd "$HOOKS_DIR/../.." && pwd )"
+
+if ! command -v pwsh >/dev/null 2>&1; then
+    echo "⚠️  pwsh not found - skipping COMMIT_READY checks (install PowerShell 7 to enable them)."
+    exit 0
+fi
+
+# 1) The checkpoint must cover the content being committed, not merely exist.
+pwsh -NoProfile -ExecutionPolicy Bypass -File "$REPO_ROOT/scripts/ENFORCE_COMMIT_READY_GUARD.ps1" -ValidateOnly
+if [ $? -ne 0 ]; then
+    echo "❌ Commit blocked: see above. Run: pwsh -File ./infra/scripts/ops/COMMIT_READY.ps1 -Quick"
+    exit 1
+fi
+
+# 2) Enforce the v1.x.x version format.
+if [ -f "$REPO_ROOT/scripts/validate_version_format.ps1" ]; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$REPO_ROOT/scripts/validate_version_format.ps1"
+    if [ $? -ne 0 ]; then
+        echo "❌ Version format validation FAILED. Commit blocked."
+        exit 1
+    fi
+fi
+
+exit 0

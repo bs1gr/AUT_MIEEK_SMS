@@ -163,14 +163,23 @@ function Invoke-PreReleaseValidation {
         Write-Host "ℹ️  Running full test suite..." -ForegroundColor Cyan
         Write-Host "   (This may take 5-10 minutes)" -ForegroundColor Gray
         try {
-            & (Join-Path $PROJECT_ROOT "infra\scripts\testing\RUN_TESTS_BATCH.ps1") -Verbose:$false | Out-Null
+            # This used to pipe the run to Out-Null and, on failure, print "review before
+            # releasing" while still returning success - so a release could be cut on a red
+            # suite, with the failure detail discarded. Failing tests now stop the release;
+            # -SkipTests is the deliberate override.
+            $testOutput = & (Join-Path $PROJECT_ROOT "infra\scripts\testing\RUN_TESTS_BATCH.ps1") -Verbose:$false 2>&1
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "✓ Tests passed" -ForegroundColor Green
             } else {
-                Write-Host "⚠️  Some tests failed - review before releasing" -ForegroundColor Yellow
+                Write-Host "❌ Tests failed - release blocked" -ForegroundColor Red
+                $testOutput | Select-Object -Last 40 | ForEach-Object { Write-Host "   $_" -ForegroundColor Gray }
+                Write-Host "   Full log: src/backend/test-results/backend_batch_full.txt" -ForegroundColor Yellow
+                Write-Host "   Override with -SkipTests only if you know why these fail." -ForegroundColor Yellow
+                return $false
             }
         } catch {
-            Write-Host "⚠️  Test execution failed: $_" -ForegroundColor Yellow
+            Write-Host "❌ Test execution failed: $_" -ForegroundColor Red
+            return $false
         }
     }
 
