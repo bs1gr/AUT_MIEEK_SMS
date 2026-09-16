@@ -69,8 +69,6 @@ if (-not (Test-Path $testResultsDir)) {
 
 # Create log file
 $logPath = Join-Path (Get-Location) $LogFile
-$logStream = $null
-$logLocked = $false
 
 # Function to write to both console and log file
 function Write-Log {
@@ -202,25 +200,15 @@ for ($i = 0; $i -lt $totalFiles; $i += $BatchSize) {
 $totalBatches = $batches.Count
 Write-Info "Split into $totalBatches batches ($BatchSize files per batch)`n"
 
-# Test execution summary
-$results = @{
-    TotalBatches = $totalBatches
-    PassedBatches = 0
-    FailedBatches = 0
-    TotalTests = 0
-    PassedTests = 0
-    FailedTests = 0
-    SkippedTests = 0
-    Duration = 0
-    FailedFiles = @()
-}
-
 $startTime = Get-Date
 
 # Run each batch
 $batchCount = 0
+$passedBatchCount = 0
+$failedBatchCount = 0
 $passedCount = 0
 $failedCount = 0
+$skippedCount = 0
 $failedFiles = @()
 
 foreach ($batch in $batches) {
@@ -281,23 +269,56 @@ foreach ($batch in $batches) {
         # Progress lines contain only dots/markers, spaces, brackets, digits, %
         if ($line -match '^[.FsxEw \[\]\d%]+$') {
             $passed += ([regex]::Matches($line, '\.')).Count
-            $failedDots += ([regex]::Matches($line, 'F')).Count
+            # E is a collection/fixture error: the test never ran, which is a failure,
+            # not a neutral outcome. Counting only F used to report such a batch as
+            # "0 failed" while its exit code said otherwise.
+            $failedDots += ([regex]::Matches($line, '[FE]')).Count
             $skipped += ([regex]::Matches($line, 's')).Count
         }
     }
     $passedCount += $passed
     $failedCount += $failedDots
+    $skippedCount += $skipped
 
     # Display output (Write-Log handles both console and file)
     $logOnlyOutput = -not $ShowOutput
-    Write-Log $outputStr White -LogOnly:$logOnlyOutput
+    $noOutput = [string]::IsNullOrWhiteSpace($outputStr)
+    if ($noOutput) {
+        Write-Log "(pytest wrote nothing to stdout or stderr for this batch)`n" White -LogOnly:$logOnlyOutput
+    } else {
+        Write-Log $outputStr White -LogOnly:$logOnlyOutput
+    }
 
     # Batch result
     if ($exitCode -eq 0) {
+        $passedBatchCount++
         Write-Success "Batch $batchCount completed successfully in $([math]::Round($batchDuration.TotalSeconds, 1))s"
     } else {
         $failedFiles += $batch.Name
-        Write-ErrorMsg "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s"
+        $failedBatchCount++
+
+        # Always record the exit code: it is the only thing that survives when pytest
+        # dies before printing, and its value says which kind of failure this was.
+        $exitMeaning = switch ($exitCode) {
+            1 { "tests failed" }
+            2 { "run interrupted" }
+            3 { "internal pytest error" }
+            4 { "pytest usage error" }
+            5 { "no tests collected" }
+            default { "not a pytest exit code - the interpreter itself aborted" }
+        }
+        $exitHex = '0x{0:X8}' -f $exitCode
+        Write-ErrorMsg "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s (exit code $exitCode / $exitHex - $exitMeaning)"
+
+        # A batch that exits non-zero having printed nothing did not run any tests:
+        # pytest was killed or the interpreter aborted before flushing its buffers.
+        # Without this note the log holds only "failed in 0.7s" and there is nothing
+        # left to diagnose after the fact.
+        if ($noOutput) {
+            Write-ErrorMsg "  No output was captured, so this is an abort (crash/kill), not reported test failures."
+            Write-ErrorMsg "  Files in this batch: $($batch.Name -join ', ')"
+            Write-ErrorMsg "  Reproduce with: .\infra\scripts\testing\RUN_TESTS_BATCH.ps1 -RetestFailed -ShowOutput"
+        }
 
         if ($FastFail) {
             Write-Warning "FastFail enabled - stopping execution"
@@ -323,10 +344,17 @@ Write-Log "╚══════════════════════
 
 Write-Log "Batches:`n" White
 Write-Log "  Total:   $totalBatches`n" Gray
-Write-Success "  Completed: $batchCount"
+Write-Log "  Ran:     $batchCount`n" Gray
+Write-Success "  Passed:  $passedBatchCount"
+if ($failedBatchCount -gt 0) {
+    # This used to print $failedFiles.Count and call it "Failed Batches" - every file
+    # of a failing batch is recorded, so one bad batch of 5 reported as 5 failed batches.
+    $fileWord = if ($failedFiles.Count -eq 1) { "test file" } else { "test files" }
+    Write-ErrorMsg "  Failed:  $failedBatchCount ($($failedFiles.Count) $fileWord recorded for retest)"
+}
 
 Write-Log "Tests:`n" White
-$totalTests = $passedCount + $failedCount
+$totalTests = $passedCount + $failedCount + $skippedCount
 Write-Log "  Total:   $totalTests`n" Gray
 if ($passedCount -gt 0) {
     Write-Success "  Passed:  $passedCount"
@@ -334,15 +362,15 @@ if ($passedCount -gt 0) {
 if ($failedCount -gt 0) {
     Write-ErrorMsg "  Failed:  $failedCount"
 }
-if ($failedFiles.Count -gt 0) {
-    Write-ErrorMsg "  Failed Batches: $($failedFiles.Count)"
+if ($skippedCount -gt 0) {
+    Write-Log "  Skipped: $skippedCount`n" Gray
 }
 
 Write-Log "Duration: $([math]::Round($duration, 1))s`n`n" Gray
 Write-Log "📝 Full log saved to: $logPath`n" Cyan
 
 # Exit code
-if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
+if ($failedCount -eq 0 -and $failedBatchCount -eq 0) {
     Write-Success "All tests passed! 🎉"
     Write-Log "✓ All tests passed! 🎉`n" Green
     # Clear failure file since all tests passed

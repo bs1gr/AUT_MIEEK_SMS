@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.42
-**Last Updated**: September 15, 2026
+**Last Updated**: September 16, 2026
 **Status**: ✅ **v1.18.42 published 2026-09-15 — installer + APK, all workflows green; see the release section below, including three release-pipeline traps found during it that are not yet fixed. Previously: v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below. 2026-09-14/15: ran a four-agent workspace audit (CI/CD, backend, frontend, infra) and closed everything it found — 5 security findings, a Greek-users-see-English i18n bug, 3 duplicate/dead workflows, the version-sync chain broken since the June flatten, ~700 lines of confirmed-dead code, and all 4 remaining oversized frontend components refactored with ~120 new tests. 2026-09-15 (later): fixed a Capacitor thenable bug that had been silently disabling Preferences-backed storage on Android completely — see below.**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
@@ -174,7 +174,66 @@ exact `-BatchSize 5 -FastFail` invocation where that batch took 14.5s. Worth kno
 gate can flake this way, because `-FastFail` turns one bad batch into a full gate failure
 and the batch runner's log **does not capture pytest output** for a failing batch, so
 there is nothing to diagnose after the fact. If it recurs, that missing output is the first
-thing to fix.
+thing to fix. **Fixed on 2026-09-16 rather than waiting for a recurrence — see the next
+section.** The flake itself is still unexplained; the point is that the next occurrence
+will leave evidence.
+
+---
+
+## 🔬 The batch runner now records *why* a batch failed (September 16, 2026)
+
+**Status**: ✅ DONE, not yet released. `infra/scripts/testing/RUN_TESTS_BATCH.ps1` only.
+
+Reading the log of the flake above (`src/backend/test-results/backend_batch_run_20260916_005035.txt`)
+corrected the diagnosis recorded there: the log is **not** dropping pytest's output. pytest
+genuinely wrote nothing at all — and the runner never recorded the one fact that survives
+that case, the **exit code**, which it read into `$exitCode` and used solely for an
+`-eq 0` test. So the entire record of the failure was the line `✗ Batch 2 failed in 0.7s`.
+
+Changes:
+
+- **Exit code is always reported** on failure, in decimal and hex, with its meaning
+  (pytest: `1` tests failed, `2` interrupted, `3` internal error, `4` usage error, `5`
+  nothing collected — anything else means the interpreter itself aborted). That single
+  number separates "tests failed" from "the process died", which the 0.7s duration could
+  only hint at.
+- **An empty batch is called out as an abort**, with the files in that batch and the
+  command to re-run it with output shown. The log also now carries an explicit
+  `(pytest wrote nothing to stdout or stderr for this batch)` marker, so a blank region in
+  the log can no longer be mistaken for a logging failure — which is exactly the wrong
+  turn the note above took.
+- **`E` markers count as failures.** Only `F` was counted, so a batch whose tests errored
+  during collection or fixture setup summarised as `Failed: 0` while exiting non-zero.
+- **Failed *batches* are counted, not failed files.** The summary printed
+  `$failedFiles.Count` under the label `Failed Batches`, and every file of a failing batch
+  is recorded for retest — so one bad batch of 5 files read as "Failed Batches: 5". This
+  is not hypothetical: `docs/development/PHASE4_ISSUE145_BLOCKER_REPORT.md` quotes
+  `✗ Batch 16 failed` immediately above `Failed Batches: 5` in the same block. Batches are
+  now reported as Ran / Passed / Failed, replacing `Completed: N` — which counted
+  *attempted* batches and so described the failing one as completed.
+- Skipped tests are now surfaced in the summary (they were counted per batch and thrown
+  away), and the test total includes them.
+
+### Verification
+
+Reproduced the exact signature instead of waiting for the flake: a throwaway
+`test_zzz_crash_probe.py` calling `os._exit(134)` at import time dies during collection
+having printed nothing, run through the runner alongside a passing file (`-RetestFailed
+-BatchSize 1`). The run reported:
+
+```
+✗ Batch 2 failed in 1.1s (exit code 134 / 0x00000086 - not a pytest exit code - the interpreter itself aborted)
+✗   No output was captured, so this is an abort (crash/kill), not reported test failures.
+✗   Files in this batch: test_zzz_crash_probe.py
+```
+
+with the summary reading `Passed: 1` / `Failed: 1 (1 test file recorded for retest)`, and
+the same lines present in the log file. Probe and its log deleted afterwards; `git status`
+clean apart from the script.
+
+Also removed three dead variables the script carried: `$results` (a summary hashtable
+initialised with zeros, then never written to or read — the summary uses loose counters)
+and `$logStream`/`$logLocked`, left over from a logging approach that isn't used.
 
 ---
 
@@ -601,13 +660,16 @@ has existed. Widened it to `"src/**/*.{ts,tsx,js}"` after confirming via a direc
 it exposes is exactly the bug class just fixed, so enabling it now is safe. `npm run lint`
 afterward: 0 errors, 4 pre-existing unrelated `testing-library` warnings.
 
-### New finding, not fixed this session
+### New finding — ✅ closed 2026-09-15 in `14e3a1eb4`
 
-`analytics.js`'s `builder.*` subtree (title, ui, and 5 of its 6 step/detail sub-objects) is now
+`analytics.js`'s `builder.*` subtree (title, ui, and 5 of its 6 step/detail sub-objects) was
 confirmed fully dead content in both languages — the same "translations for a component that
-no longer exists" situation as bug #2, just not yet cleaned up. Only `builder.step.template`
-has a real caller and should be kept (ideally promoted out of the dead subtree, or at minimum
-verified it renders correctly given the `SavedReportsPanel.tsx` fallback dependency).
+no longer exists" situation as bug #2. **Removed in the workspace-audit dead-code sweep**
+(see that section above); verified 2026-09-16 that both `en/analytics.js` and `el/analytics.js`
+now contain nothing under `builder` but `step.template`, with a comment in `en` recording why.
+Keeping `builder.step.template` also fixed a live bug: it was a nested object (`{ desc: ... }`),
+not a string, so `t('analytics.builder.step.template', 'Template')` could never resolve and
+always fell through to the hardcoded English fallback — including for Greek users.
 
 ---
 
@@ -882,9 +944,10 @@ renders (not raw i18n keys), screenshotted both languages.
    found this same disease in 9 files (128 errors total), not just
    `el/help.js`, and fixed all of them via an AST-based script rather than
    hand-editing each spot. The "why doesn't `COMMIT_READY` catch this"
-   question below remains open — worth answering even though the
-   duplicates themselves are now gone, in case something else is slipping
-   through the same gap.
+   question is **answered in this same entry** — see "Root cause found and
+   fixed" below; it was `package.json`'s `lint` glob omitting `.js`
+   entirely. (This sentence previously called that question open, which
+   contradicted the paragraph three lines further down.)
    (confirmed present on `main` before this session, via `git stash` +
    direct `npx eslint src/locales/el/help.js` — unrelated to tonight's
    edits, which added no new duplicates). Roughly 45 keys were defined
