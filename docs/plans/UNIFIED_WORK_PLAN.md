@@ -274,6 +274,102 @@ they are gitignored, so they were left alone rather than deleted.
 
 ---
 
+## 🔥 Pre-release smoke test: 4 real bugs, 3 of them in SMS_Lite (September 16, 2026)
+
+**Status**: ✅ FIXED and re-verified against rebuilt artifacts, not yet released.
+
+A full smoke test before cutting a release. Native and Docker passed; **every bug was in
+the two modes that only a packaged artifact can exercise**, which is the argument for
+running this against real builds rather than against `npm run dev`.
+
+### 1. SMS_Lite answered static file requests with HTML
+
+`lite_simple_entrypoint.py` registered a catch-all `@app.get("/{path:path}")` that returned
+`index.html` for every non-API path **without checking whether the file existed**.
+`logo.png` and the favicons survived only because `app_factory` gives each of them its own
+explicit route; the Credits image has none, so a request for
+`/AUT_Logo_realistic_Credits.jpg` was answered `200 text/html`, 5,216 bytes — the browser
+asked for a JPEG and got a web page. The image was in the bundle the whole time; only the
+routing was wrong.
+
+Caught by running `credits.spec.ts` against the Lite binary: `naturalWidth: 0`, exactly the
+broken-image case that assertion was written for. **Fixed**: real files under the bundled
+dist now win over the SPA fallback, with a traversal guard so `..` cannot escape it.
+After: `200 image/jpeg, 689,409 bytes`.
+
+### 2. SMS_Lite only worked when opened as `localhost`
+
+`src/frontend/.env` carries `VITE_API_URL=http://localhost:8000/api/v1`, and Vite bakes it
+into any build that does not override it. Lite serves UI and API from one origin, so the
+absolute URL turns every API call into a **cross-origin** request when the user opens
+`http://127.0.0.1:8000` — the HttpOnly `refresh_token` cookie belongs to the other origin,
+`refreshAccessToken()` fails, and the app sits on the login screen with correct credentials
+and no error. The same applies to reaching a Lite install from another machine on the LAN,
+where `localhost` resolves to the *client*.
+
+Proven by running the identical build twice: **0/3** credits specs passed via `127.0.0.1`,
+**2/3** via `localhost` (the third being bug 1). **Fixed**: `Invoke-NativeLiteBuild` now
+sets `VITE_API_URL=/api/v1` for the frontend build — what `docker-compose.yml` and
+`NATIVE.ps1` already did — and restores the caller's value afterwards. The rebuilt bundle
+contains zero occurrences of `http://localhost:8000`, and all **3/3** specs pass via
+`127.0.0.1`.
+
+### 3. SMS_Lite reported `version=unknown`
+
+`get_version()` walks the ancestors of `app_factory.py` looking for a `VERSION` file — its
+docstring covers the native and Docker layouts, but the PyInstaller spec never bundled one,
+so the frozen exe fell through to `"unknown"` in `/health` and everywhere the version is
+shown. **Fixed** in `lite_simple_entrypoint.spec` by shipping `VERSION` to `_internal/`,
+which the existing lookup finds with no code change. After: `version=v1.18.42`.
+
+### 4. Android had been shipping the wrong version since 1.18.32
+
+`src/frontend/android/app/build.gradle` still read `versionName "1.18.32"` /
+`versionCode 118032` while `VERSION` said 1.18.42 — confirmed on the device itself, which
+reported 1.18.32 for a build installed the day before. `VERIFY_VERSION.ps1` had **no
+Android check at all**, so roughly ten releases published an APK that misreported its own
+version, with a `versionCode` that never incremented (Android refuses an upgrade whose code
+does not increase).
+
+**Fixed**: both values are now in the sync chain (11 checks, all green). The versionCode is
+derived as `major*100000 + minor*1000 + patch`, matching the existing numbering. The
+verifier needed a small extension to express this honestly: its comparison assumed every
+reference is a semver string, so an integer check could only ever print "Pattern matched
+but couldn't extract version" — a check that never passes. Checks may now declare an
+`ExpectedLiteral`, so the versionCode check genuinely verifies rather than permanently
+warns.
+
+### What passed
+
+- **Native**: health `v1.18.42` matching VERSION, Postgres connected, migrations at head;
+  E2E 82 passed / 8 failed / 43 skipped, with **all 8 failures explained and none a product
+  defect** — 2 from a spec hardcoding `localhost:5173` against a `127.0.0.1` baseURL, 2 from
+  tests racing the deliberate 10s `cachedGet` TTL (network log shows no refetch on hash
+  navigation and the row appearing once the TTL expires), 4 from credentials that no longer
+  match this database.
+- **Docker**: `v1.18.42`, `env=docker`, container healthy, same remote Postgres as Native,
+  and `credits.spec.ts` **3/3 against the production bundle**.
+- **Installer**: built, **Authenticode Valid**, file and product version both `v1.18.42`.
+- **RBAC spot-checks**: a teacher is correctly bounced from `/admin/import-export`, and
+  `/api/v1/admin/health` returns **403 from the LAN address** while answering on loopback —
+  the documented loopback-only rule, working.
+
+### Dev-database cleanup (owner-approved)
+
+238 accounts, of which **234 were leftovers from previous stress tests** (186
+`teacher-*@test.edu`, 48 `e2e-*@example.com`, 1 `e2e-smoke-*`): every E2E run registers
+accounts and nothing ever removed them. Deleted after taking an encrypted PostgreSQL backup
+(`backups/database/backup_20260916_112732.enc`, AES-256-GCM), leaving exactly the 4 real
+accounts. Also removed the 8 student rows this session's own E2E runs created.
+
+Two notes from doing it: the **`/api/v1/admin/backup-database` endpoint refuses PostgreSQL**
+("Backup supported only for SQLite DB") while `/control/api/operations/database-backup`
+handles it — two backup implementations, only one of which works in the deployed
+configuration. And three `Test Course *` rows (ids 80-82) from this session's E2E run are
+still present; removing them was out of scope for the approval given.
+
+---
+
 ## 🚧 Gate audit: the commit gate was not actually gating (September 16, 2026)
 
 **Status**: ✅ DONE, not yet released. Scripts only — `ENFORCE_COMMIT_READY_GUARD.ps1`,

@@ -550,7 +550,17 @@ function Invoke-NativeLiteBuild {
         }
         Write-Result Info "Building frontend (npm run build)..."
         Push-Location $FrontendDir
+        $prevApiUrl = $env:VITE_API_URL
         try {
+            # SMS_Lite serves the UI and the API from one origin, so the API base must be
+            # relative — exactly as docker-compose and NATIVE.ps1 already set it. Without
+            # this, Vite picks up src/frontend/.env (VITE_API_URL=http://localhost:8000/api/v1)
+            # and bakes an absolute localhost URL into the bundle: the app then works only
+            # when opened as http://localhost:8000, and silently fails to restore the
+            # session on http://127.0.0.1:8000 or from another machine on the LAN, because
+            # the HttpOnly refresh cookie belongs to a different origin.
+            $env:VITE_API_URL = '/api/v1'
+            Write-Result Info "  VITE_API_URL=/api/v1 (same-origin build)"
             npm run build 2>&1 | ForEach-Object { Write-Result Info "  $_" }
             if ($LASTEXITCODE -ne 0) {
                 Write-Result Error "Frontend build failed"
@@ -562,6 +572,8 @@ function Invoke-NativeLiteBuild {
             return $false
         } finally {
             Pop-Location
+            if ($null -ne $prevApiUrl) { $env:VITE_API_URL = $prevApiUrl }
+            else { Remove-Item Env:VITE_API_URL -ErrorAction SilentlyContinue }
         }
         if (-not (Test-Path $FrontendIndex)) {
             Write-Result Error "Frontend build reported success but produced no dist/index.html"

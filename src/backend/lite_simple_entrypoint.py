@@ -412,6 +412,23 @@ def main() -> None:
             # instead of silently serving index.html (which breaks JSON callers).
             from fastapi.responses import JSONResponse
             return JSONResponse({"detail": "Not found"}, status_code=404)
+
+        # Real files in the bundled dist must win over the SPA fallback. This used to
+        # return index.html for every non-API path, so any root-level asset without its
+        # own explicit route in app_factory (logo.png and favicon have one; the Credits
+        # image does not) was answered with HTML and a 200 — the browser asked for a JPEG
+        # and got a page, leaving a broken image with no error anywhere to explain it.
+        if path:
+            candidate = (frontend_dist / path).resolve()
+            dist_root = frontend_dist.resolve()
+            # Only serve inside dist: `path` comes straight from the URL, so "../" must
+            # not be able to walk out of the bundle.
+            if candidate.is_file() and (candidate == dist_root or dist_root in candidate.parents):
+                import mimetypes
+
+                media_type, _ = mimetypes.guess_type(str(candidate))
+                return FileResponse(candidate, media_type=media_type or "application/octet-stream")
+
         # Serve index.html for SPA
         index_path = frontend_dist / "index.html"
         if index_path.exists():

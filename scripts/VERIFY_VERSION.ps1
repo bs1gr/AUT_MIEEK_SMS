@@ -132,6 +132,13 @@ if ($Version -notmatch '^v?\d+\.\d+\.\d+$') {
 }
 
 $VersionCore = Get-VersionCore -Value $Version
+
+# Android's versionCode is an integer, derived the same way the existing build.gradle
+# values were: major*100000 + minor*1000 + patch (1.18.32 -> 118032). It must increase
+# with every release or Android refuses the upgrade, which is why it is synced here
+# rather than left to be remembered by hand.
+$androidVersionParts = $VersionCore.Split('.')
+$AndroidVersionCode = ([int]$androidVersionParts[0] * 100000) + ([int]$androidVersionParts[1] * 1000) + [int]$androidVersionParts[2]
 $Version = Get-VersionTag -Value $Version
 
 Write-Info "Target version: $Version (core: $VersionCore)"
@@ -214,6 +221,24 @@ $versionChecks = @(
         Replace = "version = `"$VersionCore`""
         Description = "Root pyproject.toml version"
         Critical = $false
+    },
+    # The Android app was outside this chain entirely: build.gradle still said 1.18.32
+    # while VERSION was 1.18.42, so every APK published since then reported the wrong
+    # version and its versionCode never moved.
+    @{
+        File = "src/frontend/android/app/build.gradle"
+        Pattern = 'versionName\s+"\d+\.\d+\.\d+"'
+        Replace = "versionName `"$VersionCore`""
+        Description = "Android versionName"
+        Critical = $false
+    },
+    @{
+        File = "src/frontend/android/app/build.gradle"
+        Pattern = 'versionCode\s+\d+'
+        Replace = "versionCode $AndroidVersionCode"
+        ExpectedLiteral = "versionCode $AndroidVersionCode"
+        Description = "Android versionCode"
+        Critical = $false
     }
 )
 
@@ -269,6 +294,26 @@ foreach ($check in $versionChecks) {
         # Check if version matches
         if ($content -match $check.Pattern) {
             $currentMatch = $matches[0]
+
+            # Not every version reference is a semver string: Android's versionCode is a
+            # plain integer. Such a check declares the exact text it expects, so it can
+            # actually pass — rather than always reporting "couldn't extract version",
+            # which would be a check that only ever warns.
+            if ($check.ContainsKey('ExpectedLiteral')) {
+                if ($currentMatch.Trim() -eq $check.ExpectedLiteral) {
+                    Write-Success "$($check.Description): $($currentMatch.Trim()) (correct)"
+                    $results.Consistent++
+                } elseif ($Update) {
+                    $newContent = $content -replace $check.Pattern, $check.Replace
+                    Set-Content -Path $filePath -Value $newContent -NoNewline
+                    Write-Success "$($check.Description): Updated $($currentMatch.Trim()) → $($check.ExpectedLiteral)"
+                    $results.Updated++
+                } else {
+                    Write-Warning "$($check.Description): $($currentMatch.Trim()) (expected: $($check.ExpectedLiteral))"
+                    $results.Inconsistent++
+                }
+                continue
+            }
 
             # Extract version number from match
             if ($currentMatch -match '\d+\.\d+\.\d+') {

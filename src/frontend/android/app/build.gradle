@@ -13,8 +13,8 @@ android {
         applicationId "cy.mieek.sms"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 118032
-        versionName "1.18.32"
+        versionCode 118042
+        versionName "1.18.42"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

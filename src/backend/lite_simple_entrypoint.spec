@@ -28,6 +28,11 @@ a = Analysis(
     datas=[
         # Frontend React build (dist or dist_lite/)
         ('../frontend/dist', 'frontend/dist'),
+        # VERSION file: app_factory.get_version() walks the ancestors of app_factory.py
+        # looking for it, and in the frozen layout those are _internal/backend and
+        # _internal. Without this the Lite edition reported its version as "unknown"
+        # in /health and in the UI.
+        ('../../VERSION', '.'),
         # Database migrations (Alembic) - CRITICAL: alembic.ini must be in backend/ directory
         ('alembic.ini', 'backend'),
         ('migrations', 'backend/migrations'),
