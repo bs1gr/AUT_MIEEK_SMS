@@ -1,21 +1,20 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.42
+**Current Version**: 1.18.43
 **Last Updated**: September 16, 2026
-**Status**: ✅ **v1.18.42 is the latest release (2026-09-15). The commits on `main` since the tag are unreleased and smoke-tested — v1.18.43 is being re-cut after two `RELEASE_READY` runs exposed release-pipeline bugs, one of which briefly published a v1.18.43 tag on the wrong commit; that tag and its empty release were rolled back before any asset was attached (see the top section).**
+**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Nothing unreleased on `main` apart from this plan update.**
 
-- **Unreleased, newest first** (sections below, above the v1.18.42 heading): 4 bugs found by
-  a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the wrong version
-  since 1.18.32 (`05b286b85`); the commit gate made to actually gate (`2400a4158`); the batch
-  test runner now reporting *why* a batch failed and writing the log the docs point at
-  (`936037c7e`, `edeceaf00`); the Credits panel and three dead items removed (`570935e3e`,
-  `6c6874b2a`); plus the release-pipeline and CHANGELOG fixes recorded inside the v1.18.42
-  section (`47fd7e60d`, `1831288dc`, `2369e1a88`, `efb43649a`).
-- **Smoke-tested 2026-09-16** across Native, Docker, the signed installer, SMS_Lite and the
-  Galaxy A55, with every fix re-verified against rebuilt artifacts.
-- **Shipped in v1.18.42** (everything from the v1.18.42 heading down to v1.18.41): the
-  Android Preferences fix, the Android release-build fix, the version-sync repairs, the
-  four-agent workspace audit, and the 2026-09-11/12 Help-audit bug fixes.
+- **Shipped in v1.18.43** (sections from the v1.18.43 heading down to v1.18.42, 18 commits):
+  4 bugs found by a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the
+  wrong version since 1.18.32 (`05b286b85`); the commit gate made to actually gate
+  (`2400a4158`); the batch test runner reporting *why* a batch failed (`936037c7e`,
+  `edeceaf00`); the Credits panel and three dead items removed (`570935e3e`, `6c6874b2a`);
+  and the release-pipeline fixes — both those recorded inside the v1.18.42 section
+  (`47fd7e60d`, `1831288dc`, `2369e1a88`, `efb43649a`) and the four found while cutting this
+  release (`ad12e30a9`, `1c359d7c0`, `83c26d13d`).
+- **Shipped in v1.18.42** (from the v1.18.42 heading down to v1.18.41): the Android
+  Preferences fix, the Android release-build fix, the version-sync repairs, the four-agent
+  workspace audit, and the 2026-09-11/12 Help-audit bug fixes.
 - **Open follow-ups**: collected under "Open follow-ups" at the end of the smoke-test section.
 
 *Status labels below were corrected on 2026-09-16: twelve sections still read "not yet
@@ -28,10 +27,40 @@ A label now names the release that shipped it.*
 
 ---
 
+## 🚀 v1.18.43 (September 16, 2026) — released
+
+**Status**: ✅ RELEASED | Tag `v1.18.43` on release commit `70bfa355e` |
+<https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.43>
+
+Ships the 18 commits since v1.18.42 — every section between this heading and the v1.18.42
+heading. Cut with `RELEASE_READY.ps1 -ReleaseVersion 1.18.43 -TagRelease` on the third run;
+the first two stopped on release-pipeline bugs described in the next section.
+
+**Verified on the published assets themselves**, downloaded back from the release rather
+than trusting workflow status:
+
+| Asset | Check |
+|---|---|
+| `SMS_Installer_1.18.43.exe` (76.17 MB) | Authenticode **Valid**, signed `CN=AUT MIEEK`, timestamped; file and product version **v1.18.43** |
+| `SMS_Android_1.18.43.apk` (3.96 MB) | `aapt dump badging`: `versionCode='118043' versionName='1.18.43'` — the first APK since 1.18.32 to report its real version |
+| Release body | 781 characters, **4 code fences intact**, no false breaking-change banner, not the `Release v1.18.43` fallback |
+
+At the tag: `VERSION` v1.18.43, `build.gradle` 118043/1.18.43, `package.json` 1.18.43, and
+`.github/RELEASE_NOTES_v1.18.43.md` present. Workflows: Create GitHub Release, Build & Upload
+Installer, and Build & Upload Android APK all succeeded, as did CI/CD and E2E on the release
+commit. The release is published, not draft or pre-release, and is `latest`.
+
+This was the first release to exercise, for real: the Android version sync, the
+always-rebuild SMS_Lite and frontend fixes, the release-notes generator fixes, and the
+content-bound commit guard — which let the release commit through with "Checkpoint matches
+the content being committed".
+
+---
+
 ## 🧯 Cutting v1.18.43: four release-pipeline bugs, one of which published a bad tag (September 16, 2026)
 
-**Status**: ✅ All FIXED and the bad tag rolled back before any asset was attached; v1.18.43 to be
-re-cut. The first bug was found by reading the script before running it, the second by the
+**Status**: ✅ All FIXED, **released in v1.18.43**; the bad tag was rolled back before any asset was
+attached. The first bug was found by reading the script before running it, the second by the
 first run, the third by the second run, the fourth by inspecting the second run's generated
 release notes before re-cutting.
 
@@ -186,7 +215,7 @@ first — logged under Open follow-ups as a dead script.
 
 ## 🔥 Pre-release smoke test: 4 real bugs, 3 of them in SMS_Lite (September 16, 2026)
 
-**Status**: ✅ FIXED and re-verified against rebuilt artifacts, not yet released. Commit
+**Status**: ✅ FIXED and re-verified against rebuilt artifacts, **released in v1.18.43**. Commit
 `05b286b85`.
 
 A full smoke test before cutting a release. Native and Docker passed; **every bug was in
@@ -329,7 +358,7 @@ been reported but never written into this plan until the 2026-09-16 plan review.
 
 ## 🚧 Gate audit: the commit gate was not actually gating (September 16, 2026)
 
-**Status**: ✅ DONE, not yet released. Commit `2400a4158`. Scripts only —
+**Status**: ✅ DONE, **released in v1.18.43**. Commit `2400a4158`. Scripts only —
 `ENFORCE_COMMIT_READY_GUARD.ps1`, `COMMIT_READY.ps1`, `RELEASE_READY.ps1`,
 `RUN_TESTS_BATCH.ps1`, `AUTO_COMMIT_AFTER_READY.ps1`, `.githooks/pre-commit`.
 
@@ -502,7 +531,7 @@ Windows environment variables if the guard is meant to apply here.
 
 ## 🔬 The batch runner now records *why* a batch failed (September 16, 2026)
 
-**Status**: ✅ DONE, not yet released. Commits `936037c7e` (failure diagnostics) and
+**Status**: ✅ DONE, **released in v1.18.43**. Commits `936037c7e` (failure diagnostics) and
 `edeceaf00` (log location and `backend_batch_full.txt`). `infra/scripts/testing/RUN_TESTS_BATCH.ps1`
 only.
 
@@ -598,7 +627,7 @@ they are gitignored, so they were left alone rather than deleted.
 
 ## 🧹 Post-release cleanup: Credits panel + three dead items (September 16, 2026)
 
-**Status**: ✅ DONE, not yet released. Commits `570935e3e` (feature) and `6c6874b2a`
+**Status**: ✅ DONE, **released in v1.18.43**. Commits `570935e3e` (feature) and `6c6874b2a`
 (cleanup).
 
 ### Credits panel added to the System tab (`570935e3e`)
