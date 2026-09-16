@@ -235,6 +235,43 @@ Also removed three dead variables the script carried: `$results` (a summary hash
 initialised with zeros, then never written to or read — the summary uses loose counters)
 and `$logStream`/`$logLocked`, left over from a logging approach that isn't used.
 
+### The log file the docs tell you to read never existed
+
+Found while fixing the above, and the same failure shape as the version-sync no-ops: a
+check that cannot pass, reported as if nothing were wrong.
+
+`CLAUDE.md`'s **Verification — evidence required** rule, `.claude/agents/test-runner.md`
+and six places in `.github/copilot-instructions.md` all say to check results by reading
+`src/backend/test-results/backend_batch_full.txt`. **No such file existed anywhere in the
+repo**, and nothing in the runner ever wrote one. Run verbatim, the documented command
+fails with `Cannot find path ... because it does not exist` — and because the error goes to
+stderr while the piped `Select-String` prints nothing, the result looks exactly like a run
+with no failures. Every "verified against the batch log" claim made that way was reading
+nothing.
+
+The reason no fixed path could be right: `$logPath` was `Join-Path (Get-Location) $LogFile`,
+i.e. relative to **the caller's** working directory. `COMMIT_READY` pushes into
+`src/backend` before invoking the runner, while `CLAUDE.md` tells a developer to run it
+from the repo root — so logs accumulated in two unrelated directories (127 files in
+`src/backend/test-results/`, 29 in `test-results/` at the root, same naming, same script).
+
+Fixed at the source rather than by editing three documents to describe the mess:
+
+- a relative `-LogFile` now resolves against `src/backend/`, so runs land in
+  `src/backend/test-results/` regardless of the working directory (an absolute `-LogFile`
+  is still honoured as given);
+- the finished log is copied to `src/backend/test-results/backend_batch_full.txt` on both
+  the pass and fail exits, which makes all three existing documents true as written;
+- `$projectRoot` is now resolved once at the top from `$PSScriptRoot`, replacing a
+  duplicate `$MyInvocation`-based computation further down.
+
+Verified from the **repo root** (the case that used to write to the wrong place): the log
+was announced and written at `src/backend/test-results/`, the root `test-results/` file
+count stayed at 29, `backend_batch_full.txt` appeared, and CLAUDE.md's command run verbatim
+against it printed the batch lines — including the new failure detail. The old root-level
+`test-results/` directory still holds its 29 historical logs; nothing writes there now, and
+they are gitignored, so they were left alone rather than deleted.
+
 ---
 
 ## 🚀 v1.18.42 (September 15, 2026) — released

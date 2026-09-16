@@ -25,6 +25,11 @@
     Seconds to wait between batches (default: 2)
 .PARAMETER FailureFile
     Path to file tracking failed tests (default: .test-failures)
+.PARAMETER LogFile
+    Path of the run log. A relative path resolves against src/backend/ no matter where
+    the script is invoked from, so logs always land in src/backend/test-results/.
+    The finished log is also copied to src/backend/test-results/backend_batch_full.txt,
+    the fixed "latest run" path the project's docs tell you to read.
 
 .EXAMPLE
     .\RUN_TESTS_BATCH.ps1
@@ -61,14 +66,22 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-# Ensure test-results directory exists
-$testResultsDir = "test-results"
-if (-not (Test-Path $testResultsDir)) {
-    New-Item -ItemType Directory -Path $testResultsDir -Force | Out-Null
-}
+# Script lives at infra/scripts/testing/ — project root is three levels up
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
 
-# Create log file
-$logPath = Join-Path (Get-Location) $LogFile
+# Resolve the log path against src/backend, NOT the caller's working directory.
+# COMMIT_READY runs this from src/backend while a developer runs it from the repo root,
+# so run logs used to scatter across two separate test-results directories — which is why
+# no document could truthfully point at a fixed log path.
+$logPath = if ([System.IO.Path]::IsPathRooted($LogFile)) {
+    [System.IO.Path]::GetFullPath($LogFile)
+} else {
+    [System.IO.Path]::GetFullPath((Join-Path (Join-Path $projectRoot "src/backend") $LogFile))
+}
+$logDir = Split-Path -Parent $logPath
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
 
 # Function to write to both console and log file
 function Write-Log {
@@ -98,6 +111,20 @@ function Write-ErrorMsg { param($msg) Write-Log "✗ $msg" Red; Write-Log "`n" R
 function Write-Error {
     param($msg)
     Write-ErrorMsg $msg
+}
+
+# Copy the finished log to a fixed filename. CLAUDE.md's "Verification" rule,
+# .claude/agents/test-runner.md and .github/copilot-instructions.md all tell the reader to
+# check results by reading src/backend/test-results/backend_batch_full.txt — a file nothing
+# ever wrote, so that mandated check failed with a path error on every run, and the piped
+# Select-String printed nothing, which reads like "no failures found".
+function Save-LatestLogCopy {
+    $stablePath = Join-Path (Split-Path -Parent $logPath) "backend_batch_full.txt"
+    try {
+        Copy-Item -Path $logPath -Destination $stablePath -Force
+    } catch {
+        Write-Host "Could not update $stablePath : $_" -ForegroundColor DarkYellow
+    }
 }
 
 function Restore-TestEnv {
@@ -131,8 +158,7 @@ if (-not $ShowOutput) {
     Write-Info "Batch output is log-only to reduce terminal load. Use -ShowOutput to print batch output."
 }
 
-# Script lives at infra/scripts/testing/ — project root is three levels up
-$projectRoot = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
+# $projectRoot is resolved from $PSScriptRoot at the top of the script
 $backendTestsDir = "$projectRoot/src/backend/tests"
 if (-not (Test-Path $backendTestsDir)) {
     Write-Error "backend/tests directory not found!"
@@ -382,6 +408,7 @@ if ($failedCount -eq 0 -and $failedBatchCount -eq 0) {
     }
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     Write-Log "`n✓ Test log completed: $logPath`n" Green
+    Save-LatestLogCopy
     exit 0
 } else {
     Write-ErrorMsg "Some tests failed"
@@ -410,5 +437,6 @@ if ($failedCount -eq 0 -and $failedBatchCount -eq 0) {
 
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     Write-Log "`n✗ Test log completed: $logPath`n" Red
+    Save-LatestLogCopy
     exit 1
 }
