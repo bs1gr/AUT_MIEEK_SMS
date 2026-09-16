@@ -31,6 +31,23 @@ logger = logging.getLogger(__name__)
 _BACKUP_DIR: Path | None = None
 _ALLOWED_BACKUP_EXTENSIONS = [".sql", ".sql.gz"]
 
+# Marker carried on the first line of every file _backup_via_psycopg writes, in both the
+# current header and the original "-- SMS PostgreSQL Backup (psycopg COPY)" one, so exports
+# made before this change are recognised too.
+_PSYCOPG_EXPORT_MARKER = "(psycopg COPY)"
+
+PSYCOPG_EXPORT_WARNING = (
+    "pg_dump is not installed, so this is a data export (table rows as CSV), not a restorable "
+    "backup. The app cannot restore it. Install the PostgreSQL client tools (pg_dump and psql) "
+    "to create backups that can be restored."
+)
+
+
+def _is_psycopg_data_export(content: str) -> bool:
+    """True when `content` is a psycopg COPY data export rather than restorable SQL."""
+    first_line = content.lstrip("﻿").split("\n", 1)[0]
+    return first_line.startswith("-- SMS PostgreSQL") and _PSYCOPG_EXPORT_MARKER in first_line
+
 
 def _get_backup_dir() -> Path:
     """Resolve and create the PostgreSQL backup directory."""
@@ -382,6 +399,7 @@ def _backup_via_pg_dump(
             "method": "pg_dump",
             "compressed": compress,
             "timestamp": timestamp,
+            "restorable": True,
         }
 
     except Exception as exc:
@@ -397,7 +415,13 @@ def _backup_via_psycopg(
     timestamp: str,
     compress: bool,
 ) -> dict[str, Any]:
-    """Create backup using psycopg COPY TO STDOUT (no pg_dump needed)."""
+    """Export table data using psycopg COPY TO STDOUT when pg_dump is not installed.
+
+    This is a DATA EXPORT, not a restorable backup: every public table's rows are written as
+    CSV under comment headers, with no schema, sequences or constraints and no SQL. The app
+    cannot restore it - `restore_backup` refuses these files (see _is_psycopg_data_export) -
+    and the result says so, so it is never mistaken for a backup.
+    """
     import psycopg
 
     inst_name = instance.get("name", "db")
@@ -416,8 +440,11 @@ def _backup_via_psycopg(
         open_fn = gzip.open if compress else open
         with psycopg.connect(dsn) as conn:
             with open_fn(filepath, "wt", encoding="utf-8") as f:  # type: ignore[call-overload]
-                # Header
-                f.write("-- SMS PostgreSQL Backup (psycopg COPY)\n")
+                # Header. The first line is what _is_psycopg_data_export recognises; keep its
+                # "(psycopg COPY)" marker if it is ever reworded.
+                f.write("-- SMS PostgreSQL data export (psycopg COPY)\n")
+                f.write("-- NOT a restorable backup: table rows as CSV, no schema and no SQL.\n")
+                f.write("-- Install the PostgreSQL client tools (pg_dump/psql) for restorable backups.\n")
                 f.write(f"-- Timestamp: {timestamp}\n")
                 f.write("\n")
 
@@ -463,6 +490,8 @@ def _backup_via_psycopg(
             "method": "psycopg_copy",
             "compressed": compress,
             "timestamp": timestamp,
+            "restorable": False,
+            "warning": PSYCOPG_EXPORT_WARNING,
         }
 
     except Exception as exc:
@@ -581,11 +610,32 @@ def restore_backup(instance: dict[str, Any], filename: str) -> dict[str, Any]:
     else:
         sql_content = filepath.read_text(encoding="utf-8")
 
-    # Try psql first (more robust for large restores)
+    # A psycopg COPY export is CSV, not SQL. Refuse it before anything can run - psql would
+    # also try to execute its data lines.
+    if _is_psycopg_data_export(sql_content):
+        raise ValueError(
+            "This file is a data export made without pg_dump: it holds table rows as CSV, not "
+            "SQL, and cannot be restored by the app. Nothing was changed."
+        )
+
     if shutil.which("psql"):
         return _restore_via_psql(instance, sql_content)
 
-    return _restore_via_psycopg(instance, sql_content)
+    # No psql: refuse rather than execute. There used to be a psycopg fallback here that
+    # split the file on ";" and executed every fragment. It could not restore anything this
+    # module writes - pg_dump's plain format carries its data in COPY ... FROM stdin blocks,
+    # and the psycopg export is CSV - and it was dangerous: a typical export was skipped as a
+    # comment and reported success with 0 statements executed, while a stored text value such
+    # as "x;DELETE FROM users;y" was split out and executed verbatim on an autocommit
+    # connection. Found and removed 2026-09-17.
+    return {
+        "success": False,
+        "method": "none",
+        "error": (
+            "Restoring a PostgreSQL backup needs the PostgreSQL client tools (psql), which are "
+            "not installed on this machine. Nothing was changed."
+        ),
+    }
 
 
 def _restore_via_psql(instance: dict[str, Any], sql: str) -> dict[str, Any]:
@@ -620,51 +670,6 @@ def _restore_via_psql(instance: dict[str, Any], sql: str) -> dict[str, Any]:
         "stdout": result.stdout.decode(errors="replace")[:2000],
         "stderr": result.stderr.decode(errors="replace")[:2000],
     }
-
-
-def _restore_via_psycopg(instance: dict[str, Any], sql: str) -> dict[str, Any]:
-    """Restore using psycopg execute (line-by-line for safety)."""
-    import psycopg
-
-    dsn = (
-        f"host={instance['host']} port={instance['port']} "
-        f"dbname={instance['dbname']} user={instance['user']} "
-        f"password={instance['password']} sslmode={instance.get('sslmode', 'prefer')} "
-        f"connect_timeout=10"
-    )
-
-    errors: list[str] = []
-    executed = 0
-
-    try:
-        with psycopg.connect(dsn, autocommit=True) as conn:
-            # Split on semicolons and execute statement by statement
-            # Skip comments and COPY blocks (psycopg COPY format not directly executable)
-            for statement in sql.split(";"):
-                stmt = statement.strip()
-                if not stmt or stmt.startswith("--"):
-                    continue
-                try:
-                    conn.execute(stmt)
-                    executed += 1
-                except Exception as exc:
-                    errors.append(f"Statement error: {str(exc)[:200]}")
-                    if len(errors) > 50:
-                        break
-
-        return {
-            "success": len(errors) == 0,
-            "method": "psycopg",
-            "statements_executed": executed,
-            "errors": errors[:20],
-        }
-
-    except Exception as exc:
-        return {
-            "success": False,
-            "method": "psycopg",
-            "error": str(exc),
-        }
 
 
 # ---------------------------------------------------------------------------

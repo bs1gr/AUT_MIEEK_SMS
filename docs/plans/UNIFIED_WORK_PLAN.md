@@ -2,7 +2,7 @@
 
 **Current Version**: 1.18.43
 **Last Updated**: September 16, 2026
-**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 follow-up fixes — E2E spec reliability, dead deploy scripts removed, deploy README rewritten (tests, scripts and docs only; no application code).**
+**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 — a PostgreSQL restore that could execute backup data as SQL, contained (application code; see the top section), plus E2E spec reliability fixes and dead deploy scripts removed.**
 
 - **Shipped in v1.18.43** (sections from the v1.18.43 heading down to v1.18.42, 18 commits):
   4 bugs found by a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the
@@ -24,6 +24,92 @@ A label now names the release that shipped it.*
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 🛡️ PostgreSQL restore could execute backup data as SQL — contained (September 17, 2026)
+
+**Status**: ✅ CONTAINED, not yet released (owner chose containment; a real restore is still
+open). Found while investigating the follow-up "`/api/v1/admin/backup-database` refuses
+PostgreSQL", which turned out to be the smallest of the problems in this area.
+
+### What was wrong
+
+This applies wherever the PostgreSQL client tools are **not** installed — this dev machine,
+Native mode, and SMS_Lite installs connecting to the QNAP Postgres. `Dockerfile.fullstack`
+does install `postgresql-client`, so the Docker stack never reaches these fallbacks.
+
+1. **The Database panel's backup** (`POST /control/api/database/instances/{name}/backup` →
+   `database_manager.create_backup`) falls back without `pg_dump` to a psycopg `COPY`
+   export: every table's rows as **CSV** under comment headers, with no schema and no SQL,
+   in a file named `.sql`. The panel still reported "Backup created".
+2. **Its restore** (`POST /control/api/database/backups/{file}/restore` → `restore_backup`),
+   without `psql`, split the file on `;` and executed every fragment on an **autocommit**
+   connection. Proven by calling the real `_restore_via_psycopg` with a fake connection that
+   recorded statements instead of running them:
+   - a typical export → `success=True, statements_executed=0`: **reported success,
+     restored nothing** (the whole file is one chunk starting with `--`, which is skipped);
+   - a student named `x;DELETE FROM users;y` → it would execute exactly
+     **`DELETE FROM users`**, still reporting `success=True`. PostgreSQL's CSV output does
+     not quote semicolons, and the split ignores quoting anyway. Stored SQL injection,
+     triggered by an admin clicking Restore (`DatabasePanel.tsx`).
+   The executor could not restore anything this module writes: `pg_dump`'s plain format
+   carries its data in `COPY … FROM stdin` blocks, and the fallback export is CSV.
+3. **The Dev Tools backup** (`/operations/database-backup`) said "Encrypted PostgreSQL backup
+   created successfully", but its paired `/operations/database-restore` accepts only files
+   that start `SQLite format 3`. **No PostgreSQL backup made there — `pg_dump` or not — can
+   be restored through the app**, including on Docker. That restore at least fails loudly.
+
+**Correction to the 2026-09-16 account cleanup:** the "encrypted PostgreSQL backup" taken
+before deleting the 234 stress-test accounts came from path 3 via the CSV fallback, so it was
+never a usable restore point. Nothing was lost — the deleted accounts were disposable — but it
+was described as a safety net it was not.
+
+### Containment
+
+- `restore_backup` recognises a psycopg COPY export by its first line — both the original
+  `-- SMS PostgreSQL Backup (psycopg COPY)` header and the new one, so exports already on disk
+  are covered — and **refuses** it before anything runs, with or without `psql`.
+- The split-and-execute fallback is **removed**. Without `psql`, restore returns
+  `success=False` with "needs the PostgreSQL client tools (psql) … Nothing was changed."
+- The fallback export now says in its own header that it is **not a restorable backup**, and
+  its result carries `restorable: false` and a `warning`. `BackupResult` gained both fields,
+  and the Database panel shows the warning (new `db.backupNotRestorable`, EN + EL); `pg_dump`
+  backups carry `restorable: true`.
+- The Dev Tools backup message now says what was produced: "PostgreSQL data export … the app
+  cannot restore it" without `pg_dump`, or, with `pg_dump`, that it must be restored with
+  `psql` because the Dev Tools restore accepts SQLite backups only. Details carry
+  `restorable_in_app: false` and the warning.
+
+### Verification
+
+`test_database_manager_restore_safety.py`, 9 tests:
+- refusal of both header generations with `psql` present and absent, with a fixture that
+  fails the test if restore opens a connection or runs a subprocess;
+- refusal instead of execution when `psql` is missing;
+- genuine SQL handed to `psql` when it is present;
+- the export detector matching only exports;
+- a **round trip** — what the fallback backup writes is exactly what restore refuses;
+- `pg_dump` results marked restorable.
+
+**Proven to catch the bug**: with `database_manager.py` swapped back to its HEAD version,
+**8 of 9 fail**. The no-`psql` test fails on `assert 'psycopg' == 'none'`, showing the
+original really took the executor path; the one that still passes is the `psql` hand-off,
+which was already correct. Restored, 9/9 pass. `test_admin_backup_encryption.py` (7) passes
+with new assertions on the honest Dev Tools message. `ruff`, `tsc --noEmit` and `eslint`
+are clean.
+
+### Still open
+
+- **No working PostgreSQL restore without the client tools.** Either implement one for the
+  export format (per-table TRUNCATE + `COPY … FROM STDIN` in one transaction, sequences
+  reset, tested against a throwaway Postgres container) or ship `pg_dump`/`psql` with Native
+  and SMS_Lite.
+- **The Dev Tools restore accepts SQLite only**, so its PostgreSQL backups have no in-app
+  restore path even on Docker.
+- `/api/v1/admin/backup-database` (the original follow-up) is SQLite-only and has **no
+  frontend callers**. It is superseded by the two panels above; delete it or route it to
+  `create_backup`.
 
 ---
 
@@ -392,7 +478,16 @@ still present; removing them was out of scope for the approval given.
 Collected in one place so they do not stay scattered across sections; the first three had
 been reported but never written into this plan until the 2026-09-16 plan review.
 
-- **Android: `triggerEvent` console error on launch.** Logcat on the Galaxy A55 shows
+- ~~**Android: `triggerEvent` console error on launch.**~~ **EXPLAINED 2026-09-17 — harmless, no
+  change needed.** Reproduced on the Galaxy A55 across four cold launches: **0** errors on
+  two normal launches (screen on, unlocked), **exactly 1** when the app was sent Home ~300 ms
+  into loading, and **exactly 1** when launched with the screen off (how it was first seen).
+  Cause, read in Capacitor 7.6.6: `MockCordovaWebViewImpl.handlePause` calls
+  `triggerDocumentEvent("pause")`, which evals `window.Capacitor.triggerEvent(...)` without
+  checking the bridge has loaded, so a pause during page load throws. The event is lost, but
+  SMS registers no `pause`/`resume` document listener and no `appStateChange` handler — its
+  only App listener is `backButton`, which uses the plugin channel — so nothing depends on it.
+  Upstream behaviour, not SMS code. Original note: logcat on the Galaxy A55 shows
   `Uncaught TypeError: Cannot read properties of undefined (reading 'triggerEvent')` once
   per launch, from `Capacitor/Console` at line 1. The app launches, logs in and works
   normally, so impact is unknown rather than visible — which is also how the
@@ -431,8 +526,9 @@ been reported but never written into this plan until the 2026-09-16 plan review.
   grading page, logs "Grades page UI not found, skipping test" and returns — a pass. It is not
   the cache race (it still skips after the 2026-09-17 reload fix), so its selectors no longer
   match the UI and it needs rewriting against the current grading view.
-- **`/api/v1/admin/backup-database` refuses PostgreSQL** while the control-API backup works
-  — see above.
+- ~~**`/api/v1/admin/backup-database` refuses PostgreSQL**~~ **Investigated 2026-09-17** — it led
+  to the restore that could execute backup data as SQL, now contained. See that section at
+  the top; its "Still open" list replaces this item.
 - **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment**, disabling the
   `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
 - **The 0.7s commit-gate flake is still unexplained** — the batch runner now records enough

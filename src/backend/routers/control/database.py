@@ -140,6 +140,10 @@ class BackupResult(BaseModel):
     compressed: Optional[bool] = None
     timestamp: Optional[str] = None
     error: Optional[str] = None
+    # False for a psycopg COPY data export (made when pg_dump is missing), which the app
+    # cannot restore; `warning` then says so, for the UI to surface.
+    restorable: Optional[bool] = None
+    warning: Optional[str] = None
 
 
 class RestoreResult(BaseModel):

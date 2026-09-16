@@ -466,6 +466,8 @@ export default {
     files: 'files',
     noBackups: 'No backups available. Create one from an instance above.',
     backupCreated: 'Backup created',
+    backupNotRestorable:
+      'pg_dump is not installed, so this is a data export (CSV), not a backup that can be restored. The app cannot restore it. Install the PostgreSQL client tools (pg_dump and psql) to create restorable backups.',
     backupDeleted: 'Backup deleted',
     confirmDelete: 'Delete backup',
     confirmRestore: 'Restore backup to',

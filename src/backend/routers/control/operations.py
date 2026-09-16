@@ -412,6 +412,23 @@ async def create_database_backup(
 
                 file_size = backup_path.stat().st_size
 
+                # Say what was actually produced. This used to report "PostgreSQL backup created
+                # successfully" in every case, but the paired /operations/database-restore accepts
+                # SQLite backups only, so no PostgreSQL file made here can be restored through it -
+                # and without pg_dump the file is not even SQL, it is a CSV data export the app
+                # cannot restore at all (see database_manager).
+                if backup_method == "psycopg_copy":
+                    from backend.services.database_manager import PSYCOPG_EXPORT_WARNING
+
+                    pg_kind = "PostgreSQL data export"
+                    pg_warning = PSYCOPG_EXPORT_WARNING
+                else:
+                    pg_kind = "PostgreSQL backup (pg_dump)"
+                    pg_warning = (
+                        "Restore it with psql. The Dev Tools restore accepts SQLite backups only, "
+                        "so it cannot restore this file."
+                    )
+
                 if encrypt:
                     # Encrypt the SQL dump
                     backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
@@ -437,7 +454,7 @@ async def create_database_backup(
 
                     return OperationResult(
                         success=True,
-                        message="Encrypted PostgreSQL backup created successfully",
+                        message=f"Encrypted {pg_kind} created. {pg_warning}",
                         details={
                             "filename": f"{backup_name}.enc",
                             "path": backup_info["backup_path"],
@@ -447,12 +464,15 @@ async def create_database_backup(
                             "timestamp": timestamp,
                             "compression_ratio": backup_info["compression_ratio"],
                             "database_type": "postgresql",
+                            "backup_method": backup_method,
+                            "restorable_in_app": False,
+                            "warning": pg_warning,
                         },
                     )
                 else:
                     return OperationResult(
                         success=True,
-                        message="PostgreSQL backup created successfully",
+                        message=f"{pg_kind} created. {pg_warning}",
                         details={
                             "filename": backup_filename,
                             "path": str(backup_path),
@@ -461,6 +481,8 @@ async def create_database_backup(
                             "encryption": None,
                             "backup_method": backup_method,
                             "database_type": "postgresql",
+                            "restorable_in_app": False,
+                            "warning": pg_warning,
                         },
                     )
 

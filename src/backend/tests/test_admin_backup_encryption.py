@@ -232,3 +232,9 @@ def test_postgres_backup_fallback_when_pg_dump_missing(client, admin_token, tmp_
     assert data["details"]["backup_method"] == "psycopg_copy"
     assert str(data["details"]["filename"]).endswith(".sql")
     assert captured_instance["password"] == "test!pass"
+    # It used to say "PostgreSQL backup created successfully". Without pg_dump the file is a
+    # CSV data export the app cannot restore, and the response must say so.
+    assert "data export" in data["message"]
+    assert "cannot restore" in data["message"]
+    assert data["details"]["restorable_in_app"] is False
+    assert data["details"]["warning"]

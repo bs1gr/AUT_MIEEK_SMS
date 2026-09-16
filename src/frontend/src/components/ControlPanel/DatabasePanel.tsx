@@ -54,6 +54,9 @@ interface BackupResult {
   compressed: boolean | null;
   timestamp: string | null;
   error: string | null;
+  /** false when pg_dump was missing and the file is a data export the app cannot restore */
+  restorable?: boolean | null;
+  warning?: string | null;
 }
 
 interface RestoreResult {
@@ -177,6 +180,12 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
       );
       if (res.data.success) {
         flash(`${t('db.backupCreated') || 'Backup created'}: ${res.data.filename ?? ''}`);
+        // Without pg_dump the server can only write a CSV data export, which cannot be
+        // restored. It used to be reported as a plain "Backup created", so show it
+        // prominently rather than let it pass for a restore point.
+        if (res.data.restorable === false) {
+          setError(t('db.backupNotRestorable'));
+        }
         await fetchBackups();
       } else {
         setError(res.data.error || 'Backup failed');
