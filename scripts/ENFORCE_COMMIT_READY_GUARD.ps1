@@ -77,76 +77,97 @@ function Get-Sha256Hex {
 }
 
 <#
-    Fingerprint of everything that is not yet committed:
-      - the HEAD commit, so a checkpoint does not survive a branch switch or a rebase
-      - `git diff HEAD`, which covers tracked changes whether staged or not. Staging does
-        not change this output, so `git add -A` between validating and committing is fine.
-      - untracked, non-ignored files, hashed by content via a single `git hash-object`
-        call, because those files become part of the commit as soon as they are added.
+    Fingerprint of everything that is not yet committed, built so that STAGING CANNOT
+    CHANGE IT: the checkpoint is taken before `git add`, and the commit happens after.
+
+    It hashes (path, working-tree content) pairs over a single path set:
+      - every path that differs from HEAD, staged or not
+        (`git diff HEAD --name-only --no-renames`), plus
+      - every untracked, non-ignored path (`git ls-files --others --exclude-standard`).
+    Staging only moves a path from the second list to the first. The union and each
+    file's content are unchanged, so the fingerprint is unchanged. The HEAD commit is
+    included so a checkpoint does not survive a branch switch or a rebase.
+
+    HISTORY - why it is not built from `git diff HEAD` text any more: the first version
+    hashed the diff text for tracked changes and the content of untracked files
+    separately. Staging a *modified tracked* file leaves the diff unchanged, which is all
+    that version was tested with. Staging a *new* file moves it from the untracked half
+    into the diff half and changes the fingerprint. A release always creates new files
+    (release notes), so on 2026-09-16 this guard blocked the v1.18.43 release commit as
+    "a file was edited after validation" when nothing had been edited - and RELEASE_READY
+    then tagged the unbumped commit anyway (fixed there separately).
+
+    `--no-renames` keeps a rename as delete + add in both states: with rename detection
+    on, an unstaged rename reports the old path but a staged one only the new path.
+
+    Known limit: content is read from the working tree, which is what COMMIT_READY
+    validates. If a file is staged and then edited again before committing, the index
+    (what gets committed) can differ from what was checked. The normal flow,
+    `git add -A` then commit, keeps them identical.
 #>
 function Get-TreeFingerprint {
-    $head = ''
-    try { $head = (git rev-parse HEAD 2>$null) } catch {}
-    if ($head) { $head = $head.Trim() }
-
-    $diff = ''
-    if ($head) {
-        try { $diff = (git diff HEAD 2>$null | Out-String) } catch {}
-    } else {
-        # No commits yet: there is no HEAD to diff against, so fall back to the status
-        # listing. Slightly weaker, and only reachable in a fresh repo.
-        try { $diff = (git status --porcelain -uall 2>$null | Out-String) } catch {}
-    }
-
-    $untracked = @()
+    # ls-files --others and hash-object resolve paths against the current directory, so
+    # pin everything to the repo root - the hook runs from there, callers may not.
+    Push-Location $repoRoot
     try {
-        $untracked = @(git ls-files --others --exclude-standard 2>$null | Where-Object { $_ })
-    } catch {}
+        $head = ''
+        try { $head = (git rev-parse HEAD 2>$null) } catch {}
+        if ($head) { $head = $head.Trim() }
 
-    $untrackedPart = ''
-    if ($untracked.Count -gt 0) {
-        $hashes = @()
-        try {
-            # One call for all of them; git prints one hash per path, in order.
-            $hashes = @(git hash-object -- $untracked 2>$null)
-        } catch {}
-        if ($hashes.Count -eq $untracked.Count) {
-            for ($i = 0; $i -lt $untracked.Count; $i++) {
-                $untrackedPart += "$($untracked[$i]) $($hashes[$i])`n"
-            }
+        $changed = @()
+        if ($head) {
+            try { $changed = @(git -c core.quotepath=off diff HEAD --name-only --no-renames 2>$null | Where-Object { $_ }) } catch {}
         } else {
-            # Hashing failed (unreadable file, path length). Size + mtime still detects
-            # an edit; record that this path was taken so a mismatch can be explained.
-            $untrackedPart += "fallback-size-mtime`n"
-            foreach ($path in $untracked) {
-                $full = Join-Path $repoRoot $path
-                if (Test-Path $full) {
-                    $item = Get-Item -LiteralPath $full
-                    $untrackedPart += "$path $($item.Length) $($item.LastWriteTimeUtc.Ticks)`n"
-                } else {
-                    $untrackedPart += "$path missing`n"
+            # No commits yet: nothing to diff against, so every staged path counts.
+            try { $changed = @(git -c core.quotepath=off diff --cached --name-only 2>$null | Where-Object { $_ }) } catch {}
+        }
+        $untracked = @()
+        try { $untracked = @(git -c core.quotepath=off ls-files --others --exclude-standard 2>$null | Where-Object { $_ }) } catch {}
+
+        $paths = @(@($changed) + @($untracked) | Sort-Object -Unique)
+        $present = @($paths | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
+
+        $hashByPath = @{}
+        if ($present.Count -gt 0) {
+            $hashes = @()
+            # One call for all of them; git prints one hash per path, in order.
+            try { $hashes = @(git hash-object -- $present 2>$null) } catch {}
+            if ($hashes.Count -eq $present.Count) {
+                for ($i = 0; $i -lt $present.Count; $i++) { $hashByPath[$present[$i]] = $hashes[$i] }
+            } else {
+                # Hashing failed (unreadable file, path length). Size + mtime still
+                # detects an edit.
+                foreach ($path in $present) {
+                    $item = Get-Item -LiteralPath $path
+                    $hashByPath[$path] = "size-mtime:$($item.Length):$($item.LastWriteTimeUtc.Ticks)"
                 }
             }
         }
-    }
 
-    # Paths only, without the porcelain status letters: staging a file changes " M path"
-    # to "M  path", which would otherwise make every file look like a new one when the
-    # mismatch report is printed.
-    $changedPaths = @()
-    try {
-        $changedPaths = @(git status --porcelain 2>$null | Where-Object { $_ } | ForEach-Object {
-            $entry = if ($_.Length -gt 3) { $_.Substring(3) } else { $_.Trim() }
-            if ($entry -match ' -> ') { $entry = ($entry -split ' -> ')[-1] }   # renames
-            $entry.Trim().Trim('"')
-        } | Sort-Object -Unique)
-    } catch {}
+        $lines = foreach ($path in $paths) {
+            if ($hashByPath.ContainsKey($path)) { "$path $($hashByPath[$path])" } else { "$path deleted" }
+        }
 
-    return [pscustomobject]@{
-        Head        = $head
-        Fingerprint = Get-Sha256Hex "head:$head`n--diff--`n$diff`n--untracked--`n$untrackedPart"
-        Files       = $changedPaths
-        IsClean     = ($changedPaths.Count -eq 0)
+        # Paths only, without the porcelain status letters: staging a file changes " M path"
+        # to "M  path", which would otherwise make every file look like a new one when the
+        # mismatch report is printed.
+        $changedPaths = @()
+        try {
+            $changedPaths = @(git -c core.quotepath=off status --porcelain 2>$null | Where-Object { $_ } | ForEach-Object {
+                $entry = if ($_.Length -gt 3) { $_.Substring(3) } else { $_.Trim() }
+                if ($entry -match ' -> ') { $entry = ($entry -split ' -> ')[-1] }   # renames
+                $entry.Trim().Trim('"')
+            } | Sort-Object -Unique)
+        } catch {}
+
+        return [pscustomobject]@{
+            Head        = $head
+            Fingerprint = Get-Sha256Hex ("head:$head`n" + (@($lines) -join "`n"))
+            Files       = $changedPaths
+            IsClean     = ($changedPaths.Count -eq 0)
+        }
+    } finally {
+        Pop-Location
     }
 }
 

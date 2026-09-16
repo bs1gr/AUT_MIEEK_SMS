@@ -2,7 +2,7 @@
 
 **Current Version**: 1.18.42
 **Last Updated**: September 16, 2026
-**Status**: ✅ **v1.18.42 is the latest release (2026-09-15). The commits on `main` since the tag are unreleased and smoke-tested — v1.18.43 in progress; the first `RELEASE_READY` attempt was stopped by a release-script bug, now fixed (see the top section).**
+**Status**: ✅ **v1.18.42 is the latest release (2026-09-15). The commits on `main` since the tag are unreleased and smoke-tested — v1.18.43 is being re-cut after two `RELEASE_READY` runs exposed release-pipeline bugs, one of which briefly published a v1.18.43 tag on the wrong commit; that tag and its empty release were rolled back before any asset was attached (see the top section).**
 
 - **Unreleased, newest first** (sections below, above the v1.18.42 heading): 4 bugs found by
   a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the wrong version
@@ -28,10 +28,97 @@ A label now names the release that shipped it.*
 
 ---
 
-## 🧯 RELEASE_READY would have aborted v1.18.43 mid-release — twice (September 16, 2026)
+## 🧯 Cutting v1.18.43: four release-pipeline bugs, one of which published a bad tag (September 16, 2026)
 
-**Status**: ✅ Both FIXED, not yet released. One found by reading the script before the release,
-one by the first real run of it.
+**Status**: ✅ All FIXED and the bad tag rolled back before any asset was attached; v1.18.43 to be
+re-cut. The first bug was found by reading the script before running it, the second by the
+first run, the third by the second run, the fourth by inspecting the second run's generated
+release notes before re-cutting.
+
+### The release body would have lost every code block
+
+Before re-running, the release notes that run two generated were checked for the problems
+last session fixed. No false breaking-change banner and no backslash-mangled paths — but the
+install commands appeared as bare text under a stray `powershell` line. The generator's
+fences were intact in `docs/releases/GITHUB_RELEASE_v1.18.43.md`; they were removed on the
+way into `.github/RELEASE_NOTES_v1.18.43.md`, the **only** file `release-on-tag.yml`
+publishes as the release body, by this line in `GENERATE_RELEASE_DOCS.ps1`:
+
+```powershell
+# Sanitize: remove fenced code blocks (just in case) by replacing triple backticks
+$sanitized = ($githubRelease -replace "```+", "")
+```
+
+In a double-quoted string that is the regex `` `+ ``, which deletes every run of backticks —
+fences and inline `code` alike. It silently undid last session's fence fix (trap 3 in the
+v1.18.42 section) for the text that is actually published.
+
+The strip also protected against nothing. The workflow reads the file with `$(cat …)`,
+base64-encodes it and decodes it in JavaScript, so no backtick ever reaches a shell.
+Replayed locally with the workflow's exact bash lines and Node decoding, a body containing
+fences, inline `` `code` ``, `$(whoami)` and `` `date` `` came back **byte for byte**.
+**Fixed**: the notes are written verbatim. Checked on run two's real generated body:
+4 fences generated → 0 after the old strip → 4 with the fix.
+
+### The second run tagged the wrong commit
+
+With the splat fixed and CI green, run two got through validation, the version bump, a
+signed installer build (Authenticode valid, file/product version v1.18.43), both remaining
+gates and release-doc generation — then printed, in order:
+
+```text
+Committing release changes...
+❌ COMMIT BLOCKED: the code changed after it was validated
+No changes to commit (or commit failed). Continuing with push/tag...
+✅ Tag v1.18.43 pushed successfully!
+```
+
+and exited **0** with "Release 1.18.43 Complete!". The tag landed on `1c359d7c0`, whose
+`VERSION` still read v1.18.42 and which had no release notes. `release-on-tag.yml` had
+already created a **published** GitHub release and dispatched the installer and APK builds
+from that tag.
+
+**Contained** within minutes: both builds cancelled mid-run, confirmed **zero assets
+attached**. With the owner's approval, the empty release and the remote and local tag were
+deleted, the staged release changes were backed up to a patch and discarded, and v1.18.42
+became "latest" again — as if the run had not happened, apart from cancelled runs in the
+Actions history.
+
+Two bugs had to line up:
+
+1. **The commit guard was not staging-invariant for new files** (introduced in `2400a4158`,
+   this session). Its fingerprint hashed the *text* of `git diff HEAD` for tracked changes
+   and the content of untracked files separately. Staging a modified tracked file leaves the
+   diff unchanged — the only case that commit tested — but staging a **new** file moves it
+   from the untracked half into the diff half. A release always creates new files (the
+   release notes), so `git add .` changed the fingerprint and the hook reported "same file
+   list, different contents — a file was edited after validation" when nothing had been
+   edited. The claim recorded in the gate-audit section below, that `git add -A` "does not
+   invalidate the checkpoint — verified", was true only for modified files.
+   **Fixed**: the fingerprint now hashes (path, working-tree content) pairs over one path set
+   — every path differing from HEAD (`git diff HEAD --name-only --no-renames`) plus every
+   untracked path — so staging only moves a path between the two lists and changes nothing.
+   `--no-renames` keeps a rename symmetric in both states, and the computation is pinned to
+   the repo root because `ls-files --others` and `hash-object` resolve against the current
+   directory. Verified across nine scenarios (checkpoint with a new untracked file, then
+   `git add -A`: **PASS**; from `src/backend` as cwd: PASS; staged new file edited: BLOCK;
+   reverted: PASS; another file appears: BLOCK; removed: PASS; unstaged again: PASS;
+   validated file deleted: BLOCK). The **old** guard, extracted from HEAD, reproduced the
+   release failure on the same steps: PASS before `git add -A`, BLOCK after.
+2. **RELEASE_READY treated a failed commit as "no changes" and tagged anyway** (pre-existing).
+   **Fixed**: `git diff --cached --quiet` now distinguishes "nothing to commit"; any other
+   commit or push failure in steps 7 and 8 exits 1. Before tagging it now also refuses unless
+   HEAD's *committed* `VERSION` equals the tag, the tree is clean, and HEAD equals
+   `origin/main` — any one of which would have stopped this tag on its own. Separately, the
+   tag step used to **delete an existing tag locally and on the remote and re-push it with
+   `--force`**, so re-running with an old version number would silently move a published
+   tag, against CLAUDE.md's "release tags are immutable". It now refuses and prints the
+   commands for a deliberate deletion. Verified against the real repo in exactly the bad
+   state (HEAD at v1.18.42, releasing 1.18.43): the VERSION check refuses, a dirty tree
+   refuses, moving `v1.18.42` refuses, creating an absent `v1.18.43` is allowed, and a commit
+   blocked by the real pre-commit hook takes the new exit-1 path with HEAD unchanged.
+
+### The first two bugs
 
 Read through `RELEASE_READY.ps1` before trusting it with the release, because two of today's
 fixes (the Android version sync and the release-pipeline traps) had never been through a
@@ -270,6 +357,10 @@ The checkpoint now records what it validated and the hook compares against it:
   single `git hash-object` call;
 - `git diff HEAD` deliberately does not change when files are staged, so `git add -A`
   between validating and committing does **not** invalidate the checkpoint — verified;
+  **⚠️ CORRECTED 2026-09-16: true only for *modified* files.** Staging a *new* file moved it
+  from the untracked half into the diff half and changed the fingerprint, which blocked the
+  v1.18.43 release commit. The fingerprint was rebuilt as (path, content) pairs over one
+  path set so that staging cannot change it — see the release section at the top;
 - there is still **no time limit**: a checkpoint from last week passes if the tree still
   matches, and one from a minute ago is refused if a file was edited after the run;
 - a clean working tree passes regardless, since an amend or an empty commit contains
@@ -640,6 +731,10 @@ reusing a build that predated the Credits panel.
    `\SMS_Installer_x.y.z.exe\` and unrendered code blocks. **Fixed**: literals are now
    single-quoted, paths corrected, and optional docs linked only when the file actually
    exists, with absolute URLs (relative links do not resolve in a GitHub release body).
+   **⚠️ Incomplete, corrected 2026-09-16:** the generator's output was right, but
+   `GENERATE_RELEASE_DOCS.ps1` then stripped every backtick from the copy the workflow
+   actually publishes, so the published body would still have had no code blocks — see the
+   v1.18.43 release section at the top.
    The sibling generator in `GENERATE_RELEASE_DOCS.ps1` also advertised
    `StudentManagementSystem_<ver>_Setup.exe`, an asset name this project has never
    published — corrected to `SMS_Installer_<ver>.exe`.

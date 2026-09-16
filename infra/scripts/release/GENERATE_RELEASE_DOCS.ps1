@@ -570,9 +570,17 @@ if ($Preview) {
         if ((Test-Path $notesPath) -and -not $ForceOverwrite) {
             Write-Info "Preserving existing workflow release notes (curated): $notesPath"
         } else {
-            # Sanitize: remove fenced code blocks (just in case) by replacing triple backticks
-            $sanitized = ($githubRelease -replace "```+", "")
-            $sanitized | Set-Content -Path $notesPath -Encoding UTF8
+            # Written verbatim - NOT stripped of backticks. This used to "sanitize" with
+            # `-replace "```+", ""`, which in a double-quoted string is the regex `+ and so
+            # deleted every backtick run: every code fence and every inline `code` span in
+            # the one file release-on-tag.yml publishes as the release body. It undid the
+            # generator's own fence fix and would have shipped v1.18.43's install commands
+            # as bare text under a stray "powershell" line (caught 2026-09-16, before
+            # publishing). It protected against nothing: the workflow reads this file with
+            # $(cat ...), base64-encodes it and decodes it in JavaScript, so no backtick
+            # ever reaches a shell - replayed locally with the workflow's exact bash lines,
+            # a body containing fences, `code`, $(whoami) and `date` came back byte for byte.
+            $githubRelease | Set-Content -Path $notesPath -Encoding UTF8
             Write-Success "Created: $notesPath"
         }
     }

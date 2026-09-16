@@ -542,10 +542,24 @@ Write-Host ""
 Write-Host "Staging all changes..."
 git add .
 
-Write-Host "Committing release changes..."
-git commit -m "chore(release): bump version to $ReleaseVersion and update docs"
+# A failed commit must stop the release. This used to print "No changes to commit (or
+# commit failed). Continuing with push/tag..." on ANY non-zero exit - so when the
+# pre-commit hook blocked the release commit on 2026-09-16, nothing new was pushed and the
+# script then tagged the previous commit, publishing v1.18.43 on a tree whose VERSION still
+# said v1.18.42 (caught and rolled back before any assets were attached). "Nothing to
+# commit" is now told apart explicitly; every other failure is fatal.
+git diff --cached --quiet
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "No changes to commit (or commit failed). Continuing with push/tag..."
+    Write-Host "Committing release changes..."
+    git commit -m "chore(release): bump version to $ReleaseVersion and update docs"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Release commit failed - NOT pushing or tagging. See the output above." -ForegroundColor Red
+        Write-Host "   The version bump and release docs are still staged: fix the cause and commit," -ForegroundColor Yellow
+        Write-Host "   or discard them with 'git reset --hard' before re-running." -ForegroundColor Yellow
+        exit 1
+    }
+} else {
+    Write-Host "Nothing staged to commit."
 }
 
 Write-Host "Pushing main branch..."
@@ -563,11 +577,20 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "Staging generated release documentation..."
 git add CHANGELOG.md docs/releases/ .github/
-Write-Host "Committing release documentation..."
-git commit -m "docs: release notes and changelog for v$ReleaseVersion" 2>$null
-if ($LASTEXITCODE -eq 0) {
+git diff --cached --quiet
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Committing release documentation..."
+    git commit -m "docs: release notes and changelog for v$ReleaseVersion"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Release documentation commit failed - NOT tagging." -ForegroundColor Red
+        exit 1
+    }
     Write-Host "Pushing documentation commit..."
     git push origin main
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Failed to push the documentation commit - NOT tagging." -ForegroundColor Red
+        exit 1
+    }
 }
 
 if ($TagRelease) {
@@ -578,22 +601,41 @@ if ($TagRelease) {
     Write-Host ""
 
     $tag = "v$ReleaseVersion"
-    Write-Host "Creating and pushing tag: $tag"
 
-    # Check if tag already exists
-    $existingTag = git tag -l $tag
-    if ($existingTag) {
-        Write-Host "Tag $tag already exists locally. Deleting and recreating..."
-        git tag -d $tag | Out-Null
-        if (git ls-remote --tags origin | Select-String "refs/tags/$tag") {
-            Write-Host "Tag exists on remote. Force-deleting..."
-            git push origin ":refs/tags/$tag"
-        }
+    # Refuse to tag anything but the finished, pushed release commit - checked against what
+    # is committed, not the working tree. Any one of these would have stopped the bad
+    # v1.18.43 tag on its own.
+    $committedVersion = (git show HEAD:VERSION 2>$null | Out-String).Trim()
+    if ($committedVersion -ne $tag) {
+        Write-Host "❌ HEAD's committed VERSION is '$committedVersion', expected '$tag' - refusing to tag." -ForegroundColor Red
+        exit 1
+    }
+    if (git status --porcelain) {
+        Write-Host "❌ Uncommitted changes remain - refusing to tag:" -ForegroundColor Red
+        git status --short
+        exit 1
+    }
+    git fetch origin main --quiet
+    if ((git rev-parse HEAD) -ne (git rev-parse origin/main)) {
+        Write-Host "❌ HEAD is not what origin/main points at - refusing to tag an unpushed commit." -ForegroundColor Red
+        exit 1
     }
 
-    # Create and push the tag
+    # Never move an existing tag. This used to delete it locally, force-delete it on the
+    # remote and re-push with --force, which would silently rewrite a published release
+    # if run with an old version number - against CLAUDE.md's "release tags are immutable".
+    # If a tag really is wrong, deleting it is a deliberate act done by hand, not a side
+    # effect of re-running this script.
+    if ((git tag -l $tag) -or (git ls-remote --tags origin "refs/tags/$tag")) {
+        Write-Host "❌ Tag $tag already exists (locally or on origin) - refusing to move it." -ForegroundColor Red
+        Write-Host "   If it is genuinely wrong and unpublished, delete it deliberately first:" -ForegroundColor Yellow
+        Write-Host "   git tag -d $tag; git push origin :refs/tags/$tag" -ForegroundColor Yellow
+        exit 1
+    }
+
+    Write-Host "Creating and pushing tag: $tag (on $((git log --oneline -1) -join ''))"
     git tag $tag
-    git push origin $tag --force
+    git push origin $tag
 
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Tag $tag pushed successfully!"
