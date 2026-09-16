@@ -333,8 +333,16 @@ function Invoke-InstallerBuild {
         # Full installer build with auto-fix and code signing. Pass -ReuseLiteBuild only
         # when the caller explicitly asked to skip the Lite rebuild; otherwise the builder
         # rebuilds SMS_Lite and the frontend from current source.
-        $builderArgs = @('-Action', 'build', '-Version', $Version, '-AutoFix')
-        if ($SkipLiteBuild) { $builderArgs += '-ReuseLiteBuild' }
+        #
+        # A HASHTABLE splat, not an array. This was `@('-Action', 'build', ...)`, and splatting
+        # an array into a PowerShell script passes each element *positionally* — '-Action' is
+        # just a string, so it was bound as the value of $Action and INSTALLER_BUILDER's
+        # ValidateSet rejected it. The v1.18.43 release died on exactly this at step 3, after
+        # validation and the version bump. It had never run: v1.18.42 was cut by hand, so this
+        # line was first executed by a real release. (Array splatting of '-Name' strings only
+        # works for native executables.)
+        $builderArgs = @{ Action = 'build'; Version = $Version; AutoFix = $true }
+        if ($SkipLiteBuild) { $builderArgs.ReuseLiteBuild = $true }
         & $installerBuilderScript @builderArgs
 
         if ($LASTEXITCODE -ne 0) {

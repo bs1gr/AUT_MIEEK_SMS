@@ -2,7 +2,7 @@
 
 **Current Version**: 1.18.42
 **Last Updated**: September 16, 2026
-**Status**: ✅ **v1.18.42 is the latest release (2026-09-15). 14 commits on `main` since the tag are unreleased and smoke-tested — ready to cut v1.18.43.**
+**Status**: ✅ **v1.18.42 is the latest release (2026-09-15). The commits on `main` since the tag are unreleased and smoke-tested — v1.18.43 in progress; the first `RELEASE_READY` attempt was stopped by a release-script bug, now fixed (see the top section).**
 
 - **Unreleased, newest first** (sections below, above the v1.18.42 heading): 4 bugs found by
   a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the wrong version
@@ -28,9 +28,10 @@ A label now names the release that shipped it.*
 
 ---
 
-## 🧯 RELEASE_READY would have aborted v1.18.43 mid-release (September 16, 2026)
+## 🧯 RELEASE_READY would have aborted v1.18.43 mid-release — twice (September 16, 2026)
 
-**Status**: ✅ FIXED before cutting v1.18.43, not yet released.
+**Status**: ✅ Both FIXED, not yet released. One found by reading the script before the release,
+one by the first real run of it.
 
 Read through `RELEASE_READY.ps1` before trusting it with the release, because two of today's
 fixes (the Android version sync and the release-pipeline traps) had never been through a
@@ -55,7 +56,44 @@ and `INSTALLER_BUILDER` calls write to the pipeline, so a return value would arr
 array and read as success — the same trap that disabled COMMIT_READY's checkpoint. Verified:
 after those two calls, step 4's own invocation (`VERIFY_VERSION.ps1 -CheckOnly`, reading
 `VERSION`) reported **11/11 consistent, exit 0**. Also corrected COMMIT_READY's hardcoded
-"All 9 version checks passed" — there are 11.
+"All 9 version checks passed" — there are 11. (Commit `ad12e30a9`.)
+
+### …and the first real run then died at step 3 anyway
+
+With that fixed and CI green, the first `RELEASE_READY.ps1 -ReleaseVersion 1.18.43
+-TagRelease` passed validation (gate plus the full batch suite), bumped all 11 references
+cleanly — the fix above working as intended — and then failed at the installer build:
+
+```text
+Cannot validate argument on parameter 'Action'. The argument "-Action" does not belong
+to the set "audit;build;validate;sign;test;release;update-images"
+```
+
+`Invoke-InstallerBuild` called the builder with an **array** splat —
+`$builderArgs = @('-Action', 'build', '-Version', $Version, '-AutoFix')` then
+`& $installerBuilderScript @builderArgs`. Splatting an array into a PowerShell script passes
+every element *positionally*: `'-Action'` is just a string, so it was bound as the **value**
+of `$Action`, and the ValidateSet rejected it. Array splatting of `-Name` strings only
+behaves the way this code assumed for native executables. `git blame` puts those lines in
+`47fd7e60d` — the previous session's own fix for the stale-SMS_Lite trap — and since
+v1.18.42 was cut by hand, no release had executed them until this one.
+
+**Nothing was published.** The script exits before step 7, so there was no commit, push or
+tag; the 14 files step 2 had bumped were restored with `git checkout`, leaving `main`
+exactly at `ad12e30a9`.
+
+**Fixed** with a hashtable splat (`@{ Action = 'build'; Version = $Version; AutoFix = $true }`,
+adding `ReuseLiteBuild = $true` under `-SkipLiteBuild`). Verified three ways: the array form
+reproduces the release's exact error against the real builder (`-Action validate`, which
+modifies nothing), the hashtable form binds (`Action: VALIDATE`), and the fix's exact shape
+binds every parameter in both branches — `Action=build Version=1.18.43 AutoFix=True`, with
+`ReuseLiteBuild` false by default and true under `-SkipLiteBuild`.
+
+The other two array splats in the scripts were checked too. `precommit_workflow.ps1` is
+correct — it goes through `pwsh -File`, a native call where array splatting is right.
+`scripts/deploy/run-docker-release.ps1` has the same bug but cannot reach it: it targets a
+`SMART_SETUP.ps1` that no longer exists anywhere in the repo, so it throws "not found"
+first — logged under Open follow-ups as a dead script.
 
 ---
 
@@ -194,6 +232,11 @@ been reported but never written into this plan until the 2026-09-16 plan review.
   `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
 - **The 0.7s commit-gate flake is still unexplained** — the batch runner now records enough
   to diagnose it (and retries a silent abort once), so the next occurrence should say why.
+- **`scripts/deploy/run-docker-release.ps1` is dead.** It invokes a `SMART_SETUP.ps1` that
+  exists nowhere in the repo (a pre-flatten leftover), so it always throws "not found" — yet
+  `scripts/README.md:265` and `scripts/deploy/README.md:98` still document it. It also
+  array-splats named parameters (`@('-PreferDocker')`), the bug that killed the first
+  v1.18.43 release attempt. Delete it and its README entries rather than repair it.
 
 ---
 
