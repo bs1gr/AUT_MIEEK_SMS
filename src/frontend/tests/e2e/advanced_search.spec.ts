@@ -21,14 +21,17 @@ import { loginViaAPI } from './helpers';
 // Keep tests fast and aligned with the current UI surface
 test.setTimeout(60_000);
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
 const E2E_EMAIL = process.env.E2E_EMAIL || 'admin@example.com';
 const E2E_PASSWORD = process.env.E2E_PASSWORD || 'YourSecurePassword123!';
 
 test.describe('Advanced Search & Filtering - E2E (smoke)', () => {
   test.beforeEach(async ({ page }) => {
     await loginViaAPI(page, E2E_EMAIL, E2E_PASSWORD);
-    await page.goto(`${BASE_URL}/#/students`);
+    // Relative, so it resolves against playwright.config's baseURL - the same origin
+    // loginViaAPI planted the session on. This used a hardcoded fallback of
+    // http://localhost:5173 while the config falls back to http://127.0.0.1:5173: different
+    // storage origins, so every local run landed on the login page.
+    await page.goto('/#/students');
     await page.waitForLoadState('networkidle');
   });
 

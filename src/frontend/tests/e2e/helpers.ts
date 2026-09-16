@@ -49,7 +49,12 @@ const normalizeHttpUrl = (value?: string | null): string | null => {
   }
 };
 
-const getApiBase = () => {
+// Exported so specs that call the API directly use the same origin rules as loginViaAPI.
+// Several specs used to compute their own `process.env.PLAYWRIGHT_BASE_URL ||
+// 'http://localhost:8000'`, which (a) points API calls at the *frontend* whenever
+// PLAYWRIGHT_BASE_URL is set, and (b) otherwise uses a different hostname from the page, so
+// cookie-authenticated calls break under a strict AUTH_MODE.
+export const getApiBase = () => {
   const explicitApiBase = normalizeHttpUrl(process.env.PLAYWRIGHT_API_BASE_URL);
   if (explicitApiBase) {
     return explicitApiBase;

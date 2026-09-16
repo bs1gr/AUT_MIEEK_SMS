@@ -262,14 +262,15 @@ Deployment automation and packaging tools.
 **Active:**
 
 - `set-docker-metadata.ps1` - Set Docker image metadata
-- `run-docker-release.ps1` - Run release Docker image
-- `CHECK_VOLUME_VERSION.ps1` - Version checking for deployment
 - `internal/CREATE_DEPLOYMENT_PACKAGE.ps1` - Package creation (comprehensive, includes Docker image support)
+- `../CHECK_VOLUME_VERSION.ps1` - Docker volume schema check (lives in `scripts/`, not `deploy/`)
 
-**Deprecated:**
+**Removed** (listed so old references can be recognised):
 
-- `internal/CREATE_PACKAGE.ps1` - ⚠️ Consolidated into `CREATE_DEPLOYMENT_PACKAGE.ps1` (more comprehensive)
-- `STOP.ps1` - ⚠️ Use `DOCKER.ps1 -Stop`
+- `internal/CREATE_PACKAGE.ps1` - consolidated into `CREATE_DEPLOYMENT_PACKAGE.ps1`
+- `STOP.ps1` - use `infra/scripts/dev/DOCKER.ps1 -Stop`
+- `run-docker-release.ps1` / `.sh` - removed 2026-09-17; both only launched a
+  `SMART_SETUP.ps1` that no longer exists, so they always failed
 
 ### `ops/` - Operations Scripts
 

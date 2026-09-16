@@ -2,7 +2,7 @@
 
 **Current Version**: 1.18.43
 **Last Updated**: September 16, 2026
-**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Nothing unreleased on `main` apart from this plan update.**
+**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 follow-up fixes — E2E spec reliability, dead deploy scripts removed, deploy README rewritten (tests, scripts and docs only; no application code).**
 
 - **Shipped in v1.18.43** (sections from the v1.18.43 heading down to v1.18.42, 18 commits):
   4 bugs found by a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the
@@ -24,6 +24,73 @@ A label now names the release that shipped it.*
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## ✅ Follow-ups closed: E2E reliability + dead deploy scripts (September 17, 2026)
+
+**Status**: ✅ DONE, not yet released. Tests, scripts and docs only — no application code.
+
+Two items from the open follow-ups list (end of the smoke-test section below).
+
+### E2E specs that failed, or silently tested nothing, in a local run
+
+All three causes recorded on 2026-09-16 are fixed, plus two more found while fixing them:
+
+- `advanced_search.spec.ts` navigated to a hardcoded `http://localhost:5173` fallback while
+  `loginViaAPI` planted the session on the config's `127.0.0.1` origin — now a relative
+  `page.goto('/#/students')`, so both use the configured baseURL.
+- The student edit/delete tests created records through the API and hash-navigated into an
+  app that had already cached the student list (`cachedGet`, 10s, in memory). They now
+  `page.reload()` after navigating, which discards that cache. The grade and attendance tests
+  had the same race — attendance logged "Could not find matching course option" and passed
+  without exercising selection — and got the same fix.
+- `feature_127_import_export.spec.ts` hardcoded the Docker default admin credentials with no
+  override; it now honours `E2E_EMAIL` / `E2E_PASSWORD`, like `advanced_search`.
+- **New:** five student-management tests computed their API base as
+  `process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000'` — the *frontend* URL whenever
+  that variable is set, and a different hostname from the page otherwise. `helpers.ts` now
+  exports its origin-aware `getApiBase()` and all five use it.
+- **New:** the analytics test could not fail. It navigated to `/students/<id>` without the
+  `#` (HashRouter loads the app root, not the profile), swallowed its only content assertion
+  in a `.catch` that logged "Student name not visible on profile", then asserted the URL
+  contained the path it had just navigated to. It now navigates to `/#/students/<id>` and
+  hard-asserts the `student-profile` element and the student's name.
+
+**Verified** in exactly the configuration that failed before (default local config, no
+`PLAYWRIGHT_BASE_URL`, credentials via `E2E_EMAIL`/`E2E_PASSWORD`): **13/13 passed** across the
+three specs, where the 2026-09-16 run had 8 failures in them. Attendance no longer logs the
+course-option warning; the analytics test passes with real assertions. `eslint` reports no
+errors on the changed files, and `playwright --list` compiles all 13. One test still passes
+without testing — grade assignment's selectors no longer match the UI — logged as a new
+follow-up rather than rewritten here.
+
+The run's own side effects were measured against a pre-run snapshot and removed: 5 students
+and 4 `teacher-*@test.edu` accounts, bringing both counts back to baseline (8 students, 4
+users). Its 3 test courses and the 3 left by the 2026-09-16 smoke test were then deleted with
+the owner's explicit approval, after checking each was a `CS*` "Test Course" row with zero
+enrollments: 26 courses remain, all real `AUT*` curriculum.
+
+### Dead deploy scripts removed, deploy README rewritten
+
+`scripts/deploy/run-docker-release.ps1` **and an identical `.sh` twin** only launched a
+`SMART_SETUP.ps1` that exists nowhere in the repo, so both always failed with "not found".
+Both deleted.
+
+Checking the README entries that referenced them showed `scripts/deploy/README.md` was almost
+entirely stale: it documented **five scripts that no longer exist** (`DOCKER_UP.ps1`,
+`DOCKER_DOWN.ps1`, `CREATE_PACKAGE.ps1`, `INSTALLER.ps1`, `SMART_SETUP.ps1`), gave pre-flatten
+paths for three that do, claimed versioned volume names (`sms_data_v1.2.3`) when the volume is
+plain `sms_data`, and cited an archive folder that does not exist. It was rewritten to state
+only verified facts, each named path checked to exist.
+
+Its old Linux fallback, `docker compose -f docker/docker-compose.yml up -d --build`, was wrong
+twice: the path is pre-flatten, and at the correct path `docker compose config` fails with
+`required variable SECRET_KEY is missing a value`. `DOCKER.ps1` supplies secrets through
+`--env-file` and runs a single-image `sms-fullstack` container rather than plain Compose. No
+simple equivalent exists, so the new README says `pwsh` is required instead of documenting a
+command that does not work. `scripts/README.md` listed the dead launcher as "Active" and put
+`CHECK_VOLUME_VERSION.ps1` in the wrong folder; both corrected.
 
 ---
 
@@ -331,8 +398,9 @@ been reported but never written into this plan until the 2026-09-16 plan review.
   normally, so impact is unknown rather than visible — which is also how the
   `Preferences.then()` error looked before it turned out to disable storage entirely.
   Worth identifying the caller before calling it cosmetic.
-- **E2E suite is fragile in a local environment**, for three separate reasons, none a
-  product defect but all wasting time on every local run:
+- ~~**E2E suite is fragile in a local environment**~~ **FIXED 2026-09-17** — see "Follow-ups
+  closed" at the top. Originally, for three separate reasons, none a product defect but all
+  wasting time on every local run:
   - `advanced_search.spec.ts` falls back to `BASE_URL = 'http://localhost:5173'` while
     `playwright.config.ts` falls back to `http://127.0.0.1:5173` — so they disagree
     whenever `PLAYWRIGHT_BASE_URL` is unset, i.e. every local run. `loginViaAPI` plants the
@@ -350,17 +418,27 @@ been reported but never written into this plan until the 2026-09-16 plan review.
   and creates students and courses, and nothing removes them: 234 accumulated accounts had
   to be cleared by hand on 2026-09-16, and ~148 stray rows on 2026-09-05. The one-off
   cleanups treat the symptom; a teardown (or a disposable database) would stop the leak.
+  Measured again on 2026-09-17: one run of three specs added 5 students, 3 courses and 4
+  `teacher-*@test.edu` accounts.
 - **`test@example.com` is a teacher in the dev database**, while `loginAsTestUser` in
   `tests/e2e/helpers.ts` declares it `role: 'admin'`. Specs that assume admin rights behave
   differently here than wherever that user really is an admin.
-- **3 `Test Course *` rows** (ids 80-82) still in the dev database — see above.
+- ~~**6 `Test Course *` rows** (ids 80-85) in the dev database~~ **DELETED 2026-09-17** with the
+  owner's approval, after verifying each was a `CS*` test row with zero enrollments; 26 real
+  `AUT*` courses remain.
+- **The grade-assignment E2E test passes without testing anything.** It looks for
+  `select[name="studentId"]` / `[data-testid="grade-form"]`, finds neither on the current
+  grading page, logs "Grades page UI not found, skipping test" and returns — a pass. It is not
+  the cache race (it still skips after the 2026-09-17 reload fix), so its selectors no longer
+  match the UI and it needs rewriting against the current grading view.
 - **`/api/v1/admin/backup-database` refuses PostgreSQL** while the control-API backup works
   — see above.
 - **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment**, disabling the
   `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
 - **The 0.7s commit-gate flake is still unexplained** — the batch runner now records enough
   to diagnose it (and retries a silent abort once), so the next occurrence should say why.
-- **`scripts/deploy/run-docker-release.ps1` is dead.** It invokes a `SMART_SETUP.ps1` that
+- ~~**`scripts/deploy/run-docker-release.ps1` is dead.**~~ **REMOVED 2026-09-17**, together with
+  an identical `.sh` twin — see "Follow-ups closed" at the top. Original note: it invokes a `SMART_SETUP.ps1` that
   exists nowhere in the repo (a pre-flatten leftover), so it always throws "not found" — yet
   `scripts/README.md:265` and `scripts/deploy/README.md:98` still document it. It also
   array-splats named parameters (`@('-PreferDocker')`), the bug that killed the first

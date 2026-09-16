@@ -1,102 +1,46 @@
-# End-User / DevOps Deployment Scripts
+# Deployment Helper Scripts
 
-This directory contains scripts for **deployment, Docker orchestration, and production maintenance**.
+Small helpers used around Docker deployment. **They are not how you start the system** — the
+two supported entry points live in `infra/scripts/dev/` (see `CLAUDE.md`):
 
-## Target Audience
+| Mode | Command | Port | Use for |
+|------|---------|------|---------|
+| Docker | `.\infra\scripts\dev\DOCKER.ps1 -Start` | 8080 | Production |
+| Native | `.\infra\scripts\dev\NATIVE.ps1 -Start` | 8000 + 5173 | Development and testing |
 
-End-users, system administrators, and DevOps engineers deploying and managing the application.
+Stop Docker with `.\infra\scripts\dev\DOCKER.ps1 -Stop`.
 
-## Scripts
+## What is in this folder
 
-### Primary Entry Points (v1.5.0+)
+- `set-docker-metadata.ps1` — reads `VERSION` and sets the environment variables
+  docker-compose uses for versioned image builds.
+- `internal/CREATE_DEPLOYMENT_PACKAGE.ps1` — builds a self-contained package for installing on
+  a Windows computer without internet access (application source, plus the Docker image when
+  one is available).
 
-- `DOCKER.ps1` (root) - Canonical one-click Docker deployment (recommended for all users)
-- `NATIVE.ps1` (root) - Native development mode
+## Related scripts elsewhere
 
-> **Note:** As of v2.0, use `..\..\DOCKER.ps1` for Docker deployment. Legacy scripts were archived under `archive/deprecated/scripts_consolidation_2025-11-21/`.
+- `scripts/CHECK_VOLUME_VERSION.ps1` — checks the Docker data volume (`sms_data`, overridable
+  with `SMS_DATA_VOLUME`) against the current schema version and suggests migration if they
+  differ; `-AutoMigrate` runs it.
+- `scripts/linux_env_check.sh` — validates a Linux host for running the system
+  (`--fix` applies safe fixes).
+- The Windows installer is built by `infra/scripts/release/INSTALLER_BUILDER.ps1`.
 
-### Docker Operations (Advanced)
+## Linux
 
-- `DOCKER_UP.ps1`, `DOCKER_DOWN.ps1`, etc. - Advanced/legacy scripts (use `DOCKER.ps1` for most operations; direct use is discouraged)
+`DOCKER.ps1` is a PowerShell script, so on Linux it needs PowerShell 7 (`pwsh`). There is no
+supported plain-`docker compose` equivalent: `DOCKER.ps1` runs a single-image `sms-fullstack`
+container, supplies secrets through `--env-file`, and handles the database container and
+volume migrations. Running `docker compose -f infra/docker/compose/docker-compose.yml` on its
+own fails immediately, because `SECRET_KEY` is required and nothing has provided it.
 
-### Database & Volume Management
+## History
 
-- `CHECK_VOLUME_VERSION.ps1` - Check Docker volume schema version
-
-### Packaging & Distribution
-
-- `CREATE_PACKAGE.ps1/.bat` - Create distribution package
-- `CREATE_DEPLOYMENT_PACKAGE.ps1/.bat` - Create deployment-ready package
-- `INSTALLER.ps1/.bat` - Installer for end-users
-
-### Metadata & Versioning
-
-- `set-docker-metadata.ps1` - Set Docker image metadata
-
-### Usage Patterns
-
-#### Fullstack Docker (Recommended)
-
-```powershell
-# Start (one-click, v2.0+)
-pwsh -NoProfile -File ..\..\DOCKER.ps1 -Start
-
-# Stop containers
-pwsh -NoProfile -File ..\..\DOCKER.ps1 -Stop
-```
-
-### Linux Helpers (Bash)
-
-On Linux, you can use the helper scripts for a consistent setup:
-
-```bash
-# Validate environment (Docker, Python, Node, pwsh, env files)
-./scripts/linux_env_check.sh
-./scripts/linux_env_check.sh --fix   # optional safe fixes (.env and folders)
-
-# Start in Docker release mode (recommended on Linux)
-./scripts/deploy/run-docker-release.sh
-```
-
-If pwsh isn't installed, you can fall back to plain Docker:
-
-```bash
-docker compose -f docker/docker-compose.yml up -d --build
-```
-
-### Maintenance
-
-```powershell
-# Check volume version compatibility
-.\CHECK_VOLUME_VERSION.ps1
-
-# Stop all services
-pwsh -NoProfile -File ..\..\DOCKER.ps1 -Stop
-```
-
-### Creating Distribution Packages
-
-```powershell
-# Create deployment package
-.\CREATE_DEPLOYMENT_PACKAGE.ps1
-
-# Create installer
-.\INSTALLER.ps1
-```
-
-## Docker Volume Management
-
-The system uses versioned Docker volumes to prevent data loss:
-
-- Volume names include version numbers (e.g., `sms_data_v1.2.3`)
-- `CHECK_VOLUME_VERSION.ps1` detects schema mismatches
-- Automatic migration available when upgrading versions
-
-## Notes
-
-- `DOCKER.ps1` is the recommended entry point for Docker deployments as of v2.0
-- All other setup/start scripts (SMART_SETUP.ps1, run-docker-release.ps1, etc.) are deprecated or removed
-- Docker mode is recommended for production deployments
-- Native mode requires Python 3.11+ and Node.js 18+ (see scripts/dev/)
-- All scripts support both Windows and cross-platform usage
-- For active development, use scripts in `../dev/` instead
+This README previously documented `DOCKER_UP.ps1`, `DOCKER_DOWN.ps1`, `CREATE_PACKAGE.ps1`,
+`INSTALLER.ps1` and `SMART_SETUP.ps1`, none of which exist any more, and pre-flatten paths for
+`DOCKER.ps1`, `NATIVE.ps1` and the Compose file. `run-docker-release.ps1` and
+`run-docker-release.sh` were removed on 2026-09-17: both only launched the missing
+`SMART_SETUP.ps1`, so they always failed with "not found". The old README's Linux fallback,
+`docker compose -f docker/docker-compose.yml up -d --build`, was wrong twice over — the
+path is pre-flatten, and the command fails without `SECRET_KEY` even at the right path.

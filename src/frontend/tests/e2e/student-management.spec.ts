@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsTestUser, loginAsTeacher, generateStudentData, generateCourseData } from './helpers';
+import { loginAsTestUser, loginAsTeacher, generateStudentData, generateCourseData, getApiBase } from './helpers';
 import { captureAndLogDiagnostics, initDiagnosticsDir } from './diagnostics';
 
 /**
@@ -126,7 +126,7 @@ test.describe('Student Management - Critical Flows', () => {
 
   test('should edit an existing student', async ({ page }) => {
     const student = generateStudentDataLocal();
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
+    const apiBase = getApiBase();
 
     // Create student via API for faster setup
     const createResp = await page.request.post(`${apiBase}/api/v1/students/`, {
@@ -146,8 +146,13 @@ test.describe('Student Management - Critical Flows', () => {
     const createdStudent = await createResp.json();
     const studentId = createdStudent.id;
 
-    // Navigate to students page
+    // Navigate to students page, then reload. The student was created through the API, which
+    // the app never hears about, and loginViaAPI already loaded the app: a hash navigation
+    // reuses studentsAPI.getAll's in-memory 10s cache from the dashboard, so the new student
+    // was missing and this test timed out waiting for its edit button. A reload discards the
+    // cache and forces a fresh fetch.
     await page.goto('/#/students');
+    await page.reload();
 
     // Wait for page to load ('load' not 'networkidle' — students page polls for enrollment counts)
     await page.waitForLoadState('load').catch(() => {});
@@ -179,7 +184,7 @@ test.describe('Student Management - Critical Flows', () => {
 
   test('should delete a student', async ({ page }) => {
     const student = generateStudentDataLocal();
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
+    const apiBase = getApiBase();
 
     // Create student via API
     const createResp = await page.request.post(`${apiBase}/api/v1/students/`, {
@@ -199,8 +204,9 @@ test.describe('Student Management - Critical Flows', () => {
     const createdStudent = await createResp.json();
     const studentId = createdStudent.id;
 
-    // Navigate to students page
+    // Navigate, then reload to discard the app's cached student list (see the edit test).
     await page.goto('/#/students');
+    await page.reload();
 
     // Wait for page to load
     await page.waitForLoadState('load').catch(() => {});
@@ -320,7 +326,7 @@ test.describe('Grade Assignment Flow', () => {
   });
 
   test('should assign grade to student for course', async ({ page }) => {
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
+    const apiBase = getApiBase();
 
     // Setup: Create student and course
     const student = generateStudentData();
@@ -360,8 +366,10 @@ test.describe('Grade Assignment Flow', () => {
       },
     }).catch(() => {});
 
-    // Navigate to grades page
+    // Navigate to grades page, then reload to discard the app's cached student/course lists -
+    // the records were created through the API after the app had already loaded them.
     await page.goto('/#/grades');
+    await page.reload();
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // Check if grades page exists by looking for grading elements
@@ -435,7 +443,7 @@ test.describe('Attendance Tracking', () => {
   });
 
   test('should mark student attendance', async ({ page }) => {
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
+    const apiBase = getApiBase();
 
     // Setup: Create student and course
     const student = generateStudentData();
@@ -470,8 +478,11 @@ test.describe('Attendance Tracking', () => {
       },
     }).catch(() => {});
 
-    // Navigate to attendance page and wait for it to load
+    // Navigate to attendance page, then reload to discard the app's cached course list - without
+    // it the course created above was missing and the test logged "Could not find matching
+    // course option" instead of exercising attendance.
     await page.goto('/#/attendance');
+    await page.reload();
     await page.waitForLoadState('networkidle').catch(() => {});
 
     // Wait for course selector and try to select the course
@@ -536,7 +547,7 @@ test.describe('Analytics and Reports', () => {
   });
 
   test('should view student analytics with final grade calculation', async ({ page }) => {
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
+    const apiBase = getApiBase();
 
     // Setup: Create student, course, and grades
     const student = generateStudentData();
@@ -597,23 +608,17 @@ test.describe('Analytics and Reports', () => {
       },
     });
 
-    // Navigate to student profile page (where analytics is displayed) and wait for it to load
-    await page.goto(`/students/${createdStudent.id}`);
+    // Navigate to the student profile page (where analytics is displayed).
+    //
+    // This test used to be unable to fail. It navigated to `/students/<id>` - no `#` - which
+    // under HashRouter loads the app root rather than the profile; it swallowed the only
+    // content assertion in a .catch that just logged "Student name not visible on profile";
+    // and it finished by asserting the URL contained the path it had itself navigated to.
+    await page.goto(`/#/students/${createdStudent.id}`);
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-    // Wait for student profile to render
-    await page.waitForSelector('[data-testid="student-profile"]', { timeout: 10000 }).catch(() => {});
-
-    // Verify student name appears
-    await expect(page.getByText(student.firstName))
-      .toBeVisible({ timeout: 5000 })
-      .catch(() => {
-        console.warn('Student name not visible on profile');
-        return Promise.resolve();
-      });
-
-    // Verify page loaded without errors
-    // (Not checking specific visible elements to reduce brittleness)
-    expect(page.url()).toContain(`/students/${createdStudent.id}`);
+    await expect(page.locator('[data-testid="student-profile"]')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(student.firstName).first()).toBeVisible({ timeout: 10000 });
+    expect(page.url()).toContain(`#/students/${createdStudent.id}`);
   });
 });
