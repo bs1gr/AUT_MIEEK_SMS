@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.43
-**Last Updated**: September 16, 2026
+**Last Updated**: September 17, 2026
 **Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 — a PostgreSQL restore that could execute backup data as SQL, contained (application code; see the top section), plus E2E spec reliability fixes and dead deploy scripts removed.**
 
 - **Shipped in v1.18.43** (sections from the v1.18.43 heading down to v1.18.42, 18 commits):
@@ -15,7 +15,7 @@
 - **Shipped in v1.18.42** (from the v1.18.42 heading down to v1.18.41): the Android
   Preferences fix, the Android release-build fix, the version-sync repairs, the four-agent
   workspace audit, and the 2026-09-11/12 Help-audit bug fixes.
-- **Open follow-ups**: collected under "Open follow-ups" at the end of the smoke-test section.
+- **Open work**: the single prioritised list is **Next todos**, directly below this header.
 
 *Status labels below were corrected on 2026-09-16: twelve sections still read "not yet
 released" for work that had in fact shipped — eleven first in v1.18.42, one (PR #228) as far
@@ -24,6 +24,56 @@ A label now names the release that shipped it.*
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
+
+---
+
+## 📋 Next todos
+
+**The one list of open work**, highest priority first. Consolidated 2026-09-17 from two
+separate lists — "Still open" in the PostgreSQL restore section and "Open follow-ups" in the
+smoke-test section — which now point here. The evidence stays in those dated sections, linked
+below. When an item is done, remove it here and mark it resolved where it was raised.
+
+1. **PostgreSQL restore does not work without `pg_dump`/`psql`** — *data safety; needs a
+   decision.* On Native and SMS_Lite (no PostgreSQL client tools), Database-panel backups are
+   CSV data exports that restore now refuses, so those installs have **no working PostgreSQL
+   restore at all**. Choose one:
+   - (a) implement a real restore for the export format: per-table `TRUNCATE` +
+     `COPY … FROM STDIN` in one transaction, sequences reset, tested against a throwaway
+     PostgreSQL container;
+   - (b) ship `pg_dump`/`psql` with Native and SMS_Lite, so the `pg_dump` + `psql` path is
+     always available.
+
+   Evidence: "PostgreSQL restore could execute backup data as SQL".
+2. **The Dev Tools restore accepts SQLite only** — `/operations/database-restore` requires a
+   file starting `SQLite format 3`, so no PostgreSQL backup from `/operations/database-backup`
+   (`pg_dump` or not) can be restored in-app, **even on Docker**. Decide whether to route
+   PostgreSQL restores through `psql`, or remove the PostgreSQL backup option from Dev Tools
+   and point to the Database panel. Same section.
+3. **E2E runs leak data into the database they run against** — each run registers accounts
+   and creates students and courses; one three-spec run on 2026-09-17 added 5 students,
+   3 courses and 4 teacher accounts, and 234 accounts had to be cleared by hand on 2026-09-16.
+   First step: teardown in `src/frontend/tests/e2e/helpers.ts` that deletes what a test creates, or point
+   E2E at a disposable database. Evidence: smoke-test section, "Follow-ups raised".
+4. **The grade-assignment E2E test passes without testing anything** — in
+   `student-management.spec.ts` it looks for `select[name="studentId"]` /
+   `[data-testid="grade-form"]`, finds neither on the current grading page, logs "Grades page
+   UI not found, skipping test" and passes. Rewrite it against the current grading view, and
+   make "UI not found" a failure rather than a skip.
+5. **`test@example.com` is a teacher in the dev database** while `loginAsTestUser` in
+   `src/frontend/tests/e2e/helpers.ts` declares `role: 'admin'`. Specs assuming admin rights behave
+   differently here than where that user really is an admin. Decide which is correct and align
+   the other.
+6. **Delete the unused `/api/v1/admin/backup-database`** (`src/backend/admin_routes.py`) — SQLite-only, no
+   frontend callers, superseded by the two panels above.
+7. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
+   now logs the exit code, names a silent abort and retries it once, so the next occurrence
+   should explain itself. Evidence: "The batch runner now records *why* a batch failed".
+8. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
+   repo.* It permanently disables the `conftest.py` guard CLAUDE.md relies on to stop a bare
+   `pytest` run from overwhelming VS Code. Clear it under System Properties → Environment
+   Variables if the guard should apply on this machine. Evidence: gate audit, "Known, not
+   changed".
 
 ---
 
@@ -99,17 +149,15 @@ which was already correct. Restored, 9/9 pass. `test_admin_backup_encryption.py`
 with new assertions on the honest Dev Tools message. `ruff`, `tsc --noEmit` and `eslint`
 are clean.
 
-### Still open
+### Left open (tracked in Next todos)
 
-- **No working PostgreSQL restore without the client tools.** Either implement one for the
-  export format (per-table TRUNCATE + `COPY … FROM STDIN` in one transaction, sequences
-  reset, tested against a throwaway Postgres container) or ship `pg_dump`/`psql` with Native
-  and SMS_Lite.
+Moved to **Next todos** at the top on 2026-09-17; the list there is the one to update.
+
+- **No working PostgreSQL restore without the client tools** → Next todos #1.
 - **The Dev Tools restore accepts SQLite only**, so its PostgreSQL backups have no in-app
-  restore path even on Docker.
+  restore path even on Docker → Next todos #2.
 - `/api/v1/admin/backup-database` (the original follow-up) is SQLite-only and has **no
-  frontend callers**. It is superseded by the two panels above; delete it or route it to
-  `create_backup`.
+  frontend callers** → Next todos #6.
 
 ---
 
@@ -374,7 +422,7 @@ The other two array splats in the scripts were checked too. `precommit_workflow.
 correct — it goes through `pwsh -File`, a native call where array splatting is right.
 `scripts/deploy/run-docker-release.ps1` has the same bug but cannot reach it: it targets a
 `SMART_SETUP.ps1` that no longer exists anywhere in the repo, so it throws "not found"
-first — logged under Open follow-ups as a dead script.
+first — logged under "Follow-ups raised during this work" as a dead script (removed 2026-09-17).
 
 ---
 
@@ -473,10 +521,11 @@ handles it — two backup implementations, only one of which works in the deploy
 configuration. And three `Test Course *` rows (ids 80-82) from this session's E2E run are
 still present; removing them was out of scope for the approval given.
 
-### Open follow-ups (not yet done)
+### Follow-ups raised during this work
 
-Collected in one place so they do not stay scattered across sections; the first three had
-been reported but never written into this plan until the 2026-09-16 plan review.
+History of what this smoke test and the 2026-09-16 plan review raised. The items still open
+are tracked in **Next todos** at the top (since 2026-09-17), each marked below with its number.
+The first three had been reported but were not written into this plan until the plan review.
 
 - ~~**Android: `triggerEvent` console error on launch.**~~ **EXPLAINED 2026-09-17 — harmless, no
   change needed.** Reproduced on the Galaxy A55 across four cold launches: **0** errors on
@@ -509,30 +558,31 @@ been reported but never written into this plan until the 2026-09-16 plan review.
     `admin@example.com` / `YourSecurePassword123!` — the Docker default — which stops
     matching as soon as that password is changed, and `feature_127` offers no
     `E2E_EMAIL`/`E2E_PASSWORD` override.
-- **E2E runs leak data into the database they run against.** Every run registers accounts
+- **E2E runs leak data into the database they run against** → **Next todos #3.** Every run registers accounts
   and creates students and courses, and nothing removes them: 234 accumulated accounts had
   to be cleared by hand on 2026-09-16, and ~148 stray rows on 2026-09-05. The one-off
   cleanups treat the symptom; a teardown (or a disposable database) would stop the leak.
   Measured again on 2026-09-17: one run of three specs added 5 students, 3 courses and 4
   `teacher-*@test.edu` accounts.
-- **`test@example.com` is a teacher in the dev database**, while `loginAsTestUser` in
+- **`test@example.com` is a teacher in the dev database** (→ **Next todos #5**), while `loginAsTestUser` in
   `tests/e2e/helpers.ts` declares it `role: 'admin'`. Specs that assume admin rights behave
   differently here than wherever that user really is an admin.
 - ~~**6 `Test Course *` rows** (ids 80-85) in the dev database~~ **DELETED 2026-09-17** with the
   owner's approval, after verifying each was a `CS*` test row with zero enrollments; 26 real
   `AUT*` courses remain.
-- **The grade-assignment E2E test passes without testing anything.** It looks for
+- **The grade-assignment E2E test passes without testing anything** → **Next todos #4.** It looks for
   `select[name="studentId"]` / `[data-testid="grade-form"]`, finds neither on the current
   grading page, logs "Grades page UI not found, skipping test" and returns — a pass. It is not
   the cache race (it still skips after the 2026-09-17 reload fix), so its selectors no longer
   match the UI and it needs rewriting against the current grading view.
 - ~~**`/api/v1/admin/backup-database` refuses PostgreSQL**~~ **Investigated 2026-09-17** — it led
   to the restore that could execute backup data as SQL, now contained. See that section at
-  the top; its "Still open" list replaces this item.
-- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment**, disabling the
-  `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
-- **The 0.7s commit-gate flake is still unexplained** — the batch runner now records enough
-  to diagnose it (and retries a silent abort once), so the next occurrence should say why.
+  the top. What it left open is **Next todos #1, #2 and #6**.
+- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #8**),
+  disabling the `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
+- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #7**) — the batch runner
+  now records enough to diagnose it (and retries a silent abort once), so the next occurrence
+  should say why.
 - ~~**`scripts/deploy/run-docker-release.ps1` is dead.**~~ **REMOVED 2026-09-17**, together with
   an identical `.sh` twin — see "Follow-ups closed" at the top. Original note: it invokes a `SMART_SETUP.ps1` that
   exists nowhere in the repo (a pre-flatten leftover), so it always throws "not found" — yet
@@ -711,7 +761,7 @@ for this commit was made on a static tree and printed no such warning.
 `SMS_ALLOW_DIRECT_PYTEST=1` is set in the **user environment** on this machine, which
 disables the `conftest.py` guard that CLAUDE.md relies on to stop a bare `pytest` run from
 taking down VS Code. Nothing in the repo can override that; it needs clearing in the
-Windows environment variables if the guard is meant to apply here.
+Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #8**.
 
 ---
 
@@ -1764,7 +1814,7 @@ renders (not raw i18n keys), screenshotted both languages.
   forward. This entry is itself an example of the gap it caught: the three
   commits above had landed with no corresponding entry here until now.
 
-### Open follow-ups (not yet done)
+### Follow-ups (all closed)
 
 - ~~7 of the 10 flags added to `src/frontend/android/gradle.properties` by
   the AGP upgrade assistant are already deprecated and will be removed in
