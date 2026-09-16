@@ -20,6 +20,34 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.43] - 2026-09-16
+
+### Features
+- **system**: add a Credits panel to the System tab
+
+### Bug Fixes
+- **release**: stop a blocked commit from becoming a published tag
+- **release**: splat installer-builder arguments as a hashtable
+- **release**: bump every version reference the verifier checks
+- **lite,android**: four bugs found by a full pre-release smoke test
+- **gates**: make the commit gate actually gate
+- **testing**: write the batch log where the docs say to read it
+- **testing**: record why a batch failed, not just that it did
+- **release**: repair release-notes generation - fences, dead links, commit parsing
+- **release**: rebuild SMS_Lite and the frontend instead of reusing whatever is on disk
+
+### Documentation
+- **plan**: record the Credits panel and the dead-code cleanup
+- **changelog**: explain in place why three versions keep duplicate headers
+- **plan**: record the CHANGELOG duplicate-header cleanup
+- **changelog**: remove duplicate version headers left by the old release bug
+- **plan**: mark the release-pipeline traps fixed, record two more found
+- **plan**: record the v1.18.42 release and three release-pipeline traps
+
+### Chores
+- remove three dead items found reviewing the workspace
+
 ## [1.18.42] - 2026-09-15
 
 ### Bug Fixes
@@ -4405,6 +4433,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
