@@ -10,8 +10,8 @@
   (`2400a4158`); the batch test runner reporting *why* a batch failed (`936037c7e`,
   `edeceaf00`); the Credits panel and three dead items removed (`570935e3e`, `6c6874b2a`);
   and the release-pipeline fixes — both those recorded inside the v1.18.42 section
-  (`47fd7e60d`, `1831288dc`, `2369e1a88`, `efb43649a`) and the four found while cutting this
-  release (`ad12e30a9`, `1c359d7c0`, `83c26d13d`).
+  (`47fd7e60d`, `1831288dc`, `2369e1a88`, `efb43649a`) and the five found while cutting this
+  release, plus a latent tag-moving hazard (`ad12e30a9`, `1c359d7c0`, `83c26d13d`).
 - **Shipped in v1.18.42** (from the v1.18.42 heading down to v1.18.41): the Android
   Preferences fix, the Android release-build fix, the version-sync repairs, the four-agent
   workspace audit, and the 2026-09-11/12 Help-audit bug fixes.
@@ -57,14 +57,26 @@ the content being committed".
 
 ---
 
-## 🧯 Cutting v1.18.43: four release-pipeline bugs, one of which published a bad tag (September 16, 2026)
+## 🧯 Cutting v1.18.43: five release-pipeline bugs, two of which together published a bad tag (September 16, 2026)
 
 **Status**: ✅ All FIXED, **released in v1.18.43**; the bad tag was rolled back before any asset was
-attached. The first bug was found by reading the script before running it, the second by the
-first run, the third by the second run, the fourth by inspecting the second run's generated
-release notes before re-cutting.
+attached. Numbered in the order they were found, which is the reverse of the order below:
 
-### The release body would have lost every code block
+1. step 2's version list had drifted from the verifier's — found by reading the script
+   before running it (`ad12e30a9`);
+2. an array splat bound `-Action` as a value — found by the first run (`1c359d7c0`);
+3. the commit guard was not staging-invariant for new files — found by the second run;
+4. RELEASE_READY tagged after that failed commit — found by the second run;
+5. the published release body lost every backtick — found by inspecting the second run's
+   generated notes before re-cutting.
+
+Bugs 3-5 are fixed in `83c26d13d`, along with a latent hazard found while fixing 4: the tag
+step force-moved any existing tag.
+
+*(This section and the status block originally said "four" bugs, counting 3 and 4 as one;
+corrected by the post-release plan review.)*
+
+### Bug 5: the release body would have lost every code block
 
 Before re-running, the release notes that run two generated were checked for the problems
 last session fixed. No false breaking-change banner and no backslash-mangled paths — but the
@@ -89,7 +101,7 @@ fences, inline `` `code` ``, `$(whoami)` and `` `date` `` came back **byte for b
 **Fixed**: the notes are written verbatim. Checked on run two's real generated body:
 4 fences generated → 0 after the old strip → 4 with the fix.
 
-### The second run tagged the wrong commit
+### Bugs 3 and 4: the second run tagged the wrong commit
 
 With the splat fixed and CI green, run two got through validation, the version bump, a
 signed installer build (Authenticode valid, file/product version v1.18.43), both remaining
@@ -115,7 +127,7 @@ Actions history.
 
 Two bugs had to line up:
 
-1. **The commit guard was not staging-invariant for new files** (introduced in `2400a4158`,
+3. **The commit guard was not staging-invariant for new files** (introduced in `2400a4158`,
    this session). Its fingerprint hashed the *text* of `git diff HEAD` for tracked changes
    and the content of untracked files separately. Staging a modified tracked file leaves the
    diff unchanged — the only case that commit tested — but staging a **new** file moves it
@@ -134,7 +146,7 @@ Two bugs had to line up:
    reverted: PASS; another file appears: BLOCK; removed: PASS; unstaged again: PASS;
    validated file deleted: BLOCK). The **old** guard, extracted from HEAD, reproduced the
    release failure on the same steps: PASS before `git add -A`, BLOCK after.
-2. **RELEASE_READY treated a failed commit as "no changes" and tagged anyway** (pre-existing).
+4. **RELEASE_READY treated a failed commit as "no changes" and tagged anyway** (pre-existing).
    **Fixed**: `git diff --cached --quiet` now distinguishes "nothing to commit"; any other
    commit or push failure in steps 7 and 8 exits 1. Before tagging it now also refuses unless
    HEAD's *committed* `VERSION` equals the tag, the tree is clean, and HEAD equals
@@ -147,7 +159,7 @@ Two bugs had to line up:
    refuses, moving `v1.18.42` refuses, creating an absent `v1.18.43` is allowed, and a commit
    blocked by the real pre-commit hook takes the new exit-1 path with HEAD unchanged.
 
-### The first two bugs
+### Bug 1: the version bump would have aborted the release at step 4
 
 Read through `RELEASE_READY.ps1` before trusting it with the release, because two of today's
 fixes (the Android version sync and the release-pipeline traps) had never been through a
@@ -174,7 +186,7 @@ after those two calls, step 4's own invocation (`VERIFY_VERSION.ps1 -CheckOnly`,
 `VERSION`) reported **11/11 consistent, exit 0**. Also corrected COMMIT_READY's hardcoded
 "All 9 version checks passed" — there are 11. (Commit `ad12e30a9`.)
 
-### …and the first real run then died at step 3 anyway
+### Bug 2: the first real run died at step 3 anyway
 
 With that fixed and CI green, the first `RELEASE_READY.ps1 -ReleaseVersion 1.18.43
 -TagRelease` passed validation (gate plus the full batch suite), bumped all 11 references
@@ -731,7 +743,7 @@ lines), and the `[1.18.42]` CHANGELOG header appeared exactly once.
 Each silently shipped wrong content rather than failing, which is why none had ever been
 noticed. Found by cutting the release by hand; fixed immediately afterwards — **after the
 `v1.18.42` tag, so these fixes are not in that release**: traps 1-2 in `47fd7e60d`, trap 3
-in `1831288dc`. The first release to use them is the next one; the 2026-09-16 smoke test
+in `1831288dc`. They were first used for a real release by v1.18.43; the 2026-09-16 smoke test
 already exercised traps 1-2 for real, rebuilding SMS_Lite and the frontend rather than
 reusing a build that predated the Credits panel.
 
