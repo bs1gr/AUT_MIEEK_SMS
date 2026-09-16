@@ -2,281 +2,67 @@
 
 **Current Version**: 1.18.42
 **Last Updated**: September 16, 2026
-**Status**: ✅ **v1.18.42 published 2026-09-15 — installer + APK, all workflows green; see the release section below, including three release-pipeline traps found during it that are not yet fixed. Previously: v1.18.41 published 2026-09-09. Fixed a real bug reported by the owner after installing SMS_Lite on a laptop: the QNAP credentials wizard wrote to a path the frozen exe never reads, plus DB-unavailable errors were indistinguishable from generic 500s — see below. 2026-09-11: found and fixed a recurring release-pipeline bug that had been duplicating every CHANGELOG.md version header since v1.18.36 — see below. 2026-09-11 (later same day): added `test-runner`/`release-manager` custom subagents, bumped vitest to fix 2 Dependabot alerts, committed an IDE-applied AGP 9/Gradle 9 upgrade (verified on-device), and added a `plan-review` audit skill — see below. 2026-09-11 (evening): audited in-app Help documentation, added 3 missing FAQ sections + 2 report-delivery items covering real shipped features (Custom Dashboards, Semester Archive, RBAC/Permissions), and found 4 real navigation/lint bugs while researching accurate click-paths — see below. 2026-09-11 (late night): wired up the dead SMTP Email Configuration panel (bug #1 below) and found + fixed 2 more latent bugs while doing it (a doubled `/api/v1` URL prefix and a role-check that silently rejected every real admin) — see below. 2026-09-11 (later still): deleted the dead 8-chart-type report builder (bug #2 below) after confirming it was superseded, unmaintained code with a payload shape incompatible with the current backend schema — see below. 2026-09-11 (past midnight): gave `/admin/import-export` a real click-path (bug #3 below), which surfaced ~35 missing i18n keys across the Export/Import dialogs — invisible until the page was reachable at all — now fixed in both languages. 2026-09-12 (early hours): closed out the whole bug list by fixing all 128 pre-existing ESLint `no-dupe-keys` errors across 9 locale files repo-wide (bug #4 below), not just the 90 originally found in `el/help.js` — see below. 2026-09-14/15: ran a four-agent workspace audit (CI/CD, backend, frontend, infra) and closed everything it found — 5 security findings, a Greek-users-see-English i18n bug, 3 duplicate/dead workflows, the version-sync chain broken since the June flatten, ~700 lines of confirmed-dead code, and all 4 remaining oversized frontend components refactored with ~120 new tests. 2026-09-15 (later): fixed a Capacitor thenable bug that had been silently disabling Preferences-backed storage on Android completely — see below.**
+**Status**: ✅ **v1.18.42 is the latest release (2026-09-15). 14 commits on `main` since the tag are unreleased and smoke-tested — ready to cut v1.18.43.**
+
+- **Unreleased, newest first** (sections below, above the v1.18.42 heading): 4 bugs found by
+  a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the wrong version
+  since 1.18.32 (`05b286b85`); the commit gate made to actually gate (`2400a4158`); the batch
+  test runner now reporting *why* a batch failed and writing the log the docs point at
+  (`936037c7e`, `edeceaf00`); the Credits panel and three dead items removed (`570935e3e`,
+  `6c6874b2a`); plus the release-pipeline and CHANGELOG fixes recorded inside the v1.18.42
+  section (`47fd7e60d`, `1831288dc`, `2369e1a88`, `efb43649a`).
+- **Smoke-tested 2026-09-16** across Native, Docker, the signed installer, SMS_Lite and the
+  Galaxy A55, with every fix re-verified against rebuilt artifacts.
+- **Shipped in v1.18.42** (everything from the v1.18.42 heading down to v1.18.41): the
+  Android Preferences fix, the Android release-build fix, the version-sync repairs, the
+  four-agent workspace audit, and the 2026-09-11/12 Help-audit bug fixes.
+- **Open follow-ups**: collected under "Open follow-ups" at the end of the smoke-test section.
+
+*Status labels below were corrected on 2026-09-16: twelve sections still read "not yet
+released" for work that had in fact shipped — eleven first in v1.18.42, one (PR #228) as far
+back as v1.18.39 — each verified by finding the first tag the cited commit is an ancestor of.
+A label now names the release that shipped it.*
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development
 **Current Branch**: `main`
 
 ---
 
-## 🐛 Capacitor Preferences was dead on Android — `Preferences.then()` (September 15, 2026)
+## 🧯 RELEASE_READY would have aborted v1.18.43 mid-release (September 16, 2026)
 
-**Status**: ✅ FIXED, not yet released. This closes the "Preferences.then() is not
-implemented on android" follow-up logged (as an unexplained console error) in the
-September 11 housekeeping section below. Investigation showed it was **not** a cosmetic
-log line: it disabled `appStorage`'s entire reason for existing on Android.
+**Status**: ✅ FIXED before cutting v1.18.43, not yet released.
 
-### What was actually happening
+Read through `RELEASE_READY.ps1` before trusting it with the release, because two of today's
+fixes (the Android version sync and the release-pipeline traps) had never been through a
+scripted release. Step 2, `Update-VersionReferences`, bumps the version by **hand-editing a
+fixed list of files** — and that list had drifted from the one `VERIFY_VERSION.ps1` checks.
+It never touched the user guide, the developer guide, `pyproject.toml` or Android's
+`build.gradle`. Step 4 then runs `COMMIT_READY -Quick`, whose version phase runs the
+verifier with `-CheckOnly` and **fails the gate on exit code 2**. So the script would have
+aborted with "Pre-commit validation failed after retry" — after step 3 had already built
+and signed the installer, leaving a half-bumped tree.
 
-`src/frontend/src/utils/appStorage.ts` loaded the plugin like this:
+Not a guess: reproduced by bumping every reference to 1.18.43 and then restoring exactly
+the four step 2 never touches. `VERIFY_VERSION.ps1 -CheckOnly` returned **exit code 2 with
+five inconsistencies** (both guides, `pyproject.toml`, `versionName`, `versionCode`). The
+v1.18.42 release was cut by hand, which is why this path had not run end to end since the
+guides and `pyproject.toml` were added to the verifier.
 
-```ts
-async function _getPrefs() {
-  const { Preferences } = await import('@capacitor/preferences');
-  return Preferences;   // ← the bug
-}
-```
-
-Returning the plugin object bare from an `async` function puts it on the promise
-resolution path, and promise resolution performs a **thenable check** — it reads
-`.then` off the resolution value and, if callable, calls it.
-
-Capacitor's `registerPlugin` returns a `Proxy` whose `get` trap special-cases only
-`$$typeof`, `toJSON`, `addListener` and `removeListener`, then falls through to
-`createPluginMethodWrapper(prop)` for *everything else* (verified directly in
-`node_modules/@capacitor/core/dist/index.js`). So `Preferences.then` resolved to a
-real bridge-call stub, the engine invoked it as `then(resolve, reject)`, the native
-side had no `then` method, and the wrapper threw
-`` `"${pluginName}.${prop}()" is not implemented on ${platform}` `` — the exact
-string seen in logcat.
-
-The wrapper rejects its own internal promise and never calls the `resolve`/`reject`
-it was handed, so `_getPrefs()` **never settles**. The chain of consequences:
-
-1. `init()`'s `Promise.race([_getPrefs(), _timeout(3000)])` could only ever be won by
-   the timeout — so every Android launch stalled the full 3 seconds here.
-2. The timeout rejects, the `catch` sets `_prefsReady = false`.
-3. `_persistAsync` early-returns on `!_prefsReady`, so **nothing was ever written to
-   Preferences**, and nothing was ever read back at startup.
-4. The unhandled rejection from the stub surfaced as the logged
-   `Uncaught (in promise)` error.
-
-Net effect: `appStorage` silently degraded to localStorage-only on Android — exactly
-the failure mode this module was written to prevent, since Android can wipe
-localStorage under memory pressure. Server URL, auth token and the three offline
-mutation queues were all unprotected. The 3-second timeout, added as a safety net
-against a broken bridge, is what kept the bug invisible.
-
-### Fix
-
-Wrap the plugin so it is never itself a resolution value — `return { prefs: Preferences }`
-— and destructure at the two call sites. The module header now explains why the
-wrapper is load-bearing, so it doesn't get "simplified" back into the bug.
-
-### Verification
-
-`appStorage.ts` had **zero** test coverage; added `appStorage.test.ts` (7 tests) whose
-plugin mock reproduces Capacitor's proxy semantics faithfully — any non-implemented
-property still returns a callable bridge stub, `then` included.
-
-Confirmed the tests actually catch the bug rather than just passing alongside the fix:
-reverted `appStorage.ts` to its `HEAD` state and re-ran them — 4 of 7 failed, and the
-recorded property-access log for the whole run was exactly `['then']`. `get`, `set` and
-`remove` were never reached even once, which is the direct proof that Preferences was
-100% unused on Android before this fix. Restored, all 7 pass; `eslint` and a full
-project `tsc --noEmit` are clean.
-
-### On-device verification (Galaxy A55, SM-A556B, Wi-Fi ADB)
-
-Confirmed on real hardware, not just at unit level. The sequence gives a genuine
-before/after because the device still had the **pre-fix** build installed from the
-2026-09-11 AGP session:
-
-1. **Before state — the decisive one.** The installed pre-fix app had been launched and
-   used (it had `CapWebViewSettings.xml`, `WebViewChromiumPrefs.xml` and
-   `AwOriginVisitLoggerPrefs.xml`, all dated 2026-09-11 21:16), yet
-   `/data/data/cy.mieek.sms/shared_prefs/CapacitorStorage.xml` — the file
-   `@capacitor/preferences` writes into — **did not exist at all**. Direct hardware
-   proof that Preferences was never written to even once.
-2. Built and installed the fixed debug APK (`npm run build:android`, `gradlew
-   assembleDebug`, 177 tasks, 6.2 MB). Cleared logcat, launched: **no
-   `"Preferences.then()" is not implemented on android`**, no `Capacitor/Console`
-   errors, no crash.
-3. Configured Local Network → `172.16.0.15:8000` against a running `NATIVE.ps1` backend.
-   `CapacitorStorage.xml` was **created** and contained
-   `sms_server_url=http://172.16.0.15:8000/api/v1` and `sms_server_type=local`. This
-   can only happen if `init()` succeeded, since `_persistAsync` returns early while
-   `_prefsReady` is false.
-4. **The scenario this module exists for.** Force-stopped the app, deleted the WebView's
-   entire `app_webview/Default/Local Storage` directory (simulating Android evicting
-   localStorage under memory pressure) while leaving `shared_prefs` intact, and
-   relaunched. The app went **straight to the login screen**, not back to the
-   connection-type wizard — it rehydrated the server URL from Preferences. Pre-fix this
-   would have lost the server entirely, since localStorage was the only copy.
-
-Screenshots captured at each step. Note the test device is now pointed at
-`172.16.0.15:8000`, a dev-machine LAN address that only resolves while `NATIVE.ps1` is
-running; change it on the device when testing against something else.
-
----
-
-## 🧹 Post-release cleanup: Credits panel + three dead items (September 16, 2026)
-
-**Status**: ✅ DONE, not yet released. Commits `570935e3e` (feature) and `6c6874b2a`
-(cleanup).
-
-### Credits panel added to the System tab (`570935e3e`)
-
-A collapsible **Credits** card below Control Panel on `/#/power`, matching the existing
-System Health / Control Panel card pattern (same toggle styling, `aria-expanded`/
-`aria-controls`, and a `?showCredits=1` param alongside the existing ones). Shows the AUT
-credits logo, app name and build version, the author with a LinkedIn link, the institution,
-the MIT licence and copyright, and the open-source projects the system is built on.
-
-Decisions worth keeping:
-
-- The LinkedIn link uses `rel="noopener noreferrer"` — `target="_blank"` alone lets the
-  opened page reach back through `window.opener` — plus an sr-only "(opens in a new
-  window)" so the behaviour is announced rather than implied by an icon.
-- The LinkedIn mark is an **inline SVG**, so the panel renders without a third-party
-  request.
-- Version comes from `VITE_APP_VERSION`, the same build-time value the footer uses, rather
-  than a second hardcoded copy.
-- The copyright year is pinned to **2025 to match the `LICENSE` file**, not
-  `new Date().getFullYear()`, so the notice cannot drift from the licence it cites.
-- The stack list was read from `package.json` and `requirements.txt` rather than assumed.
-- Image lives in `src/frontend/public/` and is referenced as `/AUT_Logo_realistic_Credits.jpg`,
-  matching the existing `/logo.png` usage; Capacitor serves from `https://localhost/`, so
-  the root-absolute path also resolves on Android despite that build's relative base.
-
-EN + EL translations both added (translation-integrity check passes). E2E coverage in
-`tests/e2e/credits.spec.ts` (3 tests), including two that are more than box-ticking: the
-logo is asserted via `naturalWidth > 0` so a missing file **fails** instead of passing on a
-broken-image placeholder, and one asserts no raw `system.credits*` key leaks into the UI,
-since i18next echoes missing keys back verbatim and would otherwise render them silently.
-
-### Three dead items removed (`6c6874b2a`)
-
-1. **`src/frontend/src/pages/PowerPage.tsx`** — zero references repo-wide. `routes.ts`
-   exports the *name* `PowerPage` but lazy-loads `SystemPage`, so this file had not
-   rendered since v1.17.5 despite its own docstring saying exactly that.
-2. **`src/frontend/src/__e2e__/`** — **unrunnable**, not merely unused: its spec imports
-   `login`/`logout`/`ensureTestUserExists` from a **0-byte** `helpers.ts`, so it cannot
-   compile. Also excluded from vitest and outside Playwright's `testDir`. Its only commit
-   is the June flatten. Checked for unique coverage first — its "Responsive Design" block
-   looked unique but Playwright already runs the **whole** suite under Mobile Chrome
-   (Pixel 5) and Mobile Safari (iPhone 12) projects, and `custom-dashboards.spec.ts` has
-   its own responsive block at the same viewports. Nothing lost.
-3. **`src/backend/data/data/`** (20 files) — runtime artifacts tracked because of a
-   **doubled path**. The correct `data/exports/` and `data/imports/` are gitignored
-   (`.gitignore:300-301`); the doubled path is not, so 17 zero-byte export CSVs and 3
-   trivial import leftovers got committed while the real directories stayed clean. Same
-   doubling disease `38f2d3e6b` fixed for `backend/backend`/`frontend/frontend`, missed
-   here. Timestamps are the flatten date and nothing has written there since, so it was a
-   leftover, not a live bug — no gitignore change needed.
-
-### ⚠️ Flaky commit gate observed once (not reproduced)
-
-During this work `COMMIT_READY -Quick` failed with backend batch 2 aborting **in 0.7s** —
-far too fast to have run its tests. Not caused by the deletions: the same 5 files passed
-directly (69 tests), and the suite then went green three times, including COMMIT_READY's
-exact `-BatchSize 5 -FastFail` invocation where that batch took 14.5s. Worth knowing the
-gate can flake this way, because `-FastFail` turns one bad batch into a full gate failure
-and the batch runner's log **does not capture pytest output** for a failing batch, so
-there is nothing to diagnose after the fact. If it recurs, that missing output is the first
-thing to fix. **Fixed on 2026-09-16 rather than waiting for a recurrence — see the next
-section.** The flake itself is still unexplained; the point is that the next occurrence
-will leave evidence.
-
----
-
-## 🔬 The batch runner now records *why* a batch failed (September 16, 2026)
-
-**Status**: ✅ DONE, not yet released. `infra/scripts/testing/RUN_TESTS_BATCH.ps1` only.
-
-Reading the log of the flake above (`src/backend/test-results/backend_batch_run_20260916_005035.txt`)
-corrected the diagnosis recorded there: the log is **not** dropping pytest's output. pytest
-genuinely wrote nothing at all — and the runner never recorded the one fact that survives
-that case, the **exit code**, which it read into `$exitCode` and used solely for an
-`-eq 0` test. So the entire record of the failure was the line `✗ Batch 2 failed in 0.7s`.
-
-Changes:
-
-- **Exit code is always reported** on failure, in decimal and hex, with its meaning
-  (pytest: `1` tests failed, `2` interrupted, `3` internal error, `4` usage error, `5`
-  nothing collected — anything else means the interpreter itself aborted). That single
-  number separates "tests failed" from "the process died", which the 0.7s duration could
-  only hint at.
-- **An empty batch is called out as an abort**, with the files in that batch and the
-  command to re-run it with output shown. The log also now carries an explicit
-  `(pytest wrote nothing to stdout or stderr for this batch)` marker, so a blank region in
-  the log can no longer be mistaken for a logging failure — which is exactly the wrong
-  turn the note above took.
-- **`E` markers count as failures.** Only `F` was counted, so a batch whose tests errored
-  during collection or fixture setup summarised as `Failed: 0` while exiting non-zero.
-- **Failed *batches* are counted, not failed files.** The summary printed
-  `$failedFiles.Count` under the label `Failed Batches`, and every file of a failing batch
-  is recorded for retest — so one bad batch of 5 files read as "Failed Batches: 5". This
-  is not hypothetical: `docs/development/PHASE4_ISSUE145_BLOCKER_REPORT.md` quotes
-  `✗ Batch 16 failed` immediately above `Failed Batches: 5` in the same block. Batches are
-  now reported as Ran / Passed / Failed, replacing `Completed: N` — which counted
-  *attempted* batches and so described the failing one as completed.
-- Skipped tests are now surfaced in the summary (they were counted per batch and thrown
-  away), and the test total includes them.
-
-### Verification
-
-Reproduced the exact signature instead of waiting for the flake: a throwaway
-`test_zzz_crash_probe.py` calling `os._exit(134)` at import time dies during collection
-having printed nothing, run through the runner alongside a passing file (`-RetestFailed
--BatchSize 1`). The run reported:
-
-```
-✗ Batch 2 failed in 1.1s (exit code 134 / 0x00000086 - not a pytest exit code - the interpreter itself aborted)
-✗   No output was captured, so this is an abort (crash/kill), not reported test failures.
-✗   Files in this batch: test_zzz_crash_probe.py
-```
-
-with the summary reading `Passed: 1` / `Failed: 1 (1 test file recorded for retest)`, and
-the same lines present in the log file. Probe and its log deleted afterwards; `git status`
-clean apart from the script.
-
-Also removed three dead variables the script carried: `$results` (a summary hashtable
-initialised with zeros, then never written to or read — the summary uses loose counters)
-and `$logStream`/`$logLocked`, left over from a logging approach that isn't used.
-
-### The log file the docs tell you to read never existed
-
-Found while fixing the above, and the same failure shape as the version-sync no-ops: a
-check that cannot pass, reported as if nothing were wrong.
-
-`CLAUDE.md`'s **Verification — evidence required** rule, `.claude/agents/test-runner.md`
-and six places in `.github/copilot-instructions.md` all say to check results by reading
-`src/backend/test-results/backend_batch_full.txt`. **No such file existed anywhere in the
-repo**, and nothing in the runner ever wrote one. Run verbatim, the documented command
-fails with `Cannot find path ... because it does not exist` — and because the error goes to
-stderr while the piped `Select-String` prints nothing, the result looks exactly like a run
-with no failures. Every "verified against the batch log" claim made that way was reading
-nothing.
-
-The reason no fixed path could be right: `$logPath` was `Join-Path (Get-Location) $LogFile`,
-i.e. relative to **the caller's** working directory. `COMMIT_READY` pushes into
-`src/backend` before invoking the runner, while `CLAUDE.md` tells a developer to run it
-from the repo root — so logs accumulated in two unrelated directories (127 files in
-`src/backend/test-results/`, 29 in `test-results/` at the root, same naming, same script).
-
-Fixed at the source rather than by editing three documents to describe the mess:
-
-- a relative `-LogFile` now resolves against `src/backend/`, so runs land in
-  `src/backend/test-results/` regardless of the working directory (an absolute `-LogFile`
-  is still honoured as given);
-- the finished log is copied to `src/backend/test-results/backend_batch_full.txt` on both
-  the pass and fail exits, which makes all three existing documents true as written;
-- `$projectRoot` is now resolved once at the top from `$PSScriptRoot`, replacing a
-  duplicate `$MyInvocation`-based computation further down.
-
-Verified from the **repo root** (the case that used to write to the wrong place): the log
-was announced and written at `src/backend/test-results/`, the root `test-results/` file
-count stayed at 29, `backend_batch_full.txt` appeared, and CLAUDE.md's command run verbatim
-against it printed the batch lines — including the new failure detail. The old root-level
-`test-results/` directory still holds its 29 historical logs; nothing writes there now, and
-they are gitignored, so they were left alone rather than deleted.
+**Fixed**: step 2 now finishes by calling `VERIFY_VERSION.ps1 -Version <new> -Update` and
+then `-CheckOnly`, and aborts *before any build* if either fails — so the verifier's list is
+the only list. It exits rather than returning `$false` on purpose: the function's `python`
+and `INSTALLER_BUILDER` calls write to the pipeline, so a return value would arrive as an
+array and read as success — the same trap that disabled COMMIT_READY's checkpoint. Verified:
+after those two calls, step 4's own invocation (`VERIFY_VERSION.ps1 -CheckOnly`, reading
+`VERSION`) reported **11/11 consistent, exit 0**. Also corrected COMMIT_READY's hardcoded
+"All 9 version checks passed" — there are 11.
 
 ---
 
 ## 🔥 Pre-release smoke test: 4 real bugs, 3 of them in SMS_Lite (September 16, 2026)
 
-**Status**: ✅ FIXED and re-verified against rebuilt artifacts, not yet released.
+**Status**: ✅ FIXED and re-verified against rebuilt artifacts, not yet released. Commit
+`05b286b85`.
 
 A full smoke test before cutting a release. Native and Docker passed; **every bug was in
 the two modes that only a packaged artifact can exercise**, which is the argument for
@@ -368,12 +154,54 @@ handles it — two backup implementations, only one of which works in the deploy
 configuration. And three `Test Course *` rows (ids 80-82) from this session's E2E run are
 still present; removing them was out of scope for the approval given.
 
+### Open follow-ups (not yet done)
+
+Collected in one place so they do not stay scattered across sections; the first three had
+been reported but never written into this plan until the 2026-09-16 plan review.
+
+- **Android: `triggerEvent` console error on launch.** Logcat on the Galaxy A55 shows
+  `Uncaught TypeError: Cannot read properties of undefined (reading 'triggerEvent')` once
+  per launch, from `Capacitor/Console` at line 1. The app launches, logs in and works
+  normally, so impact is unknown rather than visible — which is also how the
+  `Preferences.then()` error looked before it turned out to disable storage entirely.
+  Worth identifying the caller before calling it cosmetic.
+- **E2E suite is fragile in a local environment**, for three separate reasons, none a
+  product defect but all wasting time on every local run:
+  - `advanced_search.spec.ts` falls back to `BASE_URL = 'http://localhost:5173'` while
+    `playwright.config.ts` falls back to `http://127.0.0.1:5173` — so they disagree
+    whenever `PLAYWRIGHT_BASE_URL` is unset, i.e. every local run. `loginViaAPI` plants the
+    session on the config origin, the spec navigates to the other one, and the user lands
+    on the login page. The helper's `getApiBase()` already warns about exactly this.
+  - The student edit/delete tests create a student via the API and hash-navigate straight
+    to `/#/students`, which triggers no refetch inside `studentsAPI.getAll`'s 10s
+    `cachedGet` TTL — so they race a deliberate cache. They need a reload or a wait on the
+    list request, not a longer timeout.
+  - `feature_127_import_export.spec.ts` (and `advanced_search`'s defaults) hardcode
+    `admin@example.com` / `YourSecurePassword123!` — the Docker default — which stops
+    matching as soon as that password is changed, and `feature_127` offers no
+    `E2E_EMAIL`/`E2E_PASSWORD` override.
+- **E2E runs leak data into the database they run against.** Every run registers accounts
+  and creates students and courses, and nothing removes them: 234 accumulated accounts had
+  to be cleared by hand on 2026-09-16, and ~148 stray rows on 2026-09-05. The one-off
+  cleanups treat the symptom; a teardown (or a disposable database) would stop the leak.
+- **`test@example.com` is a teacher in the dev database**, while `loginAsTestUser` in
+  `tests/e2e/helpers.ts` declares it `role: 'admin'`. Specs that assume admin rights behave
+  differently here than wherever that user really is an admin.
+- **3 `Test Course *` rows** (ids 80-82) still in the dev database — see above.
+- **`/api/v1/admin/backup-database` refuses PostgreSQL** while the control-API backup works
+  — see above.
+- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment**, disabling the
+  `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
+- **The 0.7s commit-gate flake is still unexplained** — the batch runner now records enough
+  to diagnose it (and retries a silent abort once), so the next occurrence should say why.
+
 ---
 
 ## 🚧 Gate audit: the commit gate was not actually gating (September 16, 2026)
 
-**Status**: ✅ DONE, not yet released. Scripts only — `ENFORCE_COMMIT_READY_GUARD.ps1`,
-`COMMIT_READY.ps1`, `RELEASE_READY.ps1`, `RUN_TESTS_BATCH.ps1`, `.githooks/pre-commit`.
+**Status**: ✅ DONE, not yet released. Commit `2400a4158`. Scripts only —
+`ENFORCE_COMMIT_READY_GUARD.ps1`, `COMMIT_READY.ps1`, `RELEASE_READY.ps1`,
+`RUN_TESTS_BATCH.ps1`, `AUTO_COMMIT_AFTER_READY.ps1`, `.githooks/pre-commit`.
 
 A review of how the gates actually run, prompted by the flake above. Every finding is the
 same shape: a check that reports success without having checked anything.
@@ -538,6 +366,172 @@ Windows environment variables if the guard is meant to apply here.
 
 ---
 
+## 🔬 The batch runner now records *why* a batch failed (September 16, 2026)
+
+**Status**: ✅ DONE, not yet released. Commits `936037c7e` (failure diagnostics) and
+`edeceaf00` (log location and `backend_batch_full.txt`). `infra/scripts/testing/RUN_TESTS_BATCH.ps1`
+only.
+
+Reading the log of the flake above (`src/backend/test-results/backend_batch_run_20260916_005035.txt`)
+corrected the diagnosis recorded there: the log is **not** dropping pytest's output. pytest
+genuinely wrote nothing at all — and the runner never recorded the one fact that survives
+that case, the **exit code**, which it read into `$exitCode` and used solely for an
+`-eq 0` test. So the entire record of the failure was the line `✗ Batch 2 failed in 0.7s`.
+
+Changes:
+
+- **Exit code is always reported** on failure, in decimal and hex, with its meaning
+  (pytest: `1` tests failed, `2` interrupted, `3` internal error, `4` usage error, `5`
+  nothing collected — anything else means the interpreter itself aborted). That single
+  number separates "tests failed" from "the process died", which the 0.7s duration could
+  only hint at.
+- **An empty batch is called out as an abort**, with the files in that batch and the
+  command to re-run it with output shown. The log also now carries an explicit
+  `(pytest wrote nothing to stdout or stderr for this batch)` marker, so a blank region in
+  the log can no longer be mistaken for a logging failure — which is exactly the wrong
+  turn the note above took.
+- **`E` markers count as failures.** Only `F` was counted, so a batch whose tests errored
+  during collection or fixture setup summarised as `Failed: 0` while exiting non-zero.
+- **Failed *batches* are counted, not failed files.** The summary printed
+  `$failedFiles.Count` under the label `Failed Batches`, and every file of a failing batch
+  is recorded for retest — so one bad batch of 5 files read as "Failed Batches: 5". This
+  is not hypothetical: `docs/development/PHASE4_ISSUE145_BLOCKER_REPORT.md` quotes
+  `✗ Batch 16 failed` immediately above `Failed Batches: 5` in the same block. Batches are
+  now reported as Ran / Passed / Failed, replacing `Completed: N` — which counted
+  *attempted* batches and so described the failing one as completed.
+- Skipped tests are now surfaced in the summary (they were counted per batch and thrown
+  away), and the test total includes them.
+
+### Verification
+
+Reproduced the exact signature instead of waiting for the flake: a throwaway
+`test_zzz_crash_probe.py` calling `os._exit(134)` at import time dies during collection
+having printed nothing, run through the runner alongside a passing file (`-RetestFailed
+-BatchSize 1`). The run reported:
+
+```
+✗ Batch 2 failed in 1.1s (exit code 134 / 0x00000086 - not a pytest exit code - the interpreter itself aborted)
+✗   No output was captured, so this is an abort (crash/kill), not reported test failures.
+✗   Files in this batch: test_zzz_crash_probe.py
+```
+
+with the summary reading `Passed: 1` / `Failed: 1 (1 test file recorded for retest)`, and
+the same lines present in the log file. Probe and its log deleted afterwards; `git status`
+clean apart from the script.
+
+Also removed three dead variables the script carried: `$results` (a summary hashtable
+initialised with zeros, then never written to or read — the summary uses loose counters)
+and `$logStream`/`$logLocked`, left over from a logging approach that isn't used.
+
+### The log file the docs tell you to read never existed
+
+Found while fixing the above, and the same failure shape as the version-sync no-ops: a
+check that cannot pass, reported as if nothing were wrong.
+
+`CLAUDE.md`'s **Verification — evidence required** rule, `.claude/agents/test-runner.md`
+and six places in `.github/copilot-instructions.md` all say to check results by reading
+`src/backend/test-results/backend_batch_full.txt`. **No such file existed anywhere in the
+repo**, and nothing in the runner ever wrote one. Run verbatim, the documented command
+fails with `Cannot find path ... because it does not exist` — and because the error goes to
+stderr while the piped `Select-String` prints nothing, the result looks exactly like a run
+with no failures. Every "verified against the batch log" claim made that way was reading
+nothing.
+
+The reason no fixed path could be right: `$logPath` was `Join-Path (Get-Location) $LogFile`,
+i.e. relative to **the caller's** working directory. `COMMIT_READY` pushes into
+`src/backend` before invoking the runner, while `CLAUDE.md` tells a developer to run it
+from the repo root — so logs accumulated in two unrelated directories (127 files in
+`src/backend/test-results/`, 29 in `test-results/` at the root, same naming, same script).
+
+Fixed at the source rather than by editing three documents to describe the mess:
+
+- a relative `-LogFile` now resolves against `src/backend/`, so runs land in
+  `src/backend/test-results/` regardless of the working directory (an absolute `-LogFile`
+  is still honoured as given);
+- the finished log is copied to `src/backend/test-results/backend_batch_full.txt` on both
+  the pass and fail exits, which makes all three existing documents true as written;
+- `$projectRoot` is now resolved once at the top from `$PSScriptRoot`, replacing a
+  duplicate `$MyInvocation`-based computation further down.
+
+Verified from the **repo root** (the case that used to write to the wrong place): the log
+was announced and written at `src/backend/test-results/`, the root `test-results/` file
+count stayed at 29, `backend_batch_full.txt` appeared, and CLAUDE.md's command run verbatim
+against it printed the batch lines — including the new failure detail. The old root-level
+`test-results/` directory still holds its 29 historical logs; nothing writes there now, and
+they are gitignored, so they were left alone rather than deleted.
+
+---
+
+## 🧹 Post-release cleanup: Credits panel + three dead items (September 16, 2026)
+
+**Status**: ✅ DONE, not yet released. Commits `570935e3e` (feature) and `6c6874b2a`
+(cleanup).
+
+### Credits panel added to the System tab (`570935e3e`)
+
+A collapsible **Credits** card below Control Panel on `/#/power`, matching the existing
+System Health / Control Panel card pattern (same toggle styling, `aria-expanded`/
+`aria-controls`, and a `?showCredits=1` param alongside the existing ones). Shows the AUT
+credits logo, app name and build version, the author with a LinkedIn link, the institution,
+the MIT licence and copyright, and the open-source projects the system is built on.
+
+Decisions worth keeping:
+
+- The LinkedIn link uses `rel="noopener noreferrer"` — `target="_blank"` alone lets the
+  opened page reach back through `window.opener` — plus an sr-only "(opens in a new
+  window)" so the behaviour is announced rather than implied by an icon.
+- The LinkedIn mark is an **inline SVG**, so the panel renders without a third-party
+  request.
+- Version comes from `VITE_APP_VERSION`, the same build-time value the footer uses, rather
+  than a second hardcoded copy.
+- The copyright year is pinned to **2025 to match the `LICENSE` file**, not
+  `new Date().getFullYear()`, so the notice cannot drift from the licence it cites.
+- The stack list was read from `package.json` and `requirements.txt` rather than assumed.
+- Image lives in `src/frontend/public/` and is referenced as `/AUT_Logo_realistic_Credits.jpg`,
+  matching the existing `/logo.png` usage; Capacitor serves from `https://localhost/`, so
+  the root-absolute path also resolves on Android despite that build's relative base.
+
+EN + EL translations both added (translation-integrity check passes). E2E coverage in
+`tests/e2e/credits.spec.ts` (3 tests), including two that are more than box-ticking: the
+logo is asserted via `naturalWidth > 0` so a missing file **fails** instead of passing on a
+broken-image placeholder, and one asserts no raw `system.credits*` key leaks into the UI,
+since i18next echoes missing keys back verbatim and would otherwise render them silently.
+
+### Three dead items removed (`6c6874b2a`)
+
+1. **`src/frontend/src/pages/PowerPage.tsx`** — zero references repo-wide. `routes.ts`
+   exports the *name* `PowerPage` but lazy-loads `SystemPage`, so this file had not
+   rendered since v1.17.5 despite its own docstring saying exactly that.
+2. **`src/frontend/src/__e2e__/`** — **unrunnable**, not merely unused: its spec imports
+   `login`/`logout`/`ensureTestUserExists` from a **0-byte** `helpers.ts`, so it cannot
+   compile. Also excluded from vitest and outside Playwright's `testDir`. Its only commit
+   is the June flatten. Checked for unique coverage first — its "Responsive Design" block
+   looked unique but Playwright already runs the **whole** suite under Mobile Chrome
+   (Pixel 5) and Mobile Safari (iPhone 12) projects, and `custom-dashboards.spec.ts` has
+   its own responsive block at the same viewports. Nothing lost.
+3. **`src/backend/data/data/`** (20 files) — runtime artifacts tracked because of a
+   **doubled path**. The correct `data/exports/` and `data/imports/` are gitignored
+   (`.gitignore:300-301`); the doubled path is not, so 17 zero-byte export CSVs and 3
+   trivial import leftovers got committed while the real directories stayed clean. Same
+   doubling disease `38f2d3e6b` fixed for `backend/backend`/`frontend/frontend`, missed
+   here. Timestamps are the flatten date and nothing has written there since, so it was a
+   leftover, not a live bug — no gitignore change needed.
+
+### ⚠️ Flaky commit gate observed once (not reproduced)
+
+During this work `COMMIT_READY -Quick` failed with backend batch 2 aborting **in 0.7s** —
+far too fast to have run its tests. Not caused by the deletions: the same 5 files passed
+directly (69 tests), and the suite then went green three times, including COMMIT_READY's
+exact `-BatchSize 5 -FastFail` invocation where that batch took 14.5s. Worth knowing the
+gate can flake this way, because `-FastFail` turns one bad batch into a full gate failure
+and the batch runner's log **does not capture pytest output** for a failing batch, so
+there is nothing to diagnose after the fact. If it recurs, that missing output is the first
+thing to fix. **Fixed on 2026-09-16 rather than waiting for a recurrence — see the next
+section.** The flake itself is still unexplained; the point is that the next occurrence
+will leave evidence.
+
+---
+
 ## 🚀 v1.18.42 (September 15, 2026) — released
 
 **Status**: ✅ RELEASED | Tag `v1.18.42` | commit `ac63f81b6` |
@@ -572,7 +566,11 @@ lines), and the `[1.18.42]` CHANGELOG header appeared exactly once.
 ### 🐛 Three release-pipeline traps caught during this release — ✅ ALL FIXED
 
 Each silently shipped wrong content rather than failing, which is why none had ever been
-noticed. Found by cutting the release by hand; fixed immediately afterwards.
+noticed. Found by cutting the release by hand; fixed immediately afterwards — **after the
+`v1.18.42` tag, so these fixes are not in that release**: traps 1-2 in `47fd7e60d`, trap 3
+in `1831288dc`. The first release to use them is the next one; the 2026-09-16 smoke test
+already exercised traps 1-2 for real, rebuilding SMS_Lite and the frontend rather than
+reusing a build that predated the Credits panel.
 
 1. **Stale SMS_Lite was reused, never rebuilt.** Both `RELEASE_READY.ps1` (line ~292) and
    `INSTALLER_BUILDER.ps1`'s `Confirm-NativeLiteEditionReady` (line ~578) guarded the
@@ -603,7 +601,7 @@ noticed. Found by cutting the release by hand; fixed immediately afterwards.
    `StudentManagementSystem_<ver>_Setup.exe`, an asset name this project has never
    published — corrected to `SMS_Installer_<ver>.exe`.
 
-### 🐛 Two further bugs found while fixing the above — ✅ both fixed
+### 🐛 Two further bugs found while fixing the above — ✅ both fixed (`1831288dc`, after the tag)
 
 4. **Commit parsing counted lines, not commits.** `GENERATE_RELEASE_DOCS.ps1` used
    `--pretty=format:'%H|%s|%b|%an|%ae|%ad'` and consumed the output line by line, but `%b`
@@ -643,7 +641,7 @@ there is now a single build path and verification always runs.
     which date the version actually shipped on. Owner decision on 2026-09-16: **leave them
     as an honest record that the history is genuinely ambiguous**, rather than collapsing
     them and presenting a guessed release date as fact. A note in `CHANGELOG.md`'s
-    preamble explains this in place, so the entries do not read as a cleanup that missed
+    preamble (`efb43649a`) explains this in place, so the entries do not read as a cleanup that missed
     three versions and do not get "fixed" later. Do not merge these without a new
     decision. (`1.18.0` had the same conflict but its git tag settled it at 2026-02-16,
     so it was merged.)
@@ -657,9 +655,110 @@ there is now a single build path and verification always runs.
 
 ---
 
+## 🐛 Capacitor Preferences was dead on Android — `Preferences.then()` (September 15, 2026)
+
+**Status**: ✅ FIXED, **released in v1.18.42** (`683eb410b`). This closes the "Preferences.then() is not
+implemented on android" follow-up logged (as an unexplained console error) in the
+September 11 housekeeping section below. Investigation showed it was **not** a cosmetic
+log line: it disabled `appStorage`'s entire reason for existing on Android.
+
+### What was actually happening
+
+`src/frontend/src/utils/appStorage.ts` loaded the plugin like this:
+
+```ts
+async function _getPrefs() {
+  const { Preferences } = await import('@capacitor/preferences');
+  return Preferences;   // ← the bug
+}
+```
+
+Returning the plugin object bare from an `async` function puts it on the promise
+resolution path, and promise resolution performs a **thenable check** — it reads
+`.then` off the resolution value and, if callable, calls it.
+
+Capacitor's `registerPlugin` returns a `Proxy` whose `get` trap special-cases only
+`$$typeof`, `toJSON`, `addListener` and `removeListener`, then falls through to
+`createPluginMethodWrapper(prop)` for *everything else* (verified directly in
+`node_modules/@capacitor/core/dist/index.js`). So `Preferences.then` resolved to a
+real bridge-call stub, the engine invoked it as `then(resolve, reject)`, the native
+side had no `then` method, and the wrapper threw
+`` `"${pluginName}.${prop}()" is not implemented on ${platform}` `` — the exact
+string seen in logcat.
+
+The wrapper rejects its own internal promise and never calls the `resolve`/`reject`
+it was handed, so `_getPrefs()` **never settles**. The chain of consequences:
+
+1. `init()`'s `Promise.race([_getPrefs(), _timeout(3000)])` could only ever be won by
+   the timeout — so every Android launch stalled the full 3 seconds here.
+2. The timeout rejects, the `catch` sets `_prefsReady = false`.
+3. `_persistAsync` early-returns on `!_prefsReady`, so **nothing was ever written to
+   Preferences**, and nothing was ever read back at startup.
+4. The unhandled rejection from the stub surfaced as the logged
+   `Uncaught (in promise)` error.
+
+Net effect: `appStorage` silently degraded to localStorage-only on Android — exactly
+the failure mode this module was written to prevent, since Android can wipe
+localStorage under memory pressure. Server URL, auth token and the three offline
+mutation queues were all unprotected. The 3-second timeout, added as a safety net
+against a broken bridge, is what kept the bug invisible.
+
+### Fix
+
+Wrap the plugin so it is never itself a resolution value — `return { prefs: Preferences }`
+— and destructure at the two call sites. The module header now explains why the
+wrapper is load-bearing, so it doesn't get "simplified" back into the bug.
+
+### Verification
+
+`appStorage.ts` had **zero** test coverage; added `appStorage.test.ts` (7 tests) whose
+plugin mock reproduces Capacitor's proxy semantics faithfully — any non-implemented
+property still returns a callable bridge stub, `then` included.
+
+Confirmed the tests actually catch the bug rather than just passing alongside the fix:
+reverted `appStorage.ts` to its `HEAD` state and re-ran them — 4 of 7 failed, and the
+recorded property-access log for the whole run was exactly `['then']`. `get`, `set` and
+`remove` were never reached even once, which is the direct proof that Preferences was
+100% unused on Android before this fix. Restored, all 7 pass; `eslint` and a full
+project `tsc --noEmit` are clean.
+
+### On-device verification (Galaxy A55, SM-A556B, Wi-Fi ADB)
+
+Confirmed on real hardware, not just at unit level. The sequence gives a genuine
+before/after because the device still had the **pre-fix** build installed from the
+2026-09-11 AGP session:
+
+1. **Before state — the decisive one.** The installed pre-fix app had been launched and
+   used (it had `CapWebViewSettings.xml`, `WebViewChromiumPrefs.xml` and
+   `AwOriginVisitLoggerPrefs.xml`, all dated 2026-09-11 21:16), yet
+   `/data/data/cy.mieek.sms/shared_prefs/CapacitorStorage.xml` — the file
+   `@capacitor/preferences` writes into — **did not exist at all**. Direct hardware
+   proof that Preferences was never written to even once.
+2. Built and installed the fixed debug APK (`npm run build:android`, `gradlew
+   assembleDebug`, 177 tasks, 6.2 MB). Cleared logcat, launched: **no
+   `"Preferences.then()" is not implemented on android`**, no `Capacitor/Console`
+   errors, no crash.
+3. Configured Local Network → `172.16.0.15:8000` against a running `NATIVE.ps1` backend.
+   `CapacitorStorage.xml` was **created** and contained
+   `sms_server_url=http://172.16.0.15:8000/api/v1` and `sms_server_type=local`. This
+   can only happen if `init()` succeeded, since `_persistAsync` returns early while
+   `_prefsReady` is false.
+4. **The scenario this module exists for.** Force-stopped the app, deleted the WebView's
+   entire `app_webview/Default/Local Storage` directory (simulating Android evicting
+   localStorage under memory pressure) while leaving `shared_prefs` intact, and
+   relaunched. The app went **straight to the login screen**, not back to the
+   connection-type wizard — it rehydrated the server URL from Preferences. Pre-fix this
+   would have lost the server entirely, since localStorage was the only copy.
+
+Screenshots captured at each step. Note the test device is now pointed at
+`172.16.0.15:8000`, a dev-machine LAN address that only resolves while `NATIVE.ps1` is
+running; change it on the device when testing against something else.
+
+---
+
 ## 🤖 Android release builds were broken + AGP flag cleanup (September 15, 2026)
 
-**Status**: ✅ FIXED, not yet released. Commits `64ab67b77` (release-build fix) and
+**Status**: ✅ FIXED, **released in v1.18.42**. Commits `64ab67b77` (release-build fix) and
 `f1dac0d46` (flag removal).
 
 ### 🐛 `assembleRelease` had been failing since the AGP 9 upgrade
@@ -719,7 +818,7 @@ only per the June 2026 security audit.
 
 ## 🔧 Version-sync chain: the last three no-op paths (September 15, 2026, `9c95d93e0`)
 
-**Status**: ✅ FIXED, not yet released. Follow-on to `fccb5a301` below, which fixed the
+**Status**: ✅ FIXED, **released in v1.18.42**. Follow-on to `fccb5a301` below, which fixed the
 flatten-stale paths in `COMMIT_READY.ps1` and the v-prefix regex in `RELEASE_READY.ps1`
 but left the **same two bug classes alive in `VERIFY_VERSION.ps1`**. Both had been
 surfacing as `[WARN] Pattern not found in file` on every `COMMIT_READY` run — a warning
@@ -757,7 +856,7 @@ run restores it to byte-identical with the committed state — 2 lines repaired,
 
 ## 🔍 Four-agent workspace audit + full remediation (September 14–15, 2026)
 
-**Status**: ✅ DONE, not yet released. Eleven commits, `b644ee42c..8fbf66ee0`. Four
+**Status**: ✅ DONE, **released in v1.18.42**. Eleven commits, `b644ee42c..8fbf66ee0`. Four
 parallel sub-agents audited CI/CD, backend, frontend and infra; every finding was then
 either fixed or explicitly ruled out. The audit's oversized-component list is now
 **fully closed**.
@@ -891,7 +990,7 @@ span is `duration × periods`, overlap is symmetric, one entry reported per clas
 
 ## 🧹 Fixed all 128 pre-existing duplicate-key lint errors, repo-wide (September 12, 2026, early hours)
 
-**Status**: ✅ FIXED, not yet released. This closes out the full bug list from the in-app Help
+**Status**: ✅ FIXED, **released in v1.18.42** (`ddf24ac3a`). This closes out the full bug list from the in-app Help
 audit session — bugs #1-#4 are now all addressed (2 fixed by wiring/adding, 1 fixed by deleting,
 1 fixed by deduping), plus every new finding surfaced along the way is logged for later.
 
@@ -976,7 +1075,7 @@ always fell through to the hardcoded English fallback — including for Greek us
 
 ## 📥 Import/Export click-path added + ~35 missing i18n keys fixed (September 11, 2026, past midnight)
 
-**Status**: ✅ FIXED, not yet released. Owner picked bug #3 from the list below; investigation
+**Status**: ✅ FIXED, **released in v1.18.42** (`ce3f7e65e`). Owner picked bug #3 from the list below; investigation
 showed the underlying feature was real and actively maintained (not a duplicate like bug #2),
 so "wire it up" — and asked to complete the fix fully rather than defer the i18n gap it exposed.
 
@@ -1041,7 +1140,7 @@ and Greek, screenshotted, zero raw-key leaks, zero console/network errors.
 
 ## 🗑️ Deleted the dead 8-chart-type report builder (September 11, 2026, later still)
 
-**Status**: ✅ FIXED (deleted), not yet released. Owner picked bug #2 from the list below to
+**Status**: ✅ FIXED (deleted), **released in v1.18.42** (`768ba1a07`). Owner picked bug #2 from the list below to
 fix next; investigation showed "delete" was the right call, not "wire up."
 
 Before deciding, checked git history and the actual data each component saves:
@@ -1086,7 +1185,7 @@ test suite (57/57, same count as before minus the deleted
 
 ## 📧 Email Configuration wired up + 2 latent bugs found fixing it (September 11, 2026, late night)
 
-**Status**: ✅ FIXED, not yet released. Owner picked bug #1 from the list below to fix next;
+**Status**: ✅ FIXED, **released in v1.18.42** (`9ffafbb95`). Owner picked bug #1 from the list below to fix next;
 fixing it surfaced 2 more real, previously-undetected bugs in the same code path.
 
 Wired the dead `EmailConfigPanel`/SMTP settings UI (bug #1 in the section below) into
@@ -1164,8 +1263,9 @@ open).
 
 ## 📚 In-app Help audit: 3 missing sections added + 4 real bugs found (September 11, 2026, evening)
 
-**Status**: ✅ Documentation DONE, not yet released. Bugs found but **not fixed this session** —
-logged below for a future session, per explicit owner decision (docs now, bugs later).
+**Status**: ✅ Documentation DONE, **released in v1.18.42** (`226bca077`). The 4 bugs it found
+were deliberately deferred at the time (owner decision: docs now, bugs later) and were **all
+fixed afterwards** — see the four sections above, also released in v1.18.42.
 
 Reviewed `HelpDocumentation.tsx` (the in-app FAQ under Operations → Help) against
 shipped-but-undocumented features. Before writing new FAQ entries, verified the
@@ -1279,7 +1379,7 @@ renders (not raw i18n keys), screenshotted both languages.
 
 ## 🔧 Session housekeeping: custom subagents, vitest security bump, AGP/Gradle 9 upgrade (September 11, 2026, later same day)
 
-**Status**: ✅ DONE, not yet released.
+**Status**: ✅ DONE, **released in v1.18.42**.
 
 - **`0bc758cf1`** — bumped `vitest` 4.1.9→4.1.11, fixing Dependabot alerts
   #262/#263 (`@vitest/mocker` path-traversal / arbitrary file read via a
@@ -1344,7 +1444,7 @@ renders (not raw i18n keys), screenshotted both languages.
 
 ## 🧹 Release pipeline: duplicate CHANGELOG.md headers + DOCKER.ps1 -Update path bug (September 11, 2026)
 
-**Status**: ✅ FIXED, not yet released.
+**Status**: ✅ FIXED, **released in v1.18.42** (`fcb19c916`).
 
 Routine state review found `CHANGELOG.md` had carried a duplicate `## [x.y.z]`
 header on every release since v1.18.36: `RELEASE_READY.ps1`'s version-bump
@@ -1540,7 +1640,7 @@ frontend serving all pass).
 
 ### 🐛 QNAP credentials URL-encoding bug in SMS_Lite.exe (September 8, 2026, PR #228)
 
-**Status**: ✅ FIXED, not yet released.
+**Status**: ✅ FIXED, **released in v1.18.39** (`df1cd488d`, PR #228).
 
 Reported by the owner after installing SMS_Lite on a laptop: QNAP PostgreSQL
 credentials "failing" even though correct. Root cause:

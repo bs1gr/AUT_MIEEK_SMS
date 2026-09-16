@@ -1013,7 +1013,7 @@ function Invoke-VersionConsistencyCheck {
     # Exit codes: 0=success, 1=critical failure, 2=inconsistencies found
     if ($exitCode -eq 0) {
         Write-Success "All version references consistent across codebase"
-        Add-Result "Linting" "Version Consistency" $true "All 9 version checks passed"
+        Add-Result "Linting" "Version Consistency" $true "All VERIFY_VERSION.ps1 checks passed"
         return $true
     }
     elseif ($exitCode -eq 2 -and -not $AutoFix) {

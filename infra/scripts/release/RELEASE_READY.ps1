@@ -268,7 +268,33 @@ function Update-VersionReferences {
         & (Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1") -Action update-images -Version $NewVersion
     }
 
-    Write-Host "✓ All version references updated" -ForegroundColor Green
+    # Sync every reference VERIFY_VERSION.ps1 checks, then prove they agree.
+    #
+    # The hand-written edits above had drifted from the verifier's list: they never touched
+    # the user guide, the developer guide, pyproject.toml or Android's build.gradle — all of
+    # which the verifier checks. The COMMIT_READY gate in step 4 runs that verifier, found
+    # five inconsistencies and failed, so this script aborted the release *after* building
+    # the installer. (Reproduced on 2026-09-16 before cutting v1.18.43: exit code 2, exactly
+    # those five references.) Delegating makes the verifier's list the only list, so a
+    # reference added there is bumped here with no second edit to forget.
+    #
+    # Failure exits rather than returning $false: the python and INSTALLER_BUILDER calls
+    # above write to the pipeline, so a return value would arrive as an array and
+    # `if (-not (Update-VersionReferences ...))` would read it as success.
+    $verifyVersionScript = Join-Path $PROJECT_ROOT "scripts\VERIFY_VERSION.ps1"
+    & $verifyVersionScript -Version $NewVersion -Update | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ VERIFY_VERSION.ps1 -Update failed (exit $LASTEXITCODE) - aborting before any build" -ForegroundColor Red
+        exit 1
+    }
+    & $verifyVersionScript -Version $NewVersion -CheckOnly | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Version references still inconsistent after sync (exit $LASTEXITCODE) - aborting before any build" -ForegroundColor Red
+        Write-Host "   See: .\scripts\VERIFY_VERSION.ps1 -Version $NewVersion -CheckOnly" -ForegroundColor Yellow
+        exit 1
+    }
+
+    Write-Host "✓ All version references updated and verified consistent" -ForegroundColor Green
 }
 
 function Invoke-InstallerBuild {
