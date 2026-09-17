@@ -40,9 +40,11 @@ def _hidden_window_kwargs() -> dict:
     return {"startupinfo": si}
 
 
+psutil: Any
 try:
-    import psutil
+    import psutil as _psutil
 
+    psutil = _psutil
     _PSUTIL_IMPORT_ERROR: Exception | None = None
 except Exception as e:
     psutil = None

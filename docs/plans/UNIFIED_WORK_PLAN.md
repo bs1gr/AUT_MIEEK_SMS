@@ -34,41 +34,88 @@ lists that used to hold it — in the PostgreSQL restore section and the smoke-t
 which now point here. The evidence stays in those dated sections. When an item is done, remove
 it here and mark it resolved where it was raised.
 
-*Items 1–6 of the 2026-09-17 list are **done** — see "PostgreSQL backups that actually restore"
-and "E2E: teardown, and four tests that could not fail" below. What follows is what is left,
-plus what that work newly raised.*
+*Items 1–6 of the original 2026-09-17 list are **done**, and so is the disposable E2E database
+that item 3 asked for second. See "PostgreSQL backups that actually restore", "E2E: teardown,
+and four tests that could not fail", and "E2E runs against a disposable database" below. What
+follows is what is left, plus what that work newly raised.*
 
-1. **Point E2E at a disposable database** — *the second half of the chosen fix; the teardown
-   is in.* Accounts are now covered everywhere (`registerUser` records them and the global
-   teardown deletes them, including after a crashed run), and `student-management.spec.ts`
-   leaves student and course counts unchanged. What is still uncovered: **students, courses and
-   grades created by specs other than `student-management.spec.ts`**, which do not use
-   `TestDataTracker`. Either extend the tracker to them or — better, and what this item is —
-   give the run its own database (separate name, or a throwaway container as the restore tests
-   use) that is dropped and recreated per run. Evidence: "E2E: teardown, and four tests that
-   could not fail".
-2. **The restore round-trip tests never run automatically** — `test_database_manager_restore_roundtrip.py`
+1. **The restore round-trip tests never run automatically** — `test_database_manager_restore_roundtrip.py`
    skips unless `SMS_TEST_POSTGRES_URL` is set, so the batch runner and CI both skip all 9 of
    them (they are 9 of the 39 skips in the 2026-09-17 run). They are the only tests that
    exercise the restore engine against a real server, and they caught two bugs the fakes could
    not. Give CI a `postgres:16-alpine` service and set the variable for that job.
-3. **`import_export.spec.ts` is skipped with a stale reason** — the whole describe is
+2. **`import_export.spec.ts` is skipped with a stale reason** — the whole describe is
    `test.describe.skip` with the comment "Feature not yet implemented - skip until
    import-export page is added", but `/admin/import-export` was given a working click-path in
    the 2026-09-11/12 Help-audit work. Either re-enable the spec or correct the reason.
-4. **GradingView rebuilds the course list with one request per course** — selecting a student
+3. **GradingView rebuilds the course list with one request per course** — selecting a student
    makes it call `enrollmentsAPI.getEnrolledStudents` for *every* active course to find that
    student's courses (`GradingView.tsx`, the `studentId` effect). It is correct but scales with
    the course count. Selecting the course first avoids it entirely, which is what the rewritten
    grade test now does.
-5. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
+4. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
-6. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
+5. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
    repo.* It permanently disables the `conftest.py` guard CLAUDE.md relies on to stop a bare
    `pytest` run from overwhelming VS Code. Clear it under System Properties → Environment
    Variables if the guard should apply on this machine. Evidence: gate audit, "Known, not
    changed".
+
+---
+
+## 🧪 E2E runs against a disposable database (September 17, 2026)
+
+**Status**: ✅ DONE, not yet released. Closes the second half of todo 3 — the durable fix the
+teardown was only a stopgap for.
+
+**`infra/scripts/testing/RUN_E2E_ISOLATED.ps1`** creates a throwaway SQLite database, migrates
+and seeds it with `backend/seed_e2e_data.py`, starts a backend bound to it, runs Playwright, then
+stops the backend and deletes the database. It is the same recipe `.github/workflows/e2e-tests.yml`
+already uses — **CI was never the problem; it has always run against a disposable database in a
+fresh workspace.** The leak was purely local, where E2E ran against whatever `DATABASE_URL` the
+machine is configured with: here, the real development PostgreSQL.
+
+Running it also makes a local run match CI in a way that matters: in a seeded database
+`test@example.com` is an **admin** and `admin@example.com` exists with the password
+`loginAsAdmin` expects, which is what the specs were originally written against.
+
+**Why the teardown was not enough.** `students` and `courses` are **soft-deleted** — they carry
+`is_active` and `deleted_at`, so the tracker's DELETE hides a row from the app but leaves it in
+the table. The dev database currently holds 63 student rows of which 4 are active, and 55 course
+rows of which 36 are active. The earlier "counts unchanged" measurement was taken through the
+API, so it was true as far as the application is concerned but did not mean the tables had
+stopped growing. Only accounts are hard-deleted. A disposable database is the only thing that
+actually stops the accumulation.
+
+### Two things that had to be right
+
+- **The database must live inside the repository.** `config.py` validates that a SQLite path sits
+  under an allowed root and rejects anything else, including the system temp directory — the
+  first attempt failed with "Database path must be within an allowed directory". It now uses
+  `data/e2e-runs/<timestamp>/`, which is gitignored, and CI puts its database in the workspace
+  for the same reason.
+- **`VITE_API_URL=/api/v1` and `VITE_DEV_PROXY_TARGET`**, the two variables `NATIVE.ps1` sets.
+  With a relative API base the frontend's requests go to Vite on 5173 and are proxied to the
+  backend, staying same-origin so the browser attaches the HttpOnly `refresh_token` cookie.
+  Without them the frontend calls port 8000 directly, the refresh becomes cross-origin, the
+  cookie is not sent, `POST /api/v1/auth/refresh` answers **401**, and every `loginViaAPI` spec
+  dies on the login page — while `loginViaUI` specs still pass, which is what made it confusing.
+  Earlier runs only worked because Playwright was reusing the Vite server `NATIVE.ps1` had
+  already started with those variables set.
+
+The script refuses to run if port 8000 is already in use, rather than silently testing against a
+backend someone else started — which would be the development database, the exact thing it
+exists to avoid. It also saves and restores the environment variables it sets, so a throwaway
+`DATABASE_URL` cannot outlive it.
+
+### Verification
+
+`student-management.spec.ts` **7/7** and `login.spec.ts` **3/3** against the disposable database,
+with the global teardown reporting "Removed 4 test account(s)" and the database deleted
+afterwards. Raw PostgreSQL row counts taken directly (not through the API) before and after two
+full isolated runs: students 63/4 active, courses 55/36 active, users 4/4 — **identical**. The
+development database is not touched at all.
 
 ---
 
@@ -168,8 +215,10 @@ teacher deleting its own account gets 403), so accounts are removed with an admi
 obtained through a **separate request context**, which cannot disturb the signed-in session.
 Admin credentials are resolved from `PLAYWRIGHT_ADMIN_EMAIL`/`PLAYWRIGHT_ADMIN_PASSWORD`, then
 known defaults; when none work, the tracker names the accounts it is leaving behind.
-`loginAsAdmin` uses the same resolution — it was hardcoded to `admin@example.com` with a
-password that does not work on this machine, so it would have thrown for any spec that used it.
+`loginAsAdmin` uses the same resolution. It was hardcoded to `admin@example.com` /
+`YourSecurePassword123!`, which is exactly what `seed_e2e_data.py` creates — correct for a
+seeded E2E database, but not for a local run pointed at the dev PostgreSQL, where it simply
+throws. The candidate list keeps it working in both.
 
 **Accounts are covered even in specs that do not use the tracker.** `registerUser` now appends
 every account it creates to `test-results/e2e-created-users.jsonl` (`tests/e2e/created-users.ts`),
@@ -180,7 +229,10 @@ kept, so nothing is silently dropped.
 
 **Verified**:
 - before and after a full `student-management.spec.ts` run — 8 students, 27 courses and
-  11 accounts, unchanged. The same run previously added 5 students, 3 courses and 4 accounts;
+  11 accounts, unchanged. The same run previously added 5 students, 3 courses and 4 accounts.
+  **Measured through the API**: `students` and `courses` are soft-deleted (`is_active`,
+  `deleted_at`), so the rows are hidden rather than removed and the tables still grow. Only
+  accounts are hard-deleted. That is why the disposable database above, not this, is the fix;
 - `login.spec.ts`, which registers two accounts through `registerUser` and never touches the
   tracker: "🧹 [E2E TEARDOWN] Removed 2 test account(s) created by this run", account total
   unchanged. The two accounts an earlier run of that same spec left behind — before this
@@ -213,11 +265,15 @@ The two student setup steps that logged and `return`ed on failure now assert ins
 
 ### `test@example.com` (todo 5)
 
-The account is a **teacher**; `loginAsTestUser` declared `role: 'admin'`, and that label was
-never checked against anything — it was only logged. The helper now reads the role back from the
-session after login and returns the truth (the run log shows `role: teacher`), and a spec that
-needs admin rights says so with the new `expectRole(page, 'admin')` or uses `loginAsAdmin`.
-Nothing needed the admin rights: all 7 specs pass as a teacher.
+The role depends on which database the run points at, which is the real point. `seed_e2e_data.py`
+creates `test@example.com` as an **admin**, so the `role: 'admin'` label was right for a seeded
+E2E database (and for CI) — but on this machine E2E runs against the dev PostgreSQL, where the
+same account is a **teacher**. The label was never checked against anything either way; it was
+only logged. The helper now reads the role back from the session after login and returns the
+truth (locally the log shows `role: teacher`; in CI it is admin), and a spec that needs admin
+rights says so with the new `expectRole(page, 'admin')` or uses `loginAsAdmin`. Nothing in these
+specs needed admin: all 7 pass locally as a teacher and in CI as an admin. The durable fix is
+Next todos #1 — run against a seeded, disposable database, as CI already does.
 
 **Verified**: `student-management.spec.ts` — **7/7 passing**, repeatedly, against Native mode.
 
@@ -734,9 +790,9 @@ The first three had been reported but were not written into this plan until the 
 - ~~**`/api/v1/admin/backup-database` refuses PostgreSQL**~~ **Investigated 2026-09-17** — it led
   to the restore that could execute backup data as SQL, now contained. See that section at
   the top, and then properly fixed the same day — see "PostgreSQL backups that actually restore". The endpoint itself has been deleted.
-- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #6**),
+- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #5**),
   disabling the `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
-- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #5**) — the batch runner
+- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #4**) — the batch runner
   now records enough to diagnose it (and retries a silent abort once), so the next occurrence
   should say why.
 - ~~**`scripts/deploy/run-docker-release.ps1` is dead.**~~ **REMOVED 2026-09-17**, together with
@@ -917,7 +973,7 @@ for this commit was made on a static tree and printed no such warning.
 `SMS_ALLOW_DIRECT_PYTEST=1` is set in the **user environment** on this machine, which
 disables the `conftest.py` guard that CLAUDE.md relies on to stop a bare `pytest` run from
 taking down VS Code. Nothing in the repo can override that; it needs clearing in the
-Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #6**.
+Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #5**.
 
 ---
 

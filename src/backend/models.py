@@ -27,7 +27,7 @@ from sqlalchemy import (
     create_engine,
     text,
 )
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
 
 logger = logging.getLogger(__name__)
 Base: Any = declarative_base()
@@ -1200,7 +1200,7 @@ class CustomDashboard(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
 
     # Relationship to User
-    user = relationship("User", back_populates="custom_dashboards")
+    user: Mapped["User"] = relationship("User", back_populates="custom_dashboards")  # type: ignore[assignment]
 
     # Unique constraint: user cannot have multiple dashboards with the same name
     __table_args__ = (

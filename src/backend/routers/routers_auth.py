@@ -594,6 +594,9 @@ async def login(
                 request,
             )
 
+        if user is None:
+            raise internal_server_error("Authenticated user lookup failed", request)
+
         _reset_user_login_state(user, db)
         _reset_throttle_entries(throttle_keys)
         logger.info("Login successful", extra={"user_id": user.id})

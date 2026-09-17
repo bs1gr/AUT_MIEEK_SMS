@@ -72,10 +72,11 @@ async def get_user_guide(language: str = "en"):
 
     # Generate PDF content
     try:
+        from reportlab.lib import colors
         from reportlab.lib.pagesizes import letter
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import inch
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.platypus import Flowable, SimpleDocTemplate, Paragraph, Spacer
 
         # Register unicode-capable fonts
         font_normal, font_bold = _register_unicode_fonts()
@@ -101,7 +102,7 @@ async def get_user_guide(language: str = "en"):
             parent=styles["Heading1"],
             fontName=font_normal,
             fontSize=24,
-            textColor="#4f46e5",
+            textColor=colors.HexColor("#4f46e5"),
             spaceAfter=30,
             alignment=1,  # Center alignment
         )
@@ -111,7 +112,7 @@ async def get_user_guide(language: str = "en"):
             parent=styles["Heading2"],
             fontName=font_normal,
             fontSize=14,
-            textColor="#4f46e5",
+            textColor=colors.HexColor("#4f46e5"),
             spaceAfter=12,
             spaceBefore=12,
         )
@@ -124,7 +125,7 @@ async def get_user_guide(language: str = "en"):
             leading=14,
         )
 
-        story = []
+        story: list[Flowable] = []
 
         # Title
         if language.lower() == "en":

@@ -314,7 +314,8 @@ def check_docker_running_passive() -> bool:
             try:
                 candidates = {"docker desktop.exe", "com.docker.backend.exe", "dockerd.exe"}
                 for proc in psutil.process_iter(attrs=["name"]):
-                    name = (proc.info.get("name") or "").lower()
+                    process_info = getattr(proc, "info", {})
+                    name = (process_info.get("name") or "").lower()
                     if name in candidates:
                         return True
             except Exception:

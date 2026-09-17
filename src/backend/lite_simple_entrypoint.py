@@ -463,9 +463,10 @@ def main() -> None:
             try:
                 import psutil as _psutil
                 for _proc in _psutil.process_iter(['pid', 'name', 'connections']):
-                    for _conn in _proc.info.get('connections') or []:
+                    _process_info = getattr(_proc, 'info', {})
+                    for _conn in _process_info.get('connections') or []:
                         if getattr(_conn, 'laddr', None) and _conn.laddr.port == 8000:
-                            _debug_log(f'[lite_simple_entrypoint] Killing PID {_proc.pid} ({_proc.info["name"]})')
+                            _debug_log(f'[lite_simple_entrypoint] Killing PID {_proc.pid} ({_process_info.get("name")})')
                             _proc.kill()
                             break
             except Exception:

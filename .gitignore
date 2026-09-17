@@ -69,6 +69,11 @@ pdfs-courses/
 *.db
 data/*.db
 data/*.db.pre-restore-*
+# Throwaway databases and backend logs from RUN_E2E_ISOLATED.ps1. They must live inside the
+# repo because config.py only accepts a SQLite path under an allowed root, and the script
+# deletes each run's directory afterwards - this keeps a crashed run from showing up as
+# untracked files.
+data/e2e-runs/
 backups/*.db
 # NOTE: "backups/*" (not "backups/") so the !backups/.gitkeep negation below
 # actually applies — a bare "backups/" excludes the directory itself and Git

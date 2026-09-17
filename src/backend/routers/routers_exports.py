@@ -20,19 +20,19 @@ try:
 except Exception as exc:  # pragma: no cover - optional/runtime dependency
     REPORTLAB_AVAILABLE = False
     REPORTLAB_IMPORT_ERROR = exc
-    colors = None  # type: ignore[assignment]
-    letter = None  # type: ignore[assignment]
-    ParagraphStyle = None  # type: ignore[assignment]
-    getSampleStyleSheet = None  # type: ignore[assignment]
-    inch = None  # type: ignore[assignment]
-    pdfmetrics = None  # type: ignore[assignment]
-    TTFont = None  # type: ignore[assignment]
-    Flowable = Any  # type: ignore[assignment]
-    Paragraph = None  # type: ignore[assignment]
-    SimpleDocTemplate = None  # type: ignore[assignment]
-    Spacer = None  # type: ignore[assignment]
-    Table = None  # type: ignore[assignment]
-    TableStyle = None  # type: ignore[assignment]
+    colors = None  # type: ignore[assignment,misc]
+    letter = None  # type: ignore[assignment,misc]
+    ParagraphStyle = None  # type: ignore[assignment,misc]
+    getSampleStyleSheet = None  # type: ignore[assignment,misc]
+    inch = None  # type: ignore[assignment,misc]
+    pdfmetrics = None  # type: ignore[assignment,misc]
+    TTFont = None  # type: ignore[assignment,misc]
+    Flowable = Any  # type: ignore[assignment,misc]
+    Paragraph = None  # type: ignore[assignment,misc]
+    SimpleDocTemplate = None  # type: ignore[assignment,misc]
+    Spacer = None  # type: ignore[assignment,misc]
+    Table = None  # type: ignore[assignment,misc]
+    TableStyle = None  # type: ignore[assignment,misc]
 
 # Simple i18n dict for EN/EL (expand as needed)
 TRANSLATIONS = {
