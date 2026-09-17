@@ -21,6 +21,20 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.44] - 2026-09-17
+
+### Bug Fixes
+- isolate e2e runs and clear typing gate
+- **backup,e2e**: real PostgreSQL restore, and E2E tests that can fail
+- **backup**: stop PostgreSQL restore executing backup data as SQL
+- **e2e,deploy**: reliable local E2E specs; remove dead deploy launchers
+
+### Documentation
+- **plan**: consolidate open work into one prioritised Next todos list
+- **plan**: correct the v1.18.43 bug count and headings
+- **plan**: record the v1.18.43 release
+
 ## [1.18.43] - 2026-09-16
 
 ### Features
@@ -4433,6 +4447,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
