@@ -467,7 +467,9 @@ export default {
     noBackups: 'No backups available. Create one from an instance above.',
     backupCreated: 'Backup created',
     backupNotRestorable:
-      'pg_dump is not installed, so this is a data export (CSV), not a backup that can be restored. The app cannot restore it. Install the PostgreSQL client tools (pg_dump and psql) to create restorable backups.',
+      'This file cannot be restored by the app. Keep it only as a data export, not as a restore point.',
+    backupDataOnly:
+      'Data-only backup: it holds table data, not the schema, which migrations own. Restore it into a database at the same migration revision. It can be restored here or with psql.',
     backupDeleted: 'Backup deleted',
     confirmDelete: 'Delete backup',
     confirmRestore: 'Restore backup to',

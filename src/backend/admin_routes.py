@@ -17,7 +17,6 @@ import importlib.util
 import logging
 import os
 import pathlib
-import shutil
 import signal
 import subprocess
 import threading
@@ -163,87 +162,6 @@ async def reset_database(_auth=Depends(require_control_admin)):
     except Exception:
         logger.exception("Failed to reset database")
         raise HTTPException(status_code=500, detail="Failed to reset database")
-
-
-@router.post("/backup-database")
-async def backup_database(encrypt: bool = True, _auth=Depends(require_control_admin)):
-    """
-    Create a backup of the database (supports SQLite only).
-
-    Args:
-        encrypt: Whether to encrypt the backup with AES-256-GCM (default: True)
-
-    Returns:
-        Encrypted backup file (.enc) or plain backup file (.db)
-    """
-    try:
-        db_url = settings.DATABASE_URL
-        # Only support sqlite URLs for file backup
-        if not db_url.startswith("sqlite"):
-            raise HTTPException(status_code=400, detail="Backup supported only for SQLite DB")
-
-        # Extract filesystem path (sqlite:///path or sqlite:////abs/path)
-        # Remove url scheme
-        path_part = db_url.split("sqlite:///", 1)[-1] if "sqlite:///" in db_url else db_url.split("sqlite:", 1)[-1]
-        db_path = path_part.lstrip("/") if os.name == "nt" else path_part
-
-        if not os.path.exists(db_path):
-            raise HTTPException(status_code=404, detail="Database file not found")
-
-        # Create backups directory if it doesn't exist
-        # Use database subdirectory where encrypted backups are actually stored
-        backup_root = pathlib.Path(settings.BACKUPS_DIR) / "database"
-        backup_root.mkdir(parents=True, exist_ok=True)
-
-        # Generate timestamp for backup
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        if encrypt:
-            # Create encrypted backup using BackupServiceEncrypted
-            backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
-            backup_name = f"backup_{timestamp}"
-
-            backup_info = backup_service.create_encrypted_backup(
-                source_path=pathlib.Path(db_path),
-                backup_name=backup_name,
-                metadata={
-                    "database_url": settings.DATABASE_URL,
-                    "backup_method": "admin_api",
-                    "encryption_enabled": True,
-                },
-            )
-
-            # Return encrypted backup file
-            return FileResponse(
-                backup_info["backup_path"],
-                media_type="application/octet-stream",
-                filename=f"{backup_name}.enc",
-                headers={
-                    "X-Backup-Encryption": "AES-256-GCM",
-                    "X-Original-Size": str(backup_info["original_size"]),
-                    "X-Encrypted-Size": str(backup_info["encrypted_size"]),
-                },
-            )
-        else:
-            # Create unencrypted backup (legacy behavior)
-            backup_dir = backup_root / f"backup_{timestamp}"
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            backup_path = backup_dir / "student_management.db"
-
-            # Copy database file
-            shutil.copy2(db_path, backup_path)
-
-            # Return the backup file
-            return FileResponse(
-                str(backup_path),
-                media_type="application/x-sqlite3",
-                filename=backup_path.name,
-            )
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Failed to backup database")
-        raise HTTPException(status_code=500, detail="Failed to backup database")
 
 
 @router.get("/performance")

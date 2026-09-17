@@ -180,11 +180,14 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
       );
       if (res.data.success) {
         flash(`${t('db.backupCreated') || 'Backup created'}: ${res.data.filename ?? ''}`);
-        // Without pg_dump the server can only write a CSV data export, which cannot be
-        // restored. It used to be reported as a plain "Backup created", so show it
-        // prominently rather than let it pass for a restore point.
+        // Guard kept as a safety net: nothing writes an unrestorable backup now, but a file
+        // that cannot be restored must never pass for a restore point the way the old CSV
+        // data exports did.
         if (res.data.restorable === false) {
           setError(t('db.backupNotRestorable'));
+        } else if (res.data.method === 'psycopg_copy') {
+          // Restorable, but data-only: worth saying, because the schema is not in the file.
+          flash(t('db.backupDataOnly'));
         }
         await fetchBackups();
       } else {

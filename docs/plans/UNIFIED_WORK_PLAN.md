@@ -2,7 +2,7 @@
 
 **Current Version**: 1.18.43
 **Last Updated**: September 17, 2026
-**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 — a PostgreSQL restore that could execute backup data as SQL, contained (application code; see the top section), plus E2E spec reliability fixes and dead deploy scripts removed.**
+**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 — a PostgreSQL restore that could execute backup data as SQL, contained and then properly fixed (data-only COPY-format backups that restore in-app without `psql`, and a Dev Tools restore that finally accepts them), E2E teardown so runs stop leaking rows, four E2E tests that passed without testing anything, plus earlier spec reliability fixes and dead deploy scripts removed.**
 
 - **Shipped in v1.18.43** (sections from the v1.18.43 heading down to v1.18.42, 18 commits):
   4 bugs found by a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the
@@ -29,51 +29,197 @@ A label now names the release that shipped it.*
 
 ## 📋 Next todos
 
-**The one list of open work**, highest priority first. Consolidated 2026-09-17 from two
-separate lists — "Still open" in the PostgreSQL restore section and "Open follow-ups" in the
-smoke-test section — which now point here. The evidence stays in those dated sections, linked
-below. When an item is done, remove it here and mark it resolved where it was raised.
+**The one list of open work**, highest priority first. Consolidated 2026-09-17 from the two
+lists that used to hold it — in the PostgreSQL restore section and the smoke-test section —
+which now point here. The evidence stays in those dated sections. When an item is done, remove
+it here and mark it resolved where it was raised.
 
-1. **PostgreSQL restore does not work without `pg_dump`/`psql`** — *data safety; needs a
-   decision.* On Native and SMS_Lite (no PostgreSQL client tools), Database-panel backups are
-   CSV data exports that restore now refuses, so those installs have **no working PostgreSQL
-   restore at all**. Choose one:
-   - (a) implement a real restore for the export format: per-table `TRUNCATE` +
-     `COPY … FROM STDIN` in one transaction, sequences reset, tested against a throwaway
-     PostgreSQL container;
-   - (b) ship `pg_dump`/`psql` with Native and SMS_Lite, so the `pg_dump` + `psql` path is
-     always available.
+*Items 1–6 of the 2026-09-17 list are **done** — see "PostgreSQL backups that actually restore"
+and "E2E: teardown, and four tests that could not fail" below. What follows is what is left,
+plus what that work newly raised.*
 
-   Evidence: "PostgreSQL restore could execute backup data as SQL".
-2. **The Dev Tools restore accepts SQLite only** — `/operations/database-restore` requires a
-   file starting `SQLite format 3`, so no PostgreSQL backup from `/operations/database-backup`
-   (`pg_dump` or not) can be restored in-app, **even on Docker**. Decide whether to route
-   PostgreSQL restores through `psql`, or remove the PostgreSQL backup option from Dev Tools
-   and point to the Database panel. Same section.
-3. **E2E runs leak data into the database they run against** — each run registers accounts
-   and creates students and courses; one three-spec run on 2026-09-17 added 5 students,
-   3 courses and 4 teacher accounts, and 234 accounts had to be cleared by hand on 2026-09-16.
-   First step: teardown in `src/frontend/tests/e2e/helpers.ts` that deletes what a test creates, or point
-   E2E at a disposable database. Evidence: smoke-test section, "Follow-ups raised".
-4. **The grade-assignment E2E test passes without testing anything** — in
-   `student-management.spec.ts` it looks for `select[name="studentId"]` /
-   `[data-testid="grade-form"]`, finds neither on the current grading page, logs "Grades page
-   UI not found, skipping test" and passes. Rewrite it against the current grading view, and
-   make "UI not found" a failure rather than a skip.
-5. **`test@example.com` is a teacher in the dev database** while `loginAsTestUser` in
-   `src/frontend/tests/e2e/helpers.ts` declares `role: 'admin'`. Specs assuming admin rights behave
-   differently here than where that user really is an admin. Decide which is correct and align
-   the other.
-6. **Delete the unused `/api/v1/admin/backup-database`** (`src/backend/admin_routes.py`) — SQLite-only, no
-   frontend callers, superseded by the two panels above.
-7. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
+1. **Point E2E at a disposable database** — *the second half of the chosen fix; the teardown
+   is in.* Accounts are now covered everywhere (`registerUser` records them and the global
+   teardown deletes them, including after a crashed run), and `student-management.spec.ts`
+   leaves student and course counts unchanged. What is still uncovered: **students, courses and
+   grades created by specs other than `student-management.spec.ts`**, which do not use
+   `TestDataTracker`. Either extend the tracker to them or — better, and what this item is —
+   give the run its own database (separate name, or a throwaway container as the restore tests
+   use) that is dropped and recreated per run. Evidence: "E2E: teardown, and four tests that
+   could not fail".
+2. **The restore round-trip tests never run automatically** — `test_database_manager_restore_roundtrip.py`
+   skips unless `SMS_TEST_POSTGRES_URL` is set, so the batch runner and CI both skip all 9 of
+   them (they are 9 of the 39 skips in the 2026-09-17 run). They are the only tests that
+   exercise the restore engine against a real server, and they caught two bugs the fakes could
+   not. Give CI a `postgres:16-alpine` service and set the variable for that job.
+3. **`import_export.spec.ts` is skipped with a stale reason** — the whole describe is
+   `test.describe.skip` with the comment "Feature not yet implemented - skip until
+   import-export page is added", but `/admin/import-export` was given a working click-path in
+   the 2026-09-11/12 Help-audit work. Either re-enable the spec or correct the reason.
+4. **GradingView rebuilds the course list with one request per course** — selecting a student
+   makes it call `enrollmentsAPI.getEnrolledStudents` for *every* active course to find that
+   student's courses (`GradingView.tsx`, the `studentId` effect). It is correct but scales with
+   the course count. Selecting the course first avoids it entirely, which is what the rewritten
+   grade test now does.
+5. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
-8. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
+6. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
    repo.* It permanently disables the `conftest.py` guard CLAUDE.md relies on to stop a bare
    `pytest` run from overwhelming VS Code. Clear it under System Properties → Environment
    Variables if the guard should apply on this machine. Evidence: gate audit, "Known, not
    changed".
+
+---
+
+## 💾 PostgreSQL backups that actually restore (September 17, 2026)
+
+**Status**: ✅ DONE, not yet released. Closes todos 1 and 2 of the 2026-09-17 list. Owner chose
+option (a): implement a real restore rather than ship `pg_dump`/`psql` with Native and SMS_Lite.
+
+### What changed
+
+**The backup format.** Without `pg_dump`, `create_backup` used to write table rows as CSV under
+comment headers in a file named `.sql` — a "data export" nothing could restore. It now writes a
+**data-only backup in PostgreSQL's COPY text format**: a `BEGIN`, one `TRUNCATE … RESTART
+IDENTITY CASCADE`, a `COPY "table" (cols) FROM stdin` block per table, `setval` for every
+sequence, `COMMIT`. Tables are emitted in foreign-key dependency order (topological sort over
+`pg_constraint`), so parents load before children. The schema is deliberately absent — Alembic
+owns it — and the header records the revision the backup was taken at.
+
+**The restore.** `restore_backup` now dispatches on the file's first line:
+- a data-only backup → the new `_restore_via_psycopg`, which works **with or without psql**;
+- a `pg_dump` script → `psql`, as before, and a clear refusal when psql is missing;
+- one of the old CSV exports → refused on sight, exactly as the containment did.
+
+`_restore_via_psycopg` **parses its own format structurally and never executes the file**. It
+reads the COPY blocks, checks every table and column against the live catalog, rebuilds each
+statement from the catalog's own identifiers through `psycopg.sql.Identifier`, and streams the
+row bytes through `COPY … FROM STDIN`. Row data therefore cannot become SQL by construction —
+which is what the contained bug did. It also refuses a restore whose Alembic revision differs
+from the target's, and runs everything in one transaction, so a failure rolls back.
+
+**Dev Tools.** `/operations/database-restore` accepted files beginning `SQLite format 3` only,
+so no PostgreSQL backup its own `/operations/database-backup` produced could be restored
+anywhere in the app, Docker included. Non-SQLite files now go to `_restore_postgres_backup`,
+which reads the file (handling `.gz`) and hands it to the same `restore_sql_content` entry
+point. The backup message no longer says "data export … cannot restore it": both paths are
+restorable now, and `restorable_in_app` reports the truth.
+
+Also fixed on the way: the old export decoded each COPY chunk as UTF-8 text, which would raise
+on a Greek name split across a chunk boundary. Backups are now written as bytes throughout.
+
+### Verification
+
+`test_database_manager_restore_safety.py` — **19 tests, all passing** (was 9). Keeps every
+containment guarantee (old CSV exports refused with and without psql, nothing executed, a
+fixture that fails the test if restore opens a connection or spawns a subprocess) and adds the
+new engine: the parser returns `x;DELETE FROM users;y` as *data*; a stored `\.` cannot forge
+the block terminator; a truncated backup is refused; revision mismatch, unknown table and
+unknown column each refuse without writing anything.
+
+`test_database_manager_restore_roundtrip.py` — **new, 8 tests, 7 passing and 1 skipped**
+(the skip needs `psql`, which this machine does not have). It runs against a real PostgreSQL in
+a throwaway container and is skipped unless `SMS_TEST_POSTGRES_URL` is set; the module docstring
+gives the two commands. Round trip with a foreign key, a sequence and awkward data; values with
+semicolons, tabs, newlines, Greek text and a literal `\.` survive; the sequence resumes so new
+rows do not collide; parents are emitted before children; compressed backups round-trip; a
+revision mismatch and a constraint violation both leave the data untouched.
+
+The container also proved the **portability claim** directly: the backup file was restored with
+`psql -v ON_ERROR_STOP=1` (exit 0), after which `users` still held both rows and the student
+name was still the literal `x;DELETE FROM users;y` — the embedded `DELETE` never ran.
+
+One real bug was caught by the container that the fakes could not: `_sequence_states` read
+`is_called` from `pg_sequences`, which has no such column. Without it a restored sequence hands
+out its last used id again. It now reads the sequence relation itself.
+
+`test_devtools_postgres_restore.py` — **new, 5 tests**, covering the routing, a failed restore
+reported as a failure, the CSV refusal, a PostgreSQL backup on a SQLite deployment, and an
+unreadable file. **Proven to catch the bug**: with `operations.py` and `database_manager.py`
+reverted to HEAD, all 5 fail with "Backup file is not a valid SQLite database".
+
+`test_admin_backup_encryption.py` (7) passes with assertions updated to the new, honest message.
+`ruff`, `tsc --noEmit` and `eslint` are clean.
+
+### Also removed
+
+`/api/v1/admin/backup-database` (todo 6) — SQLite-only, no callers outside the plan document,
+superseded by the two panels. Deleted with its now-unused `shutil` import; the app still starts
+and the route is gone from the table.
+
+---
+
+## 🧪 E2E: teardown, and four tests that could not fail (September 17, 2026)
+
+**Status**: ✅ DONE, not yet released. Closes todos 3, 4 and 5 of the 2026-09-17 list. Owner
+chose "teardown now, disposable database after" — the disposable database is todo 1 above.
+
+### Teardown
+
+`TestDataTracker` in `src/frontend/tests/e2e/helpers.ts` records what a test creates and deletes
+it in `afterEach`, newest first, in an order that respects references (enrolments, then grades
+and attendance, then students and courses, then accounts). A 404 counts as success, since some
+specs delete their own rows. Cleanup never fails a test; it reports what it could not delete,
+loudly — a silent cleanup is how the leak went unnoticed.
+
+Accounts need `users:manage`, which the teacher accounts these specs log in as do not have (a
+teacher deleting its own account gets 403), so accounts are removed with an admin token
+obtained through a **separate request context**, which cannot disturb the signed-in session.
+Admin credentials are resolved from `PLAYWRIGHT_ADMIN_EMAIL`/`PLAYWRIGHT_ADMIN_PASSWORD`, then
+known defaults; when none work, the tracker names the accounts it is leaving behind.
+`loginAsAdmin` uses the same resolution — it was hardcoded to `admin@example.com` with a
+password that does not work on this machine, so it would have thrown for any spec that used it.
+
+**Accounts are covered even in specs that do not use the tracker.** `registerUser` now appends
+every account it creates to `test-results/e2e-created-users.jsonl` (`tests/e2e/created-users.ts`),
+and a new `playwright-global-teardown.ts` deletes whatever the file holds at the end of the run.
+Because the record is a file rather than in-memory state, it survives the process: a run that
+crashes is tidied up by the **next** one. Accounts it cannot delete are named and the record is
+kept, so nothing is silently dropped.
+
+**Verified**:
+- before and after a full `student-management.spec.ts` run — 8 students, 27 courses and
+  11 accounts, unchanged. The same run previously added 5 students, 3 courses and 4 accounts;
+- `login.spec.ts`, which registers two accounts through `registerUser` and never touches the
+  tracker: "🧹 [E2E TEARDOWN] Removed 2 test account(s) created by this run", account total
+  unchanged. The two accounts an earlier run of that same spec left behind — before this
+  existed — were still sitting in the database, which is exactly the leak it closes.
+
+### Four tests that passed without testing anything
+
+1. **Grade assignment** (todo 4) navigated to `/#/grades`. The grading route is **`/#/grading`**;
+   finding no form, it logged "Grades page UI not found, skipping test" and returned. Its final
+   assertion was no better — it fell back to matching `/Grades?|Grade/i`, which any page with
+   the word "Grade" satisfies. The selectors it used were right all along. It now uses the real
+   route, treats a missing form as a failure, picks course-then-student (so the student
+   appearing is itself proof the enrolment reached the UI), and confirms the grade by reading it
+   back from the API instead of from the screen.
+2. **Enrolment had never worked anywhere.** Specs posted `{student_id, course_id, semester}` to
+   `/api/v1/enrollments/` — a route that only accepts GET — and swallowed the resulting **405**
+   with `.catch(() => {})`. The endpoint is `POST /enrollments/course/{course_id}` with a
+   `student_ids` list. That is what the attendance spec's "Could not find matching course
+   option" workaround was working around. Now a checked `enrollStudentViaAPI` helper.
+3. **Every test course was created inactive.** The fixture hardcoded `semester: 'Fall 2025'`.
+   The backend derives `is_active` from the semester when the field is omitted
+   (`_auto_is_active`), and Fall 2025 ended 30 January 2026 — so the API created the course
+   *inactive*, and the grading and attendance views list active courses only. The fixture now
+   computes a current semester label and sends `is_active` explicitly, so it cannot rot again.
+4. **The analytics test computed a "final grade" with no grades.** Both of its grade POSTs
+   returned **422** (`assignment_name` is required) and neither response was checked. Fixed in
+   the spec and in `createGradeViaAPI`, which had the same omission.
+
+The two student setup steps that logged and `return`ed on failure now assert instead.
+
+### `test@example.com` (todo 5)
+
+The account is a **teacher**; `loginAsTestUser` declared `role: 'admin'`, and that label was
+never checked against anything — it was only logged. The helper now reads the role back from the
+session after login and returns the truth (the run log shows `role: teacher`), and a spec that
+needs admin rights says so with the new `expectRole(page, 'admin')` or uses `loginAsAdmin`.
+Nothing needed the admin rights: all 7 specs pass as a teacher.
+
+**Verified**: `student-management.spec.ts` — **7/7 passing**, repeatedly, against Native mode.
 
 ---
 
@@ -149,15 +295,16 @@ which was already correct. Restored, 9/9 pass. `test_admin_backup_encryption.py`
 with new assertions on the honest Dev Tools message. `ruff`, `tsc --noEmit` and `eslint`
 are clean.
 
-### Left open (tracked in Next todos)
+### Left open — all resolved on 2026-09-17
 
-Moved to **Next todos** at the top on 2026-09-17; the list there is the one to update.
+Everything this section left open was fixed the same day; see **PostgreSQL backups that
+actually restore** above for the implementation and its evidence.
 
-- **No working PostgreSQL restore without the client tools** → Next todos #1.
-- **The Dev Tools restore accepts SQLite only**, so its PostgreSQL backups have no in-app
-  restore path even on Docker → Next todos #2.
-- `/api/v1/admin/backup-database` (the original follow-up) is SQLite-only and has **no
-  frontend callers** → Next todos #6.
+- ~~**No working PostgreSQL restore without the client tools**~~ — backups are now data-only
+  COPY-format files that `_restore_via_psycopg` restores in-app, no `psql` needed.
+- ~~**The Dev Tools restore accepts SQLite only**~~ — non-SQLite files are routed to the same
+  restore engine, so its own PostgreSQL backups can finally be restored, on any deployment.
+- ~~`/api/v1/admin/backup-database`~~ — deleted.
 
 ---
 
@@ -558,29 +705,38 @@ The first three had been reported but were not written into this plan until the 
     `admin@example.com` / `YourSecurePassword123!` — the Docker default — which stops
     matching as soon as that password is changed, and `feature_127` offers no
     `E2E_EMAIL`/`E2E_PASSWORD` override.
-- **E2E runs leak data into the database they run against** → **Next todos #3.** Every run registers accounts
+- ~~**E2E runs leak data into the database they run against**~~ **FIXED 2026-09-17** — a
+  `TestDataTracker` teardown now deletes what each spec creates; a full `student-management.spec.ts`
+  run leaves students, courses and account counts unchanged. Pointing E2E at a disposable
+  database remains **Next todos #1**. Original note: every run registers accounts
   and creates students and courses, and nothing removes them: 234 accumulated accounts had
   to be cleared by hand on 2026-09-16, and ~148 stray rows on 2026-09-05. The one-off
   cleanups treat the symptom; a teardown (or a disposable database) would stop the leak.
   Measured again on 2026-09-17: one run of three specs added 5 students, 3 courses and 4
   `teacher-*@test.edu` accounts.
-- **`test@example.com` is a teacher in the dev database** (→ **Next todos #5**), while `loginAsTestUser` in
+- ~~**`test@example.com` is a teacher in the dev database**~~ **RESOLVED 2026-09-17** — the
+  account really is a teacher and nothing needed admin; `loginAsTestUser` now reads the role
+  back from the session instead of asserting one, and specs needing admin say so explicitly.
+  Original note: while `loginAsTestUser` in
   `tests/e2e/helpers.ts` declares it `role: 'admin'`. Specs that assume admin rights behave
   differently here than wherever that user really is an admin.
 - ~~**6 `Test Course *` rows** (ids 80-85) in the dev database~~ **DELETED 2026-09-17** with the
   owner's approval, after verifying each was a `CS*` test row with zero enrollments; 26 real
   `AUT*` courses remain.
-- **The grade-assignment E2E test passes without testing anything** → **Next todos #4.** It looks for
+- ~~**The grade-assignment E2E test passes without testing anything**~~ **FIXED 2026-09-17** —
+  the selectors were right; the route was not (`/#/grades` vs `/#/grading`). Rewritten, and
+  three more silent failures found behind it. See "E2E: teardown, and four tests that could not
+  fail". Original note: it looks for
   `select[name="studentId"]` / `[data-testid="grade-form"]`, finds neither on the current
   grading page, logs "Grades page UI not found, skipping test" and returns — a pass. It is not
   the cache race (it still skips after the 2026-09-17 reload fix), so its selectors no longer
   match the UI and it needs rewriting against the current grading view.
 - ~~**`/api/v1/admin/backup-database` refuses PostgreSQL**~~ **Investigated 2026-09-17** — it led
   to the restore that could execute backup data as SQL, now contained. See that section at
-  the top. What it left open is **Next todos #1, #2 and #6**.
-- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #8**),
+  the top, and then properly fixed the same day — see "PostgreSQL backups that actually restore". The endpoint itself has been deleted.
+- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #6**),
   disabling the `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
-- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #7**) — the batch runner
+- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #5**) — the batch runner
   now records enough to diagnose it (and retries a silent abort once), so the next occurrence
   should say why.
 - ~~**`scripts/deploy/run-docker-release.ps1` is dead.**~~ **REMOVED 2026-09-17**, together with
@@ -761,7 +917,7 @@ for this commit was made on a static tree and printed no such warning.
 `SMS_ALLOW_DIRECT_PYTEST=1` is set in the **user environment** on this machine, which
 disables the `conftest.py` guard that CLAUDE.md relies on to stop a bare `pytest` run from
 taking down VS Code. Nothing in the repo can override that; it needs clearing in the
-Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #8**.
+Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #6**.
 
 ---
 

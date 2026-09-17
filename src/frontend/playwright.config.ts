@@ -9,6 +9,8 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   forbidOnly: !!process.env.CI,
   globalSetup: './playwright-global-setup.ts',
+  // Deletes the accounts the run created; see playwright-global-teardown.ts.
+  globalTeardown: './playwright-global-teardown.ts',
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],

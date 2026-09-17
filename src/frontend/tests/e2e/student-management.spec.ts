@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { loginAsTestUser, loginAsTeacher, generateStudentData, generateCourseData, getApiBase } from './helpers';
+import {
+  loginAsTestUser,
+  loginAsTrackedTeacher,
+  enrollStudentViaAPI,
+  generateStudentData,
+  generateCourseData,
+  getApiBase,
+  TestDataTracker,
+} from './helpers';
 import { captureAndLogDiagnostics, initDiagnosticsDir } from './diagnostics';
 
 /**
@@ -18,6 +26,11 @@ test.beforeAll(async () => {
   await initDiagnosticsDir();
 });
 
+// Records what each test creates so it can be deleted again afterwards. Assigned per test in
+// beforeEach and drained in afterEach; without it every run left students, courses and teacher
+// accounts behind in whatever database it ran against.
+let tracker: TestDataTracker;
+
 // Test data generators
 const generateStudentDataLocal = () => {
   const rnd = Math.random().toString(36).slice(2, 8);
@@ -31,12 +44,13 @@ const generateStudentDataLocal = () => {
 
 test.describe('Student Management - Critical Flows', () => {
   test.beforeEach(async ({ page }) => {
-    // Try logging in as test user first, fall back to teacher if needed
+    tracker = new TestDataTracker(page);
+    // Try logging in as the shared test user first, fall back to a fresh teacher.
     try {
       await loginAsTestUser(page);
     } catch (err) {
       console.warn('Failed to login as test user, falling back to teacher:', err);
-      await loginAsTeacher(page);
+      await loginAsTrackedTeacher(page, tracker);
     }
   });
 
@@ -53,6 +67,10 @@ test.describe('Student Management - Critical Flows', () => {
         console.error('Error in afterEach:', e);
       }
     }
+
+    // Delete this test's records before the page closes - the tracker issues API calls
+    // through it, so this must happen first.
+    await tracker.cleanup();
 
     // Ensure proper cleanup of page/context
     try {
@@ -110,6 +128,10 @@ test.describe('Student Management - Critical Flows', () => {
     // Verify response was successful (200 or 201)
     expect([200, 201]).toContain(response.status());
 
+    // Remember the row the UI just created, so afterEach can delete it again.
+    const createdStudent = await response.json().catch(() => null);
+    tracker.track('students', createdStudent?.id ?? createdStudent?.data?.id);
+
     // Wait for modal to close and page to refresh
     await page.waitForLoadState('networkidle').catch(() => {});
     await page.waitForTimeout(1000); // Give time for UI to update
@@ -138,12 +160,11 @@ test.describe('Student Management - Critical Flows', () => {
       },
     });
 
-    if (!createResp.ok()) {
-      console.error('Failed to create student via API');
-      return;
-    }
+    // Setup that fails is a failing test. This used to log and `return`, which passed.
+    expect(createResp.ok(), `Creating the student failed: ${createResp.status()}`).toBeTruthy();
 
     const createdStudent = await createResp.json();
+    tracker.track('students', createdStudent.id);
     const studentId = createdStudent.id;
 
     // Navigate to students page, then reload. The student was created through the API, which
@@ -196,13 +217,14 @@ test.describe('Student Management - Critical Flows', () => {
       },
     });
 
-    if (!createResp.ok()) {
-      console.error('Failed to create student via API');
-      return;
-    }
+    // Setup that fails is a failing test. This used to log and `return`, which passed.
+    expect(createResp.ok(), `Creating the student failed: ${createResp.status()}`).toBeTruthy();
 
     const createdStudent = await createResp.json();
     const studentId = createdStudent.id;
+    // Tracked even though the test deletes it: if the test fails before that, it must not leak.
+    // The tracker treats a 404 on cleanup as success.
+    tracker.track('students', studentId);
 
     // Navigate, then reload to discard the app's cached student list (see the edit test).
     await page.goto('/#/students');
@@ -240,7 +262,12 @@ test.describe('Student Management - Critical Flows', () => {
 
 test.describe('Course Management', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsTeacher(page);
+    tracker = new TestDataTracker(page);
+    await loginAsTrackedTeacher(page, tracker);
+  });
+
+  test.afterEach(async () => {
+    await tracker.cleanup();
   });
 
   test('should create a new course', async ({ page }) => {
@@ -264,11 +291,17 @@ test.describe('Course Management', () => {
     await page.click('[data-testid="submit-course"]', { force: true });
 
     // Wait for API response (increased timeout to 30s, accept 200 or 201)
-    await page.waitForResponse(
+    const courseResponse = await page.waitForResponse(
       (resp) =>
         resp.url().includes('/api/v1/courses') && resp.request().method() === 'POST' && (resp.status() === 200 || resp.status() === 201),
       { timeout: 30000 }
-    ).catch(() => {});
+    ).catch(() => null);
+
+    // Remember the row the UI just created, so afterEach can delete it again.
+    if (courseResponse) {
+      const createdCourse = await courseResponse.json().catch(() => null);
+      tracker.track('courses', createdCourse?.id ?? createdCourse?.data?.id);
+    }
 
     // Wait for page to refresh
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -322,9 +355,20 @@ test.describe('Course Management', () => {
 
 test.describe('Grade Assignment Flow', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsTeacher(page);
+    tracker = new TestDataTracker(page);
+    await loginAsTrackedTeacher(page, tracker);
   });
 
+  test.afterEach(async () => {
+    await tracker.cleanup();
+  });
+
+  // This test used to navigate to "/#/grades" - a route that does not exist; the grading view
+  // is at "/#/grading". Finding no form there, it logged "Grades page UI not found, skipping
+  // test" and returned, so it passed without ever entering a grade. Its final assertion was
+  // no better: it fell back to matching the text /Grades?|Grade/i, which any page with the
+  // word "Grade" on it satisfies. It now uses the real route, treats a missing form as a
+  // failure, and confirms the grade through the API rather than by reading the screen.
   test('should assign grade to student for course', async ({ page }) => {
     const apiBase = getApiBase();
 
@@ -340,7 +384,9 @@ test.describe('Grade Assignment Flow', () => {
         student_id: student.studentId,
       },
     });
+    expect(studentResp.ok(), `Creating the student failed: ${studentResp.status()}`).toBeTruthy();
     const createdStudent = await studentResp.json();
+    tracker.track('students', createdStudent.id);
 
     const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
       data: {
@@ -348,6 +394,7 @@ test.describe('Grade Assignment Flow', () => {
         course_name: course.courseName,
         credits: course.credits,
         semester: course.semester,
+        is_active: course.isActive,
         evaluation_rules: [
           { category: 'Homework', weight: 30, includeDailyPerformance: true },
           { category: 'Midterm', weight: 30, includeDailyPerformance: false },
@@ -355,91 +402,108 @@ test.describe('Grade Assignment Flow', () => {
         ],
       },
     });
+    expect(courseResp.ok(), `Creating the course failed: ${courseResp.status()}`).toBeTruthy();
     const createdCourse = await courseResp.json();
+    tracker.track('courses', createdCourse.id);
 
-    // Create enrollment
-    await page.request.post(`${apiBase}/api/v1/enrollments/`, {
-      data: {
-        student_id: createdStudent.id,
-        course_id: createdCourse.id,
-        semester: course.semester,
-      },
-    }).catch(() => {});
+    // Enrollment is what puts the student in the course's grading list, so a silent failure
+    // here would leave the dropdown empty and the real cause hidden.
+    await enrollStudentViaAPI(page, createdCourse.id, createdStudent.id);
+    tracker.trackEnrollment(createdCourse.id, createdStudent.id);
 
-    // Navigate to grades page, then reload to discard the app's cached student/course lists -
-    // the records were created through the API after the app had already loaded them.
-    await page.goto('/#/grades');
+    // Navigate to the grading page, then reload to discard the app's cached student/course
+    // lists - the records were created through the API after the app had already loaded them.
+    await page.goto('/#/grading');
     await page.reload();
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-    // Check if grades page exists by looking for grading elements
-    const hasGradingUI = await page.locator('select[name="studentId"], [data-testid="grade-form"]').count() > 0;
+    // A missing form is a failure, not a reason to skip: that is exactly how this test came to
+    // pass without testing anything.
+    const gradeForm = page.locator('[data-testid="grade-form"]');
+    await expect(
+      gradeForm,
+      'The grade entry form is missing from /#/grading. If the grading UI moved, update this test.'
+    ).toBeVisible({ timeout: 15000 });
 
-    if (!hasGradingUI) {
-      console.warn('Grades page UI not found, skipping test');
-      return;
-    }
-
-    // Wait for the page to fully load and form to be ready
-    await page.waitForSelector('select[name="studentId"]', { state: 'visible', timeout: 15000 });
-    await page.waitForSelector('select[name="courseId"]', { state: 'visible', timeout: 15000 });
-    await page.waitForSelector('[data-testid="grade-form"]', { state: 'visible', timeout: 15000 });
-
-    // Select student and course in filter dropdowns (not the form)
     const studentSelect = page.locator('select[name="studentId"]').first();
     const courseSelect = page.locator('select[name="courseId"]').first();
+    await expect(studentSelect).toBeVisible({ timeout: 15000 });
+    await expect(courseSelect).toBeVisible({ timeout: 15000 });
 
-    await studentSelect.waitFor({ state: 'visible', timeout: 10000 });
-    await studentSelect.selectOption(`${createdStudent.id}`);
-
-    await courseSelect.waitFor({ state: 'visible', timeout: 10000 });
+    // Course first, then student. GradingView narrows each list by the other selection, and
+    // picking the course first means the student list is then filtered to that course's
+    // enrolled students - so the student appearing is itself proof the enrolment reached the
+    // UI. (Doing it the other way round makes the page query every course's enrolment list to
+    // rebuild the course dropdown, which is both slow and unnecessary here.)
+    await expect(
+      courseSelect.locator(`option[value="${createdCourse.id}"]`),
+      'The new course is missing from the grading page course list.'
+    ).toHaveCount(1, { timeout: 15000 });
     await courseSelect.selectOption(`${createdCourse.id}`);
 
-    // Wait a bit for form to update based on selection
-    await page.waitForTimeout(500);
+    await expect(
+      studentSelect.locator(`option[value="${createdStudent.id}"]`),
+      'The enrolled student never appeared in the course\'s student list.'
+    ).toHaveCount(1, { timeout: 15000 });
+    await studentSelect.selectOption(`${createdStudent.id}`);
 
-    // Wait for grade form to be ready
-    const gradeForm = page.locator('[data-testid="grade-form"]');
-    await gradeForm.waitFor({ state: 'visible', timeout: 10000 });
+    // The category list is built from the selected course's evaluation rules, so wait for the
+    // course's own categories to arrive rather than for a fixed delay.
+    const categorySelect = gradeForm.locator('select[name="category"]');
+    await expect(categorySelect.locator('option')).not.toHaveCount(0, { timeout: 10000 });
 
-    // Enter grade details using stable selectors within the form
     await gradeForm.locator('input[name="assignmentName"]').fill('Homework 1');
     await gradeForm.locator('input[name="grade"]').fill('85');
     await gradeForm.locator('input[name="max_grade"]').fill('100');
 
-    // Select category - find the select within the form
-    const categorySelect = gradeForm.locator('select[name="category"]');
-    await categorySelect.waitFor({ state: 'visible', timeout: 5000 });
-
-    // Get category options and select Homework
     const categoryOptions = await categorySelect.locator('option').allTextContents();
-    const homeworkOption = categoryOptions.find(opt => /Homework/i.test(opt)) || 'Homework';
-    await categorySelect.selectOption({ label: homeworkOption });
+    const homeworkOption = categoryOptions.find((opt) => /Homework/i.test(opt));
+    expect(
+      homeworkOption,
+      `The course's categories do not include Homework: ${JSON.stringify(categoryOptions)}`
+    ).toBeTruthy();
+    await categorySelect.selectOption({ label: homeworkOption as string });
 
-    // Submit the form
-    const submitButton = gradeForm.locator('button[type="submit"]');
-    await submitButton.waitFor({ state: 'visible', timeout: 5000 });
-    await submitButton.click();
-
-    // Wait for API response
-    await page.waitForResponse(
+    const gradePost = page.waitForResponse(
       (resp) => resp.url().includes('/api/v1/grades') && resp.request().method() === 'POST',
-      { timeout: 10000 }
-    ).catch(() => {});
+      { timeout: 15000 }
+    );
+    await gradeForm.locator('button[type="submit"]').click();
 
-    // Verify grade appears - look for the grade value or success message
-    await expect(page.getByText(/Grade.*saved|Homework|assigned/i))
-      .toBeVisible({ timeout: 5000 })
-      .catch(() => {
-        // Alternative: just verify page didn't error
-        return expect(page.getByText(/Grades?|Grade/i)).toBeVisible({ timeout: 5000 });
-      });
+    const postResponse = await gradePost;
+    expect(postResponse.ok(), `Saving the grade failed: ${postResponse.status()}`).toBeTruthy();
+
+    // The real check: the grade is in the database, with the values that were typed.
+    const listResp = await page.request.get(`${apiBase}/api/v1/grades/`, {
+      params: { student_id: createdStudent.id, course_id: createdCourse.id },
+    });
+    expect(listResp.ok(), `Reading grades back failed: ${listResp.status()}`).toBeTruthy();
+    const listJson = await listResp.json();
+    const grades = listJson.items ?? listJson.data?.items ?? listJson.data ?? listJson;
+
+    expect(Array.isArray(grades), `Unexpected grades payload: ${JSON.stringify(listJson)}`).toBeTruthy();
+    const saved = (grades as Array<Record<string, unknown>>).find(
+      (g) => Number(g.grade) === 85 && Number(g.max_grade) === 100
+    );
+    expect(
+      saved,
+      `No grade of 85/100 was saved for this student and course. Got: ${JSON.stringify(grades)}`
+    ).toBeTruthy();
+
+    if (saved && typeof saved.id === 'number') {
+      tracker.track('grades', saved.id);
+    }
   });
 });
 
 test.describe('Attendance Tracking', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsTeacher(page);
+    tracker = new TestDataTracker(page);
+    await loginAsTrackedTeacher(page, tracker);
+  });
+
+  test.afterEach(async () => {
+    await tracker.cleanup();
   });
 
   test('should mark student attendance', async ({ page }) => {
@@ -458,6 +522,7 @@ test.describe('Attendance Tracking', () => {
       },
     });
     const createdStudent = await studentResp.json();
+    tracker.track('students', createdStudent.id);
 
     const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
       data: {
@@ -465,18 +530,15 @@ test.describe('Attendance Tracking', () => {
         course_name: course.courseName,
         credits: course.credits,
         semester: course.semester,
+        is_active: course.isActive,
       },
     });
     const createdCourse = await courseResp.json();
+    tracker.track('courses', createdCourse.id);
 
     // Create enrollment so student appears in attendance list
-    await page.request.post(`${apiBase}/api/v1/enrollments/`, {
-      data: {
-        student_id: createdStudent.id,
-        course_id: createdCourse.id,
-        semester: course.semester,
-      },
-    }).catch(() => {});
+    await enrollStudentViaAPI(page, createdCourse.id, createdStudent.id);
+    tracker.trackEnrollment(createdCourse.id, createdStudent.id);
 
     // Navigate to attendance page, then reload to discard the app's cached course list - without
     // it the course created above was missing and the test logged "Could not find matching
@@ -543,7 +605,12 @@ test.describe('Attendance Tracking', () => {
 
 test.describe('Analytics and Reports', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsTeacher(page);
+    tracker = new TestDataTracker(page);
+    await loginAsTrackedTeacher(page, tracker);
+  });
+
+  test.afterEach(async () => {
+    await tracker.cleanup();
   });
 
   test('should view student analytics with final grade calculation', async ({ page }) => {
@@ -562,6 +629,7 @@ test.describe('Analytics and Reports', () => {
       },
     });
     const createdStudent = await studentResp.json();
+    tracker.track('students', createdStudent.id);
 
     const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
       data: {
@@ -569,6 +637,7 @@ test.describe('Analytics and Reports', () => {
         course_name: course.courseName,
         credits: course.credits,
         semester: course.semester,
+        is_active: course.isActive,
         evaluation_rules: [
           { category: 'Homework', weight: 30 },
           { category: 'Midterm', weight: 30 },
@@ -577,36 +646,36 @@ test.describe('Analytics and Reports', () => {
       },
     });
     const createdCourse = await courseResp.json();
+    tracker.track('courses', createdCourse.id);
 
     // Create enrollment
-    await page.request.post(`${apiBase}/api/v1/enrollments/`, {
-      data: {
-        student_id: createdStudent.id,
-        course_id: createdCourse.id,
-        semester: course.semester,
-      },
-    }).catch(() => {});
+    await enrollStudentViaAPI(page, createdCourse.id, createdStudent.id);
+    tracker.trackEnrollment(createdCourse.id, createdStudent.id);
 
-    // Add some grades
-    await page.request.post(`${apiBase}/api/v1/grades/`, {
-      data: {
-        student_id: createdStudent.id,
-        course_id: createdCourse.id,
-        grade: 85,
-        max_grade: 100,
-        category: 'Homework',
-      },
-    });
-
-    await page.request.post(`${apiBase}/api/v1/grades/`, {
-      data: {
-        student_id: createdStudent.id,
-        course_id: createdCourse.id,
-        grade: 90,
-        max_grade: 100,
-        category: 'Midterm',
-      },
-    });
+    // Add some grades. `assignment_name` is required - without it the API answers 422, and
+    // because these two calls ignored their responses this test used to reach its "final grade
+    // calculation" assertions with no grades in the database at all.
+    for (const [assignment, value, category] of [
+      ['Homework 1', 85, 'Homework'],
+      ['Midterm Exam', 90, 'Midterm'],
+    ] as const) {
+      const gradeResp = await page.request.post(`${apiBase}/api/v1/grades/`, {
+        data: {
+          student_id: createdStudent.id,
+          course_id: createdCourse.id,
+          assignment_name: assignment,
+          grade: value,
+          max_grade: 100,
+          category,
+        },
+      });
+      expect(
+        gradeResp.ok(),
+        `Creating the ${category} grade failed: ${gradeResp.status()} ${await gradeResp.text().catch(() => '')}`
+      ).toBeTruthy();
+      const createdGrade = await gradeResp.json().catch(() => null);
+      tracker.track('grades', createdGrade?.id ?? createdGrade?.data?.id);
+    }
 
     // Navigate to the student profile page (where analytics is displayed).
     //

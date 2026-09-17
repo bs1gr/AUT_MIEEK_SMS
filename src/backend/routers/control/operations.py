@@ -413,20 +413,24 @@ async def create_database_backup(
                 file_size = backup_path.stat().st_size
 
                 # Say what was actually produced. This used to report "PostgreSQL backup created
-                # successfully" in every case, but the paired /operations/database-restore accepts
-                # SQLite backups only, so no PostgreSQL file made here can be restored through it -
-                # and without pg_dump the file is not even SQL, it is a CSV data export the app
-                # cannot restore at all (see database_manager).
+                # successfully" in every case, when without pg_dump the file was a CSV export
+                # nothing could restore. Both paths are restorable now: the psycopg path writes a
+                # data-only COPY-format backup the app restores itself, and the restore endpoint
+                # below accepts PostgreSQL backups as well as SQLite ones.
                 if backup_method == "psycopg_copy":
-                    from backend.services.database_manager import PSYCOPG_EXPORT_WARNING
-
-                    pg_kind = "PostgreSQL data export"
-                    pg_warning = PSYCOPG_EXPORT_WARNING
+                    pg_kind = "PostgreSQL data-only backup"
+                    pg_warning = (
+                        "It carries table data, not the schema, which Alembic owns: restore it into "
+                        "a database at the same migration revision. Restorable here or with psql."
+                    )
+                    pg_restorable_in_app = True
                 else:
                     pg_kind = "PostgreSQL backup (pg_dump)"
+                    pg_restorable_in_app = shutil.which("psql") is not None
                     pg_warning = (
-                        "Restore it with psql. The Dev Tools restore accepts SQLite backups only, "
-                        "so it cannot restore this file."
+                        "Restorable here or with psql."
+                        if pg_restorable_in_app
+                        else "Restoring a pg_dump backup needs psql, which is not installed here."
                     )
 
                 if encrypt:
@@ -465,7 +469,7 @@ async def create_database_backup(
                             "compression_ratio": backup_info["compression_ratio"],
                             "database_type": "postgresql",
                             "backup_method": backup_method,
-                            "restorable_in_app": False,
+                            "restorable_in_app": pg_restorable_in_app,
                             "warning": pg_warning,
                         },
                     )
@@ -481,7 +485,7 @@ async def create_database_backup(
                             "encryption": None,
                             "backup_method": backup_method,
                             "database_type": "postgresql",
-                            "restorable_in_app": False,
+                            "restorable_in_app": pg_restorable_in_app,
                             "warning": pg_warning,
                         },
                     )
@@ -949,6 +953,97 @@ async def save_database_backup_to_path(
     )
 
 
+def _postgres_instance_from_url(database_url: str) -> Dict[str, Any]:
+    """Build a database_manager instance dict from a PostgreSQL DATABASE_URL."""
+    parsed = urlparse(database_url)
+    query = dict(item.split("=", 1) for item in (parsed.query or "").split("&") if "=" in item)
+    return {
+        "name": "primary",
+        "host": parsed.hostname or "localhost",
+        "port": parsed.port or 5432,
+        "user": unquote(parsed.username) if parsed.username else "",
+        "password": unquote(parsed.password) if parsed.password else "",
+        "dbname": (parsed.path or "").lstrip("/"),
+        "sslmode": query.get("sslmode", "prefer"),
+    }
+
+
+def _restore_postgres_backup(request: Request, backup_path: Path, backup_filename: str) -> OperationResult:
+    """Restore a PostgreSQL backup through the same engine the Database panel uses.
+
+    Kept separate from the SQLite path: this endpoint accepted SQLite files only, so every
+    PostgreSQL backup /operations/database-backup produced was unrestorable in the app.
+    """
+    import gzip
+
+    from backend.config import settings
+    from backend.services.database_manager import restore_sql_content
+
+    database_url = (settings.DATABASE_URL or "").strip()
+    if not database_url.lower().startswith("postgresql"):
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "This backup is not a SQLite database, and this deployment does not use PostgreSQL, "
+            "so there is nothing it can be restored into. Nothing was changed.",
+            request,
+            context={"filename": backup_filename},
+        )
+
+    try:
+        if backup_path.name.endswith(".gz"):
+            with gzip.open(backup_path, "rt", encoding="utf-8") as handle:
+                content = handle.read()
+        else:
+            content = backup_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            "Backup file is neither a SQLite database nor a readable PostgreSQL backup. "
+            "Nothing was changed.",
+            request,
+            context={"filename": backup_filename, "error": str(exc)},
+        )
+
+    try:
+        result = restore_sql_content(_postgres_instance_from_url(database_url), content)
+    except ValueError as exc:
+        # An unrestorable file - the old CSV data exports - refused before anything ran.
+        raise http_error(
+            400,
+            ErrorCode.CONTROL_INVALID_FILE_TYPE,
+            str(exc),
+            request,
+            context={"filename": backup_filename},
+        )
+
+    if not result.get("success"):
+        raise http_error(
+            500,
+            ErrorCode.CONTROL_RESTORE_FAILED,
+            result.get("error", "PostgreSQL restore failed. Nothing was changed."),
+            request,
+            context={"filename": backup_filename},
+        )
+
+    return OperationResult(
+        success=True,
+        message=(
+            f"PostgreSQL backup restored: {result.get('rows', 0)} rows across "
+            f"{result.get('tables', 0)} tables."
+        ),
+        details={
+            "filename": backup_filename,
+            "database_type": "postgresql",
+            "restore_method": result.get("method"),
+            "tables": result.get("tables"),
+            "rows": result.get("rows"),
+            "alembic_version": result.get("alembic_version"),
+        },
+    )
+
+
 @router.post("/operations/database-restore", response_model=OperationResult)
 async def restore_database(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
     import logging
@@ -1030,24 +1125,24 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                     context={"backup_filename": backup_filename},
                 )
 
-        # Verify it's a valid SQLite database
-        # codeql[py/path-injection] validated against the allowed base directory in this function
-        with actual_backup_path.open("rb") as check_file:
-            header = check_file.read(16)
-        if not header.startswith(b"SQLite format 3"):
-            # Clean up temp file if we created one
+        def _cleanup_decrypted() -> None:
             if decrypted_temp_path and decrypted_temp_path.exists():
                 try:
                     decrypted_temp_path.unlink()
                 except Exception:
                     pass
-            raise http_error(
-                400,
-                ErrorCode.CONTROL_INVALID_FILE_TYPE,
-                "Backup file is not a valid SQLite database",
-                request,
-                context={"filename": backup_filename},
-            )
+
+        # codeql[py/path-injection] validated against the allowed base directory in this function
+        with actual_backup_path.open("rb") as check_file:
+            header = check_file.read(16)
+
+        # A PostgreSQL backup made by /operations/database-backup is restored through the same
+        # engine the Database panel uses. This endpoint used to accept SQLite files only, so no
+        # PostgreSQL backup it produced could be restored anywhere in the app.
+        if not header.startswith(b"SQLite format 3"):
+            pg_result = _restore_postgres_backup(request, actual_backup_path, backup_filename)
+            _cleanup_decrypted()
+            return pg_result
 
         db_url = (settings.DATABASE_URL or "").strip().lower()
         if db_url.startswith("postgresql"):

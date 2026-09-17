@@ -140,20 +140,30 @@ class BackupResult(BaseModel):
     compressed: Optional[bool] = None
     timestamp: Optional[str] = None
     error: Optional[str] = None
-    # False for a psycopg COPY data export (made when pg_dump is missing), which the app
-    # cannot restore; `warning` then says so, for the UI to surface.
+    # False for any file the app cannot restore, with `warning` saying why, for the UI to
+    # surface. Both backup paths are restorable now - pg_dump scripts via psql, and data-only
+    # COPY-format backups in-app - but the flag stays as the UI's safety net.
     restorable: Optional[bool] = None
     warning: Optional[str] = None
+    # Data-only backups report what they captured.
+    tables: Optional[int] = None
+    rows: Optional[int] = None
+    alembic_version: Optional[str] = None
 
 
 class RestoreResult(BaseModel):
     success: bool
     method: Optional[str] = None
+    # Left from the removed split-and-execute fallback; no current path reports it.
     statements_executed: Optional[int] = None
     errors: Optional[List[str]] = None
     error: Optional[str] = None
     stdout: Optional[str] = None
     stderr: Optional[str] = None
+    # What a data-only restore put back.
+    tables: Optional[int] = None
+    rows: Optional[int] = None
+    alembic_version: Optional[str] = None
 
 
 class DatabaseStats(BaseModel):

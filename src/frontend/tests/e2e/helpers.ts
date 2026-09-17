@@ -1,5 +1,6 @@
-import { Page, expect } from '@playwright/test';
+import { Page, expect, request as playwrightRequest } from '@playwright/test';
 import type { Course } from '@/types';
+import { recordCreatedUser } from './created-users';
 
 /**
  * E2E Test Helpers
@@ -18,6 +19,7 @@ export interface TestCourse {
   courseName: string;
   credits: number;
   semester: string;
+  isActive: boolean;
 }
 
 export interface TestUser {
@@ -99,13 +101,42 @@ export const generateStudentData = (): TestStudent => {
   };
 };
 
+/**
+ * A semester label that reads as the current one, rather than a hardcoded year that goes stale.
+ *
+ * The backend derives a course's `is_active` from its semester when the field is not supplied
+ * (`_auto_is_active` in routers_courses.py): "Fall <year>" means 15 Sep that year to 30 Jan the
+ * next, "Spring <year>" means 1 Feb to 30 Jun. Every test course used to say "Fall 2025", so
+ * once that window closed the API created them **inactive** — and the grading and attendance
+ * views only list active courses, which is why those specs could not find the course they had
+ * just created.
+ */
+const currentSemesterLabel = (today: Date = new Date()): string => {
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1; // 1-12
+  const day = today.getDate();
+
+  if (month > 9 || (month === 9 && day >= 15) || month === 10 || month === 11 || month === 12) {
+    return `Fall ${year}`;
+  }
+  if (month === 1 && day <= 30) return `Fall ${year - 1}`;
+  if (month >= 2 && month <= 6) return `Spring ${year}`;
+  // Between semesters (July to mid-September): no window is open, so the label is only cosmetic
+  // and `isActive` below is what keeps the course visible.
+  return `Fall ${year}`;
+};
+
 export const generateCourseData = (): TestCourse => {
   const rnd = generateRandomString().slice(0, 4).toUpperCase();
   return {
     courseCode: `CS${rnd}`,
     courseName: `Test Course ${rnd}`,
     credits: 4,
-    semester: 'Fall 2025',
+    semester: currentSemesterLabel(),
+    // Sent explicitly so the course is active whatever the date: the backend only derives
+    // is_active when the field is omitted, and a test that runs between semesters would
+    // otherwise create an invisible course.
+    isActive: true,
   };
 };
 
@@ -138,7 +169,14 @@ export async function registerUser(page: Page, user: TestUser) {
   }
 
   // Registration response may be wrapped; return full JSON for caller flexibility
-  return response.json();
+  const created = await response.json();
+
+  // Record it so the run can delete the account again, whichever spec created it - see
+  // created-users.ts and playwright-global-teardown.ts.
+  const payload = (created && (created as { data?: unknown }).data) || created;
+  recordCreatedUser((payload as { id?: number })?.id, user.email);
+
+  return created;
 }
 
 export async function loginViaUI(page: Page, email: string, password: string) {
@@ -246,6 +284,33 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   //    isInitializing=false → AuthPage redirects to /dashboard.
   await page.goto('/');
   await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+
+  return userData;
+}
+
+/**
+ * The role the server actually gave this session, read from the profile the app stored.
+ *
+ * Works after either login path, and is the only trustworthy source: a role written into a
+ * fixture object is just a label, and says nothing about the account in the database.
+ */
+export async function getLoggedInRole(page: Page): Promise<string | undefined> {
+  const stored = await page.evaluate(() => {
+    try {
+      return localStorage.getItem('sms_user_v1');
+    } catch {
+      return null;
+    }
+  });
+
+  if (!stored) return undefined;
+
+  try {
+    const parsed = JSON.parse(stored) as { role?: string; data?: { role?: string } };
+    return parsed.role ?? parsed.data?.role;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function loginAsTeacher(page: Page): Promise<TestUser> {
@@ -261,17 +326,24 @@ export async function loginAsTeacher(page: Page): Promise<TestUser> {
   }
 }
 
+/**
+ * Log in as the shared `test@example.com` fixture account.
+ *
+ * The returned `role` is whatever the server says, read back after login — it is deliberately
+ * not declared up front. This used to claim `role: 'admin'`, while the account is a *teacher*
+ * in at least one environment, so specs assuming admin rights behaved differently depending on
+ * where they ran, and the fixture object hid it. A spec that needs admin rights must say so
+ * with `expectRole(page, 'admin')` (or use `loginAsAdmin`) rather than trust this label.
+ */
 export async function loginAsTestUser(page: Page): Promise<TestUser> {
   const testUser: TestUser = {
     email: 'test@example.com',
     password: 'Test@Pass123', // pragma: allowlist secret
     fullName: 'Test User',
-    role: 'admin',
   };
 
   console.log('\n=== LOGGING IN AS TEST USER ===');
   console.log(`Email: ${testUser.email}`);
-  console.log(`Role: ${testUser.role}`);
   console.log('================================\n');
 
   try {
@@ -299,7 +371,8 @@ export async function loginAsTestUser(page: Page): Promise<TestUser> {
       await loginViaUI(page, testUser.email, testUser.password);
     }
 
-    console.log(`✅ [E2E] Test user logged in successfully\n`);
+    testUser.role = await getLoggedInRole(page);
+    console.log(`✅ [E2E] Test user logged in successfully (role: ${testUser.role ?? 'unknown'})\n`);
     return testUser;
   } catch (error) {
     console.error('\n❌ [E2E] Login as test user FAILED');
@@ -349,6 +422,7 @@ export async function createCourseViaAPI(page: Page, course: TestCourse, evaluat
       course_name: course.courseName,
       credits: course.credits,
       semester: course.semester,
+      is_active: course.isActive,
       evaluation_rules: evaluationRules || defaultRules,
     },
   });
@@ -361,13 +435,39 @@ export async function createCourseViaAPI(page: Page, course: TestCourse, evaluat
   return (json && (json as any).success === false) ? Promise.reject(new Error((json as any).error?.message || 'API error')) : ((json && (json as any).data) || json);
 }
 
+/**
+ * Enrol a student in a course.
+ *
+ * The endpoint is `POST /enrollments/course/{course_id}` with a `student_ids` list. Specs used
+ * to post `{student_id, course_id, semester}` to `/enrollments/` - a route that only accepts
+ * GET - and swallow the resulting 405 with `.catch(() => {})`, so no E2E enrolment had ever
+ * actually happened. That left students missing from the course lists the tests then searched,
+ * which is what the "Could not find matching course option" fallbacks were working around.
+ */
+export async function enrollStudentViaAPI(page: Page, courseId: number, studentId: number) {
+  const apiBase = getApiBase();
+
+  const response = await page.request.post(`${apiBase}/api/v1/enrollments/course/${courseId}`, {
+    data: { student_ids: [studentId] },
+  });
+
+  if (!response.ok()) {
+    const text = await response.text().catch(() => 'N/A');
+    throw new Error(`Enroll student failed: ${response.status()} — ${text}`);
+  }
+
+  return response.json();
+}
+
 export async function createGradeViaAPI(
   page: Page,
   studentId: number,
   courseId: number,
   grade: number,
   maxGrade: number = 100,
-  category: string = 'Homework'
+  category: string = 'Homework',
+  // Required by the API: without it the request is rejected with 422.
+  assignmentName: string = 'E2E Assignment'
 ) {
   const apiBase = getApiBase();
 
@@ -375,6 +475,7 @@ export async function createGradeViaAPI(
     data: {
       student_id: studentId,
       course_id: courseId,
+      assignment_name: assignmentName,
       grade,
       max_grade: maxGrade,
       category,
@@ -454,11 +555,92 @@ export async function waitForTableRow(page: Page, rowText: string) {
   await expect(page.locator(`tr:has-text("${rowText}")`)).toBeVisible({ timeout: 5000 });
 }
 
+/**
+ * Admin credentials to try, most specific first.
+ *
+ * Environments differ: `admin@example.com` is the seeded admin in some, while a Native or
+ * SMS_Lite install has `admin@sms-lite.app`. Set PLAYWRIGHT_ADMIN_EMAIL and
+ * PLAYWRIGHT_ADMIN_PASSWORD to pin it explicitly.
+ */
+const adminCredentialCandidates = (): Array<[string, string]> => {
+  const configured: Array<[string | undefined, string | undefined]> = [
+    [process.env.PLAYWRIGHT_ADMIN_EMAIL, process.env.PLAYWRIGHT_ADMIN_PASSWORD],
+    ['admin@example.com', 'YourSecurePassword123!'], // pragma: allowlist secret
+    ['admin@sms-lite.app', 'AdminPassword123!'], // pragma: allowlist secret
+  ];
+  return configured.filter((pair): pair is [string, string] => Boolean(pair[0] && pair[1]));
+};
+
+// undefined = not looked up yet, null = no working credentials in this environment.
+let cachedAdminToken: string | null | undefined;
+
+/**
+ * An admin access token, or null when none of the candidates work.
+ *
+ * Uses its own request context rather than the page's, so logging in as admin cannot disturb
+ * the session cookie of whoever the test is signed in as.
+ */
+export async function getAdminToken(): Promise<string | null> {
+  if (cachedAdminToken !== undefined) return cachedAdminToken;
+
+  const apiBase = getApiBase();
+  const context = await playwrightRequest.newContext();
+  try {
+    for (const [email, password] of adminCredentialCandidates()) {
+      try {
+        const resp = await context.post(`${apiBase}/api/v1/auth/login`, { data: { email, password } });
+        if (!resp.ok()) continue;
+        const data = await resp.json();
+        const token: string | undefined = data.access_token ?? data.data?.access_token;
+        if (token) {
+          cachedAdminToken = token;
+          return token;
+        }
+      } catch {
+        // Try the next candidate.
+      }
+    }
+  } finally {
+    await context.dispose();
+  }
+
+  cachedAdminToken = null;
+  return null;
+}
+
 // Quick admin login helper
 export async function loginAsAdmin(page: Page) {
-  const adminEmail = 'admin@example.com';
-  const adminPassword = 'YourSecurePassword123!';
-  await loginViaAPI(page, adminEmail, adminPassword);
+  const apiBase = getApiBase();
+
+  for (const [email, password] of adminCredentialCandidates()) {
+    const probe = await page.request.post(`${apiBase}/api/v1/auth/login`, { data: { email, password } });
+    if (probe.ok()) {
+      await loginViaAPI(page, email, password);
+      return;
+    }
+  }
+
+  throw new Error(
+    'No working admin credentials. Tried: ' +
+      adminCredentialCandidates().map(([e]) => e).join(', ') +
+      '. Set PLAYWRIGHT_ADMIN_EMAIL and PLAYWRIGHT_ADMIN_PASSWORD for this environment.'
+  );
+}
+
+/**
+ * Fail the test unless the session really has the role it needs.
+ *
+ * Specs used to assume `loginAsTestUser` produced an admin because its fixture object said so.
+ * Asserting against the server's answer turns "this environment's account has a different role"
+ * into an explicit failure instead of a confusing one somewhere further down the test.
+ */
+export async function expectRole(page: Page, role: string) {
+  const actual = await getLoggedInRole(page);
+  expect(
+    actual,
+    `This test needs a "${role}" session, but the logged-in account is "${actual ?? 'unknown'}". ` +
+      `Check the account's role in the database this run points at.`
+  ).toBe(role);
 }
 
 // Cleanup helpers
@@ -466,4 +648,126 @@ export async function cleanupTestData(page: Page, resourceType: string, id: numb
   const apiBase = getApiBase();
 
   await page.request.delete(`${apiBase}/api/v1/${resourceType}/${id}`);
+}
+
+type TrackedKind = 'grades' | 'attendance' | 'students' | 'courses' | 'users';
+
+// Deleted in this order, so rows that reference others go first.
+const CLEANUP_ORDER: TrackedKind[] = ['grades', 'attendance', 'students', 'courses', 'users'];
+
+const DELETE_PATH: Record<TrackedKind, (id: number) => string> = {
+  grades: (id) => `/api/v1/grades/${id}`,
+  attendance: (id) => `/api/v1/attendance/${id}`,
+  students: (id) => `/api/v1/students/${id}`,
+  courses: (id) => `/api/v1/courses/${id}`,
+  users: (id) => `/api/v1/admin/users/${id}`,
+};
+
+/**
+ * Remembers what a test created so it can be deleted again afterwards.
+ *
+ * E2E runs used to leak every row they made into whatever database they ran against: one
+ * three-spec run on 2026-09-17 left 5 students, 3 courses and 4 teacher accounts behind, and
+ * 234 accumulated accounts had to be cleared by hand the day before. Register a tracker in
+ * `beforeEach` and call `cleanup()` in `afterEach`.
+ *
+ * Cleanup is best-effort and never fails a test — a failed delete is reported loudly instead,
+ * because a passing test that reports nothing is how the leak went unnoticed in the first
+ * place. It also cannot help a run that crashes outright; that is what pointing E2E at a
+ * disposable database will fix.
+ */
+export class TestDataTracker {
+  private readonly page: Page;
+  private readonly created: Array<{ kind: TrackedKind; id: number }> = [];
+  private readonly enrollments: Array<{ courseId: number; studentId: number }> = [];
+
+  constructor(page: Page) {
+    this.page = page;
+  }
+
+  track(kind: TrackedKind, id: number | string | undefined | null): void {
+    const numeric = typeof id === 'string' ? Number(id) : id;
+    if (typeof numeric !== 'number' || !Number.isFinite(numeric)) {
+      console.warn(`⚠️  [E2E CLEANUP] Ignoring un-trackable ${kind} id: ${String(id)}`);
+      return;
+    }
+    this.created.push({ kind, id: numeric });
+  }
+
+  trackEnrollment(courseId: number, studentId: number): void {
+    this.enrollments.push({ courseId, studentId });
+  }
+
+  async cleanup(): Promise<void> {
+    const apiBase = getApiBase();
+    const failures: string[] = [];
+
+    // Enrollments first: they reference both a student and a course.
+    for (const { courseId, studentId } of this.enrollments.reverse()) {
+      const path = `/api/v1/enrollments/course/${courseId}/student/${studentId}`;
+      try {
+        const resp = await this.page.request.delete(`${apiBase}${path}`);
+        if (!resp.ok() && resp.status() !== 404) failures.push(`${path} → ${resp.status()}`);
+      } catch (err) {
+        failures.push(`${path} → ${String(err)}`);
+      }
+    }
+
+    // Deleting a user account needs "users:manage", which the teacher accounts these tests log
+    // in as do not have - a teacher deleting its own account gets 403. So accounts are removed
+    // with an admin token when one is available.
+    const needsAdmin = this.created.some((item) => item.kind === 'users');
+    const adminToken = needsAdmin ? await getAdminToken() : null;
+
+    for (const kind of CLEANUP_ORDER) {
+      // Newest first, so a row created later cannot block deleting an earlier one.
+      const ids = this.created.filter((item) => item.kind === kind).map((item) => item.id).reverse();
+      if (kind === 'users' && ids.length > 0 && !adminToken) {
+        failures.push(
+          `${ids.length} test account(s) (ids ${ids.join(', ')}) — no admin credentials, so they ` +
+            `stay in the database. Set PLAYWRIGHT_ADMIN_EMAIL and PLAYWRIGHT_ADMIN_PASSWORD.`
+        );
+        continue;
+      }
+      for (const id of ids) {
+        const path = DELETE_PATH[kind](id);
+        try {
+          const resp = await this.page.request.delete(`${apiBase}${path}`, {
+            headers: kind === 'users' && adminToken ? { Authorization: `Bearer ${adminToken}` } : {},
+          });
+          // 404 is fine: the test may already have deleted it, which is the point of some specs.
+          if (!resp.ok() && resp.status() !== 404) failures.push(`${path} → ${resp.status()}`);
+        } catch (err) {
+          failures.push(`${path} → ${String(err)}`);
+        }
+      }
+    }
+
+    this.created.length = 0;
+    this.enrollments.length = 0;
+
+    if (failures.length > 0) {
+      console.warn(
+        `⚠️  [E2E CLEANUP] ${failures.length} test record(s) could not be deleted and are now ` +
+          `left in the database:\n  ${failures.join('\n  ')}`
+      );
+    }
+  }
+}
+
+/** Register a user and remember it, so the account is deleted when the test finishes. */
+export async function registerTrackedUser(page: Page, tracker: TestDataTracker, user: TestUser) {
+  const created = await registerUser(page, user);
+  const payload = (created && (created as { data?: unknown }).data) || created;
+  tracker.track('users', (payload as { id?: number })?.id);
+  return payload;
+}
+
+/** Log in as a fresh teacher whose account is deleted when the test finishes. */
+export async function loginAsTrackedTeacher(page: Page, tracker: TestDataTracker): Promise<TestUser> {
+  const user = generateTeacherUser();
+  await registerTrackedUser(page, tracker, user);
+  await loginViaAPI(page, user.email, user.password);
+  user.role = await getLoggedInRole(page);
+  return user;
 }
