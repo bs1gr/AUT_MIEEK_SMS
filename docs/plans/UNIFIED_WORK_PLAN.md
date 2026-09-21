@@ -1,9 +1,11 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.43
-**Last Updated**: September 17, 2026
-**Status**: ✅ **v1.18.43 released 2026-09-16 — signed installer + APK, all workflows green, and the published assets verified directly. Unreleased since: 2026-09-17 — a PostgreSQL restore that could execute backup data as SQL, contained and then properly fixed (data-only COPY-format backups that restore in-app without `psql`, and a Dev Tools restore that finally accepts them), E2E teardown so runs stop leaking rows, four E2E tests that passed without testing anything, plus earlier spec reliability fixes and dead deploy scripts removed.**
+**Current Version**: 1.18.45
+**Last Updated**: September 22, 2026
+**Status**: ✅ **v1.18.45 released 2026-09-21** (tag on `c6f3c758f`) — signed installer + APK verified directly from the published release. It ships the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change. v1.18.44 (2026-09-17) shipped the PostgreSQL restore and E2E work described below.
 
+- **Shipped in v1.18.45** (see "v1.18.45 session" below): SMS_Lite failed to load `routers_semester_archive` (missing from the spec's hand-kept hiddenimports; the registry's fallback then reported a misleading `No module named 'routers'`); 5 CodeQL `py/path-injection` alerts closed with a real `realpath`+`startswith` guard; GradingView fetches a student's courses with one request; CI runs the restore round-trip tests against Postgres.
+- **Shipped in v1.18.44**: the sections dated 2026-09-17 below (PostgreSQL restore, E2E teardown and disposable database, follow-ups closed).
 - **Shipped in v1.18.43** (sections from the v1.18.43 heading down to v1.18.42, 18 commits):
   4 bugs found by a full pre-release smoke test — 3 in SMS_Lite, plus Android shipping the
   wrong version since 1.18.32 (`05b286b85`); the commit gate made to actually gate
@@ -51,6 +53,16 @@ it here and mark it resolved where it was raised.
    changed".
 
 ---
+
+## 🚢 v1.18.45 session (September 21, 2026) — released
+
+**Status**: ✅ RELEASED | Tag `v1.18.45` on `c6f3c758f`. Commits `3025270be`, `906f4a04d`, `66179b8ac`, `220727ab2`, `9aa9c06e0`.
+
+- **Lite bug reported from a remote laptop.** Log: `Some routers failed to load ... routers_semester_archive: No module named 'routers'`. The real cause was hidden: `router_registry._try_add` retried a failed `backend.routers.X` import as a bare `routers.X`, and *that* error replaced the original. The router was the only registered one missing from `lite_simple_entrypoint.spec`'s hiddenimports. Fixed in the spec, the registry now re-raises the first error, and `test_lite_spec_covers_routers.py` fails (naming the router) if a registered router is missing from the spec. Verified on a rebuilt exe: 16 semester routes served, no warning. **Only a rebuilt SMS_Lite fixes a machine** — the laptop needs the v1.18.45 installer.
+- **CodeQL.** Inline `# codeql[...]` comments are *not honoured* by GitHub code scanning (commit `3025270be` did nothing; a manual run re-raised the alerts as #1863-1867). What worked: resolve with `os.path.realpath` and require `startswith(root + os.sep)` (`906f4a04d`). Alerts: 0 open. `codeql.yml` does not run on direct pushes — trigger it with `gh workflow run codeql.yml --ref main`.
+- **Todos closed.** CI `test-backend` has a `postgres:16-alpine` service and `SMS_TEST_POSTGRES_URL`, so the 9 round-trip tests run (confirmed in the log: 1089 passed, 30 skipped). `import_export.spec.ts` deleted (skipped duplicate of `feature_127_import_export.spec.ts`, hash-less route). GradingView uses `enrollmentsAPI.getByStudent` with an active-only filter; the new test fails on the old code.
+- **Released with** `RELEASE_READY.ps1 -ReleaseVersion 1.18.45 -TagRelease` (exit 0, first try). Verified on the published assets: installer Authenticode Valid (CN=AUT MIEEK, timestamped, v1.18.45), APK `versionName 1.18.45 / versionCode 118045`, release body 722 chars with 4 fences, all three release workflows green.
+- **Gotchas.** The release-manager subagent hands back early (it reported "still running" and stopped) — poll `rr.log` yourself. `infra/installer/windows/dist/SMS_Lite.exe` is a stale June onefile build; the real one is `dist/SMS_Lite/SMS_Lite.exe`. Building Lite locally needs `src/frontend/dist` first (`VITE_API_URL=/api/v1 npm run build`).
 
 ## 🧪 E2E runs against a disposable database (September 17, 2026)
 
