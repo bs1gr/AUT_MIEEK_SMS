@@ -22,6 +22,20 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.45] - 2026-09-21
+
+### Bug Fixes
+- **lite**: bundle the semester archive router in SMS_Lite and stop masking import errors
+- **security**: confine restore and SPA static paths with realpath+startswith
+- **security**: place CodeQL path-injection suppressions on the sink line
+
+### Performance
+- **grading**: fetch a student's courses with one request, not one per course
+
+### CI/CD
+- **test**: run restore round-trip tests against a Postgres service; drop stale E2E spec
+
 ## [1.18.44] - 2026-09-17
 
 ### Bug Fixes
@@ -4447,6 +4461,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
