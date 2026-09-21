@@ -103,6 +103,12 @@ a = Analysis(
         'backend.routers.routers_import_export',
         'backend.routers.routers_search',
         'backend.routers.routers_help',
+        'backend.routers.routers_semester_archive',
+        'backend.schemas.semester_archive',
+        'backend.services.semester_archive_service',
+        'backend.services.semester_export_service',
+        'backend.services.session_data_service',
+        'backend.services.backup_service_encrypted',
         # Control router and all its sub-modules
         'backend.routers.routers_control',
         'backend.routers.control',

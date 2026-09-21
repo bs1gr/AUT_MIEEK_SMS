@@ -67,9 +67,14 @@ def register_routers(app: FastAPI) -> None:
             # and attempt the import directly; let the except handle genuine failures.
             try:
                 module = importlib.import_module(import_path)
-            except ImportError:
+            except ImportError as first_error:
                 plain_path = import_path.replace("backend.", "", 1)
-                module = importlib.import_module(plain_path)
+                try:
+                    module = importlib.import_module(plain_path)
+                except ImportError:
+                    # The bare-path fallback always says "No module named 'routers'", which hides
+                    # what actually failed (a module missing from a frozen bundle, say).
+                    raise first_error from None
             app.include_router(getattr(module, "router"), prefix="/api/v1", tags=[tag])
             registered.append(tag)
         except Exception as ex:
