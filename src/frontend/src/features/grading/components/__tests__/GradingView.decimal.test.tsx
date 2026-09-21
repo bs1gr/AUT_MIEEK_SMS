@@ -17,6 +17,7 @@ vi.mock('../../../../api/api', () => ({
   },
   enrollmentsAPI: {
     getEnrolledStudents: vi.fn(),
+    getByStudent: vi.fn(),
   },
 }));
 

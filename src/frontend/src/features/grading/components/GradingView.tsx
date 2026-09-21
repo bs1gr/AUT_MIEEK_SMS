@@ -192,16 +192,13 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   useEffect(() => {
     const run = async () => {
       if (!studentId) { setFilteredCourses(activeCourses); return; }
-      // Fallback (robust): check each course's enrolled students and see if student is present
+      // One request for the student's enrolments, not one per course. Only active ones count,
+      // matching what the per-course enrolled-students endpoint returns.
       try {
-        const results = await Promise.all(activeCourses.map(async (c) => {
-          try {
-            const studs: Student[] = await enrollmentsAPI.getEnrolledStudents(c.id);
-            const has = studs.some(s => s.id === studentId);
-            return { id: c.id, has };
-          } catch { return { id: c.id, has: false }; }
-        }));
-        const allowed = new Set(results.filter(x => x.has).map(x => x.id));
+        const enrollments = await enrollmentsAPI.getByStudent(studentId as number);
+        const allowed = new Set(
+          enrollments.filter(e => !e.status || e.status === 'active').map(e => e.course_id)
+        );
         const list = activeCourses.filter(c => allowed.has(c.id));
         setFilteredCourses(list);
         if (courseId && !allowed.has(courseId as number)) {

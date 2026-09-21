@@ -34,26 +34,17 @@ lists that used to hold it — in the PostgreSQL restore section and the smoke-t
 which now point here. The evidence stays in those dated sections. When an item is done, remove
 it here and mark it resolved where it was raised.
 
-*Items 1–6 of the original 2026-09-17 list are **done**, and so is the disposable E2E database
-that item 3 asked for second. See "PostgreSQL backups that actually restore", "E2E: teardown,
-and four tests that could not fail", and "E2E runs against a disposable database" below. What
-follows is what is left, plus what that work newly raised.*
+*Everything from the original 2026-09-17 list is **done**, and so are the follow-ups it raised on 2026-09-21:*
+*CI now runs the 9 restore round-trip tests against a `postgres:16-alpine` service (confirmed in the CI log),*
+*the stale `import_export.spec.ts` was deleted as a broken duplicate of `feature_127_import_export.spec.ts`,*
+*and GradingView now fetches a student's courses with one `getByStudent` request instead of one per course*
+*(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
+*What is left is below.*
 
-1. **Confirm the restore round-trip tests now run in CI** (2026-09-21) — `test-backend` in
-   `ci-cd-pipeline.yml` now has a `postgres:16-alpine` service and sets `SMS_TEST_POSTGRES_URL`
-   for the pytest step, so the 9 round-trip tests should no longer skip there. *Not yet
-   verified:* check the first CI run's log for `test_database_manager_restore_roundtrip.py`
-   passing rather than skipped, then delete this item. The local batch runner still skips
-   them (no server) — by design.
-2. **GradingView rebuilds the course list with one request per course** — selecting a student
-   makes it call `enrollmentsAPI.getEnrolledStudents` for *every* active course to find that
-   student's courses (`GradingView.tsx`, the `studentId` effect). It is correct but scales with
-   the course count. Selecting the course first avoids it entirely, which is what the rewritten
-   grade test now does.
-3. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
+1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
-4. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
+2. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
    repo.* It permanently disables the `conftest.py` guard CLAUDE.md relies on to stop a bare
    `pytest` run from overwhelming VS Code. Clear it under System Properties → Environment
    Variables if the guard should apply on this machine. Evidence: gate audit, "Known, not
@@ -270,7 +261,7 @@ only logged. The helper now reads the role back from the session after login and
 truth (locally the log shows `role: teacher`; in CI it is admin), and a spec that needs admin
 rights says so with the new `expectRole(page, 'admin')` or uses `loginAsAdmin`. Nothing in these
 specs needed admin: all 7 pass locally as a teacher and in CI as an admin. The durable fix is
-Next todos #1 — run against a seeded, disposable database, as CI already does.
+done — see "E2E runs against a disposable database" above (`RUN_E2E_ISOLATED.ps1`).
 
 **Verified**: `student-management.spec.ts` — **7/7 passing**, repeatedly, against Native mode.
 
@@ -761,7 +752,7 @@ The first three had been reported but were not written into this plan until the 
 - ~~**E2E runs leak data into the database they run against**~~ **FIXED 2026-09-17** — a
   `TestDataTracker` teardown now deletes what each spec creates; a full `student-management.spec.ts`
   run leaves students, courses and account counts unchanged. Pointing E2E at a disposable
-  database remains **Next todos #1**. Original note: every run registers accounts
+  database was done the same day - see "E2E runs against a disposable database". Original note: every run registers accounts
   and creates students and courses, and nothing removes them: 234 accumulated accounts had
   to be cleared by hand on 2026-09-16, and ~148 stray rows on 2026-09-05. The one-off
   cleanups treat the symptom; a teardown (or a disposable database) would stop the leak.
@@ -787,9 +778,9 @@ The first three had been reported but were not written into this plan until the 
 - ~~**`/api/v1/admin/backup-database` refuses PostgreSQL**~~ **Investigated 2026-09-17** — it led
   to the restore that could execute backup data as SQL, now contained. See that section at
   the top, and then properly fixed the same day — see "PostgreSQL backups that actually restore". The endpoint itself has been deleted.
-- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #4**),
+- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #2**),
   disabling the `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
-- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #3**) — the batch runner
+- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #1**) — the batch runner
   now records enough to diagnose it (and retries a silent abort once), so the next occurrence
   should say why.
 - ~~**`scripts/deploy/run-docker-release.ps1` is dead.**~~ **REMOVED 2026-09-17**, together with
@@ -970,7 +961,7 @@ for this commit was made on a static tree and printed no such warning.
 `SMS_ALLOW_DIRECT_PYTEST=1` is set in the **user environment** on this machine, which
 disables the `conftest.py` guard that CLAUDE.md relies on to stop a bare `pytest` run from
 taking down VS Code. Nothing in the repo can override that; it needs clearing in the
-Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #4**.
+Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #2**.
 
 ---
 
