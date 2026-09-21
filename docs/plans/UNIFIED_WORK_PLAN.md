@@ -39,24 +39,21 @@ that item 3 asked for second. See "PostgreSQL backups that actually restore", "E
 and four tests that could not fail", and "E2E runs against a disposable database" below. What
 follows is what is left, plus what that work newly raised.*
 
-1. **The restore round-trip tests never run automatically** — `test_database_manager_restore_roundtrip.py`
-   skips unless `SMS_TEST_POSTGRES_URL` is set, so the batch runner and CI both skip all 9 of
-   them (they are 9 of the 39 skips in the 2026-09-17 run). They are the only tests that
-   exercise the restore engine against a real server, and they caught two bugs the fakes could
-   not. Give CI a `postgres:16-alpine` service and set the variable for that job.
-2. **`import_export.spec.ts` is skipped with a stale reason** — the whole describe is
-   `test.describe.skip` with the comment "Feature not yet implemented - skip until
-   import-export page is added", but `/admin/import-export` was given a working click-path in
-   the 2026-09-11/12 Help-audit work. Either re-enable the spec or correct the reason.
-3. **GradingView rebuilds the course list with one request per course** — selecting a student
+1. **Confirm the restore round-trip tests now run in CI** (2026-09-21) — `test-backend` in
+   `ci-cd-pipeline.yml` now has a `postgres:16-alpine` service and sets `SMS_TEST_POSTGRES_URL`
+   for the pytest step, so the 9 round-trip tests should no longer skip there. *Not yet
+   verified:* check the first CI run's log for `test_database_manager_restore_roundtrip.py`
+   passing rather than skipped, then delete this item. The local batch runner still skips
+   them (no server) — by design.
+2. **GradingView rebuilds the course list with one request per course** — selecting a student
    makes it call `enrollmentsAPI.getEnrolledStudents` for *every* active course to find that
    student's courses (`GradingView.tsx`, the `studentId` effect). It is correct but scales with
    the course count. Selecting the course first avoids it entirely, which is what the rewritten
    grade test now does.
-4. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
+3. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
-5. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
+4. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
    repo.* It permanently disables the `conftest.py` guard CLAUDE.md relies on to stop a bare
    `pytest` run from overwhelming VS Code. Clear it under System Properties → Environment
    Variables if the guard should apply on this machine. Evidence: gate audit, "Known, not
@@ -790,9 +787,9 @@ The first three had been reported but were not written into this plan until the 
 - ~~**`/api/v1/admin/backup-database` refuses PostgreSQL**~~ **Investigated 2026-09-17** — it led
   to the restore that could execute backup data as SQL, now contained. See that section at
   the top, and then properly fixed the same day — see "PostgreSQL backups that actually restore". The endpoint itself has been deleted.
-- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #5**),
+- **`SMS_ALLOW_DIRECT_PYTEST=1` is set in the Windows user environment** (→ **Next todos #4**),
   disabling the `conftest.py` guard — see the gate-audit section. Only fixable outside the repo.
-- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #4**) — the batch runner
+- **The 0.7s commit-gate flake is still unexplained** (→ **Next todos #3**) — the batch runner
   now records enough to diagnose it (and retries a silent abort once), so the next occurrence
   should say why.
 - ~~**`scripts/deploy/run-docker-release.ps1` is dead.**~~ **REMOVED 2026-09-17**, together with
@@ -973,7 +970,7 @@ for this commit was made on a static tree and printed no such warning.
 `SMS_ALLOW_DIRECT_PYTEST=1` is set in the **user environment** on this machine, which
 disables the `conftest.py` guard that CLAUDE.md relies on to stop a bare `pytest` run from
 taking down VS Code. Nothing in the repo can override that; it needs clearing in the
-Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #5**.
+Windows environment variables if the guard is meant to apply here. Tracked as **Next todos #4**.
 
 ---
 

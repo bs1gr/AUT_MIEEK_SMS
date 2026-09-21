@@ -410,6 +410,21 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 40
+    services:
+      # Throwaway server for test_database_manager_restore_roundtrip.py, the only tests that
+      # run the backup/restore engine against real PostgreSQL. Skipped without it.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: smstest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -431,6 +446,7 @@ jobs:
 
       - name: Run backend tests with coverage
         env:
+          SMS_TEST_POSTGRES_URL: postgresql://postgres:testpass@127.0.0.1:5432/smstest
           DISABLE_STARTUP_TASKS: '1'
           CSRF_ENABLED: '0'
           AUTH_MODE: 'strict'
