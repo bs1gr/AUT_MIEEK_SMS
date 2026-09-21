@@ -419,15 +419,15 @@ def main() -> None:
         # image does not) was answered with HTML and a 200 — the browser asked for a JPEG
         # and got a page, leaving a broken image with no error anywhere to explain it.
         if path:
-            candidate = (frontend_dist / path).resolve()  # codeql[py/path-injection] confined to dist_root by the containment check below
-            dist_root = frontend_dist.resolve()
+            dist_root = os.path.realpath(frontend_dist)
             # Only serve inside dist: `path` comes straight from the URL, so "../" must
             # not be able to walk out of the bundle.
-            if candidate.is_file() and (candidate == dist_root or dist_root in candidate.parents):  # codeql[py/path-injection] this is the containment check itself
+            candidate = os.path.realpath(os.path.join(dist_root, path))
+            if candidate.startswith(dist_root + os.sep) and os.path.isfile(candidate):
                 import mimetypes
 
-                media_type, _ = mimetypes.guess_type(str(candidate))
-                return FileResponse(candidate, media_type=media_type or "application/octet-stream")  # codeql[py/path-injection] candidate confined to dist_root above
+                media_type, _ = mimetypes.guess_type(candidate)
+                return FileResponse(candidate, media_type=media_type or "application/octet-stream")
 
         # Serve index.html for SPA
         index_path = frontend_dist / "index.html"

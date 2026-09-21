@@ -990,12 +990,18 @@ def _restore_postgres_backup(request: Request, backup_path: Path, backup_filenam
             context={"filename": backup_filename},
         )
 
+    backup_root = os.path.realpath(Path(settings.BACKUPS_DIR) / "database")
+    safe_path = os.path.realpath(backup_path)
+    if not safe_path.startswith(backup_root + os.sep):
+        raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
+
     try:
-        if backup_path.name.endswith(".gz"):
-            with gzip.open(backup_path, "rt", encoding="utf-8") as handle:  # codeql[py/path-injection] backup_path validated against backup_dir in restore_database
+        if safe_path.endswith(".gz"):
+            with gzip.open(safe_path, "rt", encoding="utf-8") as handle:
                 content = handle.read()
         else:
-            content = backup_path.read_text(encoding="utf-8")  # codeql[py/path-injection] backup_path validated against backup_dir in restore_database
+            with open(safe_path, encoding="utf-8") as handle:
+                content = handle.read()
     except (OSError, UnicodeDecodeError) as exc:
         raise http_error(
             400,
@@ -1132,7 +1138,10 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                 except Exception:
                     pass
 
-        with actual_backup_path.open("rb") as check_file:  # codeql[py/path-injection] actual_backup_path validated against backup_dir above
+        safe_backup_path = os.path.realpath(actual_backup_path)
+        if not safe_backup_path.startswith(os.path.realpath(backup_dir) + os.sep):
+            raise http_error(400, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Invalid backup filename", request)
+        with open(safe_backup_path, "rb") as check_file:
             header = check_file.read(16)
 
         # A PostgreSQL backup made by /operations/database-backup is restored through the same
