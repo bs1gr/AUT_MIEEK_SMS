@@ -992,10 +992,10 @@ def _restore_postgres_backup(request: Request, backup_path: Path, backup_filenam
 
     try:
         if backup_path.name.endswith(".gz"):
-            with gzip.open(backup_path, "rt", encoding="utf-8") as handle:
+            with gzip.open(backup_path, "rt", encoding="utf-8") as handle:  # codeql[py/path-injection] backup_path validated against backup_dir in restore_database
                 content = handle.read()
         else:
-            content = backup_path.read_text(encoding="utf-8")
+            content = backup_path.read_text(encoding="utf-8")  # codeql[py/path-injection] backup_path validated against backup_dir in restore_database
     except (OSError, UnicodeDecodeError) as exc:
         raise http_error(
             400,
@@ -1132,8 +1132,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                 except Exception:
                     pass
 
-        # codeql[py/path-injection] validated against the allowed base directory in this function
-        with actual_backup_path.open("rb") as check_file:
+        with actual_backup_path.open("rb") as check_file:  # codeql[py/path-injection] actual_backup_path validated against backup_dir above
             header = check_file.read(16)
 
         # A PostgreSQL backup made by /operations/database-backup is restored through the same
