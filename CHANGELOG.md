@@ -23,6 +23,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.46] - 2026-09-22
+
+### Bug Fixes
+- **lite**: stop SMS_Lite deleting its own install on shutdown
+
+### Documentation
+- **plan**: close the Next todos list
+- **plan**: record the v1.18.45 session and correct the stale version header
+
 ## [1.18.45] - 2026-09-21
 
 ### Bug Fixes
@@ -4461,6 +4471,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
