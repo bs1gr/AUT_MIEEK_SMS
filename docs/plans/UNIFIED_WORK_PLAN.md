@@ -46,11 +46,10 @@ it here and mark it resolved where it was raised.
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
-2. **`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment** — *owner action, outside the
-   repo.* It permanently disables the `conftest.py` guard CLAUDE.md relies on to stop a bare
-   `pytest` run from overwhelming VS Code. Clear it under System Properties → Environment
-   Variables if the guard should apply on this machine. Evidence: gate audit, "Known, not
-   changed".
+2. ~~**`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment**~~ — **done 2026-09-22**,
+   cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
+   `conftest.py` guard now applies to new shells. This session's own process still carries the
+   old value in its inherited env, which is expected and harmless.
 
 ---
 
