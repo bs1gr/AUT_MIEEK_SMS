@@ -161,13 +161,28 @@ _last_api_request: float = time.time()  # updated by middleware on every /api/* 
 INACTIVITY_TIMEOUT_SECS = 30 * 60  # 30 minutes of zero API traffic → exit
 
 
+def _is_onefile_bundle() -> bool:
+    """True only when _MEIPASS is a per-launch temp extraction dir (onefile build).
+
+    In a onedir build (what ships since the onedir switch) _MEIPASS is the installed
+    `_internal` folder next to SMS_Lite.exe. Deleting it there wipes the app's own
+    runtime: every shutdown used to leave an install that could never start again.
+    """
+    if not (getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')):
+        return False
+    import tempfile as _tempfile
+    mei = Path(sys._MEIPASS).resolve()
+    tmp = Path(_tempfile.gettempdir()).resolve()
+    return mei.name.startswith('_MEI') and mei.parent == tmp
+
+
 def _cleanup_and_exit() -> None:
-    """Delete the current PyInstaller _MEIPASS bundle then hard-exit.
+    """Delete the current PyInstaller _MEIPASS bundle (onefile only) then hard-exit.
     Prevents the ~120 MB temp dir from being left behind on clean shutdowns."""
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    if _is_onefile_bundle():
         import shutil as _shutil
         try:
-            _shutil.rmtree(sys._MEIPASS, ignore_errors=True)
+            _shutil.rmtree(getattr(sys, '_MEIPASS'), ignore_errors=True)
             _debug_log('[lite_simple_entrypoint] Cleaned current _MEIPASS on exit.')
         except Exception:
             pass
@@ -227,11 +242,12 @@ def main() -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     # Clean up stale PyInstaller temp dirs from previous runs that were killed
-    # without a clean exit. Skip the current bundle dir (_MEIPASS).
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # without a clean exit. Skip the current bundle dir (_MEIPASS). Onefile only: a
+    # onedir build never extracts to temp, so any _MEI* there belongs to another app.
+    if _is_onefile_bundle():
         import tempfile as _tempfile
         import shutil as _shutil
-        _current_mei = Path(sys._MEIPASS)
+        _current_mei = Path(getattr(sys, '_MEIPASS'))
         _tmp = Path(_tempfile.gettempdir())
         for _mei in _tmp.glob('_MEI*'):
             if _mei != _current_mei and _mei.is_dir():
