@@ -1,20 +1,12 @@
 import { useEffect, useState } from 'react';
 
-import { jobsAPI } from '@/api/api';
+import { jobsAPI, type JobDetail, type JobStatus } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 
-type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+type JobResponse = JobDetail;
 
-type JobResponse = {
-  id: string;
-  status: JobStatus;
-  progress?: number;
-  message?: string;
-  result?: unknown;
-  error?: string;
-  created_at?: string;
-  updated_at?: string;
-};
+const TERMINAL_STATUSES: JobStatus[] = ['completed', 'failed', 'cancelled'];
+const MAX_ERRORS_SHOWN = 5;
 
 type JobProgressMonitorProps = {
   jobId: string | null;
@@ -60,11 +52,10 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
       try {
         const data = await jobsAPI.get(jobId);
         if (!isActive) return;
-        setJob(data as JobResponse);
+        setJob(data);
         setError(null);
-        const status = (data as JobResponse).status;
-        if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(status)) {
-          if (onComplete) onComplete(data as JobResponse);
+        if (TERMINAL_STATUSES.includes(data.status)) {
+          if (onComplete) onComplete(data);
           if (timer) clearInterval(timer);
         }
       } catch (err: unknown) {
@@ -85,6 +76,9 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
 
   if (!jobId) return null;
 
+  const percentage = job?.status === 'completed' ? 100 : (job?.progress?.percentage ?? 0);
+  const rowErrors = job?.result?.errors ?? [];
+
   return (
     <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
@@ -93,13 +87,13 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
           <div className="text-xs text-slate-500">{t('jobMonitorId', { id: jobId })}</div>
         </div>
         <div className="text-xs font-medium text-slate-600" aria-live="polite">
-          {job?.status || t('jobMonitorPending')}
+          {t(`jobStatus_${job?.status ?? 'pending'}`)}
         </div>
       </div>
 
       {/* Progress bar */}
       {(() => {
-        const progressValue = Math.round(job?.progress ?? 0);
+        const progressValue = Math.round(percentage);
         return (
           <div
             className="h-3 overflow-hidden rounded-full bg-slate-100"
@@ -110,7 +104,7 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
             aria-label={t('jobMonitorProgress', { value: progressValue })}
           >
             {(() => {
-              const raw = Math.min(Math.max(job?.progress ?? 0, 0), 100);
+              const raw = Math.min(Math.max(percentage, 0), 100);
               const step = Math.min(100, Math.max(0, Math.round(raw / 5) * 5));
               const widthClass = widthClassMap[step] ?? 'w-0';
               return <div className={`h-full bg-indigo-600 transition-all ${widthClass}`} aria-hidden="true" />;
@@ -119,13 +113,38 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
         );
       })()}
       <div className="flex justify-between text-xs text-slate-500" aria-live="polite">
-        <span>{t('jobMonitorProgress', { value: Math.round(job?.progress ?? 0) })}</span>
-        {job?.message && <span className="text-slate-600">{job.message}</span>}
+        <span>{t('jobMonitorProgress', { value: Math.round(percentage) })}</span>
+        {job?.progress?.message && <span className="text-slate-600">{job.progress.message}</span>}
       </div>
 
       {error && <div className="text-xs text-red-600" aria-live="assertive">{error}</div>}
-      {job?.status === 'FAILED' && job.error && <div className="text-xs text-red-600" aria-live="assertive">{job.error}</div>}
-      {job?.status === 'COMPLETED' && <div className="text-xs text-emerald-600" aria-live="polite">{t('jobMonitorCompleted')}</div>}
+      {job?.status === 'failed' && (
+        <div className="text-xs text-red-600" aria-live="assertive">{job.error_message || t('jobMonitorFailed')}</div>
+      )}
+      {job?.status === 'completed' && (
+        <div className="text-xs text-emerald-600" aria-live="polite">
+          {t('jobMonitorCompleted')}
+          {job.result?.data && (
+            <span>
+              {' — '}
+              {t('jobMonitorSummary', {
+                created: Number(job.result.data.created ?? 0),
+                updated: Number(job.result.data.updated ?? 0),
+              })}
+            </span>
+          )}
+        </div>
+      )}
+      {job && TERMINAL_STATUSES.includes(job.status) && rowErrors.length > 0 && (
+        <ul className="list-disc space-y-0.5 pl-5 text-xs text-amber-700">
+          {rowErrors.slice(0, MAX_ERRORS_SHOWN).map((msg, idx) => (
+            <li key={idx}>{msg}</li>
+          ))}
+          {rowErrors.length > MAX_ERRORS_SHOWN && (
+            <li>{t('jobMonitorMoreErrors', { count: rowErrors.length - MAX_ERRORS_SHOWN })}</li>
+          )}
+        </ul>
+      )}
     </div>
   );
 };

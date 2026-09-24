@@ -52,7 +52,8 @@ import type {
   UpdateUserPayload,
 } from '@/types';
 
-export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+// Mirrors backend.schemas.jobs.JobStatus (lowercase values)
+export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 // ==================== RBAC TYPES ====================
 export interface Role {
@@ -112,15 +113,36 @@ export interface ImportJobResponse {
   [key: string]: unknown;
 }
 
+export interface JobProgress {
+  current: number;
+  total: number;
+  percentage: number;
+  message?: string | null;
+  processed_items?: number;
+  failed_items?: number;
+  skipped_items?: number;
+}
+
+export interface JobResult {
+  success: boolean;
+  message: string;
+  data?: Record<string, unknown> | null;
+  errors?: string[];
+  warnings?: string[];
+  statistics?: Record<string, number> | null;
+}
+
+// Mirrors backend.schemas.jobs.JobResponse
 export interface JobDetail {
-  id: string;
+  job_id: string;
+  job_type?: string;
   status: JobStatus;
-  progress?: number;
-  message?: string;
-  result?: unknown;
-  error?: string;
+  progress?: JobProgress | null;
+  result?: JobResult | null;
+  error_message?: string | null;
   created_at?: string;
-  updated_at?: string;
+  started_at?: string | null;
+  completed_at?: string | null;
   [key: string]: unknown;
 }
 

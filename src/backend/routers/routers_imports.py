@@ -14,10 +14,10 @@ import re
 import unicodedata
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
+from sqlalchemy.orm import Session, sessionmaker
 
 from backend.errors import ErrorCode, http_error
 from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
@@ -835,6 +835,284 @@ def import_courses(
         )
 
 
+def _import_items(
+    db: Session,
+    norm: str,
+    items: list,
+    errors: list[str],
+    on_progress: Callable[[int, int], None] | None = None,
+) -> tuple[int, int]:
+    """Normalize and create/update each course or student item, without committing.
+
+    Shared by the synchronous /upload endpoint and the /execute background job.
+    Per-item problems are appended to ``errors``; returns (created, updated).
+    ``on_progress(done, total)`` is called before each item.
+    """
+    created = 0
+    updated = 0
+    total = len(items)
+    for index, obj in enumerate(items):
+        if on_progress is not None:
+            on_progress(index, total)
+        if norm == "courses":
+            code = obj.get("course_code") if isinstance(obj, dict) else None
+            if not code:
+                errors.append("item: missing course_code")
+                continue
+            # Normalize fields similar to directory import
+            if "credits" in obj:
+                try:
+                    obj["credits"] = int(obj["credits"])
+                except Exception:
+                    errors.append(f"item: invalid credits '{obj.get('credits')}', using default")
+                    obj.pop("credits", None)
+            if "periods_per_week" in obj:
+                try:
+                    obj["periods_per_week"] = int(float(obj["periods_per_week"]))
+                except Exception:
+                    errors.append(f"item: invalid periods_per_week '{obj.get('periods_per_week')}', using default")
+                    obj.pop("periods_per_week", None)
+                else:
+                    if "hours_per_week" not in obj or obj.get("hours_per_week") in (None, ""):
+                        obj["hours_per_week"] = float(obj["periods_per_week"])
+            if "hours_per_week" in obj:
+                try:
+                    obj["hours_per_week"] = float(obj["hours_per_week"])
+                except Exception:
+                    errors.append(f"item: invalid hours_per_week '{obj.get('hours_per_week')}', using default")
+                    obj.pop("hours_per_week", None)
+            # Normalize simple string fields
+            if "course_code" in obj and isinstance(obj["course_code"], list):
+                obj["course_code"] = " ".join([str(x).strip() for x in obj["course_code"] if str(x).strip()])
+            if "course_name" in obj and isinstance(obj["course_name"], list):
+                obj["course_name"] = " ".join([str(x).strip() for x in obj["course_name"] if str(x).strip()])
+            if "semester" in obj and isinstance(obj["semester"], list):
+                obj["semester"] = " ".join([str(x).strip() for x in obj["semester"] if str(x).strip()])
+            # Set default semester if empty
+            if "semester" in obj and not obj["semester"]:
+                obj["semester"] = "Α' Εξάμηνο"  # Default to 1st semester
+            if "description" in obj and isinstance(obj["description"], list):
+                try:
+                    obj["description"] = "\n".join(map(lambda x: str(x), obj["description"]))
+                except Exception:
+                    obj["description"] = str(obj["description"])
+            if "evaluation_rules" in obj:
+                er = obj["evaluation_rules"]
+                rules = []  # Initialize rules variable at the start
+                if isinstance(er, str):
+                    try:
+                        obj["evaluation_rules"] = json.loads(er)
+                    except Exception:
+                        errors.append("item: evaluation_rules JSON parse failed, dropping field")
+                        obj.pop("evaluation_rules", None)
+                elif isinstance(er, list):
+                    if all(isinstance(x, dict) for x in er):
+                        # Keep as-is, translate later
+                        rules = er
+                    else:
+                        # First, join consecutive strings that might be part of a multi-line entry
+                        # A line ending with ':' followed by lines not containing ':' should be joined
+                        joined_entries = []
+                        current_entry = ""
+                        for x in er:
+                            if not isinstance(x, str):
+                                continue
+                            x_stripped = x.strip()
+                            if not x_stripped:
+                                continue
+                            # Skip metadata entries like "Γλώσσα", "Ελληνική", "Αγγλική", etc.
+                            if x_stripped in [
+                                "Γλώσσα",
+                                "Ελληνική",
+                                "Αγγλική",
+                                "Κωδικός",
+                                "Μαθήματος",
+                                "Τίτλος Μαθήματος",
+                                "Κωδικός Μαθήματος",
+                                "Τύπος Μαθήματος",
+                                "Υποχρεωτικό",
+                                "Επίπεδο",
+                                "Έτος/Εξάμηνο",
+                                "Φοίτησης",
+                                "Όνομα Διδάσκοντα",
+                                "Τίτλος Μαθήματος",
+                                "Επίπεδο 5 του Εθνικού Πλαισίου Προσόντων",
+                                "2o Έτος/Α΄ Εξάμηνο",
+                            ]:
+                                continue
+                            # If we have a current entry and this line has a percentage, it's a continuation
+                            # Length-limit guard to prevent polynomial backtracking on uncontrolled input
+                            if len(x_stripped) > 500:
+                                continue
+                            if current_entry and _ends_with_num(x_stripped):
+                                current_entry += " " + x_stripped
+                                joined_entries.append(current_entry)
+                                current_entry = ""
+                            # If current entry exists and this doesn't look like a continuation, save current and start new
+                            elif current_entry and ":" in x_stripped:
+                                joined_entries.append(current_entry)
+                                current_entry = x_stripped
+                            # If no current entry and this has a colon but no percentage, it's the start of a multi-line
+                            elif (
+                                not current_entry and ":" in x_stripped and not _ends_with_num(x_stripped)
+                            ):
+                                current_entry = x_stripped
+                            # If it has both colon and percentage, it's a complete entry
+                            elif ":" in x_stripped and _ends_with_num(x_stripped):
+                                joined_entries.append(x_stripped)
+                            # Otherwise, it's a continuation of current entry
+                            elif current_entry:
+                                current_entry += " " + x_stripped
+
+                        # Don't forget the last entry if any
+                        if current_entry:
+                            joined_entries.append(current_entry)
+
+                        # Now use joined_entries instead of er for parsing
+                        er = joined_entries  # type: ignore
+                        rules = []
+                        buf = []
+                        # Pairing of consecutive primitives (category, weight)
+                        for x in er:
+                            if isinstance(x, (str, int, float)):
+                                buf.append(x)
+                                if len(buf) == 2:
+                                    cat = str(buf[0]).strip()
+                                    w_raw = buf[1]
+                                    if isinstance(w_raw, str):
+                                        w_s = w_raw.replace("%", "").strip().replace(",", ".")
+                                        try:
+                                            weight = float(w_s)
+                                        except Exception:
+                                            weight = 0.0
+                                    else:
+                                        try:
+                                            weight = float(w_raw)
+                                        except Exception:
+                                            weight = 0.0
+                                    rules.append({"category": cat, "weight": weight})
+                                    buf = []
+                        if not rules:
+                            # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
+                            # Use re.split on the separator class (no overlapping quantifiers) to avoid ReDoS.
+                            for x in er:
+                                if isinstance(x, str) and len(x) <= 500:
+                                    x_s = x.strip()
+                                    parts = re.split(r"[,:\-]+", x_s, maxsplit=1)
+                                    if len(parts) == 2:
+                                        cat = parts[0].strip()
+                                        w_text = parts[1].strip().rstrip("%").strip()
+                                        if cat and w_text:
+                                            try:
+                                                weight = float(w_text.replace(",", "."))
+                                                rules.append({"category": cat, "weight": weight})
+                                            except ValueError:
+                                                pass
+                        # Only use parsed rules that have valid percentages, ignore metadata entries
+                        obj["evaluation_rules"] = rules if rules else []
+                # Translate/localize categories if we have rules
+                if isinstance(obj.get("evaluation_rules"), list):
+                    if obj["evaluation_rules"]:
+                        try:
+                            obj["evaluation_rules"] = _translate_rules(obj["evaluation_rules"])
+                        except Exception:
+                            pass
+                    # else: keep empty list silently
+                elif isinstance(er, dict):
+                    try:
+                        obj["evaluation_rules"] = _translate_rules([er])
+                    except Exception:
+                        obj["evaluation_rules"] = [er]
+                else:
+                    # Only report/drop if the original payload wasn't a list either
+                    if not isinstance(er, list):
+                        errors.append(f"item: evaluation_rules unsupported type {type(er)}, dropping field")
+                    obj.pop("evaluation_rules", None)
+            if "teaching_schedule" in obj:
+                ts = obj["teaching_schedule"]
+                if isinstance(ts, str):
+                    try:
+                        obj["teaching_schedule"] = json.loads(ts)
+                    except Exception:
+                        errors.append("item: teaching_schedule JSON parse failed, dropping field")
+                        obj.pop("teaching_schedule", None)
+                elif isinstance(ts, dict):
+                    pass
+                elif isinstance(ts, list) and len(ts) == 0:
+                    obj["teaching_schedule"] = []
+                else:
+                    errors.append(f"item: teaching_schedule unsupported type {type(ts)}, dropping field")
+                    obj.pop("teaching_schedule", None)
+
+            # Use service to create/update
+            was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+            if err:
+                errors.append(f"item: {err}")
+                continue
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+        else:  # students
+            if not isinstance(obj, dict):
+                errors.append("item: not an object")
+                continue
+            sid = obj.get("student_id")
+            email = obj.get("email")
+            if not sid or not email:
+                errors.append("item: missing student_id or email")
+                continue
+            if not _valid_email(email):
+                errors.append(f"item: invalid email '{email}'")
+                continue
+            # Normalize fields
+            if "first_name" in obj and isinstance(obj["first_name"], str):
+                obj["first_name"] = obj["first_name"].strip()
+            if "last_name" in obj and isinstance(obj["last_name"], str):
+                obj["last_name"] = obj["last_name"].strip()
+            if "enrollment_date" in obj:
+                parsed = _parse_date(obj.get("enrollment_date"))
+                if parsed is None:
+                    # Drop invalid date to avoid DB type errors
+                    errors.append("item: invalid enrollment_date, dropping field")
+                    obj.pop("enrollment_date", None)
+                else:
+                    obj["enrollment_date"] = parsed
+            if "is_active" in obj:
+                b = _to_bool(obj["is_active"])
+                if b is None:
+                    obj.pop("is_active", None)
+                else:
+                    obj["is_active"] = b
+            # Whitelist allowed fields (include extended profile fields supported by model)
+            # Use service to create/update
+            was_created, err = ImportService.create_or_update_student(db, obj)
+            if err:
+                errors.append(f"item: {err}")
+                continue
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+    return created, updated
+
+
+def _batch_from_upload(norm: str, filename: str, content: bytes, errors: list[str]) -> list:
+    """Parse one uploaded file (JSON, or CSV for students) into a list of items.
+
+    Raises on malformed JSON; CSV row problems are appended to ``errors``.
+    """
+    if filename.lower().endswith(".csv"):
+        if norm != "students":
+            errors.append(f"{filename}: CSV import only supported for students")
+            return []
+        csv_students, csv_errors = _parse_csv_students(content, filename)
+        errors.extend(csv_errors)
+        return csv_students
+    data = json.loads(content.decode("utf-8"))
+    return data if isinstance(data, list) else [data]
+
+
 @router.post("/upload")
 @limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
@@ -899,23 +1177,9 @@ async def import_from_upload(
         for up in uploads:
             try:
                 content = await validate_uploaded_file(request, up)
-
-                # Check file extension to determine format
-                filename = up.filename or ""
-                if filename.lower().endswith(".csv"):
-                    # Handle CSV files (only for students)
-                    if norm != "students":
-                        errors.append(f"{filename}: CSV import only supported for students")
-                        continue
-                    csv_students, csv_errors = _parse_csv_students(content, filename)
-                    if csv_errors:
-                        errors.extend(csv_errors)
-                    if csv_students:
-                        data_batches.append(csv_students)
-                else:
-                    # Handle JSON files
-                    data = json.loads(content.decode("utf-8"))
-                    data_batches.append(data if isinstance(data, list) else [data])
+                batch = _batch_from_upload(norm, up.filename or "", content, errors)
+                if batch:
+                    data_batches.append(batch)
             except HTTPException as http_exc:
                 # Re-raise validation errors with proper status codes
                 # Log the failed import attempt with request context
@@ -999,254 +1263,8 @@ async def import_from_upload(
                     error_message=str(exc),
                 )
 
-        # Flatten batches into items for processing
-        def iter_items():
-            for batch in data_batches:
-                for item in batch:
-                    yield item
-
-        # Start main import logic
-        for obj in iter_items():
-            if norm == "courses":
-                code = obj.get("course_code") if isinstance(obj, dict) else None
-                if not code:
-                    errors.append("item: missing course_code")
-                    continue
-                # Normalize fields similar to directory import
-                if "credits" in obj:
-                    try:
-                        obj["credits"] = int(obj["credits"])
-                    except Exception:
-                        errors.append(f"item: invalid credits '{obj.get('credits')}', using default")
-                        obj.pop("credits", None)
-                if "periods_per_week" in obj:
-                    try:
-                        obj["periods_per_week"] = int(float(obj["periods_per_week"]))
-                    except Exception:
-                        errors.append(f"item: invalid periods_per_week '{obj.get('periods_per_week')}', using default")
-                        obj.pop("periods_per_week", None)
-                    else:
-                        if "hours_per_week" not in obj or obj.get("hours_per_week") in (None, ""):
-                            obj["hours_per_week"] = float(obj["periods_per_week"])
-                if "hours_per_week" in obj:
-                    try:
-                        obj["hours_per_week"] = float(obj["hours_per_week"])
-                    except Exception:
-                        errors.append(f"item: invalid hours_per_week '{obj.get('hours_per_week')}', using default")
-                        obj.pop("hours_per_week", None)
-                # Normalize simple string fields
-                if "course_code" in obj and isinstance(obj["course_code"], list):
-                    obj["course_code"] = " ".join([str(x).strip() for x in obj["course_code"] if str(x).strip()])
-                if "course_name" in obj and isinstance(obj["course_name"], list):
-                    obj["course_name"] = " ".join([str(x).strip() for x in obj["course_name"] if str(x).strip()])
-                if "semester" in obj and isinstance(obj["semester"], list):
-                    obj["semester"] = " ".join([str(x).strip() for x in obj["semester"] if str(x).strip()])
-                # Set default semester if empty
-                if "semester" in obj and not obj["semester"]:
-                    obj["semester"] = "Α' Εξάμηνο"  # Default to 1st semester
-                if "description" in obj and isinstance(obj["description"], list):
-                    try:
-                        obj["description"] = "\n".join(map(lambda x: str(x), obj["description"]))
-                    except Exception:
-                        obj["description"] = str(obj["description"])
-                if "evaluation_rules" in obj:
-                    er = obj["evaluation_rules"]
-                    rules = []  # Initialize rules variable at the start
-                    if isinstance(er, str):
-                        try:
-                            obj["evaluation_rules"] = json.loads(er)
-                        except Exception:
-                            errors.append("item: evaluation_rules JSON parse failed, dropping field")
-                            obj.pop("evaluation_rules", None)
-                    elif isinstance(er, list):
-                        if all(isinstance(x, dict) for x in er):
-                            # Keep as-is, translate later
-                            rules = er
-                        else:
-                            # First, join consecutive strings that might be part of a multi-line entry
-                            # A line ending with ':' followed by lines not containing ':' should be joined
-                            joined_entries = []
-                            current_entry = ""
-                            for x in er:
-                                if not isinstance(x, str):
-                                    continue
-                                x_stripped = x.strip()
-                                if not x_stripped:
-                                    continue
-                                # Skip metadata entries like "Γλώσσα", "Ελληνική", "Αγγλική", etc.
-                                if x_stripped in [
-                                    "Γλώσσα",
-                                    "Ελληνική",
-                                    "Αγγλική",
-                                    "Κωδικός",
-                                    "Μαθήματος",
-                                    "Τίτλος Μαθήματος",
-                                    "Κωδικός Μαθήματος",
-                                    "Τύπος Μαθήματος",
-                                    "Υποχρεωτικό",
-                                    "Επίπεδο",
-                                    "Έτος/Εξάμηνο",
-                                    "Φοίτησης",
-                                    "Όνομα Διδάσκοντα",
-                                    "Τίτλος Μαθήματος",
-                                    "Επίπεδο 5 του Εθνικού Πλαισίου Προσόντων",
-                                    "2o Έτος/Α΄ Εξάμηνο",
-                                ]:
-                                    continue
-                                # If we have a current entry and this line has a percentage, it's a continuation
-                                # Length-limit guard to prevent polynomial backtracking on uncontrolled input
-                                if len(x_stripped) > 500:
-                                    continue
-                                if current_entry and _ends_with_num(x_stripped):
-                                    current_entry += " " + x_stripped
-                                    joined_entries.append(current_entry)
-                                    current_entry = ""
-                                # If current entry exists and this doesn't look like a continuation, save current and start new
-                                elif current_entry and ":" in x_stripped:
-                                    joined_entries.append(current_entry)
-                                    current_entry = x_stripped
-                                # If no current entry and this has a colon but no percentage, it's the start of a multi-line
-                                elif (
-                                    not current_entry and ":" in x_stripped and not _ends_with_num(x_stripped)
-                                ):
-                                    current_entry = x_stripped
-                                # If it has both colon and percentage, it's a complete entry
-                                elif ":" in x_stripped and _ends_with_num(x_stripped):
-                                    joined_entries.append(x_stripped)
-                                # Otherwise, it's a continuation of current entry
-                                elif current_entry:
-                                    current_entry += " " + x_stripped
-
-                            # Don't forget the last entry if any
-                            if current_entry:
-                                joined_entries.append(current_entry)
-
-                            # Now use joined_entries instead of er for parsing
-                            er = joined_entries  # type: ignore
-                            rules = []
-                            buf = []
-                            # Pairing of consecutive primitives (category, weight)
-                            for x in er:
-                                if isinstance(x, (str, int, float)):
-                                    buf.append(x)
-                                    if len(buf) == 2:
-                                        cat = str(buf[0]).strip()
-                                        w_raw = buf[1]
-                                        if isinstance(w_raw, str):
-                                            w_s = w_raw.replace("%", "").strip().replace(",", ".")
-                                            try:
-                                                weight = float(w_s)
-                                            except Exception:
-                                                weight = 0.0
-                                        else:
-                                            try:
-                                                weight = float(w_raw)
-                                            except Exception:
-                                                weight = 0.0
-                                        rules.append({"category": cat, "weight": weight})
-                                        buf = []
-                            if not rules:
-                                # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                # Use re.split on the separator class (no overlapping quantifiers) to avoid ReDoS.
-                                for x in er:
-                                    if isinstance(x, str) and len(x) <= 500:
-                                        x_s = x.strip()
-                                        parts = re.split(r"[,:\-]+", x_s, maxsplit=1)
-                                        if len(parts) == 2:
-                                            cat = parts[0].strip()
-                                            w_text = parts[1].strip().rstrip("%").strip()
-                                            if cat and w_text:
-                                                try:
-                                                    weight = float(w_text.replace(",", "."))
-                                                    rules.append({"category": cat, "weight": weight})
-                                                except ValueError:
-                                                    pass
-                            # Only use parsed rules that have valid percentages, ignore metadata entries
-                            obj["evaluation_rules"] = rules if rules else []
-                    # Translate/localize categories if we have rules
-                    if isinstance(obj.get("evaluation_rules"), list):
-                        if obj["evaluation_rules"]:
-                            try:
-                                obj["evaluation_rules"] = _translate_rules(obj["evaluation_rules"])
-                            except Exception:
-                                pass
-                        # else: keep empty list silently
-                    elif isinstance(er, dict):
-                        try:
-                            obj["evaluation_rules"] = _translate_rules([er])
-                        except Exception:
-                            obj["evaluation_rules"] = [er]
-                    else:
-                        # Only report/drop if the original payload wasn't a list either
-                        if not isinstance(er, list):
-                            errors.append(f"item: evaluation_rules unsupported type {type(er)}, dropping field")
-                        obj.pop("evaluation_rules", None)
-                if "teaching_schedule" in obj:
-                    ts = obj["teaching_schedule"]
-                    if isinstance(ts, str):
-                        try:
-                            obj["teaching_schedule"] = json.loads(ts)
-                        except Exception:
-                            errors.append("item: teaching_schedule JSON parse failed, dropping field")
-                            obj.pop("teaching_schedule", None)
-                    elif isinstance(ts, dict):
-                        pass
-                    elif isinstance(ts, list) and len(ts) == 0:
-                        obj["teaching_schedule"] = []
-                    else:
-                        errors.append(f"item: teaching_schedule unsupported type {type(ts)}, dropping field")
-                        obj.pop("teaching_schedule", None)
-
-                # Use service to create/update
-                was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
-                if err:
-                    errors.append(f"item: {err}")
-                    continue
-                if was_created:
-                    created += 1
-                else:
-                    updated += 1
-            else:  # students
-                if not isinstance(obj, dict):
-                    errors.append("item: not an object")
-                    continue
-                sid = obj.get("student_id")
-                email = obj.get("email")
-                if not sid or not email:
-                    errors.append("item: missing student_id or email")
-                    continue
-                if not _valid_email(email):
-                    errors.append(f"item: invalid email '{email}'")
-                    continue
-                # Normalize fields
-                if "first_name" in obj and isinstance(obj["first_name"], str):
-                    obj["first_name"] = obj["first_name"].strip()
-                if "last_name" in obj and isinstance(obj["last_name"], str):
-                    obj["last_name"] = obj["last_name"].strip()
-                if "enrollment_date" in obj:
-                    parsed = _parse_date(obj.get("enrollment_date"))
-                    if parsed is None:
-                        # Drop invalid date to avoid DB type errors
-                        errors.append("item: invalid enrollment_date, dropping field")
-                        obj.pop("enrollment_date", None)
-                    else:
-                        obj["enrollment_date"] = parsed
-                if "is_active" in obj:
-                    b = _to_bool(obj["is_active"])
-                    if b is None:
-                        obj.pop("is_active", None)
-                    else:
-                        obj["is_active"] = b
-                # Whitelist allowed fields (include extended profile fields supported by model)
-                # Use service to create/update
-                was_created, err = ImportService.create_or_update_student(db, obj)
-                if err:
-                    errors.append(f"item: {err}")
-                    continue
-                if was_created:
-                    created += 1
-                else:
-                    updated += 1
+        items = [item for batch in data_batches for item in batch]
+        created, updated = _import_items(db, norm, items, errors)
 
         try:
             db.commit()
@@ -1783,11 +1801,66 @@ def import_students(
         )
 
 
+def _run_import_job(
+    job_id: str,
+    session_factory: Callable[[], Session],
+    norm: str,
+    items: list,
+    errors: list[str],
+) -> None:
+    """Background task behind /imports/execute: import ``items`` and record the outcome on the job."""
+    from backend.schemas.jobs import JobResult
+    from backend.services.job_manager import JobManager
+
+    total = max(len(items), 1)  # JobProgress.total must be > 0
+    step = max(len(items) // 20, 1)  # ~5% granularity keeps Redis writes bounded
+
+    def report(done: int, _total: int) -> None:
+        if done % step == 0:
+            JobManager.update_progress(job_id, current=done, total=total, message=f"{done}/{len(items)}")
+
+    db = session_factory()
+    try:
+        created, updated = _import_items(db, norm, items, errors, on_progress=report)
+        db.commit()
+        failed = len(items) - created - updated
+        JobManager.update_progress(
+            job_id,
+            current=total,
+            total=total,
+            message=f"{len(items)}/{len(items)}",
+            processed=created + updated,
+            failed=failed,
+        )
+        JobManager.set_result(
+            job_id,
+            JobResult(
+                # Only a total wipe-out counts as failure; partial row errors are reported alongside.
+                success=bool(created or updated) or not errors,
+                message=f"Imported {norm}: {created} created, {updated} updated",
+                data={"type": norm, "created": created, "updated": updated},
+                errors=errors,
+                statistics={"created": created, "updated": updated, "failed": failed, "total": len(items)},
+            ),
+        )
+        logger.info("Import job %s finished: %s created, %s updated, %s errors", job_id, created, updated, len(errors))
+    except Exception as exc:
+        db.rollback()
+        logger.error("Import job %s failed: %s", job_id, exc, exc_info=True)
+        JobManager.set_result(
+            job_id,
+            JobResult(success=False, message="Import failed", errors=[*errors, f"{type(exc).__name__}: import failed"]),
+        )
+    finally:
+        db.close()
+
+
 @router.post("/execute")
 @limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:execute")
 async def import_execute(
     request: Request,
+    background_tasks: BackgroundTasks,
     import_type: str = Form(...),
     files: List[UploadFile] | None = File(None),
     json_text: str | None = Form(None),
@@ -1796,7 +1869,7 @@ async def import_execute(
     db: Session = Depends(get_db),
     api_key: str | None = Depends(verify_api_key_optional),
 ):
-    """Create an import job (validates inputs and returns job ID)."""
+    """Validate inputs, create an import job and run it in the background; returns the job ID."""
     from backend.schemas.jobs import JobCreate, JobType
     from backend.services.job_manager import JobManager
 
@@ -1828,12 +1901,14 @@ async def import_execute(
                 request,
             )
 
-        # Validate files before creating job
-        upload_contents: dict[str, bytes] = {}
+        # Validate and parse files before creating the job; the parsed items are
+        # handed straight to the background task (they are never stored in Redis).
+        data_batches: List[list] = []
+        parse_errors: list[str] = []
         for up in uploads:
             try:
                 content = await validate_uploaded_file(request, up)
-                upload_contents[up.filename or "file"] = content
+                data_batches.append(_batch_from_upload(norm, up.filename or "", content, parse_errors))
             except HTTPException:
                 raise
             except Exception as exc:
@@ -1859,7 +1934,8 @@ async def import_execute(
                         request,
                         context={"size_mb": round(size_mb, 2), "max_mb": round(max_mb, 2)},
                     )
-                json.loads(json_text)  # Validate JSON syntax
+                parsed = json.loads(json_text)
+                data_batches.append(parsed if isinstance(parsed, list) else [parsed])
             except json.JSONDecodeError as exc:
                 raise http_error(
                     400,
@@ -1888,13 +1964,15 @@ async def import_execute(
                 "skip_duplicates": skip_duplicates,
                 "file_count": len(uploads),
                 "has_json_data": bool(json_text),
-                # Note: file contents and json_text are NOT stored in job params
-                # They should be handled via a separate storage mechanism or passed through
-                # For now, we'll rely on the frontend resending them if needed for retry
             },
         )
 
         job_id = JobManager.create_job(job_create)
+        items = [item for batch in data_batches for item in batch]
+        # A fresh session bound to the request's engine: the request-scoped
+        # session is closed once the response is sent, before this task runs.
+        session_factory = sessionmaker(bind=db.get_bind(), autocommit=False, autoflush=False)
+        background_tasks.add_task(_run_import_job, job_id, session_factory, norm, items, parse_errors)
 
         # Audit log the job creation
         try:

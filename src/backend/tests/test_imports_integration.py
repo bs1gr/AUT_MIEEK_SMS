@@ -179,10 +179,18 @@ class TestImportExecuteEndpoint:
         assert len(job_id) > 0
         assert body["status"] == "pending"
 
-        # Verify job exists
+        # The job must actually run: TestClient executes background tasks before returning.
+        # (Regression: the job used to be created and never processed, stuck at "pending".)
         job = JobManager.get_job(job_id)
         assert job is not None
         assert job.job_type == "student_import"
+        assert job.status == "completed", job.error_message
+        assert job.result is not None and job.result.data == {"type": "students", "created": 1, "updated": 0}
+        assert job.progress is not None and job.progress.percentage == 100
+
+        students = client.get("/api/v1/students/", params={"search": "STU_EXEC_001"}).json()
+        items = students.get("items", students) if isinstance(students, dict) else students
+        assert any(s.get("student_id") == "STU_EXEC_001" for s in items)
 
     def test_execute_with_json_text(self, client: TestClient):
         """Execute should accept JSON text parameter."""
@@ -210,6 +218,19 @@ class TestImportExecuteEndpoint:
         job = JobManager.get_job(job_id)
         assert job is not None
         assert job.job_type == "course_import"
+        assert job.status == "completed", job.error_message
+        assert job.result is not None and job.result.data["created"] == 1
+
+    def test_execute_all_rows_invalid_marks_job_failed(self, client: TestClient):
+        """A job where every row is rejected must end as failed, not hang or report success."""
+        data = {"import_type": "students", "json_text": json.dumps([{"student_id": "NO_EMAIL"}])}
+        resp = client.post("/api/v1/imports/execute", data=data)
+        assert resp.status_code == 200
+
+        job = JobManager.get_job(resp.json()["job_id"])
+        assert job is not None
+        assert job.status == "failed"
+        assert job.error_message and "missing student_id or email" in job.error_message
 
     def test_execute_rejects_no_data(self, client: TestClient):
         """Execute should reject requests with no files or JSON."""
@@ -246,7 +267,8 @@ class TestJobTracking:
         job_info = resp2.json()
 
         assert job_info["job_id"] == job_id
-        assert job_info["status"] == "pending"
+        # Row has no email/last_name, so the job runs to a terminal "failed" state
+        assert job_info["status"] == "failed"
         assert job_info["job_type"] == "student_import"
 
     def test_job_invalid_id_returns_404(self, client: TestClient):
@@ -297,7 +319,7 @@ class TestPreviewAndExecuteWorkflow:
         job = JobManager.get_job(job_id)
         assert job is not None
         assert job.job_type == "student_import"
-        assert job.status == "pending"
+        assert job.status == "completed", job.error_message
 
 
 class TestImportErrorHandling:
