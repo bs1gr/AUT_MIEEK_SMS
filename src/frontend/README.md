@@ -30,7 +30,7 @@ Add the following to your local `.env` only when needed:
 ```dotenv
 VITE_ENABLE_AUTO_LOGIN=true
 VITE_AUTO_LOGIN_EMAIL=admin@example.com
-VITE_AUTO_LOGIN_PASSWORD=YourSecurePassword123!
+VITE_AUTO_LOGIN_PASSWORD=<your dev admin password>
 ```
 
 Do **not** set these in production builds—users should sign in normally.

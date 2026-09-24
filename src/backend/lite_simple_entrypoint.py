@@ -132,7 +132,9 @@ os.environ.setdefault('SMS_ENV', 'development')
 os.environ.setdefault('AUTH_ENABLED', 'true')
 os.environ.setdefault('AUTH_MODE', 'strict')
 
-# Set default admin credentials for Native Lite (auto-create on first run)
+# Set default admin credentials for Native Lite (auto-create on first run). This password is
+# public (it is in this repo): the server only lets it be used to set a new password
+# (security/default_passwords.py + current_user.password_change_blocks).
 os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
 os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
 os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
@@ -538,9 +540,10 @@ def main() -> None:
         print("="*60)
         print("\n📱 Open your browser and go to:")
         print("   👉 http://127.0.0.1:8000")
-        print("\n🔐 Login with:")
+        print("\n🔐 First login (only if you have not set your own password yet):")
         print("   Email:    admin@sms-lite.app")
         print("   Password: AdminPassword123!")
+        print("   This default is public: you must choose a new password before using the app.")
         print("\n" + "="*60 + "\n")
     except Exception:
         pass

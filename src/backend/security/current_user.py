@@ -17,6 +17,20 @@ def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
+# What a user may still do while password_change_required is set: see who they
+# are, change the password, keep/end the session. Everything else is refused, so
+# a bootstrap/default password (e.g. SMS_Lite's, which is public) cannot be used
+# for anything but replacing itself.
+PASSWORD_CHANGE_ALLOWED_SUFFIXES = ("/auth/me", "/auth/change-password", "/auth/refresh", "/auth/logout")
+
+
+def password_change_blocks(user: Any, path: str) -> bool:
+    """True when ``user`` must change their password and ``path`` is not allowed meanwhile."""
+    if not bool(getattr(user, "password_change_required", False)):
+        return False
+    return not path.rstrip("/").endswith(PASSWORD_CHANGE_ALLOWED_SUFFIXES)
+
+
 async def get_current_user(
     request: Request,
     token: str | None = None,
@@ -100,6 +114,13 @@ async def get_current_user(
     user = db.query(models.User).filter(models.User.email == email).first()
     if user is None or not bool(getattr(user, "is_active", False)):
         raise credentials_exception
+    if password_change_blocks(user, path):
+        raise http_error(
+            status.HTTP_403_FORBIDDEN,
+            ErrorCode.AUTH_PASSWORD_CHANGE_REQUIRED,
+            "Password change required before using the application",
+            request,
+        )
     return user
 
 

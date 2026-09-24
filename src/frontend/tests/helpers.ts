@@ -75,7 +75,7 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
  */
 export async function loginAsAdmin(page: Page) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'YourSecurePassword123!';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'E2eAdmin#Pass2026';
 
   if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
     console.warn('WARNING: Using default admin credentials. For better security, set ADMIN_EMAIL and ADMIN_PASSWORD environment variables.');

@@ -114,10 +114,10 @@ def _admin_from_bearer(request: Request) -> bool:
     except Exception:
         return False
 
-    role = str(payload.get("role", "")).strip().lower()
-    if role:
-        return role == "admin"
-
+    # Always check the database: the token's own "role" claim used to be trusted
+    # outright, so a deactivated admin kept Control API access until the token
+    # expired, and an admin still on a bootstrap/default password (e.g. SMS_Lite's
+    # public one) could restart/exit the app or rewrite auth settings remotely.
     email = str(payload.get("sub", "")).strip().lower()
     if not email:
         return False
@@ -126,6 +126,8 @@ def _admin_from_bearer(request: Request) -> bool:
         with SessionLocal() as db:
             user = db.query(models.User).filter(models.User.email == email).first()
             if not user or not bool(getattr(user, "is_active", False)):
+                return False
+            if bool(getattr(user, "password_change_required", False)):
                 return False
             return str(getattr(user, "role", "")).strip().lower() == "admin"
     except Exception:

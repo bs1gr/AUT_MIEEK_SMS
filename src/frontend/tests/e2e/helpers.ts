@@ -555,15 +555,14 @@ export async function waitForTableRow(page: Page, rowText: string) {
 /**
  * Admin credentials to try, most specific first.
  *
- * Environments differ: `admin@example.com` is the seeded admin in some, while a Native or
- * SMS_Lite install has `admin@sms-lite.app`. Set PLAYWRIGHT_ADMIN_EMAIL and
- * PLAYWRIGHT_ADMIN_PASSWORD to pin it explicitly.
+ * `admin@example.com` is the seeded E2E admin (seed_e2e_data.py). Set PLAYWRIGHT_ADMIN_EMAIL and
+ * PLAYWRIGHT_ADMIN_PASSWORD to use another account. Published default passwords (e.g. SMS_Lite's)
+ * are deliberately absent: the server only lets them change the password.
  */
 const adminCredentialCandidates = (): Array<[string, string]> => {
   const configured: Array<[string | undefined, string | undefined]> = [
     [process.env.PLAYWRIGHT_ADMIN_EMAIL, process.env.PLAYWRIGHT_ADMIN_PASSWORD],
-    ['admin@example.com', 'YourSecurePassword123!'], // pragma: allowlist secret
-    ['admin@sms-lite.app', 'AdminPassword123!'], // pragma: allowlist secret
+    ['admin@example.com', 'E2eAdmin#Pass2026'], // pragma: allowlist secret
   ];
   return configured.filter((pair): pair is [string, string] => Boolean(pair[0] && pair[1]));
 };

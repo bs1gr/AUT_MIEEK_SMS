@@ -2259,9 +2259,16 @@ DATABASE_URL=sqlite:////data/student_management.db
 
     if ($configured) {
         Write-Host ""
-        Write-Info "Default admin credentials:"
-        Write-Host "  Email:    admin@example.com" -ForegroundColor White
-        Write-Host "  Password: YourSecurePassword123!" -ForegroundColor White
+        # Show what is actually configured (first-run setup generates a random password)
+        $envAdmin = @{}
+        if (Test-Path $ROOT_ENV) {
+            foreach ($line in Get-Content $ROOT_ENV) {
+                if ($line -match '^\s*(DEFAULT_ADMIN_EMAIL|DEFAULT_ADMIN_PASSWORD)\s*=\s*(.*)$') { $envAdmin[$Matches[1]] = $Matches[2].Trim() }
+            }
+        }
+        Write-Info "Default admin credentials (from config\.env):"
+        Write-Host "  Email:    $($envAdmin['DEFAULT_ADMIN_EMAIL'])" -ForegroundColor White
+        Write-Host "  Password: $($envAdmin['DEFAULT_ADMIN_PASSWORD'])" -ForegroundColor White
         Write-Warning "Change password after first login in Control Panel -> Maintenance"
         Write-Host ""
     }
@@ -2823,7 +2830,7 @@ function Start-Installation {
     Write-Info "Next steps:"
     Write-Host "  1. Start application:  .\DOCKER.ps1 -Start" -ForegroundColor White
     Write-Host "  2. Access web app:     http://localhost:$PORT" -ForegroundColor White
-    Write-Host "  3. Login:              admin@example.com / YourSecurePassword123!" -ForegroundColor White
+    Write-Host "  3. Login:              DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD from config\.env" -ForegroundColor White
     Write-Host "  4. Change password:    Control Panel -> Maintenance" -ForegroundColor White
     Write-Host ""
 

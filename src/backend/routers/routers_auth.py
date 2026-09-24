@@ -31,6 +31,7 @@ from backend.schemas.auth import PasswordChangeRequest
 from backend.security import login_throttle
 from backend.security.csrf import clear_csrf_cookie, issue_csrf_cookie
 from backend.security.current_user import decode_token, get_current_user
+from backend.security.default_passwords import is_published_default_password
 from backend.security.password_hash import (
     get_password_hash,
     needs_rehash,
@@ -613,6 +614,18 @@ async def login(
             db.rollback()
             logger.exception("Failed to auto-rehash password")
 
+        # A password published in this (public) repo -- e.g. SMS_Lite's bootstrap admin
+        # password -- may only be used to replace itself: flag the account so every
+        # endpoint but change-password/me/refresh/logout answers 403 until it changes.
+        if is_published_default_password(payload.password) and not bool(
+            getattr(user, "password_change_required", False)
+        ):
+            user.password_change_required = True
+            db.add(user)
+            db.commit()
+            logger.warning("Login with a published default password; password change now required",
+                           extra={"user_id": user.id})
+
         access_token = create_access_token(subject=str(getattr(user, "email", "")), role=str(getattr(user, "role", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible
         try:
@@ -1171,6 +1184,14 @@ async def change_password(
                 status.HTTP_400_BAD_REQUEST,
                 ErrorCode.AUTH_INVALID_CREDENTIALS,
                 "Current password is incorrect",
+                request,
+            )
+
+        if is_published_default_password(payload.new_password):
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST,
+                ErrorCode.VALIDATION_FAILED,
+                "This password is publicly known and cannot be used",
                 request,
             )
 

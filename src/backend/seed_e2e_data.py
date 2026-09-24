@@ -76,8 +76,8 @@ def seed_e2e_data(force: bool = False):
         print(f"[DEBUG] Test user password hash created: {test_password_hash[:30]}...")
         db.add(test_user)
 
-        # Create admin user (used by E2E tests: admin@example.com / YourSecurePassword123!)
-        admin_password = "YourSecurePassword123!"
+        # Create admin user (used by E2E tests: admin@example.com / E2eAdmin#Pass2026)
+        admin_password = "E2eAdmin#Pass2026"
         admin_password_hash = get_password_hash(admin_password)
         admin_user = User(
             email="admin@example.com",
@@ -201,7 +201,7 @@ def seed_e2e_data(force: bool = False):
         print("   - test@example.com (password: Test@Pass123)")
         print(f"     Role: {final_test_user.role if final_test_user else 'NOT FOUND'}")
         print(f"     Active: {final_test_user.is_active if final_test_user else 'NOT FOUND'}")
-        print("   - admin@example.com (password: YourSecurePassword123!)")
+        print("   - admin@example.com (password: E2eAdmin#Pass2026)")
         print(f"     Role: {final_admin_user.role if final_admin_user else 'NOT FOUND'}")
         print(f"     Active: {final_admin_user.is_active if final_admin_user else 'NOT FOUND'}")
         print(f"\n✅ Students in database: {len(final_students)}")

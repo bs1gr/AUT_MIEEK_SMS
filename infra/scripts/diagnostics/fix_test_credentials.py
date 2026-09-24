@@ -31,7 +31,7 @@ try:
     # Fix admin@example.com
     user2 = db.query(User).filter(User.email == "admin@example.com").first()
     if user2:
-        user2.hashed_password = get_password_hash("YourSecurePassword123!")
+        user2.hashed_password = get_password_hash("E2eAdmin#Pass2026")
         print(f"✅ Updated admin@example.com password")
     else:
         print("❌ admin@example.com not found")

@@ -10,7 +10,7 @@ test.describe.skip('Search Feature E2E Tests', () => {
     // Login before each test
     await page.goto('/login');
     await page.fill('input[type="email"]', 'admin@example.com');
-    await page.fill('input[type="password"]', 'YourSecurePassword123!');
+    await page.fill('input[type="password"]', 'E2eAdmin#Pass2026');
     await page.click('button[type="submit"]');
     await page.waitForNavigation();
 

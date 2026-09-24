@@ -6,7 +6,7 @@ import { loginViaAPI } from './helpers';
 // E2E_PASSWORD, which this spec previously gave no way to pass.
 const ADMIN_CREDENTIALS = {
   email: process.env.E2E_EMAIL || 'admin@example.com',
-  password: process.env.E2E_PASSWORD || 'YourSecurePassword123!',
+  password: process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026',
 };
 
 test.describe('Feature #127: Bulk Import/Export', () => {

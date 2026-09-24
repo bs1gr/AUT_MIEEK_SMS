@@ -29,7 +29,7 @@ test.describe('Custom Reports Workflows', () => {
 
     const apiBase = resolveApiBase();
     const adminEmail = process.env.E2E_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.E2E_PASSWORD || 'YourSecurePassword123!';
+    const adminPassword = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
 
     let authenticated = false;
 

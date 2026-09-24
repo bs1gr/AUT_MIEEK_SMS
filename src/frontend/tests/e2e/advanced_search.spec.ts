@@ -22,7 +22,7 @@ import { loginViaAPI } from './helpers';
 test.setTimeout(60_000);
 
 const E2E_EMAIL = process.env.E2E_EMAIL || 'admin@example.com';
-const E2E_PASSWORD = process.env.E2E_PASSWORD || 'YourSecurePassword123!';
+const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
 
 test.describe('Advanced Search & Filtering - E2E (smoke)', () => {
   test.beforeEach(async ({ page }) => {
