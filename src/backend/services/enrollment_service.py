@@ -10,6 +10,7 @@ from backend.db_utils import get_by_id_or_404, paginate
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.schemas.common import PaginationParams
+from backend.services.course_activation import sync_course_activation
 from backend.schemas.enrollments import (
     EnrollmentCreate,
     EnrollmentResponse,
@@ -206,8 +207,8 @@ class EnrollmentService:
             )
 
             if existing:
-                # Reactivate if soft-deleted
-                if existing.deleted_at is not None:
+                # Reactivate if soft-deleted, or completed/dropped (re-enrolling into an ended course)
+                if existing.deleted_at is not None or existing.status != "active":
                     existing.deleted_at = None
                     if payload.enrolled_at:
                         existing.enrolled_at = payload.enrolled_at
@@ -229,6 +230,7 @@ class EnrollmentService:
             created += 1
 
         db.flush()
+        sync_course_activation(db, [course_id])
 
         logger.info(f"Enrolled {created} students and reactivated {reactivated} enrollments in course {course_id}")
 
@@ -274,6 +276,7 @@ class EnrollmentService:
 
         enrollment.mark_deleted()
         db.flush()
+        sync_course_activation(db, [course_id])
 
         logger.info(f"Unenrolled student {student_id} from course {course_id}")
 
@@ -310,6 +313,7 @@ class EnrollmentService:
 
         enrollment.status = payload.status
         db.flush()
+        sync_course_activation(db, [course_id])
 
         logger.info(
             "Updated enrollment status",

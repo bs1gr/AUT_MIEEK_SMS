@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ArrowRight, CheckCircle, RotateCw } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
-// import { Divider } from '@/components/Divider'; // Not used in current implementation
 import type { OperationsLocationState } from '@/features/operations/types';
 import type { Course as CourseType, TeachingScheduleEntry } from '@/types';
 
@@ -10,10 +9,40 @@ type DaySchedule = { periods: number; start_time: string; duration: number };
 
 type Props = {
   courses: CourseType[];
+  /** Mark a course ended (false) or reactivate it (true). Omit to render read-only. */
+  onSetCourseActive?: (courseId: number, isActive: boolean) => Promise<void>;
 };
 
-const CalendarView: React.FC<Props> = ({ courses }) => {
+const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive }) => {
   const { t } = useLanguage();
+  const [busyCourseId, setBusyCourseId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [showEnded, setShowEnded] = useState(false);
+
+  // Only active courses (derived server-side: they have enrolled students) are on the schedule
+  const courses = allCourses.filter((c) => c.is_active !== false);
+  const endedCourses = allCourses.filter((c) => c.is_active === false);
+
+  const setCourseActive = async (course: CourseType, isActive: boolean) => {
+    if (!onSetCourseActive) return;
+    const label = `${course.course_code} - ${course.course_name}`;
+    if (!isActive && !window.confirm(t('confirmEndCourse', { course: label }))) return;
+    setBusyCourseId(course.id);
+    setActionError(null);
+    try {
+      await onSetCourseActive(course.id, isActive);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (isActive && status === 409) {
+        // Nothing to restore: a course only becomes active by enrolling students
+        setActionError(t('reactivateCourseNoStudents', { course: label }));
+      } else {
+        setActionError(t(isActive ? 'reactivateCourseFailed' : 'endCourseFailed'));
+      }
+    } finally {
+      setBusyCourseId(null);
+    }
+  };
 
   // Days with keys for data lookup and translated display names
   const days: { key: string; displayName: string }[] = [
@@ -95,11 +124,25 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
                         <div className="font-medium text-gray-800">
                           {course.course_code} - {course.course_name}
                         </div>
-                        <div className="text-xs text-gray-500 flex items-center space-x-1">
-                          <Clock size={14} />
-                          <span>
-                            {t('scheduleCompact', { start: sched.start_time, periods: sched.periods, duration: sched.duration })}
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <div className="text-xs text-gray-500 flex items-center space-x-1">
+                            <Clock size={14} />
+                            <span>
+                              {t('scheduleCompact', { start: sched.start_time, periods: sched.periods, duration: sched.duration })}
+                            </span>
+                          </div>
+                          {onSetCourseActive && (
+                            <button
+                              type="button"
+                              onClick={() => void setCourseActive(course, false)}
+                              disabled={busyCourseId === course.id}
+                              title={t('markCourseEnded')}
+                              aria-label={`${t('markCourseEnded')}: ${course.course_code}`}
+                              className="flex-shrink-0 rounded p-1 text-gray-400 transition hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50"
+                            >
+                              <CheckCircle size={16} aria-hidden="true" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -113,6 +156,41 @@ const CalendarView: React.FC<Props> = ({ courses }) => {
           </div>
         ))}
       </div>
+
+      {actionError && (
+        <div className="text-sm text-red-600" role="alert">{actionError}</div>
+      )}
+
+      {onSetCourseActive && endedCourses.length > 0 && (
+        <div className="bg-white rounded-xl shadow border border-gray-200 p-4">
+          <button
+            type="button"
+            onClick={() => setShowEnded((v) => !v)}
+            aria-expanded={showEnded}
+            className="text-sm font-semibold text-gray-700 hover:text-indigo-600"
+          >
+            {showEnded ? '▾' : '▸'} {t('endedCourses', { count: endedCourses.length })}
+          </button>
+          {showEnded && (
+            <ul className="mt-3 space-y-2">
+              {endedCourses.map((course) => (
+                <li key={course.id} className="flex items-center justify-between gap-2 rounded-lg border p-3 text-gray-500">
+                  <span>{course.course_code} - {course.course_name}</span>
+                  <button
+                    type="button"
+                    onClick={() => void setCourseActive(course, true)}
+                    disabled={busyCourseId === course.id}
+                    className="inline-flex flex-shrink-0 items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <RotateCw size={14} aria-hidden="true" />
+                    {t('reactivateCourse')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -124,6 +124,23 @@ export function useUpdateCourse() {
   });
 }
 
+// End a course (active=false) or reactivate it (active=true); the server derives
+// is_active from enrollments, so this completes / restores the course's enrollments
+export function useSetCourseActive() {
+  const queryClient = useQueryClient();
+  const updateCourse = useCoursesStore((state) => state.updateCourse);
+
+  return useMutation({
+    mutationFn: ({ id, active }: { id: number; active: boolean }) =>
+      active ? coursesAPI.reactivate(id) : coursesAPI.end(id),
+    onSuccess: (updatedCourse) => {
+      updateCourse(updatedCourse.id, updatedCourse);
+      queryClient.invalidateQueries({ queryKey: courseKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: courseKeys.detail(updatedCourse.id) });
+    },
+  });
+}
+
 // Delete course mutation
 export function useDeleteCourse() {
   const queryClient = useQueryClient();

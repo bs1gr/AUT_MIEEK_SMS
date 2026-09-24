@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { getLetterGrade, percentageToGreekScale } from '@/utils/gradeUtils';
-import { computeAutoActivation } from '@/utils/courseAutoActivation';
 import { getLocalizedCategory } from '@/utils/categoryLabels';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { CourseCardSkeleton } from '@/components/ui';
@@ -269,16 +268,8 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     () => topPerformers.filter((student) => activeEnrollmentStudentIds.has(student.id)),
     [topPerformers, activeEnrollmentStudentIds]
   );
-  const isCourseActiveNow = useCallback((course: Course) => {
-    const semester = String(course.semester || '').trim();
-    if (semester) {
-      const autoActive = computeAutoActivation(semester);
-      if (autoActive !== null) {
-        return autoActive;
-      }
-    }
-    return course.is_active !== false;
-  }, []);
+  // is_active is derived server-side from enrollments (active while students are enrolled)
+  const isCourseActiveNow = useCallback((course: Course) => course.is_active === true, []);
 
   const activeCoursesWithEnrollments = useMemo(
     () =>

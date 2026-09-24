@@ -118,6 +118,8 @@ export const buildPrintableSchedule = (courses: CourseType[]): Record<string, Pr
   const schedule = emptyWeek();
 
   (Array.isArray(courses) ? courses : []).forEach((course) => {
+    // Ended courses (is_active === false) are off the calendar, so off the printout too
+    if (course?.is_active === false) return;
     const entries = extractScheduleEntries(course?.teaching_schedule);
     entries.forEach(({ day, data }) => {
       if (!schedule[day]) return;

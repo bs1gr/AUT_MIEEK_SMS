@@ -1,9 +1,6 @@
 """Course management API router."""
 
 import logging
-import re
-import unicodedata
-from datetime import date
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
@@ -17,12 +14,10 @@ from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
+from backend.services import course_activation
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})
-
-_YEAR_PATTERN = re.compile(r"(\d{4})")
-
 
 def _coerce_weight(value: Any) -> Optional[float]:
     if value is None:
@@ -189,60 +184,6 @@ def _calculate_periods_per_week(schedule: Any) -> int:
     return total
 
 
-def _strip_diacritics(value: str) -> str:
-    return "".join(ch for ch in unicodedata.normalize("NFKD", value) if not unicodedata.combining(ch))
-
-
-def _infer_semester_kind(semester: str) -> Optional[str]:
-    if not semester:
-        return None
-    normalized = _strip_diacritics(semester).casefold()
-    if any(token in normalized for token in ["academic", "school", "ακαδημ", "σχολικ"]):
-        return "academic"
-    if any(token in normalized for token in ["winter", "fall", "autumn", "χειμεριν", "χειμερινο", "α'", "α΄", "a'"]):
-        return "winter"
-    if any(token in normalized for token in ["spring", "εαριν", "εαρινο", "β'", "β΄", "b'"]):
-        return "spring"
-    return None
-
-
-def _extract_year(semester: str) -> Optional[int]:
-    if not semester:
-        return None
-    match = _YEAR_PATTERN.search(semester)
-    if not match:
-        return None
-    try:
-        return int(match.group(1))
-    except ValueError:
-        return None
-
-
-def _semester_date_range(semester: str, today: date) -> Optional[Tuple[date, date]]:
-    kind = _infer_semester_kind(semester)
-    if not kind:
-        return None
-    year = _extract_year(semester) or today.year
-    if kind == "winter":
-        return date(year, 9, 15), date(year + 1, 1, 30)
-    if kind == "spring":
-        return date(year, 2, 1), date(year, 6, 30)
-    if kind == "academic":
-        return date(year, 9, 1), date(year + 1, 6, 30)
-    return None
-
-
-def _auto_is_active(semester: str, today: Optional[date] = None) -> Optional[bool]:
-    if not semester:
-        return None
-    today = today or date.today()
-    date_range = _semester_date_range(semester, today)
-    if not date_range:
-        return None
-    start_date, end_date = date_range
-    return start_date <= today <= end_date
-
-
 @router.post("/", response_model=CourseResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:create")
@@ -272,14 +213,9 @@ async def create_course(
             )
 
         payload = course.model_dump()
-        if payload.get("is_active") is None:
-            auto_active = _auto_is_active(payload.get("semester") or "")
-            if auto_active is not None:
-                payload["is_active"] = auto_active
-                logger.info(
-                    f"Auto-activation applied: course_code={payload.get('course_code')}, "
-                    f"semester={payload.get('semester')}, is_active={auto_active}"
-                )
+        # is_active is derived from enrollments (services.course_activation):
+        # a new course has no students yet, so it always starts inactive.
+        payload["is_active"] = False
         payload["evaluation_rules"] = _normalize_evaluation_rules(payload.get("evaluation_rules"))
         if "teaching_schedule" in payload:
             payload["periods_per_week"] = _calculate_periods_per_week(payload.get("teaching_schedule"))
@@ -383,14 +319,8 @@ async def update_course(
             course.evaluation_rules = normalized
             update_data.pop("evaluation_rules")
 
-        if "semester" in update_data and update_data.get("is_active") is None:
-            auto_active = _auto_is_active(update_data.get("semester") or "")
-            if auto_active is not None:
-                update_data["is_active"] = auto_active
-                logger.info(
-                    f"Auto-activation applied on update: course_id={course_id}, "
-                    f"semester={update_data.get('semester')}, is_active={auto_active}"
-                )
+        # is_active is derived from enrollments; change it via /end or /reactivate
+        update_data.pop("is_active", None)
 
         if "teaching_schedule" in update_data:
             update_data["periods_per_week"] = _calculate_periods_per_week(update_data.get("teaching_schedule"))
@@ -408,6 +338,71 @@ async def update_course(
         raise
     except Exception as exc:
         logger.exception("Error updating course %s: %s", course_id, exc)
+        raise internal_server_error(request=request)
+
+
+@router.post("/{course_id}/end", response_model=CourseResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("courses:edit")
+async def end_course(
+    request: Request,
+    course_id: int,
+    db: Session = Depends(get_db),
+):
+    """Mark a course as ended: its active enrollments become completed, so it deactivates.
+
+    Grades, attendance and enrollments are kept; POST /reactivate undoes it.
+    """
+    try:
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
+        with transaction(db):
+            completed = course_activation.end_course(db, course_id)
+            db.refresh(course)
+        logger.info("Ended course %s: %s enrollments completed", course_id, completed)
+        course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
+        return course
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error ending course %s: %s", course_id, exc)
+        raise internal_server_error(request=request)
+
+
+@router.post("/{course_id}/reactivate", response_model=CourseResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("courses:edit")
+async def reactivate_course(
+    request: Request,
+    course_id: int,
+    db: Session = Depends(get_db),
+):
+    """Undo /end: completed enrollments become active again, reactivating the course.
+
+    409 when the course has no completed enrollments to restore (it can only
+    become active by enrolling students).
+    """
+    try:
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
+        with transaction(db):
+            restored = course_activation.reactivate_course(db, course_id)
+            db.refresh(course)
+        if not course.is_active:
+            raise http_error(
+                409,
+                ErrorCode.COURSE_NO_ENROLLMENTS,
+                "Course has no students to reactivate; enroll students to activate it",
+                request,
+                context={"course_id": course_id},
+            )
+        logger.info("Reactivated course %s: %s enrollments restored", course_id, restored)
+        course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
+        return course
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error reactivating course %s: %s", course_id, exc)
         raise internal_server_error(request=request)
 
 

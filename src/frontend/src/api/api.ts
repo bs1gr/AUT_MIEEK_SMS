@@ -577,6 +577,20 @@ export const coursesAPI = {
     return unwrapResponse<Course>(response.data);
   },
 
+  // is_active is derived from enrollments; these complete / restore the course's enrollments
+  end: async (id: number): Promise<Course> => {
+    const response = await apiClient.post(`/courses/${id}/end`);
+    invalidateApiCache('/courses/');
+    return unwrapResponse<Course>(response.data);
+  },
+
+  // Rejects with HTTP 409 when the course has no students to restore
+  reactivate: async (id: number): Promise<Course> => {
+    const response = await apiClient.post(`/courses/${id}/reactivate`);
+    invalidateApiCache('/courses/');
+    return unwrapResponse<Course>(response.data);
+  },
+
   delete: async (id: number): Promise<{ message: string }> => {
     const response = await apiClient.delete(`/courses/${id}`);
     invalidateApiCache('/courses/');

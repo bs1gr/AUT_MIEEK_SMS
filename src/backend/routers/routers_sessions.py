@@ -579,6 +579,11 @@ async def import_session(
         _import_daily_performance(db, import_data.get("daily_performance", []), merge_strategy, results)
         _import_highlights(db, import_data.get("highlights", []), merge_strategy, results)
 
+        # Imported courses carry the exporter's is_active; re-derive it from enrollments
+        from backend.services.course_activation import sync_course_activation
+
+        sync_course_activation(db)
+
         # Check for critical errors before commit
         if critical_errors:
             db.rollback()

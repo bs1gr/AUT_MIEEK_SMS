@@ -47,4 +47,12 @@ export default {
   noClasses: 'No classes',
   class: 'class',
   classes: 'classes',
+  markCourseEnded: 'Mark course as ended',
+  confirmEndCourse:
+    'Mark "{{course}}" as ended?\n\nIts students\' enrollments are marked as completed, so the course becomes inactive: it leaves the calendar and is hidden from Grading. Grades and attendance are kept, and you can reactivate it at any time.',
+  endCourseFailed: 'Could not mark the course as ended. Please try again.',
+  reactivateCourseFailed: 'Could not reactivate the course. Please try again.',
+  reactivateCourseNoStudents: '"{{course}}" has no students to reactivate. Enroll students in it to make it active.',
+  endedCourses: 'Inactive courses ({{count}})',
+  reactivateCourse: 'Reactivate',
 };

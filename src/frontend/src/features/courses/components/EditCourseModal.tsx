@@ -18,7 +18,6 @@ import {
   Textarea,
 } from '@/components/ui';
 import { modalVariants, backdropVariants } from '@/utils/animations';
-import { getAutoActivationStatus } from '@/utils/courseAutoActivation';
 
 interface EditCourseModalProps {
   course: Course;
@@ -82,6 +81,9 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
         description: course.description || '',
         credits: course.credits || 3,
         semester: course.semester || '',
+        // year is required by courseSchema but has no visible field; omitting it here
+        // made validation fail silently, so "Save changes" did nothing
+        year: parseInt(extractedYear, 10) || currentYear,
         instructor: '',
         absence_penalty: 0,
       });
@@ -240,27 +242,19 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
                 <strong>{t('semester')}:</strong> {form.watch('semester') || t('selectSemester')}
               </div>
 
-              {/* Auto-activation status indicator */}
-              {form.watch('semester') && (() => {
-                const status = getAutoActivationStatus(form.watch('semester') || '');
-                const bgColor = status.isActive === true
-                  ? 'bg-green-50 border-green-200 text-green-700'
-                  : status.isActive === false
-                    ? 'bg-amber-50 border-amber-200 text-amber-700'
-                    : 'bg-blue-50 border-blue-200 text-blue-700';
-
-                return (
-                  <div className={`text-xs border px-3 py-2 rounded ${bgColor}`}>
-                    <strong>
-                      {status.isActive === true && '✓ '}
-                      {status.isActive === false && '⊗ '}
-                      {status.isActive === null && 'ℹ '}
-                      {t(status.label)}:
-                    </strong>{' '}
-                    {t(status.hint)}
-                  </div>
-                );
-              })()}
+              {/* Read-only: activation is derived from enrollments on the server */}
+              <div
+                className={`text-xs border px-3 py-2 rounded ${
+                  course.is_active === true
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'bg-amber-50 border-amber-200 text-amber-700'
+                }`}
+              >
+                <strong>
+                  {course.is_active === true ? `✓ ${t('courseStatusActive')}` : `⊗ ${t('courseStatusInactive')}`}
+                </strong>{' '}
+                {t('courseActivationRuleHint')}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

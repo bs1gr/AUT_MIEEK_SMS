@@ -18,6 +18,7 @@ from backend.errors import (
 from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.students import StudentCreate, StudentUpdate
 from backend.services.audit_service import AuditLogger
+from backend.services.course_activation import sync_course_activation
 
 logger = logging.getLogger(__name__)
 
@@ -264,6 +265,8 @@ class StudentService:
                     enrollment.course_id,
                     enrollment.id,
                 )
+            # A course left without students deactivates
+            sync_course_activation(self.db, [e.course_id for e in enrollments])
         except Exception as exc:  # pragma: no cover
             logger.exception("Error unenrolling student from courses: %s", exc)
             # Don't raise - log and continue (enrollment removal is secondary to deactivation)
@@ -298,6 +301,7 @@ class StudentService:
                     }
                 )
                 enrollment.deleted_at = None  # type: ignore[assignment]
+            sync_course_activation(self.db, [e.course_id for e in enrollments])
         except Exception as exc:  # pragma: no cover
             logger.exception("Error re-enrolling student into courses: %s", exc)
         return restored_courses

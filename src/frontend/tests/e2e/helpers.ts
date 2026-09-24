@@ -104,12 +104,11 @@ export const generateStudentData = (): TestStudent => {
 /**
  * A semester label that reads as the current one, rather than a hardcoded year that goes stale.
  *
- * The backend derives a course's `is_active` from its semester when the field is not supplied
- * (`_auto_is_active` in routers_courses.py): "Fall <year>" means 15 Sep that year to 30 Jan the
- * next, "Spring <year>" means 1 Feb to 30 Jun. Every test course used to say "Fall 2025", so
- * once that window closed the API created them **inactive** — and the grading and attendance
- * views only list active courses, which is why those specs could not find the course they had
- * just created.
+ * The label is cosmetic: a course's `is_active` is derived from its enrollments
+ * (backend/services/course_activation.py), not its semester. A new course is always created
+ * **inactive** and becomes active once a student is enrolled — the grading and attendance
+ * views only list active courses, so a spec must enroll a student (enrollStudentViaAPI)
+ * before expecting its course to appear there.
  */
 const currentSemesterLabel = (today: Date = new Date()): string => {
   const year = today.getFullYear();
@@ -133,9 +132,7 @@ export const generateCourseData = (): TestCourse => {
     courseName: `Test Course ${rnd}`,
     credits: 4,
     semester: currentSemesterLabel(),
-    // Sent explicitly so the course is active whatever the date: the backend only derives
-    // is_active when the field is omitted, and a test that runs between semesters would
-    // otherwise create an invisible course.
+    // Ignored by the backend (is_active is derived from enrollments); kept for the payload shape
     isActive: true,
   };
 };

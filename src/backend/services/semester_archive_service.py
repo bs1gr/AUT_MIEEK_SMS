@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session, selectinload
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.services.analytics_service import AnalyticsService
+from backend.services.course_activation import sync_course_activation
 from backend.services.semester_export_service import SemesterExportService
 
 logger = logging.getLogger(__name__)
@@ -376,6 +377,9 @@ class SemesterArchiveService:
             export_row.courses_affected = len(courses_touched)
             export_row.enrollments_archived = archived_count
             export_row.enrollments_skipped = preview_result["excluded_count"]
+
+            # Archived enrollments are deleted; courses left without students deactivate
+            sync_course_activation(self.db, courses_touched)
 
             self.db.commit()
         except Exception as exc:

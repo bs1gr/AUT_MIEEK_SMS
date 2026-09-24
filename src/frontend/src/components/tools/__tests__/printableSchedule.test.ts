@@ -100,6 +100,14 @@ describe('buildPrintableSchedule', () => {
     expect(Object.values(schedule).every((sessions) => sessions.length === 0)).toBe(true);
   });
 
+  it('leaves ended (is_active=false) courses off the printout', () => {
+    const schedule = buildPrintableSchedule([
+      course({ id: 1, course_code: 'ENDED', is_active: false, teaching_schedule: { Monday: { start_time: '08:00' } } } as never),
+      course({ id: 2, course_code: 'LIVE', teaching_schedule: { Monday: { start_time: '09:00' } } } as never),
+    ]);
+    expect(schedule.Monday.map((s) => s.courseCode)).toEqual(['LIVE']);
+  });
+
   it('places a session on its weekday with a computed end time', () => {
     const schedule = buildPrintableSchedule([
       course({ teaching_schedule: { Monday: { start_time: '09:00', duration: 45, periods: 2, location: 'Room A' } } } as never),

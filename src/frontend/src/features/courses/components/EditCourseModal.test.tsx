@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EditCourseModal from './EditCourseModal';
 import { LanguageProvider } from '@/LanguageContext';
@@ -235,6 +235,34 @@ describe('EditCourseModal', () => {
 
       const submitButton = screen.getByRole('button', { name: /save changes/i });
       expect(submitButton).not.toBeDisabled();
+    });
+
+    it('shows the enrollment-derived status read-only (no activation toggle)', () => {
+      const { rerender } = renderWithProviders(
+        <EditCourseModal course={mockCourse} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+      expect(screen.getByText(/✓ Active/)).toBeInTheDocument();
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+
+      rerender(
+        <LanguageProvider>
+          <EditCourseModal course={{ ...mockCourse, is_active: false }} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+        </LanguageProvider>
+      );
+      expect(screen.getByText(/⊗ Inactive/)).toBeInTheDocument();
+    });
+
+    // Regression: form.reset() omitted the required (hidden) `year` field, so
+    // validation failed silently and "Save changes" never called onUpdate.
+    it('saves an unmodified form', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <EditCourseModal course={mockCourse} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+
+      await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+      await waitFor(() => expect(mockOnUpdate).toHaveBeenCalledWith(expect.objectContaining({ id: 1 })));
     });
   });
 

@@ -119,6 +119,8 @@ declare module '@/api/api' {
     getById(id: number): Promise<Course>;
     create(data: CourseFormData): Promise<Course>;
     update(id: number, data: Partial<CourseFormData>): Promise<Course>;
+    end(id: number): Promise<Course>;
+    reactivate(id: number): Promise<Course>;
     delete(id: number): Promise<{ message: string }>;
   };
 

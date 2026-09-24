@@ -19,7 +19,6 @@ import {
   Textarea,
 } from '@/components/ui';
 import { modalVariants, backdropVariants } from '@/utils/animations';
-import { getAutoActivationStatus } from '@/utils/courseAutoActivation';
 
 interface AddCourseModalProps {
   onClose: () => void;
@@ -218,27 +217,9 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
                 <strong>{t('semester')}:</strong> {form.watch('semester') || t('selectSemester')}
               </div>
 
-              {/* Auto-activation status indicator */}
-              {form.watch('semester') && (() => {
-                const status = getAutoActivationStatus(form.watch('semester') || '');
-                const bgColor = status.isActive === true
-                  ? 'bg-green-50 border-green-200 text-green-700'
-                  : status.isActive === false
-                    ? 'bg-amber-50 border-amber-200 text-amber-700'
-                    : 'bg-blue-50 border-blue-200 text-blue-700';
-
-                return (
-                  <div className={`text-xs border px-3 py-2 rounded ${bgColor}`}>
-                    <strong>
-                      {status.isActive === true && '✓ '}
-                      {status.isActive === false && '⊗ '}
-                      {status.isActive === null && 'ℹ '}
-                      {t(status.label)}:
-                    </strong>{' '}
-                    {t(status.hint)}
-                  </div>
-                );
-              })()}
+              <div className="text-xs border px-3 py-2 rounded bg-blue-50 border-blue-200 text-blue-700">
+                ℹ {t('courseActivationRuleHint')}
+              </div>
             </div>
 
             <FormField

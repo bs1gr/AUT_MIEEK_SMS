@@ -131,8 +131,9 @@ class Course(SoftDeleteMixin, Base):
     # Absence penalty: percentage points deducted from final grade per unexcused absence
     absence_penalty = Column(Float, default=0.0)
 
-    # Course status
-    is_active = Column(Boolean, default=True, index=True)
+    # Course status: derived from enrollments (active while it has students with an
+    # active enrollment) -- see services.course_activation. New courses start inactive.
+    is_active = Column(Boolean, default=False, index=True)
 
     # Teaching schedule fields
     hours_per_week = Column(Float, default=3.0)
