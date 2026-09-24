@@ -21,11 +21,13 @@ The API supports three authentication modes via the `AUTH_MODE` environment vari
 
 | Mode | Description | Use Case |
 |------|-------------|----------|
-| `disabled` | No authentication required | Emergency access, local development |
-| `permissive` | Authentication optional | **Recommended for production** |
-| `strict` | Full authentication required | Maximum security (not implemented yet) |
+| `disabled` | No authentication required | Emergency access only |
+| `permissive` | Requests **without** a token skip every permission check (full anonymous access); requests with a token are role-checked | Automated tests / E2E only — never on a reachable server |
+| `strict` | Token required, permissions enforced | **Every real deployment** |
 
-**Default**: `permissive`
+**Default**: `strict`
+
+The backend logs a warning at startup whenever `AUTH_MODE` is not `strict`.
 
 ## Permission Categories
 

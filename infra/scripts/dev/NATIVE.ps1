@@ -1167,8 +1167,22 @@ function Setup-Environment {
         if (-not (Test-Path $backendEnv)) {
             $backendEnvExample = Join-Path $BACKEND_DIR ".env.example"
             if (Test-Path $backendEnvExample) {
-                Copy-Item $backendEnvExample $backendEnv
-                Write-Success ".env file created from example"
+                # The template only carries placeholders (the repo is public): generate a
+                # SECRET_KEY and an admin password with a CSPRNG instead of shipping known values.
+                $newSecret = {
+                    param([int]$ByteCount)
+                    $bytes = [byte[]]::new($ByteCount)
+                    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+                    try { $rng.GetBytes($bytes) } finally { $rng.Dispose() }
+                    [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+                }
+                $adminPassword = (& $newSecret 18) + 'aA1!'  # satisfy upper/lower/digit/symbol rules
+                $envContent = Get-Content $backendEnvExample -Raw
+                $envContent = $envContent -replace '(?m)^SECRET_KEY=.*$', "SECRET_KEY=$(& $newSecret 48)"
+                $envContent = $envContent -replace '(?m)^DEFAULT_ADMIN_PASSWORD=.*$', "DEFAULT_ADMIN_PASSWORD=$adminPassword"
+                Set-Content -Path $backendEnv -Value $envContent -NoNewline
+                Write-Success ".env file created from example (random SECRET_KEY and admin password)"
+                Write-Info "Initial admin login: admin@example.com / $adminPassword  (stored in src\backend\.env; change it after first login)"
             } else {
                 Write-Warning ".env.example not found, you may need to create .env manually"
             }

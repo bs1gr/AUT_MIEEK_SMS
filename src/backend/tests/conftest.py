@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 import sys
 
 
@@ -187,6 +188,33 @@ def disable_startup_tasks_env():
             os.environ.pop("DISABLE_STARTUP_TASKS", None)
         else:
             os.environ["DISABLE_STARTUP_TASKS"] = original
+
+
+@pytest.fixture(scope="session", autouse=True)
+def protect_developer_env_file():
+    """Tests must never modify the developer's real src/backend/.env.
+
+    The control-panel settings endpoints write to it; an unsandboxed test once
+    reset AUTH_MODE=permissive on every run, silently reopening the local dev
+    server to anonymous writes. Snapshot it, restore it if anything changed it,
+    and say so loudly so the offending test gets sandboxed.
+    """
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    before = env_file.read_bytes() if env_file.exists() else None
+    yield
+    after = env_file.read_bytes() if env_file.exists() else None
+    if after != before:
+        if before is None:
+            env_file.unlink(missing_ok=True)
+        else:
+            env_file.write_bytes(before)
+        import warnings
+
+        warnings.warn(
+            f"A test modified {env_file}; it has been restored. Sandbox the test "
+            "(monkeypatch the writer's path to tmp_path).",
+            stacklevel=1,
+        )
 
 
 @pytest.fixture(scope="function", autouse=True)

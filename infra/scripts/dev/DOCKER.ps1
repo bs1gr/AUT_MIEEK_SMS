@@ -1942,6 +1942,9 @@ function Initialize-EnvironmentFiles {
             Write-Info "Creating root .env from template..."
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
+            # The template's admin password is a public placeholder (the repo is public)
+            $adminPassword = (New-SecureRandomString -Length 20) + 'aA1!'  # satisfy upper/lower/digit/symbol rules
+            $envContent = $envContent -replace '(?m)^DEFAULT_ADMIN_PASSWORD=.*$', "DEFAULT_ADMIN_PASSWORD=$adminPassword"
             $envContent = $envContent -replace 'VERSION=.*', "VERSION=$VERSION"
             $envContent = $envContent -replace 'SMS_DEPLOYMENT_MODE=.*', "SMS_DEPLOYMENT_MODE=single"
             $envContent = $envContent -replace 'SMS_DATABASE_PROFILE=.*', "SMS_DATABASE_PROFILE=local"
@@ -1949,6 +1952,7 @@ function Initialize-EnvironmentFiles {
             $envContent = $envContent -replace 'DATABASE_URL=.*', "DATABASE_URL=sqlite:////data/student_management.db"
             Set-Content -Path $ROOT_ENV -Value $envContent
             Write-Success "Root .env created with secure SECRET_KEY (single-image + local SQLite)"
+            Write-Info "Initial admin login: $(if ($envContent -match '(?m)^DEFAULT_ADMIN_EMAIL=(.*)$') { $Matches[1].Trim() } else { 'admin' }) / $adminPassword  (stored in config\.env; change it after first login)"
             $configured = $true
         } else {
             Write-Warning ".env.example not found, creating minimal .env..."
@@ -1957,8 +1961,9 @@ function Initialize-EnvironmentFiles {
 VERSION=$VERSION
 SECRET_KEY=$secretKey
 AUTH_ENABLED=True
+AUTH_MODE=strict
 DEFAULT_ADMIN_EMAIL=admin@example.com
-DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
+DEFAULT_ADMIN_PASSWORD=$((New-SecureRandomString -Length 20) + 'aA1!')
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
 SMS_DEPLOYMENT_MODE=single

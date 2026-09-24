@@ -89,12 +89,22 @@ def get_lifespan():
             "adminpassword123!", "yoursecurepassword123!", "changeme123!",
             "password", "admin", "123456", "password123", "password123!",
             "admin123!", "changeme", "test", "testpassword", "secret",
+            # template placeholder + a value that was published in the (public) repo
+            "change-me-generated-on-first-run", "qw9e4rt7yu2io5pa1sd8fg6hj3kl0zx_",
         }
         _admin_pw = str(getattr(settings, "DEFAULT_ADMIN_PASSWORD", "") or "").lower()
         if _admin_pw and _admin_pw in _KNOWN_WEAK_PASSWORDS:
             _log.warning(
                 "⚠️  Security: DEFAULT_ADMIN_PASSWORD is a well-known weak value. "
                 "Change it immediately after first login!"
+            )
+        _auth_mode = str(getattr(settings, "AUTH_MODE", "strict")).lower()
+        if getattr(settings, "AUTH_ENABLED", False) and _auth_mode != "strict":
+            _log.warning(
+                "⚠️  Security: AUTH_MODE=%s — requests WITHOUT a login skip permission checks, so anyone "
+                "who can reach this server can read and change data. Use AUTH_MODE=strict for anything "
+                "but automated tests.",
+                _auth_mode,
             )
         if getattr(settings, "AUTH_ENABLED", False):
             if not getattr(settings, "COOKIE_SECURE", True):

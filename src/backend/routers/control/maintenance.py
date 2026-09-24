@@ -525,9 +525,9 @@ def _get_policy_description(enabled: bool, mode: str) -> str:
     if mode == "disabled":
         return "🔓 No authentication required (all endpoints public)"
     if mode == "permissive":
-        return "🔐 Authentication required, but all authenticated users have full access (recommended)"
+        return "⚠️ Requests without a login are NOT checked (anyone who can reach the server has full access)"
     if mode == "strict":
-        return "🔒 Full role-based access control (admin/teacher roles strictly enforced)"
+        return "🔒 Login required, roles enforced (recommended)"
     return f"⚠️ Unknown mode: {mode}"
 
 
@@ -728,30 +728,30 @@ def get_auth_policy_guide(_auth=Depends(require_control_admin)):
                 "icon": "🔓",
             },
             "permissive": {
-                "description": "Authentication required, but all authenticated users have full access",
-                "use_case": "Production systems where all users are trusted (recommended)",
-                "security_level": "Medium",
-                "behavior": "Users must login, but can access all endpoints regardless of role",
-                "icon": "🔐",
-                "recommended": True,
+                "description": "Requests without a login skip all checks; logged-in users get role checks",
+                "use_case": "Automated tests / E2E only -- never on a server others can reach",
+                "security_level": "None for anonymous requests",
+                "behavior": "Anyone who can reach the server can read and change data without logging in",
+                "icon": "⚠️",
             },
             "strict": {
-                "description": "Full role-based access control (RBAC)",
-                "use_case": "High-security environments with distinct admin/teacher/student roles",
+                "description": "Login required and role-based access control (RBAC) enforced",
+                "use_case": "Every real deployment (Native, Docker, Lite)",
                 "security_level": "High",
-                "behavior": "Endpoints check user roles, deny access if role doesn't match",
+                "behavior": "Requests need a valid login; endpoints check user roles",
                 "icon": "🔒",
+                "recommended": True,
             },
         },
         "settings": {
             "AUTH_ENABLED": {
                 "type": "boolean",
-                "default": False,
+                "default": True,
                 "description": "Master authentication switch. If false, overrides AUTH_MODE.",
             },
             "AUTH_MODE": {
                 "type": "string",
-                "default": "disabled",
+                "default": "strict",
                 "options": ["disabled", "permissive", "strict"],
                 "description": "Authorization enforcement level",
             },
@@ -776,13 +776,13 @@ def get_auth_policy_guide(_auth=Depends(require_control_admin)):
             },
             "production_recommended": {
                 "AUTH_ENABLED": True,
-                "AUTH_MODE": "permissive",
-                "description": "Users must login but no role restrictions",
-            },
-            "high_security": {
-                "AUTH_ENABLED": True,
                 "AUTH_MODE": "strict",
-                "description": "Full RBAC with role enforcement",
+                "description": "Login required, full RBAC with role enforcement",
+            },
+            "automated_tests": {
+                "AUTH_ENABLED": True,
+                "AUTH_MODE": "permissive",
+                "description": "Anonymous requests unchecked -- test runners only",
             },
         },
     }

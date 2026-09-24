@@ -174,8 +174,13 @@ frontend/.env
 docker/.env
 *.env
 !*.env.example
-.env.qnap  # QNAP-specific config with secrets (was mistakenly tracked)
-.env.production.SECURE  # Production secrets file (DO NOT COMMIT)
+# (gitignore has no trailing comments: "pattern  # note" matches nothing, which is how
+# config/environments/production.env.SECURE got committed after the 2026-06 flatten)
+# QNAP-specific config with secrets (was mistakenly tracked)
+.env.qnap
+# Production secrets files (DO NOT COMMIT), old and post-flatten locations
+.env.production.SECURE
+*.env.SECURE
 
 # Local credentials / secret bundles
 local-secrets/

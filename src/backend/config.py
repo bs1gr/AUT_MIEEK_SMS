@@ -233,10 +233,12 @@ class Settings(BaseSettings):
     # Feature flags
     # Tests always override these via conftest.py safe_patch; see tests/conftest.py.
     AUTH_ENABLED: bool = True
-    AUTH_MODE: Literal["disabled", "permissive", "strict"] = "permissive"
+    AUTH_MODE: Literal["disabled", "permissive", "strict"] = "strict"
     # disabled: No auth checks (legacy mode, same as AUTH_ENABLED=False)
-    # permissive: Auth required but authenticated users can access all endpoints regardless of role
-    # strict: Full role-based access control enforcement
+    # permissive: requests WITHOUT a token skip all checks (full anonymous access);
+    #   requests with a token get role checks. Test/E2E use only -- never on a
+    #   reachable server (rbac.require_permission).
+    # strict: a token is required and roles are enforced (default; production)
     # Granular controls for test/E2E environments
     AUTH_LOGIN_THROTTLE_ENABLED: bool = True
     AUTH_USER_LOCKOUT_ENABLED: bool = True

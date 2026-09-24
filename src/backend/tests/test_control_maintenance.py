@@ -6,7 +6,10 @@ Tests authentication settings management via /control/api/maintenance/*.
 import json
 from pathlib import Path
 
+import pytest
+
 from backend.environment import RuntimeContext, RuntimeEnvironment
+from backend.routers.control import maintenance
 
 
 def test_get_auth_settings(client):
@@ -41,48 +44,49 @@ def test_get_auth_policy_guide(client):
     assert "permissive" in data["policies"]
     assert "strict" in data["policies"]
 
-    # Check permissive is marked as recommended
-    assert data["policies"]["permissive"].get("recommended") is True
+    # strict is the recommended mode; permissive lets anonymous requests through
+    # unchecked (rbac.require_permission) and must never be recommended
+    assert data["policies"]["strict"].get("recommended") is True
+    assert not data["policies"]["permissive"].get("recommended")
+    assert data["examples"]["production_recommended"]["AUTH_MODE"] == "strict"
 
 
-def test_update_auth_settings_with_auth_mode(client, tmp_path, monkeypatch):
-    """Test updating AUTH_MODE setting."""
-    # Create a temporary .env file
+@pytest.fixture(autouse=True)
+def sandbox_env_file(tmp_path, monkeypatch):
+    """Point the auth-settings writer at a temp .env.
+
+    _resolve_env_file() resolves to the developer's real src/backend/.env. These
+    tests used to POST auth_mode=permissive there unsandboxed (the old Path.resolve
+    mock never worked), so every test run silently switched the local dev server
+    to permissive auth.
+    """
     env_file = tmp_path / ".env"
     env_file.write_text("AUTH_ENABLED=false\nAUTH_MODE=disabled\n", encoding="utf-8")
-
-    # Monkeypatch to use our temp env file
-    from pathlib import Path
-
-    def mock_resolve(*args, **kwargs):
-        class MockPath:
-            def parents(self):
-                return [tmp_path, tmp_path, tmp_path, tmp_path]
-
-        return MockPath()
-
-    monkeypatch.setattr(Path, "resolve", mock_resolve)
-
-    # Update to permissive mode
-    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_mode": "permissive"})
-
-    # Note: This will fail in the actual test because we can't easily mock Path.resolve
-    # But the endpoint structure is correct
-    assert resp.status_code in [200, 500]  # Accept either success or mock failure
+    monkeypatch.setattr(maintenance, "_resolve_env_file", lambda: (env_file, "backend/.env"))
+    return env_file
 
 
-def test_update_auth_settings_multiple_values(client):
-    """Test updating multiple auth settings at once."""
+def test_update_auth_settings_with_auth_mode(client, sandbox_env_file):
+    """Updating AUTH_MODE rewrites the active .env."""
+    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_mode": "strict"})
+
+    assert resp.status_code == 200, resp.text
+    assert "AUTH_MODE=strict" in sandbox_env_file.read_text(encoding="utf-8").splitlines()
+
+
+def test_update_auth_settings_multiple_values(client, sandbox_env_file):
+    """Updating several auth settings at once writes all of them."""
     resp = client.post(
         "/control/api/maintenance/auth-settings",
         json={"auth_enabled": True, "auth_mode": "permissive", "auth_login_max_attempts": 10},
     )
 
-    # Should succeed (or fail gracefully with proper error message)
-    assert resp.status_code in [200, 500]
+    assert resp.status_code == 200, resp.text
     data = resp.json()
-    assert "success" in data
-    assert "message" in data
+    assert data["success"] is True
+    lines = sandbox_env_file.read_text(encoding="utf-8").splitlines()
+    assert "AUTH_MODE=permissive" in lines
+    assert "AUTH_LOGIN_MAX_ATTEMPTS=10" in lines
 
 
 def test_update_auth_settings_validation(client):
