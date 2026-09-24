@@ -1,0 +1,100 @@
+name: Wiki Sync
+
+# Keeps the GitHub wiki's release facts current (version, release date,
+# asset sizes, recent-release notes, milestone table) after every release.
+# Only content between <!-- wiki-sync:KEY --> markers is rewritten, plus one new
+# Release-History milestone row per release; see infra/scripts/release/sync_wiki.py.
+#
+# Triggers:
+# - after "Create GitHub Release on tag" succeeds (the release page exists by then)
+# - daily, because the installer/APK assets are uploaded after the release is
+#   created (and the installer is sometimes uploaded by hand); the run is a no-op
+#   when nothing changed
+# - manually, optionally for a specific tag
+
+on:
+  workflow_run:
+    workflows: ["Create GitHub Release on tag"]
+    types: [completed]
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to sync (e.g. v1.18.46) - leave empty for the latest release'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Resolve release and asset sizes
+        id: rel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="${INPUT_TAG:-}"
+          if [ -z "$TAG" ]; then
+            TAG=$(gh release view --repo "$REPO" --json tagName --jq .tagName)
+          fi
+          if ! [[ "$TAG" =~ ^v1\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Refusing tag '$TAG' (must match v1.x.x)"
+            exit 1
+          fi
+          ASSETS=$(gh release view "$TAG" --repo "$REPO" --json assets)
+          INSTALLER=$(echo "$ASSETS" | jq -r '[.assets[] | select(.name | test("^SMS_Installer_.*\\.exe$")) | .size][0] // empty')
+          APK=$(echo "$ASSETS" | jq -r '[.assets[] | select(.name | test("^SMS_Android_.*\\.apk$")) | .size][0] // empty')
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "installer=$INSTALLER" >> "$GITHUB_OUTPUT"
+          echo "apk=$APK" >> "$GITHUB_OUTPUT"
+          echo "Release $TAG - installer: ${INSTALLER:-not uploaded}, apk: ${APK:-not uploaded}"
+
+      - name: Clone wiki
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git" wiki
+
+      - name: Sync release facts into wiki
+        env:
+          TAG: ${{ steps.rel.outputs.tag }}
+          INSTALLER: ${{ steps.rel.outputs.installer }}
+          APK: ${{ steps.rel.outputs.apk }}
+        run: |
+          set -euo pipefail
+          ARGS=(--wiki-dir wiki --version "$TAG" --changelog CHANGELOG.md)
+          [ -n "$INSTALLER" ] && ARGS+=(--installer-bytes "$INSTALLER")
+          [ -n "$APK" ] && ARGS+=(--apk-bytes "$APK")
+          python3 infra/scripts/release/sync_wiki.py "${ARGS[@]}"
+
+      - name: Commit and push wiki changes
+        env:
+          TAG: ${{ steps.rel.outputs.tag }}
+        working-directory: wiki
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Wiki already up to date for $TAG"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "docs(wiki): sync release facts for $TAG"
+          git push origin HEAD

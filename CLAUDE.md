@@ -129,7 +129,7 @@ const { t } = useTranslation();
 return <button>{t('common.save')}</button>;
 ```
 
-Add new keys to both `src/frontend/src/i18n/locales/en/` and `el/` translation files.
+Add new keys to both `src/frontend/src/locales/en/` and `el/` translation modules (`.js` files).
 
 ### Version format — v1.x.x ONLY
 
@@ -205,5 +205,5 @@ Historical release tags are immutable — never re-dispatch old tag workflows.
 | `.github/copilot-instructions.md` | Legacy VS Code Copilot guide (pre-flatten paths) |
 | `src/backend/tests/conftest.py` | Test batch enforcement |
 | `src/backend/lifespan.py` | FastAPI lifespan (use this, not on_event) |
-| `src/frontend/src/i18n/locales/` | Translation files (en/ and el/) |
+| `src/frontend/src/locales/` | Translation modules (en/ and el/) |
 | `ruff.toml` | Python linting config |

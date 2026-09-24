@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.45
-**Last Updated**: September 22, 2026
+**Current Version**: 1.18.46
+**Last Updated**: September 24, 2026
 **Status**: ✅ **v1.18.45 released 2026-09-21** (tag on `c6f3c758f`) — signed installer + APK verified directly from the published release. It ships the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change. v1.18.44 (2026-09-17) shipped the PostgreSQL restore and E2E work described below.
 
 - **Shipped in v1.18.45** (see "v1.18.45 session" below): SMS_Lite failed to load `routers_semester_archive` (missing from the spec's hand-kept hiddenimports; the registry's fallback then reported a misleading `No module named 'routers'`); 5 CodeQL `py/path-injection` alerts closed with a real `realpath`+`startswith` guard; GradingView fetches a student's courses with one request; CI runs the restore round-trip tests against Postgres.
@@ -50,6 +50,28 @@ it here and mark it resolved where it was raised.
    cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
    `conftest.py` guard now applies to new shells. This session's own process still carries the
    old value in its inherited env, which is expected and harmless.
+3. **Review SMS_Lite's auth mode and bind address** (raised 2026-09-24, not yet verified at
+   runtime). Lite sets no `AUTH_MODE`, unlike Docker, which defaults to `strict`. Details are in
+   the 2026-09-24 session notes, kept out of the public repo.
+
+---
+
+## 📚 Wiki brought up to date + auto-sync on release (September 24, 2026)
+
+The GitHub wiki had stopped at v1.18.38, and several pages had been wrong since it was first written.
+Examples: a `.sha256` sidecar that is never published; 13 permissions and admin/teacher/viewer roles
+(the real numbers are 54 permissions and admin/staff/teacher/student); RS256 JWTs; a deleted dashboard
+wizard; E2E spec names that don't exist; `i18n/locales/*.json` (the real files are
+`src/frontend/src/locales/*.js`; `CLAUDE.md` had the same wrong path and is fixed too); and a
+milestone table with four "v1.18.25" rows. All 15 pages were re-verified against the code and rewritten
+where needed.
+
+**Auto-sync:** `.github/workflows/wiki-sync.yml` runs `infra/scripts/release/sync_wiki.py`
+after `release-on-tag.yml` succeeds, daily (asset sizes appear only after upload), and on
+demand. It rewrites only `<!-- wiki-sync:KEY -->` marker pairs (version, date, asset sizes,
+Android versionCode, the last 8 CHANGELOG releases) and inserts a milestone row for a new version.
+Hand-written prose and existing rows are never touched. Tests: `test_sync_wiki_script.py`.
+Hand-maintained numbers (test counts, module counts) still need a manual refresh now and then.
 
 ---
 
