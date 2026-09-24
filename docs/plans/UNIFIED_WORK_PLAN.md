@@ -1,8 +1,10 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.46
+**Current Version**: 1.18.47
 **Last Updated**: September 24, 2026
-**Status**: ✅ **v1.18.45 released 2026-09-21** (tag on `c6f3c758f`) — signed installer + APK verified directly from the published release. It ships the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change. v1.18.44 (2026-09-17) shipped the PostgreSQL restore and E2E work described below.
+**Status**: ✅ **v1.18.47 released 2026-09-24** (tag on `ad9c8a6db`). It is a security release: SMS_Lite's API had required no login from the LAN (todo 3 below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.47) and its hash matches GitHub's digest; the APK reports `versionName 1.18.47 / versionCode 118047`; the rebuilt exe returns 401 to anonymous LAN reads and writes. v1.18.46 (2026-09-22) fixed Lite deleting its own install on shutdown. v1.18.45 (2026-09-21) shipped the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change.
+
+- **Shipped in v1.18.47**: the Lite authentication fix (`a2cd91a6b`) and the wiki auto-sync workflow (`1e011bc50`). The wiki sync ran on its own after the tag.
 
 - **Shipped in v1.18.45** (see "v1.18.45 session" below): SMS_Lite failed to load `routers_semester_archive` (missing from the spec's hand-kept hiddenimports; the registry's fallback then reported a misleading `No module named 'routers'`); 5 CodeQL `py/path-injection` alerts closed with a real `realpath`+`startswith` guard; GradingView fetches a student's courses with one request; CI runs the restore round-trip tests against Postgres.
 - **Shipped in v1.18.44**: the sections dated 2026-09-17 below (PostgreSQL restore, E2E teardown and disposable database, follow-ups closed).
@@ -50,16 +52,15 @@ it here and mark it resolved where it was raised.
    cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
    `conftest.py` guard now applies to new shells. This session's own process still carries the
    old value in its inherited env, which is expected and harmless.
-3. ~~**Review SMS_Lite's auth mode and bind address**~~ — **fixed 2026-09-24, not yet released.**
+3. ~~**Review SMS_Lite's auth mode and bind address**~~ — **fixed 2026-09-24, released in v1.18.47.**
    Confirmed against the v1.18.46 build: Lite ran with the config default `AUTH_MODE=permissive`
    on `0.0.0.0:8000`, so anonymous LAN requests could read *and write* the API. Lite now defaults
    to `AUTH_MODE=strict`, like Docker. The unauthenticated `/api/v1/lite/*-shutdown` endpoints now
    accept loopback callers only. `debug.log` no longer records the database password. Re-verified
    on a running fixed Lite: anonymous LAN requests get 401, logged-in and refresh-cookie
    sessions work, and a LAN shutdown call gets 403. Tests: `test_lite_security_defaults.py`
-   (the strict-mode tests fail under `permissive`). **Existing installs stay exposed until
-   they get the next installer.** At release time, update the wiki's RBAC page (it says strict
-   is the Docker default) to include Lite.
+   (the strict-mode tests fail under `permissive`). **Every existing Lite install must be
+   upgraded to v1.18.47.** The wiki's RBAC, Security and Deployment pages were updated.
 
 ---
 
