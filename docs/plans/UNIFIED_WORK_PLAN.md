@@ -50,9 +50,16 @@ it here and mark it resolved where it was raised.
    cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
    `conftest.py` guard now applies to new shells. This session's own process still carries the
    old value in its inherited env, which is expected and harmless.
-3. **Review SMS_Lite's auth mode and bind address** (raised 2026-09-24, not yet verified at
-   runtime). Lite sets no `AUTH_MODE`, unlike Docker, which defaults to `strict`. Details are in
-   the 2026-09-24 session notes, kept out of the public repo.
+3. ~~**Review SMS_Lite's auth mode and bind address**~~ — **fixed 2026-09-24, not yet released.**
+   Confirmed against the v1.18.46 build: Lite ran with the config default `AUTH_MODE=permissive`
+   on `0.0.0.0:8000`, so anonymous LAN requests could read *and write* the API. Lite now defaults
+   to `AUTH_MODE=strict`, like Docker. The unauthenticated `/api/v1/lite/*-shutdown` endpoints now
+   accept loopback callers only. `debug.log` no longer records the database password. Re-verified
+   on a running fixed Lite: anonymous LAN requests get 401, logged-in and refresh-cookie
+   sessions work, and a LAN shutdown call gets 403. Tests: `test_lite_security_defaults.py`
+   (the strict-mode tests fail under `permissive`). **Existing installs stay exposed until
+   they get the next installer.** At release time, update the wiki's RBAC page (it says strict
+   is the Docker default) to include Lite.
 
 ---
 

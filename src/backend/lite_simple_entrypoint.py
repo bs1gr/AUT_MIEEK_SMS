@@ -125,6 +125,13 @@ else:
 
 os.environ.setdefault('SMS_ENV', 'development')
 
+# Lite listens on 0.0.0.0 (LAN / Android clients can reach it), so it must not run with the
+# config default AUTH_MODE=permissive: in that mode rbac.require_permission lets any request
+# *without* a bearer token straight through, and every student/grade/audit/RBAC endpoint was
+# readable and writable from the network with no login. Docker already defaults to strict.
+os.environ.setdefault('AUTH_ENABLED', 'true')
+os.environ.setdefault('AUTH_MODE', 'strict')
+
 # Set default admin credentials for Native Lite (auto-create on first run)
 os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
 os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
@@ -159,6 +166,22 @@ _shutdown_after: float | None = None   # epoch time when to terminate; None = no
 _last_api_request: float = time.time()  # updated by middleware on every /api/* hit
 
 INACTIVITY_TIMEOUT_SECS = 30 * 60  # 30 minutes of zero API traffic → exit
+
+_LOOPBACK_HOSTS = {'127.0.0.1', '::1', 'localhost'}
+
+
+def _redact_url(url: str) -> str:
+    """Hide the password in a DB URL before it goes to debug.log (the QNAP one has a real one)."""
+    import re as _re
+    return _re.sub(r'(://[^:/@]+:)[^@]*@', r'\1***@', url)
+
+
+def _is_local_request(request) -> bool:
+    """True when the TCP peer is this machine. Proxy headers are ignored on purpose:
+    Lite has no reverse proxy, so an X-Forwarded-For value would be attacker-supplied."""
+    client = getattr(request, 'client', None)
+    host = getattr(client, 'host', None) or ''
+    return host in _LOOPBACK_HOSTS or host.startswith('::ffff:127.')
 
 
 def _is_onefile_bundle() -> bool:
@@ -262,7 +285,7 @@ def main() -> None:
 
     # Run migrations explicitly before server startup
     _debug_log('[lite_simple_entrypoint] Running migrations...')
-    _debug_log(f'[lite_simple_entrypoint] DATABASE_URL={os.environ.get("DATABASE_URL", "NOT SET")}')
+    _debug_log(f'[lite_simple_entrypoint] DATABASE_URL={_redact_url(os.environ.get("DATABASE_URL", "NOT SET"))}')
     migrations_ok = False
     try:
         from backend.scripts.migrate.runner import run_migrations
@@ -363,17 +386,25 @@ def main() -> None:
     from fastapi import Request as _Request
     from fastapi.responses import JSONResponse as _JSONResponse
 
+    # These two are unauthenticated (logout calls schedule-shutdown after the token is gone),
+    # so only the Lite machine itself may use them - otherwise anyone on the LAN could stop it.
+    _forbidden = _JSONResponse({'detail': 'Local requests only'}, status_code=403)
+
     @app.post('/api/v1/lite/schedule-shutdown', include_in_schema=False)
-    async def _lite_schedule_shutdown():
+    async def _lite_schedule_shutdown(request: _Request):
         global _shutdown_after
+        if not _is_local_request(request):
+            return _forbidden
         with _shutdown_lock:
             _shutdown_after = time.time() + 30
         _debug_log('[lite_simple_entrypoint] Shutdown scheduled in 30 s (logout).')
         return _JSONResponse({'scheduled_in': 30})
 
     @app.post('/api/v1/lite/cancel-shutdown', include_in_schema=False)
-    async def _lite_cancel_shutdown():
+    async def _lite_cancel_shutdown(request: _Request):
         global _shutdown_after, _last_api_request
+        if not _is_local_request(request):
+            return _forbidden
         with _shutdown_lock:
             _shutdown_after = None
             _last_api_request = time.time()
