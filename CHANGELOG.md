@@ -25,6 +25,21 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.48] - 2026-09-24
+
+### Features
+- **courses**: derive is_active from enrollments; end/reactivate from calendar
+
+### Bug Fixes
+- **security**: enforce password_change_required on the server
+- **security**: strict auth by default, stop publishing secrets, sandbox env-writing tests
+- **imports**: honour allow_updates / skip_duplicates in import jobs
+- **imports**: run /imports/execute jobs instead of leaving them pending
+
+### Documentation
+- **plan**: record the v1.18.47 security release
+
 ## [1.18.47] - 2026-09-24
 
 ### Bug Fixes
@@ -4480,6 +4495,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
