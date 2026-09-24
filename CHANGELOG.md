@@ -24,6 +24,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.47] - 2026-09-24
+
+### Bug Fixes
+- **lite,security**: require authentication on SMS_Lite's API
+
+### CI/CD
+- **wiki**: sync release facts into the GitHub wiki after every release
+
 ## [1.18.46] - 2026-09-22
 
 ### Bug Fixes
@@ -4471,6 +4480,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
