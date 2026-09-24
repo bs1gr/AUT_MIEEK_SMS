@@ -196,7 +196,7 @@ export default {
   jobMonitorCompleted: 'Job completed successfully',
   jobMonitorError: 'Unable to load job status',
   jobMonitorFailed: 'Job failed',
-  jobMonitorSummary: '{{created}} created, {{updated}} updated',
+  jobMonitorSummary: '{{created}} created, {{updated}} updated, {{skipped}} skipped',
   jobMonitorMoreErrors: '…and {{count}} more',
   jobStatus_pending: 'Pending',
   jobStatus_processing: 'Processing',

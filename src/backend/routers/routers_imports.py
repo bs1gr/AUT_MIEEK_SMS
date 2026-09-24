@@ -835,22 +835,68 @@ def import_courses(
         )
 
 
+def _duplicate_key(norm: str, obj: dict) -> str:
+    """Key for "same record twice in one upload" (mirrors what create_or_update_* matches on)."""
+    if norm == "courses":
+        return f"course:{obj.get('course_code') or ''}"  # course_code is globally unique
+    return f"student:{obj.get('student_id') or ''}|{obj.get('email') or ''}"
+
+
+def _record_exists(db: Session, norm: str, obj: dict) -> bool:
+    """Would ImportService.create_or_update_* update an existing row for this item?
+
+    Uses the same match as the service: courses by course_code (unique across
+    semesters), students by student_id OR email.
+    """
+    Course, Student = import_names("models", "Course", "Student")
+    if norm == "courses":
+        return db.query(Course.id).filter(Course.course_code == obj.get("course_code")).first() is not None
+    return (
+        db.query(Student.id)
+        .filter((Student.student_id == obj.get("student_id")) | (Student.email == obj.get("email")))
+        .first()
+        is not None
+    )
+
+
 def _import_items(
     db: Session,
     norm: str,
     items: list,
     errors: list[str],
     on_progress: Callable[[int, int], None] | None = None,
+    *,
+    allow_updates: bool = True,
+    skip_duplicates: bool = False,
+    skipped: list[str] | None = None,
 ) -> tuple[int, int]:
     """Normalize and create/update each course or student item, without committing.
 
     Shared by the synchronous /upload endpoint and the /execute background job.
     Per-item problems are appended to ``errors``; returns (created, updated).
     ``on_progress(done, total)`` is called before each item.
+
+    ``allow_updates=False`` skips items that match an existing record, and
+    ``skip_duplicates=True`` skips repeats of an item already seen in this
+    upload -- the same rules the /preview endpoint reports. Skip reasons go to
+    ``skipped`` (not ``errors``). The defaults keep /upload's upsert behaviour.
     """
     created = 0
     updated = 0
     total = len(items)
+    seen_keys: set[str] = set()
+
+    def skip_reason(obj: dict) -> str | None:
+        label = obj.get("course_code") if norm == "courses" else obj.get("student_id")
+        if skip_duplicates:
+            key = _duplicate_key(norm, obj)
+            if key in seen_keys:
+                return f"{label}: duplicate in uploaded data, skipped"
+            seen_keys.add(key)
+        if not allow_updates and _record_exists(db, norm, obj):
+            return f"{label}: already exists and updates are not allowed, skipped"
+        return None
+
     for index, obj in enumerate(items):
         if on_progress is not None:
             on_progress(index, total)
@@ -1044,6 +1090,11 @@ def _import_items(
                     errors.append(f"item: teaching_schedule unsupported type {type(ts)}, dropping field")
                     obj.pop("teaching_schedule", None)
 
+            reason = skip_reason(obj)
+            if reason:
+                if skipped is not None:
+                    skipped.append(reason)
+                continue
             # Use service to create/update
             was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
             if err:
@@ -1084,6 +1135,11 @@ def _import_items(
                     obj.pop("is_active", None)
                 else:
                     obj["is_active"] = b
+            reason = skip_reason(obj)
+            if reason:
+                if skipped is not None:
+                    skipped.append(reason)
+                continue
             # Whitelist allowed fields (include extended profile fields supported by model)
             # Use service to create/update
             was_created, err = ImportService.create_or_update_student(db, obj)
@@ -1543,7 +1599,7 @@ async def import_preview(
                             obj["is_active"] = b
 
                     # Determine key and duplicates within batch
-                    key = f"student:{sid or ''}|{email or ''}"
+                    key = _duplicate_key("students", obj)
                     if key in seen_keys and skip_duplicates:
                         add_item("skip", obj, issues + ["warning: duplicate in uploaded data, will be skipped"])
                         continue
@@ -1580,21 +1636,18 @@ async def import_preview(
                     if "semester" in obj and not obj["semester"]:
                         obj["semester"] = "Α' Εξάμηνο"
 
-                    key = f"course:{code}|{obj.get('semester', '')}"
+                    # Same key/match as the import itself (_duplicate_key / _record_exists):
+                    # course_code is unique across semesters, so an existing code in another
+                    # semester is an update (it moves the course), never a create.
+                    key = _duplicate_key("courses", obj)
                     if key in seen_keys and skip_duplicates:
                         add_item("skip", obj, course_issues + ["warning: duplicate in uploaded data, will be skipped"])
                         continue
                     seen_keys.add(key)
 
-                    exists = False
-                    if code:
-                        # If semester present, require an exact code+semester match;
-                        # otherwise any existing course with this code counts.
-                        sem = obj.get("semester")
-                        if sem:
-                            exists = (code, sem) in existing_course_pairs
-                        else:
-                            exists = code in existing_course_codes
+                    exists = bool(code) and code in existing_course_codes
+                    if exists and obj.get("semester") and (code, obj.get("semester")) not in existing_course_pairs:
+                        course_issues.append("warning: course exists in another semester; importing moves it")
                     action = "update" if exists else "create"
                     if exists and not allow_updates:
                         action = "skip"
@@ -1807,8 +1860,14 @@ def _run_import_job(
     norm: str,
     items: list,
     errors: list[str],
+    allow_updates: bool = False,
+    skip_duplicates: bool = True,
 ) -> None:
-    """Background task behind /imports/execute: import ``items`` and record the outcome on the job."""
+    """Background task behind /imports/execute: import ``items`` and record the outcome on the job.
+
+    Skipped rows (duplicates / existing records with updates disallowed) are
+    reported as warnings, not errors, and never make the job fail.
+    """
     from backend.schemas.jobs import JobResult
     from backend.services.job_manager import JobManager
 
@@ -1821,9 +1880,19 @@ def _run_import_job(
 
     db = session_factory()
     try:
-        created, updated = _import_items(db, norm, items, errors, on_progress=report)
+        skipped: list[str] = []
+        created, updated = _import_items(
+            db,
+            norm,
+            items,
+            errors,
+            on_progress=report,
+            allow_updates=allow_updates,
+            skip_duplicates=skip_duplicates,
+            skipped=skipped,
+        )
         db.commit()
-        failed = len(items) - created - updated
+        failed = len(items) - created - updated - len(skipped)
         JobManager.update_progress(
             job_id,
             current=total,
@@ -1831,16 +1900,24 @@ def _run_import_job(
             message=f"{len(items)}/{len(items)}",
             processed=created + updated,
             failed=failed,
+            skipped=len(skipped),
         )
         JobManager.set_result(
             job_id,
             JobResult(
-                # Only a total wipe-out counts as failure; partial row errors are reported alongside.
-                success=bool(created or updated) or not errors,
-                message=f"Imported {norm}: {created} created, {updated} updated",
-                data={"type": norm, "created": created, "updated": updated},
+                # Only a total wipe-out by errors counts as failure; skips are intentional.
+                success=bool(created or updated or skipped) or not errors,
+                message=f"Imported {norm}: {created} created, {updated} updated, {len(skipped)} skipped",
+                data={"type": norm, "created": created, "updated": updated, "skipped": len(skipped)},
                 errors=errors,
-                statistics={"created": created, "updated": updated, "failed": failed, "total": len(items)},
+                warnings=skipped,
+                statistics={
+                    "created": created,
+                    "updated": updated,
+                    "skipped": len(skipped),
+                    "failed": failed,
+                    "total": len(items),
+                },
             ),
         )
         logger.info("Import job %s finished: %s created, %s updated, %s errors", job_id, created, updated, len(errors))
@@ -1972,7 +2049,16 @@ async def import_execute(
         # A fresh session bound to the request's engine: the request-scoped
         # session is closed once the response is sent, before this task runs.
         session_factory = sessionmaker(bind=db.get_bind(), autocommit=False, autoflush=False)
-        background_tasks.add_task(_run_import_job, job_id, session_factory, norm, items, parse_errors)
+        background_tasks.add_task(
+            _run_import_job,
+            job_id,
+            session_factory,
+            norm,
+            items,
+            parse_errors,
+            allow_updates=allow_updates,
+            skip_duplicates=skip_duplicates,
+        )
 
         # Audit log the job creation
         try:

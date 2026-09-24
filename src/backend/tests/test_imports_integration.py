@@ -115,29 +115,26 @@ class TestImportPreviewEndpoint:
         assert items["PREV001"]["action"] == "update"
         assert items["PREV999"]["action"] == "create"
 
-    def test_preview_detects_existing_course_semester_scoping(self, client: TestClient):
-        """Regression test: course existence detection must still respect the
-        original semester scoping — an exact code+semester match is 'update',
-        while the same code in a different semester is still 'create'."""
+    def test_preview_existing_course_code_in_other_semester_is_update(self, client: TestClient):
+        """course_code is unique across semesters, and the import matches on code
+        alone, so the same code in a different semester updates (moves) the
+        existing course. The preview used to call that a 'create' -- promising
+        something the import would not do."""
         existing = client.post(
             "/api/v1/courses/",
             json={"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Α' Εξάμηνο", "credits": 3},
         )
         assert existing.status_code == 201
 
-        payload = [
-            {"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Α' Εξάμηνο"},
-            {"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Β' Εξάμηνο"},
-        ]
+        payload = [{"course_code": "PREVCS1", "course_name": "Preview Course", "semester": "Β' Εξάμηνο"}]
         files = {"files": ("courses.json", json.dumps(payload).encode("utf-8"), "application/json")}
         resp = client.post(
             "/api/v1/imports/preview", files=files, data={"import_type": "courses", "allow_updates": "true"}
         )
         assert resp.status_code == 200
-        body = resp.json()
-        by_semester = {item["data"]["semester"]: item for item in body["items"]}
-        assert by_semester["Α' Εξάμηνο"]["action"] == "update"
-        assert by_semester["Β' Εξάμηνο"]["action"] == "create"
+        (item,) = resp.json()["items"]
+        assert item["action"] == "update"
+        assert any("another semester" in issue for issue in item["issues"])
 
     def test_preview_invalid_import_type(self, client: TestClient):
         """Preview should reject invalid import types."""
@@ -185,7 +182,7 @@ class TestImportExecuteEndpoint:
         assert job is not None
         assert job.job_type == "student_import"
         assert job.status == "completed", job.error_message
-        assert job.result is not None and job.result.data == {"type": "students", "created": 1, "updated": 0}
+        assert job.result is not None and job.result.data == {"type": "students", "created": 1, "updated": 0, "skipped": 0}
         assert job.progress is not None and job.progress.percentage == 100
 
         students = client.get("/api/v1/students/", params={"search": "STU_EXEC_001"}).json()
@@ -231,6 +228,73 @@ class TestImportExecuteEndpoint:
         assert job is not None
         assert job.status == "failed"
         assert job.error_message and "missing student_id or email" in job.error_message
+
+    def test_execute_respects_allow_updates_false(self, client: TestClient):
+        """Regression: allow_updates was accepted but ignored -- existing students were overwritten."""
+        created = client.post(
+            "/api/v1/students/",
+            json={"student_id": "UPD001", "first_name": "Original", "last_name": "Name", "email": "upd001@example.com"},
+        )
+        assert created.status_code == 201
+        rows = [
+            {"student_id": "UPD001", "first_name": "Changed", "last_name": "Name", "email": "upd001@example.com"},
+            {"student_id": "UPD002", "first_name": "New", "last_name": "Student", "email": "upd002@example.com"},
+        ]
+        resp = client.post(
+            "/api/v1/imports/execute",
+            data={"import_type": "students", "json_text": json.dumps(rows), "allow_updates": "false"},
+        )
+        job = JobManager.get_job(resp.json()["job_id"])
+        assert job is not None and job.status == "completed", job and job.error_message
+        assert job.result.data == {"type": "students", "created": 1, "updated": 0, "skipped": 1}
+        assert any("UPD001" in w and "updates are not allowed" in w for w in job.result.warnings)
+
+        student = client.get(f"/api/v1/students/{created.json()['id']}").json()
+        assert student["first_name"] == "Original"
+
+    def test_execute_allow_updates_true_updates_existing(self, client: TestClient):
+        created = client.post(
+            "/api/v1/students/",
+            json={"student_id": "UPD101", "first_name": "Original", "last_name": "Name", "email": "upd101@example.com"},
+        )
+        rows = [{"student_id": "UPD101", "first_name": "Changed", "last_name": "Name", "email": "upd101@example.com"}]
+        resp = client.post(
+            "/api/v1/imports/execute",
+            data={"import_type": "students", "json_text": json.dumps(rows), "allow_updates": "true"},
+        )
+        job = JobManager.get_job(resp.json()["job_id"])
+        assert job.result.data == {"type": "students", "created": 0, "updated": 1, "skipped": 0}
+        assert client.get(f"/api/v1/students/{created.json()['id']}").json()["first_name"] == "Changed"
+
+    def test_execute_skip_duplicates(self, client: TestClient):
+        """Regression: skip_duplicates was ignored -- the second copy silently overwrote the first."""
+        rows = [
+            {"student_id": "DUP001", "first_name": "First", "last_name": "Copy", "email": "dup001@example.com"},
+            {"student_id": "DUP001", "first_name": "Second", "last_name": "Copy", "email": "dup001@example.com"},
+        ]
+        resp = client.post(
+            "/api/v1/imports/execute",
+            data={"import_type": "students", "json_text": json.dumps(rows), "skip_duplicates": "true"},
+        )
+        job = JobManager.get_job(resp.json()["job_id"])
+        assert job.result.data == {"type": "students", "created": 1, "updated": 0, "skipped": 1}
+        found = client.get("/api/v1/students/", params={"search": "DUP001"}).json()
+        items = found.get("items", found) if isinstance(found, dict) else found
+        assert [s["first_name"] for s in items if s["student_id"] == "DUP001"] == ["First"]
+
+    def test_execute_all_rows_skipped_is_not_a_failure(self, client: TestClient):
+        client.post(
+            "/api/v1/courses/",
+            json={"course_code": "SKIPC1", "course_name": "Existing", "semester": "Α' Εξάμηνο", "credits": 3},
+        )
+        rows = [{"course_code": "SKIPC1", "course_name": "Renamed", "semester": "Β' Εξάμηνο"}]
+        resp = client.post(
+            "/api/v1/imports/execute",
+            data={"import_type": "courses", "json_text": json.dumps(rows), "allow_updates": "false"},
+        )
+        job = JobManager.get_job(resp.json()["job_id"])
+        assert job.status == "completed"
+        assert job.result.data["skipped"] == 1
 
     def test_execute_rejects_no_data(self, client: TestClient):
         """Execute should reject requests with no files or JSON."""

@@ -59,6 +59,25 @@ describe('JobProgressMonitor', () => {
     expect(screen.getByText('5/10')).toBeInTheDocument();
   });
 
+  it('lists skipped rows (result.warnings) and the skipped count', async () => {
+    mockGet.mockResolvedValue({
+      ...baseJob,
+      status: 'completed',
+      result: {
+        success: true,
+        message: 'ok',
+        data: { type: 'students', created: 1, updated: 0, skipped: 1 },
+        errors: [],
+        warnings: ['S2026014: already exists and updates are not allowed, skipped'],
+      },
+    });
+
+    render(<JobProgressMonitor jobId="job-1" pollIntervalMs={10_000} />);
+
+    expect(await screen.findByText('S2026014: already exists and updates are not allowed, skipped')).toBeInTheDocument();
+    expect(screen.getByText(/jobMonitorSummary.*"skipped":1/)).toBeInTheDocument();
+  });
+
   it('shows error_message and row errors for a failed job', async () => {
     const onComplete = vi.fn();
     mockGet.mockResolvedValue({

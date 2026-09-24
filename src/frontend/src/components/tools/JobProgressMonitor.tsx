@@ -77,7 +77,8 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
   if (!jobId) return null;
 
   const percentage = job?.status === 'completed' ? 100 : (job?.progress?.percentage ?? 0);
-  const rowErrors = job?.result?.errors ?? [];
+  // Row errors first, then skipped rows (duplicates / existing records with updates off)
+  const rowErrors = [...(job?.result?.errors ?? []), ...(job?.result?.warnings ?? [])];
 
   return (
     <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -130,6 +131,7 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
               {t('jobMonitorSummary', {
                 created: Number(job.result.data.created ?? 0),
                 updated: Number(job.result.data.updated ?? 0),
+                skipped: Number(job.result.data.skipped ?? 0),
               })}
             </span>
           )}

@@ -196,7 +196,7 @@ export default {
   jobMonitorCompleted: 'Η εργασία ολοκληρώθηκε επιτυχώς',
   jobMonitorError: 'Αδυναμία φόρτωσης κατάστασης εργασίας',
   jobMonitorFailed: 'Η εργασία απέτυχε',
-  jobMonitorSummary: '{{created}} νέες εγγραφές, {{updated}} ενημερώσεις',
+  jobMonitorSummary: '{{created}} νέες εγγραφές, {{updated}} ενημερώσεις, {{skipped}} παραλείφθηκαν',
   jobMonitorMoreErrors: '…και {{count}} ακόμη',
   jobStatus_pending: 'Σε αναμονή',
   jobStatus_processing: 'Σε εξέλιξη',
