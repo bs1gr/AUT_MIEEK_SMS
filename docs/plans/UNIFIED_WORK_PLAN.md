@@ -61,9 +61,8 @@ it here and mark it resolved where it was raised.
    sessions work, and a LAN shutdown call gets 403. Tests: `test_lite_security_defaults.py`
    (the strict-mode tests fail under `permissive`). **Every existing Lite install must be
    upgraded to v1.18.47.** The wiki's RBAC, Security and Deployment pages were updated.
-4. **Confirm `SEMESTER_WEEKS` for ΜΙΕΕΚ** (2026-09-25). The absence limit's semester total is
-   `periods_per_week × SEMESTER_WEEKS`, and the setting defaults to **14**. If the ΜΙΕΕΚ semester
-   has a different number of teaching weeks, set it in the backend `.env`. Every limit follows from it.
+4. ~~**Confirm `SEMESTER_WEEKS` for ΜΙΕΕΚ**~~ — **confirmed by the owner on 2026-09-25: 14 weeks**,
+   which matches the default. The absence limit's semester total is `periods_per_week × 14`.
 5. **`src/frontend/.env` has `VITE_API_URL=http://localhost:8000/api/v1`** (found 2026-09-25).
    Even when Vite proxies to a different backend (`VITE_DEV_PROXY_TARGET`), `/auth/refresh` goes to
    that absolute URL, so a second dev stack talks to the main backend's refresh endpoint. It is harmless
