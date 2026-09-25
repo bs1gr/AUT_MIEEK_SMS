@@ -1,8 +1,12 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.47
-**Last Updated**: September 24, 2026
-**Status**: ✅ **v1.18.47 released 2026-09-24** (tag on `ad9c8a6db`). It is a security release: SMS_Lite's API had required no login from the LAN (todo 3 below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.47) and its hash matches GitHub's digest; the APK reports `versionName 1.18.47 / versionCode 118047`; the rebuilt exe returns 401 to anonymous LAN reads and writes. v1.18.46 (2026-09-22) fixed Lite deleting its own install on shutdown. v1.18.45 (2026-09-21) shipped the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change.
+**Current Version**: 1.18.49
+**Last Updated**: September 25, 2026
+**Status**: ✅ **v1.18.49 released 2026-09-25** (tag on `12bee0a2b`). It adds the ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (see its section below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.49) and its hash matches GitHub's digest; the APK manifest reports `1.18.49` (`versionCode 118049`); CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed. v1.18.48 (2026-09-24) made strict auth the default, enforced `password_change_required` on the server, and honoured the import options.
+
+- **Shipped in v1.18.49**: the absence limit (`ee6653ae7`), with `SEMESTER_WEEKS = 14` confirmed (`f04a38916`), and the Vitest extension fix (`8da16cab5`).
+
+**Earlier status (v1.18.47, 2026-09-24):** (tag on `ad9c8a6db`). It is a security release: SMS_Lite's API had required no login from the LAN (todo 3 below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.47) and its hash matches GitHub's digest; the APK reports `versionName 1.18.47 / versionCode 118047`; the rebuilt exe returns 401 to anonymous LAN reads and writes. v1.18.46 (2026-09-22) fixed Lite deleting its own install on shutdown. v1.18.45 (2026-09-21) shipped the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change.
 
 - **Shipped in v1.18.47**: the Lite authentication fix (`a2cd91a6b`) and the wiki auto-sync workflow (`1e011bc50`). The wiki sync ran on its own after the tag.
 
@@ -70,7 +74,7 @@ it here and mark it resolved where it was raised.
 
 ---
 
-## 🎓 ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (September 25, 2026) — not yet released
+## 🎓 ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (September 25, 2026) — released in v1.18.49
 
 **The rule:** attendance is compulsory, and the limit is counted separately for each course.
 - A student may miss at most **10%** of a course's scheduled semester periods.
