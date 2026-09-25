@@ -108,6 +108,8 @@ def serialize_course(course) -> Dict[str, Any]:
         "evaluation_rules": course.evaluation_rules,
         "teaching_schedule": course.teaching_schedule,
         "absence_penalty": course.absence_penalty,
+        "absence_limit_percent": course.absence_limit_percent,
+        "absence_limit_extended_percent": course.absence_limit_extended_percent,
     }
 
 
@@ -132,6 +134,11 @@ def serialize_enrollment(enrollment) -> Dict[str, Any]:
         "student_id_ref": enrollment.student.student_id if enrollment.student else None,
         "course_code_ref": enrollment.course.course_code if enrollment.course else None,
         "enrolled_at": str(enrollment.enrolled_at) if enrollment.enrolled_at else None,
+        "extended_absence_approved": bool(enrollment.extended_absence_approved),
+        "extended_absence_approved_at": (
+            str(enrollment.extended_absence_approved_at) if enrollment.extended_absence_approved_at else None
+        ),
+        "extended_absence_note": enrollment.extended_absence_note,
     }
 
 

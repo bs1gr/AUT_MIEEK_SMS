@@ -38,6 +38,9 @@ export interface Course {
   evaluation_rules?: Array<{ id?: number; category: string; weight?: number; description?: string }>;
   academic_year?: string;
   absence_penalty?: number;
+  // ΜΙΕΕΚ absence limit (% of scheduled periods); extended applies with Directorate approval
+  absence_limit_percent?: number;
+  absence_limit_extended_percent?: number;
   is_active: boolean;
 }
 
@@ -70,6 +73,34 @@ export interface CourseEnrollment {
   course_id: number;
   enrolled_at?: string;
   status?: 'active' | 'completed' | 'dropped';
+  extended_absence_approved?: boolean;
+  extended_absence_approved_at?: string | null;
+  extended_absence_note?: string | null;
+}
+
+/** ΜΙΕΕΚ absence-limit status of one student in one course (GET /attendance/absence-status/...). */
+export interface AbsenceLimitStatus {
+  student_id: number;
+  course_id: number;
+  course_code?: string | null;
+  course_name?: string | null;
+  semester_weeks: number;
+  periods_per_week: number;
+  scheduled_periods: number;
+  absences: number;
+  unexcused_absences: number;
+  excused_absences: number;
+  absence_percent: number;
+  limit_percent: number;
+  base_limit_percent: number;
+  extended_limit_percent: number;
+  extended_approved: boolean;
+  extended_absence_approved_at?: string | null;
+  extended_absence_note?: string | null;
+  allowed_absences: number | null;
+  remaining_absences: number | null;
+  status: 'ok' | 'warning' | 'insufficient' | 'unknown';
+  attendance_insufficient: boolean;
 }
 
 export interface StudentCoursePerformance {
@@ -238,6 +269,9 @@ export interface FinalGrade {
   absence_deduction: number;
   // Optional human-readable Greek description present in some analytics responses
   greek_description?: string;
+  // ΜΙΕΕΚ absence limit: warning flag only, the grade is never blocked
+  attendance_insufficient?: boolean;
+  absence_limit?: AbsenceLimitStatus;
 }
 
 // Utility types

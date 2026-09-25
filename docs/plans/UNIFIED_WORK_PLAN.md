@@ -61,6 +61,69 @@ it here and mark it resolved where it was raised.
    sessions work, and a LAN shutdown call gets 403. Tests: `test_lite_security_defaults.py`
    (the strict-mode tests fail under `permissive`). **Every existing Lite install must be
    upgraded to v1.18.47.** The wiki's RBAC, Security and Deployment pages were updated.
+4. **Confirm `SEMESTER_WEEKS` for ΜΙΕΕΚ** (2026-09-25). The absence limit's semester total is
+   `periods_per_week × SEMESTER_WEEKS`, and the setting defaults to **14**. If the ΜΙΕΕΚ semester
+   has a different number of teaching weeks, set it in the backend `.env`. Every limit follows from it.
+5. **`src/frontend/.env` has `VITE_API_URL=http://localhost:8000/api/v1`** (found 2026-09-25).
+   Even when Vite proxies to a different backend (`VITE_DEV_PROXY_TARGET`), `/auth/refresh` goes to
+   that absolute URL, so a second dev stack talks to the main backend's refresh endpoint. It is harmless
+   with a single stack. Override `VITE_API_URL` whenever you run a second stack.
+
+---
+
+## 🎓 ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (September 25, 2026) — not yet released
+
+**The rule:** attendance is compulsory, and the limit is counted separately for each course.
+- A student may miss at most **10%** of a course's scheduled semester periods.
+- With documented reasons and **Directorate approval**, the limit is **15%**.
+- Going **over** the limit makes attendance **Ανεπαρκής**: the student loses the final exam and
+  repeats the course.
+
+The owner decided three things: calculate the semester total rather than enter it; show a
+**warning flag only** (grade entry is never blocked); and keep `absence_penalty`, with the new limits
+added alongside it with defaults.
+
+- **Counting:** `backend/services/absence_limit_service.py`.
+  - Units are teaching periods, since attendance is recorded one row per period. The total is
+    `periods_per_week × SEMESTER_WEEKS`, falling back to `hours_per_week` for courses without a
+    period schedule.
+  - **Absent and Excused both count.** A justification only matters through the approval; Late
+    does not count.
+  - "Over" means strictly more than the limit. For example, 42 periods × 10% = 4.2, so 4 absences
+    are allowed and the 5th is insufficient.
+  - A student is flagged "near limit" once they have used 80% of their allowance.
+  - A course with no schedule reports `unknown`, never `insufficient`.
+- **Schema** (migration `c4d8e2f1a6b3`, additive):
+  - `courses.absence_limit_percent` (default 10) and `absence_limit_extended_percent` (default 15).
+  - `course_enrollments.extended_absence_approved`, `_approved_at` and `_note`.
+  - The new fields round-trip through session export/import and course import.
+- **API:**
+  - `GET /attendance/absence-status/course/{id}` and `/student/{id}`.
+  - `PUT /enrollments/course/{c}/student/{s}/extended-absence` (`courses:edit`). Editing the note
+    keeps the original approval date.
+  - `/analytics/.../final-grade` now also returns `attendance_insufficient` and `absence_limit`.
+    The grade itself is unchanged.
+- **UI** (EN/EL):
+  - An "Absence limit (ΜΙΕΕΚ)" panel in Attendance: each student's absences against the limit,
+    their status, and an approval checkbox with a note.
+  - A red warning on the Grading screen and in the grade breakdown for an insufficient student.
+  - The two limit inputs sit beside the absence penalty in Evaluation Rules. Like the penalty, they
+    only autosave once the course has rules totalling 100%.
+- **Also fixed:** reports under-counted unexcused absences (`unexcused = absent - excused`, where
+  Absent and Excused are separate statuses). They now report `absent`.
+- **Not changed:** the student profile's attendance rate still counts Excused as attended, and semester
+  archive "passed" status still ignores the flag. Both are consistent with "warn only".
+
+**Verification:**
+- Tests: `test_absence_limits.py` (14), `AbsenceLimitsPanel.test.tsx` (6), and 2 new
+  `GradeBreakdownModal` tests. The 24 neighbouring backend test files still pass.
+- In a browser, against an isolated backend on a throwaway SQLite database: EN and EL panels;
+  5/42 absences → Ανεπαρκής, 4/42 → near limit, 1/42 → Επαρκής. Approval moved the limit to
+  6 (15%) and withdrawal moved it back. The note saved on blur. The Greek grading warning appeared
+  with the form still enabled, and no warning appeared for an in-limit student.
+- The running `--reload` dev backend applied the migration to the dev Postgres on its own. All 55
+  courses got 10/15, and a read-only pass over the real data gave 42 enrolled students, all `ok`,
+  with no absences recorded yet. Revert with `alembic downgrade b97c31e9c95f`.
 
 ---
 

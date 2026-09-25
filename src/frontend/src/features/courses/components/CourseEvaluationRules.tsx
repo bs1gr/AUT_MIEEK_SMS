@@ -17,6 +17,9 @@ const CourseEvaluationRules = () => {
   type EvaluationRuleLocal = { category: string; weight: string | number; description?: string; includeDailyPerformance?: boolean; dailyPerformanceMultiplier?: number };
   const [evaluationRules, setEvaluationRules] = useState<EvaluationRuleLocal[]>([]);
   const [absencePenalty, setAbsencePenalty] = useState<number>(0);
+  // ΜΙΕΕΚ absence limit (% of scheduled periods); extended applies with Directorate approval
+  const [absenceLimit, setAbsenceLimit] = useState<number>(10);
+  const [absenceLimitExtended, setAbsenceLimitExtended] = useState<number>(15);
   // Loading state reserved for future async interactions
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
 
@@ -62,9 +65,13 @@ const CourseEvaluationRules = () => {
         setEvaluationRules([]);
       }
       setAbsencePenalty(typeof course.absence_penalty === 'number' ? course.absence_penalty : 0);
+      setAbsenceLimit(typeof course.absence_limit_percent === 'number' ? course.absence_limit_percent : 10);
+      setAbsenceLimitExtended(typeof course.absence_limit_extended_percent === 'number' ? course.absence_limit_extended_percent : 15);
     } else {
       setEvaluationRules([]);
       setAbsencePenalty(0);
+      setAbsenceLimit(10);
+      setAbsenceLimitExtended(15);
     }
   }, [courses, selectedCourse]);
 
@@ -142,11 +149,13 @@ const CourseEvaluationRules = () => {
     }));
     await apiClient.put(`/courses/${selectedCourse}`, {
       evaluation_rules: normalized,
-      absence_penalty: absencePenalty
+      absence_penalty: absencePenalty,
+      absence_limit_percent: absenceLimit,
+      absence_limit_extended_percent: Math.max(absenceLimit, absenceLimitExtended)
     });
     showToast(t('evaluationRulesSaved'), 'success');
     await loadCourses();
-  }, [evaluationRules, absencePenalty, selectedCourse, t, validateRules, loadCourses, showToast]);
+  }, [evaluationRules, absencePenalty, absenceLimit, absenceLimitExtended, selectedCourse, t, validateRules, loadCourses, showToast]);
 
   const totalWeight = evaluationRules.reduce((sum: number, rule: EvaluationRuleLocal) => {
     return sum + (parseFloat(String(rule.weight)) || 0);
@@ -158,7 +167,7 @@ const CourseEvaluationRules = () => {
   const hasChanges = evaluationRules.length > 0 && selectedCourse !== null;
   const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
     performSave,
-    [evaluationRules, absencePenalty],
+    [evaluationRules, absencePenalty, absenceLimit, absenceLimitExtended],
     { delay: 2000, enabled: hasChanges && isValidTotal, skipInitial: true }
   );
 
@@ -245,6 +254,38 @@ const CourseEvaluationRules = () => {
                   placeholder="0.0"
                 />
                 <p className="text-xs text-gray-600 mt-1">{t('absencePenaltyHelp') || 'Deduct this many percentage points from the final grade for each unexcused absence.'}</p>
+              </div>
+              <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-4 border border-amber-200">
+                <p className="text-xs font-semibold text-gray-800 mb-2">{t('absenceLimitTitle')}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="absence-limit-percent" className="block text-xs font-medium text-gray-700 mb-1">{t('absenceLimitPercent')}</label>
+                    <input
+                      id="absence-limit-percent"
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={absenceLimit}
+                      onChange={(e) => setAbsenceLimit(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="absence-limit-extended-percent" className="block text-xs font-medium text-gray-700 mb-1">{t('absenceLimitExtendedPercent')}</label>
+                    <input
+                      id="absence-limit-extended-percent"
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={absenceLimitExtended}
+                      onChange={(e) => setAbsenceLimitExtended(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 mt-1">{t('absenceLimitHelp')}</p>
               </div>
             </div>
 

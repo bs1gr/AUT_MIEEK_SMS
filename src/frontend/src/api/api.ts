@@ -35,6 +35,7 @@ import type {
   Student,
   Course,
   CourseEnrollment,
+  AbsenceLimitStatus,
   Grade,
   Attendance,
   Highlight,
@@ -647,6 +648,17 @@ export const attendanceAPI = {
     return response.data;
   },
 
+  // ΜΙΕΕΚ absence-limit status (10% / 15% with approval) for each enrolled student
+  getCourseAbsenceStatus: async (courseId: number): Promise<AbsenceLimitStatus[]> => {
+    const response = await apiClient.get(`/attendance/absence-status/course/${courseId}`);
+    return normalizeResponseToArray<AbsenceLimitStatus>(response.data as unknown);
+  },
+
+  getStudentAbsenceStatus: async (studentId: number): Promise<AbsenceLimitStatus[]> => {
+    const response = await apiClient.get(`/attendance/absence-status/student/${studentId}`);
+    return normalizeResponseToArray<AbsenceLimitStatus>(response.data as unknown);
+  },
+
   bulkCreate: async (attendanceRecords: AttendanceFormData[]): Promise<Attendance[]> => {
     const promises = attendanceRecords.map(record =>
       apiClient.post<Attendance>('/attendance/', record)
@@ -930,6 +942,20 @@ export const enrollmentsAPI = {
   // Unenroll a student from a course
   unenrollStudent: async (courseId: number, studentId: number): Promise<void> => {
     await apiClient.delete(`/enrollments/course/${courseId}/student/${studentId}`);
+  },
+
+  // Record / withdraw the Directorate's approval for the extended ΜΙΕΕΚ absence limit
+  setExtendedAbsenceApproval: async (
+    courseId: number,
+    studentId: number,
+    approved: boolean,
+    note?: string
+  ): Promise<CourseEnrollment> => {
+    const response = await apiClient.put<CourseEnrollment>(
+      `/enrollments/course/${courseId}/student/${studentId}/extended-absence`,
+      { approved, note: note || null }
+    );
+    return unwrapResponse<CourseEnrollment>(response.data);
   },
 };
 

@@ -202,6 +202,8 @@ class CourseService:
             "description": course.description,
             "evaluation_rules": course.evaluation_rules,
             "absence_penalty": course.absence_penalty,
+            "absence_limit_percent": course.absence_limit_percent,
+            "absence_limit_extended_percent": course.absence_limit_extended_percent,
             "hours_per_week": course.hours_per_week,
             "periods_per_week": course.periods_per_week,
             "teaching_schedule": course.teaching_schedule,

@@ -17,13 +17,14 @@ from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.logging_config import safe_log_context
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
+from backend.schemas.absence_limits import AbsenceLimitStatus
 from backend.schemas.attendance import (
     AttendanceCreate,
     AttendanceResponse,
     AttendanceUpdate,
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
-from backend.services import AttendanceService
+from backend.services import AttendanceService, absence_limit_service
 
 logger = logging.getLogger(__name__)
 
@@ -206,6 +207,42 @@ def get_course_attendance(
         raise
     except Exception as e:
         logger.exception("Error retrieving course attendance")
+        raise internal_server_error(request=request)
+
+
+@router.get("/absence-status/course/{course_id}", response_model=List[AbsenceLimitStatus])
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:view")
+def get_course_absence_status(request: Request, course_id: int, db: Session = Depends(get_db)):
+    """ΜΙΕΕΚ absence-limit status (10% / 15% with approval) for every student enrolled in a course."""
+    try:
+        from backend.import_resolver import import_names
+
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
+        return absence_limit_service.course_absence_status(db, course)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Error computing course absence status")
+        raise internal_server_error(request=request)
+
+
+@router.get("/absence-status/student/{student_id}", response_model=List[AbsenceLimitStatus])
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view", allow_self_access=True)
+def get_student_absence_status(request: Request, student_id: int, db: Session = Depends(get_db)):
+    """ΜΙΕΕΚ absence-limit status for every course a student is enrolled in."""
+    try:
+        from backend.import_resolver import import_names
+
+        (Student,) = import_names("models", "Student")
+        get_by_id_or_404(db, Student, student_id)
+        return absence_limit_service.student_absence_status(db, student_id)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Error computing student absence status")
         raise internal_server_error(request=request)
 
 

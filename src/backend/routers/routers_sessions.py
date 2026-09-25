@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import string
-from datetime import datetime
+from datetime import date, datetime
 from io import BytesIO
 from typing import Any, Dict, List, Optional
 
@@ -879,6 +879,7 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
                     # Update enrolled_at if provided
                     if enroll_data.get("enrolled_at"):
                         existing.enrolled_at = datetime.fromisoformat(enroll_data["enrolled_at"])
+                    _apply_extended_absence(existing, enroll_data)
                     db.add(existing)
                     results["summary"]["enrollments"]["updated"] += 1
                 else:
@@ -892,12 +893,23 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
                     if enroll_data.get("enrolled_at")
                     else datetime.now(),
                 )
+                _apply_extended_absence(enrollment, enroll_data)
                 db.add(enrollment)
                 results["summary"]["enrollments"]["created"] += 1
 
         except Exception as e:
             logger.error("Enrollment import failed: %s", e, exc_info=True)
             results["summary"]["enrollments"]["errors"].append("Enrollment import failed")
+
+
+def _apply_extended_absence(enrollment, enroll_data: Dict) -> None:
+    """Restore the ΜΙΕΕΚ extended-absence approval (only present in newer exports)."""
+    if "extended_absence_approved" not in enroll_data:
+        return
+    enrollment.extended_absence_approved = bool(enroll_data.get("extended_absence_approved"))
+    approved_at = enroll_data.get("extended_absence_approved_at")
+    enrollment.extended_absence_approved_at = date.fromisoformat(approved_at) if approved_at else None
+    enrollment.extended_absence_note = enroll_data.get("extended_absence_note")
 
 
 def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results: Dict):

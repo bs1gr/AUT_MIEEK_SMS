@@ -172,6 +172,18 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
               </div>
             )}
 
+            {/* ΜΙΕΕΚ absence limit exceeded: flag only, the grade is unchanged */}
+            {data.attendance_insufficient && data.absence_limit && (
+              <div role="alert" className="bg-red-50 border border-red-300 rounded-lg p-4 text-sm text-red-800" data-testid="breakdown-attendance-insufficient">
+                <div className="font-semibold mb-1">{t('attendanceInsufficientBadge')}</div>
+                {t('attendanceInsufficientWarning', {
+                  absences: data.absence_limit.absences,
+                  limit: data.absence_limit.limit_percent,
+                  allowed: data.absence_limit.allowed_absences ?? 0,
+                })}
+              </div>
+            )}
+
             <div className="flex gap-2 mt-2">
               <button onClick={onClose} className="flex-1 border px-3 py-2 rounded">{t('close')}</button>
             </div>

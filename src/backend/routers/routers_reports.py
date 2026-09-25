@@ -206,7 +206,6 @@ def _build_student_report(
             absent = len([a for a in attendance_records if a.status == "Absent"])
             late = len([a for a in attendance_records if a.status == "Late"])
             excused = len([a for a in attendance_records if a.status == "Excused"])
-            unexcused = absent - excused
 
             report_data["overall_attendance"] = AttendanceSummary(
                 total_days=total_days,
@@ -215,7 +214,7 @@ def _build_student_report(
                 late=late,
                 excused=excused,
                 attendance_rate=round((present / total_days) * 100, 1) if total_days > 0 else 0,
-                unexcused_absences=max(0, unexcused),
+                unexcused_absences=absent,
             )
 
     # Get grades summary using date_submitted with fallback to date_assigned
@@ -338,7 +337,7 @@ def _build_student_report(
                     late=late_count,
                     excused=excused_count,
                     attendance_rate=round((present_count / total) * 100, 1) if total > 0 else 0,
-                    unexcused_absences=max(0, absent_count - excused_count),
+                    unexcused_absences=absent_count,
                 )
 
         # Daily performance

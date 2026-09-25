@@ -99,6 +99,30 @@ describe('GradeBreakdownModal', () => {
     expect(screen.queryByText('absencePenaltyApplied')).not.toBeInTheDocument();
   });
 
+  it('flags insufficient attendance (ΜΙΕΕΚ absence limit) without changing the grade', async () => {
+    mockedApiClient.get.mockResolvedValue({
+      data: {
+        ...FINAL_GRADE,
+        attendance_insufficient: true,
+        absence_limit: { absences: 5, limit_percent: 10, allowed_absences: 4 },
+      },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    expect(await screen.findByTestId('breakdown-attendance-insufficient')).toHaveTextContent('attendanceInsufficientBadge');
+    expect(screen.getByText('87.50%')).toBeInTheDocument();
+  });
+
+  it('does not flag attendance when within the limit', async () => {
+    mockedApiClient.get.mockResolvedValue({ data: { ...FINAL_GRADE, attendance_insufficient: false } });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    await screen.findByText('87.50%');
+    expect(screen.queryByTestId('breakdown-attendance-insufficient')).not.toBeInTheDocument();
+  });
+
   it('shows an error message when the fetch fails', async () => {
     mockedApiClient.get.mockRejectedValue(new Error('network down'));
 

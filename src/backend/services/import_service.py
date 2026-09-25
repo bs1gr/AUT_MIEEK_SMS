@@ -140,6 +140,9 @@ class ImportService:
                 "hours_per_week",
                 "periods_per_week",
                 "teaching_schedule",
+                "absence_penalty",
+                "absence_limit_percent",
+                "absence_limit_extended_percent",
             ]:
                 if field in course_data:
                     setattr(db_course, field, course_data[field])
@@ -168,6 +171,9 @@ class ImportService:
                 "hours_per_week",
                 "periods_per_week",
                 "teaching_schedule",
+                "absence_penalty",
+                "absence_limit_percent",
+                "absence_limit_extended_percent",
             ]
             filtered_data = {k: v for k, v in course_data.items() if k in allowed_fields}
             db_course = Course(**filtered_data)

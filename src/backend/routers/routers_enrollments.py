@@ -18,6 +18,7 @@ from backend.schemas.enrollments import (
     EnrollmentCreate,
     EnrollmentResponse,
     EnrollmentStatusUpdate,
+    ExtendedAbsenceApprovalUpdate,
     StudentBrief,
 )
 from backend.schemas.semester_archive import StudentCoursePerformanceResponse
@@ -208,6 +209,35 @@ def update_enrollment_status(
 
         logger.error(
             "Error updating enrollment status",
+            extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(exc)),
+            exc_info=True,
+        )
+        raise internal_server_error(request=request)
+
+
+@router.put("/course/{course_id}/student/{student_id}/extended-absence", response_model=EnrollmentResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("courses:edit")
+def update_extended_absence_approval(
+    course_id: int,
+    student_id: int,
+    payload: ExtendedAbsenceApprovalUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Record or withdraw the Directorate's approval for the extended ΜΙΕΕΚ absence limit (up to 15%)."""
+    try:
+        with transaction(db):
+            result = EnrollmentService.update_extended_absence_approval(db, course_id, student_id, payload, request)
+            db.flush()
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error updating extended absence approval",
             extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(exc)),
             exc_info=True,
         )

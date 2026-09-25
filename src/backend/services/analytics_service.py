@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from backend.db.utils import get_by_id_or_404
 from backend.import_resolver import import_names
+from backend.services import absence_limit_service
 from backend.services.cache_service import get_cache_manager
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,23 @@ class AnalyticsService:
             .all()
         ]
 
-        return self._calculate_final_grade_from_records(student_id, course, grades, daily, attendance)
+        result = self._calculate_final_grade_from_records(student_id, course, grades, daily, attendance)
+
+        # ΜΙΕΕΚ absence limit: flag only (warn in the UI), never block or alter the grade.
+        enrollment = (
+            self.db.query(self.CourseEnrollment)
+            .filter(
+                self.CourseEnrollment.student_id == student_id,
+                self.CourseEnrollment.course_id == course_id,
+                self.CourseEnrollment.deleted_at.is_(None),
+            )
+            .first()
+        )
+        extended_approved = bool(getattr(enrollment, "extended_absence_approved", False))
+        absence_status = absence_limit_service.evaluate_records(course, attendance, extended_approved)
+        result["absence_limit"] = absence_status
+        result["attendance_insufficient"] = absence_status["attendance_insufficient"]
+        return result
 
     def get_student_all_courses_summary(self, student_id: int) -> Dict[str, Any]:
         # Fetch student without expensive joinedloads

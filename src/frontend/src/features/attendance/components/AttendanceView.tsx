@@ -22,6 +22,7 @@ import AttendanceQuickActions from './AttendanceQuickActions';
 import AttendanceAnalyticsSnapshot from './AttendanceAnalyticsSnapshot';
 import AttendanceStudentList from './AttendanceStudentList';
 import AttendancePerformanceModal from './AttendancePerformanceModal';
+import AbsenceLimitsPanel from './AbsenceLimitsPanel';
 
 // Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
 // the correct server URL dynamically and injects the Authorization header.
@@ -1029,6 +1030,15 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         clearStudentAttendance={clearStudentAttendance}
         setSelectedStudentForPerformance={setSelectedStudentForPerformance}
         setShowPerformanceModal={setShowPerformanceModal}
+      />
+
+      {/* ΜΙΕΕΚ absence limit (semester-wide, per student) */}
+      <AbsenceLimitsPanel
+        t={t}
+        courseId={selectedCourse}
+        students={enrolledStudents}
+        refreshKey={persistedAttendanceRecords}
+        showToast={showToast}
       />
 
       {/* Performance Modal */}

@@ -25,6 +25,7 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
+    false,
     text,
 )
 from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
@@ -130,6 +131,11 @@ class Course(SoftDeleteMixin, Base):
     evaluation_rules = Column(JSON)
     # Absence penalty: percentage points deducted from final grade per unexcused absence
     absence_penalty = Column(Float, default=0.0)
+    # ΜΙΕΕΚ absence limit (% of the semester's scheduled teaching periods). Going over
+    # it makes attendance "insufficient"; the extended limit applies only to students
+    # whose enrollment has the Directorate's approval. See services.absence_limit_service.
+    absence_limit_percent = Column(Float, default=10.0, server_default="10")
+    absence_limit_extended_percent = Column(Float, default=15.0, server_default="15")
 
     # Course status: derived from enrollments (active while it has students with an
     # active enrollment) -- see services.course_activation. New courses start inactive.
@@ -192,6 +198,10 @@ class CourseEnrollment(SoftDeleteMixin, Base):
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
     enrolled_at = Column(Date, default=date.today, index=True)
     status = Column(String(20), default="active", nullable=False, index=True)
+    # Directorate approval to use the course's extended absence limit (documented reasons)
+    extended_absence_approved = Column(Boolean, default=False, server_default=false(), nullable=False)
+    extended_absence_approved_at = Column(Date, nullable=True)
+    extended_absence_note = Column(Text, nullable=True)
 
     # Relationships
     student = relationship("Student", back_populates="enrollments")  # type: ignore[var-annotated]

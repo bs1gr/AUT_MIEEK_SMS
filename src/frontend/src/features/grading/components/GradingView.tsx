@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import apiClient, { enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
@@ -128,6 +129,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const gradeEntry = useGradeEntrySync({ studentId, courseId, setStudentId, setCourseId, todayStr, t });
 
   const isHistoricalMode = Boolean(gradeEntry.historyDate && gradeEntry.historyDate !== todayStr);
+  // ΜΙΕΕΚ: over the absence limit -> no final exam. Warn only; grade entry stays open.
+  const insufficientAttendance = gradeEntry.finalSummary?.attendance_insufficient ? gradeEntry.finalSummary.absence_limit : undefined;
   const summaryReportLink = useMemo(() => {
     const params = new URLSearchParams();
     params.set('templateName', 'Student Performance Breakdown - Grades');
@@ -360,6 +363,23 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         </div>
       )}
 
+      {insufficientAttendance && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 text-sm text-red-800 bg-red-50 border border-red-300 rounded-xl px-4 py-3"
+          data-testid="attendance-insufficient-warning"
+        >
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-600" />
+          <span>
+            {t('attendanceInsufficientWarning', {
+              absences: insufficientAttendance.absences,
+              limit: insufficientAttendance.limit_percent,
+              allowed: insufficientAttendance.allowed_absences ?? 0,
+            })}
+          </span>
+        </div>
+      )}
+
       <form onSubmit={gradeEntry.submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
@@ -453,6 +473,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           <p className="text-sm text-gray-500">{t('selectStudentAndCourse')}</p>
         ) : gradeEntry.finalSummary ? (
           <div className="text-sm">
+            {gradeEntry.finalSummary.attendance_insufficient && (
+              <span className="inline-block mb-2 text-xs font-semibold px-2 py-1 rounded border bg-red-100 text-red-800 border-red-300">
+                {t('attendanceInsufficientBadge')}
+              </span>
+            )}
             <p><span className="font-semibold">{t('final')}:</span> {gradeEntry.finalSummary.final_grade ?? '-'}%</p>
             <p><span className="font-semibold">{t('gpa')}:</span> {gradeEntry.finalSummary.gpa ?? '-'}</p>
             <p><span className="font-semibold">{t('letterGrade')}:</span> {gradeEntry.finalSummary.letter_grade ?? '-'}</p>
