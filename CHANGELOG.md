@@ -26,6 +26,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.49] - 2026-09-25
+
+### Features
+- **attendance**: ΜΙΕΕΚ absence limit (10%, 15% with Directorate approval)
+
+### Bug Fixes
+- **vitest**: resolve hanging config load in VS Code extension
+
+### Documentation
+- **plan**: SEMESTER_WEEKS = 14 confirmed for ΜΙΕΕΚ absence limit
+
 ## [1.18.48] - 2026-09-24
 
 ### Features
@@ -4495,6 +4507,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
