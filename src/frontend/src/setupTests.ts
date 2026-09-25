@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom/vitest';
-import testI18n from './test-utils/i18n-test-wrapper';
+import testI18n from './test-utils/i18n-test-wrapper.tsx';
 
 // Use test-specific i18n instance (avoids corruption from translations.ts spreading)
-testI18n.changeLanguage('en').catch(() => {
+try {
+  testI18n.changeLanguage('en');
+} catch {
   // Initialization may not be complete yet, that's okay
-});
+}
 
 const shouldSuppressTestLog = (message: string) => {
 	return (

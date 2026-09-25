@@ -88,22 +88,18 @@ testI18n
     interpolation: {
       escapeValue: false
     },
-    // Ensure key fallback works properly
     returnEmptyString: false,
     returnNull: false
   });
 
-// Import LanguageProvider which wraps i18next
-import { LanguageProvider } from '../LanguageContext';
-
 /**
  * Wrapper component that provides i18n context to test components
- * Uses I18nextProvider + LanguageProvider to support both react-i18next and custom LanguageContext
+ * Uses I18nextProvider to support react-i18next
  */
 const I18nWrapper = ({ children }: { children: ReactNode }) => {
   return (
     <I18nextProvider i18n={testI18n}>
-      <LanguageProvider>{children}</LanguageProvider>
+      {children}
     </I18nextProvider>
   );
 };
