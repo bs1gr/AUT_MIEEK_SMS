@@ -2518,7 +2518,8 @@ try {
         if ($Snapshot) {
             Write-Host ""; Write-Host "📝 Recording workspace state snapshot..." -ForegroundColor Cyan
             try {
-                & (Join-Path $PROJECT_ROOT "scripts\VERIFY_AND_RECORD_STATE.ps1") | Out-Null
+                # -SkipCommitReady: this run is the validation; the snapshot must not start another.
+                & (Join-Path $PROJECT_ROOT "scripts\VERIFY_AND_RECORD_STATE.ps1") -SkipCommitReady | Out-Null
                 Write-Host "   ✅ Snapshot saved under artifacts/state" -ForegroundColor Green
             }
             catch {
@@ -2530,7 +2531,7 @@ try {
         # Even if checks failed, allow capturing a snapshot for debugging
         Write-Host ""; Write-Host "📝 Recording workspace state snapshot (post-failure)..." -ForegroundColor Cyan
         try {
-            & (Join-Path $PROJECT_ROOT "scripts\VERIFY_AND_RECORD_STATE.ps1") | Out-Null
+            & (Join-Path $PROJECT_ROOT "scripts\VERIFY_AND_RECORD_STATE.ps1") -SkipCommitReady | Out-Null
             Write-Host "   ✅ Snapshot saved under artifacts/state" -ForegroundColor Green
         }
         catch {
