@@ -4,6 +4,7 @@
 **Last Updated**: September 28, 2026
 **Status**: ✅ **v1.18.49 released 2026-09-25** (tag on `12bee0a2b`). It adds the ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (see its section below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.49) and its hash matches GitHub's digest; the APK manifest reports `1.18.49` (`versionCode 118049`); CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed. v1.18.48 (2026-09-24) made strict auth the default, enforced `password_change_required` on the server, and honoured the import options.
 
+- **On `main`, not yet released (next: v1.18.50)**: self-registration now needs admin approval, and activation emails the user (`434631cbc`). The CI fixes that followed are in `44b993081`. CI/CD and E2E are green on `44b993081`. See the 2026-09-28 section below.
 - **Shipped in v1.18.49**: the absence limit (`ee6653ae7`), with `SEMESTER_WEEKS = 14` confirmed (`f04a38916`), and the Vitest extension fix (`8da16cab5`).
 
 **Earlier status (v1.18.47, 2026-09-24):** (tag on `ad9c8a6db`). It is a security release: SMS_Lite's API had required no login from the LAN (todo 3 below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.47) and its hash matches GitHub's digest; the APK reports `versionName 1.18.47 / versionCode 118047`; the rebuilt exe returns 401 to anonymous LAN reads and writes. v1.18.46 (2026-09-22) fixed Lite deleting its own install on shutdown. v1.18.45 (2026-09-21) shipped the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change.
@@ -130,6 +131,25 @@ sink):
   still sign in.
 
 Brevo SMTP was then configured on the dev machine and its test email was delivered.
+
+**Commits:** `434631cbc` (feature) and `44b993081` (CI fixes), both pushed. CI/CD and E2E are green on `44b993081`.
+
+**CI broke after the push (fixed in `44b993081`).** Two separate problems:
+
+- **Backend: 39 errors in CI, none locally.** The teardown in `test_run_migrations.py` reloads
+  `backend.config`, which creates a *new* `settings` object. Modules imported earlier, such as
+  `routers_auth`, kept the old one. So conftest's per-test patches, including
+  `SELF_REGISTRATION_MODE=open`, stopped reaching them for every test that ran afterwards, and the
+  `admin_token` fixture's account stayed inactive. CI runs the whole suite in one process;
+  `RUN_TESTS_BATCH` isolates groups, which is why it did not show locally. The fixture now puts the
+  original object back.
+- **E2E: 3 specs assumed public registration signs straight in.** Three changes:
+  - `registerUser` now creates accounts as the seeded admin.
+  - `register.spec` checks the approval flow.
+  - `ui-register.spec` checks the pending message and that no sign-in happens. This spec is not in
+    CI's E2E subset, so it had been failing unseen.
+
+  Full isolated E2E: 41 passed, 37 skipped.
 
 **Gotcha:** TotalAV real-time scanning slowed file reads about 10×. `require('typescript')` took
 5s, and Vitest workers timed out at start ("Failed to start threads worker"), which looked like
