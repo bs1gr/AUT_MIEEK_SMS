@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserPlus } from 'lucide-react';
-import { getErrorMessage } from '@/utils/errorMessage';
+import { getApiErrorCode, getErrorMessage, isServerUnreachable } from '@/utils/errorMessage';
 
 type FeedbackState = {
   type: 'success' | 'info' | 'error';
@@ -57,12 +57,22 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
     setFeedback(null);
 
     try {
-      await apiClient.post('/auth/register', {
+      const response = await apiClient.post<{ is_active?: boolean }>('/auth/register', {
         email,
         password,
         full_name: fullName,
         role,
       });
+
+      // Default server mode: the account waits for an administrator to activate it,
+      // so signing in now would only fail with AUTH_ACCOUNT_INACTIVE.
+      if (response.data?.is_active === false) {
+        setEmail('');
+        setPassword('');
+        setFullName('');
+        setFeedback({ type: 'info', message: t('auth.registerPendingApproval') });
+        return;
+      }
 
       try {
         await login(email, password);
@@ -77,7 +87,12 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
         setFeedback({ type: 'info', message: getErrorMessage(err, t('auth.registerPartial')) });
       }
     } catch (err: unknown) {
-      setFeedback({ type: 'error', message: getErrorMessage(err, t('auth.registerError')) });
+      const message = isServerUnreachable(err)
+        ? t('auth.serverUnreachable')
+        : getApiErrorCode(err) === 'AUTH_REGISTRATION_DISABLED'
+          ? t('auth.registerDisabled')
+          : getErrorMessage(err, t('auth.registerError'));
+      setFeedback({ type: 'error', message });
     } finally {
       setBusy(false);
     }

@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.49
-**Last Updated**: September 25, 2026
+**Last Updated**: September 28, 2026
 **Status**: ✅ **v1.18.49 released 2026-09-25** (tag on `12bee0a2b`). It adds the ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (see its section below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.49) and its hash matches GitHub's digest; the APK manifest reports `1.18.49` (`versionCode 118049`); CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed. v1.18.48 (2026-09-24) made strict auth the default, enforced `password_change_required` on the server, and honoured the import options.
 
 - **Shipped in v1.18.49**: the absence limit (`ee6653ae7`), with `SEMESTER_WEEKS = 14` confirmed (`f04a38916`), and the Vitest extension fix (`8da16cab5`).
@@ -71,6 +71,69 @@ it here and mark it resolved where it was raised.
    Even when Vite proxies to a different backend (`VITE_DEV_PROXY_TARGET`), `/auth/refresh` goes to
    that absolute URL, so a second dev stack talks to the main backend's refresh endpoint. It is harmless
    with a single stack. Override `VITE_API_URL` whenever you run a second stack.
+6. **Review accounts created by the old open registration** (found 2026-09-28). Until the
+   registration-approval change below, anyone who could reach the server could self-register
+   an *active* teacher account. Those accounts are still active. Check User Management and
+   delete or deactivate anyone you don't recognise.
+7. **Optional: authenticate a sending domain in Brevo** (2026-09-28). SMTP works, but Brevo
+   rewrites the `@gmail.com` sender to `…@…brevosend.com`, because it cannot send as Gmail. With your
+   own domain verified in Brevo, emails can come from e.g. `noreply@<domain>` and are less likely
+   to land in spam.
+
+---
+
+## 🔐 Self-registration needs admin approval; activation emails the user (September 28, 2026) — not yet released
+
+**Before:** the login page's registration form created an **active** teacher account and signed
+straight in. Anyone who could reach the server had teacher access to every student's data, and
+no admin was told.
+
+- **Approval by default.** `SELF_REGISTRATION_MODE` has three values: `approval` (the default),
+  `open` (the old behaviour) and `disabled` (public registration is refused with
+  `AUTH_REGISTRATION_DISABLED`). Admin-token registrations always skip approval.
+- **Pending accounts are inactive.** The applicant sees "request submitted, an administrator must
+  approve". A login attempt with the correct password gets `403 AUTH_ACCOUNT_INACTIVE`. The check
+  runs only after the password verifies, so it reveals nothing about the account to someone
+  without the password.
+- **Login never checked `is_active` before.** An account an admin had deactivated still got
+  tokens, then failed silently on `/auth/me`. Both cases now get the same clear 403.
+- **Admins are told.** Every active admin gets an in-app `registration` notification, rendered in
+  the UI language from its data. Clicking it opens `#/power?showControl=1&showUsers=1`, which
+  expands User Management. Inactive accounts sort first, with a count banner and a one-click
+  **Approve** button.
+- **Activation emails the user.** When `PATCH /admin/users/{id}` moves an account from inactive to
+  active, the user gets a bilingual email over the configured SMTP (plain-text part included,
+  user fields HTML-escaped). The response carries `activation_email: sent | failed | not_configured`.
+  If the email did not go out, the admin gets an error toast plus a persistent
+  `activation_email_failed` notification asking them to tell the user in person. It goes to the
+  approving admin only. The activation itself always stands. The email includes a login link
+  only when the admin's origin is not loopback.
+- **Leak fixed.** `PATCH` and `POST /admin/users` returned the ORM row, including
+  `hashed_password` and lockout state. Both now return `UserResponse`.
+- **Notification times were 3 hours off under SQLite (SMS_Lite).** Naive UTC timestamps were sent
+  without an offset. `NotificationResponse` now marks them as UTC. Postgres (`timestamptz`, UTC)
+  was already correct.
+- **`src/backend/data/smtp_override.json` was not git-ignored.** It holds the SMTP password saved
+  from Control Panel > Email, and the repo is public. It is now ignored.
+- **Login and registration say "the server is not available"** instead of "status code 500"
+  when the backend is down. This covers no response, nginx 502/504, and the Vite proxy's bare 500.
+  Real backend errors keep their own messages.
+
+**Verification:** `test_registration_approval.py` (17 tests), a notification-UTC test, and frontend
+tests (register/login widgets, NotificationItem, AdminUsersPanel approval, `isServerUnreachable`).
+Full suites passed: backend 1152 passed and 39 skipped; frontend 2049. Checked in the running
+app on an isolated stack (backend :8010 on a throwaway SQLite, Vite :5174, a local fake SMTP
+sink):
+- register, then login blocked, then admin notification, then Approve, then login works;
+- with SMTP up, the email arrived with the correct recipient, subject and body;
+- with SMTP down, the admin got the error toast and the bell notification, and the user could
+  still sign in.
+
+Brevo SMTP was then configured on the dev machine and its test email was delivered.
+
+**Gotcha:** TotalAV real-time scanning slowed file reads about 10×. `require('typescript')` took
+5s, and Vitest workers timed out at start ("Failed to start threads worker"), which looked like
+test failures. With it stopped, the same files pass in 37s.
 
 ---
 

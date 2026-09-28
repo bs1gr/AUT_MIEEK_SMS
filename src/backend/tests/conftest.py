@@ -256,6 +256,9 @@ def patch_settings_for_tests(request, monkeypatch):
     # 1. Disable Auth for most tests (auth-specific tests can re-enable)
     safe_patch(settings, "AUTH_ENABLED", False)
     safe_patch(settings, "AUTH_MODE", "disabled")
+    # Many fixtures/tests register a user via the public endpoint and log straight in.
+    # Production default is "approval"; test_registration_approval.py covers it explicitly.
+    safe_patch(settings, "SELF_REGISTRATION_MODE", "open")
 
     # 2. Ensure REFRESH_TOKEN_EXPIRE_DAYS exists
     if not hasattr(settings, "REFRESH_TOKEN_EXPIRE_DAYS"):

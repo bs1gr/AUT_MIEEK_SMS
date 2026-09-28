@@ -3,6 +3,7 @@ Email notification service for sending notifications via SMTP.
 Supports both HTML and plain text templates with variable substitution.
 """
 
+import html
 import logging
 import mimetypes
 import os
@@ -297,6 +298,67 @@ class EmailTemplates:
         """
 
         return subject, html_body
+
+    @staticmethod
+    def account_activated(full_name: Optional[str], email: str, login_url: Optional[str] = None) -> tuple[str, str]:
+        """Bilingual (EL/EN) notice that an administrator activated the recipient's account.
+
+        Returns:
+            Tuple of (subject, html_body)
+        """
+        name = html.escape(full_name or email)
+        safe_email = html.escape(email)
+        subject = "Ο λογαριασμός σας ενεργοποιήθηκε / Your account has been activated"
+        link_el = link_en = ""
+        if login_url:
+            safe_url = html.escape(login_url, quote=True)
+            link_el = f'<p><a href="{safe_url}">{safe_url}</a></p>'
+            link_en = link_el
+
+        html_body = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2>Γεια σας {name},</h2>
+                    <p>Ο διαχειριστής ενέκρινε το αίτημά σας. Μπορείτε πλέον να συνδεθείτε στο
+                    Σύστημα Διαχείρισης Σπουδαστών με το email <strong>{safe_email}</strong>
+                    και τον κωδικό που ορίσατε κατά την εγγραφή.</p>
+                    {link_el}
+
+                    <hr style="margin: 30px 0;">
+
+                    <h2>Hello {name},</h2>
+                    <p>An administrator approved your request. You can now sign in to the
+                    Student Management System with <strong>{safe_email}</strong> and the password
+                    you chose when you registered.</p>
+                    {link_en}
+
+                    <hr style="margin: 30px 0;">
+                    <p style="font-size: 12px; color: #666;">
+                        Αυτόματο μήνυμα — μην απαντήσετε. / This is an automated notification. Please do not reply.
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        return subject, html_body
+
+    @staticmethod
+    def account_activated_text(full_name: Optional[str], email: str, login_url: Optional[str] = None) -> str:
+        """Plain-text part for account_activated (the generic fallback leaves HTML tags in)."""
+        name = full_name or email
+        link = f"\n{login_url}\n" if login_url else ""
+        return (
+            f"Γεια σας {name},\n\n"
+            "Ο διαχειριστής ενέκρινε το αίτημά σας. Μπορείτε πλέον να συνδεθείτε στο Σύστημα Διαχείρισης "
+            f"Σπουδαστών με το email {email} και τον κωδικό που ορίσατε κατά την εγγραφή.\n{link}\n"
+            "----\n\n"
+            f"Hello {name},\n\n"
+            "An administrator approved your request. You can now sign in to the Student Management System "
+            f"with {email} and the password you chose when you registered.\n{link}\n"
+            "Αυτόματο μήνυμα — μην απαντήσετε. / This is an automated notification. Please do not reply.\n"
+        )
 
 
 class EmailNotificationService:

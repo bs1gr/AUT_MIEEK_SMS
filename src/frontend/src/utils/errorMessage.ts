@@ -1,3 +1,36 @@
+/** Backend ErrorCode name (e.g. "AUTH_ACCOUNT_INACTIVE") from a structured API error, if any. */
+export function getApiErrorCode(source: unknown): string | undefined {
+  const code = (source as { response?: { data?: { error?: { details?: { error_code?: unknown } } } } } | null)
+    ?.response?.data?.error?.details?.error_code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+/**
+ * True when the request never reached the backend: no response at all (network down, wrong
+ * address), a gateway error (nginx 502/504), or a 5xx without the backend's structured error
+ * body (the Vite dev proxy answers a refused connection with a bare 500). Real backend errors,
+ * including 503 DATABASE_UNAVAILABLE, always carry `{ error: {...} }` and are not matched.
+ */
+export function isServerUnreachable(source: unknown): boolean {
+  const err = source as {
+    code?: unknown;
+    request?: unknown;
+    response?: { status?: unknown; data?: unknown };
+  } | null;
+  if (!err || typeof err !== 'object') return false;
+  if (!err.response) {
+    return err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED' || err.request !== undefined;
+  }
+  const status = typeof err.response.status === 'number' ? err.response.status : 0;
+  if (status === 502 || status === 504) return true;
+  if (status >= 500) {
+    const data = err.response.data;
+    const structured = !!data && typeof data === 'object' && 'error' in (data as object);
+    return !structured;
+  }
+  return false;
+}
+
 export function getErrorMessage(source: unknown, fallback: string): string {
   if (source === null || source === undefined) {
     return fallback;

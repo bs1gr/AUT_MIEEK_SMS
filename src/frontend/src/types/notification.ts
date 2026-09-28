@@ -10,6 +10,8 @@ export type NotificationType =
   | 'system'
   | 'course'
   | 'enrollment'
+  | 'registration'
+  | 'activation_email_failed'
   | 'general';
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';

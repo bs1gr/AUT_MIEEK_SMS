@@ -85,6 +85,37 @@ describe('RegisterWidget', () => {
     expect(mockLogin).not.toHaveBeenCalled();
   });
 
+  it('does not log in and says approval is pending when the account comes back inactive', async () => {
+    mockedApiClient.post.mockResolvedValue({ data: { id: 7, email: 'new@example.com', is_active: false } });
+    const onRegisterSuccess = vi.fn();
+    const user = userEvent.setup();
+    render(<RegisterWidget variant="inline" onRegisterSuccess={onRegisterSuccess} />);
+
+    await fillAndSubmit(user);
+
+    expect(await screen.findByText('auth.registerPendingApproval')).toBeInTheDocument();
+    expect(mockLogin).not.toHaveBeenCalled();
+    expect(onRegisterSuccess).not.toHaveBeenCalled();
+    expect(screen.getByTestId('register-email')).toHaveValue('');
+    expect(screen.getByTestId('register-password')).toHaveValue('');
+  });
+
+  it('shows the translated message when public registration is disabled', async () => {
+    mockedApiClient.post.mockRejectedValue({
+      response: {
+        status: 403,
+        data: { error: { message: 'Public registration is disabled.', details: { error_code: 'AUTH_REGISTRATION_DISABLED' } } },
+      },
+    });
+    const user = userEvent.setup();
+    render(<RegisterWidget variant="inline" />);
+
+    await fillAndSubmit(user);
+
+    expect(await screen.findByText('auth.registerDisabled')).toBeInTheDocument();
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
   describe('inline variant collapse toggle', () => {
     it('starts collapsed when collapsedByDefault is set and expands on toggle', async () => {
       const user = userEvent.setup();

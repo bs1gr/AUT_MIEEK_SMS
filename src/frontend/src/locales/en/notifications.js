@@ -170,7 +170,20 @@ export const notificationsEN = {
     system: 'System',
     course: 'Course',
     enrollment: 'Enrollment',
+    registration: 'Account request',
+    activation_email_failed: 'Action needed',
     general: 'General',
+  },
+
+  // Built-in notifications rendered from their data, not their stored (English) text
+  registration: {
+    title: 'New account awaiting approval',
+    message: '{{name}} ({{email}}) registered and is waiting for you to activate the account in User Management.',
+  },
+  activationEmailFailed: {
+    title: 'Activation email not sent — tell the user yourself',
+    message: 'The account of {{name}} ({{email}}) is now active, but the email could not be sent. Please let them know yourself that they can sign in.',
+    messageNotConfigured: 'The account of {{name}} ({{email}}) is now active, but email (SMTP) is not configured. Please let them know yourself that they can sign in.',
   },
 
   // Time formats

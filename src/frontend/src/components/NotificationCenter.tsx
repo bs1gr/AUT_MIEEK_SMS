@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import api, { extractAPIResponseData } from '../api/api';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
+import { safeNavigate } from '../utils/navigation';
+import { getNotificationText } from './notifications/notificationText';
 
 interface Notification {
   id: number;
@@ -96,6 +98,18 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
     [markAsReadMutation]
   );
 
+  const handleOpen = useCallback(
+    (notification: Notification) => {
+      handleMarkAsRead(notification.id, notification.is_read);
+      const url = (notification.data as { url?: unknown } | null | undefined)?.url;
+      if (typeof url === 'string' && url) {
+        onClose();
+        safeNavigate(url);
+      }
+    },
+    [handleMarkAsRead, onClose]
+  );
+
   const handleDelete = useCallback((notificationId: number) => {
     deleteNotificationMutation.mutate(notificationId);
   }, [deleteNotificationMutation]);
@@ -128,6 +142,10 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
         return 'ℹ️';
       case 'assignment_posted':
         return '📝';
+      case 'registration':
+        return '👤';
+      case 'activation_email_failed':
+        return '✉️';
       default:
         return '🔔';
     }
@@ -192,11 +210,11 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                   className={`p-4 cursor-pointer hover:bg-gray-50 transition ${
                     !notification.is_read ? 'bg-blue-50' : ''
                   }`}
-                  onClick={() => handleMarkAsRead(notification.id, notification.is_read)}
+                  onClick={() => handleOpen(notification)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      handleMarkAsRead(notification.id, notification.is_read);
+                      handleOpen(notification);
                     }
                   }}
                 >
@@ -206,7 +224,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-sm">{notification.title}</h3>
+                        <h3 className="font-semibold text-sm">{getNotificationText(notification, t).title}</h3>
                         {!notification.is_read && (
                           <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
                         )}
@@ -216,7 +234,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                           expandedIds.has(notification.id) ? 'whitespace-pre-line' : 'line-clamp-2'
                         }`}
                       >
-                        {notification.message}
+                        {getNotificationText(notification, t).message}
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-gray-500">

@@ -73,6 +73,40 @@ describe('NotificationItem Component', () => {
     vi.mocked(useNotificationsModule.useNotifications).mockImplementation(mockUseNotifications);
   });
 
+  it('renders a pending-registration notice from its data in the UI language', () => {
+    const registration: Notification = {
+      ...mockNotification,
+      notification_type: 'registration',
+      title: 'New account awaiting approval',
+      message: 'stored english text',
+      data: { email: 'new@example.com', full_name: 'New User', url: '#/power?showControl=1&showUsers=1' },
+    };
+    render(<NotificationItem notification={registration} />);
+
+    expect(screen.getByText('registration.title')).toBeInTheDocument();
+    expect(screen.getByText('registration.message')).toBeInTheDocument();
+    expect(screen.queryByText('stored english text')).not.toBeInTheDocument();
+    expect(screen.getByText('👤')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['failed', 'activationEmailFailed.message'],
+    ['not_configured', 'activationEmailFailed.messageNotConfigured'],
+  ])('asks the admin to tell the user when the activation email was %s', (reason, messageKey) => {
+    const failed: Notification = {
+      ...mockNotification,
+      notification_type: 'activation_email_failed',
+      title: 'Activation email not sent',
+      message: 'stored english text',
+      data: { email: 'new@example.com', full_name: 'New User', reason },
+    };
+    render(<NotificationItem notification={failed} />);
+
+    expect(screen.getByText('activationEmailFailed.title')).toBeInTheDocument();
+    expect(screen.getByText(messageKey)).toBeInTheDocument();
+    expect(screen.queryByText('stored english text')).not.toBeInTheDocument();
+  });
+
   describe('Rendering', () => {
     it('should render notification title', () => {
       render(<NotificationItem notification={mockNotification} />);

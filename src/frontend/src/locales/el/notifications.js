@@ -170,7 +170,20 @@ export const notificationsEL = {
     system: 'Σύστημα',
     course: 'Μάθημα',
     enrollment: 'Εγγραφή',
+    registration: 'Αίτημα λογαριασμού',
+    activation_email_failed: 'Απαιτείται ενέργεια',
     general: 'Γενική',
+  },
+
+  // Built-in notifications rendered from their data, not their stored (English) text
+  registration: {
+    title: 'Νέος λογαριασμός σε αναμονή έγκρισης',
+    message: 'Ο/Η {{name}} ({{email}}) έκανε εγγραφή και περιμένει να ενεργοποιήσετε τον λογαριασμό στη Διαχείριση Χρηστών.',
+  },
+  activationEmailFailed: {
+    title: 'Το email ενεργοποίησης δεν στάλθηκε — ενημερώστε εσείς τον χρήστη',
+    message: 'Ο λογαριασμός του/της {{name}} ({{email}}) ενεργοποιήθηκε, αλλά το email δεν στάλθηκε. Ενημερώστε τον/την εσείς ότι μπορεί πλέον να συνδεθεί.',
+    messageNotConfigured: 'Ο λογαριασμός του/της {{name}} ({{email}}) ενεργοποιήθηκε, αλλά το email (SMTP) δεν είναι ρυθμισμένο. Ενημερώστε τον/την εσείς ότι μπορεί πλέον να συνδεθεί.',
   },
 
   // Time formats

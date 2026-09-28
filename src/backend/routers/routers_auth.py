@@ -9,6 +9,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, 
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from backend import models
 from backend.config import settings
@@ -487,6 +488,119 @@ def optional_require_role(*roles: str):
     return _dep
 
 
+REGISTRATION_NOTIFICATION_TYPE = "registration"
+# HashRouter link that opens System > Control Panel > User Management expanded.
+USER_MANAGEMENT_URL = "#/power?showControl=1&showUsers=1"
+
+
+def _notify_admins_of_pending_registration(db: Session, new_user: User) -> None:
+    """Drop an in-app notification on every active admin. Never fails the registration."""
+    try:
+        from backend.services.notification_service import NotificationService
+
+        admin_ids = [row.id for row in db.query(User.id).filter(User.role == "admin", User.is_active.is_(True)).all()]
+        display = new_user.full_name or new_user.email
+        service = NotificationService(db)
+        for admin_id in admin_ids:
+            service.create_notification(
+                user_id=admin_id,
+                notification_type=REGISTRATION_NOTIFICATION_TYPE,
+                title="New account awaiting approval",
+                message=f"{display} ({new_user.email}) registered and is waiting for activation.",
+                data={
+                    "user_id": new_user.id,
+                    "email": new_user.email,
+                    "full_name": new_user.full_name,
+                    "url": USER_MANAGEMENT_URL,
+                },
+            )
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to notify admins of pending registration")
+
+
+def _active_admin_from_bearer(request: Request, db: Session) -> Optional[User]:
+    """The active admin whose bearer token is on the request, else None (never raises)."""
+    try:
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return None
+        email_val = decode_token(auth_header.split(" ", 1)[1].strip()).get("sub")
+        if not email_val:
+            return None
+        user = db.query(User).filter(User.email == email_val).first()
+        if user and getattr(user, "is_active", False) and getattr(user, "role", None) == "admin":
+            return user
+    except Exception:
+        pass
+    return None
+
+
+ACTIVATION_EMAIL_FAILED_NOTIFICATION_TYPE = "activation_email_failed"
+
+
+def _login_url_from_request(request: Request) -> Optional[str]:
+    """The frontend origin the admin is using, if other people could reach it too.
+
+    A loopback origin (admin working on the server itself) would be a dead link for the
+    recipient, so it is left out rather than guessed.
+    """
+    origin = (request.headers.get("origin") or "").strip().rstrip("/")
+    if not origin.startswith(("http://", "https://")):
+        return None
+    host = origin.split("://", 1)[1].split("/", 1)[0].rsplit(":", 1)[0].strip("[]").lower()
+    if host in {"localhost", "::1"} or host.startswith("127."):
+        return None
+    return origin + "/"
+
+
+def _send_activation_email(email: str, full_name: Optional[str], login_url: Optional[str]) -> str:
+    """Email the user that their account is active. Returns "sent", "failed" or "not_configured"."""
+    from backend.services.email_notification_service import EmailNotificationService, EmailTemplates
+
+    if not EmailNotificationService.is_enabled():
+        return "not_configured"
+    subject, html_body = EmailTemplates.account_activated(full_name, email, login_url)
+    text_body = EmailTemplates.account_activated_text(full_name, email, login_url)
+    return "sent" if EmailNotificationService.send_email(email, subject, html_body, text_body=text_body) else "failed"
+
+
+def _notify_admins_activation_email_failed(db: Session, activated: User, reason: str, approver: Optional[User]) -> None:
+    """Ask the admin to tell the user themselves. Goes to the approving admin, or every
+    active admin when the approver can't be identified. Never fails the activation."""
+    try:
+        from backend.services.notification_service import NotificationService
+
+        if approver is not None:
+            admin_ids = [approver.id]
+        else:
+            admin_ids = [
+                row.id for row in db.query(User.id).filter(User.role == "admin", User.is_active.is_(True)).all()
+            ]
+        display = activated.full_name or activated.email
+        service = NotificationService(db)
+        for admin_id in admin_ids:
+            service.create_notification(
+                user_id=admin_id,
+                notification_type=ACTIVATION_EMAIL_FAILED_NOTIFICATION_TYPE,
+                title="Activation email not sent",
+                message=(
+                    f"{display} ({activated.email}) is now active, but the notification email could not be "
+                    f"sent ({reason}). Please let them know yourself that they can sign in."
+                ),
+                data={
+                    "user_id": activated.id,
+                    "email": activated.email,
+                    "full_name": activated.full_name,
+                    "reason": reason,
+                    "url": USER_MANAGEMENT_URL,
+                },
+            )
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to notify admins that the activation email was not sent")
+
+
 @router.post("/auth/register", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
@@ -505,37 +619,37 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
         # Default to 'teacher' for anonymous registrations. If the request
         # includes a valid admin Authorization: Bearer <token>, allow the
         # caller to set the role (useful for internal admin flows).
-        assigned_role = "teacher"
-        try:
-            auth_header = request.headers.get("Authorization", "")
-            if auth_header.startswith("Bearer "):
-                token = auth_header.split(" ", 1)[1].strip()
-                payload_decoded = decode_token(token)
-                email_val = payload_decoded.get("sub")
-                if email_val:
-                    admin_user = db.query(User).filter(User.email == email_val).first()
-                    if (
-                        admin_user
-                        and getattr(admin_user, "is_active", False)
-                        and getattr(admin_user, "role", None) == "admin"
-                    ):
-                        # Admin can set role explicitly
-                        assigned_role = payload.role or "teacher"
-        except Exception:
-            # Any failure validating admin token -> treat as anonymous
-            assigned_role = "teacher"
+        # Any failure validating the token -> treated as anonymous.
+        created_by_admin = _active_admin_from_bearer(request, db) is not None
+        assigned_role = (payload.role or "teacher") if created_by_admin else "teacher"
+
+        # Public self-registration grants teacher access to every student's data, so by
+        # default it only files a request: the account stays inactive (login refused with
+        # AUTH_ACCOUNT_INACTIVE) until an admin activates it.
+        registration_mode = str(getattr(settings, "SELF_REGISTRATION_MODE", "approval") or "approval").lower()
+        if not created_by_admin and registration_mode == "disabled":
+            raise http_error(
+                status.HTTP_403_FORBIDDEN,
+                ErrorCode.AUTH_REGISTRATION_DISABLED,
+                "Public registration is disabled. Ask an administrator to create your account.",
+                request,
+            )
+        requires_approval = not created_by_admin and registration_mode != "open"
 
         user = User(
             email=payload.email.lower().strip(),
             full_name=(payload.full_name or "").strip() or None,
             role=assigned_role,
             hashed_password=get_password_hash(payload.password),
-            is_active=True,
+            is_active=not requires_approval,
         )
         db.add(user)
         db.commit()
         db.refresh(user)
         _ensure_rbac_role_assignment(db, user, assigned_role)
+        if requires_approval:
+            logger.info("Registration pending admin approval", extra={"user_id": user.id})
+            _notify_admins_of_pending_registration(db, user)
         return user
     except HTTPException:
         raise
@@ -600,6 +714,19 @@ async def login(
 
         _reset_user_login_state(user, db)
         _reset_throttle_entries(throttle_keys)
+
+        # Checked only after the password verified, so the response reveals nothing about
+        # an account to someone who doesn't hold its password. Covers both self-registered
+        # accounts awaiting approval and accounts an admin deactivated.
+        if not bool(getattr(user, "is_active", False)):
+            logger.info("Login refused: account inactive", extra={"user_id": user.id})
+            raise http_error(
+                status.HTTP_403_FORBIDDEN,
+                ErrorCode.AUTH_ACCOUNT_INACTIVE,
+                "Your account is not active. An administrator must approve or re-activate it.",
+                request,
+            )
+
         logger.info("Login successful", extra={"user_id": user.id})
 
         # Auto-rehash password if using legacy PBKDF2-SHA256 scheme
@@ -954,7 +1081,8 @@ async def admin_create_user(
         db.commit()
         db.refresh(user)
         _ensure_rbac_role_assignment(db, user, role_name)
-        return user
+        # Explicit schema: returning the ORM object leaked hashed_password and lockout state.
+        return UserResponse.model_validate(user).model_dump()
     except Exception as exc:
         db.rollback()
         raise internal_server_error("Unable to create user", request) from exc
@@ -1016,12 +1144,26 @@ async def admin_update_user(
         db.refresh(user)
         if payload.role is not None:
             _sync_rbac_legacy_role(db, user, payload.role)
-        return user
     except HTTPException:
         raise
     except Exception as exc:
         db.rollback()
         raise internal_server_error("Unable to update user", request) from exc
+
+    # Serialize explicitly: returning the ORM object leaked hashed_password and lockout state.
+    body: dict[str, Any] = UserResponse.model_validate(user).model_dump()
+    body["activation_email"] = None
+    if not original_active and bool(user.is_active):
+        # Tell the user they can sign in. SMTP blocks (up to its 30s timeout), so keep it off
+        # the event loop. If it can't go out, the admin is asked to tell them in person.
+        status_value = await run_in_threadpool(
+            _send_activation_email, str(user.email), user.full_name, _login_url_from_request(request)
+        )
+        body["activation_email"] = status_value
+        logger.info("Account activated", extra={"user_id": user.id, "activation_email": status_value})
+        if status_value != "sent":
+            _notify_admins_activation_email_failed(db, user, status_value, _active_admin_from_bearer(request, db))
+    return body
 
 
 @router.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

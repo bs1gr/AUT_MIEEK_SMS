@@ -11,6 +11,7 @@ import {
   LockKeyhole,
   Users,
   AlertTriangle,
+  UserCheck,
 } from 'lucide-react';
 
 import { useLanguage } from '@/LanguageContext';
@@ -60,6 +61,10 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
 
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
+      // Inactive accounts (incl. registrations awaiting approval) first, so they get seen
+      if (a.is_active !== b.is_active) {
+        return a.is_active ? 1 : -1;
+      }
       if (a.role === b.role) {
         return a.email.localeCompare(b.email);
       }
@@ -255,7 +260,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       };
       const updated = await adminUsersAPI.update(editingId, payload);
       setUsers((prev: UserAccount[]) => prev.map((u: UserAccount) => (u.id === updated.id ? updated : u)));
-      onToast({ message: t('updateUserSuccess'), type: 'success' });
+      onToast(activationToast(updated, t('updateUserSuccess')));
       cancelEditing();
     } catch (error: unknown) {
       console.error('Update user failed', error);
@@ -264,6 +269,37 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       setUpdatingId(null);
     }
   };
+
+  // After an update that activated the account: did the "you can sign in" email go out?
+  const activationToast = (updated: UserAccount, fallback: string): ToastState => {
+    const who = updated.full_name || updated.email;
+    switch (updated.activation_email) {
+      case 'sent':
+        return { message: t('activationEmailSent', { email: updated.email }), type: 'success' };
+      case 'failed':
+        return { message: t('activationEmailFailed', { name: who, email: updated.email }), type: 'error' };
+      case 'not_configured':
+        return { message: t('activationEmailNotConfigured', { name: who, email: updated.email }), type: 'error' };
+      default:
+        return { message: fallback, type: 'success' };
+    }
+  };
+
+  const handleApprove = async (target: UserAccount) => {
+    setUpdatingId(target.id);
+    try {
+      const updated = await adminUsersAPI.update(target.id, { is_active: true });
+      setUsers((prev: UserAccount[]) => prev.map((u: UserAccount) => (u.id === updated.id ? { ...u, ...updated } : u)));
+      onToast(activationToast(updated, t('approveUserSuccess')));
+    } catch (error: unknown) {
+      console.error('Approve user failed', error);
+      onToast({ message: t('updateUserFailed'), type: 'error' });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const inactiveCount = users.filter((u) => !u.is_active).length;
 
   const handleDelete = async (user: UserAccount) => {
     if (!window.confirm(t('confirmDeleteUser'))) {
@@ -442,6 +478,16 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           </button>
         </header>
 
+        {inactiveCount > 0 && (
+          <div
+            className="flex items-start gap-2 border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200"
+            data-testid="pending-users-notice"
+          >
+            <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+            <p>{t('pendingApprovalNotice', { count: inactiveCount })}</p>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm">
             <thead className="bg-gray-50 dark:bg-gray-800">
@@ -540,7 +586,18 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {!user.is_active && (
+                          <button
+                            type="button"
+                            onClick={() => void handleApprove(user)}
+                            className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                            disabled={updatingId === user.id}
+                            data-testid={`approve-user-${user.id}`}
+                          >
+                            <UserCheck size={14} /> {t('approveUser')}
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => startEditing(user)}

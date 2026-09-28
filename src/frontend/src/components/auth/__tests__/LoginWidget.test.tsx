@@ -74,6 +74,48 @@ describe('LoginWidget', () => {
       expect(await screen.findByText('Invalid credentials')).toBeInTheDocument();
     });
 
+    it('says the server is unavailable instead of "status code 500" when the backend is down', async () => {
+      // What the Vite dev proxy returns when nothing listens on the backend port
+      const proxyError = Object.assign(new Error('Request failed with status code 500'), {
+        response: { status: 500, data: '' },
+      });
+      mockLogin.mockRejectedValue(proxyError);
+      const user = userEvent.setup();
+      render(<LoginWidget variant="inline" />);
+
+      await user.type(screen.getByTestId('auth-login-email'), 'user@example.com');
+      await user.type(screen.getByTestId('auth-login-password'), 'secret123');
+      await user.click(screen.getByRole('button', { name: 'common.login' }));
+
+      expect(await screen.findByText('auth.serverUnreachable')).toBeInTheDocument();
+      expect(screen.queryByText(/status code 500/)).not.toBeInTheDocument();
+    });
+
+    it('explains an inactive (pending approval) account instead of the raw server text', async () => {
+      const inactiveError = Object.assign(new Error('Request failed with status code 403'), {
+        response: {
+          status: 403,
+          data: {
+            error: {
+              message: 'Your account is not active.',
+              details: { error_code: 'AUTH_ACCOUNT_INACTIVE' },
+            },
+          },
+        },
+      });
+      mockLogin.mockRejectedValue(inactiveError);
+      const onLoginSuccess = vi.fn();
+      const user = userEvent.setup();
+      render(<LoginWidget variant="inline" onLoginSuccess={onLoginSuccess} />);
+
+      await user.type(screen.getByTestId('auth-login-email'), 'new@example.com');
+      await user.type(screen.getByTestId('auth-login-password'), 'secret123');
+      await user.click(screen.getByRole('button', { name: 'common.login' }));
+
+      expect(await screen.findByText('auth.accountInactive')).toBeInTheDocument();
+      expect(onLoginSuccess).not.toHaveBeenCalled();
+    });
+
     it('surfaces the first field-level message on a 422 validation error', async () => {
       const validationError = Object.assign(new Error('Unprocessable Entity'), {
         response: {

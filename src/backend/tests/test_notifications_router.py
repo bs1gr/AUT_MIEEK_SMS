@@ -756,3 +756,18 @@ def test_preference_response_format(client, admin_token):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+def test_notification_response_marks_naive_timestamps_as_utc():
+    """SQLite returns naive UTC datetimes; without an offset the browser reads them as local time."""
+    from datetime import datetime, timezone
+
+    from backend.schemas.notifications import NotificationResponse
+
+    base = {"id": 1, "user_id": 1, "is_read": False, "notification_type": "system", "title": "t", "message": "m"}
+    naive = NotificationResponse.model_validate({**base, "created_at": datetime(2026, 9, 28, 10, 40)})
+    assert naive.created_at.tzinfo is timezone.utc
+    assert naive.model_dump_json().count("Z") + naive.model_dump_json().count("+00:00") >= 1
+
+    aware = datetime(2026, 9, 28, 13, 40, tzinfo=timezone.utc)
+    assert NotificationResponse.model_validate({**base, "created_at": aware}).created_at == aware

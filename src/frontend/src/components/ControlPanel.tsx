@@ -89,13 +89,38 @@ interface ControlPanelProps {
   initialTab?: string;
 }
 
+function urlRequestsUserManagement(): boolean {
+  try {
+    const hashQuery = window.location.hash.split('?')[1] ?? '';
+    return (
+      new URLSearchParams(hashQuery).get('showUsers') === '1' ||
+      new URLSearchParams(window.location.search).get('showUsers') === '1'
+    );
+  } catch {
+    return false;
+  }
+}
+
 const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant = 'full', initialTab }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<string>(initialTab || (variant === 'embedded' ? 'maintenance' : 'operations'));
+  const [activeTab, setActiveTab] = useState<string>(
+    initialTab || (variant === 'embedded' || urlRequestsUserManagement() ? 'maintenance' : 'operations')
+  );
   const [showRuntimeDetails, setShowRuntimeDetails] = useState<boolean>(false);
   // Maintenance panel collapse states (closed by default)
-  const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(false);
+  // ?showUsers=1 (e.g. from a pending-registration notification) opens User Management
+  const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(urlRequestsUserManagement);
+  useEffect(() => {
+    const onHashChange = () => {
+      if (urlRequestsUserManagement()) {
+        setActiveTab('maintenance');
+        setExpandAdminUsers(true);
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
   const [expandRBAC, setExpandRBAC] = useState<boolean>(false);
   const [expandEmailConfig, setExpandEmailConfig] = useState<boolean>(false);
   const [expandImportExport, setExpandImportExport] = useState<boolean>(false);

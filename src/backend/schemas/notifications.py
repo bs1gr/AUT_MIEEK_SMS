@@ -2,10 +2,10 @@
 Notification schemas for Pydantic validation and API responses.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class NotificationBase(BaseModel):
@@ -41,6 +41,15 @@ class NotificationResponse(NotificationBase):
     read_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("created_at", "read_at")
+    @classmethod
+    def _assume_utc(cls, value: Optional[datetime]) -> Optional[datetime]:
+        # SQLite (Lite, tests) hands back naive datetimes for these UTC timestamps; serialized
+        # without an offset, browsers read them as local time ("3 hours ago" in Cyprus).
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
 
 
 class NotificationPreferenceBase(BaseModel):

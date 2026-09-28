@@ -247,6 +247,11 @@ class Settings(BaseSettings):
     AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
     AUTH_LOGIN_EXEMPT_EMAILS: str = ""
     AUTH_LOGIN_EXEMPT_DOMAINS: str = ""
+    # Public self-registration (POST /auth/register without an admin token):
+    # approval: account is created inactive; admins are notified and must activate it (default)
+    # open: account is active immediately (anyone who can reach the server gets teacher access)
+    # disabled: public registration is refused; admins create accounts themselves
+    SELF_REGISTRATION_MODE: Literal["approval", "open", "disabled"] = "approval"
 
     # NOTE: DEV_EASE is intentionally not handled here. DEV_EASE is reserved for
     # pre-commit convenience in COMMIT_READY.ps1 only and must not alter runtime

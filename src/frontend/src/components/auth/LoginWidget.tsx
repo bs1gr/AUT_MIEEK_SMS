@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
-import { getErrorMessage } from '@/utils/errorMessage';
+import { getApiErrorCode, getErrorMessage, isServerUnreachable } from '@/utils/errorMessage';
 
 type LoginWidgetVariant = 'dialog' | 'inline';
 
@@ -87,6 +87,10 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
           setError(getErrorMessage(err, t('auth.loginError')));
         }
         console.error('[Login 422]', JSON.stringify(errObj.response?.data));
+      } else if (isServerUnreachable(err)) {
+        setError(t('auth.serverUnreachable'));
+      } else if (getApiErrorCode(err) === 'AUTH_ACCOUNT_INACTIVE') {
+        setError(t('auth.accountInactive'));
       } else {
         setError(getErrorMessage(err, t('auth.loginError')));
       }

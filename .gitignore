@@ -310,6 +310,9 @@ backend/data/exports/*.pdf
 src/backend/data/imports/
 src/backend/data/exports/
 
+# SMTP settings saved from Control Panel > Email (holds the SMTP password; repo is public)
+src/backend/data/smtp_override.json
+
 # Temporary export/backup directories
 temp_export_*/
 SMS-Docker-Image-*.tar

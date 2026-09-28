@@ -9,6 +9,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import type { Notification } from '../../types/notification';
 import './NotificationItem.css';
 import { safeNavigate } from '../../utils/navigation';
+import { getNotificationText } from './notificationText';
 import { useDateTimeFormatter, useDateTimeSettings } from '@/contexts/DateTimeSettingsContext';
 
 export interface NotificationItemProps {
@@ -80,6 +81,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         return '📚';
       case 'enrollment':
         return '✅';
+      case 'registration':
+        return '👤';
+      case 'activation_email_failed':
+        return '✉️';
       default:
         return '🔔';
     }
@@ -130,6 +135,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     }
   };
 
+  const { title, message } = getNotificationText(notification, t);
+
   const getPriorityClass = () => {
     switch (notification.priority) {
       case 'urgent':
@@ -175,14 +182,14 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
       {/* Content */}
       <div className="notification-item-content">
         <div className="notification-item-header">
-          <h4 className="notification-item-title">{notification.title}</h4>
+          <h4 className="notification-item-title">{title}</h4>
           <span className="notification-item-time">
             {getRelativeTime(notification.created_at)}
           </span>
         </div>
 
         <p className={`notification-item-message ${isExpanded ? 'notification-item-message-expanded' : ''}`}>
-          {notification.message}
+          {message}
         </p>
 
         {/* Type Badge */}

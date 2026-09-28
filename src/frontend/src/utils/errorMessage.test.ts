@@ -1,7 +1,42 @@
 import { describe, it, expect } from 'vitest';
-import { getErrorMessage } from './errorMessage';
+import { getApiErrorCode, getErrorMessage, isServerUnreachable } from './errorMessage';
 
 describe('errorMessage', () => {
+  describe('isServerUnreachable', () => {
+    it.each([
+      ['a network error with no response', { code: 'ERR_NETWORK', request: {} }],
+      ['a timeout', { code: 'ECONNABORTED', request: {} }],
+      ['a request that got no response', { request: {} }],
+      ['nginx 502 while the backend is down', { response: { status: 502, data: '<html>Bad Gateway</html>' } }],
+      ['nginx 504', { response: { status: 504, data: '' } }],
+      ['the Vite proxy bare 500 (ECONNREFUSED)', { response: { status: 500, data: '' } }],
+    ])('is true for %s', (_label, err) => {
+      expect(isServerUnreachable(err)).toBe(true);
+    });
+
+    it.each([
+      ['a real backend 500', { response: { status: 500, data: { success: false, error: { message: 'Login failed' } } } }],
+      ['503 DATABASE_UNAVAILABLE', { response: { status: 503, data: { success: false, error: { code: 'DATABASE_UNAVAILABLE' } } } }],
+      ['bad credentials (400)', { response: { status: 400, data: { success: false, error: {} } } }],
+      ['a plain Error', new Error('boom')],
+      ['null', null],
+    ])('is false for %s', (_label, err) => {
+      expect(isServerUnreachable(err)).toBe(false);
+    });
+  });
+
+  describe('getApiErrorCode', () => {
+    it('reads error.details.error_code from a structured API error', () => {
+      const err = { response: { data: { error: { details: { error_code: 'AUTH_ACCOUNT_INACTIVE' } } } } };
+      expect(getApiErrorCode(err)).toBe('AUTH_ACCOUNT_INACTIVE');
+    });
+
+    it('is undefined when there is no code', () => {
+      expect(getApiErrorCode(new Error('x'))).toBeUndefined();
+      expect(getApiErrorCode(null)).toBeUndefined();
+    });
+  });
+
   describe('getErrorMessage', () => {
     const fallback = 'Default error message';
 
