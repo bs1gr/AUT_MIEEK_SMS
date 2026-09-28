@@ -25,6 +25,15 @@ def _ensure_default_modules():
 @pytest.fixture(autouse=True)
 def reset_modules():
     """Reset modules after each test, with proper environment setup to avoid validation errors."""
+    import backend.config as config_mod
+
+    # Reloading backend.config replaces backend.config.settings with a new object, but every
+    # module already imported with `from backend.config import settings` (routers_auth, rbac, ...)
+    # keeps the original. Left in place, conftest's per-test patches land on the new object and
+    # never reach them, so later tests in the same process run with production defaults. That
+    # broke CI (one process for the whole suite): conftest's SELF_REGISTRATION_MODE="open" never
+    # reached routers_auth, and the admin fixture's account stayed inactive. Put the original back.
+    original_settings = config_mod.settings
     yield
     # Set test environment variables directly in os.environ before reloading modules
     # This prevents SECRET_KEY validation errors during teardown
@@ -39,6 +48,7 @@ def reset_modules():
     try:
         _ensure_default_modules()
     finally:
+        config_mod.settings = original_settings
         # Clean up env vars we set (optional, but cleaner)
         for key in ["SMS_ENV", "SMS_EXECUTION_MODE", "AUTH_ENABLED", "SECRET_KEY_STRICT_ENFORCEMENT"]:
             if key in os.environ:

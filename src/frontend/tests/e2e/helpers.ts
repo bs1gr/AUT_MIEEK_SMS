@@ -148,10 +148,24 @@ export const generateTeacherUser = (): TestUser => {
 };
 
 // Authentication helpers
+/**
+ * Create a ready-to-use account. Public self-registration now leaves the account inactive until an
+ * admin approves it (SELF_REGISTRATION_MODE=approval), so this registers *as the seeded admin*,
+ * which creates it active — the way an admin adds a colleague. register.spec.ts covers the public
+ * approval flow itself.
+ */
 export async function registerUser(page: Page, user: TestUser) {
   const apiBase = getApiBase();
+  const adminToken = await getAdminToken();
+  if (!adminToken) {
+    throw new Error(
+      'registerUser needs admin credentials: public registration creates an inactive account. ' +
+        'Set PLAYWRIGHT_ADMIN_EMAIL and PLAYWRIGHT_ADMIN_PASSWORD for this environment.'
+    );
+  }
 
   const response = await page.request.post(`${apiBase}/api/v1/auth/register`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
     data: {
       email: user.email,
       password: user.password,

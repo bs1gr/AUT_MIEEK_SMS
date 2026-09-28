@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { recordCreatedUser } from './created-users';
 
 test.describe('Registration UI flow (smoke)', () => {
-  test('register via UI and ensure backend sets HttpOnly refresh cookie and auto-login', async ({ page }) => {
+  test('register via UI files a request for approval and does not sign in', async ({ page }) => {
     const base = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173';
     const rnd = Math.random().toString(36).slice(2, 8);
   const email = `e2e-ui-${rnd}@example.com`;
@@ -45,10 +46,15 @@ test.describe('Registration UI flow (smoke)', () => {
     await page.fill('[data-testid="register-password"]', password);
     await page.fill('[data-testid="register-fullname"]', 'E2E UI User');
 
-    // Wait for the network response that performs login (auto-login happens
-    // after register) and capture headers.
+    // Public registration only files a request (SELF_REGISTRATION_MODE=approval): the account is
+    // created inactive, the form says an administrator must approve it, and no sign-in happens.
+    const loginCalls: string[] = [];
+    page.on('request', (r) => {
+      if (r.url().includes('/api/v1/auth/login') && r.method() === 'POST') loginCalls.push(r.url());
+    });
+
     const [res] = await Promise.all([
-      page.waitForResponse((r) => r.url().includes('/api/v1/auth/login') && r.request().method() === 'POST'),
+      page.waitForResponse((r) => r.url().includes('/api/v1/auth/register') && r.request().method() === 'POST'),
       page.click('[data-testid="register-submit"]'),
     ]);
 
@@ -56,20 +62,23 @@ test.describe('Registration UI flow (smoke)', () => {
       const txt = await res.text().catch(() => '');
       console.error('UI Register failed status=', res.status(), 'body=', txt);
     }
-
     expect(res.status()).toBeGreaterThan(199);
     expect(res.status()).toBeLessThan(300);
+    const created = await res.json();
+    recordCreatedUser(created.id, email);
+    expect(created.is_active).toBe(false);
 
-  // Browsers do not expose Set-Cookie headers to JS fetch/XHR responses for security.
-  // Instead, check the browser context cookies for the HttpOnly refresh token.
-  const cookies = await page.context().cookies();
-  const refreshCookie = cookies.find((c) => c.name === 'refresh_token');
-  expect(refreshCookie).toBeDefined();
-  expect(refreshCookie?.httpOnly).toBe(true);
+    await expect(
+      page.getByText(/administrator must approve your account|διαχειριστής πρέπει να εγκρίνει τον λογαριασμό/i)
+    ).toBeVisible({ timeout: 10000 });
+    // The form is cleared so the request can't be resubmitted by accident.
+    await expect(page.locator('[data-testid="register-email"]')).toHaveValue('');
 
-    // Access tokens are kept in-memory only (not localStorage) since the security
-    // audit — sms_access_token is no longer written.  Verify login success by
-    // confirming the app redirected to the dashboard instead.
-    await expect(page).toHaveURL(/\/#\/dashboard/, { timeout: 10000 });
+    // Still signed out: no login attempt, no refresh cookie, still on the login page.
+    expect(loginCalls).toEqual([]);
+    const cookies = await page.context().cookies();
+    expect(cookies.find((c) => c.name === 'refresh_token')).toBeUndefined();
+    await expect(page).not.toHaveURL(/\/dashboard/);
+    await expect(page.locator('[data-testid="auth-login-email"]')).toBeVisible();
   });
 });
