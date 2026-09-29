@@ -27,6 +27,29 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.50] - 2026-09-29
+
+### Features
+- **auth**: self-registration needs admin approval; activation emails the user
+
+### Bug Fixes
+- E2E runs used the real mail relay; first-login password dialog was English in Greek
+- **ci**: Dependabot merges via GitHub App token; dependabot.yml was invalid
+- **ci**: Dependabot auto-merge failed - token lacked contents: write
+- **ci**: COMMIT_READY translation check broke under Vitest 4; drop bare PR Hygiene job
+- **scripts**: state snapshot pointed at pre-flatten paths
+- **tests**: CI failures after registration approval (434631cbc)
+
+### Documentation
+- **plan**: record registration approval + CI fix (434631cbc, 44b993081)
+- **plan**: record v1.18.49 release
+
+### Chores
+- **ci**: finish ruleset migration - remove nightly branch-protection job
+- **ci**: protection moved to rulesets; drop nightly classic re-apply
+- **deps**: bump fast-uri from 3.1.6 to 3.1.8 in /src/frontend (#230)
+
 ## [1.18.49] - 2026-09-25
 
 ### Features
@@ -4507,6 +4530,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
