@@ -6,12 +6,18 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   dependabot-auto-approve:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    # Merging (gh pr merge --auto) needs contents: write; approving needs
+    # pull-requests: write. Scoped to this job, which never checks out PR code.
+    permissions:
+      contents: write
+      pull-requests: write
+    # PR author, not github.actor: a human pushing to a Dependabot branch
+    # must not get their change auto-approved.
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
