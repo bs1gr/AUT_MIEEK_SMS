@@ -10,10 +10,10 @@ permissions:
 jobs:
   dependabot-auto-approve:
     runs-on: ubuntu-latest
-    # Merging (gh pr merge --auto) needs contents: write; approving needs
-    # pull-requests: write. Scoped to this job, which never checks out PR code.
+    # GITHUB_TOKEN only approves; the merge uses a GitHub App token (below).
+    # This job never checks out PR code.
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     # PR author, not github.actor: a human pushing to a Dependabot branch
     # must not get their change auto-approved.
@@ -43,9 +43,48 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Patch updates auto-merge once the required checks pass. The merge must
+      # not use GITHUB_TOKEN: GitHub starts no workflows for events caused by
+      # GITHUB_TOKEN, so CI/E2E would never run on main after the merge. The
+      # App is not a ruleset bypass actor, so auto-merge still waits for the
+      # required checks and the approval.
+      #
+      # GitHub Actions bumps are left for a manual merge: they edit
+      # .github/workflows/*, which an App token may only merge with the
+      # Workflows permission, and the App deliberately doesn't have it.
+      - name: Decide whether to auto-merge
+        id: automerge
+        shell: bash
+        env:
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          ECOSYSTEM: ${{ steps.metadata.outputs.package-ecosystem }}
+          HAVE_APP_CREDENTIALS: ${{ secrets.DEPENDABOT_MERGE_APP_CLIENT_ID != '' && secrets.DEPENDABOT_MERGE_APP_PRIVATE_KEY != '' }}
+        run: |
+          set -euo pipefail
+
+          if [ "$UPDATE_TYPE" != "version-update:semver-patch" ] || [ "$ECOSYSTEM" = "github_actions" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$HAVE_APP_CREDENTIALS" != "true" ]; then
+            echo "::error::Secrets DEPENDABOT_MERGE_APP_CLIENT_ID / DEPENDABOT_MERGE_APP_PRIVATE_KEY are not set (set both as Actions and Dependabot secrets). Auto-merge skipped - merge this PR by hand."
+            exit 1
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub App token for the merge
+        id: app-token
+        if: steps.automerge.outputs.enabled == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.DEPENDABOT_MERGE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPENDABOT_MERGE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Enable auto-merge for patch updates
-        if: steps.metadata.outputs.update-type == 'version-update:semver-patch'
+        if: steps.automerge.outputs.enabled == 'true'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}

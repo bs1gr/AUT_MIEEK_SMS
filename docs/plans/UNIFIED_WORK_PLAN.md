@@ -80,6 +80,11 @@ it here and mark it resolved where it was raised.
    rewrites the `@gmail.com` sender to `…@…brevosend.com`, because it cannot send as Gmail. With your
    own domain verified in Brevo, emails can come from e.g. `noreply@<domain>` and are less likely
    to land in spam.
+8. **Create the Dependabot merge GitHub App and store its secrets** (2026-09-29). The App needs
+   Contents and Pull requests read/write only, and should be installed on this repo only. Store
+   `DEPENDABOT_MERGE_APP_CLIENT_ID` and `DEPENDABOT_MERGE_APP_PRIVATE_KEY` as both Actions and
+   Dependabot secrets. Until then, Dependabot patch PRs are approved but not auto-merged.
+   Re-run their failed "Auto-approve Dependabot" job afterwards. See the 2026-09-29 section.
 
 ---
 
@@ -94,9 +99,24 @@ Surfaced by Dependabot PR #230 (`fast-uri` 3.1.6 → 3.1.8, merged as `6189bbf3e
   bare Windows runner with no Node/Python setup, so it could only fail. `commit-ready-smoke.yml`
   runs the same gate with dependencies installed.
 - **Dependabot auto-merge failed with "Resource not accessible by integration"** (`5affca4b5`): the
-  token had `contents: read`. The job now has `contents: write` + `pull-requests: write` and only
-  runs for PRs authored by `dependabot[bot]`. Patch updates auto-merge once CI passes; minor updates
-  are auto-approved only.
+  token had `contents: read`. The job now only runs for PRs authored by `dependabot[bot]`. Patch
+  updates auto-merge once CI passes; minor updates are auto-approved only.
+- **Auto-merge now uses a GitHub App token, not `GITHUB_TOKEN`.** GitHub starts no workflows for
+  events caused by `GITHUB_TOKEN`, so CI and E2E never ran on `main` after a Dependabot merge.
+  - The App has Contents and Pull requests read/write only. It has no Workflows permission and no
+    ruleset bypass, so auto-merge still waits for the checks and the approval.
+  - `GITHUB_TOKEN` still approves, and is back to `contents: read`.
+  - GitHub Actions bumps are approved but merged by hand, because merging them would need the
+    Workflows permission.
+  - Secrets: `DEPENDABOT_MERGE_APP_CLIENT_ID` and `DEPENDABOT_MERGE_APP_PRIVATE_KEY`, each in both
+    the Actions and the Dependabot secret stores. Until they exist, patch PRs fail at "Decide
+    whether to auto-merge" with a message naming them. See Next todos item 8.
+- **`dependabot.yml` has been invalid since it was added (2025-12-18).** It had a top-level
+  `security-updates:` key, which is not part of the schema; checked against the SchemaStore
+  `dependabot-2.0` schema. Security updates are a repository setting, and it is on. pip and npm also
+  pointed at `/backend/` and `/frontend/`, which moved to `src/` on 2026-06-12. Every Dependabot PR
+  on record looks like a security update. The file is fixed and now validates. Minor and patch
+  bumps are grouped into one weekly PR per ecosystem; major bumps stay separate.
 - **Protection moved from classic branch protection to rulesets** (Settings → Rules → Rulesets,
   created via the API):
   - **`main branch`** (default branch): PR required with 1 approval; required checks

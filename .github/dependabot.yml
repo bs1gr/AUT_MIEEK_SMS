@@ -1,15 +1,26 @@
-# Enable Dependabot for automated dependency and security updates
+# Dependabot version updates.
+# Security updates are enabled in the repository settings (Settings -> Code
+# security -> Dependabot security updates), not here: dependabot.yml has no
+# such key, and an unknown top-level key makes the whole file invalid.
 
 version: 2
 updates:
   # Backend Python dependencies
   - package-ecosystem: "pip"
-    directory: "/backend/"
+    directory: "/src/backend/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     allow:
       - dependency-type: "all"
+    # One weekly PR for all minor/patch bumps; major bumps stay separate PRs.
+    groups:
+      pip-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     commit-message:
       prefix: "deps"
     labels:
@@ -18,12 +29,20 @@ updates:
 
   # Frontend npm dependencies
   - package-ecosystem: "npm"
-    directory: "/frontend/"
+    directory: "/src/frontend/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     allow:
       - dependency-type: "all"
+    # One weekly PR for all minor/patch bumps; major bumps stay separate PRs.
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     commit-message:
       prefix: "deps"
     labels:
@@ -41,7 +60,3 @@ updates:
     labels:
       - "ci"
       - "dependencies"
-
-# Enable security updates
-security-updates:
-  enable: true
