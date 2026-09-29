@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.49
-**Last Updated**: September 28, 2026
+**Last Updated**: September 29, 2026
 **Status**: ✅ **v1.18.49 released 2026-09-25** (tag on `12bee0a2b`). It adds the ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (see its section below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.49) and its hash matches GitHub's digest; the APK manifest reports `1.18.49` (`versionCode 118049`); CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed. v1.18.48 (2026-09-24) made strict auth the default, enforced `password_change_required` on the server, and honoured the import options.
 
 - **On `main`, not yet released (next: v1.18.50)**: self-registration now needs admin approval, and activation emails the user (`434631cbc`). The CI fixes that followed are in `44b993081`. CI/CD and E2E are green on `44b993081`. See the 2026-09-28 section below.
@@ -80,6 +80,41 @@ it here and mark it resolved where it was raised.
    rewrites the `@gmail.com` sender to `…@…brevosend.com`, because it cannot send as Gmail. With your
    own domain verified in Brevo, emails can come from e.g. `noreply@<domain>` and are less likely
    to land in spam.
+
+---
+
+## 🛡️ Repository rulesets, Dependabot auto-merge, CI gate fixes (September 29, 2026) — repo/CI only
+
+Surfaced by Dependabot PR #230 (`fast-uri` 3.1.6 → 3.1.8, merged as `6189bbf3e`), whose PR-only checks failed for reasons unrelated to the bump.
+
+- **COMMIT_READY's translation check could not pass under Vitest 4** (`9e1f067c8`). It passed `run`
+  twice (the npm `test` script already runs `vitest run`) and used `--reporter=basic`, which Vitest 4
+  removed. Now `--reporter=dot`.
+- **PR Hygiene's `commit-ready` job was removed** (`9e1f067c8`). It ran `COMMIT_READY -Quick` on a
+  bare Windows runner with no Node/Python setup, so it could only fail. `commit-ready-smoke.yml`
+  runs the same gate with dependencies installed.
+- **Dependabot auto-merge failed with "Resource not accessible by integration"** (`5affca4b5`): the
+  token had `contents: read`. The job now has `contents: write` + `pull-requests: write` and only
+  runs for PRs authored by `dependabot[bot]`. Patch updates auto-merge once CI passes; minor updates
+  are auto-approved only.
+- **Protection moved from classic branch protection to rulesets** (Settings → Rules → Rulesets,
+  created via the API):
+  - **`main branch`** (default branch): PR required with 1 approval; required checks
+    `🧪 Backend Tests (Pytest)`, `🧪 Frontend Tests (Vitest)`, `🏗️ Build Frontend (Production)`,
+    pinned to the GitHub Actions app (id 15368), not strict; no force-push; no deletion.
+  - **`release tags`** (`refs/tags/v*`): no deletion, no update, no force-push. This enforces
+    "historical release tags are immutable". Creating tags is still allowed, so releases work as before.
+  - Both rulesets let the **Repository admin** role bypass them always, so the owner's direct pushes
+    and a bad-tag rollback still work (git prints "Bypassed rule violations").
+  - The classic rule on `main` was deleted, so the rulesets are the only protection.
+- **The nightly branch-protection job was removed.** `orchestrated-maintenance.yml` dispatched
+  `apply-branch-protection.yml` every night. It got a 403 each time but reported success. With an
+  admin token it would have reinstated classic protection with check names that never run
+  (`Import checker`, `CI`, …) and `enforce_admins: true`. The workflow and
+  `scripts/trigger_branch_protection.ps1` are deleted.
+
+**If you rename or remove any of the three required CI jobs, update the `main branch` ruleset in the
+same change.** Otherwise every PR waits forever for a check that never reports.
 
 ---
 

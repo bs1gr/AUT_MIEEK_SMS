@@ -18,7 +18,6 @@ on:
           - health-check
           - deps-check
           - docs-validate
-          - branch-protection
       cleanup_level:
         description: '[DEPRECATED - use task parameter] Cleanup level'
         required: false
@@ -57,7 +56,6 @@ jobs:
       run_health_check: ${{ steps.tasks.outputs.run_health_check }}
       run_deps_check: ${{ steps.tasks.outputs.run_deps_check }}
       run_docs_validate: ${{ steps.tasks.outputs.run_docs_validate }}
-      run_branch_protection: ${{ steps.tasks.outputs.run_branch_protection }}
     steps:
       - name: Determine which tasks to run
         id: tasks
@@ -71,7 +69,6 @@ jobs:
             echo "run_health_check=false" >> $GITHUB_OUTPUT  # Health check is manual-only
             echo "run_deps_check=true" >> $GITHUB_OUTPUT
             echo "run_docs_validate=true" >> $GITHUB_OUTPUT
-            echo "run_branch_protection=true" >> $GITHUB_OUTPUT
             echo "🎯 Running all maintenance tasks"
           else
             # Run only specified task
@@ -80,7 +77,6 @@ jobs:
             echo "run_health_check=$([ "$TASK" = "health-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_deps_check=$([ "$TASK" = "deps-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_docs_validate=$([ "$TASK" = "docs-validate" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-            echo "run_branch_protection=$([ "$TASK" = "branch-protection" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "🎯 Running task: $TASK"
           fi
   # ============================================================================
@@ -183,22 +179,9 @@ jobs:
   # MAINTENANCE JOBS
   # ============================================================================
 
-  branch-protection:
-    name: 🛡️ Apply Branch Protection
-    runs-on: ubuntu-latest
-    needs: determine-tasks
-    if: needs.determine-tasks.outputs.run_branch_protection == 'true'
-    permissions:
-      actions: write
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Apply branch protection rules
-        run: |
-          echo "🛡️ Ensuring branch protection rules are in place..."
-          gh workflow run apply-branch-protection.yml --ref main 2>&1 || echo "Branch protection workflow triggered or already running"
+  # Branch/tag protection is a repository ruleset (Settings -> Rules ->
+  # Rulesets), not something this workflow re-applies. The old nightly
+  # classic-protection job 403'd every run while reporting success.
 
   health-check:
     name: 🏥 Production Health Check
@@ -309,7 +292,6 @@ jobs:
     needs:
       - cleanup-workflow-runs
       - cleanup-artifacts
-      - branch-protection
       - health-check
       - check-outdated-deps
       - validate-docs
@@ -330,7 +312,6 @@ jobs:
           echo "## Cleanup Tasks" >> /tmp/summary.md
           echo "- ✅ Workflow runs cleanup" >> /tmp/summary.md
           echo "- ✅ Artifacts cleanup" >> /tmp/summary.md
-          echo "- ✅ Branch protection verification" >> /tmp/summary.md
           echo "" >> /tmp/summary.md
 
           echo "## Checks Completed" >> /tmp/summary.md
