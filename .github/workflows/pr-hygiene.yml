@@ -41,17 +41,9 @@ jobs:
         shell: pwsh
         run: ./scripts/VERIFY_VERSION.ps1 -CheckOnly
 
-  commit-ready:
-    name: Commit Ready Quick
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Run commit ready quick validation
-        shell: pwsh
-        run: ./infra/scripts/ops/COMMIT_READY.ps1 -Quick -NonInteractive
+  # COMMIT_READY -Quick runs in commit-ready-smoke.yml, which installs the
+  # Python/Node dependencies it needs; running it here on a bare runner
+  # could only fail (no node_modules, no backend deps).
 
   # Dependency review runs unconditionally on every PR to main via the
   # standalone dependency-review.yml workflow — kept out of this job list so

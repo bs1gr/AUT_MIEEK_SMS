@@ -1428,7 +1428,7 @@ function Invoke-CodeQualityChecks {
         Write-Info "Checking translation key parity..."
         $npmAvailable = Test-CommandAvailable -Name "npm"
         if ($npmAvailable) {
-            $output = npm run test -- run src/i18n/__tests__/translations.test.ts --reporter=basic 2>&1
+            $output = npm run test -- src/i18n/__tests__/translations.test.ts --reporter=dot 2>&1
         } else {
             Write-Warning-Msg "npm is not available; skipping translation integrity test"
             $LASTEXITCODE = 0
