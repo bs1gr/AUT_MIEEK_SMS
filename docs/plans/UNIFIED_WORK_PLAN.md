@@ -1,10 +1,22 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.49
+**Current Version**: 1.18.50
 **Last Updated**: September 29, 2026
-**Status**: ✅ **v1.18.49 released 2026-09-25** (tag on `12bee0a2b`). It adds the ΜΙΕΕΚ absence limit: 10%, or 15% with Directorate approval (see its section below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.49) and its hash matches GitHub's digest; the APK manifest reports `1.18.49` (`versionCode 118049`); CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed. v1.18.48 (2026-09-24) made strict auth the default, enforced `password_change_required` on the server, and honoured the import options.
+**Status**: ✅ **v1.18.50 released 2026-09-29** (tag on `75e39a892`). Self-registration now needs an administrator's approval, and approval emails the user (see the 2026-09-28 section). The first-login password dialog is now in Greek (see the smoke-test section). A full smoke test of every mode ran first.
 
-- **On `main`, not yet released (next: v1.18.50)**: self-registration now needs admin approval, and activation emails the user (`434631cbc`). The CI fixes that followed are in `44b993081`. CI/CD and E2E are green on `44b993081`. See the 2026-09-28 section below.
+Verified on the published assets:
+- The installer's Authenticode signature is Valid (AUT MIEEK, DigiCert-timestamped, `v1.18.50`), and its hash matches GitHub's digest.
+- The APK manifest reports `1.18.50` (`versionCode 118050`), and its hash matches too.
+- CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed.
+- The release notes carry a hand-written Highlights section.
+
+v1.18.49 (2026-09-25) added the ΜΙΕΕΚ absence limit.
+
+- **Shipped in v1.18.50**:
+  - registration approval (`434631cbc`, CI fixes `44b993081`);
+  - the smoke-test fixes (`73e6ebee3`): E2E mail isolation and the Greek password dialog;
+  - the repo/CI changes of 2026-09-29: rulesets, Dependabot App-token merges, the fixed
+    `dependabot.yml`, and the COMMIT_READY translation check.
 - **Shipped in v1.18.49**: the absence limit (`ee6653ae7`), with `SEMESTER_WEEKS = 14` confirmed (`f04a38916`), and the Vitest extension fix (`8da16cab5`).
 
 **Earlier status (v1.18.47, 2026-09-24):** (tag on `ad9c8a6db`). It is a security release: SMS_Lite's API had required no login from the LAN (todo 3 below). Verified on the published assets: the installer's Authenticode signature is Valid (AUT MIEEK, timestamped, v1.18.47) and its hash matches GitHub's digest; the APK reports `versionName 1.18.47 / versionCode 118047`; the rebuilt exe returns 401 to anonymous LAN reads and writes. v1.18.46 (2026-09-22) fixed Lite deleting its own install on shutdown. v1.18.45 (2026-09-21) shipped the SMS_Lite router fix, the CodeQL path-injection guards, and the GradingView single-request change.
@@ -217,7 +229,7 @@ same change.** Otherwise every PR waits forever for a check that never reports.
 
 ---
 
-## 🔐 Self-registration needs admin approval; activation emails the user (September 28, 2026) — not yet released
+## 🔐 Self-registration needs admin approval; activation emails the user (September 28, 2026) — released in v1.18.50
 
 **Before:** the login page's registration form created an **active** teacher account and signed
 straight in. Anyone who could reach the server had teacher access to every student's data, and
