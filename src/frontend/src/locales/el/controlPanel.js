@@ -345,8 +345,8 @@ export default {
   changeOwnPasswordFailed: 'Δεν ήταν δυνατή η αλλαγή του κωδικού',
   // Password change prompt modal
   changePasswordRequired: 'Αλλαγή Κωδικού Πρόσβασης',
-  changePasswordRequiredMessage: 'Για λόγους ασφάλειας, πρέπει να αλλάξετε τον κωδικό πρόσβασης πριν να συνεχίσετε. Παρακαλώ ορίστε ένα νέο ασφαλές κωδικό.',
-  changePasswordSecurityWarning: 'Το λογαριασμό σας χρησιμοποιεί προεπιλεγμένα διαπιστευτήρια που αποτελούν κίνδυνο ασφάλειας.',
+  changePasswordRequiredMessage: 'Για λόγους ασφάλειας, πρέπει να αλλάξετε τον κωδικό πρόσβασης πριν συνεχίσετε. Ορίστε έναν νέο, ασφαλή κωδικό.',
+  changePasswordSecurityWarning: 'Ο λογαριασμός σας χρησιμοποιεί προεπιλεγμένα διαπιστευτήρια, που αποτελούν κίνδυνο για την ασφάλεια.',
   passwordRequirements: 'Ο κωδικός πρέπει να περιλαμβάνει:',
   passwordLength: '8+ χαρακτήρες',
   passwordUppercase: 'Κεφαλαίο γράμμα (A-Z)',
@@ -354,7 +354,7 @@ export default {
   passwordNumber: 'Αριθμό (0-9)',
   passwordSpecial: 'Ειδικό χαρακτήρα (!@#$%^&*)',
   changePasswordNow: 'Αλλάξτε τον Κωδικό Τώρα',
-  changePasswordMandatory: 'Δεν μπορείτε να συνεχίσετε έως ότου ο κωδικό σας έχει αλλάξει.',
+  changePasswordMandatory: 'Δεν μπορείτε να συνεχίσετε μέχρι να αλλάξετε τον κωδικό σας.',
   // Updates Panel
   updates: 'Ενημερώσεις',
   checkForUpdates: 'Έλεγχος Ενημερώσεων',

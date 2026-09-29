@@ -85,6 +85,85 @@ it here and mark it resolved where it was raised.
    `DEPENDABOT_MERGE_APP_CLIENT_ID` and `DEPENDABOT_MERGE_APP_PRIVATE_KEY` as both Actions and
    Dependabot secrets. Until then, Dependabot patch PRs are approved but not auto-merged.
    Re-run their failed "Auto-approve Dependabot" job afterwards. See the 2026-09-29 section.
+9. **Change the dev database's `admin@example.com` password** (found 2026-09-29). The account still
+   has `password_change_required=True` from when bootstrap created it. Since v1.18.48 the server
+   enforces that flag, so Native and Docker (same database) return `403
+   AUTH_PASSWORD_CHANGE_REQUIRED` for every data request until the password is changed. The UI
+   asks for the change at login. Bootstrap does not raise the flag again: `DEFAULT_ADMIN_AUTO_RESET`
+   and `FORCE_RESET` default to `False`.
+10. **API response `meta.version` is wrong** (found 2026-09-29; the frontend does not read it).
+    Success envelopes use `settings.APP_VERSION`, and a local `src/backend/.env` line
+    `APP_VERSION=1.0.0` (copied from `.env.example`) wins over the VERSION file. Error envelopes use
+    the hard-coded schema default `"1.15.0"` (`schemas/response.py`). Fix: take both from the VERSION
+    file, the same source `/health` uses, and drop `APP_VERSION` from `.env.example`.
+11. **Dependabot cannot update `postcss` in `src/frontend`** (found 2026-09-29). The npm job logs
+    `EOVERRIDE: Override for postcss@8.5.28 conflicts with direct dependency`. `package.json` lists
+    postcss both as a devDependency and under `overrides` (both `^8.5.26`). Dependabot bumps only the
+    direct entry, so npm rejects the mismatch. Write the override as `"postcss": "$postcss"` so it
+    follows the direct dependency. The job's other PRs were still opened.
+12. **66 more `t('<ns>.key')` calls never resolve** (found 2026-09-29). This is the same bug as the
+    password dialog below, in 14 files, 3 of them unused. These components take `t` from
+    react-i18next's `useTranslation()` and prefix keys with a namespace (`common.`, `errors.`,
+    `analytics.`, `notifications.`). The default namespace has no such keys, so in Greek they show
+    their English defaults or the raw key; confirmed with i18next itself.
+    - Visible examples: the logout button, the error-details toggle on the login and register forms,
+      the error boundaries' Retry, the Save/Cancel/Delete buttons in saved searches, and the PWA
+      prompts.
+    - `analytics.savedReports.*` and `notifications.markAsRead`/`delete` are also missing from the
+      locale files.
+    - `useLanguage().t` resolves these prefixes; `useTranslation()` does not.
+    - Fix: move these files to `useLanguage()`, or to `useTranslation('<ns>')` with unprefixed keys.
+      Add the missing keys, and add a test that fails on this pattern.
+
+---
+
+## 🔎 Pre-release smoke test for v1.18.50 (September 29, 2026)
+
+Every mode was tested on `main` (`b8a8edd0f` plus the two fixes below). Each check used a real login
+and real data reads, not just health checks.
+
+| Mode | How | Result |
+|---|---|---|
+| Backend | COMMIT_READY quick (25 batches), CI | 1152 passed |
+| Frontend | full Vitest suite | 127 files, 2063 tests passed |
+| E2E | `RUN_E2E_ISOLATED.ps1` (throwaway SQLite) | 41 passed, 37 skipped |
+| Native | `NATIVE.ps1`, dev Postgres, read-only | healthy, `v1.18.49`; database, migrations and frontend green; login OK. Data requests answered 403 because the dev admin must still change its password (todo 9). |
+| SMS_Lite | fresh PyInstaller build, first run under a throwaway `USERPROFILE` | All 18 flow checks passed (details below). |
+| Docker | `DOCKER.ps1 -Update` (image rebuilt from `main`) | healthy, `v1.18.49`; login, static files and deep links OK. The UI shows the forced password-change dialog for the dev admin, which uses the same database as Native. |
+
+SMS_Lite checks:
+- Forced password change on first login.
+- Registration flow: register, account pending, admin notified, approve, login. With no SMTP
+  configured, approval returns `not_configured` and the approving admin is told to inform the user.
+- Static files come back as real images.
+- A browser login on `127.0.0.1` survives a reload.
+- The logout shutdown exits and leaves the install intact.
+
+Fixed before the release:
+
+- **`RUN_E2E_ISOLATED` sent real mail.** Every backend started from a checkout loads the SMTP
+  settings saved in Control Panel > Email (`src/backend/data/smtp_override.json`). So the "isolated"
+  E2E backend loaded the developer's Brevo relay, and `register.spec`'s approval emailed a test
+  address through it. A spec that saved email settings would also have overwritten them.
+  `smtp_override.py` now honours `SMTP_OVERRIDE_PATH`, and the script points it into its run
+  directory. Verified in the E2E backend log, which captures INFO lines: no override loaded.
+- **The forced password-change dialog was all English in the Greek UI.** It is the first screen of
+  every new account, including every fresh SMS_Lite install.
+  - `ChangePasswordPromptModal` called `useTranslation()` with keys such as
+    `controlPanel.changePasswordRequired`. The default namespace has no `controlPanel`, so every
+    string fell back to its English default.
+  - It now uses the `controlPanel` namespace, with no English defaults to hide a miss.
+  - Three ungrammatical Greek strings, never displayed before, were corrected.
+  - The new `ChangePasswordPromptModal.test.tsx` uses the app's real i18n instance. The test-utils
+    instance has no `controlPanel` namespace and could not show the bug. The new test failed before
+    the fix.
+
+Found, not fixed: todos 9–12.
+
+Lessons for next time:
+- SMS_Lite always opens the default browser. Under a throwaway `USERPROFILE`, that is a separate
+  Edge instance with a fresh profile, which signs into the owner's Microsoft account and syncs.
+  Close it by its process tree (its parent is the SMS_Lite PID) and delete the folder.
 
 ---
 

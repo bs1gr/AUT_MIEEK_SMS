@@ -21,7 +21,9 @@ export const ChangePasswordPromptModal: React.FC<ChangePasswordPromptModalProps>
   isOpen,
   onOpenPasswordForm,
 }) => {
-  const { t } = useTranslation();
+  // The keys live in the `controlPanel` namespace. As `controlPanel.x` in the default namespace
+  // they never resolved, and every string silently fell back to English.
+  const { t } = useTranslation('controlPanel');
 
   if (!isOpen) {
     return null;
@@ -42,24 +44,18 @@ export const ChangePasswordPromptModal: React.FC<ChangePasswordPromptModalProps>
             <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-300" />
           </div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {t('controlPanel.changePasswordRequired', 'Change Your Password')}
+            {t('changePasswordRequired')}
           </h2>
         </div>
 
         {/* Warning message */}
         <div className="mb-6 space-y-2">
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            {t(
-              'controlPanel.changePasswordRequiredMessage',
-              'For security reasons, you must change your password before proceeding. Please set a new secure password.'
-            )}
+            {t('changePasswordRequiredMessage')}
           </p>
           <div className="rounded-md bg-yellow-50 p-3 dark:bg-yellow-900/20">
             <p className="text-xs text-yellow-800 dark:text-yellow-200">
-              {t(
-                'controlPanel.changePasswordSecurityWarning',
-                'Your account is using default credentials which pose a security risk.'
-              )}
+              {t('changePasswordSecurityWarning')}
             </p>
           </div>
         </div>
@@ -67,14 +63,14 @@ export const ChangePasswordPromptModal: React.FC<ChangePasswordPromptModalProps>
         {/* Password requirements hint */}
         <div className="mb-6 space-y-1 rounded-md bg-blue-50 p-3 dark:bg-blue-900/20">
           <p className="text-xs font-medium text-blue-900 dark:text-blue-200">
-            {t('controlPanel.passwordRequirements', 'Password must include:')}
+            {t('passwordRequirements')}
           </p>
           <ul className="space-y-1 text-xs text-blue-800 dark:text-blue-200">
-            <li>• {t('controlPanel.passwordLength', '8+ characters')}</li>
-            <li>• {t('controlPanel.passwordUppercase', 'Uppercase letter (A-Z)')}</li>
-            <li>• {t('controlPanel.passwordLowercase', 'Lowercase letter (a-z)')}</li>
-            <li>• {t('controlPanel.passwordNumber', 'Number (0-9)')}</li>
-            <li>• {t('controlPanel.passwordSpecial', 'Special character (!@#$%^&*)')}</li>
+            <li>• {t('passwordLength')}</li>
+            <li>• {t('passwordUppercase')}</li>
+            <li>• {t('passwordLowercase')}</li>
+            <li>• {t('passwordNumber')}</li>
+            <li>• {t('passwordSpecial')}</li>
           </ul>
         </div>
 
@@ -84,16 +80,13 @@ export const ChangePasswordPromptModal: React.FC<ChangePasswordPromptModalProps>
             onClick={handleOpenPasswordForm}
             className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:bg-blue-500 dark:focus:ring-offset-gray-800"
           >
-            {t('controlPanel.changePasswordNow', 'Change Password Now')}
+            {t('changePasswordNow')}
           </button>
         </div>
 
         {/* Footer note */}
         <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-          {t(
-            'controlPanel.changePasswordMandatory',
-            'You cannot continue until your password has been changed.'
-          )}
+          {t('changePasswordMandatory')}
         </p>
       </div>
     </div>

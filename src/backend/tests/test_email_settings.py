@@ -11,6 +11,21 @@ from fastapi.testclient import TestClient
 
 
 class TestSmtpOverrideService:
+    def test_override_path_defaults_to_backend_data(self, monkeypatch):
+        from backend.services import smtp_override
+
+        monkeypatch.delenv("SMTP_OVERRIDE_PATH", raising=False)
+        path = smtp_override._default_override_path()
+        assert (path.parent.name, path.name) == ("data", "smtp_override.json")
+
+    def test_override_path_honours_env_var(self, tmp_path, monkeypatch):
+        """RUN_E2E_ISOLATED.ps1 relies on this to keep a throwaway backend off the real relay."""
+        from backend.services import smtp_override
+
+        target = tmp_path / "e2e-run" / "smtp_override.json"
+        monkeypatch.setenv("SMTP_OVERRIDE_PATH", str(target))
+        assert smtp_override._default_override_path() == target
+
     def test_load_returns_empty_when_file_missing(self, tmp_path, monkeypatch):
         from backend.services import smtp_override
 

@@ -3,14 +3,15 @@ SMTP runtime-override helpers.
 
 Loads / saves / applies a JSON file that lets admin users configure SMTP
 settings through the UI without touching environment variables.  The file
-is stored at ``src/backend/data/smtp_override.json`` and is intentionally
-kept outside version control.
+is stored at ``src/backend/data/smtp_override.json`` (or ``SMTP_OVERRIDE_PATH``)
+and is intentionally kept outside version control.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -18,7 +19,22 @@ from backend.config import settings
 
 logger = logging.getLogger(__name__)
 
-_SMTP_OVERRIDE_PATH: Path = Path(__file__).resolve().parents[1] / "data" / "smtp_override.json"
+
+def _default_override_path() -> Path:
+    """``SMTP_OVERRIDE_PATH`` if set, else ``src/backend/data/smtp_override.json``.
+
+    Every backend started from a checkout reads the same file, so a throwaway backend
+    (RUN_E2E_ISOLATED.ps1) would otherwise send real mail through the developer's
+    configured relay and could overwrite its saved settings. It points this into its
+    own run directory instead.
+    """
+    configured = os.environ.get("SMTP_OVERRIDE_PATH", "").strip()
+    if configured:
+        return Path(configured)
+    return Path(__file__).resolve().parents[1] / "data" / "smtp_override.json"
+
+
+_SMTP_OVERRIDE_PATH: Path = _default_override_path()
 
 _FIELD_TO_ATTR: dict[str, str] = {
     "smtp_host": "SMTP_HOST",

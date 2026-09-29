@@ -12,7 +12,8 @@
     This script removes the problem at the source. It creates a throwaway SQLite database in the
     temp directory, migrates and seeds it with backend/seed_e2e_data.py, starts a backend bound
     to it, runs Playwright, and then stops the backend and deletes the database. Nothing it does
-    can reach the development database.
+    can reach the development database, or the mail relay saved in Control Panel > Email
+    (SMTP_OVERRIDE_PATH points into the run directory).
 
     It is the same recipe .github/workflows/e2e-tests.yml uses, so a local run now matches CI -
     including the seeded accounts. In a seeded database test@example.com is an *admin*, which is
@@ -100,7 +101,7 @@ $cleanupFailed = $false
 $envKeys = @(
     'DATABASE_URL', 'PYTHONPATH', 'CSRF_ENABLED', 'AUTH_MODE',
     'AUTH_LOGIN_THROTTLE_ENABLED', 'AUTH_USER_LOCKOUT_ENABLED', 'SERVE_FRONTEND',
-    'VITE_API_URL', 'VITE_DEV_PROXY_TARGET', 'PLAYWRIGHT_BASE_URL'
+    'VITE_API_URL', 'VITE_DEV_PROXY_TARGET', 'PLAYWRIGHT_BASE_URL', 'SMTP_OVERRIDE_PATH'
 )
 $savedEnv = @{}
 foreach ($key in $envKeys) { $savedEnv[$key] = [Environment]::GetEnvironmentVariable($key) }
@@ -116,6 +117,10 @@ try {
     $env:AUTH_USER_LOCKOUT_ENABLED = '0'
     # The suite drives its own frontend through Vite; don't make the backend serve a stale build.
     $env:SERVE_FRONTEND = '0'
+    # The SMTP settings saved from Control Panel > Email live in one file per checkout. Left alone,
+    # this backend would load the developer's real relay, and register.spec's approval would email
+    # a test address through it. A path in the run directory keeps it unconfigured (as in CI).
+    $env:SMTP_OVERRIDE_PATH = Join-Path $runDir 'smtp_override.json'
     # Leave PLAYWRIGHT_BASE_URL unset so playwright.config.ts starts Vite itself.
     Remove-Item Env:\PLAYWRIGHT_BASE_URL -ErrorAction SilentlyContinue
 

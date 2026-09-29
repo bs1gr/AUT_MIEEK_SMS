@@ -127,6 +127,12 @@ SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
 - Default: unset / 587 / unset / unset / unset
 - Purpose: Configures SMTP for email notifications. `SMTP_HOST` is required to enable email sending. `SMTP_PORT` defaults to 587 (TLS). `SMTP_USER` and `SMTP_PASSWORD` are required if SMTP server needs authentication. `SMTP_FROM` is the sender email address. When not configured, email notifications are logged but not sent.
 
+SMTP_OVERRIDE_PATH
+
+- Type: string (file path)
+- Default: `src/backend/data/smtp_override.json`
+- Purpose: Where the SMTP settings saved from Control Panel > Email are read from and written to; they override the `SMTP_*` variables at startup. `RUN_E2E_ISOLATED.ps1` points it into its throwaway run directory, so an E2E run neither sends real mail through the developer's configured relay nor overwrites its saved settings.
+
 SMTP_USE_TLS
 
 - Type: boolean ("1"/"0")
