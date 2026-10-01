@@ -44,7 +44,7 @@ dependencies = [
     "slowapi==0.1.9",
     "fastapi-csrf-protect==1.0.7",
     "passlib[bcrypt]==1.7.4",  # legacy-only: verifies PBKDF2-SHA256 hashes; remove after all rows migrate to bcrypt
-    "PyJWT==2.13.0",  # CVE-2024-33663/33664/33665/33666
+    "PyJWT==2.15.0",  # CVE-2024-33663/33664/33665/33666 and 2026 JWT-algorithm-confusion fixes
     "docker==7.1.0",
     "prometheus-client==0.21.0",
     "opentelemetry-api==1.39.1",
