@@ -82,7 +82,13 @@ The first push's CI/E2E failures were caused by adding `@babel/runtime@8.0.5` wi
 CI/CD plus E2E passed on `b42b6c1d7`. A follow-up CodeQL alert (`PYSEC-2026-4013`) found that
 `virtualenv==21.7.12` still had an activation-script injection; both runtime and development
 requirements now use the fixed `21.7.13` release. A local `pip-audit` over both requirements
-files reports no known vulnerabilities; push-triggered CodeQL verification is pending.
+files reports no known vulnerabilities.
+
+A manual CodeQL run found a high-severity clear-text SMTP password persistence path in
+`services/smtp_override.py`. SMTP passwords are now Fernet-encrypted using a purpose-derived
+key from `SECRET_KEY`, and legacy plaintext overrides migrate on load. The focused SMTP suite
+passes (22 tests), Ruff is clean, and the local ignored override was verified encrypted;
+push-triggered CodeQL verification remains pending.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence

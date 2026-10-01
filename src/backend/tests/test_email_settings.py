@@ -60,6 +60,34 @@ class TestSmtpOverrideService:
         assert data["smtp_host"] == "smtp.example.com"
         assert data["smtp_port"] == 465
 
+    def test_save_encrypts_password_at_rest_and_load_decrypts(self, tmp_path, monkeypatch):
+        from backend.services import smtp_override
+
+        override_file = tmp_path / "smtp_override.json"
+        monkeypatch.setattr(smtp_override, "_SMTP_OVERRIDE_PATH", override_file)
+        smtp_override.save({"smtp_password": "supersecret"})
+
+        stored = override_file.read_text(encoding="utf-8")
+        assert "supersecret" not in stored
+        assert json.loads(stored)["smtp_password"].startswith("fernet:v1:")
+        assert smtp_override.load()["smtp_password"] == "supersecret"
+
+    def test_load_migrates_legacy_plaintext_password(self, tmp_path, monkeypatch):
+        from backend.services import smtp_override
+
+        override_file = tmp_path / "smtp_override.json"
+        override_file.write_text(
+            json.dumps({"smtp_host": "smtp.example.com", "smtp_password": "legacysecret"}),
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(smtp_override, "_SMTP_OVERRIDE_PATH", override_file)
+
+        loaded = smtp_override.load()
+        stored = override_file.read_text(encoding="utf-8")
+        assert loaded["smtp_password"] == "legacysecret"
+        assert "legacysecret" not in stored
+        assert json.loads(stored)["smtp_password"].startswith("fernet:v1:")
+
     def test_apply_sets_settings_attributes(self, monkeypatch):
         from backend.services import smtp_override
         from backend.config import settings
@@ -173,9 +201,12 @@ class TestEmailSettingsEndpoints:
         assert override_file.exists()
         saved = json.loads(override_file.read_text())
         assert saved["smtp_host"] == "smtp.updated.com"
+        assert "newpassword" not in override_file.read_text(encoding="utf-8")
+        assert saved["smtp_password"].startswith("fernet:v1:")
 
         # In-memory settings should be updated
         assert settings.SMTP_HOST == "smtp.updated.com"
+        assert smtp_override.load()["smtp_password"] == "newpassword"
 
     def test_update_does_not_overwrite_password_placeholder(
         self, client: TestClient, admin_headers: dict, tmp_path, monkeypatch
@@ -190,7 +221,9 @@ class TestEmailSettingsEndpoints:
         assert response.status_code == 200
 
         saved = json.loads(override_file.read_text())
-        assert saved["smtp_password"] == "original"
+        assert "original" not in override_file.read_text(encoding="utf-8")
+        assert saved["smtp_password"].startswith("fernet:v1:")
+        assert smtp_override.load()["smtp_password"] == "original"
 
     def test_test_email_requires_recipient(self, client: TestClient, admin_headers: dict):
         response = client.post(f"{self.BASE}/test", json={}, headers=admin_headers)

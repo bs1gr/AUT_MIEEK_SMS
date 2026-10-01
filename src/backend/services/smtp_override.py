@@ -12,8 +12,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import base64
+import hashlib
 from pathlib import Path
 from typing import Any
+
+from cryptography.fernet import Fernet, InvalidToken
 
 from backend.config import settings
 
@@ -35,6 +39,8 @@ def _default_override_path() -> Path:
 
 
 _SMTP_OVERRIDE_PATH: Path = _default_override_path()
+_PASSWORD_ENCRYPTION_PREFIX = "fernet:v1:"
+_PASSWORD_KEY_CONTEXT = b"sms.smtp-override.password:v1\0"
 
 _FIELD_TO_ATTR: dict[str, str] = {
     "smtp_host": "SMTP_HOST",
@@ -50,20 +56,62 @@ def override_path() -> Path:
     return _SMTP_OVERRIDE_PATH
 
 
+def _password_cipher() -> Fernet:
+    """Build a purpose-specific encryption key from the persistent app secret."""
+    secret = str(settings.SECRET_KEY or "").encode("utf-8")
+    key = hashlib.sha256(_PASSWORD_KEY_CONTEXT + secret).digest()
+    return Fernet(base64.urlsafe_b64encode(key))
+
+
+def _encrypt_password(password: str) -> str:
+    token = _password_cipher().encrypt(password.encode("utf-8")).decode("ascii")
+    return f"{_PASSWORD_ENCRYPTION_PREFIX}{token}"
+
+
+def _decrypt_password(password: str) -> str:
+    token = password.removeprefix(_PASSWORD_ENCRYPTION_PREFIX).encode("ascii")
+    return _password_cipher().decrypt(token).decode("utf-8")
+
+
 def load() -> dict[str, Any]:
     """Return the saved SMTP override dict, or empty dict if missing/corrupt."""
     if _SMTP_OVERRIDE_PATH.exists():
         try:
-            return json.loads(_SMTP_OVERRIDE_PATH.read_text(encoding="utf-8"))
+            override = json.loads(_SMTP_OVERRIDE_PATH.read_text(encoding="utf-8"))
         except Exception:
-            pass
+            return {}
+
+        if not isinstance(override, dict):
+            return {}
+
+        password = override.get("smtp_password")
+        if isinstance(password, str) and password:
+            if password.startswith(_PASSWORD_ENCRYPTION_PREFIX):
+                try:
+                    override["smtp_password"] = _decrypt_password(password)
+                except (InvalidToken, UnicodeError, ValueError):
+                    logger.error(
+                        "Could not decrypt the persisted SMTP password; verify SECRET_KEY and re-enter the password."
+                    )
+                    override.pop("smtp_password", None)
+            else:
+                # Migrate existing installations without requiring the admin to re-enter the password.
+                try:
+                    save(override)
+                except OSError:
+                    logger.exception("Could not migrate the persisted SMTP password to encrypted storage.")
+        return override
     return {}
 
 
 def save(data: dict[str, Any]) -> None:
     """Persist the SMTP override dict to disk."""
     _SMTP_OVERRIDE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _SMTP_OVERRIDE_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    persisted = dict(data)
+    password = persisted.get("smtp_password")
+    if isinstance(password, str) and password:
+        persisted["smtp_password"] = _encrypt_password(password)
+    _SMTP_OVERRIDE_PATH.write_text(json.dumps(persisted, indent=2), encoding="utf-8")
 
 
 def apply(override: dict[str, Any]) -> None:
