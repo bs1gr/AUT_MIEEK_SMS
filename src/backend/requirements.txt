@@ -38,7 +38,7 @@ protobuf==6.33.6  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.
 apscheduler==3.11.2
 
 # Security constraints for transitive dependencies
-filelock==3.29.4
+filelock==4.0.5
 virtualenv==21.7.13  # Fixes PYSEC-2026-4013 activation-script injection
 wheel==0.47.0
 werkzeug==3.1.8
