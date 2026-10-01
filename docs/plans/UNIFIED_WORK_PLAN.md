@@ -69,13 +69,17 @@ tree as evidence that GitHub is clear.
 *(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
 *What is left is below.*
 
-**Priority 0 — GitHub pre-flight findings (2026-10-01):** remediate the three high-severity
-Dependabot alerts for `PyJWT==2.13.0` (the upstream fixed release is `2.14.0`; upgrade to
-`2.15.0` in both runtime manifests) and the high-severity production `brace-expansion`
-vulnerability found by the frontend security job. The latter fails CI and is pulled by
-`minimatch` through production build dependencies; force a fixed `brace-expansion >=5.0.12`
-lockfile resolution. Existing Dependabot PRs #246 and #247 split the PyJWT change across the
-two manifests, so the local fix must keep them in sync and the duplicate PRs must not both merge.
+**Priority 0 — GitHub security/CI findings (2026-10-01):** PyJWT is now `2.15.0` in both
+runtime manifests, and the frontend lock resolves production `brace-expansion` to `5.0.12`;
+both local production and full npm audits report zero vulnerabilities. GitHub's initial
+Dependabot findings for PyJWT cleared after the dependency graph refreshed; the `brace-expansion`
+alert still appears open even though its vulnerable range is `<5.0.12`.
+
+The first push's CI/E2E failures were caused by adding `@babel/runtime@8.0.5` to
+`package.json` without its package-lock entry. The lock is now synchronized and `npm ci --dry-run`
+passes; rerun push checks after committing the repair. A newly surfaced high-severity
+`virtualenv` alert identified `21.5.1` in `src/backend/requirements.txt` (fixed in `21.7.12`);
+both runtime and development requirements are being raised to the patched floor in this follow-up.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
