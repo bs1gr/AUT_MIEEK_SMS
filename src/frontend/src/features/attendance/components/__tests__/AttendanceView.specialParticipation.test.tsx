@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import AttendanceView from '../AttendanceView';
+import AttendancePerformanceModal from '../AttendancePerformanceModal';
 import * as apiModule from '@/api/api';
 
 const stableLanguageMock = {
@@ -66,10 +67,56 @@ const mockCourses = [
     credits: 3,
     is_active: true,
     evaluation_rules: [
+      { category: 'Class Participation', weight: 10 },
+      { category: 'No participation', weight: 0 },
+      { category: 'Minor participation', weight: 0 },
       { category: 'Minor participation (mobile usage)', weight: 5 },
     ],
   },
+  {
+    id: 2,
+    course_code: 'OLD101',
+    course_name: 'No Active Enrollments',
+    semester: 'Fall 2026',
+    credits: 3,
+    is_active: true,
+    evaluation_rules: [],
+  },
 ];
+
+const specialParticipationScores: Record<string, number> = {
+  'No participation': 0,
+  'Minor participation': 4,
+  'Minor participation (mobile usage)': 2,
+};
+
+const renderPerformanceModal = (dailyPerformance: Record<string, number> = {}) => {
+  const setPerformanceScore = vi.fn();
+  const setSpecialParticipationOption = vi.fn();
+
+  render(
+    <AttendancePerformanceModal
+      t={() => ''}
+      formatDate={(value) => String(value)}
+      formatWeekday={() => 'Weekday'}
+      localeOverride="en-US"
+      selectedDate={new Date('2026-10-01T12:00:00')}
+      selectedStudentForPerformance={mockStudents[0]}
+      evaluationCategories={mockCourses[0].evaluation_rules}
+      dailyPerformance={dailyPerformance}
+      getAggregatedStatus={() => ({ status: undefined, isMixed: false, hasAny: false })}
+      translateCategory={(category) => category}
+      getSpecialParticipationScore={(category) => specialParticipationScores[category] ?? null}
+      setPerformanceScore={setPerformanceScore}
+      clearPerformanceScore={vi.fn()}
+      setSpecialParticipationOption={setSpecialParticipationOption}
+      setShowPerformanceModal={vi.fn()}
+      showToast={vi.fn()}
+    />,
+  );
+
+  return { setPerformanceScore, setSpecialParticipationOption };
+};
 
 describe('AttendanceView - Special Participation Labels', () => {
   beforeEach(() => {
@@ -89,8 +136,11 @@ describe('AttendanceView - Special Participation Labels', () => {
         };
       }
       // AttendanceView uses apiClient (not fetch) after the Android migration.
-      if (url.includes('/enrollments/course/') && url.includes('/students')) {
+      if (url.includes('/enrollments/course/1/students')) {
         return { data: mockStudents };
+      }
+      if (url.includes('/enrollments/course/') && url.includes('/students')) {
+        return { data: [] };
       }
       if (/\/courses\/\d+$/.test(url)) {
         return { data: mockCourses[0] };
@@ -120,6 +170,15 @@ describe('AttendanceView - Special Participation Labels', () => {
         } as unknown as Response;
       }
 
+      if (url.includes('/enrollments/course/2/students')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => [],
+          text: async () => '[]',
+        } as unknown as Response;
+      }
+
       if (url.includes('/courses/1')) {
         return {
           ok: true,
@@ -145,27 +204,40 @@ describe('AttendanceView - Special Participation Labels', () => {
   });
 
   it('shows a custom applied label when stored special score differs from canonical preset', async () => {
+    renderPerformanceModal({ '1-Minor participation (mobile usage)': 8 });
+
+    const specialOptions = await screen.findByTestId('special-participation-options');
+    expect(within(specialOptions).getByText('Applied (8/10, custom)')).toBeInTheDocument();
+    expect(within(specialOptions).queryByText('Applied (2/10)')).not.toBeInTheDocument();
+  });
+
+  it('groups optional participation observations under the participation assessment', async () => {
+    const { setPerformanceScore, setSpecialParticipationOption } = renderPerformanceModal({
+      '1-Minor participation (mobile usage)': 8,
+    });
+
+    const specialOptions = await screen.findByTestId('special-participation-options');
+    expect(within(specialOptions).getAllByRole('checkbox')).toHaveLength(3);
+    expect(within(specialOptions).getAllByText('Not assessed — no score is recorded')).toHaveLength(2);
+    expect(within(specialOptions).queryByText('Not applied (10/10)')).not.toBeInTheDocument();
+    expect(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: Minor participation (mobile usage)' })).toBeChecked();
+    expect(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: No participation' })).not.toBeChecked();
+    expect(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: No participation' }).closest('div')).toHaveClass('sm:grid-cols-3');
+    expect(setSpecialParticipationOption).not.toHaveBeenCalled();
+
+    fireEvent.click(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: No participation' }));
+    expect(setSpecialParticipationOption).toHaveBeenCalledWith(1, 'No participation', true);
+
+    fireEvent.click(screen.getByLabelText("Include in today's assessment"));
+    expect(setPerformanceScore).toHaveBeenCalledWith(1, 'Class Participation', 0);
+  });
+
+  it('offers only courses with active enrolled students for attendance', async () => {
     render(<AttendanceView courses={mockCourses} students={mockStudents} />);
 
-    fireEvent.change(screen.getByTestId('attendance-course-select'), {
-      target: { value: '1' },
-    });
-
-    const dayButtons = screen.getAllByRole('button').filter((button) => {
-      const label = (button.textContent || '').trim();
-      return /^\d+$/.test(label) && !button.hasAttribute('disabled');
-    });
-
-    expect(dayButtons.length).toBeGreaterThan(0);
-    fireEvent.click(dayButtons[0]);
-
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'MATH101 - Math 101' })).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByRole('button', { name: /rate/i }));
-
-    expect(await screen.findByText('Applied (8/10, custom)')).toBeInTheDocument();
-    expect(screen.queryByText('Applied (2/10)')).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'OLD101 - No Active Enrollments' })).not.toBeInTheDocument();
   });
 });

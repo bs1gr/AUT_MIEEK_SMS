@@ -492,13 +492,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       activeRequestsRef.current.add(requestKey);
 
       try {
-        // Immediately set all courses as selectable to avoid long waits
-        // The enrollment count is only used for filtering, not for functionality
-        const allCourseIds = new Set<number>();
-        localCourses.forEach(c => allCourseIds.add(c.id));
-        setCoursesWithEnrollment(allCourseIds);
+        // Keep the selector closed until enrollment checks complete: showing all courses here
+        // exposes courses with no active enrolled students when a remote database is slow.
+        setCoursesWithEnrollment(new Set());
 
-        // Process courses in smaller batches to avoid overwhelming the server
+        // Process courses in smaller batches to avoid overwhelming the server.
         // Use shorter timeout (5 seconds) per batch to avoid long waits on slow enrollments API
         const BATCH_SIZE = 3; // Fetch 3 courses at a time instead of all at once
         const results: Array<{ id: number; count: number }> = [];
@@ -554,20 +552,15 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           }
         }
 
-        // Update with actual enrollment counts if available
+        // Only courses with active enrollments are valid for attendance entry.
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
         debugAttendance('coursesWithEnrollment (final):', Array.from(ids));
-        // If we found courses with enrollments, use that; otherwise keep all courses available
-        if (ids.size > 0) {
-          setCoursesWithEnrollment(ids);
-        }
+        setCoursesWithEnrollment(ids);
       } catch (err) {
         console.error('[AttendanceView] Error in fetchEnrollments:', err);
-        // Keep all courses available as fallback
-        const allCourseIds = new Set<number>();
-        localCourses.forEach(c => allCourseIds.add(c.id));
-        setCoursesWithEnrollment(allCourseIds);
+        // Fail closed: a course must not be available for attendance until enrollment data is known.
+        setCoursesWithEnrollment(new Set());
       } finally {
         activeRequestsRef.current.delete(requestKey);
       }
@@ -839,6 +832,19 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     setDailyPerformance((prev) => ({ ...prev, [key]: val }));
   };
 
+  const clearPerformanceScore = (studentId: number, category: string) => {
+    const key = `${studentId}-${category}`;
+    setDailyPerformance((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+
+    if (dailyPerformanceIds[key]) {
+      setPendingPerformanceDeleteKeys((prev) => new Set(prev).add(key));
+    }
+  };
+
   const setSpecialParticipationOption = (studentId: number, category: string, checked: boolean) => {
     const key = `${studentId}-${category}`;
     const scoreWhenChecked = getSpecialParticipationScore(category);
@@ -854,19 +860,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       return;
     }
 
-    setDailyPerformance((prev) => {
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-
-    if (dailyPerformanceIds[key]) {
-      setPendingPerformanceDeleteKeys((prev) => {
-        const next = new Set(prev);
-        next.add(key);
-        return next;
-      });
-    }
+    clearPerformanceScore(studentId, category);
   };
 
   const { isAutosaving, autosavePending } = useAttendanceSaveSync({
@@ -1056,6 +1050,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           translateCategory={translateCategory}
           getSpecialParticipationScore={getSpecialParticipationScore}
           setPerformanceScore={setPerformanceScore}
+          clearPerformanceScore={clearPerformanceScore}
           setSpecialParticipationOption={setSpecialParticipationOption}
           setShowPerformanceModal={setShowPerformanceModal}
           showToast={showToast}

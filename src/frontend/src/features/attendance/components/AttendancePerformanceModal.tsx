@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { XCircle } from 'lucide-react';
 import type { Student } from '@/types';
 import type { AttendanceAggregatedStatus, AttendanceEvaluationRule } from './AttendanceStudentList';
@@ -15,6 +16,7 @@ export interface AttendancePerformanceModalProps {
   translateCategory: (category: string) => string;
   getSpecialParticipationScore: (category: string) => number | null;
   setPerformanceScore: (studentId: number, category: string, score: number | string) => void;
+  clearPerformanceScore: (studentId: number, category: string) => void;
   setSpecialParticipationOption: (studentId: number, category: string, checked: boolean) => void;
   setShowPerformanceModal: (show: boolean) => void;
   showToast: (message: string, type?: 'success' | 'error') => void;
@@ -33,12 +35,67 @@ const AttendancePerformanceModal = ({
   translateCategory,
   getSpecialParticipationScore,
   setPerformanceScore,
+  clearPerformanceScore,
   setSpecialParticipationOption,
   setShowPerformanceModal,
   showToast,
 }: AttendancePerformanceModalProps) => {
   const modalStatus = getAggregatedStatus(selectedStudentForPerformance.id).status;
   const isAbsent = modalStatus === 'Absent';
+  const specialParticipationRules = evaluationCategories.filter(
+    (rule) => getSpecialParticipationScore(rule.category) !== null,
+  );
+  const standardRules = evaluationCategories.filter(
+    (rule) => getSpecialParticipationScore(rule.category) === null,
+  );
+  const isParticipationRule = (category: string) => /participation|συμμετοχ/i.test(category);
+  const hasStandardParticipationRule = standardRules.some((rule) => isParticipationRule(rule.category));
+
+  const renderSpecialParticipationOptions = () => specialParticipationRules.length > 0 && (
+    <section
+      data-testid="special-participation-options"
+      className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}
+    >
+      <h5 className="font-semibold text-gray-800">{t('participationObservations') || 'Participation observations'}</h5>
+      <p className="mt-1 text-xs text-gray-600">
+        {t('participationObservationsHelp') || 'Select only the observations that apply. Unselected observations are not recorded and do not affect the aggregate participation score.'}
+      </p>
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {specialParticipationRules.map((rule) => {
+          const key = `${selectedStudentForPerformance.id}-${rule.category}`;
+          const existingScore = dailyPerformance[key];
+          const scoreWhenChecked = getSpecialParticipationScore(rule.category);
+          const isChecked = typeof existingScore === 'number';
+          const isCustomScore = typeof existingScore === 'number'
+            && scoreWhenChecked !== null
+            && Math.abs(existingScore - scoreWhenChecked) > 0.01;
+
+          return (
+            <label key={rule.category} className="flex min-w-0 items-start gap-2 rounded border border-indigo-100 bg-white p-3 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={(e) => setSpecialParticipationOption(selectedStudentForPerformance.id, rule.category, e.target.checked)}
+                disabled={isAbsent}
+                aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
+                className={`mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-indigo-600 ${isAbsent ? 'cursor-not-allowed' : ''}`}
+              />
+              <span className="min-w-0">
+                <span className="block font-medium">{translateCategory(rule.category)}</span>
+                <span className="block text-xs text-indigo-700">
+                  {isChecked
+                    ? (isCustomScore
+                      ? `${t('applied') || 'Applied'} (${existingScore}/10, custom)`
+                      : `${t('applied') || 'Applied'} (${scoreWhenChecked}/10)`)
+                    : (t('notScored') || 'Not assessed — no score is recorded')}
+                </span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </section>
+  );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -55,52 +112,41 @@ const AttendancePerformanceModal = ({
           </div>
         )}
         <div className="space-y-4">
-          {evaluationCategories.map((rule, idx) => {
+          {standardRules.map((rule, idx) => {
             const key = `${selectedStudentForPerformance.id}-${rule.category}`;
             const existingScore = dailyPerformance[key];
             const curr = typeof existingScore === 'number' ? existingScore : 0;
-            const specialScoreWhenChecked = getSpecialParticipationScore(rule.category);
-            const isSpecialOption = specialScoreWhenChecked !== null;
-            const isChecked = typeof existingScore === 'number' ? existingScore < 10 : false;
-            const displayScore = isSpecialOption
-              ? (typeof existingScore === 'number' ? existingScore : 10)
-              : curr;
-            const isCustomSpecialScore = isSpecialOption
-              && typeof existingScore === 'number'
-              && existingScore < 10
-              && Math.abs(existingScore - specialScoreWhenChecked) > 0.01;
+            const isScored = typeof existingScore === 'number';
             return (
-              <div key={idx} className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}>
+              <Fragment key={rule.category || idx}>
+                <div className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <div className="font-semibold text-gray-800">{translateCategory(rule.category)}</div>
                     <div className="text-xs text-gray-500">{t('weightInFinalGrade') || 'Weight in final grade'}: {rule.weight}%</div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{displayScore}</div>
-                    <div className="text-[11px] text-indigo-700">{t('outOf10') || 'out of 10'}</div>
+                    <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{isScored ? curr : '—'}</div>
+                    <div className="text-[11px] text-indigo-700">{isScored ? (t('outOf10') || 'out of 10') : (t('notScored') || 'Not assessed')}</div>
                   </div>
                 </div>
-                {isSpecialOption ? (
-                  <label className="flex items-center gap-3 text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) => setSpecialParticipationOption(selectedStudentForPerformance.id, rule.category, e.target.checked)}
-                      disabled={isAbsent}
-                      aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                      title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                      className={`w-4 h-4 text-indigo-600 border-gray-300 rounded ${isAbsent ? 'cursor-not-allowed' : ''}`}
-                    />
-                    <span>
-                      {isChecked
-                        ? (isCustomSpecialScore
-                          ? `${t('applied') || 'Applied'} (${displayScore}/10, custom)`
-                          : `${t('applied') || 'Applied'} (${specialScoreWhenChecked}/10)`)
-                        : `${t('notApplied') || 'Not applied'} (10/10)`}
-                    </span>
-                  </label>
-                ) : (
+                <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={isScored}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setPerformanceScore(selectedStudentForPerformance.id, rule.category, curr);
+                      } else {
+                        clearPerformanceScore(selectedStudentForPerformance.id, rule.category);
+                      }
+                    }}
+                    disabled={isAbsent}
+                    className={`h-4 w-4 rounded border-gray-300 text-indigo-600 ${isAbsent ? 'cursor-not-allowed' : ''}`}
+                  />
+                  <span>{t('includeInDailyAssessment') || 'Include in today\'s assessment'}</span>
+                </label>
+                {isScored && (
                   <>
                     <input
                       type="range"
@@ -117,9 +163,12 @@ const AttendancePerformanceModal = ({
                     <div className="flex justify-between text-[11px] text-indigo-700"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
                   </>
                 )}
-              </div>
+                </div>
+                {isParticipationRule(rule.category) && renderSpecialParticipationOptions()}
+              </Fragment>
             );
           })}
+          {!hasStandardParticipationRule && renderSpecialParticipationOptions()}
         </div>
 
         <div className="flex gap-2 mt-4">

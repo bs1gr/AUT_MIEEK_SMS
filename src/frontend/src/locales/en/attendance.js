@@ -92,6 +92,10 @@ export default {
   syncedQueued: '{{count}} queued change set(s) synced.',
   applied: 'Applied',
   notApplied: 'Not applied',
+  notScored: 'Not assessed — no score is recorded',
+  includeInDailyAssessment: "Include in today's assessment",
+  participationObservations: 'Participation observations',
+  participationObservationsHelp: 'Select only the observations that apply. Unselected observations are not recorded and do not affect the aggregate participation score.',
   // ΜΙΕΕΚ absence limit (10% of scheduled periods, up to 15% with Directorate approval)
   absenceLimitTitle: 'Absence limit (ΜΙΕΕΚ)',
   absenceLimitPercent: 'Absence limit (% of periods)',

@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.50
-**Last Updated**: September 29, 2026
+**Last Updated**: October 1, 2026
 **Status**: ✅ **v1.18.50 released 2026-09-29** (tag on `75e39a892`). Self-registration now needs an administrator's approval, and approval emails the user (see the 2026-09-28 section). The first-login password dialog is now in Greek (see the smoke-test section). A full smoke test of every mode ran first.
 
 Verified on the published assets:
@@ -55,12 +55,27 @@ lists that used to hold it — in the PostgreSQL restore section and the smoke-t
 which now point here. The evidence stays in those dated sections. When an item is done, remove
 it here and mark it resolved where it was raised.
 
+**Mandatory pre-flight before starting any new work:** check the repository's GitHub CI/CD state
+for open PRs and failed or pending workflows, plus outstanding GitHub security and code-quality
+findings (for example Dependabot, CodeQL, and quality-gate failures). Record material findings in
+this list, then rank them against existing work by urgency and impact; security, broken CI/CD, and
+release-blocking quality defects take priority for resolution. Do not treat a local clean working
+tree as evidence that GitHub is clear.
+
 *Everything from the original 2026-09-17 list is **done**, and so are the follow-ups it raised on 2026-09-21:*
 *CI now runs the 9 restore round-trip tests against a `postgres:16-alpine` service (confirmed in the CI log),*
 *the stale `import_export.spec.ts` was deleted as a broken duplicate of `feature_127_import_export.spec.ts`,*
 *and GradingView now fetches a student's courses with one `getByStudent` request instead of one per course*
 *(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
 *What is left is below.*
+
+**Priority 0 — GitHub pre-flight findings (2026-10-01):** remediate the three high-severity
+Dependabot alerts for `PyJWT==2.13.0` (the upstream fixed release is `2.14.0`; upgrade to
+`2.15.0` in both runtime manifests) and the high-severity production `brace-expansion`
+vulnerability found by the frontend security job. The latter fails CI and is pulled by
+`minimatch` through production build dependencies; force a fixed `brace-expansion >=5.0.12`
+lockfile resolution. Existing Dependabot PRs #246 and #247 split the PyJWT change across the
+two manifests, so the local fix must keep them in sync and the duplicate PRs must not both merge.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
@@ -126,6 +141,41 @@ it here and mark it resolved where it was raised.
     - `useLanguage().t` resolves these prefixes; `useTranslation()` does not.
     - Fix: move these files to `useLanguage()`, or to `useTranslation('<ns>')` with unprefixed keys.
       Add the missing keys, and add a test that fails on this pattern.
+13. **Attendance: make Daily Performance participation assessment compact and optionally granular**
+    (reported 2026-10-01). In Attendance > Daily Performance, render the participation choices
+    (for example, No participation / Low participation / ...) as three columns on one row instead
+    of consuming a large vertical area. Permit selective scoring: a teacher must be able to score
+    only the criteria they choose, without being forced to score every participation criterion.
+    Criteria left unscored must retain the existing aggregate-scoring semantics. Clarify and rename
+    the unclear participation option currently shown below the participation slider as
+    `Not applied (10/10)`; define its behaviour and make the distinction understandable in both
+    Greek and English. Add focused UI/behaviour tests, including mixed scored/unscored criteria.
+    **Implementation in progress (2026-10-01):** the UI now uses an explicit opt-in per ordinary
+    criterion and places the three optional participation observations immediately below the
+    participation slider in a three-column responsive grid. Unselected observations save no
+    score and therefore retain aggregate-score behaviour. The focused participation tests now
+    pass twice locally; broader frontend-suite and CI verification remain pending.
+14. **Attendance: investigate Docker/QNAP course-list mismatch** (reported 2026-10-01). In the
+    Attendance course dropdown, Docker running from the laptop against the remote QNAP PostgreSQL
+    shows all courses rather than only the teacher's enrolled/assigned courses. Reproduce using the
+    configured Docker-to-QNAP connection; determine whether the cause is synchronization, an
+    incorrect database/configuration target, or missing backend/frontend enrolment filtering; then
+    implement and test the smallest correct fix.
+    **Root cause and implementation in progress (2026-10-01):** Attendance loads all courses,
+    then deliberately kept all of them visible whenever enrollment checks were incomplete or found
+    no active students. The selector now fails closed and admits only courses with active
+    enrollments; frontend test/CI verification is pending the locked local frontend dependencies.
+15. **Students: add useful sorting/filtering by department and academic year** (reported
+    2026-10-01). The Students list currently presents active students together. Add clear controls
+    to sort and/or filter by department and academic year, preserving the active-student default and
+    defining how students with multiple or no current enrolments appear. Provide bilingual labels
+    and focused tests.
+16. **Make SQLite versus QNAP PostgreSQL storage behaviour explicit across deployment modes**
+    (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
+    what happens when local SQLite is retained instead of connecting to QNAP PostgreSQL for SMS Lite,
+    Docker SMS, and Capacitor. Specify per mode: storage location, whether data is shared or isolated,
+    migration/initialisation behaviour, offline expectations, switching risks, and the safe
+    configuration path. Add tests or deployment checks for the chosen configuration behaviour.
 
 ---
 
