@@ -79,8 +79,10 @@ locally, and the alert should clear after the next graph refresh.
 
 The first push's CI/E2E failures were caused by adding `@babel/runtime@8.0.5` without its
 `src/frontend/package-lock.json` entry. The lock is synchronized, clean `npm ci` succeeds, and
-CI/CD plus E2E passed on `b42b6c1d7`. The newly surfaced `virtualenv` alert is also patched at
-`21.7.12` in both runtime and development requirements; GitHub's dependency graph is refreshing.
+CI/CD plus E2E passed on `b42b6c1d7`. A follow-up CodeQL alert (`PYSEC-2026-4013`) found that
+`virtualenv==21.7.12` still had an activation-script injection; both runtime and development
+requirements now use the fixed `21.7.13` release. A local `pip-audit` over both requirements
+files reports no known vulnerabilities; push-triggered CodeQL verification is pending.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
