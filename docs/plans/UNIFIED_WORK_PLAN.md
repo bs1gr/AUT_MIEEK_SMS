@@ -70,16 +70,17 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Priority 0 — GitHub security/CI findings (2026-10-01):** PyJWT is now `2.15.0` in both
-runtime manifests, and the frontend lock resolves production `brace-expansion` to `5.0.12`;
-both local production and full npm audits report zero vulnerabilities. GitHub's initial
-Dependabot findings for PyJWT cleared after the dependency graph refreshed; the `brace-expansion`
-alert still appears open even though its vulnerable range is `<5.0.12`.
+runtime manifests, and its Dependabot alerts cleared after the dependency graph refreshed.
+Both the frontend and root tooling lockfiles now resolve `brace-expansion` to `5.0.12`, with a
+scoped root override; full npm audits in both package directories report zero vulnerabilities.
+The remaining GitHub alert (#277) came from the root development lockfile, not the frontend
+production tree. GitHub's SBOM still showed the pre-fix `5.0.9` snapshot; the lockfile is fixed
+locally, and the alert should clear after the next graph refresh.
 
-The first push's CI/E2E failures were caused by adding `@babel/runtime@8.0.5` to
-`package.json` without its package-lock entry. The lock is now synchronized and `npm ci --dry-run`
-passes; rerun push checks after committing the repair. A newly surfaced high-severity
-`virtualenv` alert identified `21.5.1` in `src/backend/requirements.txt` (fixed in `21.7.12`);
-both runtime and development requirements are being raised to the patched floor in this follow-up.
+The first push's CI/E2E failures were caused by adding `@babel/runtime@8.0.5` without its
+`src/frontend/package-lock.json` entry. The lock is synchronized, clean `npm ci` succeeds, and
+CI/CD plus E2E passed on `b42b6c1d7`. The newly surfaced `virtualenv` alert is also patched at
+`21.7.12` in both runtime and development requirements; GitHub's dependency graph is refreshing.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
