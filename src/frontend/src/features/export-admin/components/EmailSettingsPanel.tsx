@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { EmailConfigPanel } from './index';
+import { EmailConfigPanel } from './EmailConfigPanel';
 import {
   useEmailConfig,
   useUpdateEmailConfig,

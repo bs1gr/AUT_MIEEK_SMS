@@ -440,4 +440,5 @@ export default {
   activeSchedules: 'Ενεργοί Προγραμματισμοί',
   recentGenerations: 'Πρόσφατες Δημιουργίες',
   favoriteReports: 'Αγαπημένες Αναφορές',
+  field: 'Πεδίο',
 };

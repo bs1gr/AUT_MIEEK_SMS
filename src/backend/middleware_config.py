@@ -6,7 +6,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.config import settings
-from backend.middleware.response_standardization import ResponseStandardizationMiddleware
 from backend.middleware.timing import TimingMiddleware
 from backend.request_id_middleware import RequestIDMiddleware
 from backend.security import install_csrf_protection
@@ -34,11 +33,6 @@ def register_middlewares(app):
     except Exception as e:
         logging.warning(f"TimingMiddleware registration failed: {e}")
 
-    # Standardize JSON responses into APIResponse envelope (success/data/error/meta)
-    try:
-        app.add_middleware(ResponseStandardizationMiddleware)
-    except Exception as e:
-        logging.warning(f"ResponseStandardizationMiddleware registration failed: {e}")
     # CORS middleware
     # capacitor://localhost is the WebView origin for Capacitor Android apps.
     # It must be present in all modes so the Android APK can reach any backend.

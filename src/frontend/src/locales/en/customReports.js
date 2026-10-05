@@ -441,4 +441,5 @@ export default {
   activeSchedules: 'Active Schedules',
   recentGenerations: 'Recent Generations',
   favoriteReports: 'Favorite Reports',
+  field: 'Field',
 };

@@ -167,7 +167,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                     <button
                       onClick={() => handleRemoveField(field)}
                       className="p-1 hover:bg-red-100 rounded"
-                      title={t('common.delete')}
+                      title={t('delete', { ns: 'common' })}
                     >
                       <Trash2 size={16} className="text-red-600" />
                     </button>

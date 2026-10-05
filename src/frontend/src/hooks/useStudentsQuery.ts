@@ -61,7 +61,7 @@ export function useStudents(
         }
         return filteredStudents;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : t('failedToFetchStudents');
+        const errorMessage = error instanceof Error ? error.message : t('failedToFetchStudents', { ns: 'common' });
         setError(errorMessage);
         throw error;
       } finally {

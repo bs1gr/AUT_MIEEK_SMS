@@ -61,6 +61,16 @@ class TestResponseMeta:
         assert error_response(code="X", message="m", request_id="r").meta.version == get_version()
         assert paginated_response([], 0, 0, 10, request_id="r").meta.version == get_version()
 
+    def test_error_envelope_reports_the_version_file(self, client):
+        """Error envelopes used the schema's hard-coded "1.15.0" default."""
+        from pathlib import Path
+
+        repo_version = (Path(__file__).resolve().parents[3] / "VERSION").read_text().strip()
+
+        response = client.get("/api/v1/students/999999999")
+        assert response.status_code == 404
+        assert response.json()["meta"]["version"] == repo_version
+
 
 class TestErrorDetail:
     """Test ErrorDetail model."""

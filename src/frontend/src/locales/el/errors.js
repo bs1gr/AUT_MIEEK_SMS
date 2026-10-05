@@ -58,4 +58,7 @@ export default {
   goBack: 'Επιστροφή',
   dismiss: 'Απόρριψη',
   reportError: 'Αναφορά Σφάλματος',
+  sectionError: 'Σφάλμα στην ενότητα {{section}}',
+  sectionErrorGeneric: 'Σφάλμα σε αυτή την ενότητα',
+  sectionErrorDesc: 'Αυτή η ενότητα αντιμετώπισε σφάλμα, αλλά η υπόλοιπη εφαρμογή λειτουργεί κανονικά.',
 };

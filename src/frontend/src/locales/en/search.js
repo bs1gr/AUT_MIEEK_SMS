@@ -15,6 +15,7 @@ export default {
   },
   ariaLabel: 'Search',
   search: 'Search',
+  loading: 'Loading search results...',
   // Used by the SearchBar component (useTranslation('search') + t('bar.xxx')).
   // Kept in its own group because `students`/`courses`/`grades` above are
   // objects, not strings, so those names can't be flat keys at the root.
@@ -142,6 +143,13 @@ export default {
     loading: 'Loading facets...',
     empty: 'No filters available',
     search: 'Search values...',
+    showLess: 'Show less',
+    showMore: 'Show more',
+    min: 'Min',
+    max: 'Max',
+    start: 'Start',
+    end: 'End',
+    clear: 'Clear all',
     values: {
       active: 'Active',
       inactive: 'Inactive',

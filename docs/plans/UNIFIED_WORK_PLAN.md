@@ -169,31 +169,49 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     postcss both as a devDependency and under `overrides` (both `^8.5.26`). Dependabot bumps only the
     direct entry, so npm rejects the mismatch. Write the override as `"postcss": "$postcss"` so it
     follows the direct dependency. The job's other PRs were still opened.
-12. **66 more `t('<ns>.key')` calls never resolve** (found 2026-09-29). This is the same bug as the
-    password dialog below, in 14 files, 3 of them unused. These components take `t` from
-    react-i18next's `useTranslation()` and prefix keys with a namespace (`common.`, `errors.`,
-    `analytics.`, `notifications.`). The default namespace has no such keys, so in Greek they show
-    their English defaults or the raw key; confirmed with i18next itself.
-    - Visible examples: the logout button, the error-details toggle on the login and register forms,
-      the error boundaries' Retry, the Save/Cancel/Delete buttons in saved searches, and the PWA
-      prompts.
-    - `analytics.savedReports.*` and `notifications.markAsRead`/`delete` are also missing from the
-      locale files.
-    - `useLanguage().t` resolves these prefixes; `useTranslation()` does not.
-    - Fix: move these files to `useLanguage()`, or to `useTranslation('<ns>')` with unprefixed keys.
-      Add the missing keys, and add a test that fails on this pattern.
-    - **Scope re-measured 2026-10-05: larger than recorded.** A static scan takes every file whose
-      `t` comes from `useTranslation(...)` and checks each literal key against the locale modules,
-      in both languages and honouring `{ ns }` options. It finds **227 unresolved calls in 35
-      files**. Beyond the `ns.`-prefix case they are:
-      - unprefixed keys missing from the default namespace (`t('tryAgain')`, `t('sending')`);
-      - doubled prefixes (`useTranslation('search')` with `t('search.page_title')`, while
-        `search.js` has `page_title` at top level).
-    - About half sit in code with no importers: `AdvancedSearchPage` and its `advanced-search/`
-      children, `ErrorBoundary.tsx`, `ErrorRetry.tsx`, `ChartDrillDown.tsx`, `SavedReportsPanel.tsx`
-      and `AdminPermissionsPage.tsx`. Decide whether to delete these before fixing their keys.
-    - `useLanguage()` throws outside `LanguageProvider`, so error boundaries and the PWA prompts must
-      stay on react-i18next, using explicit namespaces.
+12. ~~**`t('<ns>.key')` calls that never resolve**~~ — **fixed 2026-10-05.** The recorded scope
+    (66 calls in 14 files) was low. A scan that checks each literal key against the real i18n
+    resources, per language and honouring `{ ns }` options, found **227 unresolved calls in 35
+    files**, but most were in code that never renders. The owner's rule: wire in anything meant
+    to run; delete what is genuinely dead.
+    - **Deleted as dead** (≈40 files including tests). For each, the reason it never rendered:
+      - `pages/AdminPermissionsPage`: `/admin/permissions` moved to `features/admin` on 2026-01-28;
+        the old page stayed behind.
+      - `features/advanced-search/**`, `components/SearchResults` and `api/search-client`: a
+        second implementation of Issue #147, never routed. #147's design names
+        `features/search/SearchView` as the search page, and `/search` renders it.
+      - `components/{SavedSearches,AdvancedFilters}` and
+        `features/search/{SavedSearches,SearchBar,AdvancedFilters}`: exported, never rendered.
+      - `features/notifications/` duplicated the live `components/notifications`.
+      - `ErrorRetry`: its last user went in the 2026-08-30 dead-code cleanup.
+      - `ui/ErrorMessage` and `useErrorHandler`: never used outside tests.
+      - `AsyncErrorBoundary`: never mounted.
+      - `SavedReportsPanel` duplicated Custom Reports; `ChartDrillDown` was never placed in a chart.
+      - `MainLayout`, `PwaReloadPrompt`, `PwaInstallPrompt` and `pwa.config.ts` (Feature #143 WIP):
+        `MainLayout` was never mounted, and `vite.config.ts` already auto-updates the service
+        worker. The owner chose delete.
+      - export-admin `ExportDashboard`, `ExportJobList` and `ExportScheduler`, plus the six stubs
+        in `components/index.tsx`: a "Phase 6 proposal" UI. It calls `/schedules`, `/metrics`,
+        `/rerun` and `DELETE /exports`, none of which the backend has. `EmailConfigPanel`, the
+        one live part, moved to its own file.
+    - **Fixed in live code** (14 files): logout button, backend-status banner, section error
+      boundary, notification pager, feedback modal, app error boundary, report field selector,
+      search facets and results, student profile, the course and student query hooks, and the
+      auth page. Each now uses the namespace that holds its keys. Missing keys were added in EN
+      and EL (`common`, `errors`, `messages`, `customReports`, `search`).
+    - **`OfflineBanner` showed raw keys in both languages.** Its `offline` namespace existed in
+      `translations.ts`, but `i18n/config.ts` never registered it. It is registered now.
+    - **Guard:** `i18n/__tests__/useTranslationKeys.test.ts` fails on any literal key a
+      `useTranslation(...)` file cannot resolve in EN or EL. It checks the real resources with no
+      English fallback. Its positive control is the one known exception, below.
+    - **Left for later (owner):** `PredictiveAnalyticsPanel`. The backend endpoint
+      `/analytics/predictive/student` exists, but no frontend code fetches it and the panel is
+      placed nowhere; its 20 keys are missing. It is listed in the guard's `KNOWN_UNRESOLVED`.
+      Remove that entry when the panel is wired in.
+    - Not changed: `features/export-admin/hooks/useExportAdmin.ts` still has hooks for the missing
+      endpoints above. Only its email-settings hooks are used.
+    - Verified: `tsc` clean, ESLint 0 errors, and the full frontend suite (109 files, 1798 tests)
+      passes.
 13. ~~**Attendance: make Daily Performance participation assessment compact and optionally granular**~~
     — **done in `0e80d0570`, CI-verified 2026-10-05.** CI on `3a8fd1fa7` ran the full Vitest suite
     (128/128 files), including the participation tests. `Not applied (10/10)` is gone. Its
@@ -237,15 +255,11 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     Docker SMS, and Capacitor. Specify per mode: storage location, whether data is shared or isolated,
     migration/initialisation behaviour, offline expectations, switching risks, and the safe
     configuration path. Add tests or deployment checks for the chosen configuration behaviour.
-17. **`ResponseStandardizationMiddleware` never wraps anything in a real app** (found 2026-10-05,
-    while fixing todo 10). It is registered in `middleware_config.py`, and it only wraps
-    `JSONResponse` instances. Under `BaseHTTPMiddleware`, `call_next` always returns a streaming
-    response, so the `isinstance` check never matches. Every raw-JSON endpoint therefore goes out
-    unwrapped. Its unit test passes only because it calls `dispatch()` directly with a hand-made
-    `JSONResponse`; through `TestClient` the same endpoint comes back without `meta`. "Fixing" it
-    would change the response shape of every raw endpoint the frontend already reads. Likely
-    action: delete the middleware and its test, since its behaviour is already "pass through".
-    The owner decides.
+17. ~~**`ResponseStandardizationMiddleware` never wrapped anything**~~ — **deleted 2026-10-05**
+    (owner's choice). It was registered, but under `BaseHTTPMiddleware` `call_next` never returns
+    a `JSONResponse`, so every response passed through unchanged. Its unit test only passed by
+    calling `dispatch()` with a hand-made `JSONResponse`. Removing it changes no behaviour. The
+    `meta.version` test for real error envelopes moved to `test_response_schemas.py`.
 
 ---
 

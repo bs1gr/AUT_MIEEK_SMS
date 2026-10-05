@@ -58,4 +58,7 @@ export default {
   goBack: 'Go Back',
   dismiss: 'Dismiss',
   reportError: 'Report Error',
+  sectionError: 'Error in {{section}}',
+  sectionErrorGeneric: 'Error in this section',
+  sectionErrorDesc: 'This section encountered an error, but the rest of the app is still working.',
 };

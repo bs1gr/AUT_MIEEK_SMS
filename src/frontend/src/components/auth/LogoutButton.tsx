@@ -6,7 +6,7 @@ import { Power } from 'lucide-react';
 
 const LogoutButton: React.FC = () => {
   const { logout } = useAuth();
-  const { t } = useTranslation();
+  const { t } = useTranslation('common');
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -25,8 +25,8 @@ const LogoutButton: React.FC = () => {
       variant="outline"
       disabled={loading}
       data-testid="logout-button"
-      aria-label={loading ? t('common.loading') : t('common.logout')}
-      title={loading ? t('common.loading') : t('common.logout')}
+      aria-label={loading ? t('loading') : t('logout')}
+      title={loading ? t('loading') : t('logout')}
     >
       <Power className="h-4 w-4" aria-hidden="true" />
     </Button>

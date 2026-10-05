@@ -116,7 +116,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
               </p>
               {isRecoverable && (
                 <p className="text-xs text-sky-600 mt-2">
-                  💡 {t('tryAgain', { ns: 'messages' }) || 'This error may be temporary. Try again or go home.'}
+                  💡 {t('temporaryErrorHint', { ns: 'messages' })}
                 </p>
               )}
             </div>

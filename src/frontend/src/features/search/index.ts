@@ -1,6 +1,3 @@
-export { SearchBar } from './SearchBar';
-export { AdvancedFilters } from './AdvancedFilters';
-export { SavedSearches } from './SavedSearches';
 export { useSearch } from './useSearch';
 export { useSearchFacets } from './useSearchFacets';
 export { default as SearchView } from './SearchView';

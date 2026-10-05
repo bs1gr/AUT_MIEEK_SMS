@@ -54,7 +54,7 @@ export function useCourses(
         setError(null);
         return filteredCourses;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : t('failedToFetchCourses');
+        const errorMessage = error instanceof Error ? error.message : t('failedToFetchCourses', { ns: 'common' });
         setError(errorMessage);
         console.error('[useCourses] Error:', errorMessage, error);
         throw error;

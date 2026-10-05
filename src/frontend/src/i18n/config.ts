@@ -40,7 +40,8 @@ i18n
         customReports: translationNamespaces.en.customReports,
         system: translationNamespaces.en.system,
         semesterArchive: translationNamespaces.en.semesterArchive,
-        exportAdmin: translationNamespaces.en.exportAdmin
+        exportAdmin: translationNamespaces.en.exportAdmin,
+        offline: translationNamespaces.en.offline
       },
       el: {
         translation: translations.el,
@@ -67,10 +68,11 @@ i18n
         customReports: translationNamespaces.el.customReports,
         system: translationNamespaces.el.system,
         semesterArchive: translationNamespaces.el.semesterArchive,
-        exportAdmin: translationNamespaces.el.exportAdmin
+        exportAdmin: translationNamespaces.el.exportAdmin,
+        offline: translationNamespaces.el.offline
       }
     },
-    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system', 'semesterArchive', 'exportAdmin'],
+    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system', 'semesterArchive', 'exportAdmin', 'offline'],
     defaultNS: 'translation',
     lng: isTestEnvironment ? 'en' : undefined,
     fallbackLng: 'en',

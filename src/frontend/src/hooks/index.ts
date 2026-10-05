@@ -2,7 +2,6 @@ export * from './useApiWithRecovery';
 export * from './useAutosave';
 export * from './useCourseModals';
 export * from './useCoursesQuery';
-export * from './useErrorHandler';
 export * from './useErrorRecovery';
 export * from './useFormValidation';
 export * from './useModal';

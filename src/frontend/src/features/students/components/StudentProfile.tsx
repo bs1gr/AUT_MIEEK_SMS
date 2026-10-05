@@ -224,7 +224,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     if (!name) return t('assignment', { ns: 'grades' });
 
     if (name === 'Sample Exam Assignment') {
-      return t('sampleExamAssignment', { ns: 'grades' });
+      return t('sampleExamAssignment', { ns: 'common' });
     }
 
     const midtermMatch = name.match(/^Midterm Exam\s*(.*)$/i);

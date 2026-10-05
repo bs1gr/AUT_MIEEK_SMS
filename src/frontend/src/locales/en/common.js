@@ -50,6 +50,9 @@ export default {
   days: 'days',
   // Common States & Messages
   loading: 'Loading...',
+  loaded: 'Loaded',
+  sending: 'Sending...',
+  of: 'of',
   saving: 'Saving...',
   success: 'Success',
   autosavePending: 'Changes pending...',

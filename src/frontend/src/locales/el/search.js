@@ -151,6 +151,13 @@ export default {
     loading: 'Φόρτωση facets...',
     empty: 'Δεν υπάρχουν διαθέσιμα φίλτρα',
     search: 'Αναζήτηση τιμών...',
+    showLess: 'Λιγότερα',
+    showMore: 'Περισσότερα',
+    min: 'Ελάχ.',
+    max: 'Μέγ.',
+    start: 'Από',
+    end: 'Έως',
+    clear: 'Καθαρισμός όλων',
     values: {
       active: 'Ενεργός',
       inactive: 'Ανενεργός',

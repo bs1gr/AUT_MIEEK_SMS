@@ -17,7 +17,7 @@ import { isLocalMode } from '../../utils/serverUrl';
  * - Minimal UI footprint (top banner, slide animation)
  */
 const BackendStatusBanner = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('common');
   const [status, setStatus] = useState('checking'); // 'checking' | 'connected' | 'disconnected'
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -117,12 +117,12 @@ const BackendStatusBanner = () => {
           )}
           <div>
             <p className="font-medium">
-              {isDisconnected && t('common.backendUnavailable')}
-              {isReconnected && t('common.backendConnected')}
+              {isDisconnected && t('backendUnavailable')}
+              {isReconnected && t('backendConnected')}
             </p>
             {isDisconnected && (
               <p className="text-sm opacity-90">
-                {t('common.backendReconnecting')}
+                {t('backendReconnecting')}
               </p>
             )}
           </div>
