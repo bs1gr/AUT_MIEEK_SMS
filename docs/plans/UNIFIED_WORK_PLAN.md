@@ -208,8 +208,9 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
       `/analytics/predictive/student` exists, but no frontend code fetches it and the panel is
       placed nowhere; its 20 keys are missing. It is listed in the guard's `KNOWN_UNRESOLVED`.
       Remove that entry when the panel is wired in.
-    - Not changed: `features/export-admin/hooks/useExportAdmin.ts` still has hooks for the missing
-      endpoints above. Only its email-settings hooks are used.
+    - Follow-up (same day): `useExportAdmin.ts` held 19 more hooks for those missing endpoints. It
+      is now `hooks/useEmailConfig.ts`, with only the three email-settings hooks in use, and
+      `types/export.ts` is now `types/email.ts`.
     - Verified: `tsc` clean, ESLint 0 errors, and the full frontend suite (109 files, 1798 tests)
       passes.
 13. ~~**Attendance: make Daily Performance participation assessment compact and optionally granular**~~

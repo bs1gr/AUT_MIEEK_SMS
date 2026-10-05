@@ -10,7 +10,7 @@ import {
   useEmailConfig,
   useUpdateEmailConfig,
   useTestEmailConfig,
-} from '../hooks/useExportAdmin';
+} from '../hooks/useEmailConfig';
 
 const EmailSettingsPanel: React.FC = () => {
   const { data: emailConfigData, isLoading } = useEmailConfig();

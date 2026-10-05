@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { EmailConfigPanelProps } from '../types/export';
+import type { EmailConfigPanelProps } from '../types/email';
 
 export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSave, onTest }) => {
   const { t } = useTranslation('exportAdmin');
