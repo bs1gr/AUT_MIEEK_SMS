@@ -12,6 +12,8 @@ from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.version import get_version
+
 T = TypeVar("T")
 
 
@@ -22,12 +24,12 @@ class ResponseMeta(BaseModel):
     Attributes:
         request_id: Unique identifier for this request (from RequestIDMiddleware)
         timestamp: ISO 8601 timestamp when the response was generated
-        version: API version string (e.g., "1.15.0")
+        version: Application version, from the VERSION file
     """
 
     request_id: str = Field(..., description="Unique request identifier for tracing")
     timestamp: datetime = Field(..., description="Response generation timestamp (UTC)")
-    version: str = Field(default="1.15.0", description="API version")
+    version: str = Field(default_factory=get_version, description="Application version (VERSION file)")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -180,14 +182,14 @@ class PaginatedData(BaseModel, Generic[T]):
 
 
 # Helper function to create successful responses
-def success_response(data: Any, request_id: str, version: str = "1.15.0") -> APIResponse:
+def success_response(data: Any, request_id: str, version: Optional[str] = None) -> APIResponse:
     """
     Create a standardized success response.
 
     Args:
         data: The response payload
         request_id: Unique request identifier
-        version: API version string
+        version: Application version; defaults to the VERSION file
 
     Returns:
         APIResponse with success=True and the provided data
@@ -195,7 +197,7 @@ def success_response(data: Any, request_id: str, version: str = "1.15.0") -> API
     return APIResponse(
         success=True,
         data=data,
-        meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version),
+        meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version or get_version()),
     )
 
 
@@ -206,7 +208,7 @@ def error_response(
     request_id: str,
     details: Optional[dict[str, Any]] = None,
     path: Optional[str] = None,
-    version: str = "1.15.0",
+    version: Optional[str] = None,
 ) -> APIResponse:
     """
     Create a standardized error response.
@@ -217,7 +219,7 @@ def error_response(
         request_id: Unique request identifier
         details: Optional additional error context
         path: Optional API path where error occurred
-        version: API version string
+        version: Application version; defaults to the VERSION file
 
     Returns:
         APIResponse with success=False and error details
@@ -225,13 +227,13 @@ def error_response(
     return APIResponse(
         success=False,
         error=ErrorDetail(code=code, message=message, details=details, path=path),
-        meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version),
+        meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version or get_version()),
     )
 
 
 # Helper function to create paginated responses
 def paginated_response(
-    items: list[Any], total: int, skip: int, limit: int, request_id: str, version: str = "1.15.0"
+    items: list[Any], total: int, skip: int, limit: int, request_id: str, version: Optional[str] = None
 ) -> APIResponse[PaginatedData]:
     """
     Create a standardized paginated response.
@@ -242,7 +244,7 @@ def paginated_response(
         skip: Number of items skipped (offset)
         limit: Maximum items per page
         request_id: Unique request identifier
-        version: API version string
+        version: Application version; defaults to the VERSION file
 
     Returns:
         APIResponse wrapping PaginatedData with the items and pagination metadata
@@ -261,5 +263,5 @@ def paginated_response(
             has_next=(skip + limit) < total,
             has_previous=skip > 0,
         ),
-        meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version),
+        meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version or get_version()),
     )

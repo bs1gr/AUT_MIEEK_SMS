@@ -23,6 +23,7 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from .app_factory import create_app
+from .version import get_version
 
 """
 Student Management System — FastAPI backend
@@ -76,24 +77,6 @@ def _infer_restart_command():
 def _spawn_restart_thread(_command, _delay_seconds=0.75):
     """Stub for backward compatibility - actual implementation moved to control routers"""
     pass
-
-
-def get_version() -> str:
-    """Read version from the VERSION file at the project root.
-
-    Checked at multiple ancestor depths — see app_factory.get_version()'s
-    docstring for why (native vs. Docker layouts place this module at
-    different depths relative to VERSION).
-    """
-    try:
-        here = Path(__file__).resolve()
-        for ancestor in (here.parent, here.parent.parent, here.parent.parent.parent):
-            version_file = ancestor / "VERSION"
-            if version_file.exists():
-                return version_file.read_text().strip()
-    except Exception:
-        pass
-    return "unknown"
 
 
 def main() -> None:

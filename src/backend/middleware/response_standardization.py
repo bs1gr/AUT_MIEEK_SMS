@@ -20,7 +20,6 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
 
-from backend.config import settings
 from backend.schemas.response import APIResponse, ResponseMeta
 
 logger = logging.getLogger(__name__)
@@ -52,11 +51,7 @@ class ResponseStandardizationMiddleware(BaseHTTPMiddleware):
             return response
 
         request_id = getattr(request.state, "request_id", None) or response.headers.get("X-Request-ID", "unknown")
-        version_field = ResponseMeta.model_fields.get("version")
-        api_version = settings.APP_VERSION or (version_field.default if version_field else "1.15.0")
-        if api_version is None:
-            api_version = "1.15.0"
-        meta = ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=str(api_version))
+        meta = ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc))
         wrapped = APIResponse(success=True, data=payload, error=None, meta=meta)
 
         # Preserve original headers (including caching and request ID) while replacing the body

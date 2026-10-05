@@ -64,6 +64,33 @@ def test_standardizes_json_response():
     assert body["meta"]["request_id"]
 
 
+def test_wrapped_response_reports_the_version_file_not_env(monkeypatch):
+    """APP_VERSION in the environment (once copied from .env.example as 1.0.0) is ignored."""
+    from pathlib import Path
+
+    monkeypatch.setenv("APP_VERSION", "1.0.0")
+    repo_version = (Path(__file__).resolve().parents[3] / "VERSION").read_text().strip()
+    middleware = ResponseStandardizationMiddleware(_create_app())
+    request = Request({"type": "http", "method": "GET", "path": "/json", "headers": [], "query_string": b""})
+
+    async def call_next(_: Request):
+        return JSONResponse(content={"ok": True})
+
+    response = asyncio.run(middleware.dispatch(request, call_next))
+    assert json.loads(response.body.decode("utf-8"))["meta"]["version"] == repo_version
+
+
+def test_error_envelope_reports_the_version_file(client):
+    """Error envelopes used the schema's hard-coded "1.15.0" default."""
+    from pathlib import Path
+
+    repo_version = (Path(__file__).resolve().parents[3] / "VERSION").read_text().strip()
+
+    response = client.get("/api/v1/students/999999999")
+    assert response.status_code == 404
+    assert response.json()["meta"]["version"] == repo_version
+
+
 def test_preserves_existing_api_response_and_sets_header():
     client = TestClient(_create_app(include_request_id=True))
     response = client.get("/prewrapped")

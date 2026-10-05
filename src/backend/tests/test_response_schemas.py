@@ -45,10 +45,21 @@ class TestResponseMeta:
         assert "timestamp" in field_names
 
     def test_response_meta_default_version(self):
-        """Test default version is set."""
+        """The default version is the VERSION file, not a hard-coded string."""
+        from pathlib import Path
+
+        repo_version = (Path(__file__).resolve().parents[3] / "VERSION").read_text().strip()
         meta = ResponseMeta(request_id="req_123", timestamp=datetime.now(timezone.utc))
 
-        assert meta.version == "1.15.0"
+        assert meta.version == repo_version
+
+    def test_helpers_default_to_the_version_file(self):
+        from backend.schemas.response import error_response, paginated_response, success_response
+        from backend.version import get_version
+
+        assert success_response(data=None, request_id="r").meta.version == get_version()
+        assert error_response(code="X", message="m", request_id="r").meta.version == get_version()
+        assert paginated_response([], 0, 0, 10, request_id="r").meta.version == get_version()
 
 
 class TestErrorDetail:

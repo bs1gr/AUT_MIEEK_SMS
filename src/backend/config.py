@@ -124,18 +124,6 @@ else:
 _DEFAULT_MONITORING_HOST = "host.docker.internal" if _IS_DOCKER_MODE else "localhost"
 
 
-def _get_app_version() -> str:
-    # Try to read from VERSION file in project root
-    try:
-        version_file = _PROJECT_ROOT / "VERSION"
-        if version_file.exists():
-            return version_file.read_text().strip()
-    except Exception:
-        pass
-    # Fallback to env or default
-    return os.environ.get("APP_VERSION", "1.3.8")
-
-
 class Settings(BaseSettings):
     # Choose an env file intelligently:
     # - If a local `backend/.env` exists (native/dev), prefer it
@@ -158,7 +146,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Student Management System API"
-    APP_VERSION: str = _get_app_version()
+    # No APP_VERSION setting: the version comes only from the VERSION file (backend.version).
     SMS_ENV: str = os.environ.get("SMS_ENV", "development")
     SMS_EXECUTION_MODE: str = os.environ.get("SMS_EXECUTION_MODE", "native")
 

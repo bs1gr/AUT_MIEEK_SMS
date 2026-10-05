@@ -23,6 +23,7 @@ from backend.logging_config import initialize_logging
 from backend.middleware_config import register_middlewares
 from backend.router_registry import register_routers
 from backend.tracing import setup_tracing
+from backend.version import get_version
 
 logger = logging.getLogger(__name__)
 
@@ -71,27 +72,6 @@ def _build_database_target_evidence() -> dict:
         return details
 
     return details
-
-
-def get_version() -> str:
-    """Read version from the VERSION file at the project root.
-
-    Checked at multiple ancestor depths because this module lives at a
-    different depth relative to VERSION depending on deployment layout:
-    three levels up in the native/source checkout (src/backend/ -> repo
-    root), but only one level up in the Docker image (/app/backend/ ->
-    /app/, since Dockerfile.fullstack copies VERSION to /app/VERSION
-    alongside /app/backend rather than mirroring the full src/ tree).
-    """
-    try:
-        here = Path(__file__).resolve()
-        for ancestor in (here.parent, here.parent.parent, here.parent.parent.parent):
-            version_file = ancestor / "VERSION"
-            if version_file.exists():
-                return version_file.read_text().strip()
-    except Exception:
-        pass
-    return "unknown"
 
 
 def _is_true(val: str | None) -> bool:

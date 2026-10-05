@@ -102,7 +102,8 @@ passes (22 tests), Ruff is clean, and the local ignored override was verified en
   changed; the format was never released, and the one local override was re-encrypted in place.
 - 25 SMTP tests pass (3 new: allow-list, cleared password, key mismatch drops the password).
 
-The alerts close only once a CodeQL run on `main` analyses the fix.
+Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
+(2026-10-05 10:27 UTC), and no code-scanning alerts are open.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
@@ -145,7 +146,16 @@ The alerts close only once a CodeQL run on `main` analyses the fix.
    AUTH_PASSWORD_CHANGE_REQUIRED` for every data request until the password is changed. The UI
    asks for the change at login. Bootstrap does not raise the flag again: `DEFAULT_ADMIN_AUTO_RESET`
    and `FORCE_RESET` default to `False`.
-10. **API response `meta.version` is wrong** (found 2026-09-29; the frontend does not read it).
+10. ~~**API response `meta.version` is wrong**~~ — **fixed 2026-10-05.** New `backend/version.py`
+    holds the one VERSION-file reader. `app_factory` and `main` used to keep their own copies; both
+    now import it. `ResponseMeta` defaults to it, the `success_response`, `error_response` and
+    `paginated_response` helpers default to it, and so does the middleware. The `APP_VERSION`
+    setting and its `.env.example` line are gone. A local `.env` that still has the line is
+    ignored (`extra="ignore"`).
+    Tests: the schema default and helpers, the middleware with `APP_VERSION=1.0.0` set, and a real
+    404 envelope. That envelope now reports `v1.18.50`, the same as `/health`. A new finding is
+    recorded as todo 17.
+    Original report (found 2026-09-29; the frontend does not read it):
     Success envelopes use `settings.APP_VERSION`, and a local `src/backend/.env` line
     `APP_VERSION=1.0.0` (copied from `.env.example`) wins over the VERSION file. Error envelopes use
     the hard-coded schema default `"1.15.0"` (`schemas/response.py`). Fix: take both from the VERSION
@@ -172,7 +182,23 @@ The alerts close only once a CodeQL run on `main` analyses the fix.
     - `useLanguage().t` resolves these prefixes; `useTranslation()` does not.
     - Fix: move these files to `useLanguage()`, or to `useTranslation('<ns>')` with unprefixed keys.
       Add the missing keys, and add a test that fails on this pattern.
-13. **Attendance: make Daily Performance participation assessment compact and optionally granular**
+    - **Scope re-measured 2026-10-05: larger than recorded.** A static scan takes every file whose
+      `t` comes from `useTranslation(...)` and checks each literal key against the locale modules,
+      in both languages and honouring `{ ns }` options. It finds **227 unresolved calls in 35
+      files**. Beyond the `ns.`-prefix case they are:
+      - unprefixed keys missing from the default namespace (`t('tryAgain')`, `t('sending')`);
+      - doubled prefixes (`useTranslation('search')` with `t('search.page_title')`, while
+        `search.js` has `page_title` at top level).
+    - About half sit in code with no importers: `AdvancedSearchPage` and its `advanced-search/`
+      children, `ErrorBoundary.tsx`, `ErrorRetry.tsx`, `ChartDrillDown.tsx`, `SavedReportsPanel.tsx`
+      and `AdminPermissionsPage.tsx`. Decide whether to delete these before fixing their keys.
+    - `useLanguage()` throws outside `LanguageProvider`, so error boundaries and the PWA prompts must
+      stay on react-i18next, using explicit namespaces.
+13. ~~**Attendance: make Daily Performance participation assessment compact and optionally granular**~~
+    — **done in `0e80d0570`, CI-verified 2026-10-05.** CI on `3a8fd1fa7` ran the full Vitest suite
+    (128/128 files), including the participation tests. `Not applied (10/10)` is gone. Its
+    replacement, `notScored` ("Not assessed — no score is recorded"), resolves in Greek through
+    `useLanguage()`'s attendance fallback. In-app checking on the dev database is blocked by todo 9.
     (reported 2026-10-01). In Attendance > Daily Performance, render the participation choices
     (for example, No participation / Low participation / ...) as three columns on one row instead
     of consuming a large vertical area. Permit selective scoring: a teacher must be able to score
@@ -186,7 +212,11 @@ The alerts close only once a CodeQL run on `main` analyses the fix.
     participation slider in a three-column responsive grid. Unselected observations save no
     score and therefore retain aggregate-score behaviour. The focused participation tests now
     pass twice locally; broader frontend-suite and CI verification remain pending.
-14. **Attendance: investigate Docker/QNAP course-list mismatch** (reported 2026-10-01). In the
+14. ~~**Attendance: investigate Docker/QNAP course-list mismatch**~~ — **fixed in `0e80d0570`,
+    CI-verified 2026-10-05.** The test "offers only courses with active enrolled students for
+    attendance" passed in CI's full run. Not yet confirmed on the Docker/QNAP stack itself; that
+    needs todo 9 first, or another account.
+    (reported 2026-10-01). In the
     Attendance course dropdown, Docker running from the laptop against the remote QNAP PostgreSQL
     shows all courses rather than only the teacher's enrolled/assigned courses. Reproduce using the
     configured Docker-to-QNAP connection; determine whether the cause is synchronization, an
@@ -207,6 +237,15 @@ The alerts close only once a CodeQL run on `main` analyses the fix.
     Docker SMS, and Capacitor. Specify per mode: storage location, whether data is shared or isolated,
     migration/initialisation behaviour, offline expectations, switching risks, and the safe
     configuration path. Add tests or deployment checks for the chosen configuration behaviour.
+17. **`ResponseStandardizationMiddleware` never wraps anything in a real app** (found 2026-10-05,
+    while fixing todo 10). It is registered in `middleware_config.py`, and it only wraps
+    `JSONResponse` instances. Under `BaseHTTPMiddleware`, `call_next` always returns a streaming
+    response, so the `isinstance` check never matches. Every raw-JSON endpoint therefore goes out
+    unwrapped. Its unit test passes only because it calls `dispatch()` directly with a hand-made
+    `JSONResponse`; through `TestClient` the same endpoint comes back without `meta`. "Fixing" it
+    would change the response shape of every raw endpoint the frontend already reads. Likely
+    action: delete the middleware and its test, since its behaviour is already "pass through".
+    The owner decides.
 
 ---
 
