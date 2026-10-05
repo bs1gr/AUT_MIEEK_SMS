@@ -61,18 +61,15 @@ vi.mock('axios', () => {
 import axios from 'axios';
 import {
   studentsAPI,
-  coursesAPI,
   invalidateApiCache,
   checkAPIHealth,
   getHealthStatus,
   adminOpsAPI,
   importAPI,
   gradesAPI,
-  analyticsAPI,
   formatDateForAPI,
-  attendanceAPI,
 } from '../api';
-import type { Grade, Student, Course, Attendance } from '@/types';
+import type { Grade } from '@/types';
 import { formatLocalDate } from '@/utils/date';
 
 describe('API client - interceptors and utilities', () => {
@@ -191,65 +188,6 @@ describe('API client - interceptors and utilities', () => {
     // weighted: (90*40 + 70*60) / (40+60) = (3600+4200)/100 = 78
     expect(avg).toBeCloseTo(78, 5);
     spy.mockRestore();
-  });
-
-  it('analyticsAPI.getDashboardStats aggregates counts', async () => {
-    const sSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValue([
-      { id: 1, is_active: true },
-      { id: 2, is_active: false },
-      { id: 3, is_active: true },
-    ] as unknown as Student[]);
-    const cSpy = vi.spyOn(coursesAPI, 'getAll').mockResolvedValue([
-      { id: 10 }, { id: 11 }
-    ] as unknown as Course[]);
-    const stats = await analyticsAPI.getDashboardStats();
-    expect(stats).toEqual({ totalStudents: 3, activeStudents: 2, totalCourses: 2, inactiveStudents: 1 });
-    sSpy.mockRestore();
-    cSpy.mockRestore();
-  });
-
-  it('analyticsAPI.getAttendanceStats computes totals and rate (all students)', async () => {
-    const sSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValue([
-      { id: 1 }, { id: 2 }
-    ] as unknown as Student[]);
-    const aSpy = vi.spyOn(attendanceAPI, 'getByStudent')
-      .mockResolvedValueOnce([
-        { status: 'Present' }, { status: 'Absent' }, { status: 'Excused' }
-      ] as unknown as Attendance[])
-      .mockResolvedValueOnce([
-        { status: 'Present' }, { status: 'Present' }, { status: 'Late' }
-      ] as unknown as Attendance[]);
-
-    const res = await analyticsAPI.getAttendanceStats();
-    expect(res.total).toBe(6);
-    expect(res.present).toBe(3);
-    expect(res.absent).toBe(1);
-    expect(res.excused).toBe(1);
-    expect(res.late).toBe(1);
-    expect(res.attendanceRate).toBe('66.67'); // (present+excused)=4 / 6
-    sSpy.mockRestore();
-    aSpy.mockRestore();
-  });
-
-  it('analyticsAPI.getGradeStats returns zeros when empty', async () => {
-    const sSpy = vi.spyOn(studentsAPI, 'getAll').mockResolvedValue([] as unknown as Student[]);
-    const res = await analyticsAPI.getGradeStats();
-    expect(res).toEqual({ count: 0, average: 0, highest: 0, lowest: 0 });
-    sSpy.mockRestore();
-  });
-
-  it('analyticsAPI.getGradeStats computes averages for student+course', async () => {
-    const gSpy = vi.spyOn(gradesAPI, 'getByStudent').mockResolvedValue([
-      { grade: 18, max_grade: 20, course_id: 10 }, // 90
-      { grade: 12, max_grade: 20, course_id: 10 }, // 60
-      { grade: 16, max_grade: 20, course_id: 11 }, // 80
-    ] as unknown as Grade[]);
-    const res = await analyticsAPI.getGradeStats(1, 10);
-    expect(res.count).toBe(2);
-    expect(res.average).toBe('75.00');
-    expect(res.highest).toBe('90.00');
-    expect(res.lowest).toBe('60.00');
-    gSpy.mockRestore();
   });
 
   it('formatDateForAPI proxies formatLocalDate', () => {

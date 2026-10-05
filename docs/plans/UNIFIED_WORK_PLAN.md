@@ -211,6 +211,11 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     - Follow-up (same day): `useExportAdmin.ts` held 19 more hooks for those missing endpoints. It
       is now `hooks/useEmailConfig.ts`, with only the three email-settings hooks in use, and
       `types/export.ts` is now `types/email.ts`.
+    - Also dead, found while fixing todo 15:
+      - `EnhancedAttendanceCalendar` (693 lines) has never been rendered since the initial commit; only a barrel exported it.
+      - `analyticsAPI.getDashboardStats`, `getAttendanceStats` and `getGradeStats` were 'helpers used by tests' and nothing else.
+      - `api/api.d.ts` was an ambient `declare module '@/api/api'` that TypeScript never used, because path resolution finds `api.ts` first. It was out of date: it said `getAll` returns a paginated object, but it returns an array.
+      All were deleted. `tsc` stays clean.
     - Verified: `tsc` clean, ESLint 0 errors, and the full frontend suite (109 files, 1798 tests)
       passes.
 13. ~~**Attendance: make Daily Performance participation assessment compact and optionally granular**~~
