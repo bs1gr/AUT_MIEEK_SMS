@@ -3,7 +3,8 @@ Predictive Analytics Service
 Provides machine learning-based predictions for student performance and attendance.
 
 Text-like fields (risk factors, recommendations) are short codes; the frontend translates them
-(EN/EL), so no English sentences reach a Greek UI.
+(EN/EL), so no English sentences reach a Greek UI. Failures return `{"error": "prediction_failed"}`;
+the exception is logged, never returned (it would reach API responses).
 """
 
 import logging
@@ -100,7 +101,7 @@ class PredictiveAnalyticsService:
             }
         except Exception as exc:
             logger.error("Error in grade trend prediction: %s", exc, exc_info=True)
-            return {"error": str(exc), "predictions": []}
+            return {"error": "prediction_failed", "predictions": []}
 
     def predict_attendance_pattern(self, attendance_records: List[Tuple[datetime, bool]]) -> Dict[str, Any]:
         """
@@ -158,7 +159,7 @@ class PredictiveAnalyticsService:
             }
         except Exception as exc:
             logger.error("Error in attendance prediction: %s", exc, exc_info=True)
-            return {"error": str(exc)}
+            return {"error": "prediction_failed"}
 
     def assess_student_risk(
         self,
@@ -242,7 +243,7 @@ class PredictiveAnalyticsService:
             }
         except Exception as exc:
             logger.error("Error in risk assessment: %s", exc, exc_info=True)
-            return {"error": str(exc)}
+            return {"error": "prediction_failed"}
 
     def predict_final_grade(
         self,
@@ -292,7 +293,7 @@ class PredictiveAnalyticsService:
             }
         except Exception as exc:
             logger.error("Error in final grade prediction: %s", exc, exc_info=True)
-            return {"error": str(exc)}
+            return {"error": "prediction_failed"}
 
     def _calculate_confidence(self, values: List[float]) -> float:
         """Calculate confidence level (0-100) based on data variance."""
