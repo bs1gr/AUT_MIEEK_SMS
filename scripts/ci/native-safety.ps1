@@ -23,7 +23,9 @@ try {
     Write-Info "Locating repository root and NATIVE.ps1"
     $scriptRoot = $PSScriptRoot
     $repoRoot = Resolve-Path -Path (Join-Path $scriptRoot '..\..')
-    $nativePath = Join-Path $repoRoot 'NATIVE.ps1'
+    # NATIVE.ps1 moved under infra/scripts/dev in the June 2026 restructure; the old root path
+    # made this check fail on every pull request that touches .github/workflows.
+    $nativePath = Join-Path $repoRoot 'infra\scripts\dev\NATIVE.ps1'
     if (-not (Test-Path $nativePath)) {
         Write-Err "NATIVE.ps1 not found at expected path: $nativePath"
         exit 2
