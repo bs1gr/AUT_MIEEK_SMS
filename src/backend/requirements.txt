@@ -2,43 +2,43 @@
 # Generated from pyproject.toml [project.dependencies]
 # Last updated: 2026-06-27 (Security fixes: python-socketio 5.16.3, python-engineio 4.13.3 — Trivy DoS CVEs)
 
-fastapi==0.136.3
-starlette==1.3.1
-uvicorn[standard]==0.38.0
-sqlalchemy==2.0.44
-psycopg[binary]==3.2.12
-cryptography==50.0.0  # CVE-2026-69247 fixed in 50.0.0
-pydantic==2.12.3
+fastapi==0.142.2
+starlette==1.7.0
+uvicorn[standard]==0.54.0
+sqlalchemy==2.1.2
+psycopg[binary]==3.3.6
+cryptography==50.0.2  # CVE-2026-69247 fixed in 50.0.0
+pydantic==2.13.5
 email-validator==2.3.0
 python-multipart==0.0.32  # Dependabot #185-197 fixed in >=0.0.31
 openpyxl==3.1.5
 reportlab==4.4.4
-pydantic-settings==2.11.0
-alembic==1.17.0
-psutil==7.1.1
-httpx==0.27.2
-requests==2.33.0
-slowapi==0.1.9
+pydantic-settings==2.15.0
+alembic==1.20.0
+psutil==7.2.2
+httpx==0.28.1
+requests==2.34.2
+slowapi==0.1.10
 fastapi-csrf-protect==1.0.7
 passlib[bcrypt]==1.7.4  # legacy-only: verifies PBKDF2-SHA256 hashes; remove after all rows migrate to bcrypt
-PyJWT==2.15.0  # Security fixes: CVE-2024-33663/33664/33665/33666 and 2026 JWT-algorithm-confusion CVEs
-docker==7.1.0
-prometheus-client==0.21.0
-opentelemetry-api==1.39.1
-opentelemetry-sdk==1.39.1
-opentelemetry-exporter-otlp==1.39.1
-opentelemetry-instrumentation-fastapi==0.60b1
-opentelemetry-semantic-conventions==0.60b1
+PyJWT==2.15.1  # Security fixes: CVE-2024-33663/33664/33665/33666 and 2026 JWT-algorithm-confusion CVEs
+docker==7.2.0
+prometheus-client==0.26.0
+opentelemetry-api==1.45.0
+opentelemetry-sdk==1.45.0
+opentelemetry-exporter-otlp==1.45.0
+opentelemetry-instrumentation-fastapi==0.66b0
+opentelemetry-semantic-conventions==0.66b0
 redis==5.0.1
-psycopg2-binary==2.9.12
-python-socketio==5.16.3  # CVE-2026-48804: binary attachment accumulation DoS fixed in >=5.16.2
-python-engineio==4.13.3  # CVE-2026-48802/48809: thread + payload DoS fixed in >=4.13.2
-pandas==3.0.3
+psycopg2-binary==2.9.13
+python-socketio==5.17.0  # CVE-2026-48804: binary attachment accumulation DoS fixed in >=5.16.2
+python-engineio==4.14.0  # CVE-2026-48802/48809: thread + payload DoS fixed in >=4.13.2
+pandas==3.0.6
 protobuf==6.33.6  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.0
-apscheduler==3.11.2
+apscheduler==3.11.3
 
 # Security constraints for transitive dependencies
 filelock==3.29.4
-virtualenv==21.7.13  # Fixes PYSEC-2026-4013 activation-script injection
-wheel==0.47.0
-werkzeug==3.1.8
+virtualenv==21.14.3  # Fixes PYSEC-2026-4013 activation-script injection
+wheel==0.48.0
+werkzeug==3.1.9
