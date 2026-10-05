@@ -13,11 +13,12 @@ import json
 import logging
 import os
 import base64
-import hashlib
 from pathlib import Path
 from typing import Any
 
 from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from backend.config import settings
 
@@ -40,7 +41,20 @@ def _default_override_path() -> Path:
 
 _SMTP_OVERRIDE_PATH: Path = _default_override_path()
 _PASSWORD_ENCRYPTION_PREFIX = "fernet:v1:"
-_PASSWORD_KEY_CONTEXT = b"sms.smtp-override.password:v1\0"
+# HKDF "info" label: keeps this key distinct from anything else derived from SECRET_KEY.
+_SMTP_KEY_INFO = b"sms.smtp-override.password:v1"
+
+# Fields persisted as-is. The password is never in this list: it is only ever written encrypted.
+PLAIN_FIELDS: tuple[str, ...] = (
+    "smtp_host",
+    "smtp_port",
+    "smtp_username",
+    "from_email",
+    "admin_emails",
+    "notify_on_completion",
+    "notify_on_failure",
+    "notify_on_schedule_failure",
+)
 
 _FIELD_TO_ATTR: dict[str, str] = {
     "smtp_host": "SMTP_HOST",
@@ -57,9 +71,9 @@ def override_path() -> Path:
 
 
 def _password_cipher() -> Fernet:
-    """Build a purpose-specific encryption key from the persistent app secret."""
+    """Derive a purpose-specific encryption key from the persistent app secret (HKDF-SHA256)."""
     secret = str(settings.SECRET_KEY or "").encode("utf-8")
-    key = hashlib.sha256(_PASSWORD_KEY_CONTEXT + secret).digest()
+    key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=_SMTP_KEY_INFO).derive(secret)
     return Fernet(base64.urlsafe_b64encode(key))
 
 
@@ -105,12 +119,19 @@ def load() -> dict[str, Any]:
 
 
 def save(data: dict[str, Any]) -> None:
-    """Persist the SMTP override dict to disk."""
+    """Persist the SMTP override dict to disk, with the password encrypted.
+
+    Built from an allow-list rather than a copy of ``data``, so a plaintext password (or any
+    unexpected key) in the caller's dict can never reach the file.
+    """
     _SMTP_OVERRIDE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    persisted = dict(data)
-    password = persisted.get("smtp_password")
-    if isinstance(password, str) and password:
-        persisted["smtp_password"] = _encrypt_password(password)
+    persisted: dict[str, Any] = {field: data[field] for field in PLAIN_FIELDS if field in data}
+    password = data.get("smtp_password")
+    if password:
+        persisted["smtp_password"] = _encrypt_password(str(password))
+    elif "smtp_password" in data:
+        # An explicitly cleared password stays cleared, so apply() still overrides the env value.
+        persisted["smtp_password"] = ""
     _SMTP_OVERRIDE_PATH.write_text(json.dumps(persisted, indent=2), encoding="utf-8")
 
 

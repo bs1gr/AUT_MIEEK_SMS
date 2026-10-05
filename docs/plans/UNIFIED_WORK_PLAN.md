@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.50
-**Last Updated**: October 1, 2026
+**Last Updated**: October 5, 2026
 **Status**: ✅ **v1.18.50 released 2026-09-29** (tag on `75e39a892`). Self-registration now needs an administrator's approval, and approval emails the user (see the 2026-09-28 section). The first-login password dialog is now in Greek (see the smoke-test section). A full smoke test of every mode ran first.
 
 Verified on the published assets:
@@ -87,8 +87,22 @@ files reports no known vulnerabilities.
 A manual CodeQL run found a high-severity clear-text SMTP password persistence path in
 `services/smtp_override.py`. SMTP passwords are now Fernet-encrypted using a purpose-derived
 key from `SECRET_KEY`, and legacy plaintext overrides migrate on load. The focused SMTP suite
-passes (22 tests), Ruff is clean, and the local ignored override was verified encrypted;
-push-triggered CodeQL verification remains pending.
+passes (22 tests), Ruff is clean, and the local ignored override was verified encrypted.
+
+**2026-10-05:** CodeQL raised two new high alerts on that commit (`3a8fd1fa7`), both in
+`smtp_override.py`; the SARIF code flows show why:
+- **#1888 clear-text storage — real.** `save()` started from `dict(data)`, so the caller's
+  plaintext password was still in the dict that was written; overwriting the key afterwards
+  does not remove it from the flow. A non-string or empty password was also written unchanged.
+  `save()` now builds the file from an allow-list (`PLAIN_FIELDS`, also used by the PUT
+  endpoint) and writes the password only encrypted, or `""` when it is explicitly cleared.
+- **#1889 weak hashing — false positive from a name.** The "password" hashed with SHA-256 was the
+  constant `_PASSWORD_KEY_CONTEXT`, a label. Key derivation now uses HKDF-SHA256 with that label as
+  `info`, the standard primitive for deriving a key from a high-entropy secret. The derived key
+  changed; the format was never released, and the one local override was re-encrypted in place.
+- 25 SMTP tests pass (3 new: allow-list, cleared password, key mismatch drops the password).
+
+The alerts close only once a CodeQL run on `main` analyses the fix.
 
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
@@ -136,7 +150,11 @@ push-triggered CodeQL verification remains pending.
     `APP_VERSION=1.0.0` (copied from `.env.example`) wins over the VERSION file. Error envelopes use
     the hard-coded schema default `"1.15.0"` (`schemas/response.py`). Fix: take both from the VERSION
     file, the same source `/health` uses, and drop `APP_VERSION` from `.env.example`.
-11. **Dependabot cannot update `postcss` in `src/frontend`** (found 2026-09-29). The npm job logs
+11. ~~**Dependabot cannot update `postcss` in `src/frontend`**~~ — **fixed 2026-10-05.** The override is
+    now `"postcss": "$postcss"`; the lockfile is unchanged. Reproduced in a scratch copy: bumping the
+    direct dependency to `^8.5.28` fails with `EOVERRIDE` under the old override and resolves 8.5.29
+    under the new one. (A local edit had added `$postcss` as a second, duplicate key; removed.)
+    Original report (found 2026-09-29): the npm job logs
     `EOVERRIDE: Override for postcss@8.5.28 conflicts with direct dependency`. `package.json` lists
     postcss both as a devDependency and under `overrides` (both `^8.5.26`). Dependabot bumps only the
     direct entry, so npm rejects the mismatch. Write the override as `"postcss": "$postcss"` so it

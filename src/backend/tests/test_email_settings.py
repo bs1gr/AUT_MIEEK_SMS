@@ -88,6 +88,46 @@ class TestSmtpOverrideService:
         assert "legacysecret" not in stored
         assert json.loads(stored)["smtp_password"].startswith("fernet:v1:")
 
+    def test_save_persists_only_known_fields(self, tmp_path, monkeypatch):
+        from backend.services import smtp_override
+
+        override_file = tmp_path / "smtp_override.json"
+        monkeypatch.setattr(smtp_override, "_SMTP_OVERRIDE_PATH", override_file)
+        smtp_override.save({
+            "smtp_host": "smtp.example.com",
+            "admin_emails": ["a@example.com"],
+            "smtp_password": "supersecret",
+            "unexpected": "dropped",
+        })
+
+        stored = json.loads(override_file.read_text(encoding="utf-8"))
+        assert set(stored) == {"smtp_host", "admin_emails", "smtp_password"}
+        assert stored["admin_emails"] == ["a@example.com"]
+        assert "supersecret" not in override_file.read_text(encoding="utf-8")
+
+    def test_save_keeps_a_cleared_password_cleared(self, tmp_path, monkeypatch):
+        from backend.services import smtp_override
+
+        override_file = tmp_path / "smtp_override.json"
+        monkeypatch.setattr(smtp_override, "_SMTP_OVERRIDE_PATH", override_file)
+        smtp_override.save({"smtp_host": "smtp.example.com", "smtp_password": None})
+
+        assert json.loads(override_file.read_text(encoding="utf-8"))["smtp_password"] == ""
+        assert smtp_override.load()["smtp_password"] == ""
+
+    def test_load_drops_password_encrypted_under_another_secret_key(self, tmp_path, monkeypatch):
+        from backend.config import settings
+        from backend.services import smtp_override
+
+        override_file = tmp_path / "smtp_override.json"
+        monkeypatch.setattr(smtp_override, "_SMTP_OVERRIDE_PATH", override_file)
+        monkeypatch.setattr(settings, "SECRET_KEY", "first-secret-key-" + "x" * 32, raising=False)
+        smtp_override.save({"smtp_host": "smtp.example.com", "smtp_password": "supersecret"})
+
+        monkeypatch.setattr(settings, "SECRET_KEY", "other-secret-key-" + "y" * 32, raising=False)
+        loaded = smtp_override.load()
+        assert loaded == {"smtp_host": "smtp.example.com"}
+
     def test_apply_sets_settings_attributes(self, monkeypatch):
         from backend.services import smtp_override
         from backend.config import settings

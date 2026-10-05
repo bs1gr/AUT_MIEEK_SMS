@@ -650,9 +650,7 @@ async def update_email_settings(
 ) -> APIResponse[dict]:
     """Persist SMTP settings and apply them to the running process."""
     override = _smtp.load()
-    fields = ["smtp_host", "smtp_port", "from_email", "smtp_username", "admin_emails",
-              "notify_on_completion", "notify_on_failure", "notify_on_schedule_failure"]
-    for field in fields:
+    for field in _smtp.PLAIN_FIELDS:
         if field in payload:
             override[field] = payload[field]
     # Only overwrite stored password when a real value is provided
