@@ -10,6 +10,7 @@ import type { Student, Grade, Attendance, Highlight, HighlightCreatePayload, Cou
 import { eventBus, EVENTS } from '@/utils/events';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import StudentPredictionsSection from './StudentPredictionsSection';
 
 
 interface StudentProfileProps {
@@ -726,6 +727,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             )}
           </div>
         </div>
+
+        <StudentPredictionsSection studentId={studentId} />
 
         {/* Enrolled Courses & Actions */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">

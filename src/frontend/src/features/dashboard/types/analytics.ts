@@ -4,45 +4,53 @@
  */
 
 // ==================== Prediction Types ====================
+// GET /analytics/predictive/student (backend AnalyticsService.get_student_predictive_analytics).
+// Text-like fields are codes; the panel translates them.
+
+export type RiskLevel = 'low' | 'medium' | 'high';
+export type GradeTrend = 'improving' | 'declining' | 'stable';
+export type RiskFactor = 'good' | 'concerning' | 'critical';
 
 export interface GradePrediction {
-  course_id: number;
-  course_name: string;
-  current_grade: number;
+  date: string;
   predicted_grade: number;
   confidence: number;
-  trend: 'improving' | 'declining' | 'stable';
 }
 
 export interface AttendancePrediction {
-  date: string;
-  predicted_attendance: number;
-  confidence: number;
+  day: string; // English weekday name, e.g. "Monday"
+  predicted_attendance_rate: number;
+  risk_level: RiskLevel;
+  sample_size: number;
 }
 
 export interface RiskAssessment {
-  student_id: number;
-  risk_level: 'high' | 'medium' | 'low';
+  risk_level: RiskLevel;
   risk_score: number;
-  factors: string[];
-  recommendations: string[];
+  grade_average: number;
+  attendance_rate: number;
+  factors: { grades: RiskFactor; attendance: RiskFactor; trend: GradeTrend };
+  recommendations: string[]; // tutoring | advisor | attendance | seek_support | on_track
 }
 
 export interface FinalGradeProjection {
-  course_id: number;
-  course_name: string;
-  projected_final_grade: number;
-  confidence: number;
-  required_grade_for_pass: number;
+  predicted_final_grade: number;
+  confidence_percentage: number;
+  scenarios: { optimistic: number; realistic: number; pessimistic: number };
+  current_average: number;
+  recommendation: string; // excellent | good | passing | at_risk
 }
 
-export interface PredictiveAnalyticsData {
-  gradePredictions: GradePrediction[];
-  attendancePredictions: AttendancePrediction[];
-  riskAssessment: RiskAssessment;
-  finalGradeProjection: FinalGradeProjection;
+export interface StudentPredictions {
+  student_id: number;
+  course_id: number | null;
+  grade_trend: GradeTrend | null;
+  grade_predictions: GradePrediction[];
+  attendance_predictions: AttendancePrediction[];
+  risk_assessment: RiskAssessment | null;
+  final_grade_projection: FinalGradeProjection | null;
+  insufficient_data: Array<'grades' | 'attendance'>;
 }
-
 // ==================== Chart Types ====================
 
 export interface ChartDataPoint {

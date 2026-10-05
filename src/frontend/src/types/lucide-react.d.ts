@@ -57,6 +57,7 @@ declare module 'lucide-react' {
     LucideBook as Book,
     LucideFileText as FileText,
     LucideHelpCircle as HelpCircle,
+    LucideInfo as Info,
     LucidePower as Power,
     LucideActivity as Activity,
     LucideRotateCw as RotateCw,

@@ -536,6 +536,99 @@ class AnalyticsService:
             "moving_average": round(moving_avg, 2),
         }
 
+    # Statuses that count as attended, as on the Students page: Present and Excused.
+    _ATTENDED_STATUSES = {"present", "excused"}
+
+    def get_student_predictive_analytics(
+        self,
+        student_id: int,
+        course_id: Optional[int] = None,
+        weeks_ahead: int = 4,
+        include_attendance: bool = True,
+        include_risk_assessment: bool = True,
+        include_final_grade: bool = True,
+    ) -> Dict[str, Any]:
+        """Predictions for one student (Student Profile), from their grades and attendance.
+
+        Grades are percentages of max_grade, ordered by submission date (else assignment date);
+        grades without either date cannot be placed on a timeline and are left out. The scoring
+        is PredictiveAnalyticsService; its text fields are codes the frontend translates. A
+        section without enough data (fewer than 3 dated grades or attendance records) is empty
+        and named in ``insufficient_data``.
+        """
+        from backend.services.predictive_analytics_service import PredictiveAnalyticsService
+
+        student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
+        if not student:
+            get_by_id_or_404(self.db, self.Student, student_id)
+
+        grade_query = self.db.query(self.Grade).filter(
+            self.Grade.student_id == student_id, self.Grade.deleted_at.is_(None)
+        )
+        attendance_query = self.db.query(self.Attendance).filter(
+            self.Attendance.student_id == student_id, self.Attendance.deleted_at.is_(None)
+        )
+        if course_id:
+            grade_query = grade_query.filter(self.Grade.course_id == course_id)
+            attendance_query = attendance_query.filter(self.Attendance.course_id == course_id)
+
+        dated_grades: List[tuple[datetime, float]] = []
+        for grade in grade_query.all():
+            day = grade.date_submitted or grade.date_assigned
+            if day and grade.max_grade:
+                pct = float(grade.grade) / float(grade.max_grade) * 100
+                dated_grades.append((datetime(day.year, day.month, day.day), pct))
+        dated_grades.sort(key=lambda item: item[0])
+        percentages = [pct for _, pct in dated_grades]
+
+        attendance = [
+            (datetime(r.date.year, r.date.month, r.date.day), str(r.status).lower() in self._ATTENDED_STATUSES)
+            for r in attendance_query.all()
+            if r.date
+        ]
+
+        predictor = PredictiveAnalyticsService()
+        insufficient: List[str] = []
+        result: Dict[str, Any] = {
+            "student_id": student_id,
+            "course_id": course_id,
+            "grade_trend": None,
+            "grade_predictions": [],
+            "attendance_predictions": [],
+            "risk_assessment": None,
+            "final_grade_projection": None,
+            "insufficient_data": insufficient,
+        }
+
+        trend = predictor.predict_grade_trend(dated_grades, weeks_ahead=weeks_ahead)
+        if "error" in trend:
+            insufficient.append("grades")
+        else:
+            result["grade_trend"] = trend["current_trend"]
+            result["grade_predictions"] = trend["predictions"]
+
+        attendance_rate: Optional[float] = None
+        if include_attendance or include_risk_assessment:
+            pattern = predictor.predict_attendance_pattern(attendance)
+            if "error" in pattern:
+                insufficient.append("attendance")
+            else:
+                attendance_rate = pattern["overall_attendance_rate"]
+                if include_attendance:
+                    result["attendance_predictions"] = pattern["attendance_by_day"]
+
+        if include_risk_assessment and percentages and attendance_rate is not None:
+            risk = predictor.assess_student_risk(percentages[-10:], attendance_rate, result["grade_trend"] or "stable")
+            if risk.get("risk_level") in {"low", "medium", "high"}:
+                result["risk_assessment"] = risk
+
+        if include_final_grade and percentages:
+            final = predictor.predict_final_grade(percentages, {}, missing_assessments=0)
+            if "error" not in final:
+                result["final_grade_projection"] = final
+
+        return result
+
     def get_students_comparison(self, course_id: int, limit: int = 50) -> Dict[str, Any]:
         """Get comparison data for all students in a course.
 

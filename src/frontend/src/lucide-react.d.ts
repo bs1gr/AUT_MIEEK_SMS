@@ -10,6 +10,7 @@ declare module 'lucide-react' {
   // Icon components - declare using shared IconProps
   export const AlertCircle: ComponentType<IconProps>;
   export const AlertTriangle: ComponentType<IconProps>;
+  export const Info: ComponentType<IconProps>;
   export const ArrowDown: ComponentType<IconProps>;
   export const Calendar: ComponentType<IconProps>;
   export const Check: ComponentType<IconProps>;

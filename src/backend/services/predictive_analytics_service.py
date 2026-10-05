@@ -1,6 +1,9 @@
 """
 Predictive Analytics Service
 Provides machine learning-based predictions for student performance and attendance.
+
+Text-like fields (risk factors, recommendations) are short codes; the frontend translates them
+(EN/EL), so no English sentences reach a Greek UI.
 """
 
 import logging
@@ -334,52 +337,52 @@ class PredictiveAnalyticsService:
             return "high"
 
     def _risk_factor_description(self, value: float) -> str:
-        """Generate description for a risk factor."""
+        """Risk factor code: good, concerning or critical."""
         if value >= 75:
-            return "Good"
+            return "good"
         elif value >= 50:
-            return "Concerning"
+            return "concerning"
         else:
-            return "Critical"
+            return "critical"
 
     def _generate_risk_recommendations(self, grade_avg: float, attendance_rate: float, trend: str) -> List[str]:
-        """Generate recommendations based on risk factors."""
+        """Recommendation codes: tutoring, advisor, attendance, seek_support, on_track."""
         recommendations = []
 
         if grade_avg < 60:
-            recommendations.append("Schedule tutoring sessions for struggling subjects")
+            recommendations.append("tutoring")
         if grade_avg < 50:
-            recommendations.append("Consider meeting with academic advisor")
+            recommendations.append("advisor")
 
         if attendance_rate < 70:
-            recommendations.append("Improve class attendance to catch up on missed material")
+            recommendations.append("attendance")
 
         if trend == "declining":
-            recommendations.append("Seek additional academic support immediately")
+            recommendations.append("seek_support")
 
         if not recommendations:
-            recommendations.append("Continue current effort - performance is on track")
+            recommendations.append("on_track")
 
         return recommendations
 
     def _generate_attendance_recommendation(self, rate: float) -> str:
-        """Generate attendance recommendation."""
+        """Attendance recommendation code: excellent, good, needs_improvement or poor."""
         if rate >= 0.85:
-            return "Excellent attendance - maintain current pace"
+            return "excellent"
         elif rate >= 0.75:
-            return "Good attendance - aim for higher consistency"
+            return "good"
         elif rate >= 0.60:
-            return "Attendance needs improvement - target 80%+ attendance"
+            return "needs_improvement"
         else:
-            return "Poor attendance - increase attendance significantly to pass"
+            return "poor"
 
     def _generate_final_grade_recommendation(self, predicted_grade: float) -> str:
-        """Generate recommendation for final grade."""
+        """Final-grade recommendation code: excellent, good, passing or at_risk."""
         if predicted_grade >= 85:
-            return "Excellent progress - maintain current effort"
+            return "excellent"
         elif predicted_grade >= 75:
-            return "Good progress - could benefit from additional practice"
+            return "good"
         elif predicted_grade >= 65:
-            return "Passing - consider additional support"
+            return "passing"
         else:
-            return "At risk - urgent intervention recommended"
+            return "at_risk"

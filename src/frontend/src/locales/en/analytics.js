@@ -91,44 +91,6 @@ export default {
     backToRoot: 'Back to Root',
     noData: 'No data available',
   },
-  predictive: {
-    risk: {
-      assessment: 'Risk Assessment',
-      grades: 'Grade Average',
-      attendance: 'Attendance',
-      trend: 'Trend',
-      recommendations: 'Recommendations',
-      low: 'Low Risk',
-      medium: 'Medium Risk',
-      high: 'High Risk',
-    },
-    grades: {
-      forecast: 'Grade Forecast',
-    },
-    final: {
-      grade: 'Final Grade Projection',
-    },
-    scenario: {
-      pessimistic: 'Pessimistic',
-      realistic: 'Realistic',
-      optimistic: 'Optimistic',
-    },
-    confidence: 'Confidence',
-    trend: {
-      improving: 'Improving',
-      declining: 'Declining',
-      stable: 'Stable',
-    },
-    attendance: {
-      patterns: 'Attendance Patterns',
-    },
-    info: {
-      title: 'About Predictions',
-      icon: 'ℹ️',
-      description: 'Predictions are based on historical data and trends. Individual student circumstances may vary. Always verify with actual assessments and records.',
-    },
-    error: 'Predictive Analysis Error',
-  },
   // Only step.template is live (SavedReportsPanel.tsx). The rest of this
   // subtree (title/ui/template/dataseries/charttype/filters/preview/
   // reportName/error) was for the deleted CustomReportBuilder component and
@@ -160,4 +122,43 @@ export default {
     boxplot: 'Box Plot',
     boxplot_desc: 'Best for showing statistical distribution and outliers',
   },
-};
+  // Student Profile predictions panel (codes from the backend are translated here)
+  predictive: {
+    title: 'Outlook',
+    subtitle: "Estimated from this student's grades and attendance so far.",
+    insufficient: 'Not enough data yet: predictions need at least 3 dated grades and 3 attendance records.',
+    error: 'Predictions could not be loaded',
+    confidence: 'Confidence',
+    trend: { improving: 'Improving', declining: 'Declining', stable: 'Stable' },
+    risk: {
+      assessment: 'Risk assessment',
+      grades: 'Grade average',
+      attendance: 'Attendance',
+      trend: 'Trend',
+      recommendations: 'Recommendations',
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+    },
+    recommendation: {
+      tutoring: 'Arrange extra help in the subjects with low grades',
+      advisor: "Consider a meeting with the student's advisor",
+      attendance: 'Attendance is low: missed material needs catching up',
+      seek_support: 'Grades are falling: offer support soon',
+      on_track: 'On track: keep up the current effort',
+    },
+    grades: { forecast: 'Grade forecast' },
+    final: {
+      grade: 'Final grade projection',
+      excellent: 'Excellent progress: keep it up',
+      good: 'Good progress: more practice would help',
+      passing: 'Passing: extra support would help',
+      at_risk: 'At risk: act now',
+    },
+    scenario: { pessimistic: 'Pessimistic', realistic: 'Realistic', optimistic: 'Optimistic' },
+    attendance: { patterns: 'Attendance by weekday' },
+    info: {
+      title: 'About predictions',
+      description: 'Predictions extend the grades and attendance recorded so far. Each student\'s situation can differ, so always check against actual assessments.',
+    },
+  },};

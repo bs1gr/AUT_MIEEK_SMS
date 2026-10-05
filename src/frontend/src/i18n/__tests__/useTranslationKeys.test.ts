@@ -8,6 +8,7 @@
  * literal key against the real i18n resources, per language, without falling back to English.
  */
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
@@ -16,9 +17,8 @@ import i18n from '../config';
 const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const LANGUAGES = ['en', 'el'];
 
-// Not rendered anywhere yet; its keys are part of the deferred predictive-analytics feature
-// (docs/plans/UNIFIED_WORK_PLAN.md, todo 12). Remove the entry once the panel is wired in.
-const KNOWN_UNRESOLVED = new Set(['features/dashboard/components/PredictiveAnalyticsPanel.tsx']);
+// Files allowed to have unresolved keys for now (none since the predictions panel was wired in).
+const KNOWN_UNRESOLVED = new Set<string>();
 
 const HOOK = /const\s*\{[^}]*\bt\b(?!\s*:)[^}]*\}\s*=\s*useTranslation\(([^)]*)\)/;
 const CALL = /\bt\(\s*['"]([^'"`$]+)['"]\s*(?:,\s*(\{[^}]*\}|['"][^'"]*['"]))?/g;
@@ -39,9 +39,9 @@ function resolves(lng: string, namespaces: string[], key: string): boolean {
   return nsList.some((ns) => typeof i18n.getResource(lng, ns, k) === 'string');
 }
 
-function unresolvedCalls(): Map<string, string[]> {
+function unresolvedCalls(root: string = SRC): Map<string, string[]> {
   const byFile = new Map<string, string[]>();
-  for (const file of sourceFiles(SRC)) {
+  for (const file of sourceFiles(root)) {
     const source = fs.readFileSync(file, 'utf8');
     const hook = HOOK.exec(source);
     if (!hook) continue;
@@ -55,7 +55,7 @@ function unresolvedCalls(): Map<string, string[]> {
         if (!resolves(lng, callNs, call[1])) misses.push(`t('${call[1]}') [${lng}]`);
       }
     }
-    if (misses.length) byFile.set(path.relative(SRC, file).split(path.sep).join('/'), misses);
+    if (misses.length) byFile.set(path.relative(root, file).split(path.sep).join('/'), misses);
   }
   return byFile;
 }
@@ -69,9 +69,23 @@ describe('useTranslation() keys', () => {
   });
 
   it('known exceptions still need their exception', () => {
-    // Also proves the scan finds real broken calls, not just nothing.
     for (const file of KNOWN_UNRESOLVED) {
       expect(byFile.get(file)?.length ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  it('finds a broken call in a real file (positive control)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-scan-'));
+    try {
+      fs.writeFileSync(
+        path.join(dir, 'Broken.tsx'),
+        "const { t } = useTranslation();\nexport const A = () => t('common.logout') + t('save');\n",
+      );
+      expect(Object.fromEntries(unresolvedCalls(dir))).toEqual({
+        'Broken.tsx': ["t('common.logout') [en]", "t('common.logout') [el]"],
+      });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
     }
   });
 

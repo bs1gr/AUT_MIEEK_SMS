@@ -11,6 +11,9 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 1, role: 'admin' } }),
 }));
 
+// Covered by StudentPredictionsSection.test (it needs a QueryClientProvider).
+vi.mock('./StudentPredictionsSection', () => ({ default: () => null }));
+
 vi.mock('@/contexts/DateTimeSettingsContext', () => ({
   useDateTimeFormatter: () => ({
     formatDate: (value: unknown) => (value ? String(value) : '-'),

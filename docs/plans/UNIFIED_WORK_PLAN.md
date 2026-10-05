@@ -105,6 +105,24 @@ passes (22 tests), Ruff is clean, and the local ignored override was verified en
 Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
 (2026-10-05 10:27 UTC), and no code-scanning alerts are open.
 
+**Dependabot PRs (2026-10-05, owner: "fix as recommended"):**
+- **Merged:** #253 (pip minor/patch group, 33 updates) and #255 (npm minor/patch group, 177
+  updates; it includes the postcss bump that the old override used to block).
+  - #255's only failing check was `dependabot-auto-approve`: the merge App secrets are missing
+    (todo 8). It was approved by hand.
+- **Closed, with `@dependabot ignore this major version`:**
+  - #243 (eslint 10): `eslint-plugin-react@7.37.5` and `eslint-plugin-jsx-a11y@6.10.2` support
+    eslint ≤9 only, so `npm ci` fails.
+  - #238 (filelock 4): it conflicts with `virtualenv==21.7.13`, which is pinned for
+    PYSEC-2026-4013.
+  - Reverse either with `@dependabot unignore <name>`.
+- **Actions bumps (#231–#235) are safe to take.** The only failing check, "Native DeepClean
+  Safety", was broken on every workflow PR. Its helper `scripts/ci/native-safety.ps1` still
+  looked for `NATIVE.ps1` at the repo root, from before the June restructure; fixed. Release
+  notes checked:
+  - the majors move to the Node 24 runtime;
+  - setup-buildx v4 drops inputs this repo does not use;
+  - setup-dotnet v6 and cache v6 are internal ESM migrations.
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
@@ -204,10 +222,27 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     - **Guard:** `i18n/__tests__/useTranslationKeys.test.ts` fails on any literal key a
       `useTranslation(...)` file cannot resolve in EN or EL. It checks the real resources with no
       English fallback. Its positive control is the one known exception, below.
-    - **Left for later (owner):** `PredictiveAnalyticsPanel`. The backend endpoint
-      `/analytics/predictive/student` exists, but no frontend code fetches it and the panel is
-      placed nowhere; its 20 keys are missing. It is listed in the guard's `KNOWN_UNRESOLVED`.
-      Remove that entry when the panel is wired in.
+    - **Predictions panel wired in (owner, 2026-10-05: "fix the predictive-analytics panel").**
+      It was broken at every layer:
+      - The backend route called `AnalyticsService.get_student_predictive_analytics`, which never
+        existed (lost when the analytics feature was deferred in March), so it always answered 500.
+        It is now implemented from the student's grades (percentages, in date order) and
+        attendance (Present and Excused count, as on the Students page), using the existing
+        `PredictiveAnalyticsService`.
+      - Its text fields (risk factors, recommendations) were English sentences. They are now codes
+        that the panel translates, EN and EL.
+      - The panel read the `analytics` namespace's `predictive` keys through the root namespace
+        (the todo-12 bug class). Its prop types did not match the API either.
+      - Now the panel uses the `analytics` namespace, localised dates and weekdays, and
+        percentages. It shows "Outlook" on the Student Profile and hides itself on a 403 (the
+        student role lacks `reports:view`).
+      - Tests: `test_student_predictive_endpoint.py` and `StudentPredictionsSection.test.tsx`
+        (EN, EL, insufficient data, 403). The old panel test only checked that something
+        rendered, so it was deleted. The i18n guard has no known exceptions now; its positive
+        control is a synthetic file.
+      - Deleted as dead: three more predictive endpoints (`/predictive/class/{id}/risk-assessment`,
+        `/predictive/class/{id}/at-risk-students`, `/predictive/course/{id}`) and their unused
+        hooks. Their service methods never existed, and "class" has no model.
     - Follow-up (same day): `useExportAdmin.ts` held 19 more hooks for those missing endpoints. It
       is now `hooks/useEmailConfig.ts`, with only the three email-settings hooks in use, and
       `types/export.ts` is now `types/email.ts`.
@@ -327,9 +362,8 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
       - The runbook is rewritten: the tool cannot merge, and the recovery path for old Lite
         fallback data goes through the app's import or re-entry.
       - Tests: `test_migrate_sqlite_to_postgres_safety.py`.
-    - Not changed: Docker without PostgreSQL settings still starts on its SQLite volume, with
-      the System-page badge. Refusing to start would change the default compose file's
-      standalone SQLite setup, so that is left to the owner.    Original report (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
+    - **Owner decided (2026-10-05):** Docker without PostgreSQL settings starts on its own SQLite
+      volume and shows the amber badge. This is intended; no change.    Original report (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
     what happens when local SQLite is retained instead of connecting to QNAP PostgreSQL for SMS Lite,
     Docker SMS, and Capacitor. Specify per mode: storage location, whether data is shared or isolated,
     migration/initialisation behaviour, offline expectations, switching risks, and the safe
