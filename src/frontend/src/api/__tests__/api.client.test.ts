@@ -70,6 +70,7 @@ import {
   formatDateForAPI,
 } from '../api';
 import type { Grade } from '@/types';
+import { getDatabaseUnavailable, setDatabaseUnavailable } from '@/utils/databaseAvailability';
 import { formatLocalDate } from '@/utils/date';
 
 describe('API client - interceptors and utilities', () => {
@@ -110,6 +111,27 @@ describe('API client - interceptors and utilities', () => {
     await expect(__handlers.resRejected!(errGeneric)).rejects.toBe(errGeneric);
 
     expect(console.error).toHaveBeenCalled();
+  });
+
+  it('marks the database unavailable on 503 DATABASE_UNAVAILABLE and clears it on the next data success', async () => {
+    const { __handlers } = axios as unknown as { __handlers: Handlers };
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    setDatabaseUnavailable(false);
+
+    const otherError = { response: { status: 503, data: { error: { code: 'SERVICE_BUSY' } } } };
+    await expect(__handlers.resRejected!(otherError)).rejects.toBe(otherError);
+    expect(getDatabaseUnavailable()).toBe(false);
+
+    const dbDown = { response: { status: 503, data: { success: false, error: { code: 'DATABASE_UNAVAILABLE' } } } };
+    await expect(__handlers.resRejected!(dbDown)).rejects.toBe(dbDown);
+    expect(getDatabaseUnavailable()).toBe(true);
+
+    // /health can answer while the database is still down
+    __handlers.resFulfilled!({ config: { url: '/health' }, data: {} });
+    expect(getDatabaseUnavailable()).toBe(true);
+
+    __handlers.resFulfilled!({ config: { url: '/students/' }, data: [] });
+    expect(getDatabaseUnavailable()).toBe(false);
   });
 
   it('studentsAPI.getAll normalizes items/results/array', async () => {

@@ -10,6 +10,8 @@ import {
   getPendingAttendanceSyncCount,
   removeAttendanceSyncSnapshot,
 } from '@/features/attendance/utils/offlineAttendanceQueue';
+import { isOfflineError } from '@/utils/databaseAvailability';
+import { useQueueFlushTriggers } from '@/hooks/useQueueFlushTriggers';
 
 export type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
 export type RawDailyPerformanceRecord = { student_id: number; category: string; score: number };
@@ -245,25 +247,8 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
     setPendingSyncCount(getPendingAttendanceSyncCount());
   }, [setPendingSyncCount]);
 
-  const isOfflineNetworkError = useCallback((error: unknown) => {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
-    if (typeof error !== 'object' || error === null) return false;
-
-    const maybeError = error as {
-      code?: string;
-      message?: string;
-      response?: { status?: number };
-      request?: unknown;
-    };
-
-    const message = String(maybeError.message || '');
-    return (
-      maybeError.code === 'ERR_NETWORK' ||
-      maybeError.response?.status === 0 ||
-      (!maybeError.response && Boolean(maybeError.request)) ||
-      /Network Error|Failed to fetch|offline/i.test(message)
-    );
-  }, []);
+  // Also true for 503 DATABASE_UNAVAILABLE: the change is queued, not lost.
+  const isOfflineNetworkError = isOfflineError;
 
   const queueAttendanceSnapshot = useCallback((snapshotDate: string) => {
     const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
@@ -460,27 +445,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
     }
   }, [isOfflineNetworkError, refreshAttendancePrefill, selectedCourse, selectedDate, syncSnapshotToServer, t, updatePendingSyncCount, showToast]);
 
-  useEffect(() => {
-    updatePendingSyncCount();
-
-    const handleOnline = () => {
-      void flushQueuedSnapshots();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-    }
-
-    if (typeof navigator === 'undefined' || navigator.onLine) {
-      void flushQueuedSnapshots();
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', handleOnline);
-      }
-    };
-  }, [flushQueuedSnapshots, updatePendingSyncCount]);
+  useQueueFlushTriggers(flushQueuedSnapshots, updatePendingSyncCount);
 
   const performSave = useCallback(async () => {
     if (!selectedCourse) { showToast(t('selectCourse') || 'Select course', 'error'); return; }

@@ -1,30 +1,36 @@
 import { useTranslation } from 'react-i18next';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { isLocalMode } from '@/utils/serverUrl';
+import { useDatabaseUnavailable } from '@/utils/databaseAvailability';
 
 /**
  * OfflineBanner – shows an amber banner while offline and a brief green
  * banner when the connection is restored.  Displays aggregated counts of
  * queued mutations so the user knows what will sync when they reconnect.
+ * Also warns while the server is up but cannot reach its database (503
+ * DATABASE_UNAVAILABLE, e.g. QNAP unreachable): changes are queued then too.
  */
 const OfflineBanner = () => {
   const { t } = useTranslation('offline');
   const { isOnline, pendingSyncCount, pendingByFeature, wasOffline } = useNetworkStatus();
+  const databaseUnavailable = useDatabaseUnavailable();
 
-  // In local mode the SW is the backend — device network connectivity doesn't matter
-  if (isLocalMode()) return null;
+  // In local mode the SW is the backend — device network connectivity doesn't matter,
+  // but the server's database (QNAP) can still drop out mid-session.
+  if (isLocalMode() && !databaseUnavailable) return null;
 
   // Nothing to show when fully online with no pending changes and no recent reconnect
-  if (isOnline && !wasOffline && pendingSyncCount === 0) return null;
+  if (isOnline && !wasOffline && pendingSyncCount === 0 && !databaseUnavailable) return null;
 
   const showOffline = !isOnline;
-  const showReconnected = isOnline && wasOffline;
-  const showPendingOnly = isOnline && !wasOffline && pendingSyncCount > 0;
+  const showDatabaseDown = isOnline && databaseUnavailable;
+  const showReconnected = isOnline && wasOffline && !databaseUnavailable;
+  const showPendingOnly = isOnline && !wasOffline && !databaseUnavailable && pendingSyncCount > 0;
 
   return (
     <div
       className={`rounded-lg px-4 py-3 shadow-sm transition-colors duration-300 ${
-        showOffline
+        showOffline || showDatabaseDown
           ? 'bg-amber-50 border border-amber-300 text-amber-900'
           : showReconnected
             ? 'bg-green-50 border border-green-300 text-green-900'
@@ -36,7 +42,7 @@ const OfflineBanner = () => {
       <div className="flex items-start gap-3">
         {/* Icon */}
         <span className="mt-0.5 flex-shrink-0">
-          {showOffline && (
+          {(showOffline || showDatabaseDown) && (
             <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
@@ -60,12 +66,16 @@ const OfflineBanner = () => {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">
             {showOffline && t('offlineTitle')}
+            {showDatabaseDown && t('databaseUnavailableTitle')}
             {showReconnected && t('backOnlineTitle')}
             {showPendingOnly && t('pendingChanges', { count: pendingSyncCount })}
           </p>
 
           {showOffline && (
             <p className="text-sm mt-0.5 opacity-80">{t('offlineMessage')}</p>
+          )}
+          {showDatabaseDown && (
+            <p className="text-sm mt-0.5 opacity-80">{t('databaseUnavailableMessage')}</p>
           )}
           {showReconnected && (
             <p className="text-sm mt-0.5 opacity-80">{t('backOnlineMessage')}</p>

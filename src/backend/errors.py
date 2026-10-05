@@ -1,9 +1,11 @@
 """Centralized error codes and helpers for API responses."""
 
+import sys
 from enum import Enum
 from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, Request, status
+from sqlalchemy.exc import OperationalError
 
 
 class ErrorCode(str, Enum):
@@ -136,8 +138,18 @@ def http_error(
     )
 
 
-def internal_server_error(message: str = "Internal server error", request: Optional[Request] = None) -> HTTPException:
-    """Shortcut for returning a 500 error with a standard payload."""
+def internal_server_error(message: str = "Internal server error", request: Optional[Request] = None) -> Exception:
+    """Shortcut for returning a 500 error with a standard payload.
+
+    Routers call this from ``except Exception:`` blocks. When the exception being handled
+    is a database outage (``OperationalError``), it is returned unchanged instead, so
+    ``raise internal_server_error()`` re-raises it and error_handlers answers 503
+    DATABASE_UNAVAILABLE. The frontend queues student/attendance/grade changes on that
+    code (e.g. Docker while QNAP is unreachable); on a generic 500 the change was lost.
+    """
+    current = sys.exc_info()[1]
+    if isinstance(current, OperationalError):
+        return current
 
     return http_error(
         status.HTTP_500_INTERNAL_SERVER_ERROR,

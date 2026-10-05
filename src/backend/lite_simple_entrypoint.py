@@ -2,7 +2,8 @@
 SMS Native Lite Simple - Headless HTTP Server (No PyWebView)
 
 Pure FastAPI + embedded React frontend. Listens on port 8000.
-Auto-connects to QNAP PostgreSQL if credentials available, otherwise uses SQLite.
+With QNAP credentials it runs on QNAP PostgreSQL or does not start (it asks to retry);
+without them it is a standalone install on a local SQLite file. See lite_db.py.
 """
 import os
 import sys
@@ -36,92 +37,42 @@ if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
         pass
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
-# Check if QNAP PostgreSQL credentials exist
-# Two possible locations: bundle-relative (dev) or AppData (installed)
-qnap_creds_file = None
+from backend.lite_db import select_database, windows_retry_dialog  # noqa: E402 - stdlib-only module
+
+# QNAP PostgreSQL credentials: AppData when installed, next to the source tree in development.
+_lite_appdata: Path | None
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    # Running as PyInstaller bundle - check AppData first
-    appdata_creds = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets' / 'qnap-credentials.json'
-    print(f"[DEBUG] Checking AppData credentials: {appdata_creds}", file=sys.stderr)
-    if appdata_creds.exists():
-        qnap_creds_file = appdata_creds
-        print(f"[DEBUG] Found credentials file at: {qnap_creds_file}", file=sys.stderr)
-    else:
-        print(f"[DEBUG] Credentials file NOT found at: {appdata_creds}", file=sys.stderr)
+    _lite_appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple'
+    _creds_candidate = _lite_appdata / 'local-secrets' / 'qnap-credentials.json'
+    _local_sqlite_url = f'sqlite:///{_lite_appdata / "sms_lite.db"}'
 else:
-    # Running from source - check relative to bundle
-    bundle_creds = Path(__file__).parent.parent / 'local-secrets' / 'qnap-credentials.json'
-    print(f"[DEBUG] Checking bundle credentials: {bundle_creds}", file=sys.stderr)
-    if bundle_creds.exists():
-        qnap_creds_file = bundle_creds
-        print(f"[DEBUG] Found credentials file at: {qnap_creds_file}", file=sys.stderr)
+    _lite_appdata = None
+    _creds_candidate = Path(__file__).parent.parent / 'local-secrets' / 'qnap-credentials.json'
+    _local_sqlite_url = os.environ.get('DATABASE_URL') or 'sqlite:///./data/sms_lite.db'
+qnap_creds_file = _creds_candidate if _creds_candidate.exists() else None
+print(f"[DEBUG] QNAP credentials: {qnap_creds_file or f'none at {_creds_candidate}'}", file=sys.stderr)
 
-if qnap_creds_file:
-    # Use QNAP PostgreSQL database
-    try:
-        import json
-        from urllib.parse import quote_plus
-        with open(qnap_creds_file) as f:
-            creds = json.load(f)
-        print(f"[DEBUG] Loaded QNAP credentials from: {qnap_creds_file}", file=sys.stderr)
-        os.environ['DATABASE_URL'] = (
-            f'postgresql+psycopg://{quote_plus(creds["user"])}:{quote_plus(creds["password"])}'
-            f'@{creds["host"]}:{creds["port"]}/{quote_plus(creds["dbname"])}'
-        )
-        os.environ['POSTGRES_SSLMODE'] = creds.get('sslmode', 'disable')
-        print(f"[DEBUG] DATABASE_URL set to PostgreSQL: {creds['host']}:{creds['port']}/{creds['dbname']}", file=sys.stderr)
 
-        # Probe actual reachability now, at startup, instead of letting the first login
-        # attempt discover it. connect_timeout=5 means an unreachable QNAP host (wrong
-        # network, firewall, offline) fails in seconds, not the OS's TCP timeout (which
-        # can be minutes) — and this state is worth its own clear message, distinct from
-        # "credentials file missing/invalid" below, since the fix is different (network
-        # reachability vs. re-running setup_lite_qnap_remote.ps1).
+def _ask_retry(message: str) -> bool:
+    """While QNAP is unusable: log why, then let the user Retry (frozen app) or stop."""
+    print(message, file=sys.stderr)
+    # In frozen console=False builds stderr is devnull (see top of file); keep a trace in debug.log.
+    if _lite_appdata is not None:
         try:
-            import psycopg
-            with psycopg.connect(
-                host=creds["host"], port=creds["port"], dbname=creds["dbname"],
-                user=creds["user"], password=creds["password"],
-                sslmode=creds.get('sslmode', 'disable'), connect_timeout=5,
-            ):
-                pass
-            print(f"[DEBUG] QNAP PostgreSQL reachable: {creds['host']}:{creds['port']}", file=sys.stderr)
-        except Exception as conn_err:
-            qnap_msg = (
-                f"WARNING: QNAP PostgreSQL unreachable at {creds['host']}:{creds['port']} "
-                f"({conn_err}) - falling back to local SQLite for this session"
-            )
-            print(qnap_msg, file=sys.stderr)
-            # Write straight to debug.log too: in frozen console=False builds stderr is
-            # redirected to devnull (see top of file), so this would otherwise never be
-            # visible to anyone troubleshooting a "network error" / "can't log in" report.
-            if getattr(sys, 'frozen', False):
-                try:
-                    _early_log_path = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'debug.log'
-                    _early_log_path.parent.mkdir(parents=True, exist_ok=True)
-                    with open(_early_log_path, 'a', encoding='utf-8', errors='replace') as _early_log_f:
-                        _early_log_f.write(f'{qnap_msg}\n')
-                except Exception:
-                    pass
-            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-                appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple'
-                os.environ['DATABASE_URL'] = f'sqlite:///{appdata / "sms_lite.db"}'
-            else:
-                os.environ['DATABASE_URL'] = 'sqlite:///./data/sms_lite.db'
-    except Exception as e:
-        print(f"WARNING: Failed to load QNAP credentials: {e}, falling back to SQLite")
-        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-            appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple'
-            os.environ['DATABASE_URL'] = f'sqlite:///{appdata / "sms_lite.db"}'
-        else:
-            os.environ.setdefault('DATABASE_URL', 'sqlite:///./data/sms_lite.db')
-elif getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    # Running as PyInstaller bundle without QNAP - use local SQLite
-    appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple'
-    os.environ['DATABASE_URL'] = f'sqlite:///{appdata / "sms_lite.db"}'
-else:
-    # Running from source without QNAP - use local SQLite
-    os.environ.setdefault('DATABASE_URL', 'sqlite:///./data/sms_lite.db')
+            _lite_appdata.mkdir(parents=True, exist_ok=True)
+            with open(_lite_appdata / 'debug.log', 'a', encoding='utf-8', errors='replace') as _log:
+                _log.write(f'{message}\n')
+        except Exception:
+            pass
+        return windows_retry_dialog(message)
+    return False  # running from source: no dialog, just stop
+
+
+# With credentials, Lite runs on QNAP or not at all - never on a local database (lite_db.py).
+_database_url, _sslmode = select_database(qnap_creds_file, _local_sqlite_url, _ask_retry)
+os.environ['DATABASE_URL'] = _database_url
+if _sslmode is not None:
+    os.environ['POSTGRES_SSLMODE'] = _sslmode
 
 os.environ.setdefault('SMS_ENV', 'development')
 

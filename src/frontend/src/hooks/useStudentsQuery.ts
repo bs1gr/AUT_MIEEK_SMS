@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores';
@@ -9,6 +9,8 @@ import {
   getQueuedStudentUpdates,
   removeQueuedStudentUpdate,
 } from '@/features/students/utils/offlineStudentUpdateQueue';
+import { isOfflineError } from '@/utils/databaseAvailability';
+import { useQueueFlushTriggers } from './useQueueFlushTriggers';
 
 let studentUpdateSyncInProgress = false;
 
@@ -116,25 +118,8 @@ export function useUpdateStudent() {
   const students = useStudentsStore((state) => state.students);
   const setError = useStudentsStore((state) => state.setError);
 
-  const isOfflineNetworkError = useCallback((error: unknown) => {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
-    if (typeof error !== 'object' || error === null) return false;
-
-    const maybeError = error as {
-      code?: string;
-      message?: string;
-      response?: { status?: number };
-      request?: unknown;
-    };
-
-    const message = String(maybeError.message || '');
-    return (
-      maybeError.code === 'ERR_NETWORK' ||
-      maybeError.response?.status === 0 ||
-      (!maybeError.response && Boolean(maybeError.request)) ||
-      /Network Error|Failed to fetch|offline/i.test(message)
-    );
-  }, []);
+  // Also true for 503 DATABASE_UNAVAILABLE: the change is queued, not lost.
+  const isOfflineNetworkError = isOfflineError;
 
   const flushQueuedStudentUpdates = useCallback(async () => {
     if (studentUpdateSyncInProgress) return;
@@ -165,25 +150,7 @@ export function useUpdateStudent() {
     }
   }, [isOfflineNetworkError, queryClient, updateStudent]);
 
-  useEffect(() => {
-    const handleOnline = () => {
-      void flushQueuedStudentUpdates();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-    }
-
-    if (typeof navigator === 'undefined' || navigator.onLine) {
-      void flushQueuedStudentUpdates();
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', handleOnline);
-      }
-    };
-  }, [flushQueuedStudentUpdates]);
+  useQueueFlushTriggers(flushQueuedStudentUpdates);
 
   return useMutation({
     mutationFn: ({

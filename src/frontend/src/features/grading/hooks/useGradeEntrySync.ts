@@ -9,27 +9,11 @@ import {
   getQueuedGradeMutations,
   removeQueuedGradeMutation,
 } from '@/features/grading/utils/offlineGradesQueue';
+import { isOfflineError } from '@/utils/databaseAvailability';
+import { useQueueFlushTriggers } from '@/hooks/useQueueFlushTriggers';
 
-// Narrow unknown thrown values to objects with optional response.status/message/request
-const isOfflineNetworkError = (error: unknown): boolean => {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
-  if (typeof error !== 'object' || error === null) return false;
-
-  const maybeError = error as {
-    code?: string;
-    message?: string;
-    response?: { status?: number };
-    request?: unknown;
-  };
-
-  const message = String(maybeError.message || '');
-  return (
-    maybeError.code === 'ERR_NETWORK' ||
-    maybeError.response?.status === 0 ||
-    (!maybeError.response && Boolean(maybeError.request)) ||
-    /Network Error|Failed to fetch|offline/i.test(message)
-  );
-};
+// Also true for 503 DATABASE_UNAVAILABLE: the change is queued, not lost.
+const isOfflineNetworkError = isOfflineError;
 
 // Extracts a human-readable message from an axios-style error, an API
 // {detail: ...} error payload, a plain Error, or a raw thrown value.
@@ -168,27 +152,7 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     }
   }, [fetchGrades, updatePendingSyncCount]);
 
-  useEffect(() => {
-    updatePendingSyncCount();
-
-    const handleOnline = () => {
-      void flushQueuedGradeMutations();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-    }
-
-    if (typeof navigator === 'undefined' || navigator.onLine) {
-      void flushQueuedGradeMutations();
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', handleOnline);
-      }
-    };
-  }, [flushQueuedGradeMutations, updatePendingSyncCount]);
+  useQueueFlushTriggers(flushQueuedGradeMutations, updatePendingSyncCount);
 
   const loadFinal = useCallback(async () => {
     setFinalSummary(null);

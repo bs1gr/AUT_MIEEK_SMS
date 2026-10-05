@@ -31,6 +31,7 @@ import axios, {
 import authService from '@/services/authService';
 import { formatLocalDate } from '@/utils/date';
 import { normalizeResponseToArray } from '@/utils/normalize';
+import { isDatabaseUnavailableError, setDatabaseUnavailable } from '@/utils/databaseAvailability';
 import type {
   Student,
   Course,
@@ -380,8 +381,18 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Any successful data request means the server reaches its database again.
+    // /health is excluded: it can answer while the database is still down.
+    if (!String(response.config?.url || '').includes('/health')) {
+      setDatabaseUnavailable(false);
+    }
+    return response;
+  },
   (error: AxiosError) => {
+    if (isDatabaseUnavailableError(error)) {
+      setDatabaseUnavailable(true);
+    }
     // Try to refresh access token once on 401, then retry original request
     const originalRequest = (error.config || {}) as AxiosRequestConfig & { _retry?: boolean };
     if (error.response) {

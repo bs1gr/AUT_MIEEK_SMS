@@ -275,7 +275,44 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     defining how students with multiple or no current enrolments appear. Provide bilingual labels
     and focused tests.
 16. **Make SQLite versus QNAP PostgreSQL storage behaviour explicit across deployment modes**
-    (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
+    — **in progress 2026-10-05; behaviour done, visibility and docs next.** The owner decided:
+    - **SMS Lite never runs on a local database while it is set up for QNAP.** It used to switch
+      to `sms_lite.db` "for this session" whenever QNAP was unreachable, or when the credentials
+      file was unreadable, saying so only in debug.log. A teacher's entries that day never
+      reached QNAP and vanished from view once QNAP was back.
+      - Now `backend/lite_db.py` shows a native, bilingual Retry/Cancel box and loops until QNAP
+        answers; Cancel quits.
+      - Without a credentials file, Lite is still a standalone install on SQLite.
+      - Verified on a frozen build: with credentials pointing at a dead port, the process
+        waits at the "SMS Lite — QNAP" dialog, nothing listens on :8000, no `sms_lite.db` is
+        created, and debug.log has the message.
+      - Tests: `test_lite_db.py` (7).
+    - **Docker keeps changes in the browser while QNAP is unreachable** (owner's choice over a
+      local-database-plus-merge design).
+      - The backend already answered 503 `DATABASE_UNAVAILABLE` for unhandled `OperationalError`.
+        But the attendance, grades and performance routers turn every exception into
+        `internal_server_error()`, so there an outage was a 500 and the change was lost.
+        `internal_server_error()` now hands a database `OperationalError` through.
+        Tests: `test_database_unavailable_writes.py` (they fail on the old code).
+      - Frontend: one `isOfflineError` (it was copied into three hooks) now also queues on 503
+        `DATABASE_UNAVAILABLE`.
+      - The student, attendance and grade queues flush through the shared
+        `useQueueFlushTriggers`: on mount, on `online`, when the database is back, and every
+        30 s. The browser stays online while only the database is down, so the `online` event
+        alone never fired.
+      - The API client sets the "database unavailable" state; `OfflineBanner` warns (EN/EL),
+        also in Lite/local mode, with the pending counts.
+      - Limit: a queue replays while its page is open, or the next time it is opened, as
+        before.
+    - Also fixed: the banner's pending counts were always singular ("2 attendance record").
+      `offline.js` used the i18next v3 `_plural` suffix, which v25 ignores; it is now `_other`.
+    - **Still to do:** show the active database (engine, host or file, shared or this machine)
+      in the System panel; the per-mode table (storage location, sharing, migrations, offline,
+      switching risks, safe setup); and the reconcile runbook. It runs
+      `migrate_sqlite_to_postgres` without `--no-truncate`, and the script's default
+      **truncates every QNAP table**. With `--no-truncate` it still inserts by raw id with
+      `ON CONFLICT DO NOTHING`, so it cannot merge into a live database.
+    Original report (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
     what happens when local SQLite is retained instead of connecting to QNAP PostgreSQL for SMS Lite,
     Docker SMS, and Capacitor. Specify per mode: storage location, whether data is shared or isolated,
     migration/initialisation behaviour, offline expectations, switching risks, and the safe
