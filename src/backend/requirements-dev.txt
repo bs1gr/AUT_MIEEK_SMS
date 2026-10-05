@@ -10,13 +10,13 @@ types-redis==4.6.0.20241004
 detect-secrets>=1.5.0
 ruff==0.16.10
 pytest-asyncio==1.4.0  # required for pytest>=9 support (0.23.5 capped pytest<9)
-mypy>=1.0.0
+mypy>=2.4.0
 aiosqlite==0.22.1
 httpx>=0.28.1
 python-multipart>=0.0.27
 protobuf>=6.0.0  # CVE-2026-0994 fixed in 6.x
-types-requests>=2.32.0.20241016
-pypdf>=6.9.1
+types-requests>=2.33.0.20260906
+pypdf>=6.19.0
 
 # Security constraints for development transitive dependencies
 filelock>=3.20.3
