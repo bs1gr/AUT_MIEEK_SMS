@@ -85,6 +85,21 @@ describe('useStudentsQuery hooks', () => {
       expect(state.error).toBeNull();
     });
 
+    it('loads every page, not just the first 100 students', async () => {
+      const page = (start: number, count: number): Student[] =>
+        Array.from({ length: count }, (_, i) => ({ ...sampleStudents[0], id: start + i, student_id: `S${start + i}` }));
+      const getAllSpy = vi
+        .spyOn(studentsAPI, 'getAll')
+        .mockResolvedValueOnce(page(1, 1000))
+        .mockResolvedValueOnce(page(1001, 250));
+      const queryClient = makeClient();
+      const { result } = renderHook(() => useStudents(), { wrapper: createWrapper(queryClient) });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(getAllSpy).toHaveBeenNthCalledWith(1, 0, 1000);
+      expect(getAllSpy).toHaveBeenNthCalledWith(2, 1000, 1000);
+      expect(result.current.data).toHaveLength(1250);
+    });
+
     it('applies search filter across first, last, email (case-insensitive)', async () => {
       vi.spyOn(studentsAPI, 'getAll').mockResolvedValueOnce(sampleStudents as Student[]);
       const queryClient = makeClient();

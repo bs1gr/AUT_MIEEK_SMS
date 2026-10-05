@@ -520,6 +520,17 @@ export const studentsAPI = {
     return normalizeResponseToArray<Student>(unwrapped);
   },
 
+  // Every student, page by page. getAll() alone returns the first `limit` (default 100);
+  // the backend serves at most 1000 per request.
+  getAllPages: async (pageSize = 1000): Promise<Student[]> => {
+    const all: Student[] = [];
+    for (let skip = 0; ; skip += pageSize) {
+      const page = await studentsAPI.getAll(skip, pageSize);
+      all.push(...page);
+      if (page.length < pageSize) return all;
+    }
+  },
+
   getById: async (id: number): Promise<Student> => {
     const response = await apiClient.get(`/students/${id}`);
     return unwrapResponse<Student>(response.data);

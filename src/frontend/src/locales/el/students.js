@@ -106,4 +106,12 @@ export default {
   healthIssues: 'Προβλήματα Υγείας',
   note: 'Σημειώσεις',
   studyYear: 'Έτος Σπουδών',
+  // Φίλτρα και ταξινόμηση λίστας σπουδαστών
+  filterAllYears: 'Όλες οι τάξεις',
+  filterAllDivisions: 'Όλα τα τμήματα',
+  filterNotSet: 'Χωρίς τιμή',
+  sortByName: 'Όνομα',
+  sortByDivision: 'Τμήμα τάξης',
+  sortByYear: 'Τάξη',
+  clearFilters: 'Καθαρισμός φίλτρων',
 };

@@ -245,7 +245,26 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     then deliberately kept all of them visible whenever enrollment checks were incomplete or found
     no active students. The selector now fails closed and admits only courses with active
     enrollments; frontend test/CI verification is pending the locked local frontend dependencies.
-15. **Students: add useful sorting/filtering by department and academic year** (reported
+15. ~~**Students: add useful sorting/filtering by department and academic year**~~ — **done 2026-10-05.**
+    - **Fields.** "Department" is `class_division` (Τμήμα Τάξης, e.g. A1, A2, B1) and "academic
+      year" is `academic_year` (A/B, shown as Τάξη Α/Β), going by the app's own Greek labels.
+      Both are fields on the student record, so how many current enrolments a student has
+      (several, or none) does not affect where they appear. Students missing a value are listed
+      under **Not set**.
+    - **Controls.** Above the list, the Students page now has three dropdowns: academic year,
+      class division, and sort by name, class division or academic year. The options come from
+      the values in use, sorted naturally (A2 before A10). Records without a value sort last. A
+      Clear button resets all three.
+    - **Defaults kept.** The page still opens with active students expanded and inactive
+      collapsed; the filters apply to both sections. Labels exist in EN and EL.
+    - **Tests.** `StudentsView.filters.test.tsx` (7 tests) renders with the real i18n instance
+      and includes a Greek case.
+    - **Found and fixed on the way: the page only ever loaded the first 100 students.**
+      `studentsAPI.getAll()` defaults to `limit=100`. The new `studentsAPI.getAllPages()` pages
+      1000 at a time (the backend maximum) and is now used by `useStudents` (the Students and
+      Attendance pages and the DevTools panel). `CoursesView`'s enrol-students list, which had
+      the same cap, uses it too.
+    Original report (reported
     2026-10-01). The Students list currently presents active students together. Add clear controls
     to sort and/or filter by department and academic year, preserving the active-student default and
     defining how students with multiple or no current enrolments appear. Provide bilingual labels

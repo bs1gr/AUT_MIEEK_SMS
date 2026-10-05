@@ -101,7 +101,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
   const loadAllStudents = useCallback(async () => {
     try {
-      const data = await studentsAPI.getAll();
+      // Every student, not just the first 100, so any student can be enrolled.
+      const data = await studentsAPI.getAllPages();
       // studentsAPI returns a normalized array; prefer array shape
       const studentsArray: StudentLite[] = Array.isArray(data) ? (data as StudentLite[]) : [];
       setAllStudents(studentsArray);

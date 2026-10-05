@@ -12,6 +12,33 @@ import StudentCard from './StudentCard';
 import type { StudentStats } from './studentTypes';
 import { eventBus, EVENTS } from '@/utils/events';
 
+// Filter values: '' = all, NOT_SET = students with no value in that field.
+const ALL = '';
+const NOT_SET = '__not_set__';
+type SortKey = 'name' | 'division' | 'year';
+
+const fieldValue = (value?: string | null): string => (value ?? '').trim();
+const naturalCompare = (a: string, b: string): number =>
+  a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+const byName = (a: Student, b: Student): number =>
+  `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`);
+// Students without a value sort after those with one.
+const byField = (field: 'academic_year' | 'class_division') => (a: Student, b: Student): number => {
+  const x = fieldValue(a[field]);
+  const y = fieldValue(b[field]);
+  if (!x || !y) return x ? -1 : y ? 1 : 0;
+  return naturalCompare(x, y);
+};
+const COMPARATORS: Record<SortKey, (a: Student, b: Student) => number> = {
+  name: byName,
+  division: (a, b) => byField('class_division')(a, b) || byName(a, b),
+  year: (a, b) => byField('academic_year')(a, b) || byField('class_division')(a, b) || byName(a, b),
+};
+const matchesFilter = (value: string, filter: string): boolean =>
+  filter === ALL || (filter === NOT_SET ? !value : value === filter);
+const distinctValues = (students: Student[], field: 'academic_year' | 'class_division'): string[] =>
+  Array.from(new Set(students.map((s) => fieldValue(s[field])).filter(Boolean))).sort(naturalCompare);
+
 interface StudentsViewProps {
   students: Student[];
   searchTerm?: string;
@@ -183,15 +210,30 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
   // notesById is derived via useMemo; no effect needed
 
+  const [yearFilter, setYearFilter] = useState<string>(ALL);
+  const [divisionFilter, setDivisionFilter] = useState<string>(ALL);
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const filtersActive = yearFilter !== ALL || divisionFilter !== ALL || sortKey !== 'name';
+
+  const yearOptions = useMemo(() => distinctValues(students || [], 'academic_year'), [students]);
+  const divisionOptions = useMemo(() => distinctValues(students || [], 'class_division'), [students]);
+  const hasMissingYear = useMemo(() => (students || []).some((s) => !fieldValue(s.academic_year)), [students]);
+  const hasMissingDivision = useMemo(() => (students || []).some((s) => !fieldValue(s.class_division)), [students]);
+
+  const yearLabel = (value: string): string =>
+    value === 'A' ? t('classA') : value === 'B' ? t('classB') : `${t('academicYear')} ${value}`;
+
   const filtered = useMemo(() => {
     const q = (resolvedSearch || '').toLowerCase();
-    if (!q) return students || [];
     return (students || []).filter((s) =>
-      `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) ||
-      String(s.student_id || '').toLowerCase().includes(q) ||
-      String(s.email || '').toLowerCase().includes(q)
+      (!q ||
+        `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) ||
+        String(s.student_id || '').toLowerCase().includes(q) ||
+        String(s.email || '').toLowerCase().includes(q)) &&
+      matchesFilter(fieldValue(s.academic_year), yearFilter) &&
+      matchesFilter(fieldValue(s.class_division), divisionFilter)
     );
-  }, [students, resolvedSearch]);
+  }, [students, resolvedSearch, yearFilter, divisionFilter]);
 
   const toggleExpand = useCallback((id: number): void => {
     const next = expandedId === id ? null : id;
@@ -244,11 +286,12 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       }
     });
 
+    const compare = COMPARATORS[sortKey];
     return {
-      active: active.sort((a, b) => `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)),
-      inactive: inactive.sort((a, b) => `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)),
+      active: active.sort(compare),
+      inactive: inactive.sort(compare),
     };
-  }, [filtered]);
+  }, [filtered, sortKey]);
 
   // Render cascaded section
   const renderCascadedSection = (title: string, students: Student[], sectionKey: 'active' | 'inactive') => {
@@ -322,6 +365,66 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           <span className="text-lg leading-none">+</span>
           <span className="hidden sm:inline">{t('addStudent')}</span>
         </button>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3" data-testid="student-filters">
+        <label className="flex min-w-[9rem] flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+          {t('academicYear')}
+          <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            className="mt-1 rounded border bg-white px-2 py-1.5 text-sm text-slate-800"
+            data-testid="student-year-filter"
+          >
+            <option value={ALL}>{t('filterAllYears')}</option>
+            {yearOptions.map((value) => (
+              <option key={value} value={value}>{yearLabel(value)}</option>
+            ))}
+            {hasMissingYear && <option value={NOT_SET}>{t('filterNotSet')}</option>}
+          </select>
+        </label>
+        <label className="flex min-w-[9rem] flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+          {t('classDivision')}
+          <select
+            value={divisionFilter}
+            onChange={(e) => setDivisionFilter(e.target.value)}
+            className="mt-1 rounded border bg-white px-2 py-1.5 text-sm text-slate-800"
+            data-testid="student-division-filter"
+          >
+            <option value={ALL}>{t('filterAllDivisions')}</option>
+            {divisionOptions.map((value) => (
+              <option key={value} value={value}>{value}</option>
+            ))}
+            {hasMissingDivision && <option value={NOT_SET}>{t('filterNotSet')}</option>}
+          </select>
+        </label>
+        <label className="flex min-w-[9rem] flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+          {t('sortBy')}
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="mt-1 rounded border bg-white px-2 py-1.5 text-sm text-slate-800"
+            data-testid="student-sort-select"
+          >
+            <option value="name">{t('sortByName')}</option>
+            <option value="division">{t('sortByDivision')}</option>
+            <option value="year">{t('sortByYear')}</option>
+          </select>
+        </label>
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={() => {
+              setYearFilter(ALL);
+              setDivisionFilter(ALL);
+              setSortKey('name');
+            }}
+            className="rounded px-3 py-1.5 text-sm text-indigo-700 hover:bg-indigo-50"
+            data-testid="student-filters-clear"
+          >
+            {t('clearFilters')}
+          </button>
+        )}
       </div>
 
       {/* Loading State with Skeleton */}

@@ -106,4 +106,12 @@ export default {
   healthIssues: 'Health Issues',
   note: 'Notes',
   studyYear: 'Year of Study',
+  // Students list filters and sorting
+  filterAllYears: 'All years',
+  filterAllDivisions: 'All divisions',
+  filterNotSet: 'Not set',
+  sortByName: 'Name',
+  sortByDivision: 'Class division',
+  sortByYear: 'Academic year',
+  clearFilters: 'Clear filters',
 };

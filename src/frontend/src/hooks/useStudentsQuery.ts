@@ -22,7 +22,7 @@ export const studentKeys = {
   detail: (id: number) => [...studentKeys.details(), id] as const,
 };
 
-// Fetch all students
+// Fetch all students (every page: getAll() alone used to cap the Students and Attendance pages at 100)
 export function useStudents(
   filters?: { search?: string; active?: boolean },
   queryOptions?: Partial<UseQueryOptions<Student[]>>
@@ -37,7 +37,7 @@ export function useStudents(
     queryFn: async () => {
       setLoading(true);
       try {
-      const students = await studentsAPI.getAll();
+        const students = await studentsAPI.getAllPages();
         // Apply filters client-side if needed
         let filteredStudents = students;
         if (filters?.search) {
