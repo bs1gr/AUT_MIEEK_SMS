@@ -1166,6 +1166,9 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                     settings.DATABASE_URL,
                     "--batch-size",
                     "1000",
+                    # A restore replaces the database: say so explicitly (the tool refuses a
+                    # non-empty destination otherwise).
+                    "--truncate",
                 ]
             )
 

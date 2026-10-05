@@ -72,6 +72,7 @@ export default {
   databaseTarget: 'Target',
   databaseEngine: 'Engine',
   databaseRemoteConnected: 'Remote DB connected (QNAP/VPN)',
+  databaseLocalOnly: 'Local database on this machine only - not shared with QNAP',
   connected: 'Connected',
   docker: 'Docker',
   online: 'Online',

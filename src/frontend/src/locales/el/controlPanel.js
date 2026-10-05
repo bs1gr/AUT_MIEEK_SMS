@@ -72,6 +72,7 @@ export default {
   databaseTarget: 'Στόχος',
   databaseEngine: 'Μηχανή',
   databaseRemoteConnected: 'Απομακρυσμένη ΒΔ συνδεδεμένη (QNAP/VPN)',
+  databaseLocalOnly: 'Τοπική βάση μόνο σε αυτό το μηχάνημα - δεν είναι κοινή με το QNAP',
   connected: 'Συνδεδεμένο',
   docker: 'Docker',
   online: 'Ενεργό',

@@ -48,9 +48,11 @@ Security note: For production workloads consider using a managed relational data
 ## Migrating existing data
 
 Use the `backend/scripts/migrate_sqlite_to_postgres.py` helper to copy data from
-an existing SQLite database into PostgreSQL. The script runs Alembic migrations,
-truncates the destination tables (unless `--no-truncate` is passed), and copies
-rows in configurable batches.
+an existing SQLite database into an **empty** PostgreSQL database. The script runs
+Alembic migrations and copies rows in configurable batches. It refuses a destination
+that already has data: pass `--truncate` to replace it (deletes everything there, as
+a backup restore does), or `--no-truncate` to append rows whose ids are free. It
+matches rows by id, so it cannot merge two databases that were edited separately.
 
 ```powershell
 cd backend

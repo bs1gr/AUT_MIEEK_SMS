@@ -80,11 +80,20 @@ def _parse_arguments(argv: Sequence[str]) -> argparse.Namespace:
         nargs="*",
         help="Optional list of table names to migrate (defaults to all tables)",
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--truncate",
+        dest="truncate",
+        action="store_true",
+        help="DESTROYS all data in the destination tables, then copies. Use only to replace a database "
+        "(e.g. restoring a backup). Without --truncate or --no-truncate a non-empty destination is refused.",
+    )
+    mode.add_argument(
         "--no-truncate",
         dest="no_truncate",
         action="store_true",
-        help="Append-only mode. Skip truncating target tables before copying data.",
+        help="Append-only mode: insert rows whose keys are free, silently skip the rest. This matches rows "
+        "by id, so it cannot merge two databases that were edited separately.",
     )
     parser.add_argument(
         "--skip-migrations",
@@ -155,6 +164,15 @@ def _truncate_tables(conn: Connection, tables: Sequence[Table]) -> None:
     quoted = ", ".join(_quote_ident(table.name) for table in tables)
     LOGGER.info("Truncating destination tables: %s", quoted)
     conn.execute(text(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE"))
+
+
+def _non_empty_tables(conn: Connection, tables: Sequence[Table]) -> list[str]:
+    """Names of the given tables that already hold at least one row."""
+    return [
+        table.name
+        for table in tables
+        if conn.execute(sa.select(sa.literal(1)).select_from(table).limit(1)).first() is not None
+    ]
 
 
 def _filter_existing_destination_tables(conn: Connection, tables: Sequence[Table]) -> tuple[list[Table], list[str]]:
@@ -294,8 +312,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     LOGGER.info("Target PostgreSQL URL: %s", postgres_url.split("@", 1)[-1])
     if args.dry_run:
         LOGGER.info("Dry-run enabled. No changes will be written to PostgreSQL.")
-    if not args.no_truncate and not args.dry_run:
-        LOGGER.info("Destination tables will be truncated before copying data.")
+    if args.truncate and not args.dry_run:
+        LOGGER.warning("--truncate: ALL data in the destination tables will be deleted before copying.")
 
     if not args.skip_migrations and not args.dry_run:
         try:
@@ -341,8 +359,22 @@ def main(argv: Sequence[str] | None = None) -> int:
                 LOGGER.warning("No selected tables exist in destination PostgreSQL schema. Nothing to do.")
                 return 0
 
-            if not args.no_truncate:
+            if args.truncate:
                 _truncate_tables(dest_conn, tables_for_dest)
+            elif not args.no_truncate:
+                # The default used to be TRUNCATE: one run without --no-truncate against the live
+                # QNAP database (as the reconcile runbook said) would have replaced all of it.
+                occupied = _non_empty_tables(dest_conn, tables_for_dest)
+                if occupied:
+                    LOGGER.error(
+                        "Destination already has data in %s table(s): %s. This tool copies into an EMPTY "
+                        "database; it cannot merge two databases (rows are matched by id). Re-run with "
+                        "--truncate to REPLACE all destination data, or --no-truncate to append rows whose "
+                        "ids are free. Nothing was changed.",
+                        len(occupied),
+                        ", ".join(occupied),
+                    )
+                    return 4
 
             source_table_columns = {
                 table.name: _get_table_column_names(source_conn, table.name) for table in tables_for_dest

@@ -32,7 +32,16 @@ def _build_database_target_evidence() -> dict:
     """Build non-sensitive database target details for health overlays."""
     from backend.config import settings
 
-    engine_name = str(getattr(settings, "DATABASE_ENGINE", "unknown") or "unknown").lower()
+    # The URL in use decides the engine. SMS Lite on QNAP sets a PostgreSQL DATABASE_URL but
+    # leaves DATABASE_ENGINE at its "sqlite" default, so the setting alone misreported it.
+    db_url = str(getattr(settings, "DATABASE_URL", "") or "")
+    scheme = db_url.split(":", 1)[0].lower()
+    if scheme.startswith("postgresql"):
+        engine_name = "postgresql"
+    elif scheme.startswith("sqlite"):
+        engine_name = "sqlite"
+    else:
+        engine_name = str(getattr(settings, "DATABASE_ENGINE", "unknown") or "unknown").lower()
     details: dict[str, object] = {
         "engine": engine_name,
         "host": None,
@@ -47,11 +56,11 @@ def _build_database_target_evidence() -> dict:
         port = getattr(settings, "POSTGRES_PORT", None)
         db_name = getattr(settings, "POSTGRES_DB", None)
 
-        if not host and getattr(settings, "DATABASE_URL", None):
+        if db_url:
             try:
-                parsed = urlparse(str(settings.DATABASE_URL))
-                host = parsed.hostname
-                port = parsed.port
+                parsed = urlparse(db_url)
+                host = parsed.hostname or host
+                port = parsed.port or port
                 db_name = parsed.path.lstrip("/") or db_name
                 details["driver"] = parsed.scheme
             except Exception:

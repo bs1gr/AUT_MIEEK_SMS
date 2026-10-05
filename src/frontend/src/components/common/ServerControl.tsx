@@ -645,6 +645,14 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
               {t('databaseRemoteConnected')}
             </div>
           )}
+          {databaseTarget?.engine === 'sqlite' && (
+            <div
+              className="mt-1 inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
+              data-testid="db-local-only"
+            >
+              {t('databaseLocalOnly')}
+            </div>
+          )}
         </div>
         <div className="rounded-lg border p-3">
           <div className="text-xs text-gray-500">{t('students')}</div>

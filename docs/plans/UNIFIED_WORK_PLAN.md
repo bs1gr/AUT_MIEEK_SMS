@@ -274,8 +274,8 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     to sort and/or filter by department and academic year, preserving the active-student default and
     defining how students with multiple or no current enrolments appear. Provide bilingual labels
     and focused tests.
-16. **Make SQLite versus QNAP PostgreSQL storage behaviour explicit across deployment modes**
-    — **in progress 2026-10-05; behaviour done, visibility and docs next.** The owner decided:
+16. ~~**Make SQLite versus QNAP PostgreSQL storage behaviour explicit across deployment modes**~~
+    — **done 2026-10-05** (`10c841c53` behaviour, then visibility and docs). The owner decided:
     - **SMS Lite never runs on a local database while it is set up for QNAP.** It used to switch
       to `sms_lite.db` "for this session" whenever QNAP was unreachable, or when the credentials
       file was unreadable, saying so only in debug.log. A teacher's entries that day never
@@ -306,13 +306,30 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
         before.
     - Also fixed: the banner's pending counts were always singular ("2 attendance record").
       `offline.js` used the i18next v3 `_plural` suffix, which v25 ignores; it is now `_other`.
-    - **Still to do:** show the active database (engine, host or file, shared or this machine)
-      in the System panel; the per-mode table (storage location, sharing, migrations, offline,
-      switching risks, safe setup); and the reconcile runbook. It runs
-      `migrate_sqlite_to_postgres` without `--no-truncate`, and the script's default
-      **truncates every QNAP table**. With `--no-truncate` it still inserts by raw id with
-      `ON CONFLICT DO NOTHING`, so it cannot merge into a live database.
-    Original report (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
+    - **Visibility.**
+      - The health payload now takes the engine from the URL in use. Lite on QNAP sets a
+        PostgreSQL URL but leaves `DATABASE_ENGINE=sqlite`, so the System page used to show it
+        as SQLite with no target.
+      - The System page now marks SQLite with an amber "Local database on this machine only"
+        badge, next to the existing green "Remote DB connected (QNAP/VPN)" badge.
+      - Tests: `test_health.py` and `ServerControl.test.tsx`.
+    - **Docs.** `QNAP_POSTGRES_SINGLE_SOURCE.md` has a per-mode table: Lite with and without
+      credentials, Docker with and without PostgreSQL, Native, and Android. For each it covers
+      storage location, sharing, what happens when QNAP is unreachable, migrations, switching
+      risks and safe setup.
+    - **Migration tool made safe.** `QNAP_RECONCILE_RUNBOOK.md` said to run
+      `migrate_sqlite_to_postgres` against the live QNAP database without `--no-truncate`, and
+      the script's default then truncated every QNAP table.
+      - The script now refuses a non-empty destination unless `--truncate` (replace) or
+        `--no-truncate` (append) is given.
+      - The Control Panel's SQLite-backup restore into PostgreSQL passes `--truncate`
+        explicitly, so a restore still replaces.
+      - The runbook is rewritten: the tool cannot merge, and the recovery path for old Lite
+        fallback data goes through the app's import or re-entry.
+      - Tests: `test_migrate_sqlite_to_postgres_safety.py`.
+    - Not changed: Docker without PostgreSQL settings still starts on its SQLite volume, with
+      the System-page badge. Refusing to start would change the default compose file's
+      standalone SQLite setup, so that is left to the owner.    Original report (reported 2026-10-01). Document and make distinguishable, in the applicable configuration/UI,
     what happens when local SQLite is retained instead of connecting to QNAP PostgreSQL for SMS Lite,
     Docker SMS, and Capacitor. Specify per mode: storage location, whether data is shared or isolated,
     migration/initialisation behaviour, offline expectations, switching risks, and the safe
