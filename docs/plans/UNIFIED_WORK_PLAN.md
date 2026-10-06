@@ -1,10 +1,33 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.50
+**Current Version**: 1.18.51
 **Last Updated**: October 6, 2026
-**Status**: ✅ **v1.18.50 released 2026-09-29** (tag on `75e39a892`). Self-registration now needs an administrator's approval, and approval emails the user (see the 2026-09-28 section). The first-login password dialog is now in Greek (see the smoke-test section). A full smoke test of every mode ran first.
+**Status**: ✅ **v1.18.51 released 2026-10-06** (tag on `5a1427229`). It ships everything from 2026-10-01 to 2026-10-06: the Capacitor 7.6.9 security fix (install the new APK on every phone), the Docker SQLite→QNAP merge fix, Lite fail-closed for QNAP, the browser queue during QNAP outages, the i18n sweep, Students filters, the Outlook panel, and the Tailwind 4 migration with its follow-ups.
 
-Verified on the published assets:
+Verified on the published v1.18.51 assets:
+- The installer's Authenticode signature is Valid (AUT MIEEK, timestamped, `v1.18.51`), and both SHA-256 hashes match GitHub's digests.
+- The APK manifest reports `1.18.51` (`versionCode 118051`), with the web assets bundled.
+- The release, installer, APK, wiki-sync and asset-sanitizer workflows passed. The release notes
+  carry a hand-written Highlights section.
+- Smoke test before tagging:
+  - Frozen `SMS_Lite` from the release candidate, fresh profile:
+    - healthy in 20 s;
+    - the default admin gets 403 until the password change, then 200; anonymous requests 401;
+    - UI served with no failed static files or page errors, and the new CSS live;
+    - scheduled shutdown after 31 s, with all 1209 install files intact.
+  - Web, dev-server and Android builds screenshot-checked.
+  - Docker image built in CI; E2E green.
+- **CI on the release commit failed, fixed after the tag.** `RELEASE_READY.ps1` regenerated
+  `src/frontend/package-lock.json` with `npm install --package-lock-only`. That added nested
+  `inBundle` entries under `@tailwindcss/oxide-wasm32-wasi`, and CI's `npm ci` (Node 22)
+  rejected them, so frontend lint and the frontend security scan failed. The released assets
+  were unaffected: they built in their own workflows. The lockfile is back to the CI-proven one
+  with only the version changed. The release script now updates just the two root `version`
+  fields, as `scripts/bump-version.ps1` does. The `v1.18.51` tag keeps the old lockfile (tags
+  are immutable).
+
+v1.18.50 (2026-09-29), tag on `75e39a892`: self-registration needs an administrator's approval,
+and approval emails the user. Verified on its published assets:
 - The installer's Authenticode signature is Valid (AUT MIEEK, DigiCert-timestamped, `v1.18.50`), and its hash matches GitHub's digest.
 - The APK manifest reports `1.18.50` (`versionCode 118050`), and its hash matches too.
 - CI/CD, E2E, the release, installer, APK and wiki-sync workflows all passed.

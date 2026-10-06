@@ -205,17 +205,22 @@ function Update-VersionReferences {
     # Update frontend/package.json
     (Get-Content "src/frontend/package.json") -replace '"version":\s*"[0-9\.]+"', ('"version": "' + $NewVersion + '"') | Set-Content "src/frontend/package.json"
 
-    # Regenerate frontend/package-lock.json
-    if (Test-Path "src/frontend/package-lock.json") {
-        Write-Host "Regenerating frontend/package-lock.json..."
-        Push-Location "src/frontend"
-        try {
-            npm install --package-lock-only --ignore-scripts --no-audit | Out-Null
-        } catch {
-            Write-Warning "Could not regenerate package-lock.json: $_"
-        } finally {
-            Pop-Location
-        }
+    # Update frontend/package-lock.json: the two root "version" fields only (root object and
+    # packages.""), as scripts/bump-version.ps1 does. This used to run
+    # `npm install --package-lock-only`, which re-resolved the whole tree: for v1.18.51 it added
+    # nested inBundle entries under @tailwindcss/oxide-wasm32-wasi that CI's `npm ci` rejected.
+    $lockPath = "src/frontend/package-lock.json"
+    if (Test-Path $lockPath) {
+        $script:lockVersionsReplaced = 0
+        $lockRaw = [IO.File]::ReadAllText((Resolve-Path $lockPath))
+        $lockNew = [regex]::Replace($lockRaw, '"version":\s*"v?\d+\.\d+\.\d+"', {
+            param($m)
+            $script:lockVersionsReplaced++
+            if ($script:lockVersionsReplaced -le 2) { return "`"version`": `"$NewVersion`"" }
+            return $m.Value
+        })
+        [IO.File]::WriteAllText((Resolve-Path $lockPath), $lockNew)
+        Write-Host "Updated frontend/package-lock.json root version to $NewVersion"
     }
 
     # Update DOCUMENTATION_INDEX.md
