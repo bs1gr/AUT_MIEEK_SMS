@@ -120,13 +120,33 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
   `seroval`, so the browser-side devtools never load it. The production bundle contains no
   devtools, `solid-js` or `seroval` code: TanStack swaps in a no-op outside development
   (checked in `dist`). Remove the override once `solid-js` allows `seroval` ≥ 1.6.3.
-- `npm audit --omit=dev` now reports 0 vulnerabilities.
-- **Left open, dev tooling only:** the full audit still lists `braces` (no fixed version
-  exists), `micromatch`, `fast-glob`, `chokidar`, `postcss-selector-parser` < 7.1.6 and
-  `eslint-plugin-vitest` → `@typescript-eslint` ≤ 8.2. Nearly all of it arrives through
-  `tailwindcss` 3. These are build-time denial-of-service issues in tools that don't ship,
-  and they predate this change. Fixing them means moving to Tailwind 4 and replacing
-  `eslint-plugin-vitest`; both are owner decisions.
+- `npm audit --omit=dev` now reports 0 vulnerabilities (`3af07f998`; CI and E2E green).
+
+**2026-10-06, later: four Dependabot alerts on development dependencies.**
+- **#281 `source-map-js` 1.2.1 (high, root lockfile, via `css-tree`).** Dependabot PR **#256**
+  bumps it to 1.2.2; its only failing check is auto-approve (todo 8). **Owner: approve and
+  merge #256.** Claude's attempt to approve and merge it was blocked by the permission
+  classifier, so the bump was deliberately not repeated locally.
+- **#283 `smol-toml` < 1.9.0 (medium) and #282 `katex` < 0.18.2 (low), root lockfile.** Both come
+  in through `markdownlint-cli@0.49.1`, which is the latest release and still pins
+  `smol-toml ~1.7.0` and (through `micromark-extension-math`) `katex ^0.16`. Root overrides now
+  take `smol-toml` to `^1.9.0` and `katex` to `^0.18.2`, as for the other root overrides.
+  markdownlint only parses math; KaTeX is loaded but never called. Verified in a scratch
+  install: markdownlint 0.49.1 over every `**/*.md` with the repo config exits 0 with 0
+  findings, its API lints math blocks, and smol-toml parses a TOML config.
+- **#284 `postcss-selector-parser` < 7.1.6 (medium, frontend).** Its dependents are
+  `tailwindcss` 3.4.19 and `postcss-nested` 6.2.0, both on `^6`, and 6.x has no fix.
+  Dependabot's PR **#257** moves to Tailwind 4 and fails COMMIT_READY and Vitest. Instead, an
+  override takes it to `^7.1.6`; 7.0.0's only breaking change is safe insertion during
+  iteration. The built CSS is **byte-identical** to the 6.1.4 build (both files), with the
+  same four existing CSS warnings. #257 should close itself once the alert clears; the
+  Tailwind 4 migration stays an owner decision.
+- **Left open, dev tooling only:** the full frontend audit still lists 9 high findings,
+  `braces` (no fixed version exists), `micromatch`, `fast-glob`, `chokidar` and
+  `eslint-plugin-vitest` → `@typescript-eslint` ≤ 8.2. They come in through `tailwindcss` 3
+  and `eslint-plugin-vitest`, are build-time denial-of-service issues in tools that don't
+  ship, predate this work, and raise no GitHub alerts. Fixing them means moving to
+  Tailwind 4 and replacing `eslint-plugin-vitest`; both are owner decisions.
 
 **Dependabot PRs (2026-10-05, owner: "fix as recommended"):**
 - **Merged:** #253 (pip minor/patch group, 33 updates) and #255 (npm minor/patch group, 177

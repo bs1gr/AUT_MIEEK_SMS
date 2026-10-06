@@ -138,6 +138,7 @@
     "solid-js": {
       "seroval": "^1.6.8",
       "seroval-plugins": "^1.6.8"
-    }
+    },
+    "postcss-selector-parser": "^7.1.6"
   }
 }
