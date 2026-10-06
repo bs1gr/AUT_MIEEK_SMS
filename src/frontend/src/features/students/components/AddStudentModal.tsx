@@ -261,7 +261,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                       value={field.value || ''}
                       onChange={(e) => field.onChange(e.target.value)}
                     >
-                      <option value="">{t('pleaseSelect')}</option>
+                      <option value="">{t('selectAcademicYear')}</option>
                       <option value="A">{t('classA')}</option>
                       <option value="B">{t('classB')}</option>
                     </select>

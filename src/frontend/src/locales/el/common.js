@@ -139,6 +139,7 @@ export default {
    academicYear: 'Ακαδημαϊκό Έτος',
    classA: 'Τάξη Α',
    classB: 'Τάξη Β',
+   selectAcademicYear: 'Επιλέξτε τάξη',
    classDivision: 'Τμήμα Τάξης',
    classDivisionPlaceholder: 'π.χ., A1, A2, B1',
   basedOn: 'Με βάση',

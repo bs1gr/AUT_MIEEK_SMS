@@ -139,6 +139,7 @@ export default {
   academicYear: 'Academic Year',
   classA: 'Class A',
   classB: 'Class B',
+  selectAcademicYear: 'Select academic year',
   classDivision: 'Class Division',
   classDivisionPlaceholder: 'e.g., A1, A2, B1',
   basedOn: 'Based on',

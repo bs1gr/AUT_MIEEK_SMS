@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AddStudentModal from './AddStudentModal';
 import { LanguageProvider } from '@/LanguageContext';
@@ -59,6 +59,15 @@ describe('AddStudentModal', () => {
 
       expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /add student/i })).toBeInTheDocument();
+    });
+
+    it('labels the empty academic year option for that field', () => {
+      renderWithProviders(<AddStudentModal onClose={mockOnClose} onAdd={mockOnAdd} />);
+
+      // It used to reuse the grading key "Please select a student and course".
+      const select = screen.getByTestId('academic-year-select');
+      expect(within(select).getByRole('option', { name: 'Select academic year' })).toHaveValue('');
+      expect(select).not.toHaveTextContent(/student and course/i);
     });
 
     it('sets default enrollment date to today', () => {

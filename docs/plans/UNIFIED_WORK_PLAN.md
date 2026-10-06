@@ -217,6 +217,10 @@ real.
 4. `tests/e2e/pwa.spec.ts` is skipped as a whole; two of its tests check the install prompt and
    `mobile.css`, both deleted.
 
+**Fixed, found by the screenshots:** the Add and Edit Student modals' Academic Year dropdown
+offered "Please select a student and course" (`pleaseSelect`, a grading message) as its empty
+option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`selectAcademicYear`), with a test.
+
 **Dependabot PRs (2026-10-05, owner: "fix as recommended"):**
 - **Merged:** #253 (pip minor/patch group, 33 updates) and #255 (npm minor/patch group, 177
   updates; it includes the postcss bump that the old override used to block).
