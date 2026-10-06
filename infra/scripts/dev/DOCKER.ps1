@@ -1232,8 +1232,31 @@ function Get-ComposeServiceStatus {
     }
 }
 
+function Skip-SqliteMigrationIntoOccupiedDatabase {
+    # PostgreSQL already holds data, so the migration tool refused and changed nothing. Leave the
+    # SQLite file in place, say so, and remember this source snapshot so later starts don't retry.
+    param(
+        [string]$TriggerDir,
+        [string]$MarkerFile,
+        [string]$Fingerprint,
+        [string]$SourceDescription
+    )
+
+    Write-Warning "PostgreSQL already holds data, so the local SQLite database ($SourceDescription) was NOT copied into it. Nothing was changed on either side."
+    Write-Warning "To bring individual records across, use the app's import/export (docs/deployment/QNAP_RECONCILE_RUNBOOK.md)."
+    try {
+        if (-not (Test-Path $TriggerDir)) {
+            New-Item -ItemType Directory -Path $TriggerDir -Force | Out-Null
+        }
+        Set-Content -Path $MarkerFile -Value $Fingerprint -NoNewline
+    } catch {
+        Write-Warning "Failed to record the skipped SQLite migration: $_"
+    }
+    return $true
+}
+
 function Invoke-SqliteToPostgresMigration {
-    $dbUrl = if ($script:EffectiveDatabaseUrl) { $script:EffectiveDatabaseUrl } else { Get-EnvVarValue -Name "DATABASE_URL" }
+    $dbUrl =if ($script:EffectiveDatabaseUrl) { $script:EffectiveDatabaseUrl } else { Get-EnvVarValue -Name "DATABASE_URL" }
     if (-not $dbUrl -or -not $dbUrl.Trim().ToLower().StartsWith("postgresql")) {
         return $true
     }
@@ -1279,6 +1302,10 @@ function Invoke-SqliteToPostgresMigration {
 
     $triggerDir = Join-Path $PROJECT_ROOT "data\.triggers"
     $markerFile = Join-Path $triggerDir "sqlite_to_postgres.auto.migrated"
+    $skippedMarkerFile = Join-Path $triggerDir "sqlite_to_postgres.auto.skipped"
+    $sourceDescription = if ($useHostSqlite) { $sqlitePath } else { "Docker volume '$sqliteVolumeName': $sqliteVolumePath" }
+    # migrate_sqlite_to_postgres exits 4 when the destination already holds data.
+    $destinationNotEmptyExitCode = 4
 
     if (Test-Path $markerFile) {
         try {
@@ -1287,9 +1314,20 @@ function Invoke-SqliteToPostgresMigration {
                 Write-Info "SQLite→PostgreSQL auto-migration already recorded for current source snapshot. Skipping."
                 return $true
             }
-            Write-Warning "SQLite migration marker exists but source snapshot changed; migration will run again in append-safe mode."
+            Write-Warning "SQLite migration marker exists but the source changed; checking again (data is only ever copied into an empty PostgreSQL database)."
         } catch {
-            Write-Warning "Could not read migration marker. Proceeding with append-safe migration."
+            Write-Warning "Could not read migration marker. Checking again (data is only ever copied into an empty PostgreSQL database)."
+        }
+    }
+
+    if (Test-Path $skippedMarkerFile) {
+        try {
+            if ((Get-Content $skippedMarkerFile -Raw -ErrorAction Stop).Trim() -eq $sourceFingerprint) {
+                Write-Info "Local SQLite data ($sourceDescription) is not in PostgreSQL: it was not copied because PostgreSQL already holds data. See docs/deployment/QNAP_RECONCILE_RUNBOOK.md."
+                return $true
+            }
+        } catch {
+            Write-Warning "Could not read the skipped-migration marker. Checking again."
         }
     }
 
@@ -1331,16 +1369,19 @@ function Invoke-SqliteToPostgresMigration {
         $migrateCmd += @("-v", "${sqliteVolumeName}:/sqlite_data:ro")
     }
 
+    # No --no-truncate: without it the tool copies only into an EMPTY database. Appending used to
+    # merge this host's own SQLite (its users, students, grades) into the shared QNAP database on
+    # the first start with the remote profile.
     $migrateCmd += @(
         $IMAGE_TAG,
         "-m", "backend.scripts.migrate_sqlite_to_postgres",
         "--sqlite-path", $(if ($useHostSqlite) { "/data/student_management.db" } else { $sqliteVolumePath }),
-        "--postgres-url", $dbUrl,
-        "--no-truncate"
+        "--postgres-url", $dbUrl
     )
 
     $output = & docker @migrateCmd 2>&1
-    if ($LASTEXITCODE -ne 0) {
+    $migrationExit = $LASTEXITCODE
+    if ($migrationExit -ne 0) {
         $outputText = ($output | Out-String)
         $isAuthIssue = (
             $outputText -match 'password authentication failed for user' -or
@@ -1352,14 +1393,19 @@ function Invoke-SqliteToPostgresMigration {
             if (Invoke-SingleModePostgresCredentialRepair) {
                 Write-Info "Retrying SQLite migration after credential repair..."
                 $output = & docker @migrateCmd 2>&1
+                $migrationExit = $LASTEXITCODE
                 $outputText = ($output | Out-String)
-                if ($LASTEXITCODE -eq 0) {
+                if ($migrationExit -eq 0) {
                     Write-Success "SQLite migration succeeded after PostgreSQL credential repair"
                 }
             }
         }
 
-        if ($LASTEXITCODE -ne 0) {
+        if ($migrationExit -eq $destinationNotEmptyExitCode) {
+            return (Skip-SqliteMigrationIntoOccupiedDatabase -TriggerDir $triggerDir -MarkerFile $skippedMarkerFile -Fingerprint $sourceFingerprint -SourceDescription $sourceDescription)
+        }
+
+        if ($migrationExit -ne 0) {
         $isSourceAccessIssue = (
             $outputText -match 'sqlite3\.OperationalError:\s+unable to open database file' -or
             $outputText -match 'sqlalchemy\.exc\.OperationalError: \(sqlite3\.OperationalError\) unable to open database file' -or
@@ -1398,14 +1444,17 @@ function Invoke-SqliteToPostgresMigration {
                                 $IMAGE_TAG,
                                 "-m", "backend.scripts.migrate_sqlite_to_postgres",
                                 "--sqlite-path", "/data/$stagedFilename",
-                                "--postgres-url", $dbUrl,
-                                "--no-truncate"
+                                "--postgres-url", $dbUrl
                             )
 
                             $retryOutput = & docker @retryCmd 2>&1
-                            if ($LASTEXITCODE -eq 0) {
+                            $retryExit = $LASTEXITCODE
+                            if ($retryExit -eq 0) {
                                 Write-Success "SQLite migration retry from staged host copy completed successfully"
                                 return $true
+                            }
+                            if ($retryExit -eq $destinationNotEmptyExitCode) {
+                                return (Skip-SqliteMigrationIntoOccupiedDatabase -TriggerDir $triggerDir -MarkerFile $skippedMarkerFile -Fingerprint $sourceFingerprint -SourceDescription $sourceDescription)
                             }
 
                             Write-Warning "SQLite migration retry from staged host copy failed"

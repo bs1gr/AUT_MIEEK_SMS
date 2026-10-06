@@ -36,10 +36,20 @@ database on this machine only" badge.
 upgrade QNAP's schema when a newer version first connects. Back up QNAP before installing a new
 version.
 
-**Switching an install between SQLite and QNAP moves no data.**
+**Switching an install between SQLite and QNAP moves no data into a database that is in use.**
 - Adding a credentials file to a Lite install makes it show QNAP's data; the old
   `sms_lite.db` stays untouched in AppData. Removing the file brings back that old, stale local
   data.
+- Docker: when `DOCKER.ps1 -Start` runs with PostgreSQL settings and finds a local SQLite
+  database (`data\student_management.db`, or one in the `sms_data` volume), it copies it into
+  PostgreSQL **only if PostgreSQL is empty**. That covers a first move to a new database.
+  - If PostgreSQL already holds data (QNAP in use), the start warns that the local database was
+    NOT copied, leaves it untouched and continues. `data\.triggers\sqlite_to_postgres.auto.skipped`
+    records this, and later starts only mention it.
+  - Before 2026-10-06 the start appended every local row whose id was free, so a Docker host
+    that had run on SQLite merged its own users, students and grades into QNAP on its first
+    remote start. Installs older than v1.18.51 still do. Before switching such an install to
+    QNAP, stop it and rename its SQLite file (for example to `*.local-only`).
 - To move data, copy a local database into an **empty** PostgreSQL database
   (`migrate_sqlite_to_postgres`, below), or use the app's import/export.
 

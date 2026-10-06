@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.50
-**Last Updated**: October 5, 2026
+**Last Updated**: October 6, 2026
 **Status**: ✅ **v1.18.50 released 2026-09-29** (tag on `75e39a892`). Self-registration now needs an administrator's approval, and approval emails the user (see the 2026-09-28 section). The first-login password dialog is now in Greek (see the smoke-test section). A full smoke test of every mode ran first.
 
 Verified on the published assets:
@@ -373,6 +373,34 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
     a `JSONResponse`, so every response passed through unchanged. Its unit test only passed by
     calling `dispatch()` with a hand-made `JSONResponse`. Removing it changes no behaviour. The
     `meta.version` test for real error envelopes moved to `test_response_schemas.py`.
+18. ~~**`DOCKER.ps1 -Start` merged a host's own SQLite into QNAP**~~ — **fixed 2026-10-06.**
+    - **Found 2026-09-29** while planning the laptop's Docker-to-QNAP access, and recorded only
+      in session notes until now.
+    - **The bug.** With PostgreSQL settings, `Invoke-SqliteToPostgresMigration` copies a local
+      SQLite database (`data\student_management.db`, or the largest one in the `sms_data` volume)
+      into PostgreSQL before every start, and it passed `--no-truncate`. A Docker install that
+      had run on SQLite (the installer's `-Silent` default) therefore appended every local row
+      whose id was free into the shared QNAP database on its first remote start: its own users,
+      students and grades. There was no opt-out. Todo 16 made the tool refuse a non-empty
+      destination by default, but the explicit `--no-truncate` bypassed that.
+    - **The fix.** Both migration calls now use the tool's default, which copies only into an
+      empty database and exits 4 otherwise. On 4, startup continues, warns that the local database
+      was NOT copied, leaves it untouched, and writes `data\.triggers\sqlite_to_postgres.auto.skipped`.
+      Later starts with the same source only mention it. A first move into a new, empty
+      PostgreSQL still copies as before.
+    - **Also fixed:** the exit code is read straight after each `docker` call. A failed credential
+      repair used to leave `$LASTEXITCODE` from the repair's own commands, which could pass a
+      failed migration as a success.
+    - **Tests.** `test_docker_ps1_sqlite_automigration.py` runs the real function from DOCKER.ps1
+      under `pwsh` with a stub `docker`. It covers an empty destination (copied and archived,
+      no `--no-truncate`), a destination with data (SQLite untouched, not retried), and other
+      failures (startup stops). Against the old script, the first two fail. The test is skipped
+      where `pwsh` is missing; the CI runners have it.
+    - **Docs.** The `QNAP_POSTGRES_SINGLE_SOURCE.md` switching section and the reconcile
+      runbook now describe this.
+    - **Owner, until v1.18.51 is installed:** the laptop's installed Docker app (v1.18.50) still
+      merges. Before its first start with the remote profile, stop it and rename the SQLite file
+      in the `sms_data` volume to `*.local-only`.
 
 ---
 

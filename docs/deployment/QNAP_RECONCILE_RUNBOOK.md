@@ -23,7 +23,12 @@ Full policy: `QNAP_POSTGRES_SINGLE_SOURCE.md` (includes the per-deployment-mode 
   with a credentials file does not start without QNAP, so new fallback data is no longer
   created.
 - **An install deliberately run on SQLite** (Lite without a credentials file, or Docker without
-  PostgreSQL settings) that should now join QNAP.
+  PostgreSQL settings) that should now join QNAP. When such a Docker install is switched to
+  QNAP, `DOCKER.ps1 -Start` warns that its local database was NOT copied (QNAP already has data)
+  and leaves it in `data\student_management.db` or the `sms_data` volume.
+- **A Docker install switched to QNAP before v1.18.51.** Its first start appended the local
+  SQLite rows whose ids were free into QNAP. Look on QNAP for users, students or courses nobody
+  at the school created.
 - **Docker during a QNAP outage keeps nothing locally.** Changes wait in the browser and are sent
   by the app itself when QNAP is back; no runbook is needed.
 
