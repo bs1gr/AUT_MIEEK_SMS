@@ -547,6 +547,46 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
     - **Owner, until v1.18.51 is installed:** the laptop's installed Docker app (v1.18.50) still
       merges. Before its first start with the remote profile, stop it and rename the SQLite file
       in the `sms_data` volume to `*.local-only`.
+19. **Future: host the backend on a free cloud VM so the Android app does not depend on a
+    home machine — research first, no implementation yet** (raised 2026-10-06). The owner's
+    rule: cloud migration is a difficult task, so it starts only after a thorough study of the
+    host's limitations and of what the move would expose. The candidate under consideration is
+    an Oracle Cloud Always Free ARM VM (Frankfurt), running the single-image Docker stack plus
+    Tailscale to the QNAP PostgreSQL. If latency is a problem, Postgres would move onto the VM
+    and the QNAP would become the backup target. The Android app must never talk to PostgreSQL
+    directly: only the backend holds the database credentials.
+    - **Research to complete before deciding:**
+      - *Host limits.* Free-tier terms as they stand at the time, and how they change. Oracle's
+        reclamation of idle instances, ARM capacity in Frankfurt, egress caps, account
+        suspension risk, and whether there is any SLA. Compare at least Oracle, GCP e2-micro and
+        a PaaS (Render or Koyeb) against these.
+      - *Exposure.* What becomes reachable, and by whom: Tailscale-only versus a public port,
+        HTTPS (`tailscale serve`/Funnel or a reverse proxy), Oracle security lists, SSH
+        hardening, and secrets on a third-party host. The QNAP DB password is in the public repo
+        (see the 2026-09-29 notes) and must be rotated before any of this.
+      - *Data protection.* Student personal data on a third-party provider means GDPR: an EU
+        region, the provider's data-processing terms, and whether ΜΙΕΕΚ policy allows it.
+      - *Latency and availability.* Per-request round trips from the VM to the QNAP over
+        Tailscale (the ORM is chatty). What happens when the home connection or the QNAP is
+        down. Measure on a real VM before choosing between remote-QNAP and Postgres-on-VM.
+      - *Backups and exit plan.* VM → QNAP `pg_dump` schedule, restore drill, and how to move
+        back off the provider.
+    - **Code findings (read-only review, 2026-10-06), to re-check when the work starts:**
+      - Ready: the single-image remote-Postgres profile (`SMS_DATABASE_PROFILE=remote`,
+        `POSTGRES_HOST=172.16.0.2`) already describes the target. `Dockerfile.fullstack`'s base
+        images are multi-arch, so it should build natively on arm64; the Python wheels have not
+        been confirmed by a real build. The managed-Postgres path (`POSTGRES_HOST=localhost` →
+        `sms-postgres`) and the prod overlay's `db-backup` cover the Postgres-on-VM variant.
+      - Not portable: `DOCKER.ps1` assumes Windows. It uses backslash paths (`config\.env`,
+        `infra\docker\compose`), which do not resolve under Linux `pwsh`. It also starts Docker
+        Desktop, checks Windows admin rights and opens a browser. A cloud host would need its own
+        short Linux deploy (compose file or script), not DOCKER.ps1.
+      - Config gap: the APK's WebView origin is `https://localhost` (`androidScheme: 'https'`),
+        but the backend only auto-adds `capacitor://localhost` (the iOS origin). `CORS_ORIGINS`
+        must include `https://localhost`, as `ANDROID_TAILSCALE_GUIDE.md` says. `config/.env`
+        currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
+    - **Deliverable of the research step:** a written decision (host, topology, exposure model,
+      backup plan) recorded here, for the owner to approve before any deployment work.
 
 ---
 
