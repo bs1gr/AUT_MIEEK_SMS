@@ -199,23 +199,30 @@ real.
   mostly work. A phone with an Android System WebView older than 111 may render some details
   differently.
 
-**Found during the migration, not changed (owner decisions):**
-1. **`--radius` is not defined anywhere**, so `rounded-lg`, `rounded-md` and `rounded-sm` (the
-   shadcn/ui tokens in the old config) have always rendered square corners. Defining it (shadcn
-   uses `0.5rem`) would round most cards and buttons. The same holds for the colour variables
-   behind `bg-background`, `border-border`, `text-foreground` and the rest.
-2. **The `body` rule in index.css never applied.** Six declarations left at the end of
-   `@layer utilities` swallowed it, so the browser dropped it (`letter-spacing: 0.3px`,
-   `font-weight: 500`, a font stack and background). They were removed with the rule, which
-   keeps today's look; restoring it would make all text wider and heavier. A stray line also
-   disabled one mieek-dark `.bg-white` rule (`#0b0b0b`); the `#141414` rule before it is what
-   users see, and it was kept.
-3. **`GradeProgressBar` (`GradeDisplay.tsx`) builds `w-[${percentage}%]` at runtime.** Tailwind
-   cannot generate such classes, so the fill is full width except at 0, 75 and 100 % (those
-   three appear literally in its test). It is exported but never rendered: wire it in with
-   `style={{ width }}`, or delete it.
+**Found during the migration** (items 1–3 done the same day, owner: "proceed"):
+1. ~~**`--radius` was not defined anywhere**~~, so `rounded-lg`, `rounded-md` and `rounded-sm`
+   (the shadcn/ui tokens in the old config) always rendered square corners. **Now `0.5rem`**:
+   8, 6 and 4 px, Tailwind's own values for lg and md. The colour variables behind
+   `bg-background`, `border-border`, `text-foreground` and the rest are still undefined.
+2. ~~**The `body` rule in index.css never applied.**~~ Six declarations left at the end of
+   `@layer utilities` swallowed it, so the browser dropped it. **Restored:** `letter-spacing:
+   0.3px`, `font-weight: 500`, the font stack and background. A stray line also disabled one
+   mieek-dark `.bg-white` rule (`#0b0b0b`); the `#141414` rule before it is what users see, and
+   it was kept.
+   - Checked with 176 English and 76 Greek screenshots (desktop and 412 px phone): no text
+     overflows. Pages grow a little where wider text wraps (e.g. report templates +20 px). On a
+     phone the Greek footer's version number wraps to a second line.
+3. ~~**`GradeProgressBar` built `w-[${percentage}%]` at runtime.**~~ Tailwind cannot generate
+   such classes, so the fill was full width except at 0, 75 and 100 %. **Deleted:** the whole
+   `GradeDisplay.tsx` module (`GradeDisplay`, `GradeComparison`, `GradeProgressBar`) and its test.
+   It had never been rendered since the initial commit; only the grading barrel's re-export kept
+   it in the bundle (7 KB).
 4. `tests/e2e/pwa.spec.ts` is skipped as a whole; two of its tests check the install prompt and
    `mobile.css`, both deleted.
+5. **New, not changed: the dark theme (`theme=dark`) leaves the Grades page's selects and inputs
+   white**, with the theme's light text inherited, so placeholders and typed text are nearly
+   invisible. Present in v1.18.50 too. The dark theme has only three `.dark` rules in index.css;
+   these controls have no `dark:` classes.
 
 **Fixed, found by the screenshots:** the Add and Edit Student modals' Academic Year dropdown
 offered "Please select a student and course" (`pleaseSelect`, a grading message) as its empty

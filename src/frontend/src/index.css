@@ -27,8 +27,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* From the Tailwind 3 config (shadcn/ui tokens). Note: --radius and the colour variables
-     they read (--background, --border, ...) are not defined anywhere, as before. */
+  /* From the Tailwind 3 config (shadcn/ui tokens). --radius is set below; the colour
+     variables they read (--background, --border, ...) are not defined anywhere. */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -75,6 +75,26 @@
 }
 
 /* end of former @layer utilities */
+
+:root {
+  /* rounded-lg / -md / -sm are var(--radius), -2px, -4px: 8, 6 and 4 px. Until 2026-10-06 it
+     was never defined, so those classes rendered square corners. */
+  --radius: 0.5rem;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--appearance-bg, #f3f4f6);
+  color: var(--appearance-text, #1f2937);
+  transition: background 250ms ease, color 250ms ease;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
 
 #root {
   min-height: 100vh;
