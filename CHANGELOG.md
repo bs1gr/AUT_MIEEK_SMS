@@ -28,6 +28,52 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.51] - 2026-10-06
+
+### Features
+- **students**: predictions panel on the Student Profile, end to end
+- **students**: filter and sort by class division and academic year
+
+### Bug Fixes
+- **ui**: rounded corners and the body text styles finally apply; drop dead GradeDisplay
+- **students**: Academic Year dropdown asked for "a student and course"
+- **security**: Capacitor 7.6.9 and patched seroval (two critical advisories)
+- **docker**: never merge a host's own SQLite into a PostgreSQL in use
+- **security**: predictive analytics never returns exception text
+- **ci**: Native DeepClean Safety looked for NATIVE.ps1 at the repo root
+- **db**: show which database a server uses; migration tool no longer truncates by default
+- **db**: Lite never runs on a local DB when set up for QNAP; QNAP outage queues changes
+- **i18n**: Greek UI showed English/raw keys; delete code that never rendered
+- **api**: meta.version comes from the VERSION file
+- **security**: SMTP override never persists a plaintext password
+- **security**: encrypt persisted SMTP password
+- **security**: upgrade virtualenv to patched release
+- **security**: patch root brace-expansion dependency
+- **security**: sync npm lock and patch virtualenv
+- **security**: update PyJWT and brace-expansion
+- **attendance**: filter courses and allow selective scoring
+
+### Refactoring
+- **export-admin**: keep only the email-settings hooks and types
+
+### Documentation
+- **plan**: record v1.18.50 release
+
+### Build System
+- **frontend**: Tailwind CSS 4 and @vitest/eslint-plugin, rendering unchanged
+
+### CI/CD
+- bump source-map-js from 1.2.1 to 1.2.2 (#256)
+- bump actions/dependency-review-action from 4 to 5 (#235)
+- bump actions/setup-dotnet from 4 to 6 (#234)
+- bump aquasecurity/trivy-action from 0.35.0 to 0.36.0 (#233)
+- bump docker/setup-buildx-action from 3 to 4 (#232)
+- bump actions/cache from 5 to 6 (#231)
+
+### Chores
+- **frontend**: delete three more pieces of code that never ran
+
 ## [1.18.50] - 2026-09-29
 
 ### Features
@@ -4530,6 +4576,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
