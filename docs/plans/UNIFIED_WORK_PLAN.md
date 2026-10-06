@@ -105,6 +105,29 @@ passes (22 tests), Ruff is clean, and the local ignored override was verified en
 Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
 (2026-10-05 10:27 UTC), and no code-scanning alerts are open.
 
+**2026-10-06: two critical npm advisories published overnight** broke CI's "Security Scan
+(Frontend)" (`npm audit --omit=dev`) on `1b6d5f16f`. That commit did not cause it.
+- **`@capacitor/android` < 7.6.9** (GHSA-rvm3-566m-v7fv): remote content could be loaded at
+  the app origin through Capacitor's internal HTTP proxy path. `@capacitor/core`, `android` and
+  `cli` are now `^7.6.9`. `android/` builds `capacitor-android` from `node_modules` and pins no
+  version, so the next APK carries the fix. **The installed APK (v1.18.50) is affected until
+  then.**
+- **`seroval` ≤ 1.6.2** (GHSA-p6vx-979v-rg4c critical, GHSA-jp82-f5mq-hwhp high). It reaches
+  production dependencies only through `@tanstack/react-query-devtools` → `@kobalte/core` →
+  `solid-js@1.9.15`, which pins `seroval ~1.5.4`; no `solid-js` 1.x allows a fixed one. npm's
+  own fix downgraded the devtools. Instead, a scoped override under `solid-js` takes `seroval`
+  and `seroval-plugins` to `^1.6.8`. In `solid-js` only `web/dist/server.*` (SSR) imports
+  `seroval`, so the browser-side devtools never load it. The production bundle contains no
+  devtools, `solid-js` or `seroval` code: TanStack swaps in a no-op outside development
+  (checked in `dist`). Remove the override once `solid-js` allows `seroval` ≥ 1.6.3.
+- `npm audit --omit=dev` now reports 0 vulnerabilities.
+- **Left open, dev tooling only:** the full audit still lists `braces` (no fixed version
+  exists), `micromatch`, `fast-glob`, `chokidar`, `postcss-selector-parser` < 7.1.6 and
+  `eslint-plugin-vitest` → `@typescript-eslint` ≤ 8.2. Nearly all of it arrives through
+  `tailwindcss` 3. These are build-time denial-of-service issues in tools that don't ship,
+  and they predate this change. Fixing them means moving to Tailwind 4 and replacing
+  `eslint-plugin-vitest`; both are owner decisions.
+
 **Dependabot PRs (2026-10-05, owner: "fix as recommended"):**
 - **Merged:** #253 (pip minor/patch group, 33 updates) and #255 (npm minor/patch group, 177
   updates; it includes the postcss bump that the old override used to block).
