@@ -29,7 +29,7 @@ const OfflineBanner = () => {
 
   return (
     <div
-      className={`rounded-lg px-4 py-3 shadow-sm transition-colors duration-300 ${
+      className={`rounded-lg px-4 py-3 shadow-xs transition-colors duration-300 ${
         showOffline || showDatabaseDown
           ? 'bg-amber-50 border border-amber-300 text-amber-900'
           : showReconnected
@@ -41,7 +41,7 @@ const OfflineBanner = () => {
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <span className="mt-0.5 flex-shrink-0">
+        <span className="mt-0.5 shrink-0">
           {(showOffline || showDatabaseDown) && (
             <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

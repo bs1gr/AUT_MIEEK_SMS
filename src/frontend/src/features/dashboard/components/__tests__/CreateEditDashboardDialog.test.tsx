@@ -288,7 +288,7 @@ describe('CreateEditDashboardDialog', () => {
       { wrapper: createWrapper() }
     );
 
-    const backdrop = container.querySelector('.bg-black.bg-opacity-50');
+    const backdrop = container.querySelector('[class~="bg-black/50"]');
     if (backdrop) {
       fireEvent.click(backdrop);
       expect(mockClose).toHaveBeenCalled();

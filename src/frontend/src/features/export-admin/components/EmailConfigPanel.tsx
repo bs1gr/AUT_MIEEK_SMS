@@ -43,8 +43,8 @@ export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSa
   const isConfigured = config.is_configured ?? false;
 
   return (
-    <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
-      <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 pb-4">
+    <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs">
+      <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-linear-to-r/srgb from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg text-slate-900 dark:text-white">{t('email.title')}</CardTitle>
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${

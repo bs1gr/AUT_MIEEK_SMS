@@ -87,7 +87,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
         <div>
           <h3 className="font-semibold text-red-900">{t('predictive.error')}</h3>
           <p className="text-sm text-red-700 mt-1">{error}</p>
@@ -131,15 +131,15 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
           </div>
 
           <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="bg-white bg-opacity-60 rounded p-3">
+            <div className="bg-white/60 rounded p-3">
               <p className="text-xs text-gray-600">{t('predictive.risk.grades')}</p>
               <p className="text-2xl font-bold text-gray-900">{riskAssessment.grade_average.toFixed(0)}%</p>
             </div>
-            <div className="bg-white bg-opacity-60 rounded p-3">
+            <div className="bg-white/60 rounded p-3">
               <p className="text-xs text-gray-600">{t('predictive.risk.attendance')}</p>
               <p className="text-2xl font-bold text-gray-900">{riskAssessment.attendance_rate.toFixed(0)}%</p>
             </div>
-            <div className="bg-white bg-opacity-60 rounded p-3">
+            <div className="bg-white/60 rounded p-3">
               <p className="text-xs text-gray-600">{t('predictive.risk.trend')}</p>
               <div className="flex items-center gap-1 mt-1">
                 {getTrendIcon(riskAssessment.factors.trend)}
@@ -149,7 +149,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
           </div>
 
           {riskAssessment.recommendations.length > 0 && (
-            <div className="bg-white bg-opacity-50 rounded p-3">
+            <div className="bg-white/50 rounded p-3">
               <p className="text-xs font-semibold text-gray-700 mb-2">{t('predictive.risk.recommendations')}</p>
               <ul className="space-y-1">
                 {riskAssessment.recommendations.map((code) => (
@@ -262,7 +262,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
       {/* Info Box */}
       {hasPredictions && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-2">
-          <Info className="w-4 h-4 text-blue-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <Info className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" aria-hidden="true" />
           <p className="text-sm text-blue-900">
             <span className="font-semibold">{t('predictive.info.title')}:</span> {t('predictive.info.description')}
           </p>

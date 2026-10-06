@@ -1,262 +1,80 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+ * Tailwind CSS 4, set up to render as the Tailwind 3 build did.
+ *
+ * - The utilities are NOT in a cascade layer: they come before the rules in this file, as in
+ *   Tailwind 3. In Tailwind 4's default layers every unlayered rule below would beat every
+ *   utility whatever its specificity, and this file has ~2000 lines of theme overrides written
+ *   to compete with utilities by specificity and order.
+ * - Preflight is in a layer below everything, as Tailwind 4 expects: its space-* and divide-*
+ *   rules have zero specificity and would otherwise lose to preflight's element resets.
+ * - The preflight, colours, text line heights, and space and divide behaviour are Tailwind 3's
+ *   (./styles). The mieek-dark overrides of utilities are @utility extensions there too.
+ * - Classes are generated from the files Tailwind 3's `content` listed, nothing more.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import './styles/tailwind3-theme.css';
+@import './styles/tailwind3-preflight.css' layer(base);
+@import 'tailwindcss/utilities.css' source(none);
+@import './styles/tailwind3-compat.css';
+@import './styles/mieek-dark-utilities.css';
 
-@layer base {
-  /* Redefine white color for mieek-dark theme */
-  [data-appearance="mieek-dark"] {
-    --color-white: 10 10 10;
-    --color-gray-50: 10 10 10;
-    --color-gray-100: 15 15 15;
-    --color-slate-50: 10 10 10;
-    --color-slate-100: 15 15 15;
-  }
+@source '../index.html';
+@source './**/*.{js,ts,jsx,tsx}';
+
+@plugin 'tailwindcss-animate';
+
+/* Tailwind 3's darkMode: 'class' — descendants of .dark, same specificity as `.dark .x`. */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* From the Tailwind 3 config (shadcn/ui tokens). Note: --radius and the colour variables
+     they read (--background, --border, ...) are not defined anywhere, as before. */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  /* Tailwind 3's defaults for a bare `ring`: 3px, blue-500 at 50%. */
+  --default-ring-width: 3px;
+  --default-ring-color: rgb(59 130 246 / 0.5);
 }
 
-@layer utilities {
-  /* ABSOLUTE OVERRIDE: All white/light backgrounds to dark */
-  [data-appearance="mieek-dark"] .bg-white {
-    --tw-bg-opacity: 1 !important;
-    background-color: rgb(10 10 10 / var(--tw-bg-opacity)) !important;
-    color: rgb(255 255 255) !important;
-  }
-
-  [data-appearance="mieek-dark"] .bg-gray-50,
-  [data-appearance="mieek-dark"] .bg-gray-100,
-  [data-appearance="mieek-dark"] .bg-slate-50,
-  [data-appearance="mieek-dark"] .bg-slate-100 {
-    --tw-bg-opacity: 1 !important;
-    background-color: rgb(10 10 10 / var(--tw-bg-opacity)) !important;
-    color: rgb(255 255 255) !important;
-  }
-
-  /* GRADIENT OVERRIDES: Light gradient colors to dark */
-  [data-appearance="mieek-dark"] .from-indigo-50,
-  [data-appearance="mieek-dark"] .from-purple-50,
-  [data-appearance="mieek-dark"] .from-blue-50 {
-    --tw-gradient-from: #0a0a0a var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-
-  [data-appearance="mieek-dark"] .to-purple-50,
-  [data-appearance="mieek-dark"] .to-indigo-50,
-  [data-appearance="mieek-dark"] .to-blue-50 {
-    --tw-gradient-to: #0a0a0a var(--tw-gradient-to-position) !important;
-  }
-
-  [data-appearance="mieek-dark"] .via-indigo-50,
-  [data-appearance="mieek-dark"] .via-purple-50,
-  [data-appearance="mieek-dark"] .via-blue-50 {
-    --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), #0a0a0a var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
-  }
-
-  /* Darken strong gradients in mieek-dark */
-  [data-appearance="mieek-dark"] .from-indigo-600,
-  [data-appearance="mieek-dark"] .from-purple-600 {
-    --tw-gradient-from: #0a0a0a var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-
-  [data-appearance="mieek-dark"] .to-purple-600,
-  [data-appearance="mieek-dark"] .to-indigo-600 {
-    --tw-gradient-to: #0a0a0a var(--tw-gradient-to-position) !important;
-  }
-
-  /* Force green-tinted shadows to blue in mieek-dark */
-  [data-appearance="mieek-dark"] [class*="shadow-green"],
-  [data-appearance="mieek-dark"] [class*="shadow-emerald"],
-  [data-appearance="mieek-dark"] [class*="shadow-lime"],
-  [data-appearance="mieek-dark"] [class*="shadow-teal"],
-  [data-appearance="mieek-dark"] [class*="shadow-cyan"] {
-    --tw-shadow-color: rgba(59, 130, 246, 0.35) !important;
-  }
-
-  /* Force all greenish gradients to blueish in mieek-dark */
-  [data-appearance="mieek-dark"] .from-green-50,
-  [data-appearance="mieek-dark"] .from-green-100,
-  [data-appearance="mieek-dark"] .from-green-200,
-  [data-appearance="mieek-dark"] .from-green-300,
-  [data-appearance="mieek-dark"] .from-green-400,
-  [data-appearance="mieek-dark"] .from-green-500,
-  [data-appearance="mieek-dark"] .from-green-600,
-  [data-appearance="mieek-dark"] .from-green-700,
-  [data-appearance="mieek-dark"] .from-green-800,
-  [data-appearance="mieek-dark"] .from-green-900,
-  [data-appearance="mieek-dark"] .from-emerald-50,
-  [data-appearance="mieek-dark"] .from-emerald-100,
-  [data-appearance="mieek-dark"] .from-emerald-200,
-  [data-appearance="mieek-dark"] .from-emerald-300,
-  [data-appearance="mieek-dark"] .from-emerald-400,
-  [data-appearance="mieek-dark"] .from-emerald-500,
-  [data-appearance="mieek-dark"] .from-emerald-600,
-  [data-appearance="mieek-dark"] .from-emerald-700,
-  [data-appearance="mieek-dark"] .from-emerald-800,
-  [data-appearance="mieek-dark"] .from-emerald-900,
-  [data-appearance="mieek-dark"] .from-teal-50,
-  [data-appearance="mieek-dark"] .from-teal-100,
-  [data-appearance="mieek-dark"] .from-teal-200,
-  [data-appearance="mieek-dark"] .from-teal-300,
-  [data-appearance="mieek-dark"] .from-teal-400,
-  [data-appearance="mieek-dark"] .from-teal-500,
-  [data-appearance="mieek-dark"] .from-teal-600,
-  [data-appearance="mieek-dark"] .from-teal-700,
-  [data-appearance="mieek-dark"] .from-teal-800,
-  [data-appearance="mieek-dark"] .from-teal-900,
-  [data-appearance="mieek-dark"] .from-cyan-50,
-  [data-appearance="mieek-dark"] .from-cyan-100,
-  [data-appearance="mieek-dark"] .from-cyan-200,
-  [data-appearance="mieek-dark"] .from-cyan-300,
-  [data-appearance="mieek-dark"] .from-cyan-400,
-  [data-appearance="mieek-dark"] .from-cyan-500,
-  [data-appearance="mieek-dark"] .from-cyan-600,
-  [data-appearance="mieek-dark"] .from-cyan-700,
-  [data-appearance="mieek-dark"] .from-cyan-800,
-  [data-appearance="mieek-dark"] .from-cyan-900,
-  [data-appearance="mieek-dark"] .from-lime-50,
-  [data-appearance="mieek-dark"] .from-lime-100,
-  [data-appearance="mieek-dark"] .from-lime-200,
-  [data-appearance="mieek-dark"] .from-lime-300,
-  [data-appearance="mieek-dark"] .from-lime-400,
-  [data-appearance="mieek-dark"] .from-lime-500,
-  [data-appearance="mieek-dark"] .from-lime-600,
-  [data-appearance="mieek-dark"] .from-lime-700,
-  [data-appearance="mieek-dark"] .from-lime-800,
-  [data-appearance="mieek-dark"] .from-lime-900 {
-    --tw-gradient-from: #0b1b2f var(--tw-gradient-from-position) !important;
-    --tw-gradient-to: rgb(11 27 47 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-  }
-
-  [data-appearance="mieek-dark"] .to-green-50,
-  [data-appearance="mieek-dark"] .to-green-100,
-  [data-appearance="mieek-dark"] .to-green-200,
-  [data-appearance="mieek-dark"] .to-green-300,
-  [data-appearance="mieek-dark"] .to-green-400,
-  [data-appearance="mieek-dark"] .to-green-500,
-  [data-appearance="mieek-dark"] .to-green-600,
-  [data-appearance="mieek-dark"] .to-green-700,
-  [data-appearance="mieek-dark"] .to-green-800,
-  [data-appearance="mieek-dark"] .to-green-900,
-  [data-appearance="mieek-dark"] .to-emerald-50,
-  [data-appearance="mieek-dark"] .to-emerald-100,
-  [data-appearance="mieek-dark"] .to-emerald-200,
-  [data-appearance="mieek-dark"] .to-emerald-300,
-  [data-appearance="mieek-dark"] .to-emerald-400,
-  [data-appearance="mieek-dark"] .to-emerald-500,
-  [data-appearance="mieek-dark"] .to-emerald-600,
-  [data-appearance="mieek-dark"] .to-emerald-700,
-  [data-appearance="mieek-dark"] .to-emerald-800,
-  [data-appearance="mieek-dark"] .to-emerald-900,
-  [data-appearance="mieek-dark"] .to-teal-50,
-  [data-appearance="mieek-dark"] .to-teal-100,
-  [data-appearance="mieek-dark"] .to-teal-200,
-  [data-appearance="mieek-dark"] .to-teal-300,
-  [data-appearance="mieek-dark"] .to-teal-400,
-  [data-appearance="mieek-dark"] .to-teal-500,
-  [data-appearance="mieek-dark"] .to-teal-600,
-  [data-appearance="mieek-dark"] .to-teal-700,
-  [data-appearance="mieek-dark"] .to-teal-800,
-  [data-appearance="mieek-dark"] .to-teal-900,
-  [data-appearance="mieek-dark"] .to-cyan-50,
-  [data-appearance="mieek-dark"] .to-cyan-100,
-  [data-appearance="mieek-dark"] .to-cyan-200,
-  [data-appearance="mieek-dark"] .to-cyan-300,
-  [data-appearance="mieek-dark"] .to-cyan-400,
-  [data-appearance="mieek-dark"] .to-cyan-500,
-  [data-appearance="mieek-dark"] .to-cyan-600,
-  [data-appearance="mieek-dark"] .to-cyan-700,
-  [data-appearance="mieek-dark"] .to-cyan-800,
-  [data-appearance="mieek-dark"] .to-cyan-900,
-  [data-appearance="mieek-dark"] .to-lime-50,
-  [data-appearance="mieek-dark"] .to-lime-100,
-  [data-appearance="mieek-dark"] .to-lime-200,
-  [data-appearance="mieek-dark"] .to-lime-300,
-  [data-appearance="mieek-dark"] .to-lime-400,
-  [data-appearance="mieek-dark"] .to-lime-500,
-  [data-appearance="mieek-dark"] .to-lime-600,
-  [data-appearance="mieek-dark"] .to-lime-700,
-  [data-appearance="mieek-dark"] .to-lime-800,
-  [data-appearance="mieek-dark"] .to-lime-900 {
-    --tw-gradient-to: #0b1b2f var(--tw-gradient-to-position) !important;
-  }
-
-  [data-appearance="mieek-dark"] .via-green-50,
-  [data-appearance="mieek-dark"] .via-green-100,
-  [data-appearance="mieek-dark"] .via-green-200,
-  [data-appearance="mieek-dark"] .via-green-300,
-  [data-appearance="mieek-dark"] .via-green-400,
-  [data-appearance="mieek-dark"] .via-green-500,
-  [data-appearance="mieek-dark"] .via-green-600,
-  [data-appearance="mieek-dark"] .via-green-700,
-  [data-appearance="mieek-dark"] .via-green-800,
-  [data-appearance="mieek-dark"] .via-green-900,
-  [data-appearance="mieek-dark"] .via-emerald-50,
-  [data-appearance="mieek-dark"] .via-emerald-100,
-  [data-appearance="mieek-dark"] .via-emerald-200,
-  [data-appearance="mieek-dark"] .via-emerald-300,
-  [data-appearance="mieek-dark"] .via-emerald-400,
-  [data-appearance="mieek-dark"] .via-emerald-500,
-  [data-appearance="mieek-dark"] .via-emerald-600,
-  [data-appearance="mieek-dark"] .via-emerald-700,
-  [data-appearance="mieek-dark"] .via-emerald-800,
-  [data-appearance="mieek-dark"] .via-emerald-900,
-  [data-appearance="mieek-dark"] .via-teal-50,
-  [data-appearance="mieek-dark"] .via-teal-100,
-  [data-appearance="mieek-dark"] .via-teal-200,
-  [data-appearance="mieek-dark"] .via-teal-300,
-  [data-appearance="mieek-dark"] .via-teal-400,
-  [data-appearance="mieek-dark"] .via-teal-500,
-  [data-appearance="mieek-dark"] .via-teal-600,
-  [data-appearance="mieek-dark"] .via-teal-700,
-  [data-appearance="mieek-dark"] .via-teal-800,
-  [data-appearance="mieek-dark"] .via-teal-900,
-  [data-appearance="mieek-dark"] .via-cyan-50,
-  [data-appearance="mieek-dark"] .via-cyan-100,
-  [data-appearance="mieek-dark"] .via-cyan-200,
-  [data-appearance="mieek-dark"] .via-cyan-300,
-  [data-appearance="mieek-dark"] .via-cyan-400,
-  [data-appearance="mieek-dark"] .via-cyan-500,
-  [data-appearance="mieek-dark"] .via-cyan-600,
-  [data-appearance="mieek-dark"] .via-cyan-700,
-  [data-appearance="mieek-dark"] .via-cyan-800,
-  [data-appearance="mieek-dark"] .via-cyan-900,
-  [data-appearance="mieek-dark"] .via-lime-50,
-  [data-appearance="mieek-dark"] .via-lime-100,
-  [data-appearance="mieek-dark"] .via-lime-200,
-  [data-appearance="mieek-dark"] .via-lime-300,
-  [data-appearance="mieek-dark"] .via-lime-400,
-  [data-appearance="mieek-dark"] .via-lime-500,
-  [data-appearance="mieek-dark"] .via-lime-600,
-  [data-appearance="mieek-dark"] .via-lime-700,
-  [data-appearance="mieek-dark"] .via-lime-800,
-  [data-appearance="mieek-dark"] .via-lime-900 {
-    --tw-gradient-to: rgb(11 27 47 / 0) var(--tw-gradient-to-position) !important;
-    --tw-gradient-stops: var(--tw-gradient-from), #0b1b2f var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
-  }
-  --appearance-accent-fill: #4f46e5;
-  --appearance-accent-strong: #4338ca;
-  --appearance-accent-contrast: #ffffff;
-  --appearance-shadow: rgba(15, 23, 42, 0.12);
-  --appearance-blur: 0px;
-  --appearance-highlight: rgba(79, 70, 229, 0.08);
+/* mieek-dark overrides of utilities with no class to attach to; the class-based ones are
+   @utility extensions in ./styles/mieek-dark-utilities.css. Under Tailwind 3 all of them were
+   in `@layer utilities` here. */
+[data-appearance="mieek-dark"] [class*="shadow-green"],
+[data-appearance="mieek-dark"] [class*="shadow-emerald"],
+[data-appearance="mieek-dark"] [class*="shadow-lime"],
+[data-appearance="mieek-dark"] [class*="shadow-teal"],
+[data-appearance="mieek-dark"] [class*="shadow-cyan"] {
+  --tw-shadow-color: rgba(59, 130, 246, 0.35) !important;
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: var(--appearance-bg, #f3f4f6);
-  color: var(--appearance-text, #1f2937);
-  transition: background 250ms ease, color 250ms ease;
-  letter-spacing: 0.3px;
-  font-weight: 500;
-}
+/* end of former @layer utilities */
 
 #root {
   min-height: 100vh;
@@ -371,11 +189,11 @@ html {
 }
 
 /* Relaxing theme - softer shadows */
-.relaxing .shadow-sm {
+.relaxing .shadow-xs {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
 }
 
-.relaxing .shadow {
+.relaxing .shadow-sm {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -454,11 +272,11 @@ html {
 }
 
 /* Fancy theme - refined shadow styling */
-.fancy .shadow-sm {
+.fancy .shadow-xs {
   box-shadow: 0 8px 16px -8px rgba(53, 36, 89, 0.25) !important;
 }
 
-.fancy .shadow,
+.fancy .shadow-sm,
 .fancy .shadow-md {
   box-shadow: 0 12px 30px -12px rgba(53, 36, 89, 0.3), 0 4px 16px -10px rgba(53, 36, 89, 0.15) !important;
 }
@@ -713,11 +531,11 @@ html {
 }
 
 /* Mieek theme - Subtle shadows with green tint */
-.mieek .shadow-sm {
+.mieek .shadow-xs {
   box-shadow: 0 1px 2px 0 rgba(56, 207, 21, 0.04) !important;
 }
 
-.mieek .shadow {
+.mieek .shadow-sm {
   box-shadow: 0 1px 3px 0 rgba(56, 207, 21, 0.08), 0 1px 2px -1px rgba(56, 207, 21, 0.06) !important;
 }
 
@@ -834,11 +652,6 @@ html {
 html[data-appearance='mieek-dark'] [class*="bg-white"],
 body[data-appearance='mieek-dark'] [class*="bg-white"] {
   background-color: #141414 !important;
-  color: #ffffff !important;
-}
-  background-color: #0b0b0b !important;
-[data-appearance='mieek-dark'] .bg-white {
-  background-color: #0b0b0b !important;
   color: #ffffff !important;
 }
 
@@ -1236,7 +1049,7 @@ html[data-appearance='mieek-dark'] select[class*="bg-teal"] {
 
 /* Override white and light gray backgrounds */
 [data-appearance='mieek-dark'] .bg-white,
-[data-appearance='mieek-dark'] .shadow.bg-white,
+[data-appearance='mieek-dark'] .shadow-sm.bg-white,
 [data-appearance='mieek-dark'] .rounded-lg.bg-white,
 [data-appearance='mieek-dark'] .rounded-xl.bg-white,
 [data-appearance='mieek-dark'] .rounded-md.bg-white,
@@ -1244,7 +1057,7 @@ html[data-appearance='mieek-dark'] select[class*="bg-teal"] {
 [data-appearance='mieek-dark'] select.bg-white,
 [data-appearance='mieek-dark'] button.bg-white,
 .mieek-dark .bg-white,
-.mieek-dark .shadow.bg-white,
+.mieek-dark .shadow-sm.bg-white,
 .mieek-dark .rounded-lg.bg-white,
 .mieek-dark .rounded-xl.bg-white,
 .mieek-dark .rounded-md.bg-white,
@@ -1415,11 +1228,11 @@ html[data-appearance='mieek-dark'] input[type="datetime-local"]::-webkit-calenda
 }
 
 /* Shadows for depth */
-[data-appearance='mieek-dark'] .shadow-sm {
+[data-appearance='mieek-dark'] .shadow-xs {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important;
 }
 
-[data-appearance='mieek-dark'] .shadow,
+[data-appearance='mieek-dark'] .shadow-sm,
 [data-appearance='mieek-dark'] .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
 }

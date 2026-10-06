@@ -54,7 +54,7 @@ const AttendancePerformanceModal = ({
   const renderSpecialParticipationOptions = () => specialParticipationRules.length > 0 && (
     <section
       data-testid="special-participation-options"
-      className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}
+      className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-linear-to-r/srgb from-indigo-50 to-purple-50 border-indigo-200'}`}
     >
       <h5 className="font-semibold text-gray-800">{t('participationObservations') || 'Participation observations'}</h5>
       <p className="mt-1 text-xs text-gray-600">
@@ -102,7 +102,7 @@ const AttendancePerformanceModal = ({
       <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <div className="flex items-center gap-2 justify-between mb-4">
           <h4 className="text-base sm:text-xl font-bold min-w-0 flex-1 truncate">{t('dailyPerformance') || 'Daily Performance'} — {selectedStudentForPerformance.first_name} {selectedStudentForPerformance.last_name}</h4>
-          <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="flex-shrink-0 p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
+          <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="shrink-0 p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
         </div>
         <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate ? `${formatWeekday(selectedDate, localeOverride)} ${formatDate(selectedDate)}` : ''}</p>
 
@@ -119,7 +119,7 @@ const AttendancePerformanceModal = ({
             const isScored = typeof existingScore === 'number';
             return (
               <Fragment key={rule.category || idx}>
-                <div className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}>
+                <div className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-linear-to-r/srgb from-indigo-50 to-purple-50 border-indigo-200'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <div className="font-semibold text-gray-800">{translateCategory(rule.category)}</div>

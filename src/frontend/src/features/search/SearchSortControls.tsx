@@ -28,7 +28,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({ sort, on
         id="search-sort-field"
         value={sort.field}
         onChange={handleFieldChange}
-        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
       >
         <option value="relevance">{t('sort.relevance', { defaultValue: 'Relevance' })}</option>
         <option value="name">{t('sort.name', { defaultValue: 'Name' })}</option>
@@ -41,7 +41,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({ sort, on
         aria-label={t('sort.directionLabel', { defaultValue: 'Sort direction' })}
         value={sort.direction}
         onChange={handleDirectionChange}
-        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
       >
         <option value="asc">{t('sort.asc', { defaultValue: 'Ascending' })}</option>
         <option value="desc">{t('sort.desc', { defaultValue: 'Descending' })}</option>

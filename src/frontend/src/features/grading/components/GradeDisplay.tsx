@@ -119,7 +119,7 @@ const GradeDisplay = ({
   // Variant: Card (with background)
   if (variant === 'card') {
     return (
-      <div className={`bg-gradient-to-br ${grades.bgColor} rounded-xl shadow-lg p-6 text-white`}>
+      <div className={`bg-linear-to-br/srgb ${grades.bgColor} rounded-xl shadow-lg p-6 text-white`}>
         <div className="flex items-center justify-between mb-4">
           <Award size={24} />
           <span className="text-xs opacity-75 uppercase">{t('performance')}</span>
@@ -139,7 +139,7 @@ const GradeDisplay = ({
           </div>
         )}
 
-        <div className="flex items-center justify-between text-sm opacity-90 border-t border-white border-opacity-20 pt-3">
+        <div className="flex items-center justify-between text-sm opacity-90 border-t border-white/20 pt-3">
           {showPercentage && (
             <div>
               <span className="font-semibold">{grades.percentage}%</span>
@@ -214,7 +214,7 @@ export const GradeComparison = ({ grades, labels }: { grades: number[]; labels?:
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {grades.map((gpa, index) => (
-        <div key={index} className="bg-white rounded-lg shadow p-4 border border-gray-200">
+        <div key={index} className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
           <h4 className="font-semibold text-gray-700 mb-3">
             {labels?.[index] || `${t('course')} ${index + 1}`}
           </h4>

@@ -83,7 +83,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black bg-opacity-50 transition"
+        className="fixed inset-0 z-40 bg-black/50 transition"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -121,7 +121,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
                   setError('');
                 }}
                 placeholder={t('dashboard.namePlaceholder') || 'e.g., Math Performance'}
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 placeholder-slate-500 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 placeholder-slate-500 transition focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
                 maxLength={255}
               />
             </div>
@@ -135,7 +135,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t('dashboard.descriptionPlaceholder') || 'Add notes about this dashboard...'}
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 placeholder-slate-500 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 placeholder-slate-500 transition focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
                 rows={3}
                 maxLength={500}
               />

@@ -358,7 +358,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
         />
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex-shrink-0 bg-indigo-600 text-white px-3 py-2 sm:px-4 rounded flex items-center gap-1"
+          className="shrink-0 bg-indigo-600 text-white px-3 py-2 sm:px-4 rounded flex items-center gap-1"
           aria-label={t('addStudent')}
           data-testid="add-student-btn"
         >
@@ -368,7 +368,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       </div>
 
       <div className="flex flex-wrap items-end gap-3" data-testid="student-filters">
-        <label className="flex min-w-[9rem] flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
           {t('academicYear')}
           <select
             value={yearFilter}
@@ -383,7 +383,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             {hasMissingYear && <option value={NOT_SET}>{t('filterNotSet')}</option>}
           </select>
         </label>
-        <label className="flex min-w-[9rem] flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
           {t('classDivision')}
           <select
             value={divisionFilter}
@@ -398,7 +398,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             {hasMissingDivision && <option value={NOT_SET}>{t('filterNotSet')}</option>}
           </select>
         </label>
-        <label className="flex min-w-[9rem] flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
           {t('sortBy')}
           <select
             value={sortKey}
@@ -432,7 +432,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
       {/* Student List */}
       {!loading && (filtered.length === 0) && (
-        <p className="text-indigo-700 text-center py-8 font-semibold drop-shadow-sm">{t('noStudentsFound')}</p>
+        <p className="text-indigo-700 text-center py-8 font-semibold drop-shadow-xs">{t('noStudentsFound')}</p>
       )}
 
       {/* Cascaded Student List with Active/Inactive Sections */}

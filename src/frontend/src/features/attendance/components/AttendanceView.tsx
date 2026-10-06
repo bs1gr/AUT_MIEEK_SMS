@@ -892,13 +892,13 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   return (
     <div className="space-y-6">
       {toast && (
-        <div className={`fixed top-4 right-4 ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-2 rounded shadow`}>{toast.message}</div>
+        <div className={`fixed top-4 right-4 ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-2 rounded shadow-sm`}>{toast.message}</div>
       )}
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-xl"><CalIcon className="text-white" size={24} /></div>
+          <div className="bg-linear-to-r/srgb from-indigo-600 to-purple-600 p-3 rounded-xl"><CalIcon className="text-white" size={24} /></div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">{t('enhancedAttendanceTitle') || 'Attendance & Daily Performance'}</h2>
             <p className="text-gray-600">{t('trackAttendanceDaily') || 'Track attendance and rate daily performance'}</p>
@@ -949,7 +949,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl shadow p-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-3">{t('course') || 'Course'}</h3>
             <select
               name="courseId"
@@ -968,7 +968,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           </div>
 
           {evaluationCategories.length > 0 && (
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl shadow p-6 border border-purple-200">
+            <div className="bg-linear-to-br/srgb from-purple-50 to-indigo-50 rounded-2xl shadow-sm p-6 border border-purple-200">
               <h4 className="text-md font-bold text-gray-800 mb-2">{t('dailyPerformance') || 'Daily Performance'}</h4>
               <div className="space-y-2">
                 {evaluationCategories.map((rule, idx) => (

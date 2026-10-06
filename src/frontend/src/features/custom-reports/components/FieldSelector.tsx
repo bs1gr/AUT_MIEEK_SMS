@@ -162,7 +162,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                       className="p-1 hover:bg-blue-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                       title={t('moveDown', { ns: 'customReports' })}
                     >
-                      <ChevronRight size={16} className="rotate-[-90deg]" />
+                      <ChevronRight size={16} className="-rotate-90" />
                     </button>
                     <button
                       onClick={() => handleRemoveField(field)}

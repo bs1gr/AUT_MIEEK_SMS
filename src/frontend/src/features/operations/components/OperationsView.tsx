@@ -383,7 +383,7 @@ const OperationsView = (_props: OperationsViewProps) => {
   return (
     <div className="space-y-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <header className="rounded-2xl border border-slate-200 bg-gradient-to-r from-indigo-50 via-white to-slate-50 p-6 shadow-sm">
+      <header className="rounded-2xl border border-slate-200 bg-linear-to-r/srgb from-indigo-50 via-white to-slate-50 p-6 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-semibold text-slate-900">{headerTitle}</h1>
@@ -412,7 +412,7 @@ const OperationsView = (_props: OperationsViewProps) => {
               aria-controls={`operations-panel-${key}`}
               onClick={() => setActiveTab(key)}
               {...accessibilityProps}
-              className={`rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+              className={`rounded-xl border px-4 py-2 text-sm font-semibold shadow-xs transition focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 isActive
                   ? 'border-indigo-500 bg-indigo-600 text-white shadow-md'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
@@ -428,7 +428,7 @@ const OperationsView = (_props: OperationsViewProps) => {
         role="tabpanel"
         id={`operations-panel-${effectiveTab}`}
         aria-labelledby={`operations-tab-${effectiveTab}`}
-        className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm"
+        className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs"
       >
         {effectiveTab === 'exports' && <ExportCenter variant="embedded" />}
         {effectiveTab === 'imports' && (

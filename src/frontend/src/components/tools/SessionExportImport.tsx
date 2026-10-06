@@ -37,7 +37,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
         {/* Export Session */}
         <div className="border border-gray-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-3 rounded-xl">
+            <div className="bg-linear-to-br/srgb from-blue-500 to-blue-700 p-3 rounded-xl">
               <Download className="text-white" size={24} />
             </div>
             <div>
@@ -75,7 +75,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
             <button
               onClick={handleExportSession}
               disabled={exportingSession || !selectedSemester || semesters.length === 0}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              className="w-full bg-linear-to-r/srgb from-blue-500 to-blue-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
             >
               {exportingSession ? (
                 <>
@@ -95,7 +95,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
         {/* Import Session */}
         <div className="border border-gray-200 rounded-lg p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="bg-gradient-to-br from-green-500 to-green-700 p-3 rounded-xl">
+            <div className="bg-linear-to-br/srgb from-green-500 to-green-700 p-3 rounded-xl">
               <Upload className="text-white" size={24} />
             </div>
             <div>
@@ -202,7 +202,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
               <button
                 onClick={handleValidateImport}
                 disabled={validatingImport || !selectedFile}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="w-full bg-linear-to-r/srgb from-blue-500 to-blue-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {validatingImport ? (
                   <>
@@ -220,7 +220,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
               <button
                 onClick={handleImportSession}
                 disabled={importingSession || !selectedFile || !!(validationResult && !validationResult.validation_passed)}
-                className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="w-full bg-linear-to-r/srgb from-green-500 to-green-700 text-white px-4 py-3 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {importingSession ? (
                   <>

@@ -570,7 +570,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
                 <button
                   onClick={handleRestart}
                   disabled={isRestarting}
-                  className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white shadow hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   title={t('restart')}
                 >
                   <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
@@ -610,7 +610,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
 
       <div className="grid gap-4 bg-white p-4 md:grid-cols-3">
         {status.backend === 'online' && currentUptime > 0 && (
-          <div className="md:col-span-3 rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+          <div className="md:col-span-3 rounded-xl border-2 border-indigo-200 bg-linear-to-br/srgb from-indigo-50 to-purple-50 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <div className="mb-2 text-sm font-semibold text-indigo-900">{t('uptime')}</div>
@@ -672,7 +672,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
           {renderActiveEndpointGrid()}
         </div>
 
-        <div className="md:col-span-3 rounded-lg border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4">
+        <div className="md:col-span-3 rounded-lg border-2 border-indigo-100 bg-linear-to-r/srgb from-indigo-50 to-purple-50 p-4">
           <div className="space-y-1 text-center">
             <div className="text-sm font-semibold text-indigo-900">{t('footerTitle')}</div>
             <div className="text-xs text-indigo-700">{t('footerDeveloper')}</div>

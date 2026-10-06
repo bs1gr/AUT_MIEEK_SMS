@@ -96,7 +96,7 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey, showToast }: Ab
   const insufficientCount = rows.filter((r) => r.attendance_insufficient).length;
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6" data-testid="absence-limits-panel">
+    <div className="bg-white rounded-2xl shadow-sm p-6" data-testid="absence-limits-panel">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
           <AlertTriangle size={20} className={insufficientCount > 0 ? 'text-red-600' : 'text-amber-600'} />

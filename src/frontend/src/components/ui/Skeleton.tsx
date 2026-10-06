@@ -42,7 +42,7 @@ export const Skeleton = ({
 
 // Preset skeleton loaders for common use cases
 export const StudentCardSkeleton = () => (
-  <div className="border p-4 rounded shadow-sm space-y-3">
+  <div className="border p-4 rounded shadow-xs space-y-3">
     <div className="flex justify-between items-center">
       <div className="flex-1 space-y-2">
         <Skeleton width="60%" height={20} />
@@ -58,7 +58,7 @@ export const StudentCardSkeleton = () => (
 );
 
 export const CourseCardSkeleton = () => (
-  <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200 space-y-3">
+  <div className="p-4 bg-linear-to-r/srgb from-purple-50 to-indigo-50 rounded-lg border border-purple-200 space-y-3">
     <div className="flex items-center justify-between">
       <div className="flex-1 space-y-2">
         <Skeleton width="30%" height={18} />

@@ -154,7 +154,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       )}
 
       <div className="bg-blue-50 border border-blue-200 rounded p-4 flex gap-3">
-        <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <AlertTriangle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700">
           <p className="font-semibold">{t('rateLimits.info')}</p>
           <p className="text-xs mt-1">{t('rateLimits.adjustInfo')}</p>
@@ -192,7 +192,7 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
                     value={current}
                     onChange={(e) => handleChange(key, parseInt(e.target.value) || 1)}
                     disabled={saving}
-                    className="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <div className="w-16 flex items-center justify-end">
                     <input

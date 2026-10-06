@@ -175,7 +175,7 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
           </Button>
         </div>
         {!collapsed && (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50/60 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/40">
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50/60 p-4 shadow-xs dark:border-gray-700 dark:bg-gray-800/40">
             {form}
           </div>
         )}

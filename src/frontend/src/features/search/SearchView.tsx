@@ -175,7 +175,7 @@ export const SearchView: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3">
+      <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-xs space-y-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700" htmlFor="search-type">
@@ -185,7 +185,7 @@ export const SearchView: React.FC = () => {
               id="search-type"
               value={searchType}
               onChange={(e) => handleSearchTypeChange(e.target.value as 'students' | 'courses' | 'grades')}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {typeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -206,7 +206,7 @@ export const SearchView: React.FC = () => {
                   type="date"
                   value={gradeDateFrom}
                   onChange={(event) => handleGradeDateFromChange(event.target.value)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ export const SearchView: React.FC = () => {
                   type="date"
                   value={gradeDateTo}
                   onChange={(event) => handleGradeDateToChange(event.target.value)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -237,7 +237,7 @@ export const SearchView: React.FC = () => {
                 setSearchQuery(e.target.value);
                 setPage(0);
               }}
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -249,7 +249,7 @@ export const SearchView: React.FC = () => {
               id="search-limit"
               value={limit}
               onChange={handleLimitChange}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {[10, 20, 50].map((option) => (
                 <option key={option} value={option}>
@@ -266,7 +266,7 @@ export const SearchView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
           {searchType === 'grades' ? (
-            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm text-sm text-gray-600">
+            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-xs text-sm text-gray-600">
               {t('filters.gradeDateHint', { defaultValue: 'Use the date range above to filter historical grades.' })}
             </div>
           ) : (
@@ -274,7 +274,7 @@ export const SearchView: React.FC = () => {
           )}
         </div>
         <div className="lg:col-span-2 space-y-3">
-          <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-xs">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
               <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">

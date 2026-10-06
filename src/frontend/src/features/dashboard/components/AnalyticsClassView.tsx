@@ -186,7 +186,7 @@ const AnalyticsClassView = ({
       )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('analytics.quickReportTitle')}
           </h3>
@@ -214,7 +214,7 @@ const AnalyticsClassView = ({
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('analytics.classAverageSummaryTitle')}
           </h3>
@@ -236,7 +236,7 @@ const AnalyticsClassView = ({
             )}
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('analytics.courseAverageSummaryTitle')}
           </h3>
@@ -263,7 +263,7 @@ const AnalyticsClassView = ({
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('analytics.divisionAverageSummaryTitle')}
           </h3>

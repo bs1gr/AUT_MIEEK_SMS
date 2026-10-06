@@ -23,7 +23,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ variant = 'standalone' })
 
   const containerClass =
     variant === 'standalone'
-      ? 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'
+      ? 'rounded-2xl border border-slate-200 bg-white p-6 shadow-xs'
       : 'space-y-4';
 
   return (

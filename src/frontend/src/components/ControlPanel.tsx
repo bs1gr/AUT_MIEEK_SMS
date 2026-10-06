@@ -208,7 +208,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     ? 'w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl text-slate-900 dark:text-gray-100'
     : 'min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100';
   const cardBaseClass = isEmbedded
-    ? 'rounded-2xl border border-slate-200 bg-white shadow-sm'
+    ? 'rounded-2xl border border-slate-200 bg-white shadow-xs'
     : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg';
   const headerClass = isEmbedded
     ? 'px-6 py-5 border-b border-slate-100 bg-white'
@@ -223,9 +223,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const tabListClass = isEmbedded ? 'flex flex-wrap gap-2' : 'flex gap-1';
   const tabButtonClass = (tabId: string) => (
     isEmbedded
-      ? `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+      ? `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus:outline-hidden focus:ring-2 focus:ring-indigo-500 ${
           activeTab === tabId
-            ? 'bg-indigo-600 text-white shadow-sm'
+            ? 'bg-indigo-600 text-white shadow-xs'
             : 'border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
         }`
       : `flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
@@ -339,9 +339,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
         {activeTab === 'operations' && (
           <div className="space-y-6">
             {environment?.environment_mode === 'docker' && (
-              <div className={`${isEmbedded ? 'rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-blue-50 text-slate-700' : 'bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg text-blue-200'} p-6`}>
+              <div className={`${isEmbedded ? 'rounded-2xl border border-indigo-100 bg-linear-to-r/srgb from-indigo-50 to-blue-50 text-slate-700' : 'bg-linear-to-r/srgb from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg text-blue-200'} p-6`}>
                 <div className="flex items-start gap-4">
-                  <Container size={24} className={isEmbedded ? 'text-indigo-500 flex-shrink-0 mt-1' : 'text-blue-400 flex-shrink-0 mt-1'} />
+                  <Container size={24} className={isEmbedded ? 'text-indigo-500 shrink-0 mt-1' : 'text-blue-400 shrink-0 mt-1'} />
                   <div className="flex-1">
                     <h2 className={`text-lg font-semibold mb-2 ${isEmbedded ? 'text-slate-900' : 'text-blue-300'}`}>{t('dockerContainer')}</h2>
                     <p className={`text-sm mb-4 ${isEmbedded ? 'text-slate-700' : 'text-blue-200'}`}>
@@ -978,7 +978,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
         {/* Rate Limits Tab */}
         {activeTab === 'rate-limits' && user?.role === 'admin' && (
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-lg p-6">
+            <div className="bg-linear-to-r/srgb from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-lg p-6">
               <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-yellow-300">
                 <Activity size={20} />
                 {t('rateLimitsTitle') || 'Rate Limiting Configuration'}

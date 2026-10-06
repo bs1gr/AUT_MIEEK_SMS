@@ -137,7 +137,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
         </div>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-gray-600 focus:outline-none"
+          className="text-gray-400 hover:text-gray-600 focus:outline-hidden"
           aria-label="Close"
         >
           <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,7 +224,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
         {(step === "upload" || step === "preview") && (
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
             {t("cancel", { ns: "common" })}
           </button>
@@ -233,14 +233,14 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
           <>
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {t("selectDifferent", { ns: "export" })}
             </button>
             <button
               onClick={handleImport}
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400"
             >
               {t("import", { ns: "common" })}
             </button>

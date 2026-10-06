@@ -87,7 +87,7 @@ const DevToolsOperationsMonitor = ({
     : null;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
+    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-xs bg-white dark:bg-gray-800">
       <div className={`px-4 py-3 text-white ${statusTone(health?.status)}`}>
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3">

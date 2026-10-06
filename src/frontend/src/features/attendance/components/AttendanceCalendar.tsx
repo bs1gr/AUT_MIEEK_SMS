@@ -29,7 +29,7 @@ const AttendanceCalendar = ({
   setSelectedDate,
 }: AttendanceCalendarProps) => {
   return (
-    <div className="lg:col-span-2 bg-white rounded-2xl shadow p-6">
+    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <button onClick={previousMonth} aria-label={t('previousMonth') || 'Previous month'} title={t('previousMonth') || 'Previous month'} className="p-2 hover:bg-gray-100 rounded"><ChevronLeft size={20} /></button>
         <h3 className="text-lg font-semibold">{monthYear}</h3>
@@ -64,7 +64,7 @@ const AttendanceCalendar = ({
               } ${
                 teaching && today ? 'ring-2 ring-indigo-500' : ''
               } ${
-                teaching && selected ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-bold shadow' : ''
+                teaching && selected ? 'bg-linear-to-br/srgb from-indigo-600 to-purple-600 text-white font-bold shadow-sm' : ''
               } ${
                 teaching && !selected && hasAttendance ? 'bg-green-100 hover:bg-green-200 text-gray-700 font-semibold' : ''
               } ${
@@ -90,7 +90,7 @@ const AttendanceCalendar = ({
           <span>{t('noAttendanceYet') || 'No attendance yet'}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-600 to-purple-600"></div>
+          <div className="w-4 h-4 rounded bg-linear-to-br/srgb from-indigo-600 to-purple-600"></div>
           <span>{t('selectedDate') || 'Selected date'}</span>
         </div>
       </div>

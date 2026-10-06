@@ -93,7 +93,7 @@ const AttendanceStudentList = ({
   );
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6">
+    <div className="bg-white rounded-2xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate ? formatDate(selectedDate) : t('noDateSelected') || 'No date selected'}</h3>
       </div>
@@ -109,7 +109,7 @@ const AttendanceStudentList = ({
             <div key={s.id} className="bg-gray-50 rounded border p-3 space-y-3">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full text-white flex items-center justify-center font-bold">{String(s.first_name || '').charAt(0)}{String(s.last_name || '').charAt(0)}</div>
+                  <div className="w-10 h-10 bg-linear-to-br/srgb from-indigo-500 to-purple-500 rounded-full text-white flex items-center justify-center font-bold">{String(s.first_name || '').charAt(0)}{String(s.last_name || '').charAt(0)}</div>
                   <div>
                     <div className="font-semibold text-gray-800">{s.first_name} {s.last_name}</div>
                     <div className="text-xs text-gray-500">{s.student_id}</div>

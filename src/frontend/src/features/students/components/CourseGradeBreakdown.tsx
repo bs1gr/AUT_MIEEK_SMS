@@ -155,22 +155,22 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">
+      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-xs">
         {t('gradeBreakdown') || 'Grade Breakdown'} - {t('byCourse') || 'By Course'}
       </div>
 
       {courseBreakdown.length === 0 ? (
-        <p className="text-indigo-700 text-sm font-semibold drop-shadow-sm">{t('noGradesAvailable') || 'No grades available'}</p>
+        <p className="text-indigo-700 text-sm font-semibold drop-shadow-xs">{t('noGradesAvailable') || 'No grades available'}</p>
       ) : (
         <div className="space-y-4">
           {courseBreakdown.map(({ courseId, courseName, courseCode, avgPercentage, avgGreek, letterGrade, gradeColor, byCategory }) => (
             <div key={courseId} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Course Header */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
+              <div className="bg-linear-to-r/srgb from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
                 <div className="flex justify-between items-center gap-4">
                   <div>
-                    <div className="font-semibold text-indigo-900 drop-shadow-sm">{courseName}</div>
-                    {courseCode && <div className="text-xs text-indigo-700 font-semibold drop-shadow-sm">{courseCode}</div>}
+                    <div className="font-semibold text-indigo-900 drop-shadow-xs">{courseName}</div>
+                    {courseCode && <div className="text-xs text-indigo-700 font-semibold drop-shadow-xs">{courseCode}</div>}
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
@@ -224,8 +224,8 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                             <div key={idx} className="flex justify-between items-center text-xs text-gray-600">
                               <span className="flex-1">{grade.assignment_name}</span>
                               <span className="flex items-center gap-2">
-                                <span className="font-medium text-indigo-700 min-w-[2rem] text-center">{letterGrade}</span>
-                                <span className="min-w-[6rem] text-right">
+                                <span className="font-medium text-indigo-700 min-w-8 text-center">{letterGrade}</span>
+                                <span className="min-w-24 text-right">
                                   {grade.grade}/{grade.max_grade} ({percentage.toFixed(1)}%)
                                 </span>
                               </span>

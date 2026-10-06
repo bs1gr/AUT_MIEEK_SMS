@@ -8,7 +8,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import i18next from "eslint-plugin-i18next";
 import testingLibrary from "eslint-plugin-testing-library";
-import vitestPlugin from "eslint-plugin-vitest";
+import vitestPlugin from "@vitest/eslint-plugin";
 import prettier from "eslint-config-prettier";
 
 const commonRules = {

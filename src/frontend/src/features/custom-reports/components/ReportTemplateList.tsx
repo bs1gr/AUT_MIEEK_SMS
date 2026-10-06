@@ -231,14 +231,14 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
               placeholder={t('searchTemplates', { ns: 'customReports' })}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <select
             value={selectedEntityType || ''}
             onChange={(e) => setSelectedEntityType(e.target.value || null)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
             <option value="">{t('allEntityTypes', { ns: 'customReports' })}</option>
             {entityTypes.map((type) => (
@@ -251,7 +251,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
           <select
             value={selectedFormat || ''}
             onChange={(e) => setSelectedFormat(e.target.value || null)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           >
             <option value="">{t('allFormats', { ns: 'customReports' })}</option>
             <option value="pdf">{t('format_pdf', { ns: 'customReports' })}</option>

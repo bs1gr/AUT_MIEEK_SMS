@@ -26,14 +26,14 @@ const ImportExportPage: React.FC = () => {
                 <div className="space-x-4 flex items-center">
                     <button
                         onClick={() => setIsExportOpen(true)}
-                        className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm text-sm font-medium"
+                        className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-xs text-sm font-medium"
                     >
                         {t('exportData', { ns: 'export' })}
                     </button>
 
                     <div className="relative inline-block text-left group">
                         <button
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm text-sm font-medium flex items-center"
+                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-xs text-sm font-medium flex items-center"
                         >
                             {t('importData', { ns: 'export' })}
                             <svg className="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -66,7 +66,7 @@ const ImportExportPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-white shadow rounded-lg p-6 mb-8">
+            <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-medium text-gray-900">{t('importExportHistory', { ns: 'export' })}</h2>
                     <button onClick={refreshHistory} className="text-blue-600 hover:text-blue-800 text-sm">
@@ -77,7 +77,7 @@ const ImportExportPage: React.FC = () => {
             </div>
 
             {isImportOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-500/75 flex items-center justify-center p-4">
                     <div className="w-full max-w-2xl">
                         <ImportWizard
                             type={importType}

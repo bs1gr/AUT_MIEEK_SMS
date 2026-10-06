@@ -201,7 +201,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
   // Conditional rendering based on state
   if (loading) {
     return (
-      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-xs ${className}`}>
         <p className="text-sm text-gray-500">
           {t('facets.loading', { defaultValue: 'Loading filters...' })}
         </p>
@@ -211,7 +211,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
 
   if (!filteredFacets || filteredFacets.length === 0) {
     return (
-      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-xs ${className}`}>
         <p className="text-sm text-gray-500">
           {t('facets.empty', { defaultValue: 'No filters available' })}
         </p>
@@ -220,7 +220,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
   }
 
   return (
-    <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-4 ${className}`}>
+    <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-xs space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-semibold text-gray-800">{t('facets.title', { defaultValue: 'Filters' })}</h3>

@@ -25,7 +25,7 @@ const OperationsImportsTab = ({
         }}
       />
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-lg font-semibold text-slate-900">{t('jobMonitorTitle', { ns: 'export' })}</div>
@@ -41,11 +41,11 @@ const OperationsImportsTab = ({
                 type="text"
                 value={jobIdInput}
                 onChange={(e) => setJobIdInput(e.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 sm:w-64"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200 sm:w-64"
               />
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500"
                 onClick={() => setTrackedJobId(jobIdInput.trim() || null)}
               >
                 {t('jobMonitorStart', { ns: 'export' })}

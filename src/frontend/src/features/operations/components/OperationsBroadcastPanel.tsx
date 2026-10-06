@@ -45,7 +45,7 @@ const OperationsBroadcastPanel = ({
   onSend,
 }: OperationsBroadcastPanelProps) => {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
       <div className="space-y-2">
         <h2 className="text-lg font-semibold text-slate-900">
           {t('admin.title', { ns: 'notifications' })}
@@ -63,7 +63,7 @@ const OperationsBroadcastPanel = ({
             <label className="space-y-2 text-sm font-medium text-slate-700">
               <span>{t('admin.typeLabel', { ns: 'notifications' })}</span>
               <select
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
                 value={broadcastType}
                 onChange={(event) => setBroadcastType(event.target.value)}
               >
@@ -78,7 +78,7 @@ const OperationsBroadcastPanel = ({
             <label className="space-y-2 text-sm font-medium text-slate-700">
               <span>{t('admin.targetLabel', { ns: 'notifications' })}</span>
               <select
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
                 value={broadcastTarget}
                 onChange={(event) => setBroadcastTarget(event.target.value as BroadcastTarget)}
               >
@@ -93,7 +93,7 @@ const OperationsBroadcastPanel = ({
             <label className="space-y-2 text-sm font-medium text-slate-700">
               <span>{t('admin.roleLabel', { ns: 'notifications' })}</span>
               <select
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
                 value={broadcastRole}
                 onChange={(event) => setBroadcastRole(event.target.value)}
               >
@@ -110,7 +110,7 @@ const OperationsBroadcastPanel = ({
               <span>{t('admin.userIdsLabel', { ns: 'notifications' })}</span>
               <input
                 type="text"
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
                 placeholder={t('admin.userIdsPlaceholder', { ns: 'notifications' })}
                 value={broadcastUserIds}
                 onChange={(event) => setBroadcastUserIds(event.target.value)}
@@ -123,7 +123,7 @@ const OperationsBroadcastPanel = ({
             <span>{t('admin.titleLabel', { ns: 'notifications' })}</span>
             <input
               type="text"
-              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
               value={broadcastTitle}
               onChange={(event) => setBroadcastTitle(event.target.value)}
             />
@@ -132,7 +132,7 @@ const OperationsBroadcastPanel = ({
           <label className="space-y-2 text-sm font-medium text-slate-700">
             <span>{t('admin.messageLabel', { ns: 'notifications' })}</span>
             <textarea
-              className="min-h-[120px] w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="min-h-[120px] w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
               value={broadcastMessage}
               onChange={(event) => setBroadcastMessage(event.target.value)}
             />
@@ -141,7 +141,7 @@ const OperationsBroadcastPanel = ({
           <div className="flex justify-end">
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
               onClick={onSend}
               disabled={broadcastSending}
             >

@@ -107,7 +107,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
         : null;
 
   return (
-    <motion.li className="border p-4 rounded shadow-sm" variants={listItemVariants} role="listitem">
+    <motion.li className="border p-4 rounded shadow-xs" variants={listItemVariants} role="listitem">
       <div className="flex flex-col gap-2">
         <div className="min-w-0">
           <strong className="block truncate">{student.first_name} {student.last_name}</strong>
@@ -160,9 +160,9 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
       {isExpanded && (
         <div className="mt-4 space-y-4" role="region" aria-labelledby={`student-details-${student.id}`}>
-          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-3 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
+          <div className="bg-linear-to-br/srgb from-white via-indigo-50 to-purple-50 rounded-xl p-3 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 flex-shrink-0 bg-white rounded-xl flex items-center justify-center text-xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
+              <div className="w-12 h-12 shrink-0 bg-white rounded-xl flex items-center justify-center text-xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
                 {initials}
               </div>
               <div className="min-w-0">
@@ -181,14 +181,14 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
           {stats && (
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-md">
+              <div className="bg-linear-to-br/srgb from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-md">
                 <div className="text-xs opacity-75 mb-1">{t('averageGrade') || 'Average'}</div>
                 <div className="text-2xl font-bold">{stats.grades.average}%</div>
                 <div className="text-xs opacity-90">{stats.grades.count} {t('assignments')}</div>
               </div>
 
               {gradeInsights && (
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white shadow-md">
+                <div className="bg-linear-to-br/srgb from-green-500 to-green-600 rounded-lg p-4 text-white shadow-md">
                   <div className="text-xs opacity-75 mb-1">{t('greekScale')}</div>
                   <div className="text-2xl font-bold">{gradeInsights.avgGreek.toFixed(1)}</div>
                   <div className="text-xs opacity-90">0-20</div>
@@ -196,7 +196,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
               )}
 
               {stats.attendance && (
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-md">
+                <div className="bg-linear-to-br/srgb from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-md">
                   <div className="text-xs opacity-75 mb-1">{t('absences') || 'Absences'}</div>
                   <div className="text-2xl font-bold">{stats.attendance.absent}/{stats.attendance.total}</div>
                   <div className="text-xs opacity-90">{stats.attendance.attendanceRate}%</div>
@@ -204,7 +204,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
               )}
 
               {gradeInsights && (
-                <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-4 text-white shadow-md">
+                <div className="bg-linear-to-br/srgb from-yellow-500 to-yellow-600 rounded-lg p-4 text-white shadow-md">
                   <div className="text-xs opacity-75 mb-1">{t('letterGrade')}</div>
                   <div className="text-2xl font-bold">{gradeInsights.letterGrade}</div>
                   <div className="text-xs opacity-90">{t('grade')}</div>
@@ -234,7 +234,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
           {(sortedGrades.length > 0 || sortedAttendance.length > 0) && (
             <div className="border rounded-lg p-4 bg-white shadow-md">
-              <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">
+              <div className="font-semibold text-indigo-800 mb-3 drop-shadow-xs">
                 {t('historicalRecords') || 'Historical Records'}
               </div>
 

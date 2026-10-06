@@ -44,7 +44,7 @@ interface SummaryCardProps {
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, unit }) => (
   <div
-    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md"
     data-testid="summary-card"
   >
     <div className="flex items-center gap-4">
@@ -1176,7 +1176,7 @@ export const AnalyticsDashboard: React.FC = () => {
         <button
           onClick={() => exportPDF()}
           disabled={isExporting}
-          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Download size={18} />
           {isExporting ? t('analytics.exporting') : 'PDF'}
@@ -1184,20 +1184,20 @@ export const AnalyticsDashboard: React.FC = () => {
         <button
           onClick={() => exportExcel()}
           disabled={isExporting}
-          className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Download size={18} />
           {isExporting ? t('analytics.exporting') : 'Excel'}
         </button>
         <button
           onClick={() => refetch()}
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-indigo-700"
         >
           {t('analytics.refresh')}
         </button>
         <button
           onClick={() => navigate('/dashboard')}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-xs transition hover:border-slate-300 hover:text-slate-900"
         >
           {t('analytics.back')}
         </button>

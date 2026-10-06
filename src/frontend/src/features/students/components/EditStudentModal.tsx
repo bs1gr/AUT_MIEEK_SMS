@@ -94,7 +94,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
         variants={backdropVariants}
         initial="hidden"
         animate="visible"
@@ -263,7 +263,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                   <FormLabel>{t('academicYear')}</FormLabel>
                   <FormControl>
                     <select
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-xs focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
                       aria-label={t('academicYear')}
                       data-testid="academic-year-select"
                       value={field.value || ''}
@@ -313,7 +313,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                       className="rounded border-slate-200"
                     />
                   </FormControl>
-                  <FormLabel className="!mt-0 cursor-pointer">
+                  <FormLabel className="mt-0! cursor-pointer">
                     {t('active')}
                   </FormLabel>
                 </FormItem>
@@ -335,7 +335,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                         className="rounded border-slate-200"
                       />
                     </FormControl>
-                    <FormLabel className="!mt-0 cursor-pointer">
+                    <FormLabel className="mt-0! cursor-pointer">
                       {t('reEnrollPreviousCourses')}
                     </FormLabel>
                   </FormItem>

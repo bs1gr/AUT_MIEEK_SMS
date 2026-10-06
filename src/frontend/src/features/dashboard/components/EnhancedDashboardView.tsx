@@ -159,7 +159,7 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }: StatCardProps) 
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">{title}</p>
@@ -211,7 +211,7 @@ const MetricCard = ({ title, value, hint, icon: Icon, accent = 'indigo' }: Metri
   const styles = accentStyles[accent] ?? accentStyles.indigo;
 
   return (
-    <div className={`rounded-2xl border ${styles.border} bg-white p-6 shadow-sm transition-shadow hover:shadow-md`}>
+    <div className={`rounded-2xl border ${styles.border} bg-white p-6 shadow-xs transition-shadow hover:shadow-md`}>
       <div className="mb-4 flex items-center justify-between">
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${styles.iconBg}`}>
           <Icon width={22} height={22} />
@@ -759,11 +759,11 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           <img
             src="/logo.png"
             alt="MIEEK Logo"
-            className="h-8 w-auto object-contain flex-shrink-0"
+            className="h-8 w-auto object-contain shrink-0"
           />
           <h2 className="text-xl md:text-3xl font-semibold text-slate-900 dark:text-slate-100 truncate">{t('dashboardTitle')}</h2>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
             <button
               type="button"
@@ -821,7 +821,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       {showMore && (
         <div ref={analyticsRef} className="space-y-8">
           {loading && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
               <div className="flex items-center gap-3 text-slate-500">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                 <span>{t('loadingStudentData')}</span>
@@ -854,7 +854,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
               <div className="mb-5 flex items-center justify-between">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                   <Award size={22} className="text-amber-500" />
@@ -869,7 +869,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
                 <button
                   onClick={() => setRankingType('gpa')}
-                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'gpa'
                       ? 'border-b-2 border-indigo-500 text-indigo-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -879,7 +879,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </button>
                 <button
                   onClick={() => setRankingType('attendance')}
-                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'attendance'
                       ? 'border-b-2 border-emerald-500 text-emerald-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -889,7 +889,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </button>
                 <button
                   onClick={() => setRankingType('exams')}
-                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'exams'
                       ? 'border-b-2 border-violet-500 text-violet-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -899,7 +899,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </button>
                 <button
                   onClick={() => setRankingType('overall')}
-                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'overall'
                       ? 'border-b-2 border-amber-500 text-amber-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -992,7 +992,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                               {secondaryInfo}
                             </p>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
                             <div className="text-right">
                               <p className="text-base sm:text-2xl font-semibold text-indigo-600 whitespace-nowrap">
                                 {primaryValue}
@@ -1018,7 +1018,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               )}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
               <div className="mb-5 flex items-center justify-between">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                   <BookOpen size={22} className="text-violet-500" />
@@ -1104,7 +1104,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <Users size={22} className="text-indigo-500" />
@@ -1152,7 +1152,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <Users size={22} className="text-emerald-500" />
@@ -1181,7 +1181,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
             <h3 className="mb-5 text-lg font-semibold text-slate-900">
               {t('systemInformation') || 'System Information'}
             </h3>

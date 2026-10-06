@@ -1254,7 +1254,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             {t('next', { ns: 'common' })}
-            <ChevronDown size={18} className="rotate-[-90deg]" />
+            <ChevronDown size={18} className="-rotate-90" />
           </button>
         )}
 

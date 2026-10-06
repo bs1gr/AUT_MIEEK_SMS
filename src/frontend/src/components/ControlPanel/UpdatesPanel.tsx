@@ -338,7 +338,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
       {/* Error Message */}
       {error && (
         <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
+          <AlertCircle size={20} className="text-red-400 shrink-0 mt-0.5" />
           <div>
             <p className="text-red-300 font-semibold">{t('updateCheckError') || 'Error checking for updates'}</p>
             <p className="text-red-400 text-sm mt-1">{error}</p>
@@ -348,7 +348,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
 
       {installMessage && (
         <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 flex items-start gap-3">
-          <CheckCircle size={20} className="text-green-400 flex-shrink-0 mt-0.5" />
+          <CheckCircle size={20} className="text-green-400 shrink-0 mt-0.5" />
           <p className="text-green-300 text-sm">{installMessage}</p>
         </div>
       )}
@@ -447,7 +447,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
           {/* Update Status Banner */}
           {updateInfo.update_available ? (
             <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-6 flex items-start gap-4">
-              <CheckCircle size={24} className="text-green-400 flex-shrink-0 mt-0.5" />
+              <CheckCircle size={24} className="text-green-400 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-green-300 mb-2">
                   {t('updateAvailable') || 'Update Available'}
@@ -458,8 +458,8 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
               </div>
             </div>
           ) : (
-            <div className="border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 flex items-start gap-4">
-              <CheckCircle size={24} className="text-indigo-700 flex-shrink-0 mt-0.5" />
+            <div className="border-2 border-indigo-100 bg-linear-to-r/srgb from-indigo-50 to-purple-50 rounded-lg p-6 flex items-start gap-4">
+              <CheckCircle size={24} className="text-indigo-700 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-indigo-900 mb-2">
                   {t('upToDate') || 'Up to Date'}

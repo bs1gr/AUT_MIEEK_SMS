@@ -41,7 +41,7 @@ const OperationsReportsTab = ({ t, studentIdParam, courseIdParam }: OperationsRe
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-indigo-50 to-slate-50 p-6">
+      <div className="rounded-lg border border-slate-200 bg-linear-to-br/srgb from-indigo-50 to-slate-50 p-6">
         <div className="mb-6 flex items-center gap-3">
           <FileText className="h-6 w-6 text-indigo-600" />
           <div>

@@ -91,7 +91,7 @@ const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive 
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center space-x-2">
-          <CalendarIcon size={22} className="text-indigo-600 flex-shrink-0" />
+          <CalendarIcon size={22} className="text-indigo-600 shrink-0" />
           <span>{t('teachingSchedule')}</span>
         </h2>
         <button
@@ -106,7 +106,7 @@ const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive 
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {days.map((d) => (
-          <div key={d.key} className="bg-white rounded-xl shadow border border-gray-200 p-4">
+          <div key={d.key} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="font-semibold text-gray-800">{d.displayName}</div>
               <div className="text-sm text-gray-500">
@@ -138,7 +138,7 @@ const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive 
                               disabled={busyCourseId === course.id}
                               title={t('markCourseEnded')}
                               aria-label={`${t('markCourseEnded')}: ${course.course_code}`}
-                              className="flex-shrink-0 rounded p-1 text-gray-400 transition hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50"
+                              className="shrink-0 rounded p-1 text-gray-400 transition hover:bg-emerald-50 hover:text-emerald-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50"
                             >
                               <CheckCircle size={16} aria-hidden="true" />
                             </button>
@@ -162,7 +162,7 @@ const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive 
       )}
 
       {onSetCourseActive && endedCourses.length > 0 && (
-        <div className="bg-white rounded-xl shadow border border-gray-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <button
             type="button"
             onClick={() => setShowEnded((v) => !v)}
@@ -180,7 +180,7 @@ const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive 
                     type="button"
                     onClick={() => void setCourseActive(course, true)}
                     disabled={busyCourseId === course.id}
-                    className="inline-flex flex-shrink-0 items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                   >
                     <RotateCw size={14} aria-hidden="true" />
                     {t('reactivateCourse')}

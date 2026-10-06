@@ -446,7 +446,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-3 min-w-0">
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2 md:p-3 rounded-xl flex-shrink-0">
+          <div className="bg-linear-to-r/srgb from-purple-600 to-indigo-600 p-2 md:p-3 rounded-xl shrink-0">
             <Settings className="text-white" size={22} />
           </div>
           <div className="min-w-0">
@@ -457,7 +457,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => onAddCourse && onAddCourse()}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:shadow transition-colors"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:shadow-sm transition-colors"
             data-testid="add-course-btn"
           >
             <Plus size={18} />
@@ -522,7 +522,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <Calculator size={20} className="flex-shrink-0" />
+                <Calculator size={20} className="shrink-0" />
                 <span className="hidden sm:inline">{t('evaluationRules')}</span>
               </button>
               <button
@@ -533,7 +533,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <CalendarIcon size={20} className="flex-shrink-0" />
+                <CalendarIcon size={20} className="shrink-0" />
                 <span className="hidden sm:inline">{t('teachingSchedule')}</span>
               </button>
               <button
@@ -544,7 +544,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <BookOpen size={20} className="flex-shrink-0" />
+                <BookOpen size={20} className="shrink-0" />
                 <span className="hidden sm:inline">{t('enrollment') || 'Enrollment'}</span>
               </button>
             </div>
@@ -574,7 +574,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                   <h3 className="text-xl font-bold text-gray-800">{t('gradingComponents')}</h3>
                   <button
                     onClick={addRule}
-                    className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
+                    className="bg-linear-to-r/srgb from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
                   >
                     <Plus size={18} />
                     <span>{t('addRule')}</span>
@@ -693,7 +693,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                 </div>
 
                 {/* Summary Card */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6 border border-blue-200">
+                <div className="bg-linear-to-r/srgb from-blue-50 to-indigo-50 rounded-lg p-4 mb-6 border border-blue-200">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">{t('totalHoursPerWeek')}</p>
@@ -721,9 +721,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                 </div>
 
                 {/* Schedule Information Panel */}
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 mb-6 border-2 border-purple-200">
+                <div className="bg-linear-to-r/srgb from-purple-50 to-pink-50 rounded-xl p-4 mb-6 border-2 border-purple-200">
                   <div className="flex items-start space-x-3">
-                    <Clock size={24} className="text-purple-600 flex-shrink-0 mt-1" />
+                    <Clock size={24} className="text-purple-600 shrink-0 mt-1" />
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 mb-2">{t('scheduleNote')}</h4>
                       <div className="text-sm text-gray-700 space-y-1">
@@ -739,9 +739,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
                 {/* Schedule Conflict Warning */}
                 {showConflictWarning && scheduleConflicts.length > 0 && (
-                  <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-5 mb-6 border-2 border-red-300">
+                  <div className="bg-linear-to-r/srgb from-red-50 to-orange-50 rounded-xl p-5 mb-6 border-2 border-red-300">
                     <div className="flex items-start space-x-3">
-                      <AlertCircle size={28} className="text-red-600 flex-shrink-0" />
+                      <AlertCircle size={28} className="text-red-600 shrink-0" />
                       <div className="flex-1">
                         <h4 className="font-bold text-red-900 text-lg mb-2">{t('scheduleConflictDetected')}</h4>
                         <p className="text-red-700 mb-3">{t('scheduleConflictWarning')}</p>
@@ -986,9 +986,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
           {/* Course Description Panel */}
           {currentCourse?.description && (
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-amber-200">
+            <div className="bg-linear-to-br/srgb from-amber-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-amber-200">
               <div className="flex items-start space-x-4">
-                <div className="bg-amber-100 rounded-full p-3 flex-shrink-0">
+                <div className="bg-amber-100 rounded-full p-3 shrink-0">
                   <BookOpen size={24} className="text-amber-700" />
                 </div>
                 <div className="flex-1">
@@ -1045,7 +1045,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
             <button
               onClick={saveCourseData}
               disabled={(externalLoading || isLoading) || (activeTab === 'evaluation' && !isValidTotal) || (activeTab === 'schedule' && !hoursOk)}
-              className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 flex items-center space-x-2"
+              className="px-6 py-2 bg-linear-to-r/srgb from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 flex items-center space-x-2"
             >
               <Save size={20} />
               <span>{(externalLoading || isLoading) ? t('saving') : t('saveChanges')}</span>
@@ -1055,7 +1055,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
       )}
 
       {/* Example Schedule */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
+      <div className="bg-linear-to-br/srgb from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
         <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
           <BookOpen size={20} className="text-indigo-600" />
           <span>{t('exampleSchedule')}</span>

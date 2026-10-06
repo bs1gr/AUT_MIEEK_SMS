@@ -295,7 +295,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const isEmbedded = variant === 'embedded';
   const wrapperClass = isEmbedded
     ? 'space-y-10'
-    : 'min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8';
+    : 'min-h-screen bg-linear-to-br/srgb from-blue-50 via-indigo-50 to-purple-50 p-8';
   const contentClass = isEmbedded ? 'space-y-10' : 'max-w-7xl mx-auto space-y-10';
 
   return (
@@ -427,20 +427,20 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       )}
 
   <div className={contentClass}>
-        <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50 to-purple-50 p-6 shadow-md">
+        <section className="rounded-3xl border border-slate-200 bg-linear-to-br/srgb from-white via-indigo-50 to-purple-50 p-6 shadow-md">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">{t('exportCenter')}</p>
               <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{t('exportCenter')}</h1>
               <p className="text-base text-slate-700 max-w-3xl">{t('downloadYourData')}</p>
             </div>
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-2xl w-fit">
+            <div className="bg-linear-to-r/srgb from-indigo-600 to-purple-600 p-3 rounded-2xl w-fit">
               <Download className="text-white" size={28} />
             </div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm">
           <div className="border-b border-slate-100 px-6 py-5">
             <button
               type="button"
@@ -463,7 +463,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
                     }}
                     tabIndex={-1}
                   >
-                    <div className={`bg-gradient-to-br ${option.color} p-4 rounded-xl w-fit mb-4`}>
+                    <div className={`bg-linear-to-br/srgb ${option.color} p-4 rounded-xl w-fit mb-4`}>
                       <option.icon className="text-white" size={32} />
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
@@ -478,7 +478,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
                         })
                       }
                       disabled={loading[option.id]}
-                      className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
+                      className={`w-full bg-linear-to-r/srgb ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
                     >
                       {loading[option.id] ? (
                         <>
@@ -503,7 +503,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
                     }}
                     tabIndex={-1}
                   >
-                    <div className={`bg-gradient-to-br ${module.color} p-4 rounded-xl w-fit mb-4`}>
+                    <div className={`bg-linear-to-br/srgb ${module.color} p-4 rounded-xl w-fit mb-4`}>
                       <module.icon className="text-white" size={32} />
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">{module.title}</h3>
@@ -512,7 +512,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
                       onClick={() =>
                         setExpandedExportCardId((prev) => (prev === module.id ? null : module.id))
                       }
-                      className={`w-full bg-gradient-to-r ${module.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center justify-center space-x-2`}
+                      className={`w-full bg-linear-to-r/srgb ${module.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center justify-center space-x-2`}
                     >
                       <Download size={20} />
                       <span>{expandedExportCardId === module.id ? t('hideFormats') : t('chooseFormat')}</span>
@@ -549,7 +549,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           )}
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm">
           <div className="border-b border-slate-100 px-6 py-5">
             <button
               type="button"
@@ -567,7 +567,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           )}
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm">
           <div className="border-b border-slate-100 px-6 py-5">
             <button
               type="button"
@@ -635,7 +635,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           )}
         </section>
 
-        <section className="rounded-3xl border border-indigo-200 bg-gradient-to-r from-indigo-100 to-purple-100 p-6">
+        <section className="rounded-3xl border border-indigo-200 bg-linear-to-r/srgb from-indigo-100 to-purple-100 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-3">{t('exportTipsHeader')} {t('exportTips')}</h3>
           <ul className="space-y-2 text-gray-700">
             <li className="flex items-start space-x-2">

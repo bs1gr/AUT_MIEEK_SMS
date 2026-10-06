@@ -249,7 +249,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
@@ -278,7 +278,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                 <select
                   value={config.period}
                   onChange={(e) => handleConfigChange('period', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   title={t('period', { ns: 'reports' })}
                 >
                   <option value="week">{t('period_week', { ns: 'reports' })}</option>
@@ -300,7 +300,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       type="date"
                       value={config.startDate || ''}
                       onChange={(e) => handleConfigChange('startDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       title={t('startDate', { ns: 'reports' })}
                     />
                   </div>
@@ -312,7 +312,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       type="date"
                       value={config.endDate || ''}
                       onChange={(e) => handleConfigChange('endDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       title={t('endDate', { ns: 'reports' })}
                     />
                   </div>
@@ -512,7 +512,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                           }
                           placeholder={t('courseNotesPlaceholder', { ns: 'reports' })}
                           rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
 

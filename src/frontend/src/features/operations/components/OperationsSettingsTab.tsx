@@ -22,7 +22,7 @@ const OperationsSettingsTab = ({
     <div className="space-y-6">
       <AppearanceThemeSelector />
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('dateTimeSettingsTitle', { ns: 'controlPanel' }) || 'Date & Time Settings'}
@@ -36,7 +36,7 @@ const OperationsSettingsTab = ({
           <label className="space-y-2 text-sm font-medium text-slate-700">
             <span>{t('dateTimeTimezoneLabel', { ns: 'controlPanel' }) || 'Timezone'}</span>
             <select
-              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
               value={timeZone}
               onChange={(event) => setTimeZone(event.target.value)}
             >
@@ -51,7 +51,7 @@ const OperationsSettingsTab = ({
           <label className="space-y-2 text-sm font-medium text-slate-700">
             <span>{t('dateTimeFormatLabel', { ns: 'controlPanel' }) || 'Date format'}</span>
             <select
-              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
               value={dateFormat}
               onChange={(event) => setDateFormat(event.target.value as DateFormatOption)}
             >

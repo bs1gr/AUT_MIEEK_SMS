@@ -105,7 +105,7 @@ export default function SystemPage() {
         </div>
       )}
 
-      <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50 to-purple-50 p-6 shadow-md">
+      <section className="rounded-3xl border border-slate-200 bg-linear-to-br/srgb from-white via-indigo-50 to-purple-50 p-6 shadow-md">
         <div className="flex flex-col gap-6">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
@@ -120,7 +120,7 @@ export default function SystemPage() {
       </section>
 
       <div className="space-y-8">
-        <section id="system-health-card" className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+        <section id="system-health-card" className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur-sm">
           <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -130,7 +130,7 @@ export default function SystemPage() {
               <button
                 type="button"
                 onClick={() => setShowSystemHealth((prev) => !prev)}
-                className="inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 aria-expanded={showSystemHealth}
                 aria-controls="system-health-content"
                 title={t('system.collapseHint')}
@@ -146,7 +146,7 @@ export default function SystemPage() {
           )}
         </section>
 
-        <section id="system-control-panel-card" className="rounded-3xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur">
+        <section id="system-control-panel-card" className="rounded-3xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm">
           <div className="flex flex-col gap-2 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">{t('system.controlCardTitle')}</h2>
@@ -155,7 +155,7 @@ export default function SystemPage() {
             <button
               type="button"
               onClick={() => setShowControlPanel((prev) => !prev)}
-              className="mt-3 inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0"
+              className="mt-3 inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0"
               aria-expanded={showControlPanel}
               aria-controls="system-control-panel-content"
               title={t('system.collapseHint')}
@@ -170,7 +170,7 @@ export default function SystemPage() {
           )}
         </section>
 
-        <section id="system-credits-card" className="rounded-3xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur">
+        <section id="system-credits-card" className="rounded-3xl border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm">
           <div className="flex flex-col gap-2 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-900">{t('system.creditsCardTitle')}</h2>
@@ -179,7 +179,7 @@ export default function SystemPage() {
             <button
               type="button"
               onClick={() => setShowCredits((prev) => !prev)}
-              className="mt-3 inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0"
+              className="mt-3 inline-flex items-center justify-center rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0"
               aria-expanded={showCredits}
               aria-controls="system-credits-content"
               title={t('system.collapseHint')}
@@ -195,7 +195,7 @@ export default function SystemPage() {
                   src="/AUT_Logo_realistic_Credits.jpg"
                   alt={t('system.creditsLogoAlt')}
                   loading="lazy"
-                  className="w-full max-w-sm self-center rounded-2xl border border-slate-200 shadow-sm lg:self-start"
+                  className="w-full max-w-sm self-center rounded-2xl border border-slate-200 shadow-xs lg:self-start"
                 />
 
                 <div className="flex-1 space-y-6">
@@ -217,7 +217,7 @@ export default function SystemPage() {
                       href={LINKEDIN_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      className="mt-2 inline-flex items-center gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
                       {/* Inline mark so the panel needs no network request to render */}
                       <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current">

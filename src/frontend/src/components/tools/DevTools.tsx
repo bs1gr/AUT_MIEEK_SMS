@@ -151,7 +151,7 @@ export default function DevTools() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+    <div className="min-h-screen bg-linear-to-br/srgb from-slate-900 via-purple-900 to-slate-900 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-white/20">
@@ -179,7 +179,7 @@ export default function DevTools() {
           <button
             onClick={checkHealth}
             disabled={loading}
-            className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-3 bg-linear-to-r/srgb from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             {t('checkHealth', { ns: 'devtools' }) || 'Check System Health'}
@@ -209,7 +209,7 @@ export default function DevTools() {
             <button
               onClick={backupDatabase}
               disabled={loading}
-              className="p-6 bg-gradient-to-br from-blue-500 to-cyan-600 text-white rounded-xl hover:from-blue-600 hover:to-cyan-700 transition-all disabled:opacity-50 group"
+              className="p-6 bg-linear-to-br/srgb from-blue-500 to-cyan-600 text-white rounded-xl hover:from-blue-600 hover:to-cyan-700 transition-all disabled:opacity-50 group"
             >
               <Download className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
               <div className="text-lg font-bold">{t('backupDatabase', { ns: 'devtools' }) || 'Backup Database'}</div>
@@ -220,7 +220,7 @@ export default function DevTools() {
             <button
               onClick={resetDatabase}
               disabled={loading}
-              className="p-6 bg-gradient-to-br from-red-500 to-pink-600 text-white rounded-xl hover:from-red-600 hover:to-pink-700 transition-all disabled:opacity-50 group"
+              className="p-6 bg-linear-to-br/srgb from-red-500 to-pink-600 text-white rounded-xl hover:from-red-600 hover:to-pink-700 transition-all disabled:opacity-50 group"
             >
               <Trash2 className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
               <div className="text-lg font-bold">{t('resetDatabase', { ns: 'devtools' }) || 'Reset Database'}</div>
@@ -231,7 +231,7 @@ export default function DevTools() {
             <button
               onClick={addSampleData}
               disabled={loading}
-              className="p-6 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all disabled:opacity-50 group"
+              className="p-6 bg-linear-to-br/srgb from-purple-500 to-indigo-600 text-white rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all disabled:opacity-50 group"
             >
               <Upload className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
               <div className="text-lg font-bold">{t('addSampleData', { ns: 'devtools' }) || 'Add Sample Data'}</div>
@@ -249,7 +249,7 @@ export default function DevTools() {
 
           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
               <div className="text-sm text-red-200">
                 <p className="font-semibold mb-2">{t('shutdownWarning', { ns: 'devtools' }) || 'Warning: This will stop all servers'}</p>
                 <ul className="space-y-1 ml-4 list-disc">
@@ -264,7 +264,7 @@ export default function DevTools() {
           <button
             onClick={shutdownBackend}
             disabled={loading}
-            className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-3 bg-linear-to-r/srgb from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <Power className="w-5 h-5" />
             {t('shutdownBackend', { ns: 'devtools' }) || 'Shutdown Backend Server'}

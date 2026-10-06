@@ -130,7 +130,7 @@ const BackendStatusBanner = () => {
 
         <button
           onClick={handleDismiss}
-          className="ml-4 inline-flex rounded-md p-1.5 hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+          className="ml-4 inline-flex rounded-md p-1.5 hover:bg-black/10 focus:outline-hidden focus:ring-2 focus:ring-white focus:ring-offset-2"
           aria-label="Dismiss"
         >
           <svg

@@ -97,7 +97,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
   return (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
         role="presentation"
       />
@@ -107,7 +107,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
             <h2 className="text-lg font-medium text-gray-900">{t('exportData', { ns: 'export' })}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              className="text-gray-400 hover:text-gray-600 focus:outline-hidden"
               aria-label="Close dialog"
               type="button"
             >
@@ -128,7 +128,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
                 id="format-select"
                 value={format}
                 onChange={(e) => setFormat(e.target.value as 'csv' | 'excel' | 'pdf')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="csv">{t('csv', { ns: 'export' }) || 'CSV'}</option>
                 <option value="excel">{t('excel', { ns: 'export' }) || 'Excel (XLSX)'}</option>
@@ -144,7 +144,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
                 id="date-range-select"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as 'all' | 'thisMonth' | 'thisYear')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">{t('allTime', { ns: 'export' }) || 'All Time'}</option>
                 <option value="thisMonth">{t('thisMonth', { ns: 'export' }) || 'This Month'}</option>
@@ -159,8 +159,8 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
           </div>
 
           <div className="border-t border-gray-200 px-6 py-3 flex gap-3 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">{t('cancel', { ns: 'common' })}</button>
-            <button onClick={handleExport} disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400">{loading ? t('loading', { ns: 'common' }) : t('export', { ns: 'common' })}</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500">{t('cancel', { ns: 'common' })}</button>
+            <button onClick={handleExport} disabled={loading} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400">{loading ? t('loading', { ns: 'common' }) : t('export', { ns: 'common' })}</button>
           </div>
         </div>
       </div>

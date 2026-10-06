@@ -184,7 +184,7 @@ const CourseEvaluationRules = () => {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-3 rounded-xl">
+          <div className="bg-linear-to-r/srgb from-purple-600 to-indigo-600 p-3 rounded-xl">
             <Settings className="text-white" size={28} />
           </div>
           <div>
@@ -232,7 +232,7 @@ const CourseEvaluationRules = () => {
               <h3 className="text-xl font-bold text-gray-800">{t('gradingComponents')}</h3>
               <button
                 onClick={addRule}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
+                className="bg-linear-to-r/srgb from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center space-x-2"
               >
                 <Plus size={18} />
                 <span>{t('addRule')}</span>
@@ -241,7 +241,7 @@ const CourseEvaluationRules = () => {
 
             {/* Absence penalty setting */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200">
+              <div className="bg-linear-to-r/srgb from-red-50 to-orange-50 rounded-lg p-4 border border-red-200">
                 <label className="block text-xs font-medium text-gray-700 mb-1">{t('absencePenalty') || 'Absence penalty (points per absence)'}</label>
                 <input
                   type="number"
@@ -255,7 +255,7 @@ const CourseEvaluationRules = () => {
                 />
                 <p className="text-xs text-gray-600 mt-1">{t('absencePenaltyHelp') || 'Deduct this many percentage points from the final grade for each unexcused absence.'}</p>
               </div>
-              <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-4 border border-amber-200">
+              <div className="bg-linear-to-r/srgb from-amber-50 to-yellow-50 rounded-lg p-4 border border-amber-200">
                 <p className="text-xs font-semibold text-gray-800 mb-2">{t('absenceLimitTitle')}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -362,7 +362,7 @@ const CourseEvaluationRules = () => {
 
                     {/* Daily Performance Settings - Collapsible Section */}
                     <div className="mt-3 pt-3 border-t border-gray-200">
-                      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
+                      <div className="bg-linear-to-r/srgb from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
                         <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center space-x-2">
                           <Settings size={16} className="text-purple-600" />
                           <span>{t('dailyPerformanceSettings')}</span>
@@ -451,7 +451,7 @@ const CourseEvaluationRules = () => {
         </>
       )}
 
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
+      <div className="bg-linear-to-br/srgb from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
         <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
           <BookOpen size={20} className="text-indigo-600" />
           <span>{t('exampleCourse')}</span>

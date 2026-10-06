@@ -36,7 +36,7 @@ export const ChangePasswordPromptModal: React.FC<ChangePasswordPromptModalProps>
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
         {/* Header with icon */}
         <div className="mb-4 flex items-center gap-3">
@@ -78,7 +78,7 @@ export const ChangePasswordPromptModal: React.FC<ChangePasswordPromptModalProps>
         <div className="flex gap-3">
           <button
             onClick={handleOpenPasswordForm}
-            className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:bg-blue-500 dark:focus:ring-offset-gray-800"
+            className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:bg-blue-500 dark:focus:ring-offset-gray-800"
           >
             {t('changePasswordNow')}
           </button>

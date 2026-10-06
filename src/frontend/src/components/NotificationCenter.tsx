@@ -156,7 +156,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
       <div className="bg-white w-full sm:w-96 h-[600px] sm:h-screen sm:rounded-l-lg shadow-lg flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
@@ -219,14 +219,14 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                   }}
                 >
                   <div className="flex gap-3">
-                    <span className="text-2xl flex-shrink-0">
+                    <span className="text-2xl shrink-0">
                       {getNotificationIcon(notification.notification_type)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-semibold text-sm">{getNotificationText(notification, t).title}</h3>
                         {!notification.is_read && (
-                          <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
+                          <span className="w-2 h-2 bg-blue-600 rounded-full shrink-0 mt-1" />
                         )}
                       </div>
                       <p

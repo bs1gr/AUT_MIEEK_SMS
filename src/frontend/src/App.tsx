@@ -189,7 +189,7 @@ function AppLayout({ children }: AppLayoutProps) {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {isAuthenticated && <NotificationBell />}
           <LanguageSwitcher />
         </div>
@@ -203,7 +203,7 @@ function AppLayout({ children }: AppLayoutProps) {
             tabs={navigationTabs}
             className="flex-1"
           />
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <LogoutButton />
           </div>
         </div>

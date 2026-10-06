@@ -39,7 +39,7 @@ const VirtualStudentList: React.FC<VirtualStudentListProps> = ({
   return (
     <div
       ref={parentRef}
-      className="overflow-auto border rounded-lg shadow-sm bg-white"
+      className="overflow-auto border rounded-lg shadow-xs bg-white"
       style={{ height }}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>

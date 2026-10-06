@@ -199,7 +199,7 @@ export default function ServerSetupPage() {
                 key={type}
                 onClick={() => selectCard(type)}
                 disabled={status === 'testing'}
-                className="flex flex-col items-center gap-3 p-5 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 active:scale-95 transition-all shadow-sm disabled:opacity-50"
+                className="flex flex-col items-center gap-3 p-5 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 active:scale-95 transition-all shadow-xs disabled:opacity-50"
                 type="button"
               >
                 <div className={`p-3 rounded-xl ${bgColor} ${color}`}>
@@ -233,10 +233,10 @@ export default function ServerSetupPage() {
               key={type}
               onClick={() => selectCard(type)}
               disabled={status === 'testing'}
-              className="flex items-center gap-4 w-full p-4 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 active:scale-[0.99] transition-all shadow-sm disabled:opacity-50"
+              className="flex items-center gap-4 w-full p-4 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 active:scale-[0.99] transition-all shadow-xs disabled:opacity-50"
               type="button"
             >
-              <div className={`p-2.5 rounded-xl flex-shrink-0 ${bgColor} ${color}`}>
+              <div className={`p-2.5 rounded-xl shrink-0 ${bgColor} ${color}`}>
                 {icon}
               </div>
               <div className="text-left">
@@ -295,7 +295,7 @@ export default function ServerSetupPage() {
         </div>
 
         {/* Form card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xs border border-gray-200 dark:border-gray-700 p-5 space-y-4">
 
           {/* Tailscale */}
           {selectedType === 'tailscale' && (
@@ -311,7 +311,7 @@ export default function ServerSetupPage() {
                   onChange={e => { setIp(e.target.value); resetStatus(); }}
                   onKeyDown={e => e.key === 'Enter' && void handleConnect()}
                   placeholder={t('common.serverSetup.tailscalePlaceholder')}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                   autoCapitalize="off" autoCorrect="off" spellCheck={false}
                   disabled={status === 'testing'}
                 />
@@ -327,7 +327,7 @@ export default function ServerSetupPage() {
                   onChange={e => { setPort(e.target.value); resetStatus(); }}
                   onKeyDown={e => e.key === 'Enter' && void handleConnect()}
                   placeholder="8000"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                   disabled={status === 'testing'}
                 />
                 <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
@@ -358,7 +358,7 @@ export default function ServerSetupPage() {
                   onChange={e => { setIp(e.target.value); resetStatus(); }}
                   onKeyDown={e => e.key === 'Enter' && void handleConnect()}
                   placeholder={t('common.serverSetup.localPlaceholder')}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                   autoCapitalize="off" autoCorrect="off" spellCheck={false}
                   disabled={status === 'testing'}
                 />
@@ -374,7 +374,7 @@ export default function ServerSetupPage() {
                   onChange={e => { setPort(e.target.value); resetStatus(); }}
                   onKeyDown={e => e.key === 'Enter' && void handleConnect()}
                   placeholder={t('common.serverSetup.localPortPlaceholder')}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                   disabled={status === 'testing'}
                 />
                 <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
@@ -405,7 +405,7 @@ export default function ServerSetupPage() {
                   onChange={e => { setDomain(e.target.value); resetStatus(); }}
                   onKeyDown={e => e.key === 'Enter' && void handleConnect()}
                   placeholder={t('common.serverSetup.cloudPlaceholder')}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                   autoCapitalize="off" autoCorrect="off" spellCheck={false}
                   disabled={status === 'testing'}
                 />
@@ -435,7 +435,7 @@ export default function ServerSetupPage() {
                 onChange={e => { setCustomUrl(e.target.value); resetStatus(); }}
                 onKeyDown={e => e.key === 'Enter' && void handleConnect()}
                 placeholder={t('common.serverSetup.urlPlaceholder')}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                 autoCapitalize="off" autoCorrect="off" spellCheck={false}
                 disabled={status === 'testing'}
               />

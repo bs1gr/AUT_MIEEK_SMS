@@ -110,7 +110,7 @@ describe('GradeDisplay', () => {
       const { container } = renderWithLanguage(
         <GradeDisplay gpa={3.5} variant="card" />
       );
-      const card = container.querySelector('.bg-gradient-to-br');
+      const card = container.querySelector('[class~="bg-linear-to-br/srgb"]');
       expect(card).toBeInTheDocument();
     });
 

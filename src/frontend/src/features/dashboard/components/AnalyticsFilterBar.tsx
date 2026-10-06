@@ -84,7 +84,7 @@ const AnalyticsFilterBar = ({
           <select
             value={effectiveSelectedStudent ?? ''}
             onChange={(e) => setSelectedStudent(e.target.value ? Number(e.target.value) : null)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-xs focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('analytics.selectStudent')}</option>
             {activeStudents.map((student) => (
@@ -104,7 +104,7 @@ const AnalyticsFilterBar = ({
           <select
             value={selectedDivision}
             onChange={(e) => setSelectedDivision(e.target.value)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-xs focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('analytics.selectDivision')}</option>
             {Array.from(new Set(students.map((s) => normalizeDivisionLabel(s.class_division)).filter(Boolean)))
@@ -125,7 +125,7 @@ const AnalyticsFilterBar = ({
           <select
             value={effectiveSelectedCourse ?? ''}
             onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-xs focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('analytics.selectCourse')}</option>
             {selectableCourses.map((course) => (
@@ -144,7 +144,7 @@ const AnalyticsFilterBar = ({
         <select
           value={selectedDashboardId ?? ''}
           onChange={(e) => setSelectedDashboardId(e.target.value ? Number(e.target.value) : null)}
-          className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-xs focus:border-indigo-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-100"
         >
           <option value="">{t('dashboard.defaultDashboard')}</option>
           {dashboards.map((d: Dashboard) => (
@@ -156,7 +156,7 @@ const AnalyticsFilterBar = ({
       </div>
       <button
         onClick={onManageDashboards}
-        className="self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+        className="self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-xs transition hover:border-slate-300 hover:text-slate-900"
         title={t('dashboard.manageDashboards')}
       >
         {t('dashboard.manage')}

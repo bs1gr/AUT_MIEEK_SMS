@@ -158,7 +158,7 @@ const OperationsFeedbackInbox = ({
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-slate-900">
@@ -171,7 +171,7 @@ const OperationsFeedbackInbox = ({
             {t('feedbackInbox.sourceLabel', { ns: 'notifications' })}
           </label>
           <select
-            className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
             value={feedbackSource}
             onChange={(event) => setFeedbackSource(event.target.value as 'all' | 'app' | 'github')}
           >
@@ -399,7 +399,7 @@ const OperationsFeedbackInbox = ({
                 </button>
               </div>
               <textarea
-                className="min-h-[140px] w-full rounded border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="min-h-[140px] w-full rounded border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-700 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
                 placeholder={t('feedbackInbox.importPlaceholder', { ns: 'notifications' })}
                 value={feedbackImportJson}
                 onChange={(event) => setFeedbackImportJson(event.target.value)}
@@ -419,7 +419,7 @@ const OperationsFeedbackInbox = ({
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-indigo-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
                   onClick={onImport}
                   disabled={feedbackImporting || !feedbackImportJson.trim()}
                 >

@@ -70,7 +70,7 @@ const AnalyticsStudentView = ({
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
         <h3 className="text-lg font-semibold text-slate-900">
           {t('analytics.quickReportTitle')}
         </h3>

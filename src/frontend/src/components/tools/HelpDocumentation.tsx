@@ -554,7 +554,7 @@ const HelpDocumentation = () => {
           </div>
         ) : (
           filteredDocumentation.map((section) => (
-            <div key={section.id} className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+            <div key={section.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <button
                 onClick={() => toggleSection(section.id)}
                 className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -586,12 +586,12 @@ const HelpDocumentation = () => {
         )}
       </div>
       {/* Additional Resources */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200">
+      <div className="bg-linear-to-r/srgb from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-200">
         <h3 className="text-lg font-bold text-gray-800 mb-4">{t('stillNeedHelp')}</h3>
         <p className="text-gray-600 mb-4">{t('additionalResources')}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* User Guide - PDF Downloads */}
-          <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-lg p-4 shadow-xs hover:shadow-md transition-shadow">
             <Book className="text-indigo-600 mb-2" size={24} />
             <h4 className="font-semibold text-gray-800 mb-1">{t('userGuide')}</h4>
             <p className="text-sm text-gray-600 mb-3">{t('comprehensivePDF')}</p>
@@ -615,14 +615,14 @@ const HelpDocumentation = () => {
             </div>
           </div>
           {/* Video Tutorials - Coming Soon */}
-          <div className="bg-white rounded-lg p-4 shadow-sm opacity-75">
+          <div className="bg-white rounded-lg p-4 shadow-xs opacity-75">
             <Video className="text-purple-600 mb-2" size={24} />
             <h4 className="font-semibold text-gray-800 mb-1">{t('videoTutorials')}</h4>
             <p className="text-sm text-gray-600 mb-3">{t('stepByStep')}</p>
             <p className="text-xs text-gray-500 italic">{t('comingSoon')}</p>
           </div>
           {/* Contact Support - GitHub Links */}
-          <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-lg p-4 shadow-xs hover:shadow-md transition-shadow">
             <MessageCircle className="text-green-600 mb-2" size={24} />
             <h4 className="font-semibold text-gray-800 mb-1">{t('contactSupport')}</h4>
             <p className="text-sm text-gray-600 mb-3">{t('personalizedAssistance')}</p>

@@ -74,7 +74,7 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
           </p>
           <button
             onClick={this.handleRetry}
-            className="px-4 py-2 bg-rose-600 text-white rounded-md text-sm font-medium hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            className="px-4 py-2 bg-rose-600 text-white rounded-md text-sm font-medium hover:bg-rose-700 focus:outline-hidden focus:ring-2 focus:ring-rose-500"
           >
             {this.props.t('retry', { ns: 'common' })}
           </button>

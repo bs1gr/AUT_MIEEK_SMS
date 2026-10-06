@@ -36,7 +36,7 @@ const AttendanceAnalyticsSnapshot = ({
   enrolledStudentsCount,
 }: AttendanceAnalyticsSnapshotProps) => {
   return (
-    <div className="bg-white rounded-2xl shadow p-6 border border-gray-100">
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="bg-indigo-100 text-indigo-700 rounded-xl p-2"><BarChart3 size={20} /></div>

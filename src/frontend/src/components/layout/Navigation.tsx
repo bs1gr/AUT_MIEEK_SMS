@@ -57,7 +57,7 @@ export default function Navigation({ activeView, tabs, className, onViewChange }
               className={cn(
                 'px-4 py-2 rounded-lg border transition-colors whitespace-nowrap',
                 isActive
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
               )}
               aria-current={isActive ? 'page' : undefined}

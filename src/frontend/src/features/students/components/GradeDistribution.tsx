@@ -26,7 +26,7 @@ const GradeDistribution: React.FC<GradeDistributionProps> = ({ data }) => {
 
   return (
     <div className="border rounded-lg p-4 bg-white shadow-md">
-      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">{t('gradeDistribution') || 'Grade Distribution'}</div>
+      <div className="font-semibold text-indigo-800 mb-3 drop-shadow-xs">{t('gradeDistribution') || 'Grade Distribution'}</div>
       <div className="space-y-3">
         {Object.entries(data.distribution).map(([grade, count]) => {
           const percentage = data.total > 0 ? (count / data.total) * 100 : 0;

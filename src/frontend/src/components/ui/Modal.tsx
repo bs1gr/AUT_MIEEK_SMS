@@ -47,7 +47,7 @@ export default function Modal({
     const modalContent = (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs"
       onClick={handleBackdropClick}
       tabIndex={-1}
         onKeyDown={(e) => {

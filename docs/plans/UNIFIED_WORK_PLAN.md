@@ -141,12 +141,81 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
   iteration. The built CSS is **byte-identical** to the 6.1.4 build (both files), with the
   same four existing CSS warnings. #257 should close itself once the alert clears; the
   Tailwind 4 migration stays an owner decision.
-- **Left open, dev tooling only:** the full frontend audit still lists 9 high findings,
-  `braces` (no fixed version exists), `micromatch`, `fast-glob`, `chokidar` and
-  `eslint-plugin-vitest` → `@typescript-eslint` ≤ 8.2. They come in through `tailwindcss` 3
-  and `eslint-plugin-vitest`, are build-time denial-of-service issues in tools that don't
-  ship, predate this work, and raise no GitHub alerts. Fixing them means moving to
-  Tailwind 4 and replacing `eslint-plugin-vitest`; both are owner decisions.
+- **Fixed the same day (owner: "migrate to Tailwind 4 and replace that plugin"):** the full
+  frontend audit used to list 9 high findings in build tooling (`braces`, `micromatch`,
+  `fast-glob`, `chokidar` via `tailwindcss` 3; `@typescript-eslint` ≤ 8.2 via
+  `eslint-plugin-vitest`). After the Tailwind 4 migration and the switch to
+  `@vitest/eslint-plugin` (section below), `npm audit` with dev dependencies reports 0.
+
+**2026-10-06: Tailwind CSS 3 → 4, and `@vitest/eslint-plugin` replaces `eslint-plugin-vitest`.**
+The goal was a migration nobody can see. Before and after were checked with full-page
+screenshots against a throwaway backend: 21 routes and 4 open states (Add Student and Add
+Course modals, notifications, feedback), in 6 theme combinations (light, dark, relaxing, fancy,
+mieek, mieek-dark), plus 19 routes on a 412 px phone in light and mieek-dark. That is 176
+screenshots. Two captures of the old build were identical to the pixel, so any difference is
+real.
+- **Result:** 164 of 176 identical. The other 12 are the desktop Courses page (with and without
+  its modal): its title has `text-xl md:text-3xl leading-tight`. Tailwind 3's responsive
+  `md:text-3xl` overrode `leading-tight`, so the line height was 36 px. Tailwind 4 makes
+  `leading-*` apply (37.5 px), and content below moves down 2 px. That is the class as written,
+  so it was kept. It is the only responsive `text-*` with `leading-*` in the code.
+- **How it renders the same** (`src/index.css` header and `src/styles/`):
+  - **Utilities are not in a cascade layer.** In Tailwind 4's layers, every unlayered rule in
+    index.css (~2000 lines of theme overrides) would beat every utility whatever its specificity.
+    Preflight is in a `base` layer.
+  - **Tailwind 3's tokens:** the colour palette (Tailwind 4's OKLCH palette is more saturated,
+    for example blue-500 `#2b7fff` vs `#3b82f6`), absolute `text-*` line heights, and the preflight
+    (Tailwind 4's makes form controls transparent and square, and changes placeholders, button
+    cursors and date inputs). They are generated from the tailwindcss@3.4.19 package.
+  - **`space-*` and `divide-*`** (`tailwind3-compat.css`): Tailwind 4 puts the gap below each
+    child in a zero-specificity `:where()`, so a child's own margin, or preflight's reset on buttons
+    and headings, removed spacing (many pages were 16 px shorter). The file restores Tailwind 3's
+    rule for the 24 classes in use; a new one gets Tailwind 4's behaviour unless added.
+  - **mieek-dark overrides of utilities** (`mieek-dark-utilities.css`, 168 `@utility` blocks):
+    Tailwind 3 applied variants to rules in `@layer utilities`. A disabled
+    `disabled:bg-gray-50` input in mieek-dark was dark only because Tailwind 3 generated
+    `[data-appearance="mieek-dark"] .disabled\:bg-gray-50:disabled` from the plain rule. The
+    gradient overrides were rewritten for Tailwind 4's variables.
+  - `dark:` is `&:is(.dark *)`, Tailwind 3's `darkMode: 'class'` specificity. Gradients use
+    `/srgb` (Tailwind 4 interpolates in OKLab). Classes are generated from the old `content` globs.
+  - The upgrade tool's own CSS conversion was not used: it copied stray declarations into every
+    generated `@utility`. Its class renames were kept, except three that changed text: two
+    "blur effects" strings and a test selector.
+  - 15 `bg-opacity-*`/`border-opacity-*` uses the tool missed (modal backdrops went solid black)
+    became `/50`-style modifiers. A comparison of the class sets of both builds against the source
+    shows no other used class lost.
+- **Removed:** `tailwind.config.js`, the unused `@tailwindcss/line-clamp`, five CSS files nothing
+  imported (`src/frontend/index.css` and `mobile.css` from before the June restructure, and the
+  CSS of the search components deleted on 2026-10-05), and the `postcss-selector-parser`
+  override (nothing depends on it now). `autoprefixer` stays for the component stylesheets.
+  `components.json` (shadcn CLI) points at `src/index.css` with no config, as Tailwind 4 expects.
+- **Checks:** production, Android-mode (`--mode android`, CSS identical to the web build) and dev
+  server builds all render the same; full Vitest suite 112 files, 1814 tests; ESLint 0 errors,
+  with the four vitest rules active; `tsc` clean; isolated E2E 40 passed, 37 skipped, 1 failed.
+  The failure was "dashboard manager should load quickly" at 3.21 s against a 3 s limit with 8
+  workers on a cold dev server; that spec passes 18/18 on its own.
+- **Browsers:** Tailwind 4 targets Chrome 111, Safari 16.4 and Firefox 128. Colour opacities
+  ship a plain fallback before `color-mix()`, and nesting is compiled away, so older browsers
+  mostly work. A phone with an Android System WebView older than 111 may render some details
+  differently.
+
+**Found during the migration, not changed (owner decisions):**
+1. **`--radius` is not defined anywhere**, so `rounded-lg`, `rounded-md` and `rounded-sm` (the
+   shadcn/ui tokens in the old config) have always rendered square corners. Defining it (shadcn
+   uses `0.5rem`) would round most cards and buttons. The same holds for the colour variables
+   behind `bg-background`, `border-border`, `text-foreground` and the rest.
+2. **The `body` rule in index.css never applied.** Six declarations left at the end of
+   `@layer utilities` swallowed it, so the browser dropped it (`letter-spacing: 0.3px`,
+   `font-weight: 500`, a font stack and background). They were removed with the rule, which
+   keeps today's look; restoring it would make all text wider and heavier. A stray line also
+   disabled one mieek-dark `.bg-white` rule (`#0b0b0b`); the `#141414` rule before it is what
+   users see, and it was kept.
+3. **`GradeProgressBar` (`GradeDisplay.tsx`) builds `w-[${percentage}%]` at runtime.** Tailwind
+   cannot generate such classes, so the fill is full width except at 0, 75 and 100 % (those
+   three appear literally in its test). It is exported but never rendered: wire it in with
+   `style={{ width }}`, or delete it.
+4. `tests/e2e/pwa.spec.ts` is skipped as a whole; two of its tests check the install prompt and
+   `mobile.css`, both deleted.
 
 **Dependabot PRs (2026-10-05, owner: "fix as recommended"):**
 - **Merged:** #253 (pip minor/patch group, 33 updates) and #255 (npm minor/patch group, 177

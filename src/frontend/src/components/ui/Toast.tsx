@@ -25,7 +25,7 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose }) => {
             <div key={idx}>{line}</div>
           ))}
         </div>
-        <button onClick={onClose} className="font-bold flex-shrink-0">{t('close')}</button>
+        <button onClick={onClose} className="font-bold shrink-0">{t('close')}</button>
       </div>
     </div>
   );

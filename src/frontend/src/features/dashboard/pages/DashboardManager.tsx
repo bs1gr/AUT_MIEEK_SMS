@@ -121,7 +121,7 @@ const DashboardManager: React.FC = () => {
           {dashboards.map((dashboard: Dashboard) => (
             <div
               key={dashboard.id}
-              className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+              className="rounded-lg border border-slate-200 bg-white p-6 shadow-xs transition hover:shadow-md"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

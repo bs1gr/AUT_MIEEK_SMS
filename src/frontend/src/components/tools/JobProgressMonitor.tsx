@@ -81,7 +81,7 @@ const JobProgressMonitor = ({ jobId, pollIntervalMs = 2000, onComplete }: JobPro
   const rowErrors = [...(job?.result?.errors ?? []), ...(job?.result?.warnings ?? [])];
 
   return (
-    <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-semibold text-slate-900">{t('jobMonitorTitle')}</div>

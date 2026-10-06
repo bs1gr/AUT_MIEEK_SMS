@@ -36,7 +36,7 @@ const UserFeedbackModal = ({ isOpen, onClose, onSubmit }: UserFeedbackModalProps
           onChange={e => setFeedback(e.target.value)}
           rows={4}
           required
-          className="w-full mt-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y"
+          className="w-full mt-2 focus:ring-2 focus:ring-indigo-500 focus:outline-hidden resize-y"
           placeholder={t('placeholder', { ns: 'feedback' })}
           aria-required="true"
         />

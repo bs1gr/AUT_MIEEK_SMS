@@ -151,7 +151,7 @@ export const RBACPanel: React.FC = () => {
     return (
       <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-6">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
               {t('accessDeniedTitle')}

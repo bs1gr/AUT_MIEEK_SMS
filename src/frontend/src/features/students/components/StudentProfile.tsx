@@ -332,7 +332,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br/srgb from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -340,7 +340,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br/srgb from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
@@ -357,8 +357,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
   if (!student) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <p className="text-indigo-700 font-semibold drop-shadow-sm">{t('studentNotFound', { ns: 'students' })}</p>
+      <div className="min-h-screen bg-linear-to-br/srgb from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <p className="text-indigo-700 font-semibold drop-shadow-xs">{t('studentNotFound', { ns: 'students' })}</p>
       </div>
     );
   }
@@ -404,13 +404,13 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   ];
 
   return (
-    <div data-testid="student-profile" className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-3 sm:p-8">
+    <div data-testid="student-profile" className="min-h-screen bg-linear-to-br/srgb from-blue-50 via-indigo-50 to-purple-50 p-3 sm:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <button
           type="button"
           onClick={onBack}
-          className="mb-4 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-sm"
+          className="mb-4 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-xs"
         >
           <ArrowLeft size={20} />
           <span>{t('backToStudents', { ns: 'students' })}</span>
@@ -420,14 +420,14 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         <div className="bg-white rounded-2xl shadow-lg mb-4 sm:mb-6">
           <div className="px-4 py-5 sm:px-8 sm:py-8">
             <div className="flex items-center space-x-3 sm:space-x-6">
-              <div className="w-16 h-16 sm:w-32 sm:h-32 flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center text-white text-2xl sm:text-4xl font-bold border-2 sm:border-4 border-white">
+              <div className="w-16 h-16 sm:w-32 sm:h-32 shrink-0 bg-linear-to-br/srgb from-indigo-500 to-purple-500 rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center text-white text-2xl sm:text-4xl font-bold border-2 sm:border-4 border-white">
                 {student.first_name[0]}{student.last_name[0]}
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-3xl font-bold text-indigo-800 drop-shadow-sm truncate">
+                <h1 className="text-lg sm:text-3xl font-bold text-indigo-800 drop-shadow-xs truncate">
                   {student.first_name} {student.last_name}
                 </h1>
-                <p className="text-sm sm:text-base text-indigo-700 mt-1 font-semibold drop-shadow-sm truncate">{t('studentID', { ns: 'students' })} {student.student_id}</p>
+                <p className="text-sm sm:text-base text-indigo-700 mt-1 font-semibold drop-shadow-xs truncate">{t('studentID', { ns: 'students' })} {student.student_id}</p>
               </div>
             </div>
 
@@ -444,9 +444,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 <button
                   type="button"
                   onClick={() => setShowPerformanceReport(true)}
-                  className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                  className="w-full md:w-auto bg-linear-to-r/srgb from-indigo-600 to-purple-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base"
                 >
-                  <FileText size={18} className="flex-shrink-0" />
+                  <FileText size={18} className="shrink-0" />
                   <span>{t('studentPerformanceReport', { ns: 'reports' })}</span>
                 </button>
               </div>
@@ -475,7 +475,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-linear-to-br/srgb from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp size={24} />
               <span className="text-xs opacity-75">{t('overall', { ns: 'common' })}</span>
@@ -484,7 +484,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             <p className="text-sm opacity-90">{t('gpaOutOf', { ns: 'students' })}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-linear-to-br/srgb from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <Award size={24} />
               <span className="text-xs opacity-75">{t('average', { ns: 'common' })}</span>
@@ -493,7 +493,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             <p className="text-sm opacity-90">{stats.totalGrades} {t('assignments', { ns: 'common' })}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-linear-to-br/srgb from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <CheckCircle size={24} />
               <span className="text-xs opacity-75">{t('attendance', { ns: 'common' })}</span>
@@ -502,7 +502,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             <p className="text-sm opacity-90">{stats.totalClasses} {t('classes', { ns: 'common' })}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-linear-to-br/srgb from-yellow-500 to-yellow-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <Star size={24} />
               <span className="text-xs opacity-75">{t('highlights', { ns: 'students' })}</span>
@@ -881,7 +881,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   } as const;
 
                   return (
-                    <div key={status} className={`bg-gradient-to-br ${colors[status]} rounded-xl shadow p-4 text-white`}>
+                    <div key={status} className={`bg-linear-to-br/srgb ${colors[status]} rounded-xl shadow-sm p-4 text-white`}>
                       <p className="text-sm opacity-90">{t(status.toLowerCase(), { ns: 'reports' })}</p>
                       <p className="text-3xl font-bold mt-2">{count}</p>
                       <p className="text-sm opacity-90 mt-1">{percentage}%</p>

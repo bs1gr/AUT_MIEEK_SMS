@@ -449,7 +449,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpand(inst.name); } }}
                 >
                   {/* Status dot */}
-                  <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                  <div className={`w-3 h-3 rounded-full shrink-0 ${
                     inst.status === 'healthy' ? 'bg-green-500' :
                     inst.status === 'unreachable' ? 'bg-red-500' :
                     'bg-yellow-500'
@@ -605,7 +605,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
           <div className="divide-y">
             {backups.map((bk) => (
               <div key={bk.filename} className="flex items-center gap-4 px-6 py-3">
-                <FileText size={16} className="text-gray-400 flex-shrink-0" />
+                <FileText size={16} className="text-gray-400 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{bk.filename}</p>
                   <p className="text-xs text-gray-500 flex items-center gap-2">

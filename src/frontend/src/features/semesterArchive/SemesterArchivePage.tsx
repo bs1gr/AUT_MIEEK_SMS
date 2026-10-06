@@ -70,7 +70,7 @@ const SemesterArchivePage: React.FC = () => {
         <div className="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
       )}
 
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -122,7 +122,7 @@ const SemesterArchivePage: React.FC = () => {
       </div>
 
       {preview && (
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('previewTitle', { ns: 'semesterArchive' })}</h2>
 
           <h3 className="text-sm font-semibold text-gray-700 mb-2">
@@ -250,7 +250,7 @@ const SemesterArchivePage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white shadow-sm rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('historyTitle', { ns: 'semesterArchive' })}</h2>
         {exports.length === 0 ? (
           <p className="text-sm text-gray-500">{t('historyEmpty', { ns: 'semesterArchive' })}</p>

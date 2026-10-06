@@ -145,7 +145,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                   </div>
 
                   {errorInfo?.componentStack && (
-                    <div className="text-xs font-mono text-gray-600 p-3 bg-white rounded border border-gray-200 max-h-48 overflow-y-auto whitespace-pre-wrap break-words">
+                    <div className="text-xs font-mono text-gray-600 p-3 bg-white rounded border border-gray-200 max-h-48 overflow-y-auto whitespace-pre-wrap wrap-break-word">
                       {errorInfo.componentStack}
                     </div>
                   )}
@@ -157,14 +157,14 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
             <div className="flex gap-3 justify-center flex-wrap">
               <button
                 onClick={this.handleReset}
-                className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-medium transition-colors shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-medium transition-colors shadow-xs hover:bg-sky-700 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
                 {t('reset', { ns: 'common' }) || 'Try Again'}
               </button>
 
               <button
                 onClick={this.handleGoHome}
-                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-gray-300"
               >
                 {t('home', { ns: 'common' }) || 'Go Home'}
               </button>
