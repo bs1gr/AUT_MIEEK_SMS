@@ -54,6 +54,9 @@ export interface ClassOverview {
     class_division: string | null;
     courses: number;
     average_final_grade: number | null;
+    /** Mean of each course's exam-type grades (midterm/final), percent; null without any. */
+    exam_average: number | null;
+    credits: number;
     failing_courses: string[];
     attendance_rate: number | null;
     absence_status: AbsenceStatus | null;

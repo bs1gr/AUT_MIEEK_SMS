@@ -188,6 +188,10 @@ def test_class_overview_all_active_students(client, scenario):
     assert courses["PHYS"]["students"] == 2 and courses["PHYS"]["graded"] == 1
 
     students = {s["student_id"]: s for s in data["students"]}
+    # Exam average: mean of each course's exam grades (MATH Final 70; PHYS has none).
+    assert students["OV0001"]["exam_average"] == 70.0
+    assert students["OV0003"]["exam_average"] is None
+    assert students["OV0001"]["credits"] == 6  # MATH + PHYS; the dropped CHEM is not counted
     assert students["OV0002"]["at_risk"] is True
     assert students["OV0002"]["failing_courses"] == ["Course MATH"]
     assert students["OV0002"]["participation_forfeited"] == ["Course MATH"]

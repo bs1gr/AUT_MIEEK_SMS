@@ -98,6 +98,15 @@ def scheduled_weekdays(schedule: Any) -> set[int]:
     return {d for d in weekdays if d is not None and d < 5}
 
 
+# Exam-type grade categories (EN and EL, with and without accents), for the exam average.
+_EXAM_NEEDLES = ("midterm", "final", "exam", "ενδιάμεσ", "ενδιαμεσ", "τελικ", "εξέτασ", "εξετασ")
+
+
+def _is_exam(category: Any) -> bool:
+    text = str(category or "").lower()
+    return any(needle in text for needle in _EXAM_NEEDLES)
+
+
 def _grade_date(grade: Any) -> Optional[str]:
     day = grade.date_submitted or grade.date_assigned
     return day.isoformat() if day else None
@@ -111,6 +120,7 @@ class EnrollmentFacts:
     grade_basis: Optional[str]  # "rules" | "average" | None
     grade_count: int
     rating_count: int = 0
+    exam_average: Optional[float] = None
     present: int = 0
     late: int = 0
     absent: int = 0
@@ -249,6 +259,7 @@ class AnalyticsOverviewService:
             grade_basis=basis,
             grade_count=len(percentages),
             rating_count=len(daily),
+            exam_average=_mean(g.grade / g.max_grade * 100 for g in grades if g.max_grade and _is_exam(g.category)),
             absence=absence_limit_service.evaluate(course, absent=counts["absent"], excused=counts["excused"]),
             grades=[
                 {
@@ -320,6 +331,8 @@ class AnalyticsOverviewService:
                     "class_division": s.class_division,
                     "courses": len(sf),
                     "average_final_grade": _round(average),
+                    "exam_average": _round(_mean(f.exam_average for f in sf)),
+                    "credits": sum(int(courses[f.course_id].credits or 0) for f in sf),
                     "failing_courses": failing,
                     "attendance_rate": _round(_pooled_rate(sf)),
                     "absence_status": worst,

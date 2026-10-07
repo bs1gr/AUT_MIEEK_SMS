@@ -1,5 +1,8 @@
-import { useState, useEffect, useMemo, useCallback, useRef, type ComponentType, type SVGProps } from 'react';
+import { useState, useEffect, useMemo, useCallback, type ComponentType, type SVGProps } from 'react';
 import { AttendanceNotRecorded, StudentsNeedingAttention } from './DashboardAttentionPanels';
+import TopPerformersPanel from './TopPerformersPanel';
+import { formatPercent } from './analyticsUi';
+import { useClassOverview } from '@/api/hooks/useAnalytics';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -9,139 +12,15 @@ import {
   Star,
   TrendingUp,
   CheckCircle,
-  Award,
-  Target,
 } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
-import { getLetterGrade, percentageToGreekScale } from '@/utils/gradeUtils';
 import { getLocalizedCategory } from '@/utils/categoryLabels';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
-import { CourseCardSkeleton } from '@/components/ui';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import './EnhancedDashboardView.css';
 import type { OperationsLocationState } from '@/features/operations/types';
 import { Student, Course } from '@/types';
 import apiClient from '@/api/api';
-
-type DailyPerformanceRecord = {
-  course_id?: number;
-  category?: string;
-  score?: number;
-  max_score?: number;
-};
-
-const stripDiacritics = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-const normalizeCategory = (value?: string): string => {
-  if (!value) {
-    return '';
-  }
-  let normalized = stripDiacritics(String(value).trim().toLowerCase());
-  normalized = normalized.replace(/[._()-]+/g, ' ').replace(/\s+/g, ' ').trim();
-
-  const directMap: Record<string, string> = {
-    'class participation': 'participation',
-    participation: 'participation',
-    'συμμετοχη': 'participation',
-    behavior: 'behavior',
-    'συμπεριφορα': 'behavior',
-    effort: 'effort',
-    'προσπαθεια': 'effort',
-    skills: 'skills',
-    'δεξιοτητες': 'skills',
-    homework: 'homework',
-    assignment: 'homework',
-    assignments: 'homework',
-    'εργασια': 'homework',
-    coursework: 'homework',
-    'εργασιες': 'homework',
-    'continuous assessment': 'continuous',
-    'συνεχης αξιολογηση': 'continuous',
-    project: 'project',
-    'προτζεκτ': 'project',
-    'προγραμμα': 'project',
-    quiz: 'quiz',
-    quizzes: 'quiz',
-    'κουιζ': 'quiz',
-    'κουίζ': 'quiz',
-    test: 'quiz',
-    tests: 'quiz',
-    lab: 'lab',
-    'lab work': 'lab',
-    'εργαστηριο': 'lab',
-    'εργαστηρια': 'lab',
-    presentation: 'presentation',
-    'παρουσιαση': 'presentation',
-    midterm: 'midterm',
-    'midterm exam': 'midterm',
-    'ενδιαμεση': 'midterm',
-    'ενδιαμεση εξεταση': 'midterm',
-    final: 'final',
-    'final exam': 'final',
-    'τελικη': 'final',
-    'τελικη εξεταση': 'final',
-    exam: 'exam',
-    'εξεταση': 'exam',
-    attendance: 'attendance',
-    absences: 'attendance',
-    'παρουσιες': 'attendance',
-    'απουσιες': 'attendance',
-    'φοιτηση': 'attendance',
-  };
-
-  if (directMap[normalized]) {
-    return directMap[normalized];
-  }
-
-  const containsMap: Array<[string, string[]]> = [
-    ['participation', ['participation', 'συμμετοχ']],
-    ['behavior', ['behavior', 'συμπεριφορ']],
-    ['effort', ['effort', 'προσπαθ']],
-    ['skills', ['skills', 'δεξιοτ']],
-    ['homework', ['homework', 'assign', 'εργασ']],
-    ['continuous', ['continuous assessment', 'συνεχ', 'αξιολογησ']],
-    ['project', ['project', 'προτζεκ']],
-    ['quiz', ['quiz', 'κουιζ', 'κουίζ', 'test', 'τεστ']],
-    ['lab', ['lab', 'εργαστηρ']],
-    ['presentation', ['presentation', 'παρουσιασ']],
-    ['midterm', ['midterm', 'ενδιαμεσ']],
-    ['final', ['final', 'τελικ']],
-    ['exam', ['exam', 'εξετασ']],
-    ['attendance', ['attendance', 'απουσ', 'παρουσ', 'φοιτησ']],
-  ];
-
-  for (const [key, needles] of containsMap) {
-    if (needles.some((needle) => normalized.includes(needle))) {
-      return key;
-    }
-  }
-
-  return normalized;
-};
-
-const averageOf = (values: number[]) =>
-  values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
-
-const toPercentage = (score?: number, maxScore?: number) => {
-  if (!maxScore || maxScore <= 0 || score === undefined || score === null) {
-    return null;
-  }
-  return (score / maxScore) * 100;
-};
-
-// Extended student type with analytics data
-interface StudentWithGPA extends Student {
-  overallGPA: number;
-  totalCourses: number;
-  totalCredits: number;
-  failedCourses: number;
-  attendanceRate: number;
-  examAverage: number;
-  continuousScore: number;
-  participationScore: number;
-  academicScore: number;
-  overallScore: number;
-}
 
 type StatCardProps = {
   title: string;
@@ -256,15 +135,8 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     goToExport('all-grades-excel');
   }, [goToExport]);
 
-  const [topPerformers, setTopPerformers] = useState<StudentWithGPA[]>([]);
-  const [rankingType, setRankingType] = useState<'gpa' | 'attendance' | 'exams' | 'overall'>('gpa');
-  const [activeEnrollmentStudentIds, setActiveEnrollmentStudentIds] = useState<Set<number>>(new Set());
   const [activeEnrollmentCourseIds, setActiveEnrollmentCourseIds] = useState<Set<number>>(new Set());
 
-  const activeTopPerformers = useMemo(
-    () => topPerformers.filter((student) => activeEnrollmentStudentIds.has(student.id)),
-    [topPerformers, activeEnrollmentStudentIds]
-  );
   // is_active is derived server-side from enrollments (active while students are enrolled)
   const isCourseActiveNow = useCallback((course: Course) => course.is_active === true, []);
 
@@ -276,26 +148,8 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     [courses, activeEnrollmentCourseIds, isCourseActiveNow]
   );
 
-  // Compute ranked students based on selected ranking type
-  const rankedStudents = useMemo(() => {
-    const students = [...activeTopPerformers];
-    switch (rankingType) {
-      case 'gpa':
-        return students.sort((a, b) => b.continuousScore - a.continuousScore).slice(0, 5);
-      case 'attendance':
-        return students.sort((a, b) => b.participationScore - a.participationScore).slice(0, 5);
-      case 'exams':
-        return students.sort((a, b) => b.academicScore - a.academicScore).slice(0, 5);
-      case 'overall':
-        return students.sort((a, b) => b.overallScore - a.overallScore).slice(0, 5);
-      default:
-        return students.slice(0, 5);
-    }
-  }, [activeTopPerformers, rankingType]);
-
-  const analyticsRef = useRef<HTMLDivElement>(null);
-  const showMore = true;
-  const [loading, setLoading] = useState(true);
+  // Average final grade, attendance and grading progress of all active students (same data as Analytics).
+  const overviewSummary = useClassOverview({}).data?.summary;
   const [avgClassSize, setAvgClassSize] = useState<number>(0);
   const [activeCourseCount, setActiveCourseCount] = useState<number>(0);
 
@@ -306,21 +160,6 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     () => (students || []).filter((student) => student.is_active !== false).length,
     [students]
   );
-
-  const topPerformersCourseTotal = useMemo(
-    () => activeTopPerformers.reduce((sum: number, student) => sum + (student.totalCourses || 0), 0),
-    [activeTopPerformers]
-  );
-
-  const averageTopPerformerPct = useMemo(() => {
-    if (!activeTopPerformers.length) {
-      return 0;
-    }
-    return (
-      activeTopPerformers.reduce((sum: number, student) => sum + (student.overallScore || 0), 0) /
-      activeTopPerformers.length
-    );
-  }, [activeTopPerformers]);
 
   // Year of study counts active students only: inactive ones are no longer in a class.
   const yearBuckets = useMemo(() => {
@@ -367,7 +206,6 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     if (courses.length === 0) {
       setAvgClassSize(0);
       setActiveCourseCount(0);
-      setActiveEnrollmentStudentIds(new Set());
       setActiveEnrollmentCourseIds(new Set());
       return;
     }
@@ -405,14 +243,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
         const coursesWithEnrollments = Object.keys(enrollmentCounts).length;
         const courseIds = new Set(Object.keys(enrollmentCounts).map((id) => Number(id)));
-        const studentIds = new Set(
-          activeEnrollments
-            .map((enrollment) => enrollment.student_id)
-            .filter((id): id is number => Number.isFinite(id))
-        );
-
         setActiveEnrollmentCourseIds(courseIds);
-        setActiveEnrollmentStudentIds(studentIds);
         setActiveCourseCount(coursesWithEnrollments);
 
         if (coursesWithEnrollments > 0) {
@@ -425,326 +256,15 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       } else {
         setAvgClassSize(0);
         setActiveCourseCount(0);
-        setActiveEnrollmentStudentIds(new Set());
-        setActiveEnrollmentCourseIds(new Set());
+          setActiveEnrollmentCourseIds(new Set());
       }
     } catch (error) {
       console.error('Error loading enrollment stats:', error);
       setAvgClassSize(0);
       setActiveCourseCount(0);
-      setActiveEnrollmentStudentIds(new Set());
       setActiveEnrollmentCourseIds(new Set());
     }
   }, [courses, isCourseActiveNow]);
-
-  const loadDashboardData = useCallback(async () => {
-    if (students.length === 0) {
-      setLoading(false);
-      return;
-    }
-
-    const DESIRED_TOP_COUNT = 5;
-    const MIN_BUFFER = 12; // fetch a bit extra so ranking modes have data
-    const MAX_STUDENTS_FOR_ANALYTICS = 60; // cap work to avoid long loading times
-    const BATCH_SIZE = 6; // keep concurrent requests manageable
-
-    const hasPerformanceData = (student: StudentWithGPA) =>
-      (student.continuousScore ?? 0) > 0 ||
-        (student.participationScore ?? 0) > 0 ||
-        (student.academicScore ?? 0) > 0 ||
-        (student.attendanceRate ?? 0) > 0 ||
-        (student.examAverage ?? 0) > 0 ||
-        (student.overallScore ?? 0) > 0 ||
-        (student.totalCourses ?? 0) > 0 ||
-        (student.totalCredits ?? 0) > 0;
-
-    const fetchStudentSnapshot = async (student: Student): Promise<StudentWithGPA> => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const [analyticsResponse, attendanceResponse, gradesResponse, performanceResponse] = await Promise.all([
-          apiClient.get(`/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }).catch(() => null),
-          // Trailing slash: without it the backend redirects to an absolute URL, which loses the
-          // Authorization header (401) whenever the API sits behind a proxy.
-          apiClient.get('/attendance/', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
-          apiClient.get('/grades/', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
-          apiClient.get(`/daily-performance/student/${student.id}`, { signal: controller.signal }).catch(() => null),
-        ]);
-
-        clearTimeout(timeoutId);
-
-        const analyticsData = analyticsResponse ? analyticsResponse.data : null;
-        const attendanceData = attendanceResponse ? attendanceResponse.data : null;
-        const gradesData = gradesResponse ? gradesResponse.data : null;
-        const performanceData = performanceResponse ? performanceResponse.data : null;
-
-        const failedCourses = (analyticsData?.courses || []).filter(
-          (course: { letter_grade?: string; gpa?: string | number }) =>
-            course.letter_grade === 'F' || (course.gpa && parseFloat(String(course.gpa)) < 1.0)
-        ).length;
-
-        const attendances = attendanceData?.items || attendanceData?.attendances || [];
-        const attendanceRate = attendances.length > 0
-          ? (attendances.filter((a: { status?: string }) => a.status?.toLowerCase() === 'present').length / attendances.length) * 100
-          : 0;
-
-        const grades = gradesData?.items || gradesData?.grades || [];
-        const dailyPerformances: DailyPerformanceRecord[] = Array.isArray(performanceData)
-          ? performanceData
-          : performanceData?.items || [];
-
-        const courseById = new Map(courses.map((course) => [course.id, course]));
-        const courseIds = new Set<number>();
-        grades.forEach((grade: { course_id?: number }) => {
-          if (grade.course_id) courseIds.add(grade.course_id);
-        });
-        attendances.forEach((attendance: { course_id?: number }) => {
-          if (attendance.course_id) courseIds.add(attendance.course_id);
-        });
-        dailyPerformances.forEach((perf) => {
-          if (perf.course_id) courseIds.add(perf.course_id);
-        });
-
-        const examKeys = new Set(['midterm', 'final', 'exam']);
-        const behaviorKeys = new Set(['behavior', 'effort', 'skills', 'continuous']);
-        const participationKeys = new Set(['participation']);
-        const attendanceKeys = new Set(['attendance']);
-        const academicKeys = new Set([
-          'homework',
-          'project',
-          'quiz',
-          'lab',
-          'presentation',
-          'midterm',
-          'final',
-          'exam',
-        ]);
-
-        const courseScores: Array<{ continuous: number; participation: number; academic: number; overall: number }> = [];
-
-        const examGrades = grades.filter((grade: { category?: string }) =>
-          examKeys.has(normalizeCategory(grade.category))
-        );
-        const examAverage = examGrades.length
-          ? averageOf(
-              examGrades
-                .map((grade: { grade?: number; max_grade?: number }) =>
-                  toPercentage(grade.grade, grade.max_grade)
-                )
-                .filter((value: number | null): value is number => Number.isFinite(value))
-            )
-          : 0;
-
-        courseIds.forEach((courseId) => {
-          const course = courseById.get(courseId);
-          if (!course || !Array.isArray(course.evaluation_rules) || course.evaluation_rules.length === 0) {
-            return;
-          }
-
-          const courseGrades = grades.filter((grade: { course_id?: number }) => grade.course_id === courseId);
-          const coursePerformances = dailyPerformances.filter((perf) => perf.course_id === courseId);
-          const courseAttendances = attendances.filter(
-            (attendance: { course_id?: number }) => attendance.course_id === courseId
-          );
-
-          const absences = courseAttendances.filter(
-            (attendance: { status?: string }) => String(attendance.status || '').toLowerCase() === 'absent'
-          ).length;
-          const absencePenalty = Number(course.absence_penalty ?? 0);
-          const attendanceScore = Math.max(0, 100 - absencePenalty * absences);
-
-          const averageFromGrades = (categoryKey: string) =>
-            averageOf(
-              courseGrades
-                .filter((grade: { category?: string }) => normalizeCategory(grade.category) === categoryKey)
-                .map((grade: { grade?: number; max_grade?: number }) =>
-                  toPercentage(grade.grade, grade.max_grade)
-                )
-                .filter((value: number | null): value is number => Number.isFinite(value))
-            );
-
-          const averageFromDaily = (categoryKey: string) =>
-            averageOf(
-              coursePerformances
-                .filter((perf) => normalizeCategory(perf.category) === categoryKey)
-                .map((perf) => toPercentage(perf.score, perf.max_score))
-                .filter((value: number | null): value is number => Number.isFinite(value))
-            );
-
-          const averageFromParticipation = (categoryKey: string) => {
-            const dailyValues = coursePerformances
-              .filter((perf) => normalizeCategory(perf.category) === categoryKey)
-              .map((perf) => toPercentage(perf.score, perf.max_score))
-              .filter((value: number | null): value is number => Number.isFinite(value));
-            const gradeValues = courseGrades
-              .filter((grade: { category?: string }) => normalizeCategory(grade.category) === categoryKey)
-              .map((grade: { grade?: number; max_grade?: number }) =>
-                toPercentage(grade.grade, grade.max_grade)
-              )
-              .filter((value: number | null): value is number => Number.isFinite(value));
-
-            if (dailyValues.length === 0 && gradeValues.length === 0) {
-              return 0;
-            }
-
-            const dailyAvg = averageOf(dailyValues);
-            const gradeAvg = averageOf(gradeValues);
-
-            if (dailyValues.length > 0 && gradeValues.length > 0) {
-              return averageOf([dailyAvg, gradeAvg]);
-            }
-
-            return dailyValues.length > 0 ? dailyAvg : gradeAvg;
-          };
-
-          let continuousSum = 0;
-          let continuousWeight = 0;
-          let participationSum = 0;
-          let participationWeight = 0;
-          let academicSum = 0;
-          let academicWeight = 0;
-          let hasAttendanceRule = false;
-
-          course.evaluation_rules.forEach((rule) => {
-            const weight = Number(rule.weight ?? 0);
-            if (!rule.category || weight <= 0) {
-              return;
-            }
-            const categoryKey = normalizeCategory(rule.category);
-
-            if (behaviorKeys.has(categoryKey)) {
-              const avg = averageOf([
-                averageFromDaily(categoryKey),
-                averageFromGrades(categoryKey),
-              ].filter((value) => value > 0));
-              if (avg > 0) {
-                continuousSum += avg * weight;
-                continuousWeight += weight;
-              }
-              return;
-            }
-
-            if (participationKeys.has(categoryKey)) {
-              const avg = averageFromParticipation(categoryKey);
-              if (avg > 0) {
-                participationSum += avg * weight;
-                participationWeight += weight;
-              }
-              return;
-            }
-
-            if (attendanceKeys.has(categoryKey)) {
-              hasAttendanceRule = true;
-              participationSum += attendanceScore * weight;
-              participationWeight += weight;
-              return;
-            }
-
-            if (academicKeys.has(categoryKey)) {
-              const avg = averageFromGrades(categoryKey);
-              if (avg > 0) {
-                academicSum += avg * weight;
-                academicWeight += weight;
-              }
-            }
-          });
-
-          const continuousScore = continuousWeight > 0 ? continuousSum / continuousWeight : 0;
-          let participationScore = participationWeight > 0 ? participationSum / participationWeight : 0;
-          if (!hasAttendanceRule && participationWeight > 0 && absencePenalty > 0 && absences > 0) {
-            participationScore = Math.max(0, participationScore - absencePenalty * absences);
-          }
-          const academicScore = academicWeight > 0 ? academicSum / academicWeight : 0;
-          const totalWeight = continuousWeight + participationWeight + academicWeight;
-          const overallScore = totalWeight > 0
-            ? (continuousScore * continuousWeight + participationScore * participationWeight + academicScore * academicWeight) / totalWeight
-            : 0;
-
-          courseScores.push({
-            continuous: continuousScore,
-            participation: participationScore,
-            academic: academicScore,
-            overall: overallScore,
-          });
-        });
-
-        const continuousScore = courseScores.length
-          ? averageOf(courseScores.map((score) => score.continuous))
-          : 0;
-        const participationScore = courseScores.length
-          ? averageOf(courseScores.map((score) => score.participation))
-          : 0;
-        const academicScore = courseScores.length
-          ? averageOf(courseScores.map((score) => score.academic))
-          : 0;
-        const overallScore = courseScores.length
-          ? averageOf(courseScores.map((score) => score.overall))
-          : 0;
-
-        return {
-          ...student,
-          overallGPA: analyticsData?.overall_gpa || 0,
-          totalCourses: analyticsData?.courses?.length || 0,
-          totalCredits: analyticsData?.total_credits || 0,
-          failedCourses,
-          attendanceRate: Math.round(attendanceRate * 10) / 10,
-          examAverage: Math.round(examAverage * 10) / 10,
-          continuousScore: Math.round(continuousScore * 10) / 10,
-          participationScore: Math.round(participationScore * 10) / 10,
-          academicScore: Math.round(academicScore * 10) / 10,
-          overallScore: Math.round(overallScore * 10) / 10,
-        };
-      } catch {
-        return {
-          ...student,
-          overallGPA: 0,
-          totalCourses: 0,
-          totalCredits: 0,
-          failedCourses: 0,
-          attendanceRate: 0,
-          examAverage: 0,
-          continuousScore: 0,
-          participationScore: 0,
-          academicScore: 0,
-          overallScore: 0,
-        };
-      }
-    };
-
-    setLoading(true);
-    try {
-      // Prioritize active students first to improve chances of meaningful analytics
-      const prioritized = [...students].sort((a, b) => Number(b.is_active !== false) - Number(a.is_active !== false));
-      const studentsForAnalytics = prioritized.slice(0, MAX_STUDENTS_FOR_ANALYTICS);
-
-      const hydrated: StudentWithGPA[] = [];
-      let withData: StudentWithGPA[] = [];
-
-      for (let i = 0; i < studentsForAnalytics.length; i += BATCH_SIZE) {
-        const batch = studentsForAnalytics.slice(i, i + BATCH_SIZE);
-        const batchResults = await Promise.all(batch.map(fetchStudentSnapshot));
-        hydrated.push(...batchResults);
-
-        // Filter incrementally and early-exit once we have enough data to render rankings
-        withData = hydrated.filter(hasPerformanceData);
-        const enoughData = withData.length >= Math.max(DESIRED_TOP_COUNT * 2, MIN_BUFFER);
-        if (enoughData) break;
-      }
-
-      setTopPerformers(withData);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [courses, students]);
-
-  useEffect(() => {
-    if (students.length > 0) {
-      loadDashboardData();
-    }
-  }, [students, loadDashboardData]);
 
   useEffect(() => {
     if (courses.length > 0) {
@@ -818,205 +338,37 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         />
       </div>
 
-      {showMore && (
-        <div ref={analyticsRef} className="space-y-8">
-          {loading && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex items-center gap-3 text-slate-500">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-                <span>{t('loadingStudentData')}</span>
-              </div>
-            </div>
-          )}
-
+        <div className="space-y-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <MetricCard
+              icon={TrendingUp}
+              title={t('dashboard.metricAverageFinal')}
+              hint={
+                overviewSummary?.pass_rate !== null && overviewSummary?.pass_rate !== undefined
+                  ? t('analytics.overview.passRate', { rate: formatPercent(overviewSummary.pass_rate) })
+                  : t('analytics.overview.nothingGraded')
+              }
+              value={formatPercent(overviewSummary?.average_final_grade)}
+              accent="violet"
+            />
+            <MetricCard
               icon={Calendar}
-              title={t('thisWeek')}
-              hint={t('activeStudents')}
-              value={activeStudentsCount}
+              title={t('dashboard.metricAttendance')}
+              hint={t('dashboard.metricAttendanceHint')}
+              value={formatPercent(overviewSummary?.attendance_rate)}
               accent="indigo"
             />
             <MetricCard
               icon={Star}
-              title={t('assessments')}
-              hint={t('totalEnrollments')}
-              value={topPerformersCourseTotal}
+              title={t('dashboard.metricGradingProgress')}
+              hint={t('dashboard.metricGradingProgressHint')}
+              value={overviewSummary ? `${overviewSummary.graded_enrollments} / ${overviewSummary.enrollments}` : '—'}
               accent="emerald"
-            />
-            <MetricCard
-              icon={TrendingUp}
-              title={t('performance')}
-              hint={t('averageGPATop')}
-              value={`${averageTopPerformerPct.toFixed(1)}%`}
-              accent="violet"
             />
           </div>
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
-              <div className="mb-5 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                  <Award size={22} className="text-amber-500" />
-                  <span>{t('topPerformingStudents')}</span>
-                </h3>
-                <button onClick={handleGoToExportGrades} className="export-referral-link">
-                  {t('exportGradesLink') || 'Export Grades'}
-                </button>
-              </div>
-
-              {/* Ranking Type Tabs */}
-              <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
-                <button
-                  onClick={() => setRankingType('gpa')}
-                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                    rankingType === 'gpa'
-                      ? 'border-b-2 border-indigo-500 text-indigo-600'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {t('byGPA') || 'By GPA'}
-                </button>
-                <button
-                  onClick={() => setRankingType('attendance')}
-                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                    rankingType === 'attendance'
-                      ? 'border-b-2 border-emerald-500 text-emerald-600'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {t('byAttendance') || 'By Attendance'}
-                </button>
-                <button
-                  onClick={() => setRankingType('exams')}
-                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                    rankingType === 'exams'
-                      ? 'border-b-2 border-violet-500 text-violet-600'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {t('byExams') || 'By Exams'}
-                </button>
-                <button
-                  onClick={() => setRankingType('overall')}
-                  className={`shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
-                    rankingType === 'overall'
-                      ? 'border-b-2 border-amber-500 text-amber-600'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {t('overall') || 'Overall'}
-                </button>
-              </div>
-
-              {loading ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-10">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
-                  <p className="text-sm text-slate-500">{t('loadingStudentData')}</p>
-                </div>
-              ) : rankedStudents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-2 py-10 text-slate-500">
-                  <Target size={42} className="opacity-40" />
-                  <p>{t('noPerformanceData')}</p>
-                  <p className="text-xs text-slate-400">{t('studentsNeedGrades')}</p>
-                </div>
-              ) : (
-                <div className="mt-5 space-y-4">
-                  {rankedStudents.map((student, index: number) => {
-                    const continuousPercent = Number.isFinite(student.continuousScore)
-                      ? student.continuousScore
-                      : 0;
-                    const participationPercent = Number.isFinite(student.participationScore)
-                      ? student.participationScore
-                      : 0;
-                    const academicPercent = Number.isFinite(student.academicScore)
-                      ? student.academicScore
-                      : 0;
-                    const overallPercent = Number.isFinite(student.overallScore)
-                      ? student.overallScore
-                      : 0;
-                    const greekAverage = percentageToGreekScale(continuousPercent);
-                    const averageLetter = getLetterGrade(continuousPercent);
-                    const failedCount = student.failedCourses || 0;
-
-                    // Determine primary metric based on ranking type
-                    let primaryValue = '';
-                    let primaryLabel = '';
-                    let secondaryInfo = '';
-
-                    if (rankingType === 'gpa') {
-                      primaryValue = `${continuousPercent.toFixed(1)}%`;
-                      primaryLabel = t('continuousAssessment') || t('averageScore') || 'Continuous Assessment';
-                      secondaryInfo = `${greekAverage.toFixed(1)}${t('outOf20')} ${t('bullet')} ${averageLetter}`;
-                    } else if (rankingType === 'attendance') {
-                      primaryValue = `${participationPercent.toFixed(1)}%`;
-                      primaryLabel = t('participationAttendance') || t('byAttendance') || 'Participation & Attendance';
-                      secondaryInfo = `${student.attendanceRate}% ${t('attendance')} ${t('bullet')} ${student.totalCourses || 0} ${t('courses')}`;
-                    } else if (rankingType === 'exams') {
-                      primaryValue = `${academicPercent.toFixed(1)}%`;
-                      primaryLabel = t('academicPerformance') || t('byExams') || 'Academic Performance';
-                      secondaryInfo = `${student.examAverage}% ${t('examAverage')} ${t('bullet')} ${student.totalCourses || 0} ${t('courses')}`;
-                    } else {
-                      primaryValue = `${overallPercent.toFixed(1)}%`;
-                      primaryLabel = t('overallScore') || 'Overall Score';
-                      secondaryInfo = `${academicPercent.toFixed(1)}% ${t('byExams')} ${t('bullet')} ${participationPercent.toFixed(1)}% ${t('byAttendance')}`;
-                    }
-
-                    const accentPalette = [
-                      'border-amber-400 bg-amber-50',
-                      'border-slate-300 bg-slate-50',
-                      'border-orange-300 bg-orange-50',
-                    ];
-                    const rowAccent = accentPalette[index] || 'border-indigo-200 bg-slate-50';
-
-                    return (
-                      <div
-                        key={student.id || index}
-                        className={`rounded-xl border-l-4 ${rowAccent} p-4`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
-                                {index + 1}
-                              </span>
-                              <p className="font-semibold text-slate-900">
-                                {student.first_name} {student.last_name}
-                              </p>
-                            </div>
-                            <p className="mt-1 text-sm text-slate-500">
-                              {student.totalCourses || 0} {t('courses')} {t('bullet')} {student.totalCredits || 0}{' '}
-                              {t('credits')}
-                            </p>
-                            <p className={`text-xs ${failedCount > 0 ? 'text-red-600' : 'text-slate-500'}`}>
-                              {secondaryInfo}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <div className="text-right">
-                              <p className="text-base sm:text-2xl font-semibold text-indigo-600 whitespace-nowrap">
-                                {primaryValue}
-                              </p>
-                              <p className="text-[10px] text-slate-500 leading-tight max-w-[72px] truncate">{primaryLabel}</p>
-                            </div>
-                            {rankingType === 'gpa' && (
-                              <div className="hidden sm:block rounded-lg border border-indigo-200 bg-white px-4 py-3 text-center">
-                                <p className="text-lg font-semibold text-indigo-700">
-                                  {Math.round(continuousPercent)}
-                                </p>
-                                <p className="text-[10px] font-medium uppercase tracking-wide text-indigo-600">
-                                  /100
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <TopPerformersPanel t={t} onExportGrades={handleGoToExportGrades} />
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-shadow hover:shadow-md">
               <div className="mb-5 flex items-center justify-between">
@@ -1034,9 +386,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 initial="hidden"
                 animate="visible"
               >
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, index) => <CourseCardSkeleton key={index} />)
-                ) : activeCoursesWithEnrollments.length > 0 ? (
+                {activeCoursesWithEnrollments.length > 0 ? (
                   activeCoursesWithEnrollments.slice(0, 6).map((course) => (
                     <motion.div
                       key={course.id}
@@ -1163,7 +513,6 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 };

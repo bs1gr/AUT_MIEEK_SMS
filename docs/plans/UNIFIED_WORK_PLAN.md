@@ -360,6 +360,9 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    interpreter exited with -1 (0xFFFFFFFF) after 15.7 s, with no traceback; FastFail stopped the
    run, so no retry happened. `RUN_TESTS_BATCH.ps1 -RetestFailed` passed the same files (47
    tests). Second sighting; the files differ from the first, so it is not one test.
+   **Third sighting 2026-10-08:** batch 24 (`test_search_*`, `test_semester_archive_*`), exit -1
+   after 5 s; `-RetestFailed` passed the same files (127 tests). Three different batches now:
+   worth a real investigation (e.g. capture a crash dump / faulthandler output) when time allows.
 2. ~~**`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment**~~ — **done 2026-09-22**,
    cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
    `conftest.py` guard now applies to new shells. This session's own process still carries the
@@ -698,9 +701,19 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
     - **Fixed on the way:** the Top Performers loader requested `/attendance` and `/grades`
       without the trailing slash; the backend's redirect pointed at the absolute backend URL and
       dropped the Authorization header (401 behind the Vite proxy).
-    - **Found, not fixed (owner's call):** the existing Top Performers cards show 0.0% / F for
-      every student on seeded data with grades; their numbers need the same review the
-      Analytics page got.
+    - **Top Performers rebuilt (2026-10-08, owner: "fix them too").** They showed 0.0% / F for
+      everyone: the dashboard re-implemented grading in the browser (four requests per student,
+      up to 60 students, its own category lists, needing evaluation rules the course list did
+      not always carry), and anything unmatched scored 0. The three tiles above them ("This
+      week" = active students, "Assessments" = courses of at most 60 students, "Performance" =
+      that same 0) came from it too. Now `TopPerformersPanel` uses `/analytics/overview`: top 5
+      active students by average final grade, attendance (Present + Late) or exam average
+      (new `exam_average`: mean of each course's midterm/final grades; plus `credits`), in
+      percent; students with nothing graded are left out. The tiles show average final grade
+      (pass rate), attendance and grading progress (graded / enrolments). About 800 lines of
+      browser-side grading and 13 unused translation keys removed. Verified in the browser on
+      seeded data (Bob Williams 90.3% = (91.5 + 89.0) / 2 by hand) in EN and EL;
+      `TopPerformersPanel.test.tsx` (modes, unranked students, Greek).
     - Tests: `DashboardAttentionPanels.test.tsx` (EN and EL with the real i18n instance),
       `test_analytics_overview.py` (+2: gaps window, schedule parsing). The Greek checks in the
       analytics tests now set `i18nextLng` in localStorage: `LanguageProvider` reads it first,
