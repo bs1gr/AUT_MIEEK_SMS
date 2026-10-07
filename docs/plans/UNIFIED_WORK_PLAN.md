@@ -1,8 +1,23 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.52
+**Current Version**: 1.18.53
 **Last Updated**: October 7, 2026
-**Status**: ✅ **v1.18.52 released 2026-10-07** (tag on `74a4000b9`). A bug-fix release: in v1.18.51
+**Status**: ✅ **v1.18.53 released 2026-10-07** (tag on `7cd812fb4`). A frontend-only visual fix
+release: the shadcn colour tokens are defined (`404e2cf63`; login button, field borders,
+placeholders) and the remaining dark-theme text is readable (`1159386af`). Verified on the
+published assets:
+- The installer's Authenticode signature is Valid (AUT MIEEK, DigiCert-timestamped, `v1.18.53`),
+  and both SHA-256 hashes match GitHub's digests.
+- The APK reports `1.18.53` (`versionCode 118053`), and its `index-*.css` carries the new tokens,
+  including the mieek-dark set.
+- All workflows on the release commit passed, including `main`'s CI/CD and E2E. The release
+  commit changed only the lockfile's two root `version` fields. The release notes carry a
+  hand-written Highlights section.
+- Smoke test, sized to the change (CSS/classes only): 78 before/after screenshots across six
+  appearances, plus measured contrast on the fixed elements (see "Found during the migration",
+  item 1 and item 5).
+
+v1.18.52 released 2026-10-07 (tag on `74a4000b9`). A bug-fix release: in v1.18.51
 a teacher's first pick of each course in Attendance reset to "Select course" (todo 20); the dark
 theme's white panels and fields are readable (migration item 5); E2E checks that could not fail
 now can. Verified on the published assets:
