@@ -1073,7 +1073,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
             <span>{t('exampleScheduleEntry', { day: t('friday'), count: 2, start: '14:00', minutes: 50, periodLabel: t('periods'), minuteLabel: t('minutes') })}</span>
             <span className="font-bold text-indigo-600">1.67 {t('hours')}</span>
           </div>
-          <div className="flex justify-between p-3 bg-indigo-100 rounded font-bold">
+          <div className="flex justify-between p-3 bg-indigo-100 rounded font-bold dark:text-indigo-950">
             <span>{t('totalHoursPerWeek')}</span>
             <span className="text-indigo-600">4.17 {t('hours')}</span>
           </div>

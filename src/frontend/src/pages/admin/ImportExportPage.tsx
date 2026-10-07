@@ -22,7 +22,7 @@ const ImportExportPage: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">{t('importExportTitle', { ns: 'export' })}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('importExportTitle', { ns: 'export' })}</h1>
                 <div className="space-x-4 flex items-center">
                     <button
                         onClick={() => setIsExportOpen(true)}

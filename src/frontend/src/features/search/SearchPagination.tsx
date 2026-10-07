@@ -38,7 +38,7 @@ export const SearchPagination: React.FC<SearchPaginationProps> = ({
 
   return (
     <div className={`flex items-center justify-between gap-3 ${className}`}>
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-gray-600 dark:text-gray-300">
         {rangeText}
       </div>
       <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export const SearchPagination: React.FC<SearchPaginationProps> = ({
         >
           {t('common:previous', { defaultValue: 'Previous' })}
         </button>
-        <span className="text-sm text-gray-700">{pageLabel}</span>
+        <span className="text-sm text-gray-700 dark:text-gray-200">{pageLabel}</span>
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}

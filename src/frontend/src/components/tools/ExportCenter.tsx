@@ -640,15 +640,15 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           <ul className="space-y-2 text-gray-700">
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
-              <span><Trans i18nKey="exportTipExcel" components={{ b: <b /> }} /></span>
+              <span><Trans i18nKey="exportTipExcel" ns="export" components={{ b: <b /> }} /></span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
-              <span><Trans i18nKey="exportTipPDF" components={{ b: <b /> }} /></span>
+              <span><Trans i18nKey="exportTipPDF" ns="export" components={{ b: <b /> }} /></span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
-              <span><Trans i18nKey="exportTipStudentReports" components={{ b: <b /> }} /></span>
+              <span><Trans i18nKey="exportTipStudentReports" ns="export" components={{ b: <b /> }} /></span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>

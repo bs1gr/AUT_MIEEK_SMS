@@ -133,7 +133,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           )}
           <button
             onClick={() => onToggleExpand(student.id)}
-            className="text-indigo-600 hover:underline font-medium text-sm py-2 text-left leading-tight"
+            className="text-indigo-600 dark:text-indigo-300 hover:underline font-medium text-sm py-2 text-left leading-tight"
             aria-label={isExpanded ? t('close') : t('viewPerformance') || t('view')}
             data-testid={`student-expand-btn-${student.id}`}
           >

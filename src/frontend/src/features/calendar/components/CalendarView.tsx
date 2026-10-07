@@ -90,14 +90,14 @@ const CalendarView: React.FC<Props> = ({ courses: allCourses, onSetCourseActive 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center space-x-2">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center space-x-2">
           <CalendarIcon size={22} className="text-indigo-600 shrink-0" />
           <span>{t('teachingSchedule')}</span>
         </h2>
         <button
           type="button"
           onClick={handleGoToExport}
-          className="export-referral-link inline-flex items-center gap-1 text-sm self-start sm:self-auto"
+          className="export-referral-link inline-flex items-center gap-1 text-sm self-start sm:self-auto dark:text-indigo-300"
         >
           <span>{t('printCalendar')}</span>
           <ArrowRight size={16} aria-hidden="true" />

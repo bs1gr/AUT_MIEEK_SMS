@@ -304,6 +304,27 @@ real.
      same way and re-measured (12.0 contrast): the Attendance and Courses subtitles
      (`dark:text-gray-300`), the student-card ID line and the Students section arrow. Only
      these three pages were checked; other pages may have the same pattern.
+   - **Contrast audit, all pages (2026-10-07, after v1.18.53; not yet released).** A script
+     measured every visible text element against its effective background on login, 11 routes
+     and the Add Student modal in all six appearances. In `theme=dark`, 41 elements were below
+     3:1; now 18, and each of those also fails in the light theme. Fixed:
+     - **Regression from v1.18.53 (`404e2cf63`):** the shadcn outline `Button` took
+       `bg-background` (dark navy in `.dark`) while inheriting the white modal's dark text, so
+       **Cancel in the Add/Edit Student and Course modals was invisible in the dark theme**
+       (1.0:1). The outline variant is now `bg-transparent`, as it effectively was before the
+       tokens existed; the border stays.
+     - Dark theme: Import/Export and Semester Archive titles and description, the admin tabs,
+       the Calendar title and print link, the Courses weekly-hours total, the student-card
+       "View Performance" link, and the Search pagination text.
+     - **Not contrast, found in the screenshots:** the Export Center's tips showed raw keys
+       (`exportTipExcel` …): `<Trans>` read the default namespace, the keys are in `export`.
+       Test: `ExportCenter.tips.test.tsx` (real i18n instance; fails on the old code).
+   - **Still below 3:1 in every theme (design calls, owner's decision):** white text on the
+     Attendance Quick Actions "Present" (green-500, 2.3:1) and "Late" (yellow-500, 1.9:1)
+     buttons; the light footer (`text-gray-400`, 2.5:1); small `text-slate-400` and
+     `text-emerald-500` text on the dashboard (2.3–2.6:1). Not issues: greyed calendar days
+     (disabled), the Operations section headings (audit false positive, checked visually);
+     the Semester Archive "Preview" button looks like a dimmed disabled button (not checked).
    - **Also found:** the shadcn `Input` uses `placeholder:text-muted-foreground`, one of the
      undefined colour variables (item 1), so its placeholders are the same colour as typed text
      in every theme.
@@ -333,6 +354,12 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
 1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
+   **Recurred 2026-10-07 21:37** (COMMIT_READY -Quick, frontend-only change): batch 21 of 26
+   (`test_registration_approval`, `test_report_scheduler`, `test_reports_router`,
+   `test_request_id_middleware`, `test_request_id`) printed 46 passing dots, then the
+   interpreter exited with -1 (0xFFFFFFFF) after 15.7 s, with no traceback; FastFail stopped the
+   run, so no retry happened. `RUN_TESTS_BATCH.ps1 -RetestFailed` passed the same files (47
+   tests). Second sighting; the files differ from the first, so it is not one test.
 2. ~~**`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment**~~ — **done 2026-09-22**,
    cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
    `conftest.py` guard now applies to new shells. This session's own process still carries the

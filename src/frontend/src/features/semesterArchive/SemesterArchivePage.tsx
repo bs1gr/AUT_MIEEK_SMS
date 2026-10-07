@@ -63,8 +63,8 @@ const SemesterArchivePage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('pageTitle', { ns: 'semesterArchive' })}</h1>
-      <p className="text-sm text-gray-600 mb-6">{t('pageDescription', { ns: 'semesterArchive' })}</p>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t('pageTitle', { ns: 'semesterArchive' })}</h1>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">{t('pageDescription', { ns: 'semesterArchive' })}</p>
 
       {error && (
         <div className="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
