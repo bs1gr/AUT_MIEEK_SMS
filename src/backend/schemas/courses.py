@@ -11,8 +11,8 @@ class CourseCreate(BaseModel):
     description: Optional[str] = None
     evaluation_rules: Optional[List[Any]] = None
     absence_penalty: Optional[float] = Field(default=0.0, ge=0.0, le=100.0)
-    absence_limit_percent: Optional[float] = Field(default=10.0, ge=0.0, le=100.0)
-    absence_limit_extended_percent: Optional[float] = Field(default=15.0, ge=0.0, le=100.0)
+    absence_limit_percent: Optional[float] = Field(default=30.0, ge=0.0, le=100.0)
+    participation_limit_percent: Optional[float] = Field(default=10.0, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
     periods_per_week: Optional[int] = Field(default=0, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
@@ -34,7 +34,7 @@ class CourseCreate(BaseModel):
             "evaluation_rules",
             "absence_penalty",
             "absence_limit_percent",
-            "absence_limit_extended_percent",
+            "participation_limit_percent",
             "hours_per_week",
             "periods_per_week",
             "teaching_schedule",
@@ -72,7 +72,7 @@ class CourseUpdate(BaseModel):
     evaluation_rules: Optional[List[Any]] = None
     absence_penalty: Optional[float] = Field(None, ge=0.0, le=100.0)
     absence_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
-    absence_limit_extended_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
+    participation_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
     periods_per_week: Optional[int] = Field(None, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
@@ -96,7 +96,7 @@ class CourseUpdate(BaseModel):
             "evaluation_rules",
             "absence_penalty",
             "absence_limit_percent",
-            "absence_limit_extended_percent",
+            "participation_limit_percent",
             "hours_per_week",
             "periods_per_week",
             "teaching_schedule",
@@ -125,7 +125,7 @@ class CourseResponse(BaseModel):
     evaluation_rules: Optional[List[Any]]
     absence_penalty: Optional[float]
     absence_limit_percent: Optional[float] = None
-    absence_limit_extended_percent: Optional[float] = None
+    participation_limit_percent: Optional[float] = None
     hours_per_week: Optional[float]
     periods_per_week: Optional[int]
     teaching_schedule: Optional[List[Dict[str, Any]]]

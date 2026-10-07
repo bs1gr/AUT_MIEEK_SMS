@@ -46,12 +46,16 @@ const course = (id: number, code: string, final: number | null, extra: Partial<S
   final_grade: final,
   grade_basis: final === null ? null : 'rules',
   grade_count: final === null ? 0 : 2,
+  rating_count: 0,
   passing: final === null ? null : final >= 50,
   class_average: final === null ? null : 60,
   rank: final === null ? null : 1,
   ranked_of: final === null ? 0 : 3,
   attendance: attendance(4, 1),
-  absence: { status: 'ok', absences: 1, allowed_absences: 4, remaining_absences: 3, absence_percent: 2.4, limit_percent: 10 },
+  absence: {
+    status: 'ok', absences: 1, allowed_absences: 12, remaining_absences: 11, absence_percent: 2.4, limit_percent: 30,
+    participation_limit_percent: 10, participation_allowed_absences: 4, participation_forfeited: false,
+  },
   grades: final === null ? [] : [{ date: '2026-10-01', category: 'Final Exam', assignment: 'Exam', percentage: final }],
   ...extra,
 });
@@ -68,6 +72,7 @@ const studentOverview = (id: number, name: string, courses: StudentOverviewCours
       failing: finals.filter((g) => g < 50).length,
       attendance: attendance(4, 1),
       absence_status: 'ok',
+      participation_forfeited: courses.filter((c) => c.absence.participation_forfeited).length,
       at_risk: finals.some((g) => g < 50),
     },
     courses,
@@ -99,23 +104,34 @@ const classOverview: ClassOverview = {
     {
       id: 1, course_code: 'MATH', course_name: 'Course MATH', students: 2, graded: 2, average_final_grade: 55,
       passing: 1, failing: 1, attendance_rate: 80, attendance: attendance(8, 2), absence_warning: 0, absence_insufficient: 0,
+      participation_forfeited: 1,
     },
   ],
   students: [
     {
       id: 1, student_id: 'S1', name: 'Anna Alpha', academic_year: 'A', class_division: 'A1', courses: 2,
-      average_final_grade: 74, failing_courses: [], attendance_rate: 80, absence_status: 'ok', at_risk: false,
+      average_final_grade: 74, failing_courses: [], attendance_rate: 80, absence_status: 'ok',
+      participation_forfeited: [], at_risk: false,
     },
     {
       id: 2, student_id: 'S2', name: 'Bob Beta', academic_year: 'A', class_division: 'A2', courses: 1,
-      average_final_grade: 34, failing_courses: ['Course CHEM'], attendance_rate: 50, absence_status: 'warning', at_risk: true,
+      average_final_grade: 34, failing_courses: ['Course CHEM'], attendance_rate: 50, absence_status: 'warning',
+      participation_forfeited: ['Course CHEM'], at_risk: true,
     },
   ],
 };
 
 const students: Record<number, StudentOverview> = {
   1: studentOverview(1, 'Anna Alpha', [course(1, 'MATH', 74), course(2, 'PHYS', null)]),
-  2: studentOverview(2, 'Bob Beta', [course(3, 'CHEM', 34)]),
+  2: studentOverview(2, 'Bob Beta', [
+    course(3, 'CHEM', 34, {
+      rating_count: 6,
+      absence: {
+        status: 'warning', absences: 10, allowed_absences: 12, remaining_absences: 2, absence_percent: 23.8, limit_percent: 30,
+        participation_limit_percent: 10, participation_allowed_absences: 4, participation_forfeited: true,
+      },
+    }),
+  ]),
 };
 
 const renderPage = () =>
@@ -186,7 +202,8 @@ describe('AnalyticsDashboard', () => {
     const atRisk = await screen.findByTestId('analytics-at-risk');
     expect(within(atRisk).getByText('Needs Attention (1)')).toBeInTheDocument();
     expect(within(atRisk).getByText('Course CHEM')).toBeInTheDocument();
-    expect(within(atRisk).getByText('Near the limit')).toBeInTheDocument();
+    expect(within(atRisk).getByText('Near the fail limit')).toBeInTheDocument();
+    expect(within(atRisk).getByText('Class Participation lost: Course CHEM')).toBeInTheDocument();
     expect(within(atRisk).queryByText('Anna Alpha')).toBeNull();
 
     fireEvent.click(within(atRisk).getByRole('button', { name: 'Bob Beta' }));
@@ -203,6 +220,17 @@ describe('AnalyticsDashboard', () => {
     await waitFor(() =>
       expect(get).toHaveBeenCalledWith('/analytics/overview', { params: { academic_year: 'B' } })
     );
+  });
+
+  it('marks a course where Class Participation is lost, and counts the participation ratings', async () => {
+    renderPage();
+    const studentSelect = await screen.findByTestId('analytics-student-select');
+    await waitFor(() => expect(optionLabels(studentSelect)).toContain('Bob Beta'));
+    fireEvent.change(studentSelect, { target: { value: '2' } });
+    const table = await screen.findByTestId('analytics-student-courses');
+    await waitFor(() => expect(within(table).getByText('Course CHEM')).toBeInTheDocument());
+    expect(within(table).getByText('Class Participation lost (over 10% absences)')).toBeInTheDocument();
+    expect(within(table).getByText(/Participation ratings: 6/)).toBeInTheDocument();
   });
 
   it.each(['en', 'el'])('has a translation for every visible text (%s)', async (lang) => {

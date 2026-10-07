@@ -43,6 +43,14 @@ class AnalyticsService:
         "τελική εξέταση",
         "τελική",
     }
+    # Normalized names (see _normalize_category) of Class Participation and its special
+    # sub-weights; together they are the share lost over the participation absence limit.
+    participation_categories = {
+        "participation",
+        "no participation",
+        "minor participation",
+        "minor participation (mobile usage)",
+    }
 
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -94,18 +102,9 @@ class AnalyticsService:
 
         result = self._calculate_final_grade_from_records(student_id, course, grades, daily, attendance)
 
-        # ΜΙΕΕΚ absence limit: flag only (warn in the UI), never block or alter the grade.
-        enrollment = (
-            self.db.query(self.CourseEnrollment)
-            .filter(
-                self.CourseEnrollment.student_id == student_id,
-                self.CourseEnrollment.course_id == course_id,
-                self.CourseEnrollment.deleted_at.is_(None),
-            )
-            .first()
-        )
-        extended_approved = bool(getattr(enrollment, "extended_absence_approved", False))
-        absence_status = absence_limit_service.evaluate_records(course, attendance, extended_approved)
+        # ΜΙΕΕΚ absence rules: over the fail limit is flagged (the app never blocks grade entry);
+        # over the Class Participation limit is already applied inside the final grade.
+        absence_status = absence_limit_service.evaluate_records(course, attendance)
         result["absence_limit"] = absence_status
         result["attendance_insufficient"] = absence_status["attendance_insufficient"]
         return result
@@ -945,6 +944,12 @@ class AnalyticsService:
                     return key
             return n
 
+        # ΜΙΕΕΚ: over the Class Participation absence limit (10%), the whole Class Participation
+        # share, including its special-participation sub-weights, counts as 0.
+        participation_forfeited = bool(
+            absence_limit_service.evaluate_records(course, attendance)["participation_forfeited"]
+        )
+
         for rule in evaluation_rules:
             category = rule.get("category")
             weight = float(rule.get("weight", 0))
@@ -952,6 +957,17 @@ class AnalyticsService:
             daily_multiplier = float(rule.get("dailyPerformanceMultiplier", 1.0))
 
             if not category or weight <= 0:
+                continue
+
+            if participation_forfeited and _normalize_category(category) in self.participation_categories:
+                category_scores[category] = 0.0
+                category_details[category] = {
+                    "average": 0.0,
+                    "weight": weight,
+                    "contribution": 0.0,
+                    "total_items": 0,
+                    "forfeited": True,
+                }
                 continue
 
             weighted_sum = 0.0
@@ -1044,6 +1060,7 @@ class AnalyticsService:
             "absence_penalty": penalty_per_absence,
             "unexcused_absences": unexcused_absences,
             "absence_deduction": round(absence_deduction, 2),
+            "participation_forfeited": participation_forfeited,
         }
 
     # ----------------------------- Cache Invalidation ---------------------------------

@@ -5,7 +5,8 @@ Scenario (numbers checked by hand):
   a dropped enrollment.
 - s1 (A, A1): MATH 80/70 -> 0.4*80 + 0.6*70 = 74; PHYS 60, 80 -> plain mean 70;
   CHEM dropped (grade 10 must not count). MATH attendance Present, Late, Absent, Excused.
-- s2 (A, A2): MATH 40/30 -> 34 (failing); 4 Absent in MATH -> absence warning (allowed 4).
+- s2 (A, A2): MATH 40/30 -> 34 (failing); 5 Absent in MATH -> over the 10% Class Participation limit
+  (4 of 42 periods), well under the 30% fail limit (12).
 - s3 (B, B1): PHYS, no grades -> no final grade (not 0).
 - s4 (A, A1): MATH 100/100 but inactive -> left out everywhere.
 """
@@ -84,7 +85,7 @@ def scenario(client, db):
     _grade(client, s4["id"], math["id"], "Final Exam", 100)
 
     _att(client, s1["id"], math["id"], "Present", "Late", "Absent", "Excused")
-    _att(client, s2["id"], math["id"], "Absent", "Absent", "Absent", "Absent")
+    _att(client, s2["id"], math["id"], "Absent", "Absent", "Absent", "Absent", "Absent")
 
     db.query(CourseEnrollment).filter(
         CourseEnrollment.student_id == s1["id"], CourseEnrollment.course_id == chem["id"]
@@ -137,12 +138,14 @@ def test_student_overview_ungraded_course_has_no_final_grade(client, scenario):
     assert data["summary"]["attendance"]["rate"] is None
 
 
-def test_student_overview_flags_failing_and_absence_warning(client, scenario):
+def test_student_overview_flags_failing_and_lost_participation(client, scenario):
     data = client.get(f"/api/v1/analytics/student/{scenario['s2']['id']}/overview").json()
     (math,) = data["courses"]
     assert math["final_grade"] == 34.0
     assert math["passing"] is False
-    assert math["absence"]["status"] == "warning"
+    assert math["absence"]["status"] == "ok"
+    assert math["absence"]["participation_forfeited"] is True
+    assert (math["absence"]["allowed_absences"], math["absence"]["participation_allowed_absences"]) == (12, 4)
     assert math["attendance"]["rate"] == 0.0
     assert data["summary"]["at_risk"] is True
 
@@ -163,7 +166,7 @@ def test_class_overview_all_active_students(client, scenario):
     assert summary["graded_enrollments"] == 3
     assert summary["average_final_grade"] == 59.33  # (74 + 34 + 70) / 3
     assert summary["pass_rate"] == 66.67
-    assert summary["attendance_rate"] == 25.0  # 2 attended of 8 recorded
+    assert summary["attendance_rate"] == 22.22  # 2 attended of 9 recorded
     assert summary["at_risk_students"] == 1
 
     bands = {b["band"]: b["count"] for b in data["distribution"]}
@@ -172,20 +175,22 @@ def test_class_overview_all_active_students(client, scenario):
     courses = {c["course_code"]: c for c in data["courses"]}
     assert courses["MATH"]["average_final_grade"] == 54.0
     assert (courses["MATH"]["passing"], courses["MATH"]["failing"]) == (1, 1)
-    assert courses["MATH"]["absence_warning"] == 1
+    assert courses["MATH"]["absence_warning"] == 0
+    assert courses["MATH"]["participation_forfeited"] == 1
     assert courses["MATH"]["attendance"] == {
         "present": 1,
         "late": 1,
-        "absent": 5,
+        "absent": 6,
         "excused": 1,
-        "recorded": 8,
-        "rate": 25.0,
+        "recorded": 9,
+        "rate": 22.22,
     }
     assert courses["PHYS"]["students"] == 2 and courses["PHYS"]["graded"] == 1
 
     students = {s["student_id"]: s for s in data["students"]}
     assert students["OV0002"]["at_risk"] is True
     assert students["OV0002"]["failing_courses"] == ["Course MATH"]
+    assert students["OV0002"]["participation_forfeited"] == ["Course MATH"]
     assert students["OV0003"]["average_final_grade"] is None
 
     assert data["filters"]["academic_years"] == ["A", "B"]
@@ -213,7 +218,7 @@ def test_export_uses_the_overview_figures(db, scenario):
         "total_students": 3,
         "total_courses": 2,
         "average_grade": 59.33,
-        "average_attendance": 25.0,
+        "average_attendance": 22.22,
     }
     courses = {c["label"]: c for c in data["course_averages"]}
     assert courses["Course MATH"] == {"label": "Course MATH", "count": 2, "average": 54.0}

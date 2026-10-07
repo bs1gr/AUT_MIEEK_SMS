@@ -131,10 +131,13 @@ class Course(SoftDeleteMixin, Base):
     evaluation_rules = Column(JSON)
     # Absence penalty: percentage points deducted from final grade per unexcused absence
     absence_penalty = Column(Float, default=0.0)
-    # ΜΙΕΕΚ absence limit (% of the semester's scheduled teaching periods). Going over
-    # it makes attendance "insufficient"; the extended limit applies only to students
-    # whose enrollment has the Directorate's approval. See services.absence_limit_service.
-    absence_limit_percent = Column(Float, default=10.0, server_default="10")
+    # ΜΙΕΕΚ absence rules (% of the semester's scheduled teaching periods), see
+    # services.absence_limit_service: over absence_limit_percent the course is failed;
+    # over participation_limit_percent the Class Participation share counts as 0.
+    absence_limit_percent = Column(Float, default=30.0, server_default="30")
+    participation_limit_percent = Column(Float, default=10.0, server_default="10")
+    # Unused since 2026-10-07 (the extended limit was removed). Kept until no installed app
+    # reads it from the shared database; drop it in a later migration.
     absence_limit_extended_percent = Column(Float, default=15.0, server_default="15")
 
     # Course status: derived from enrollments (active while it has students with an
@@ -198,7 +201,8 @@ class CourseEnrollment(SoftDeleteMixin, Base):
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
     enrolled_at = Column(Date, default=date.today, index=True)
     status = Column(String(20), default="active", nullable=False, index=True)
-    # Directorate approval to use the course's extended absence limit (documented reasons)
+    # Unused since 2026-10-07 (the Directorate-approved extended absence limit was removed).
+    # Kept until no installed app reads them from the shared database; drop them later.
     extended_absence_approved = Column(Boolean, default=False, server_default=false(), nullable=False)
     extended_absence_approved_at = Column(Date, nullable=True)
     extended_absence_note = Column(Text, nullable=True)

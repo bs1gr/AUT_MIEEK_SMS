@@ -110,6 +110,11 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
                     <td className={CELL}>{formatPercent(s.attendance_rate)}</td>
                     <td className={CELL}>
                       <AbsenceBadge status={s.absence_status} t={t} />
+                      {s.participation_forfeited.length > 0 && (
+                        <div className="mt-1 text-xs text-amber-800">
+                          {t('analytics.overview.participationLostIn', { courses: s.participation_forfeited.join(', ') })}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -154,10 +159,11 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
                 </td>
                 <td className={CELL}>{formatPercent(c.attendance_rate)}</td>
                 <td className={CELL}>
-                  {c.absence_insufficient > 0 || c.absence_warning > 0
+                  {c.absence_insufficient > 0 || c.absence_warning > 0 || c.participation_forfeited > 0
                     ? t('analytics.overview.absenceCounts', {
                         over: c.absence_insufficient,
                         near: c.absence_warning,
+                        lost: c.participation_forfeited,
                       })
                     : '—'}
                 </td>

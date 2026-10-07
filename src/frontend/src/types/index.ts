@@ -38,9 +38,10 @@ export interface Course {
   evaluation_rules?: Array<{ id?: number; category: string; weight?: number; description?: string }>;
   academic_year?: string;
   absence_penalty?: number;
-  // ΜΙΕΕΚ absence limit (% of scheduled periods); extended applies with Directorate approval
+  // ΜΙΕΕΚ absence rules (% of scheduled periods): over absence_limit_percent the course is
+  // failed; over participation_limit_percent the Class Participation share counts as 0.
   absence_limit_percent?: number;
-  absence_limit_extended_percent?: number;
+  participation_limit_percent?: number;
   is_active: boolean;
 }
 
@@ -73,12 +74,9 @@ export interface CourseEnrollment {
   course_id: number;
   enrolled_at?: string;
   status?: 'active' | 'completed' | 'dropped';
-  extended_absence_approved?: boolean;
-  extended_absence_approved_at?: string | null;
-  extended_absence_note?: string | null;
 }
 
-/** ΜΙΕΕΚ absence-limit status of one student in one course (GET /attendance/absence-status/...). */
+/** ΜΙΕΕΚ absence status of one student in one course (GET /attendance/absence-status/...). */
 export interface AbsenceLimitStatus {
   student_id: number;
   course_id: number;
@@ -91,14 +89,14 @@ export interface AbsenceLimitStatus {
   unexcused_absences: number;
   excused_absences: number;
   absence_percent: number;
+  /** Fail limit (%): over it attendance is insufficient and the course is failed. */
   limit_percent: number;
-  base_limit_percent: number;
-  extended_limit_percent: number;
-  extended_approved: boolean;
-  extended_absence_approved_at?: string | null;
-  extended_absence_note?: string | null;
   allowed_absences: number | null;
   remaining_absences: number | null;
+  /** Over this limit (%) the Class Participation share counts as 0. */
+  participation_limit_percent: number;
+  participation_allowed_absences: number | null;
+  participation_forfeited: boolean;
   status: 'ok' | 'warning' | 'insufficient' | 'unknown';
   attendance_insufficient: boolean;
 }
@@ -265,14 +263,18 @@ export interface FinalGrade {
     weight: number;
     contribution: number;
     total_items: number;
+    /** True when over the Class Participation absence limit: the category counts as 0. */
+    forfeited?: boolean;
   }>;
   absence_penalty: number;
   unexcused_absences: number;
   absence_deduction: number;
   // Optional human-readable Greek description present in some analytics responses
   greek_description?: string;
-  // ΜΙΕΕΚ absence limit: warning flag only, the grade is never blocked
+  // ΜΙΕΕΚ: over the fail limit is a flag only (the grade is never blocked); over the Class
+  // Participation limit the Class Participation share already counts as 0 in final_grade.
   attendance_insufficient?: boolean;
+  participation_forfeited?: boolean;
   absence_limit?: AbsenceLimitStatus;
 }
 

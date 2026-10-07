@@ -891,20 +891,6 @@ export const enrollmentsAPI = {
   unenrollStudent: async (courseId: number, studentId: number): Promise<void> => {
     await apiClient.delete(`/enrollments/course/${courseId}/student/${studentId}`);
   },
-
-  // Record / withdraw the Directorate's approval for the extended ΜΙΕΕΚ absence limit
-  setExtendedAbsenceApproval: async (
-    courseId: number,
-    studentId: number,
-    approved: boolean,
-    note?: string
-  ): Promise<CourseEnrollment> => {
-    const response = await apiClient.put<CourseEnrollment>(
-      `/enrollments/course/${courseId}/student/${studentId}/extended-absence`,
-      { approved, note: note || null }
-    );
-    return unwrapResponse<CourseEnrollment>(response.data);
-  },
 };
 
 // ==================== IMPORTS API ====================

@@ -9,6 +9,21 @@ import { useLanguage } from '@/LanguageContext';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { useAutosave } from '@/hooks';
 import apiClient, { coursesAPI } from '@/api/api';
+import {
+  CLASS_PARTICIPATION,
+  SPECIAL_PARTICIPATION_CATEGORIES,
+  SPECIAL_PARTICIPATION_LABEL_KEYS,
+  isSpecialParticipation,
+  type SpecialParticipationCategory,
+} from '@/utils/participation';
+
+type SpecialWeights = Record<SpecialParticipationCategory, string | number>;
+const NO_SPECIAL_WEIGHTS: SpecialWeights = {
+  'No participation': 0,
+  'Minor participation': 0,
+  'Minor participation (mobile usage)': 0,
+};
+const toNumber = (value: unknown) => parseFloat(String(value).replace(',', '.')) || 0;
 
 const CourseEvaluationRules = () => {
   const { t } = useLanguage();
@@ -17,9 +32,11 @@ const CourseEvaluationRules = () => {
   type EvaluationRuleLocal = { category: string; weight: string | number; description?: string; includeDailyPerformance?: boolean; dailyPerformanceMultiplier?: number };
   const [evaluationRules, setEvaluationRules] = useState<EvaluationRuleLocal[]>([]);
   const [absencePenalty, setAbsencePenalty] = useState<number>(0);
-  // ΜΙΕΕΚ absence limit (% of scheduled periods); extended applies with Directorate approval
-  const [absenceLimit, setAbsenceLimit] = useState<number>(10);
-  const [absenceLimitExtended, setAbsenceLimitExtended] = useState<number>(15);
+  // ΜΙΕΕΚ absence rules (% of scheduled periods): fail limit, and the Class Participation limit
+  const [absenceLimit, setAbsenceLimit] = useState<number>(30);
+  const [participationLimit, setParticipationLimit] = useState<number>(10);
+  // Sub-weights of the Class Participation share; the Class Participation row holds the whole share
+  const [specialWeights, setSpecialWeights] = useState<SpecialWeights>(NO_SPECIAL_WEIGHTS);
   // Loading state reserved for future async interactions
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
 
@@ -53,27 +70,49 @@ const CourseEvaluationRules = () => {
   const loadEvaluationRules = useCallback(() => {
     const course = courses.find((c: Course) => c.id === selectedCourse) as Course | undefined;
     if (course) {
-      if (course.evaluation_rules) {
-        // Normalize incoming evaluation_rules to local shape (ensure weight is string|number)
-        const normalized = (course.evaluation_rules as Array<Record<string, unknown>>).map((r) => ({
+      const rules = (course.evaluation_rules ?? []) as Array<Record<string, unknown>>;
+      // Special observations are stored as their own rules; here they become sub-weights and
+      // the Class Participation row shows the whole share (its own weight plus theirs).
+      const specials: SpecialWeights = { ...NO_SPECIAL_WEIGHTS };
+      const others: EvaluationRuleLocal[] = [];
+      rules.forEach((r) => {
+        const canonical = getCanonicalCategory(String(r.category || ''), t);
+        if (isSpecialParticipation(canonical)) {
+          specials[canonical] = toNumber(specials[canonical]) + toNumber(r.weight);
+          return;
+        }
+        others.push({
           category: String(r.category || ''),
-          weight: r.weight !== undefined ? r.weight : '',
-          description: r.description || ''
-        }));
-        setEvaluationRules(normalized as EvaluationRuleLocal[]);
-      } else {
-        setEvaluationRules([]);
-      }
+          weight: r.weight !== undefined ? (r.weight as string | number) : '',
+          description: String(r.description || ''),
+          includeDailyPerformance: r.includeDailyPerformance as boolean | undefined,
+          dailyPerformanceMultiplier: r.dailyPerformanceMultiplier as number | undefined,
+        });
+      });
+      const specialTotal = SPECIAL_PARTICIPATION_CATEGORIES.reduce((sum, c) => sum + toNumber(specials[c]), 0);
+      const participation = others.find((r) => getCanonicalCategory(r.category, t) === CLASS_PARTICIPATION);
+      if (participation) participation.weight = Number((toNumber(participation.weight) + specialTotal).toFixed(2));
+      setEvaluationRules(others);
+      setSpecialWeights(specials);
       setAbsencePenalty(typeof course.absence_penalty === 'number' ? course.absence_penalty : 0);
-      setAbsenceLimit(typeof course.absence_limit_percent === 'number' ? course.absence_limit_percent : 10);
-      setAbsenceLimitExtended(typeof course.absence_limit_extended_percent === 'number' ? course.absence_limit_extended_percent : 15);
+      setAbsenceLimit(typeof course.absence_limit_percent === 'number' ? course.absence_limit_percent : 30);
+      setParticipationLimit(typeof course.participation_limit_percent === 'number' ? course.participation_limit_percent : 10);
     } else {
       setEvaluationRules([]);
+      setSpecialWeights(NO_SPECIAL_WEIGHTS);
       setAbsencePenalty(0);
-      setAbsenceLimit(10);
-      setAbsenceLimitExtended(15);
+      setAbsenceLimit(30);
+      setParticipationLimit(10);
     }
-  }, [courses, selectedCourse]);
+  }, [courses, selectedCourse, t]);
+
+  const isParticipationRule = useCallback(
+    (rule: EvaluationRuleLocal) => getCanonicalCategory(String(rule.category || ''), t) === CLASS_PARTICIPATION,
+    [t]
+  );
+  const participationRule = evaluationRules.find(isParticipationRule);
+  const specialTotal = SPECIAL_PARTICIPATION_CATEGORIES.reduce((sum, c) => sum + toNumber(specialWeights[c]), 0);
+  const ratingsWeight = participationRule ? toNumber(participationRule.weight) - specialTotal : 0;
 
   useEffect(() => {
     void (async () => {
@@ -135,27 +174,38 @@ const CourseEvaluationRules = () => {
       }
     }
 
+    if (participationRule && ratingsWeight < -0.01) {
+      showToast(t('specialWeightsTooHigh'), 'error');
+      return false;
+    }
+
     return true;
-  }, [evaluationRules, t, showToast]);
+  }, [evaluationRules, t, showToast, participationRule, ratingsWeight]);
 
   const performSave = useCallback(async () => {
     if (!validateRules()) {
       throw new Error('Validation failed');
     }
 
-    const normalized = (evaluationRules || []).map((r: EvaluationRuleLocal) => ({
-      ...r,
-      category: getCanonicalCategory(String(r.category || ''), t),
-    }));
+    const normalized = (evaluationRules || []).map((r: EvaluationRuleLocal) => {
+      const category = getCanonicalCategory(String(r.category || ''), t);
+      // Stored as before: Class Participation keeps what the special sub-weights leave.
+      return category === CLASS_PARTICIPATION
+        ? { ...r, category, weight: Number(ratingsWeight.toFixed(2)) }
+        : { ...r, category };
+    });
+    const specialRules = participationRule
+      ? SPECIAL_PARTICIPATION_CATEGORIES.map((category) => ({ category, weight: toNumber(specialWeights[category]) }))
+      : [];
     await apiClient.put(`/courses/${selectedCourse}`, {
-      evaluation_rules: normalized,
+      evaluation_rules: [...normalized, ...specialRules],
       absence_penalty: absencePenalty,
       absence_limit_percent: absenceLimit,
-      absence_limit_extended_percent: Math.max(absenceLimit, absenceLimitExtended)
+      participation_limit_percent: participationLimit,
     });
     showToast(t('evaluationRulesSaved'), 'success');
     await loadCourses();
-  }, [evaluationRules, absencePenalty, absenceLimit, absenceLimitExtended, selectedCourse, t, validateRules, loadCourses, showToast]);
+  }, [evaluationRules, absencePenalty, absenceLimit, participationLimit, specialWeights, participationRule, ratingsWeight, selectedCourse, t, validateRules, loadCourses, showToast]);
 
   const totalWeight = evaluationRules.reduce((sum: number, rule: EvaluationRuleLocal) => {
     return sum + (parseFloat(String(rule.weight)) || 0);
@@ -167,7 +217,7 @@ const CourseEvaluationRules = () => {
   const hasChanges = evaluationRules.length > 0 && selectedCourse !== null;
   const { isSaving: isAutosaving, isPending: autosavePending } = useAutosave(
     performSave,
-    [evaluationRules, absencePenalty, absenceLimit, absenceLimitExtended],
+    [evaluationRules, absencePenalty, absenceLimit, participationLimit, specialWeights],
     { delay: 2000, enabled: hasChanges && isValidTotal, skipInitial: true }
   );
 
@@ -211,6 +261,7 @@ const CourseEvaluationRules = () => {
             setSelectedCourse(value);
             if (!value) {
               setEvaluationRules([]);
+              setSpecialWeights(NO_SPECIAL_WEIGHTS);
               setAbsencePenalty(0);
             }
           }}
@@ -272,15 +323,15 @@ const CourseEvaluationRules = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="absence-limit-extended-percent" className="block text-xs font-medium text-gray-700 mb-1">{t('absenceLimitExtendedPercent')}</label>
+                    <label htmlFor="participation-limit-percent" className="block text-xs font-medium text-gray-700 mb-1">{t('absenceLimitParticipationPercent')}</label>
                     <input
-                      id="absence-limit-extended-percent"
+                      id="participation-limit-percent"
                       type="number"
                       min={0}
                       max={100}
                       step={0.5}
-                      value={absenceLimitExtended}
-                      onChange={(e) => setAbsenceLimitExtended(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                      value={participationLimit}
+                      onChange={(e) => setParticipationLimit(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 text-sm"
                     />
                   </div>
@@ -428,6 +479,41 @@ const CourseEvaluationRules = () => {
                         </div>
                       </div>
                     </div>
+
+                    {isParticipationRule(rule) && (
+                      <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4" data-testid="special-participation-weights">
+                        <h4 className="text-sm font-bold text-gray-800">{t('specialParticipationWeightsTitle')}</h4>
+                        <p className="mb-3 text-xs text-gray-700">{t('specialParticipationWeightsDescription')}</p>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                          {SPECIAL_PARTICIPATION_CATEGORIES.map((category) => (
+                            <label key={category} className="block text-xs font-medium text-gray-700">
+                              {t(SPECIAL_PARTICIPATION_LABEL_KEYS[category])}
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={specialWeights[category]}
+                                onChange={(e) => setSpecialWeights((prev) => ({ ...prev, [category]: e.target.value }))}
+                                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-emerald-400"
+                              />
+                            </label>
+                          ))}
+                          <div className="text-xs font-medium text-gray-700">
+                            {t('participationRatingsWeight')}
+                            <div
+                              className={`mt-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                                ratingsWeight < -0.01 ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-200 bg-white text-gray-900'
+                              }`}
+                              data-testid="participation-ratings-weight"
+                            >
+                              {ratingsWeight.toFixed(1)}%
+                            </div>
+                          </div>
+                        </div>
+                        {ratingsWeight < -0.01 && <p className="mt-2 text-xs text-red-700">{t('specialWeightsTooHigh')}</p>}
+                      </div>
+                    )}
                   </div>
                 ))}
 

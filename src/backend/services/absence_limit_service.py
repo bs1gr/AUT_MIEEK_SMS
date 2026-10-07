@@ -1,18 +1,20 @@
-"""ΜΙΕΕΚ absence-limit rule.
+"""ΜΙΕΕΚ absence rules (owner's decision, 2026-10-07).
 
-Attendance is compulsory. For each course, a student may be absent for at most
-``absence_limit_percent`` (10%) of the semester's scheduled teaching periods, or
-``absence_limit_extended_percent`` (15%) when the Directorate has approved
-documented reasons for that enrollment. Going *over* the applicable limit makes
-attendance in the course "insufficient" (Ανεπαρκής): the student loses the right
-to sit the final exam and must repeat the course. The app only flags this — it
-never blocks grade entry.
+For each course, absences are counted against the semester's scheduled teaching periods:
 
-Units: attendance is recorded one row per teaching period, so the limit is
-computed in periods. The semester total is calculated as
-``periods_per_week x SEMESTER_WEEKS`` (``hours_per_week`` stands in for courses
-without a period schedule). Absent and Excused both count as absences — a
-justification only matters through the extended-limit approval. Late does not.
+- **Fail limit** (``absence_limit_percent``, 30%): going *over* it makes attendance in the
+  course "insufficient" (Ανεπαρκής) and the course is failed. The app flags this; it never
+  blocks grade entry.
+- **Class Participation limit** (``participation_limit_percent``, 10%): going *over* it means
+  the student loses the Class Participation share of the final grade (that share, including
+  its special-participation sub-weights, counts as 0). The course can still be passed.
+
+Units: attendance is recorded one row per teaching period, so limits are computed in periods.
+The semester total is ``periods_per_week x SEMESTER_WEEKS`` (``hours_per_week`` stands in for
+courses without a period schedule). Absent and Excused both count as absences; Late does not.
+
+The Directorate-approved extended limit (15%, per enrollment) was removed on 2026-10-07; its
+database columns stay until every installed app no longer reads them.
 """
 
 from __future__ import annotations
@@ -26,9 +28,9 @@ from sqlalchemy.orm import Session
 from backend.config import settings
 from backend.import_resolver import import_names
 
-DEFAULT_LIMIT_PERCENT = 10.0
-DEFAULT_EXTENDED_LIMIT_PERCENT = 15.0
-# Warn once a student has used this share of their allowed absences.
+DEFAULT_LIMIT_PERCENT = 30.0
+DEFAULT_PARTICIPATION_LIMIT_PERCENT = 10.0
+# Warn once a student has used this share of the absences allowed before failing.
 WARNING_RATIO = 0.8
 
 STATUS_OK = "ok"
@@ -49,34 +51,30 @@ def weekly_periods(course: Any) -> float:
 
 
 def course_limits(course: Any) -> tuple[float, float]:
-    """(base, extended) limit percentages; the extended limit is never below the base."""
-    base = getattr(course, "absence_limit_percent", None)
-    extended = getattr(course, "absence_limit_extended_percent", None)
-    base = DEFAULT_LIMIT_PERCENT if base is None else float(base)
-    extended = DEFAULT_EXTENDED_LIMIT_PERCENT if extended is None else float(extended)
-    return base, max(base, extended)
+    """(fail limit %, Class Participation limit %) for a course."""
+    fail = getattr(course, "absence_limit_percent", None)
+    participation = getattr(course, "participation_limit_percent", None)
+    fail = DEFAULT_LIMIT_PERCENT if fail is None else float(fail)
+    participation = DEFAULT_PARTICIPATION_LIMIT_PERCENT if participation is None else float(participation)
+    return fail, participation
 
 
-def evaluate(
-    course: Any,
-    *,
-    absent: int,
-    excused: int,
-    extended_approved: bool,
-    weeks: Optional[int] = None,
-) -> Dict[str, Any]:
-    """Absence-limit status for one student in one course, from status counts."""
+def _allowed(scheduled: float, percent: float) -> int:
+    # Absences are whole periods, so "more than scheduled * p%" == "more than floor(...)".
+    return math.floor(scheduled * percent / 100.0 + 1e-9)
+
+
+def evaluate(course: Any, *, absent: int, excused: int, weeks: Optional[int] = None) -> Dict[str, Any]:
+    """Absence status for one student in one course, from status counts."""
     weeks = semester_weeks() if weeks is None else weeks
     per_week = weekly_periods(course)
     scheduled = per_week * weeks
-    base, extended = course_limits(course)
-    limit = extended if extended_approved else base
+    fail_limit, participation_limit = course_limits(course)
     absences = absent + excused
 
     if scheduled > 0:
-        max_allowed = scheduled * limit / 100.0
-        # Absences are whole periods, so "more than max_allowed" == "more than floor(max_allowed)".
-        allowed = math.floor(max_allowed + 1e-9)
+        allowed = _allowed(scheduled, fail_limit)
+        participation_allowed: Optional[int] = _allowed(scheduled, participation_limit)
         percent = absences / scheduled * 100.0
         if absences > allowed:
             status = STATUS_INSUFFICIENT
@@ -86,11 +84,14 @@ def evaluate(
             status = STATUS_OK
         remaining: Optional[int] = max(0, allowed - absences)
         allowed_out: Optional[int] = allowed
+        forfeited = participation_allowed is not None and absences > participation_allowed
     else:
         percent = 0.0
         status = STATUS_UNKNOWN
         remaining = None
         allowed_out = None
+        participation_allowed = None
+        forfeited = False
 
     return {
         "course_id": getattr(course, "id", None),
@@ -101,18 +102,18 @@ def evaluate(
         "unexcused_absences": absent,
         "excused_absences": excused,
         "absence_percent": round(percent, 2),
-        "limit_percent": limit,
-        "base_limit_percent": base,
-        "extended_limit_percent": extended,
-        "extended_approved": bool(extended_approved),
+        "limit_percent": fail_limit,
         "allowed_absences": allowed_out,
         "remaining_absences": remaining,
+        "participation_limit_percent": participation_limit,
+        "participation_allowed_absences": participation_allowed,
+        "participation_forfeited": forfeited,
         "status": status,
         "attendance_insufficient": status == STATUS_INSUFFICIENT,
     }
 
 
-def evaluate_records(course: Any, records: Iterable[Any], extended_approved: bool) -> Dict[str, Any]:
+def evaluate_records(course: Any, records: Iterable[Any]) -> Dict[str, Any]:
     """Same as :func:`evaluate`, counting statuses from attendance rows."""
     absent = excused = 0
     for rec in records:
@@ -121,7 +122,7 @@ def evaluate_records(course: Any, records: Iterable[Any], extended_approved: boo
             absent += 1
         elif s == "excused":
             excused += 1
-    return evaluate(course, absent=absent, excused=excused, extended_approved=extended_approved)
+    return evaluate(course, absent=absent, excused=excused)
 
 
 def _status_counts(db: Session, **filters: int) -> Dict[tuple[int, int], Dict[str, int]]:
@@ -147,30 +148,15 @@ def _live_enrollments(db: Session, **filters: int) -> List[Any]:
     return q.all()
 
 
-def _with_enrollment(result: Dict[str, Any], enrollment: Any) -> Dict[str, Any]:
-    approved_at = enrollment.extended_absence_approved_at
-    result.update(
-        student_id=enrollment.student_id,
-        course_id=enrollment.course_id,
-        extended_absence_approved_at=approved_at.isoformat() if approved_at else None,
-        extended_absence_note=enrollment.extended_absence_note,
-    )
-    return result
-
-
 def course_absence_status(db: Session, course: Any) -> List[Dict[str, Any]]:
     """Status for every enrolled (not dropped) student in a course."""
     counts = _status_counts(db, course_id=course.id)
     out = []
     for enr in _live_enrollments(db, course_id=course.id):
         c = counts.get((enr.student_id, course.id), {})
-        result = evaluate(
-            course,
-            absent=c.get("absent", 0),
-            excused=c.get("excused", 0),
-            extended_approved=bool(enr.extended_absence_approved),
-        )
-        out.append(_with_enrollment(result, enr))
+        result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0))
+        result.update(student_id=enr.student_id, course_id=enr.course_id)
+        out.append(result)
     return out
 
 
@@ -193,12 +179,9 @@ def student_absence_status(db: Session, student_id: int) -> List[Dict[str, Any]]
         if course is None:
             continue
         c = counts.get((student_id, course.id), {})
-        result = evaluate(
-            course,
-            absent=c.get("absent", 0),
-            excused=c.get("excused", 0),
-            extended_approved=bool(enr.extended_absence_approved),
+        result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0))
+        result.update(
+            student_id=student_id, course_id=course.id, course_code=course.course_code, course_name=course.course_name
         )
-        result.update(course_code=course.course_code, course_name=course.course_name)
-        out.append(_with_enrollment(result, enr))
+        out.append(result)
     return out

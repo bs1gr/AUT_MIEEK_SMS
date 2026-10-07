@@ -82,6 +82,7 @@ class EnrollmentFacts:
     final_grade: Optional[float]
     grade_basis: Optional[str]  # "rules" | "average" | None
     grade_count: int
+    rating_count: int = 0
     present: int = 0
     late: int = 0
     absent: int = 0
@@ -100,6 +101,10 @@ class EnrollmentFacts:
     @property
     def attendance_rate(self) -> Optional[float]:
         return self.attended / self.recorded * 100 if self.recorded else None
+
+    @property
+    def participation_forfeited(self) -> bool:
+        return bool(self.absence.get("participation_forfeited"))
 
     @property
     def passing(self) -> Optional[bool]:
@@ -215,12 +220,8 @@ class AnalyticsOverviewService:
             final_grade=final_grade,
             grade_basis=basis,
             grade_count=len(percentages),
-            absence=absence_limit_service.evaluate(
-                course,
-                absent=counts["absent"],
-                excused=counts["excused"],
-                extended_approved=bool(getattr(enrollment, "extended_absence_approved", False)),
-            ),
+            rating_count=len(daily),
+            absence=absence_limit_service.evaluate(course, absent=counts["absent"], excused=counts["excused"]),
             grades=[
                 {
                     "date": _grade_date(g),
@@ -294,7 +295,8 @@ class AnalyticsOverviewService:
                     "failing_courses": failing,
                     "attendance_rate": _round(_pooled_rate(sf)),
                     "absence_status": worst,
-                    "at_risk": bool(failing) or worst in (
+                    "participation_forfeited": [courses[f.course_id].course_name for f in sf if f.participation_forfeited],
+                    "at_risk": bool(failing) or any(f.participation_forfeited for f in sf) or worst in (
                         absence_limit_service.STATUS_WARNING,
                         absence_limit_service.STATUS_INSUFFICIENT,
                     ),
@@ -321,6 +323,7 @@ class AnalyticsOverviewService:
                         1 for f in cf if f.absence.get("status") == absence_limit_service.STATUS_WARNING
                     ),
                     "absence_insufficient": sum(1 for f in cf if f.absence.get("attendance_insufficient")),
+                    "participation_forfeited": sum(1 for f in cf if f.participation_forfeited),
                 }
             )
         course_rows.sort(key=lambda r: r["course_name"])
@@ -373,6 +376,7 @@ class AnalyticsOverviewService:
                     "final_grade": _round(f.final_grade),
                     "grade_basis": f.grade_basis,
                     "grade_count": f.grade_count,
+                    "rating_count": f.rating_count,
                     "passing": f.passing,
                     "class_average": _round(_mean(peer_finals)),
                     "rank": rank,
@@ -385,6 +389,9 @@ class AnalyticsOverviewService:
                         "remaining_absences": absence.get("remaining_absences"),
                         "absence_percent": absence.get("absence_percent"),
                         "limit_percent": absence.get("limit_percent"),
+                        "participation_limit_percent": absence.get("participation_limit_percent"),
+                        "participation_allowed_absences": absence.get("participation_allowed_absences"),
+                        "participation_forfeited": f.participation_forfeited,
                     },
                     "grades": f.grades,
                 }
@@ -409,7 +416,9 @@ class AnalyticsOverviewService:
                 "failing": failing,
                 "attendance": self._attendance_dict(own),
                 "absence_status": worst,
+                "participation_forfeited": sum(1 for f in own if f.participation_forfeited),
                 "at_risk": failing > 0
+                or any(f.participation_forfeited for f in own)
                 or worst in (absence_limit_service.STATUS_WARNING, absence_limit_service.STATUS_INSUFFICIENT),
             },
             "courses": rows,

@@ -684,6 +684,40 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+22. ~~**ΜΙΕΕΚ absence rules changed: fail over 30%, Class Participation lost over 10%**~~ — **done
+    2026-10-07 (owner's decisions; not yet released). Supersedes the 2026-09-25 rule (10%, 15%
+    with Directorate approval).**
+    - **Rule** (`absence_limit_service`): absences = Absent + Excused over the scheduled periods.
+      Over `absence_limit_percent` (30) attendance is insufficient and the course is failed
+      (flag only). Over `participation_limit_percent` (10) the Class Participation share,
+      including its special sub-weights, counts as 0 in the final grade
+      (`_calculate_final_grade_from_records`, `participation_forfeited` in the response). The
+      warning starts at 80% of the fail allowance.
+    - **Extended limit removed** (owner: "remove it"): the approval endpoint, schema fields,
+      Attendance panel column and session export/import of approvals are gone.
+    - **Migration `d5e9f3a2b7c4` is additive:** it adds `courses.participation_limit_percent`
+      (10) and sets every course's `absence_limit_percent` to 30. The old
+      `courses.absence_limit_extended_percent` and `course_enrollments.extended_absence_*`
+      columns stay, unused, because older installed apps share the QNAP database and still read
+      them. **Follow-up:** drop them once every install runs this version. Importing an export
+      from before this change ignores its old `absence_limit_percent`, so the 10% fail rule
+      cannot come back from a backup.
+    - **Special participation moved to the Courses tab** (owner: "sub-weights of CP"): the
+      Class Participation row holds the whole share, split into No participation / Minor
+      participation / Minor (mobile); the rest is for the normal per-period ratings. Stored as
+      before (Class Participation keeps the remainder, three special rules), so grading is
+      unchanged. The editor was removed from the Grading page. The Courses-tab editor also kept
+      dropping `includeDailyPerformance` / `dailyPerformanceMultiplier` on load, so an autosave
+      reset them; it now keeps them.
+    - **Analytics:** "Grades: 0" next to a final grade came from participation ratings; the
+      course rows now count them. A lost Class Participation share is marked and is an at-risk
+      reason.
+    - **Tests:** `test_absence_limits.py` rewritten (13: thresholds in whole periods, 80 → 72
+      when the share is lost, old exports), `test_analytics_overview.py` updated,
+      `AbsenceLimitsPanel.test.tsx` rewritten, new `CourseEvaluationRules.test.tsx` (share,
+      save layout, too-high sub-weights, defaults), analytics page test extended.
+    - The owner's native dev backend (uvicorn --reload on the QNAP database) was stopped before
+      this work so half-done edits and the migration would not reach the shared database.
 21. ~~**Analytics page: wrong numbers and a course list not tied to the student**~~ — **rebuilt
     2026-10-07 (owner: "fix + redesign"; percent only; attendance as in the absence limit). Not
     yet released.**

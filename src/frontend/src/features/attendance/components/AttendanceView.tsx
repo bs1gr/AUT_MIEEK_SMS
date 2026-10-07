@@ -1034,7 +1034,6 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         courseId={selectedCourse}
         students={enrolledStudents}
         refreshKey={persistedAttendanceRecords}
-        showToast={showToast}
       />
 
       {/* Performance Modal */}

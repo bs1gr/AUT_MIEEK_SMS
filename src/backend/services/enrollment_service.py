@@ -15,7 +15,6 @@ from backend.schemas.enrollments import (
     EnrollmentCreate,
     EnrollmentResponse,
     EnrollmentStatusUpdate,
-    ExtendedAbsenceApprovalUpdate,
     StudentBrief,
 )
 
@@ -324,36 +323,6 @@ class EnrollmentService:
         logger.info(
             "Updated enrollment status",
             extra={"course_id": course_id, "student_id": student_id, "status": payload.status},
-        )
-
-        return enrollment
-
-    @staticmethod
-    def update_extended_absence_approval(
-        db: Session,
-        course_id: int,
-        student_id: int,
-        payload: ExtendedAbsenceApprovalUpdate,
-        request=None,
-    ) -> EnrollmentResponse:
-        """Record (or withdraw) the Directorate's approval for the extended absence limit."""
-        enrollment = EnrollmentService._get_enrollment_or_404(db, course_id, student_id, request)
-
-        enrollment.extended_absence_approved = payload.approved
-        if payload.approved:
-            # Editing the note of an existing approval keeps its original date
-            enrollment.extended_absence_approved_at = (
-                payload.approved_at or enrollment.extended_absence_approved_at or date.today()
-            )
-            enrollment.extended_absence_note = payload.note
-        else:
-            enrollment.extended_absence_approved_at = None
-            enrollment.extended_absence_note = None
-        db.flush()
-
-        logger.info(
-            "Updated extended absence approval",
-            extra={"course_id": course_id, "student_id": student_id, "approved": payload.approved},
         )
 
         return enrollment

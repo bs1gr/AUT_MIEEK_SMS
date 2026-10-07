@@ -82,6 +82,7 @@ const AnalyticsStudentView = ({ t, formatDate, visibleCharts, courses, singleCou
                   <div className="font-medium text-slate-900">{c.course_name}</div>
                   <div className="text-xs text-slate-600">
                     {t('analytics.overview.gradesRecorded', { count: c.grade_count })}
+                    {c.rating_count > 0 && ` · ${t('analytics.overview.ratingsRecorded', { count: c.rating_count })}`}
                     {c.grade_basis === 'average' && ` · ${t('analytics.overview.noRulesNote')}`}
                   </div>
                 </td>
@@ -101,6 +102,9 @@ const AnalyticsStudentView = ({ t, formatDate, visibleCharts, courses, singleCou
                 </td>
                 <td className={CELL}>
                   <AbsenceBadge status={c.absence.status} t={t} />
+                  {c.absence.participation_forfeited && (
+                    <div className="mt-1 text-xs font-semibold text-amber-800">{t('analytics.overview.participationLost')}</div>
+                  )}
                 </td>
               </tr>
             ))}

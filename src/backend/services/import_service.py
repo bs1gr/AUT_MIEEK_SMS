@@ -122,6 +122,13 @@ class ImportService:
         if periods_value is None and course_data.get("teaching_schedule") is not None:
             course_data["periods_per_week"] = _calculate_periods_per_week(course_data.get("teaching_schedule"))
 
+        # Exports from before 2026-10-07 carry absence_limit_percent with the old meaning (10% =
+        # fail, with an extended limit). Without participation_limit_percent the file predates the
+        # 30% fail / 10% Class Participation rule, so its limit is left out and the new default applies.
+        if "participation_limit_percent" not in course_data:
+            course_data.pop("absence_limit_percent", None)
+        course_data.pop("absence_limit_extended_percent", None)
+
         code = course_data.get("course_code")
         if not code:
             return False, "Missing course_code"
@@ -142,7 +149,7 @@ class ImportService:
                 "teaching_schedule",
                 "absence_penalty",
                 "absence_limit_percent",
-                "absence_limit_extended_percent",
+                "participation_limit_percent",
             ]:
                 if field in course_data:
                     setattr(db_course, field, course_data[field])
@@ -173,7 +180,7 @@ class ImportService:
                 "teaching_schedule",
                 "absence_penalty",
                 "absence_limit_percent",
-                "absence_limit_extended_percent",
+                "participation_limit_percent",
             ]
             filtered_data = {k: v for k, v in course_data.items() if k in allowed_fields}
             db_course = Course(**filtered_data)

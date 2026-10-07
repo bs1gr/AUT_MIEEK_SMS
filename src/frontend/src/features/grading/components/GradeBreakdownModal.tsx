@@ -172,6 +172,16 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
               </div>
             )}
 
+            {/* ΜΙΕΕΚ Class Participation limit exceeded: that share already counts as 0 above */}
+            {data.participation_forfeited && data.absence_limit && (
+              <div role="status" className="bg-amber-50 border border-amber-300 rounded-lg p-4 text-sm text-amber-900" data-testid="breakdown-participation-forfeited">
+                {t('participationForfeitedNote', {
+                  allowed: data.absence_limit.participation_allowed_absences ?? 0,
+                  scheduled: data.absence_limit.scheduled_periods,
+                })}
+              </div>
+            )}
+
             {/* ΜΙΕΕΚ absence limit exceeded: flag only, the grade is unchanged */}
             {data.attendance_insufficient && data.absence_limit && (
               <div role="alert" className="bg-red-50 border border-red-300 rounded-lg p-4 text-sm text-red-800" data-testid="breakdown-attendance-insufficient">

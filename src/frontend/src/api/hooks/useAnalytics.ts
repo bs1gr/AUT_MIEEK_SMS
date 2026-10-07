@@ -44,6 +44,7 @@ export interface ClassOverview {
     attendance: AttendanceCounts;
     absence_warning: number;
     absence_insufficient: number;
+    participation_forfeited: number;
   }[];
   students: {
     id: number;
@@ -56,6 +57,8 @@ export interface ClassOverview {
     failing_courses: string[];
     attendance_rate: number | null;
     absence_status: AbsenceStatus | null;
+    /** Courses where absences are over the Class Participation limit (that share counts as 0). */
+    participation_forfeited: string[];
     at_risk: boolean;
   }[];
 }
@@ -67,6 +70,8 @@ export interface StudentOverviewCourse {
   final_grade: number | null;
   grade_basis: 'rules' | 'average' | null;
   grade_count: number;
+  /** Per-period participation ratings (daily performance); they count toward the final grade too. */
+  rating_count: number;
   passing: boolean | null;
   class_average: number | null;
   rank: number | null;
@@ -79,6 +84,9 @@ export interface StudentOverviewCourse {
     remaining_absences: number | null;
     absence_percent: number | null;
     limit_percent: number | null;
+    participation_limit_percent: number | null;
+    participation_allowed_absences: number | null;
+    participation_forfeited: boolean;
   };
   grades: { date: string | null; category: string | null; assignment: string | null; percentage: number }[];
 }
@@ -100,6 +108,7 @@ export interface StudentOverview {
     failing: number;
     attendance: AttendanceCounts;
     absence_status: AbsenceStatus | null;
+    participation_forfeited: number;
     at_risk: boolean;
   };
   courses: StudentOverviewCourse[];
