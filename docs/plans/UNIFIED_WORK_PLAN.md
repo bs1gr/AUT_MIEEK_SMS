@@ -714,6 +714,16 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
       browser-side grading and 13 unused translation keys removed. Verified in the browser on
       seeded data (Bob Williams 90.3% = (91.5 + 89.0) / 2 by hand) in EN and EL;
       `TopPerformersPanel.test.tsx` (modes, unranked students, Greek).
+    - **E2E red on `cbb6166f5`, fixed before release:** `analytics-dashboard.spec.ts` checked the
+      old card titles; its other 40 tests were vacuous (`expect(x === true || x === false)`,
+      "body is visible"). Rewritten as 5 tests that create their own data (tracked and
+      cleaned up): cards and no failed requests, a student's course list, "—" with nothing
+      graded, a rule-based final grade (75.7%), the class view's at-risk row, Greek. They found
+      a real bug: the overview queries kept data for 60 s, and the hash navigation from the
+      dashboard reused it, so a grade or student added a moment ago was missing from Analytics.
+      The overview queries now refetch whenever a page or panel opens (`staleTime: 0`).
+      Running E2E locally against a throwaway backend needs `PLAYWRIGHT_API_BASE_URL` too, or the
+      helpers call `:8000`, which may be the owner's dev server on the QNAP database.
     - Tests: `DashboardAttentionPanels.test.tsx` (EN and EL with the real i18n instance),
       `test_analytics_overview.py` (+2: gaps window, schedule parsing). The Greek checks in the
       analytics tests now set `i18nextLng` in localStorage: `LanguageProvider` reads it first,

@@ -1,483 +1,142 @@
-import { test, expect, Page } from '@playwright/test';
-import { loginViaAPI } from './e2e/helpers';
+import { test, expect, type Page } from '@playwright/test';
+import {
+  TestDataTracker,
+  createCourseViaAPI,
+  createGradeViaAPI,
+  createStudentViaAPI,
+  enrollStudentViaAPI,
+  generateCourseData,
+  generateStudentData,
+  loginViaAPI,
+} from './e2e/helpers';
 
 /**
- * E2E Tests for Analytics Dashboard (Feature #125)
- * Tests cover:
- * - Page loads and displays correctly
- * - Charts render without errors
- * - Filter controls work properly
- * - Summary cards display correct data
- * - Navigation between pages
- * - Responsive design (mobile/tablet/desktop)
- * - Error handling and recovery
+ * Analytics page (rebuilt 2026-10-07 on GET /analytics/overview and
+ * /analytics/student/{id}/overview).
+ *
+ * The previous version of this spec was almost entirely vacuous (assertions such as
+ * `expect(x === true || x === false)` or "the body is visible"); the one real check, the
+ * card titles, failed once the page was rebuilt. Every test here creates its own data and
+ * asserts a value the page has to compute.
  */
 
-test.describe('Analytics Dashboard - Feature #125', () => {
-  let page: Page;
+let tracker: TestDataTracker;
 
-  test.beforeEach(async ({ page: testPage }) => {
-    page = testPage;
-    // Set viewport to desktop for initial tests
-    await page.setViewportSize({ width: 1280, height: 720 });
+const openAnalytics = async (page: Page) => {
+  await page.goto('/#/analytics');
+  await page.waitForLoadState('load');
+  await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible({ timeout: 15_000 });
+};
+
+/** A course with the helper's default rules (Homework 30, Midterm 30, Final 40). */
+const makeCourse = async (page: Page) => {
+  const data = generateCourseData();
+  const course = await createCourseViaAPI(page, data);
+  tracker.track('courses', course.id);
+  return { ...course, name: data.courseName as string };
+};
+
+const makeStudent = async (page: Page, ...courseIds: number[]) => {
+  const data = generateStudentData();
+  const student = await createStudentViaAPI(page, data);
+  tracker.track('students', student.id);
+  for (const courseId of courseIds) {
+    await enrollStudentViaAPI(page, courseId, student.id);
+    tracker.trackEnrollment(courseId, student.id);
+  }
+  return { ...student, name: `${data.firstName} ${data.lastName}` };
+};
+
+const grade = async (page: Page, studentId: number, courseId: number, value: number, category: string) => {
+  const created = await createGradeViaAPI(page, studentId, courseId, value, 100, category, `E2E ${category}`);
+  tracker.track('grades', created.id);
+};
+
+const optionTexts = (page: Page, testId: string) =>
+  page.getByTestId(testId).locator('option').allTextContents();
+
+test.describe('Analytics page', () => {
+  test.beforeEach(async ({ page }) => {
+    tracker = new TestDataTracker(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
     await loginViaAPI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
+  });
+
+  test.afterEach(async () => {
+    await tracker.cleanup();
+  });
+
+  test('loads with four summary cards and no errors', async ({ page }) => {
+    const failures: string[] = [];
+    page.on('pageerror', (error) => failures.push(error.message));
+    page.on('response', (response) => {
+      if (response.url().includes('/api/') && response.status() >= 400) failures.push(`${response.status()} ${response.url()}`);
+    });
+
+    await openAnalytics(page);
+    await expect(page.getByTestId('summary-card')).toHaveCount(4);
+    await expect(page.getByTestId('summary-card').first()).toContainText('Enrolled Courses');
+    await expect(page.locator('[role="alert"]')).toHaveCount(0);
+    expect(failures).toEqual([]);
+  });
+
+  test("offers only the selected student's courses, with a dash while nothing is graded", async ({ page }) => {
+    const enrolled = await makeCourse(page);
+    const other = await makeCourse(page);
+    const student = await makeStudent(page, enrolled.id);
+
+    await openAnalytics(page);
+    await page.getByTestId('analytics-student-select').selectOption({ label: student.name });
+
+    await expect.poll(() => optionTexts(page, 'analytics-course-select')).toEqual(['All courses', enrolled.name]);
+    expect(await optionTexts(page, 'analytics-course-select')).not.toContain(other.name);
+
+    const row = page.getByTestId('analytics-student-courses').locator('tr', { hasText: enrolled.name });
+    await expect(row).toContainText('—');
+    await expect(row).not.toContainText('0.0%');
+  });
+
+  test("computes the final grade from the course's evaluation rules", async ({ page }) => {
+    const course = await makeCourse(page);
+    const student = await makeStudent(page, course.id);
+    // Homework 70 (30%) and Final 80 (40%); Midterm not graded yet, so the 70% done is scaled:
+    // (70*30 + 80*40) / 70 = 75.71...
+    await grade(page, student.id, course.id, 70, 'Homework');
+    await grade(page, student.id, course.id, 80, 'Final');
+
+    await openAnalytics(page);
+    await page.getByTestId('analytics-student-select').selectOption({ label: student.name });
+    await expect.poll(() => optionTexts(page, 'analytics-course-select')).toContain(course.name);
+    await page.getByTestId('analytics-course-select').selectOption({ label: course.name });
+
+    const finalCard = page.getByTestId('summary-card').first();
+    await expect(finalCard).toContainText('Final Grade');
+    await expect(finalCard).toContainText('75.7%');
+    await expect(page.getByTestId('analytics-grade-list').locator('tbody tr')).toHaveCount(2);
+  });
+
+  test('class view lists a failing student under Needs Attention, with the course', async ({ page }) => {
+    const course = await makeCourse(page);
+    const failing = await makeStudent(page, course.id);
+    await grade(page, failing.id, course.id, 20, 'Final');
+
+    await openAnalytics(page);
+    await page.getByRole('button', { name: 'Class Analytics' }).click();
+
+    const atRisk = page.getByTestId('analytics-at-risk');
+    const row = atRisk.locator('tr', { hasText: failing.name });
+    await expect(row).toBeVisible();
+    await expect(row).toContainText(course.name);
+    await expect(row).toContainText('20.0%');
+  });
+
+  test('is translated in Greek', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('i18nextLng', 'el'));
     await page.goto('/#/analytics');
-    // Use 'load' not 'networkidle' — the analytics page continuously polls data
-    // and never reaches networkidle, causing a 30s timeout on every test.
-    await page.waitForLoadState('load');
-    // Wait for React to finish mounting (auto-retrying assertion).
-    await expect(page.getByRole('heading', { name: /Analytics Dashboard/i })).toBeVisible({ timeout: 15_000 });
-  });
-
-  test.describe('Page Load & Basic Rendering', () => {
-    test('should load analytics page successfully', async () => {
-      // Check page title/header exists
-      await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible();
-      // Page should not have error messages
-      await expect(page.locator('[role="alert"]')).not.toBeVisible();
-    });
-
-    test('should display all summary cards', async () => {
-      // Wait for summary cards to be visible
-      const summaryCards = page.locator('[data-testid="summary-card"]');
-      await expect(summaryCards).toHaveCount(4);
-
-      // Verify card titles
-      await expect(summaryCards.nth(0)).toContainText('Total Students');
-      await expect(summaryCards.nth(1)).toContainText('Total Courses');
-      await expect(summaryCards.nth(2)).toContainText('Average Grade');
-      await expect(summaryCards.nth(3)).toContainText('Average Attendance');
-    });
-
-    test('should display all chart sections', async () => {
-      // Wait a bit for data to load
-      await page.waitForTimeout(1000);
-
-      // Performance Chart (optional — only visible when a student is selected)
-      const performanceChart = page.locator('[data-testid="chart-performance"]');
-      if (await performanceChart.isVisible()) {
-        await expect(performanceChart).toBeVisible();
-      } else {
-        // If no chart yet, at least verify the summary cards are visible
-        await expect(page.locator('[data-testid="summary-card"]').first()).toBeVisible();
-      }
-
-      // Grade Distribution Chart
-      const gradeDistributionChart = page.locator('[data-testid="chart-grade-distribution"]');
-      if (await gradeDistributionChart.isVisible()) {
-        await expect(gradeDistributionChart).toBeVisible();
-      }
-
-      // Attendance Chart
-      const attendanceChart = page.locator('[data-testid="chart-attendance"]');
-      if (await attendanceChart.isVisible()) {
-        await expect(attendanceChart).toBeVisible();
-      }
-
-      // Trend Chart
-      const trendChart = page.locator('[data-testid="chart-trend"]');
-      if (await trendChart.isVisible()) {
-        await expect(trendChart).toBeVisible();
-      }
-
-      // Stats Chart
-      const statsChart = page.locator('[data-testid="chart-student-status"]');
-      if (await statsChart.isVisible()) {
-        await expect(statsChart).toBeVisible();
-      }
-    });
-
-    test('should not show loading spinner after page load', async () => {
-      // Initial page load might show spinner, wait for it to disappear
-      const spinner = page.locator('[role="status"]');
-      if (await spinner.count() > 0) {
-        await expect(spinner.first()).toBeHidden({ timeout: 5000 });
-      }
-    });
-  });
-
-  test.describe('Charts Rendering', () => {
-    test('should render performance chart with data', async () => {
-      // Check for chart SVG elements (Recharts renders SVG)
-      const chartSvg = page.locator('svg').first();
-      await expect(chartSvg).toBeVisible();
-
-      // Look for chart lines/paths indicating data
-      const paths = page.locator('svg path');
-      const pathCount = await paths.count();
-      expect(pathCount).toBeGreaterThan(0);
-    });
-
-    test('should render grade distribution chart', async () => {
-      // Look for bar chart specific elements
-      // Charts might not have explicit aria-labels, so check for SVG content
-      const allSvgs = page.locator('svg');
-      const svgCount = await allSvgs.count();
-      expect(svgCount).toBeGreaterThan(0);
-    });
-
-    test('should render pie chart for statistics', async () => {
-      // Recharts renders SVG for all chart types; circle elements only exist
-      // when the pie has actual data slices. Check SVG presence instead.
-      await expect(page.locator('svg').first()).toBeVisible();
-    });
-
-    test('should not show chart errors', async () => {
-      // Check for error messages in charts
-      const errorMessages = page.locator('[role="alert"], .error, [data-testid*="error"]');
-      await expect(errorMessages).not.toBeVisible();
-    });
-
-    test('should handle empty charts gracefully', async () => {
-      // If no data, should show empty state message instead of breaking
-      // This test verifies the page doesn't crash with empty data
-      const pageContent = page.locator('body');
-      await expect(pageContent).toBeVisible();
-    });
-  });
-
-  test.describe('Filter Controls', () => {
-    test('should display date range filter selector', async () => {
-      // Wait for filters to load
-      await page.waitForTimeout(1000);
-
-      // Look for filter controls - more flexible approach
-      const selects = page.locator('select');
-      const selectCount = await selects.count();
-
-      // Should have at least some select elements for filtering
-      if (selectCount > 0) {
-        // Verify at least one select is visible
-        const firstSelect = selects.first();
-        await expect(firstSelect).toBeVisible();
-      } else {
-        // If no selects, look for other filter controls like buttons or dropdowns
-        const buttons = page.locator('button');
-        const buttonCount = await buttons.count();
-        expect(buttonCount).toBeGreaterThan(0);
-      }
-    });
-
-    test('should allow date range selection', async () => {
-      // Find date input or selector
-      const dateInputs = page.locator('input[type="date"]');
-      const dateInputCount = await dateInputs.count();
-
-      // Should have date controls for filtering
-      expect(dateInputCount).toBeGreaterThanOrEqual(0);
-    });
-
-    test('should allow course filter selection', async () => {
-      // Look for course selector/dropdown
-      const courseSelectors = page.locator('select');
-      const selectCount = await courseSelectors.count();
-
-      // Should have course filter or similar control
-      // This might be a select, buttons, or other control
-      const hasFilters = selectCount > 0 ||
-                        await page.locator('button[data-testid*="filter"]').isVisible() ||
-                        await page.locator('[data-testid*="course"]').isVisible();
-
-      expect(hasFilters).toBeTruthy();
-    });
-
-    test('should update charts when filter changes', async () => {
-      // Try to change filter if available
-      const filterButtons = page.locator('button');
-      const buttonCount = await filterButtons.count();
-
-      if (buttonCount > 0) {
-        // Click a different filter option
-        const buttons = await filterButtons.all();
-        for (const btn of buttons) {
-          const text = await btn.textContent();
-          if (text && (text.includes('Month') || text.includes('Semester'))) {
-            await btn.click();
-            await page.waitForLoadState('load');
-            break;
-          }
-        }
-      }
-
-      // Verify page is still responsive
-      const finalSvgs = await page.locator('svg').count();
-      expect(finalSvgs).toBeGreaterThan(0);
-    });
-  });
-
-  test.describe('Summary Cards', () => {
-    test('should display numeric values in summary cards', async () => {
-      const summaryCards = page.locator('[data-testid="summary-card"]');
-
-      for (let i = 0; i < await summaryCards.count(); i++) {
-        const card = summaryCards.nth(i);
-        const content = await card.textContent();
-
-        // Card should have some content
-        expect(content).not.toBe('');
-        expect(content).not.toBeNull();
-      }
-    });
-
-    test('should show card icons', async () => {
-      // Look for icons in cards (from lucide-react)
-      const icons = page.locator('svg');
-      const iconCount = await icons.count();
-
-      // Should have multiple SVG icons for the dashboard
-      expect(iconCount).toBeGreaterThan(4);
-    });
-
-    test('should display card titles', async () => {
-      // Verify all expected card titles exist
-      const titles = ['Students', 'Courses', 'Grade', 'Attendance'];
-
-      for (const title of titles) {
-        // Some variants might exist, so we just check at least one is visible
-        // Title should be present somewhere on the page
-        const textElements = page.locator(`*:has-text("${title}")`);
-        const count = await textElements.count();
-        expect(count).toBeGreaterThan(0);
-      }
-    });
-  });
-
-  test.describe('Navigation', () => {
-    test('should have refresh button', async () => {
-      const refreshButton = page.locator('button[title*="Refresh"], button[aria-label*="refresh"], button:has-text("Refresh")');
-      // Refresh functionality should be available
-      const hasRefresh = await refreshButton.isVisible().catch(() => false);
-      // Even if no visible button, page should support refresh
-      expect(page.url()).toContain('/analytics');
-      expect(hasRefresh === true || hasRefresh === false).toBeTruthy();
-    });
-
-    test('should have back navigation button', async () => {
-      const backButton = page.locator('button[title*="Back"], button[aria-label*="back"], a[href*="/dashboard"]');
-      // Back button or link should exist
-      const hasBack = await backButton.isVisible().catch(() => false);
-      // At least navigation should be possible
-      expect(page.url()).toBeDefined();
-      expect(hasBack === true || hasBack === false).toBeTruthy();
-    });
-
-    test('should navigate back to dashboard', async () => {
-      const backButton = page.locator('button[title*="Back"], a[href*="dashboard"]').first();
-
-      if (await backButton.isVisible().catch(() => false)) {
-        await backButton.click();
-        await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {
-          // Navigation might not happen if not implemented yet
-        });
-      }
-
-      // Should be able to navigate
-      expect(page.url()).toBeDefined();
-    });
-
-    test('should show analytics in navigation tabs', async () => {
-      const navTabs = page.locator('nav').locator('a, button');
-      const tabsText = await navTabs.allTextContents();
-
-      // Analytics should be in navigation somewhere
-      const hasAnalytics = tabsText.some(text =>
-        text.toLowerCase().includes('analytics') ||
-        text.toLowerCase().includes('chart') ||
-        text.includes('📊')
-      );
-
-      // Navigation should exist
-      expect(navTabs).toBeDefined();
-      expect(hasAnalytics === true || hasAnalytics === false).toBeTruthy();
-    });
-  });
-
-  test.describe('Internationalization (i18n)', () => {
-    test('should display content in current language', async () => {
-      // Get page content
-      const pageText = await page.textContent('body');
-
-      // Should have readable content
-      expect(pageText).toBeTruthy();
-      expect(pageText?.length).toBeGreaterThan(0);
-    });
-
-    test('should support language switching', async () => {
-      // Look for language selector
-      // Language controls might be in settings/header
-      // Just verify the page has content regardless
-      const content = await page.textContent('body');
-      expect(content?.length).toBeGreaterThan(100);
-    });
-
-    test('should have properly localized labels', async () => {
-      // Check for common dashboard labels
-      const pageText = await page.textContent('body');
-
-      // Should have recognizable content (either EN or EL)
-      const hasContent = pageText && pageText.length > 50;
-      expect(hasContent).toBeTruthy();
-    });
-  });
-
-  test.describe('Responsive Design', () => {
-    test('should be responsive on mobile (375px)', async () => {
-      await page.setViewportSize({ width: 375, height: 667 });
-
-      // Page should remain usable
-      await expect(page.locator('body')).toBeVisible();
-
-      // Charts should be visible (might be smaller)
-      const charts = page.locator('svg');
-      const chartCount = await charts.count();
-      expect(chartCount).toBeGreaterThan(0);
-    });
-
-    test('should be responsive on tablet (768px)', async () => {
-      await page.setViewportSize({ width: 768, height: 1024 });
-
-      await expect(page.locator('body')).toBeVisible();
-
-      // All main sections should be visible
-      await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible();
-    });
-
-    test('should be responsive on desktop (1920px)', async () => {
-      await page.setViewportSize({ width: 1920, height: 1080 });
-
-      await expect(page.locator('body')).toBeVisible();
-
-      // Multiple charts should fit
-      const charts = page.locator('svg');
-      const chartCount = await charts.count();
-      expect(chartCount).toBeGreaterThan(2);
-    });
-
-    test('should reflow layout on mobile', async () => {
-      // Test mobile layout
-      await page.setViewportSize({ width: 375, height: 667 });
-
-      // Summary cards should be stacked or responsive
-      const summaryCards = page.locator('[data-testid="summary-card"]');
-      const cardCount = await summaryCards.count();
-      expect(cardCount).toBe(4); // All cards present
-
-      // Should scroll without breaking
-      await page.evaluate(() => window.scrollBy(0, 300));
-      await expect(page.locator('body')).toBeVisible();
-    });
-  });
-
-  test.describe('Error Handling', () => {
-    test('should handle missing data gracefully', async () => {
-      // Page should load even if data is missing
-      await expect(page.locator('body')).toBeVisible();
-
-      // Should not show JavaScript errors
-      const consoleErrors: string[] = [];
-      page.on('console', msg => {
-        if (msg.type() === 'error') {
-          consoleErrors.push(msg.text());
-        }
-      });
-
-      // Simulate some actions - wait for any network activity to complete
-      await page.waitForLoadState('load');
-
-      // Should not have critical errors
-      const criticalErrors = consoleErrors.filter(err =>
-        !err.includes('Unknown widget') &&
-        !err.includes('Cannot find')
-      );
-      expect(criticalErrors.length).toBe(0);
-    });
-
-    test('should show retry button on error', async () => {
-      // Look for error state with retry
-
-
-      // If error occurs, retry should be available
-      // Otherwise, page should be functioning normally
-      await expect(page.locator('body')).toBeVisible();
-    });
-
-    test('should display loading state', async () => {
-      // Look for loading indicator
-
-
-      // Loading state might appear during data fetch
-      // Page should always transition to loaded state
-      await page.waitForLoadState('load');
-      await expect(page.locator('svg').first()).toBeVisible();
-    });
-  });
-
-  test.describe('Performance', () => {
-    test('should load initial page within 3 seconds', async ({ context }) => {
-      const newPage = await context.newPage();
-      const authenticatedStartTime = Date.now();
-      await newPage.goto('/#/analytics');
-      await newPage.waitForLoadState('load');
-
-      const loadTime = Date.now() - authenticatedStartTime;
-      expect(loadTime).toBeLessThan(3000);
-
-      await newPage.close();
-    });
-
-    test('should render charts without lag', async () => {
-      // Charts should render smoothly
-      const charts = page.locator('svg');
-
-      const startTime = Date.now();
-      await expect(charts.first()).toBeVisible();
-      const renderTime = Date.now() - startTime;
-
-      // Should render quickly (within 1 second)
-      expect(renderTime).toBeLessThan(1000);
-    });
-  });
-
-  test.describe('Accessibility', () => {
-    test('should have proper heading hierarchy', async () => {
-      // Check for proper heading structure
-      const h1 = page.locator('h1');
-      const h2 = page.locator('h2');
-
-      // At least page title should exist
-      const headingCount = await h1.count() + await h2.count();
-      expect(headingCount).toBeGreaterThanOrEqual(0);
-    });
-
-    test('should have alt text for images', async () => {
-      // Charts are SVG, check for aria-labels
-      const svgs = page.locator('svg');
-
-      // SVGs should be accessible
-      const svgCount = await svgs.count();
-      expect(svgCount).toBeGreaterThan(0);
-    });
-
-    test('should be keyboard navigable', async () => {
-      // Tab through main elements
-      await page.keyboard.press('Tab');
-      await page.keyboard.press('Tab');
-
-      // Page should remain responsive
-      await expect(page.locator('body')).toBeVisible();
-
-      // Focus should be on some element
-      const focused = await page.evaluate(() => document.activeElement?.tagName);
-      expect(focused).toBeDefined();
-    });
-
-    test('should have sufficient color contrast', async () => {
-      // This is a basic check - full contrast check would require axe-core
-      // Just verify text is readable
-      const textElements = page.locator('body p, body span, body div');
-      const textCount = await textElements.count();
-
-      expect(textCount).toBeGreaterThan(0);
-    });
+    // A hash change does not reload the page, so the init script needs a real navigation.
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Αναλυτικά Τάξης' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('summary-card').first()).toContainText('Εγγεγραμμένα Μαθήματα');
+    expect(await page.locator('body').innerText()).not.toMatch(/analytics\.[a-z]/);
   });
 });

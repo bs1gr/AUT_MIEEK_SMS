@@ -134,7 +134,8 @@ export function useClassOverview({ academicYear, classDivision, courseId }: Clas
       const response = await apiClient.get('/analytics/overview', { params });
       return extractAPIResponseData<ClassOverview>(response.data ?? response);
     },
-    staleTime: 60 * 1000,
+    // Refetch whenever a page or panel opens: a grade or student added a moment ago must show.
+    staleTime: 0,
   });
 }
 
@@ -154,7 +155,7 @@ export function useAttendanceGaps(days = 7) {
       const response = await apiClient.get('/analytics/attendance-gaps', { params: { days } });
       return extractAPIResponseData<AttendanceGaps>(response.data ?? response);
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -166,6 +167,7 @@ export function useStudentOverview(studentId: number | null) {
       return extractAPIResponseData<StudentOverview>(response.data ?? response);
     },
     enabled: !!studentId,
-    staleTime: 60 * 1000,
+    // Refetch whenever a page or panel opens: a grade or student added a moment ago must show.
+    staleTime: 0,
   });
 }
