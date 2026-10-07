@@ -684,6 +684,27 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+23. ~~**Overview dashboard: active students only, "Recently Enrolled" replaced**~~ — **done
+    2026-10-07 (owner's choice of panels; not yet released).**
+    - Year-of-study counts only active students, as a share of active students.
+    - "Recently Enrolled Students" removed (owner: "no point").
+    - **Students needing attention** (from `/analytics/overview`): failing a course, Class
+      Participation lost, or near/over the 30% absence limit, with the reasons.
+    - **Attendance not recorded** (new `GET /analytics/attendance-gaps?days=7`): per course,
+      scheduled teaching days of the last 7 days (today excluded, weekends never) with no
+      attendance. Schedules are read as the Attendance page reads them (English day names or a
+      Monday-based index); courses without a schedule are counted as unchecked. Holidays are not
+      known, so a day off can show up.
+    - **Fixed on the way:** the Top Performers loader requested `/attendance` and `/grades`
+      without the trailing slash; the backend's redirect pointed at the absolute backend URL and
+      dropped the Authorization header (401 behind the Vite proxy).
+    - **Found, not fixed (owner's call):** the existing Top Performers cards show 0.0% / F for
+      every student on seeded data with grades; their numbers need the same review the
+      Analytics page got.
+    - Tests: `DashboardAttentionPanels.test.tsx` (EN and EL with the real i18n instance),
+      `test_analytics_overview.py` (+2: gaps window, schedule parsing). The Greek checks in the
+      analytics tests now set `i18nextLng` in localStorage: `LanguageProvider` reads it first,
+      so the earlier Greek runs had silently rendered English.
 22. ~~**ΜΙΕΕΚ absence rules changed: fail over 30%, Class Participation lost over 10%**~~ — **done
     2026-10-07 (owner's decisions; not yet released). Supersedes the 2026-09-25 rule (10%, 15%
     with Directorate approval).**
@@ -706,9 +727,12 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
       Class Participation row holds the whole share, split into No participation / Minor
       participation / Minor (mobile); the rest is for the normal per-period ratings. Stored as
       before (Class Participation keeps the remainder, three special rules), so grading is
-      unchanged. The editor was removed from the Grading page. The Courses-tab editor also kept
-      dropping `includeDailyPerformance` / `dailyPerformanceMultiplier` on load, so an autosave
-      reset them; it now keeps them.
+      unchanged. The editor was removed from the Grading page. **Correction (same day):** the
+      first commit put the editor in `CourseEvaluationRules.tsx`, which nothing mounts (only the
+      feature barrel exported it); the browser smoke test showed it. The editor and the two limit
+      inputs now live in `CoursesView.tsx` (the real Courses tab, which had no limit inputs at
+      all, so the limits were never editable in the app), and the dead component is deleted.
+      Both save paths (Save, and "Clear all" on the schedule tab) write the same layout.
     - **Analytics:** "Grades: 0" next to a final grade came from participation ratings; the
       course rows now count them. A lost Class Participation share is marked and is an at-risk
       reason.

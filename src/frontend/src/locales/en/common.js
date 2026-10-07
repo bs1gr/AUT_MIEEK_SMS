@@ -423,8 +423,6 @@ export default {
   creditsAbbr: 'cr',
   moreLabel: 'more',
   exportCoursesLink: 'Export Courses',
-  recentStudents: 'Recent Students',
-  exportStudentsLink: 'Export Students',
   yearAnalytics: 'Year Analytics',
   unknownYear: 'Unknown Year',
   systemInformation: 'System Information',

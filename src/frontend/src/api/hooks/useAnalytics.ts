@@ -135,6 +135,26 @@ export function useClassOverview({ academicYear, classDivision, courseId }: Clas
   });
 }
 
+export interface AttendanceGaps {
+  from: string | null;
+  to: string | null;
+  courses_checked: number;
+  missing: { id: number; course_code: string; course_name: string; missing_dates: string[] }[];
+  unscheduled: { id: number; course_code: string; course_name: string }[];
+}
+
+/** Scheduled teaching days in the last `days` days (today excluded) with no attendance recorded. */
+export function useAttendanceGaps(days = 7) {
+  return useQuery({
+    queryKey: ['analytics', 'attendance-gaps', days],
+    queryFn: async () => {
+      const response = await apiClient.get('/analytics/attendance-gaps', { params: { days } });
+      return extractAPIResponseData<AttendanceGaps>(response.data ?? response);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useStudentOverview(studentId: number | null) {
   return useQuery({
     queryKey: ['analytics', 'student-overview', studentId],

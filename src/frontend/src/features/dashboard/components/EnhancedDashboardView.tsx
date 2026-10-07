@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, type ComponentType, type SVGProps } from 'react';
+import { AttendanceNotRecorded, StudentsNeedingAttention } from './DashboardAttentionPanels';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -255,10 +256,6 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     goToExport('all-grades-excel');
   }, [goToExport]);
 
-  const handleGoToExportStudents = useCallback(() => {
-    goToExport('students-excel');
-  }, [goToExport]);
-
   const [topPerformers, setTopPerformers] = useState<StudentWithGPA[]>([]);
   const [rankingType, setRankingType] = useState<'gpa' | 'attendance' | 'exams' | 'overall'>('gpa');
   const [activeEnrollmentStudentIds, setActiveEnrollmentStudentIds] = useState<Set<number>>(new Set());
@@ -325,9 +322,10 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     );
   }, [activeTopPerformers]);
 
+  // Year of study counts active students only: inactive ones are no longer in a class.
   const yearBuckets = useMemo(() => {
     const buckets: Record<string, number> = {};
-    (students || []).forEach((student) => {
+    (students || []).filter((student) => student.is_active !== false).forEach((student) => {
       if (student.academic_year) {
         const label = String(student.academic_year).trim() || t('unknownYear');
         buckets[label] = (buckets[label] || 0) + 1;
@@ -467,8 +465,10 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
         const [analyticsResponse, attendanceResponse, gradesResponse, performanceResponse] = await Promise.all([
           apiClient.get(`/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }).catch(() => null),
-          apiClient.get('/attendance', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
-          apiClient.get('/grades', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
+          // Trailing slash: without it the backend redirects to an absolute URL, which loses the
+          // Authorization header (401) whenever the API sits behind a proxy.
+          apiClient.get('/attendance/', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
+          apiClient.get('/grades/', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
           apiClient.get(`/daily-performance/student/${student.id}`, { signal: controller.signal }).catch(() => null),
         ]);
 
@@ -1104,52 +1104,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                <Users size={22} className="text-indigo-500" />
-                <span>{t('recentStudents')}</span>
-              </h3>
-              <button onClick={handleGoToExportStudents} className="export-referral-link">
-                {t('exportStudentsLink') || 'Export Students'}
-              </button>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {(students || []).slice(0, 6).map((student) => (
-                <div
-                  key={student.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-indigo-200"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500 text-lg font-semibold text-white">
-                      {String(student.first_name || '').charAt(0)}
-                      {String(student.last_name || '').charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900">
-                        {student.first_name} {student.last_name}
-                      </p>
-                      <p className="text-sm text-slate-500">{student.student_id}</p>
-                      {student.enrollment_date && (
-                        <p className="mt-1 text-xs text-slate-400">
-                          {t('enrolled')} {formatDate(student.enrollment_date)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-3 border-t border-slate-200 pt-2">
-                    <span
-                      className={`inline-flex items-center gap-1 text-xs font-semibold ${
-                        student.is_active !== false ? 'text-emerald-600' : 'text-red-600'
-                      }`}
-                    >
-                      <CheckCircle size={12} />
-                      {student.is_active !== false ? t('active') || 'Active' : t('inactive') || 'Inactive'}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <StudentsNeedingAttention t={t} />
+            <AttendanceNotRecorded t={t} formatDate={(d) => formatDate(d)} />
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
@@ -1173,7 +1130,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                     <p className="text-sm font-medium text-slate-500">{label}</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-900">{count}</p>
                     <p className="mt-1 text-xs text-slate-400">
-                      {studentsCount > 0 ? ((count / studentsCount) * 100).toFixed(1) : '0.0'}% {t('totalStudents')}
+                      {activeStudentsCount > 0 ? ((count / activeStudentsCount) * 100).toFixed(1) : '0.0'}% {t('dashboard.ofActiveStudents')}
                     </p>
                   </div>
                 );

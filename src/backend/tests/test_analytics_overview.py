@@ -225,3 +225,46 @@ def test_export_uses_the_overview_figures(db, scenario):
     classes = {c["label"]: c for c in data["class_averages"]}
     assert classes["A"]["count"] == 2 and classes["A"]["average"] == 53.0  # mean of 72 and 34
     assert classes["B"]["average"] == 0  # nothing graded yet
+
+
+def test_attendance_gaps_lists_scheduled_days_without_attendance(client, db, scenario):
+    from datetime import date
+
+    from backend.services.analytics_overview_service import AnalyticsOverviewService
+
+    response = _post_with_csrf(
+        client,
+        "/api/v1/courses/",
+        {
+            "course_code": "SCHED",
+            "course_name": "Scheduled course",
+            "semester": "S1",
+            "credits": 3,
+            "teaching_schedule": [{"day": "Monday", "periods": 2}, {"day": "Wednesday", "periods": 1}],
+        },
+    )
+    assert response.status_code == 201, response.text
+    sched = response.json()
+    _enroll(client, sched["id"], scenario["s1"]["id"])
+    attended = _post_with_csrf(
+        client,
+        "/api/v1/attendance/",
+        {"student_id": scenario["s1"]["id"], "course_id": sched["id"], "date": "2026-10-05", "status": "Present"},
+    )
+    assert attended.status_code == 201, attended.text
+
+    # Thursday 2026-10-08: the window is Thu 1 .. Wed 7 October.
+    gaps = AnalyticsOverviewService(db).attendance_gaps(date(2026, 10, 8), days=7)
+    assert (gaps["from"], gaps["to"]) == ("2026-10-01", "2026-10-07")
+    missing = {c["course_code"]: c["missing_dates"] for c in gaps["missing"]}
+    assert missing == {"SCHED": ["2026-10-07"]}  # Monday 5 was recorded
+    unscheduled = {c["course_code"] for c in gaps["unscheduled"]}
+    assert unscheduled == {"MATH", "PHYS"}  # CHEM only has a dropped enrollment
+
+
+def test_scheduled_weekdays_reads_names_indexes_and_dicts():
+    from backend.services.analytics_overview_service import scheduled_weekdays
+
+    assert scheduled_weekdays([{"day": "Monday"}, {"day": "wed"}, {"day": "4"}, {"day": "Saturday"}]) == {0, 2, 4}
+    assert scheduled_weekdays({"Tuesday": {"periods": 2}, "friday": {"periods": 1}, "Monday": None}) == {1, 4}
+    assert scheduled_weekdays(None) == set()

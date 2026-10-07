@@ -10,7 +10,6 @@ export default {
   importGrades: 'Import Grades',
   importExportHistory: 'History',
   exportGradesLink: 'Export Grades',
-  exportStudentsLink: 'Export Students',
   exportCoursesLink: 'Export Courses',
   printCalendar: 'Print Calendar',
   printCalendarDesc: 'Print a calendar-friendly view of all scheduled courses',

@@ -18,6 +18,7 @@ course with nothing graded yet is left out of a mean instead of counting as 0.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from statistics import mean
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
@@ -68,6 +69,33 @@ def _worst_status(statuses: Iterable[str]) -> Optional[str]:
     if not statuses:
         return None
     return max(statuses, key=lambda s: _STATUS_ORDER.get(s, 0))
+
+
+_DAY_NAMES = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+
+def _weekday_of(value: Any) -> Optional[int]:
+    """Monday-based weekday for a schedule day: 'Monday', 'mon' or '0' (as the Attendance page)."""
+    text = str(value if value is not None else "").strip().lower()
+    if text.isdigit():
+        index = int(text)
+        return index if 0 <= index <= 6 else None
+    for index, name in enumerate(_DAY_NAMES):
+        if text in (name, name[:3]):
+            return index
+    return None
+
+
+def scheduled_weekdays(schedule: Any) -> set[int]:
+    """School weekdays (Mon=0 .. Fri=4) a teaching_schedule names; weekends never count."""
+    if isinstance(schedule, dict):
+        days = [key for key, value in schedule.items() if value]
+    elif isinstance(schedule, list):
+        days = [entry.get("day") for entry in schedule if isinstance(entry, dict)]
+    else:
+        return set()
+    weekdays = {_weekday_of(day) for day in days}
+    return {d for d in weekdays if d is not None and d < 5}
 
 
 def _grade_date(grade: Any) -> Optional[str]:
@@ -348,6 +376,71 @@ class AnalyticsOverviewService:
             "distribution": self._distribution(facts),
             "courses": course_rows,
             "students": student_rows,
+        }
+
+    def attendance_gaps(self, today: date, days: int = 7) -> Dict[str, Any]:
+        """Scheduled teaching days in the last ``days`` days (today excluded) with no attendance.
+
+        A course counts when it has live enrollments of active students. Its teaching days come
+        from ``teaching_schedule`` (as the Attendance page reads it: English day names or a
+        Monday-based index); weekends never count. A course without a schedule cannot be
+        checked and is listed under ``unscheduled``. Holidays are not known to the app, so a
+        missing day may be a day off.
+        """
+        active_ids = [s.id for s in self._active_students()]
+        E = self.CourseEnrollment
+        course_ids = (
+            {
+                cid
+                for (cid,) in self.db.query(E.course_id).filter(
+                    E.deleted_at.is_(None), E.status != "dropped", E.student_id.in_(active_ids)
+                )
+            }
+            if active_ids
+            else set()
+        )
+        courses = (
+            self.db.query(self.Course)
+            .filter(self.Course.id.in_(course_ids), self.Course.deleted_at.is_(None))
+            .order_by(self.Course.course_name.asc())
+            .all()
+            if course_ids
+            else []
+        )
+        window = [today - timedelta(days=offset) for offset in range(days, 0, -1)]
+        recorded: Dict[int, set] = {}
+        if courses and window:
+            A = self.Attendance
+            for cid, day in self.db.query(A.course_id, A.date).filter(
+                A.course_id.in_([c.id for c in courses]),
+                A.deleted_at.is_(None),
+                A.date >= window[0],
+                A.date <= window[-1],
+            ):
+                recorded.setdefault(cid, set()).add(day)
+
+        missing, unscheduled = [], []
+        for course in courses:
+            weekdays = scheduled_weekdays(course.teaching_schedule)
+            if not weekdays:
+                unscheduled.append({"id": course.id, "course_code": course.course_code, "course_name": course.course_name})
+                continue
+            gaps = [d for d in window if d.weekday() in weekdays and d not in recorded.get(course.id, set())]
+            if gaps:
+                missing.append(
+                    {
+                        "id": course.id,
+                        "course_code": course.course_code,
+                        "course_name": course.course_name,
+                        "missing_dates": [d.isoformat() for d in gaps],
+                    }
+                )
+        return {
+            "from": window[0].isoformat() if window else None,
+            "to": window[-1].isoformat() if window else None,
+            "courses_checked": len(courses) - len(unscheduled),
+            "missing": missing,
+            "unscheduled": unscheduled,
         }
 
     def student_overview(self, student_id: int) -> Dict[str, Any]:

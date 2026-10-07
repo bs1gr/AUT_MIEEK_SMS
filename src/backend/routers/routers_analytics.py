@@ -280,6 +280,22 @@ def get_class_overview(
         raise internal_server_error("Analytics overview failed", request)
 
 
+@router.get("/attendance-gaps")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
+def get_attendance_gaps(request: Request, days: int = Query(7, ge=1, le=31), db: Session = Depends(get_db)):
+    """Scheduled teaching days in the last `days` days with no attendance recorded, per course."""
+    from datetime import date
+
+    try:
+        return AnalyticsOverviewService(db).attendance_gaps(date.today(), days)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Attendance gaps failed: %s", exc, exc_info=True)
+        raise internal_server_error("Attendance gaps failed", request)
+
+
 @router.get("/student/{student_id}/overview")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")

@@ -422,8 +422,6 @@ export default {
   creditsAbbr: 'μ.δ.',
   moreLabel: 'περισσότερα',
   exportCoursesLink: 'Εξαγωγή Μαθημάτων',
-  recentStudents: 'Πρόσφατοι Μαθητές',
-  exportStudentsLink: 'Εξαγωγή Μαθητών',
   yearAnalytics: 'Ανάλυση Έτους',
   unknownYear: 'Άγνωστο Έτος',
   systemInformation: 'Πληροφορίες Συστήματος',

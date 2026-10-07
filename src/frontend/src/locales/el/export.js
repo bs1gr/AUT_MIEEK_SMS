@@ -10,7 +10,6 @@ export default {
   importGrades: 'Εισαγωγή Βαθμών',
   importExportHistory: 'Ιστορικό',
   exportGradesLink: 'Εξαγωγή Βαθμών',
-  exportStudentsLink: 'Εξαγωγή Σπουδαστών',
   exportCoursesLink: 'Εξαγωγή Μαθημάτων',
   printCalendar: 'Εκτύπωση Ημερολογίου',
   printCalendarDesc: 'Εκτύπωση προβολής ημερολογίου με όλα τα προγραμματισμένα μαθήματα',

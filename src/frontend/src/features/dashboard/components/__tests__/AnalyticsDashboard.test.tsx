@@ -151,6 +151,8 @@ const optionLabels = (select: HTMLElement) => within(select).getAllByRole('optio
 
 describe('AnalyticsDashboard', () => {
   beforeEach(async () => {
+    // LanguageProvider takes the language from localStorage first.
+    localStorage.setItem('i18nextLng', 'en');
     await i18n.changeLanguage('en');
     get.mockReset();
     get.mockImplementation(async (url: string) => {
@@ -234,11 +236,13 @@ describe('AnalyticsDashboard', () => {
   });
 
   it.each(['en', 'el'])('has a translation for every visible text (%s)', async (lang) => {
+    localStorage.setItem('i18nextLng', lang);
     await i18n.changeLanguage(lang);
     const { container } = renderPage();
     await screen.findByTestId('analytics-student-courses');
     fireEvent.click(screen.getAllByRole('button', { pressed: false })[0]);
     await screen.findByTestId('analytics-at-risk');
     expect(container.textContent).not.toMatch(/analytics\.|dashboard\.(select|default|manage)/);
+    if (lang === 'el') expect(screen.getByText('Αναλυτικά Τάξης')).toBeInTheDocument();
   });
 });

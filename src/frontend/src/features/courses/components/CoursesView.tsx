@@ -23,6 +23,13 @@ import {
   type Rule,
   type TeachingScheduleItem,
 } from '@/features/courses/utils/courseSchedule';
+import {
+  CLASS_PARTICIPATION,
+  SPECIAL_PARTICIPATION_CATEGORIES,
+  SPECIAL_PARTICIPATION_LABEL_KEYS,
+  isSpecialParticipation,
+  type SpecialParticipationCategory,
+} from '@/utils/participation';
 
 // API_BASE_URL not required; API is accessed via centralized api client
 
@@ -31,7 +38,17 @@ type CourseUpdatePayload = {
   evaluation_rules: Rule[];
   teaching_schedule: TeachingScheduleItem[];
   hours_per_week: number;
+  absence_limit_percent: number;
+  participation_limit_percent: number;
 };
+// Sub-weights of the Class Participation share (see utils/participation).
+type SpecialWeights = Record<SpecialParticipationCategory, string | number>;
+const NO_SPECIAL_WEIGHTS: SpecialWeights = {
+  'No participation': 0,
+  'Minor participation': 0,
+  'Minor participation (mobile usage)': 0,
+};
+const toNumber = (value: unknown) => parseFloat(String(value).replace(',', '.')) || 0;
 type StudentLite = {
   id: number;
   first_name: string;
@@ -60,6 +77,11 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [evaluationRules, setEvaluationRules] = useState<Rule[]>([]);
+  // The Class Participation row holds its whole share; these split it (stored as their own rules).
+  const [specialWeights, setSpecialWeights] = useState<SpecialWeights>(NO_SPECIAL_WEIGHTS);
+  // ΜΙΕΕΚ absence rules (% of scheduled periods): fail limit and Class Participation limit.
+  const [absenceLimit, setAbsenceLimit] = useState<number>(30);
+  const [participationLimit, setParticipationLimit] = useState<number>(10);
   const [weeklySchedule, setWeeklySchedule] = useState<Record<string, DaySchedule>>({});
   const [, setHoursPerWeek] = useState<number>(0);
   const [toast, setToast] = useState<ToastType | null>(null);
@@ -157,15 +179,49 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const loadCourseData = useCallback(() => {
     const course = courses.find((c) => c.id === selectedCourse!);
     if (course) {
-      setEvaluationRules((course.evaluation_rules as Rule[]) || []);
+      const specials: SpecialWeights = { ...NO_SPECIAL_WEIGHTS };
+      const others: Rule[] = [];
+      ((course.evaluation_rules as Rule[]) || []).forEach((rule) => {
+        const canonical = getCanonicalCategory(String(rule.category || ''), t);
+        if (isSpecialParticipation(canonical)) specials[canonical] = toNumber(specials[canonical]) + toNumber(rule.weight);
+        else others.push({ ...rule });
+      });
+      const specialSum = SPECIAL_PARTICIPATION_CATEGORIES.reduce((sum, c) => sum + toNumber(specials[c]), 0);
+      const participation = others.find((r) => getCanonicalCategory(String(r.category || ''), t) === CLASS_PARTICIPATION);
+      if (participation) participation.weight = Number((toNumber(participation.weight) + specialSum).toFixed(2));
+      setEvaluationRules(others);
+      setSpecialWeights(specials);
+      setAbsenceLimit(typeof course.absence_limit_percent === 'number' ? course.absence_limit_percent : 30);
+      setParticipationLimit(typeof course.participation_limit_percent === 'number' ? course.participation_limit_percent : 10);
       setWeeklySchedule(normalizeTeachingSchedule(course.teaching_schedule));
       setHoursPerWeek(course.hours_per_week || 0);
     } else {
       setEvaluationRules([]);
+      setSpecialWeights(NO_SPECIAL_WEIGHTS);
+      setAbsenceLimit(30);
+      setParticipationLimit(10);
       setWeeklySchedule({});
       setHoursPerWeek(0);
     }
-  }, [courses, selectedCourse]);
+  }, [courses, selectedCourse, t]);
+
+  const isParticipationRule = (rule: Rule) => getCanonicalCategory(String(rule.category || ''), t) === CLASS_PARTICIPATION;
+  const participationRule = evaluationRules.find(isParticipationRule);
+  const specialTotal = SPECIAL_PARTICIPATION_CATEGORIES.reduce((sum, c) => sum + toNumber(specialWeights[c]), 0);
+  const ratingsWeight = participationRule ? toNumber(participationRule.weight) - specialTotal : 0;
+
+  // Stored layout (unchanged for grading): canonical names, Class Participation keeps what the
+  // special sub-weights leave, then the three special rules.
+  const rulesForSave = (): Rule[] => {
+    const rules = (evaluationRules || []).map((r) => {
+      const category = getCanonicalCategory(String(r.category || ''), t);
+      return category === CLASS_PARTICIPATION ? { ...r, category, weight: Number(ratingsWeight.toFixed(2)) } : { ...r, category };
+    });
+    const specials = participationRule
+      ? SPECIAL_PARTICIPATION_CATEGORIES.map((category) => ({ category, weight: toNumber(specialWeights[category]) }))
+      : [];
+    return [...rules, ...specials];
+  };
 
   // Evaluation Rules Functions
   const addRule = () => {
@@ -204,6 +260,11 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         showToast(t('allRulesRequired'), 'error');
         return false;
       }
+    }
+
+    if (participationRule && ratingsWeight < -0.01) {
+      showToast(t('specialWeightsTooHigh'), 'error');
+      return false;
     }
 
     return true;
@@ -357,17 +418,12 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         return;
       }
 
-      // Build payload with hours_per_week
-      // Normalize evaluation rule category names to canonical English before saving
-      const normalizedRules = (evaluationRules || []).map((r) => ({
-        ...r,
-        category: getCanonicalCategory(String(r.category || ''), t),
-      }));
-
       const payload: CourseUpdatePayload = {
-        evaluation_rules: normalizedRules,
+        evaluation_rules: rulesForSave(),
         teaching_schedule: scheduleList,
         hours_per_week: Number.isFinite(calculatedHours) ? calculatedHours : 0,
+        absence_limit_percent: absenceLimit,
+        participation_limit_percent: participationLimit,
       };
 
       await apiClient.put(`/courses/${selectedCourse}`, payload);
@@ -581,6 +637,37 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                   </button>
                 </div>
 
+                <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4" data-testid="course-absence-limits">
+                  <p className="mb-2 text-xs font-semibold text-gray-800">{t('absenceLimitTitle')}</p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="block text-xs font-medium text-gray-700">
+                      {t('absenceLimitPercent')}
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={absenceLimit}
+                        onChange={(e) => setAbsenceLimit(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-amber-400"
+                      />
+                    </label>
+                    <label className="block text-xs font-medium text-gray-700">
+                      {t('absenceLimitParticipationPercent')}
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={participationLimit}
+                        onChange={(e) => setParticipationLimit(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                        className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-amber-400"
+                      />
+                    </label>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-700">{t('absenceLimitHelp')}</p>
+                </div>
+
                 {evaluationRules.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <Calculator size={48} className="mx-auto mb-4 opacity-30" />
@@ -650,6 +737,40 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                             </button>
                           </div>
                         </div>
+                        {isParticipationRule(rule) && (
+                          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4" data-testid="special-participation-weights">
+                            <h4 className="text-sm font-bold text-gray-800">{t('specialParticipationWeightsTitle')}</h4>
+                            <p className="mb-3 text-xs text-gray-700">{t('specialParticipationWeightsDescription')}</p>
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                              {SPECIAL_PARTICIPATION_CATEGORIES.map((category) => (
+                                <label key={category} className="block text-xs font-medium text-gray-700">
+                                  {t(SPECIAL_PARTICIPATION_LABEL_KEYS[category])}
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    value={specialWeights[category]}
+                                    onChange={(e) => setSpecialWeights((prev) => ({ ...prev, [category]: e.target.value }))}
+                                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-emerald-400"
+                                  />
+                                </label>
+                              ))}
+                              <div className="text-xs font-medium text-gray-700">
+                                {t('participationRatingsWeight')}
+                                <div
+                                  className={`mt-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                                    ratingsWeight < -0.01 ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-200 bg-white text-gray-900'
+                                  }`}
+                                  data-testid="participation-ratings-weight"
+                                >
+                                  {ratingsWeight.toFixed(1)}%
+                                </div>
+                              </div>
+                            </div>
+                            {ratingsWeight < -0.01 && <p className="mt-2 text-xs text-red-700">{t('specialWeightsTooHigh')}</p>}
+                          </div>
+                        )}
                       </div>
                     ))}
 
@@ -1010,6 +1131,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
               onClick={async () => {
                 if (activeTab === 'evaluation') {
                   setEvaluationRules([]);
+                  setSpecialWeights(NO_SPECIAL_WEIGHTS);
                 } else {
                   // Clear schedule and save immediately
                   setWeeklySchedule({});
@@ -1018,10 +1140,12 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                     setIsLoading(true);
                     try {
                       const payload: CourseUpdatePayload = {
-                        // When clearing schedule keep evaluation rules but normalize categories
-                        evaluation_rules: (evaluationRules || []).map((r) => ({ ...r, category: getCanonicalCategory(String(r.category || ''), t) })),
+                        // When clearing schedule keep evaluation rules (same stored layout)
+                        evaluation_rules: rulesForSave(),
                         teaching_schedule: [], // Empty schedule
                         hours_per_week: 0,
+                        absence_limit_percent: absenceLimit,
+                        participation_limit_percent: participationLimit,
                       };
 
                       await apiClient.put(`/courses/${selectedCourse}`, payload);
