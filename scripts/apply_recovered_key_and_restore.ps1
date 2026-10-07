@@ -47,7 +47,9 @@ $verifyPy = @'
 import os
 from sqlalchemy import create_engine, text
 
-db_url = os.getenv("DATABASE_URL", "postgresql+psycopg://sms_user:TestAdmin2026%21@172.16.0.2:55433/student_management?sslmode=disable")
+db_url = os.getenv("DATABASE_URL")
+if not db_url:
+    raise SystemExit("Set DATABASE_URL to the QNAP PostgreSQL URL first (see config/.env).")
 engine = create_engine(db_url)
 with engine.connect() as conn:
     s = conn.execute(text("SELECT COUNT(*) FROM students")).scalar_one()

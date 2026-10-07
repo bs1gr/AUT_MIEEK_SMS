@@ -17,7 +17,7 @@
   - Host: `77.83.249.220` (external) or `172.16.0.2` (local LAN)
   - Port: `55433`
   - User: `sms_user`
-  - Password: `TestAdmin2026!`
+  - Password: `<QNAP_DB_PASSWORD>`
   - Database: `student_management`
 
 ---
@@ -77,7 +77,7 @@
    Host: 77.83.249.220
    Port: 55433
    User: sms_user
-   Password: TestAdmin2026!
+   Password: <QNAP_DB_PASSWORD>
    Database: student_management
    SSL Mode: prefer
    ```
@@ -255,7 +255,7 @@ Note: Uses SSL/TLS for secure connection
   "port": 55433,
   "dbname": "student_management",
   "user": "sms_user",
-  "password": "TestAdmin2026!",
+  "password": "<QNAP_DB_PASSWORD>",
   "sslmode": "prefer"
 }
 ```

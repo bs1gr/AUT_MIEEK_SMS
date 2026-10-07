@@ -56,7 +56,7 @@ If you're installing on a **different PC** (like bs1gr) that doesn't have the so
    - Host: `77.83.249.220` (public IP)
    - Port: `55433`
    - User: `sms_user`
-   - Password: `TestAdmin2026!`
+   - Password: `<QNAP_DB_PASSWORD>`
    - Database: `student_management`
    - SSL Mode: `prefer`
    
@@ -64,7 +64,7 @@ If you're installing on a **different PC** (like bs1gr) that doesn't have the so
    - Host: `172.16.0.2` (local IP)
    - Port: `55433`
    - User: `sms_user`
-   - Password: `TestAdmin2026!`
+   - Password: `<QNAP_DB_PASSWORD>`
    - Database: `student_management`
    - SSL Mode: `disable`
 
@@ -96,7 +96,7 @@ On your PC, create: `C:\Users\bs1gr\AppData\Local\SMS_Native_Lite_Simple\qnap-cr
   "port": 55433,
   "dbname": "student_management",
   "user": "sms_user",
-  "password": "TestAdmin2026!",
+  "password": "<QNAP_DB_PASSWORD>",
   "sslmode": "prefer"
 }
 ```
@@ -108,7 +108,7 @@ On your PC, create: `C:\Users\bs1gr\AppData\Local\SMS_Native_Lite_Simple\qnap-cr
   "port": 55433,
   "dbname": "student_management",
   "user": "sms_user",
-  "password": "TestAdmin2026!",
+  "password": "<QNAP_DB_PASSWORD>",
   "sslmode": "disable"
 }
 ```

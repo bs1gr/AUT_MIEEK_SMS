@@ -116,7 +116,7 @@ sys.path.insert(0, 'src/backend')
 from sqlalchemy import create_engine, text
 from security.password_hash import get_password_hash
 
-engine = create_engine('postgresql://sms_user:TestAdmin2026!@172.16.0.2:55433/student_management')
+engine = create_engine('postgresql://sms_user:<QNAP_DB_PASSWORD>@172.16.0.2:55433/student_management')
 hashed = get_password_hash('AdminPassword123!')
 
 with engine.connect() as conn:

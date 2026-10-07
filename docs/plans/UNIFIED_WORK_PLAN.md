@@ -591,8 +591,14 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         a PaaS (Render or Koyeb) against these.
       - *Exposure.* What becomes reachable, and by whom: Tailscale-only versus a public port,
         HTTPS (`tailscale serve`/Funnel or a reverse proxy), Oracle security lists, SSH
-        hardening, and secrets on a third-party host. The QNAP DB password is in the public repo
-        (see the 2026-09-29 notes) and must be rotated before any of this.
+        hardening, and secrets on a third-party host. ~~The QNAP DB password is in the public
+        repo and must be rotated~~ — **rotated by the owner on 2026-10-07** (`\password sms_user`
+        inside `sms-postgres-qnap`; SCRAM-SHA-256). The old password is rejected; the new one is
+        in REC's `config/.env` and `src/backend/.env` and the QNAP's `.env.qnap.postgres-only`, and
+        logs in (verified). The old one was removed from 6 docs and a script's built-in fallback
+        (`apply_recovered_key_and_restore.ps1` now requires `DATABASE_URL`); it stays in git
+        history, where it no longer opens anything. **Still to update: the laptop's installed
+        `config\.env` and every SMS Lite install** (re-run `SaveLiteEditionQnapCredentials.ps1`).
       - *Data protection.* Student personal data on a third-party provider means GDPR: an EU
         region, the provider's data-processing terms, and whether ΜΙΕΕΚ policy allows it.
       - *Latency and availability.* Per-request round trips from the VM to the QNAP over

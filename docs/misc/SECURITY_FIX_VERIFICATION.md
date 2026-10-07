@@ -108,7 +108,7 @@ except (ValueError, OSError):
 
 **Vulnerabilities Fixed:**
 1. ✅ Removed hardcoded DATABASE_URL credential at line 9
-   - Was: `os.environ['DATABASE_URL'] = 'postgresql+psycopg://sms_user:TestAdmin2026!@...'`
+   - Was: `os.environ['DATABASE_URL'] = 'postgresql+psycopg://sms_user:***@...'`
    - Now: Uses environment variable (must be set before running)
    - Added warning if DATABASE_URL not set
 
