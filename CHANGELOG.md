@@ -31,6 +31,24 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.54] - 2026-10-08
+
+### Features
+- **dashboard**: attention panels; active-only year counts; sub-weights in the real Courses tab
+- **attendance**: ΜΙΕΕΚ absences fail over 30%, Class Participation lost over 10%
+- **analytics**: rebuild the Analytics page on course final grades
+
+### Bug Fixes
+- **dashboard**: Top Performers from real final grades, not a browser-side re-grade
+- **ui**: visible Cancel button in dark modals; dark-theme contrast sweep; export tips
+
+### Documentation
+- **plan**: record the v1.18.53 release and its verification
+
+### Tests
+- **e2e**: real Analytics page checks; refetch the overview when a page opens
+
 ## [1.18.53] - 2026-10-07
 
 ### Bug Fixes
@@ -4599,6 +4617,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
