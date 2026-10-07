@@ -599,6 +599,7 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         (`apply_recovered_key_and_restore.ps1` now requires `DATABASE_URL`); it stays in git
         history, where it no longer opens anything. **Still to update: the laptop's installed
         `config\.env` and every SMS Lite install** (re-run `SaveLiteEditionQnapCredentials.ps1`).
+        Procedure, pitfalls and status: `docs/deployment/QNAP_DB_PASSWORD_ROTATION.md`.
       - *Data protection.* Student personal data on a third-party provider means GDPR: an EU
         region, the provider's data-processing terms, and whether ΜΙΕΕΚ policy allows it.
       - *Latency and availability.* Per-request round trips from the VM to the QNAP over

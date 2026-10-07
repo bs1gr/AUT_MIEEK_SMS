@@ -253,6 +253,7 @@ Configure reverse proxy (nginx/Caddy) for HTTPS:
 - Rotate JWT keys periodically
 - Use strong passwords for admin accounts
 - Enable CSRF protection in production
+- **[QNAP_DB_PASSWORD_ROTATION.md](QNAP_DB_PASSWORD_ROTATION.md)**: rotating the QNAP PostgreSQL `sms_user` password and updating every backend (Docker, Native, Lite) that uses it
 
 ### Firewall & Network
 
