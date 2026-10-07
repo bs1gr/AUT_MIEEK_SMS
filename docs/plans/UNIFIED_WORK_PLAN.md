@@ -684,6 +684,39 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+21. ~~**Analytics page: wrong numbers and a course list not tied to the student**~~ — **rebuilt
+    2026-10-07 (owner: "fix + redesign"; percent only; attendance as in the absence limit). Not
+    yet released.**
+    - **Reported by the owner:** picking a student showed every course; the average grade was
+      "totally wrong"; the Credits logo was broken.
+    - **Causes found:** the Course list held every course with any enrolment; the summary cards
+      averaged every raw grade entry of every student and course, ignored the selection, counted
+      inactive students and courses, and showed `0.00%` for "no data"; student charts only saw
+      grades from the last 90 days; the student view's distribution was the whole course's;
+      attendance had four definitions (Present only / Present + Excused / absence limit);
+      treemap, Sankey and heatmap drew invented data (minimum 5, per-entry pass/fail,
+      week-of-month).
+    - **Now:** `services/analytics_overview_service.py` with `GET /analytics/overview`
+      (academic year, division, course) and `GET /analytics/student/{id}/overview`. Every figure
+      starts from a live enrolment: final grade from the course's evaluation rules (plain mean
+      for a course without rules, `null` with no grades), attendance = (Present + Late) /
+      recorded, the absence-limit status. Student view: only their courses, final grade vs class
+      average and rank, grades over time, attendance by status, per-course grade list. Class view:
+      average final grade by course, distribution in 10-point bands, attendance vs grade per
+      student, "needs attention" (failing a course, or near/over the absence limit) with the
+      reasons. Cards follow the selection and show "—" for no data. The PDF/Excel export uses
+      the same figures (all active students). Saved custom dashboards' old chart ids are mapped.
+    - **Credits logo:** the service worker never precached `.jpg`, so a cached page showed it
+      broken when the server had no copy (the owner's screen was a 1.18.50 build cached for
+      `127.0.0.1:8000`, which in native dev serves only the API). `jpg` is now precached.
+    - **Tests:** `test_analytics_overview.py` (7, hand-checked numbers: rules 0.4×80+0.6×70 =
+      74, dropped and inactive left out, Late attends, Excused absent); `AnalyticsDashboard.test`
+      (7, real i18n in EN and EL: course list per student, "—" not 0, course drill-down, at-risk
+      list, year filter). Smoke-tested in the browser on a throwaway backend with seeded grades,
+      light and dark, desktop and 412 px; figures re-computed by hand; no console errors.
+    - **Removed as dead:** the old charts, `divisionUtils`, `chartAnimations`,
+      `dataOptimization`, and the unused analytics hooks. The old backend endpoints stay (other
+      screens use them).
 20. ~~**CI red on `main`: a flaky E2E test, and an Attendance bug hidden behind a vacuous one**~~
     — **fixed 2026-10-07.**
     - **Found by the pre-flight.** The CI/CD Pipeline's E2E job failed on `c1348c7ca` (docs only):

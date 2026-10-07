@@ -21,6 +21,7 @@ from backend.schemas.courses import CourseResponse
 from backend.schemas.students import StudentResponse
 from backend.services import AnalyticsService
 from backend.services.analytics_export_service import AnalyticsExportService
+from backend.services.analytics_overview_service import AnalyticsOverviewService
 
 logger = logging.getLogger(__name__)
 
@@ -259,117 +260,78 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
         raise internal_server_error("Analytics lookups failed", request)
 
 
+@router.get("/overview")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
+def get_class_overview(
+    request: Request,
+    academic_year: Optional[str] = Query(None, max_length=10),
+    class_division: Optional[str] = Query(None, max_length=50),
+    course_id: Optional[int] = Query(None, ge=1),
+    db: Session = Depends(get_db),
+):
+    """Final grades, attendance and absence-limit status for active students, by class."""
+    try:
+        return AnalyticsOverviewService(db).class_overview(academic_year or None, class_division or None, course_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Analytics overview failed: %s", exc, exc_info=True)
+        raise internal_server_error("Analytics overview failed", request)
+
+
+@router.get("/student/{student_id}/overview")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
+def get_student_overview(request: Request, student_id: int, db: Session = Depends(get_db)):
+    """One student's enrolled courses: final grade, class average, attendance, absence status."""
+    try:
+        return AnalyticsOverviewService(db).student_overview(student_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Student analytics overview failed: %s", exc, exc_info=True)
+        raise internal_server_error("Student analytics overview failed", request)
+
+
 def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
-    """Build dashboard export data from the current analytics schema."""
-    from sqlalchemy import func
+    """Export data for the Analytics page: the same figures as GET /analytics/overview.
 
-    service = AnalyticsService(db)
-    summary = service.get_dashboard_summary()
+    Averages are of final grades (course evaluation rules), attendance counts Present and Late
+    as attended, and only active students and their live enrollments are included. A class or
+    course with nothing graded yet exports 0, as the export format has no empty value.
+    """
+    overview = AnalyticsOverviewService(db).class_overview()
+    unknown = "Άγνωστη Τάξη" if language == "el" else "Unknown Class"
 
-    students_query = db.query(Student).order_by(Student.last_name.asc(), Student.first_name.asc())
-    if hasattr(Student, "deleted_at"):
-        students_query = students_query.filter(Student.deleted_at.is_(None))
-    students = students_query.all()
-
-    courses_query = db.query(Course).order_by(Course.course_name.asc())
-    if hasattr(Course, "deleted_at"):
-        courses_query = courses_query.filter(Course.deleted_at.is_(None))
-    courses = courses_query.all()
-
-    student_by_id = {student.id: student for student in students}
-
-    def class_label(student: Student) -> str:
-        if getattr(student, "academic_year", None):
-            return str(student.academic_year)
-        if student.study_year in (1, 2):
-            base = "A" if student.study_year == 1 else "B"
-            if language == "el":
-                return f"Τάξη {'Α' if student.study_year == 1 else 'Β'}"
-            return base
-        if student.study_year:
-            if language == "el":
-                return f"Έτος {student.study_year}"
-            return f"Year {student.study_year}"
-        return "Άγνωστη Τάξη" if language == "el" else "Unknown Class"
-
-    class_counts: dict[str, int] = {}
-    for student in students:
-        label = class_label(student)
-        class_counts[label] = class_counts.get(label, 0) + 1
-
-    grade_filter = Grade.deleted_at.is_(None) if hasattr(Grade, "deleted_at") else True
-    valid_grade_filter = (Grade.max_grade.isnot(None)) & (Grade.max_grade > 0)
-    grade_percentage = (Grade.grade / Grade.max_grade) * 100
-
-    class_grade_totals: dict[str, dict[str, float]] = {}
-    student_grade_query = (
-        db.query(Student.id, Grade.grade, Grade.max_grade)
-        .join(Grade, Student.id == Grade.student_id)
-        .filter(
-            (Student.deleted_at.is_(None) if hasattr(Student, "deleted_at") else True),
-            grade_filter,
-            valid_grade_filter,
-        )
-        .all()
-    )
-
-    for student_id, grade_value, max_grade in student_grade_query:
-        student = student_by_id.get(student_id)
-        if not student or not max_grade or max_grade <= 0:
-            continue
-        label = class_label(student)
-        stats = class_grade_totals.setdefault(label, {"count": 0.0, "total": 0.0})
-        stats["count"] += 1
-        stats["total"] += (grade_value / max_grade) * 100
-
+    by_class: dict[str, list] = {}
+    for row in overview["students"]:
+        by_class.setdefault(row["academic_year"] or unknown, []).append(row)
     class_averages = []
-    for label, count in class_counts.items():
-        stats = class_grade_totals.get(label, {"count": 0.0, "total": 0.0})
+    for label, rows in by_class.items():
+        finals = [r["average_final_grade"] for r in rows if r["average_final_grade"] is not None]
         class_averages.append(
-            {
-                "label": label,
-                "count": count,
-                "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
-            }
+            {"label": label, "count": len(rows), "average": round(sum(finals) / len(finals), 2) if finals else 0}
         )
-    class_averages.sort(key=lambda item: item["count"], reverse=True)  # type: ignore[arg-type,return-value]
+    class_averages.sort(key=lambda item: (-int(item["count"]), str(item["label"])))
 
-    enrollment_query = db.query(CourseEnrollment.course_id, func.count(CourseEnrollment.id).label("count"))
-    if hasattr(CourseEnrollment, "deleted_at"):
-        enrollment_query = enrollment_query.filter(CourseEnrollment.deleted_at.is_(None))
-    enrollment_counts = {
-        course_id: count for course_id, count in enrollment_query.group_by(CourseEnrollment.course_id).all()
-    }
+    course_averages = [
+        {
+            "label": row["course_name"],
+            "count": row["students"],
+            "average": row["average_final_grade"] if row["average_final_grade"] is not None else 0,
+        }
+        for row in overview["courses"]
+    ]
+    course_averages.sort(key=lambda item: (-int(item["count"]), str(item["label"])))
 
-    course_grade_query = (
-        db.query(Grade.course_id, func.count(Grade.id).label("count"), func.avg(grade_percentage).label("avg_pct"))
-        .filter(grade_filter, valid_grade_filter)
-        .group_by(Grade.course_id)
-        .all()
-    )
-    grade_stats_by_course = {
-        course_id: {"count": count or 0, "average": float(avg_pct or 0.0)}
-        for course_id, count, avg_pct in course_grade_query
-    }
-
-    course_averages = []
-    for course in courses:
-        stats = grade_stats_by_course.get(course.id, {"count": 0, "average": 0.0})
-        course_averages.append(
-            {
-                "label": course.course_name,
-                "count": enrollment_counts.get(course.id, 0),
-                "average": stats["average"],
-            }
-        )
-    course_averages.sort(key=lambda item: item["count"], reverse=True)
-
+    summary = overview["summary"]
     return {
         "summary": {
-            "total_students": summary.get("total_students", 0),
-            "total_courses": summary.get("total_courses", 0),
-            "average_grade": summary.get("average_grade", 0),
-            "average_attendance": summary.get("average_attendance", 0),
+            "total_students": summary["students"],
+            "total_courses": summary["courses"],
+            "average_grade": summary["average_final_grade"] or 0,
+            "average_attendance": summary["attendance_rate"] or 0,
         },
         "class_averages": class_averages,
         "course_averages": course_averages,

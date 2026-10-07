@@ -76,7 +76,9 @@ export default defineConfig(({ mode }) => {
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // jpg: the Credits logo (AUT_Logo_realistic_Credits.jpg) was never precached, so a page
+        // served from the cache showed it broken whenever the server had no copy to fall back on.
+        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff,woff2}'],
         globIgnores: ['**/node_modules/**/*', './**/*.map'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB max per file
         // IMPORTANT: Never cache API responses - always fetch fresh data

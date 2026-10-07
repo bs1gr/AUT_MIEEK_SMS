@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Dashboard } from '../hooks/useDashboards';
 import { X } from 'lucide-react';
+import { normalizeChartIds } from './analyticsUi';
 
 interface CreateEditDashboardDialogProps {
   dashboard?: Dashboard | null;
@@ -15,17 +16,13 @@ interface CreateEditDashboardDialogProps {
   externalError?: string;
 }
 
+// The Analytics page's charts (ids in analyticsUi.ANALYTICS_CHART_IDS).
 const AVAILABLE_CHARTS = [
-  { id: 'performance', labelKey: 'dashboard.chartPerformance' },
-  { id: 'gradeDistribution', labelKey: 'dashboard.chartGradeDistribution' },
+  { id: 'courseComparison', labelKey: 'dashboard.chartCourseComparison' },
+  { id: 'gradeTimeline', labelKey: 'dashboard.chartGradeTimeline' },
   { id: 'attendance', labelKey: 'dashboard.chartAttendance' },
-  { id: 'trend', labelKey: 'dashboard.chartTrend' },
-  { id: 'pieChart', labelKey: 'dashboard.chartStudentStatus' },
+  { id: 'gradeDistribution', labelKey: 'dashboard.chartGradeDistribution' },
   { id: 'scatter', labelKey: 'dashboard.chartScatterPlot' },
-  { id: 'heatmap', labelKey: 'dashboard.chartHeatmap' },
-  { id: 'sankey', labelKey: 'dashboard.chartSankey' },
-  { id: 'treemap', labelKey: 'dashboard.chartTreemap' },
-  { id: 'boxplot', labelKey: 'dashboard.chartBoxPlot' },
 ];
 
 /**
@@ -48,7 +45,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
     if (dashboard) {
       setName(dashboard.name);
       setDescription(dashboard.description || '');
-      setSelectedCharts(dashboard.configuration?.charts || []);
+      setSelectedCharts(normalizeChartIds(dashboard.configuration?.charts));
     }
   }, [dashboard]);
 

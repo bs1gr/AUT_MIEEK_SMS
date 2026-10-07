@@ -2,165 +2,138 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient, extractAPIResponseData } from '@/api/api';
 
 /**
- * Analytics API Response Types
+ * Analytics page overview (GET /analytics/overview and /analytics/student/{id}/overview).
+ * Grades are course final grades in percent (null = nothing graded yet); attendance counts
+ * Present and Late as attended, as the ΜΙΕΕΚ absence limit does.
  */
+export type AbsenceStatus = 'ok' | 'warning' | 'insufficient' | 'unknown';
 
-export interface StudentSummary {
-  student_id: number;
-  student_name: string;
-  email: string;
-  total_courses: number;
-  average_grade: number;
-  attendance_rate: number;
-  trend: 'improving' | 'declining' | 'stable';
-  courses_summary: {
-    course_id: number;
+export interface AttendanceCounts {
+  present: number;
+  late: number;
+  absent: number;
+  excused: number;
+  recorded: number;
+  rate: number | null;
+}
+
+export interface ClassOverview {
+  scope: { academic_year: string | null; class_division: string | null; course_id: number | null };
+  filters: { academic_years: string[]; class_divisions: string[] };
+  summary: {
+    students: number;
+    courses: number;
+    enrollments: number;
+    graded_enrollments: number;
+    average_final_grade: number | null;
+    pass_rate: number | null;
+    attendance_rate: number | null;
+    at_risk_students: number;
+  };
+  distribution: { band: string; count: number }[];
+  courses: {
+    id: number;
+    course_code: string;
     course_name: string;
-    grade: number;
-    letter_grade: string;
-    attendance_rate: number;
+    students: number;
+    graded: number;
+    average_final_grade: number | null;
+    passing: number;
+    failing: number;
+    attendance_rate: number | null;
+    attendance: AttendanceCounts;
+    absence_warning: number;
+    absence_insufficient: number;
+  }[];
+  students: {
+    id: number;
+    student_id: string;
+    name: string;
+    academic_year: string | null;
+    class_division: string | null;
+    courses: number;
+    average_final_grade: number | null;
+    failing_courses: string[];
+    attendance_rate: number | null;
+    absence_status: AbsenceStatus | null;
+    at_risk: boolean;
   }[];
 }
 
-export interface CourseStats {
-  course_id: number;
+export interface StudentOverviewCourse {
+  id: number;
+  course_code: string;
   course_name: string;
-  total_students: number;
-  average_grade: number;
-  grade_distribution: {
-    A: number;
-    B: number;
-    C: number;
-    D: number;
-    F: number;
+  final_grade: number | null;
+  grade_basis: 'rules' | 'average' | null;
+  grade_count: number;
+  passing: boolean | null;
+  class_average: number | null;
+  rank: number | null;
+  ranked_of: number;
+  attendance: AttendanceCounts;
+  absence: {
+    status: AbsenceStatus | null;
+    absences: number | null;
+    allowed_absences: number | null;
+    remaining_absences: number | null;
+    absence_percent: number | null;
+    limit_percent: number | null;
   };
-  attendance_rate: number;
+  grades: { date: string | null; category: string | null; assignment: string | null; percentage: number }[];
 }
 
-export interface DashboardSummary {
-  total_students: number;
-  total_courses: number;
-  total_grades: number;
-  total_attendance_records: number;
-  average_grade: number;
-  average_attendance: number;
-  timestamp: string;
-}
-
-export interface StudentPerformance {
-  student_id: number;
-  course_id: number;
-  final_grade: number;
-  letter_grade: string;
-  percentage: number;
-  components: {
-    grade_weight: number;
-    daily_performance_weight: number;
-    attendance_weight: number;
+export interface StudentOverview {
+  student: {
+    id: number;
+    student_id: string;
+    name: string;
+    academic_year: string | null;
+    class_division: string | null;
+    is_active: boolean;
   };
+  summary: {
+    courses: number;
+    graded_courses: number;
+    average_final_grade: number | null;
+    passing: number;
+    failing: number;
+    attendance: AttendanceCounts;
+    absence_status: AbsenceStatus | null;
+    at_risk: boolean;
+  };
+  courses: StudentOverviewCourse[];
 }
 
-/**
- * React Query Hooks for Analytics API
- */
+export interface ClassOverviewParams {
+  academicYear?: string;
+  classDivision?: string;
+  courseId?: number | null;
+}
 
-/**
- * Fetch dashboard summary (system-wide metrics)
- */
-export function useDashboardSummary() {
+export function useClassOverview({ academicYear, classDivision, courseId }: ClassOverviewParams) {
   return useQuery({
-    queryKey: ['analytics', 'dashboard'],
+    queryKey: ['analytics', 'overview', academicYear ?? '', classDivision ?? '', courseId ?? null],
     queryFn: async () => {
-      const response = await apiClient.get<DashboardSummary>('/analytics/dashboard');
-      return extractAPIResponseData<DashboardSummary>(response.data ?? response);
+      const params: Record<string, string | number> = {};
+      if (academicYear) params.academic_year = academicYear;
+      if (classDivision) params.class_division = classDivision;
+      if (courseId) params.course_id = courseId;
+      const response = await apiClient.get('/analytics/overview', { params });
+      return extractAPIResponseData<ClassOverview>(response.data ?? response);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
+    staleTime: 60 * 1000,
   });
 }
 
-/**
- * Fetch student summary with all courses
- */
-export function useStudentSummary(studentId: number | null) {
+export function useStudentOverview(studentId: number | null) {
   return useQuery({
-    queryKey: ['analytics', 'student', studentId, 'summary'],
+    queryKey: ['analytics', 'student-overview', studentId],
     queryFn: async () => {
-      if (!studentId) throw new Error('Student ID is required');
-      const response = await apiClient.get<StudentSummary>(`/analytics/student/${studentId}/summary`);
-      return response;
+      const response = await apiClient.get(`/analytics/student/${studentId}/overview`);
+      return extractAPIResponseData<StudentOverview>(response.data ?? response);
     },
     enabled: !!studentId,
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    retry: 2,
+    staleTime: 60 * 1000,
   });
-}
-
-/**
- * Fetch all courses summary for a student
- */
-export function useStudentAllCoursesSummary(studentId: number | null) {
-  return useQuery({
-    queryKey: ['analytics', 'student', studentId, 'all-courses'],
-    queryFn: async () => {
-      if (!studentId) throw new Error('Student ID is required');
-      const response = await apiClient.get<StudentSummary>(`/analytics/student/${studentId}/all-courses-summary`);
-      return response;
-    },
-    enabled: !!studentId,
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    retry: 2,
-  });
-}
-
-/**
- * Calculate final grade for a student in a course
- */
-export function useCalculateFinalGrade(studentId: number | null, courseId: number | null) {
-  return useQuery({
-    queryKey: ['analytics', 'final-grade', studentId, courseId],
-    queryFn: async () => {
-      if (!studentId || !courseId) throw new Error('Student ID and Course ID are required');
-      const response = await apiClient.get<StudentPerformance>(
-        `/analytics/student/${studentId}/course/${courseId}/final-grade`
-      );
-      return response;
-    },
-    enabled: !!studentId && !!courseId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: 2,
-  });
-}
-
-/**
- * Combined hook for dashboard initialization - fetches all dashboard data at once
- */
-export function useDashboardData() {
-  const dashboardQuery = useDashboardSummary();
-
-  return {
-    dashboard: dashboardQuery.data,
-    isLoading: dashboardQuery.isLoading,
-    error: dashboardQuery.error,
-    refetch: dashboardQuery.refetch,
-  };
-}
-
-/**
- * Combined hook for student analytics - fetches all student-related data
- */
-export function useStudentAnalytics(studentId: number | null) {
-  const summaryQuery = useStudentSummary(studentId);
-  const allCoursesQuery = useStudentAllCoursesSummary(studentId);
-
-  return {
-    summary: summaryQuery.data,
-    allCourses: allCoursesQuery.data,
-    isLoading: summaryQuery.isLoading || allCoursesQuery.isLoading,
-    error: summaryQuery.error || allCoursesQuery.error,
-    refetch: async () => {
-      await summaryQuery.refetch();
-      await allCoursesQuery.refetch();
-    },
-  };
 }
