@@ -80,6 +80,34 @@
   /* rounded-lg / -md / -sm are var(--radius), -2px, -4px: 8, 6 and 4 px. Until 2026-10-06 it
      was never defined, so those classes rendered square corners. */
   --radius: 0.5rem;
+
+  /* shadcn/ui colour tokens (H S% L%, read as hsl(var(--x)) by @theme above). They were never
+     defined, so bg-primary, border-input, text-muted-foreground and the rest resolved to
+     nothing. Values are the app's own palette: indigo-600 primary, slate neutrals, red-600. */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 243 75% 59%;
+  --chart-1: 243 75% 59%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 38 92% 50%;
+  --chart-4: 0 72% 51%;
+  --chart-5: 199 89% 48%;
 }
 
 body {
@@ -134,6 +162,50 @@ html {
   --appearance-shadow: rgba(15, 23, 42, 0.6);
   background-color: #1a202c;
   color: #e2e8f0;
+
+  --background: 221 39% 11%;
+  --foreground: 210 40% 98%;
+  --card: 217 33% 17%;
+  --card-foreground: 210 40% 98%;
+  --popover: 217 33% 17%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 239 84% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 25% 27%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 215 25% 27%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 215 25% 27%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 215 25% 27%;
+  --input: 215 25% 27%;
+  --ring: 239 84% 67%;
+}
+
+/* mieek-dark is a separate appearance (no .dark class): black surfaces, so the shadcn tokens
+   need their own dark set or cards and popovers render white. */
+[data-appearance="mieek-dark"] {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 4%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 239 84% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 65%;
+  --accent: 0 0% 14%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 239 84% 67%;
 }
 
 .dark body {

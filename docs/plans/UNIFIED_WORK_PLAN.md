@@ -238,7 +238,19 @@ real.
 1. ~~**`--radius` was not defined anywhere**~~, so `rounded-lg`, `rounded-md` and `rounded-sm`
    (the shadcn/ui tokens in the old config) always rendered square corners. **Now `0.5rem`**:
    8, 6 and 4 px, Tailwind's own values for lg and md. The colour variables behind
-   `bg-background`, `border-border`, `text-foreground` and the rest are still undefined.
+   `bg-background`, `border-border`, `text-foreground` and the rest were still undefined.
+   - **Defined 2026-10-07 (owner: option 2, full set; not yet released).** `:root`, `.dark` and
+     `[data-appearance="mieek-dark"]` in `index.css` now set the shadcn tokens from the app's own
+     palette (indigo-600 primary, slate neutrals, red-600 destructive). This is a visible change,
+     on purpose: the login "Σύνδεση" button was invisible (no background), the login and Add
+     Student fields had no border, and shadcn placeholders matched typed text.
+   - Checked with 78 full-page screenshots (6 themes × login, 11 routes, Add Student modal)
+     before and after, against a baseline captured twice (70 of 78 identical; the noise is the
+     admin permissions / semester archive / dashboard pages, which load asynchronously). After
+     the change every logged-in route differs only by the logout button's border (~110 px);
+     the login screen and the Add Student modal differ as described. The first run made the
+     mieek-dark login card white (it has no `.dark` class and took the light tokens); it now has its
+     own token set. Not covered: pages behind data this seed lacks, and 412 px phone layouts.
 2. ~~**The `body` rule in index.css never applied.**~~ Six declarations left at the end of
    `@layer utilities` swallowed it, so the browser dropped it. **Restored:** `letter-spacing:
    0.3px`, `font-weight: 500`, the font stack and background. A stray line also disabled one
