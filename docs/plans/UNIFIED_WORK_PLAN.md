@@ -1,8 +1,22 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.51
-**Last Updated**: October 6, 2026
-**Status**: ✅ **v1.18.51 released 2026-10-06** (tag on `5a1427229`). It ships everything from 2026-10-01 to 2026-10-06: the Capacitor 7.6.9 security fix (install the new APK on every phone), the Docker SQLite→QNAP merge fix, Lite fail-closed for QNAP, the browser queue during QNAP outages, the i18n sweep, Students filters, the Outlook panel, and the Tailwind 4 migration with its follow-ups.
+**Current Version**: 1.18.52
+**Last Updated**: October 7, 2026
+**Status**: ✅ **v1.18.52 released 2026-10-07** (tag on `74a4000b9`). A bug-fix release: in v1.18.51
+a teacher's first pick of each course in Attendance reset to "Select course" (todo 20); the dark
+theme's white panels and fields are readable (migration item 5); E2E checks that could not fail
+now can. Verified on the published assets:
+- The installer's Authenticode signature is Valid (AUT MIEEK, DigiCert-timestamped, `v1.18.52`),
+  and both SHA-256 hashes match GitHub's digests.
+- The APK reports `1.18.52` (`versionCode 118052`) and bundles the new CSS.
+- All eight workflows on the release commit passed, including `main`'s CI/CD and E2E. The
+  release commit changed only the lockfile's two root `version` fields. The release notes carry
+  a hand-written Highlights section.
+- Smoke test, sized to the change (frontend only; no backend or packaging changes since
+  v1.18.51): CI's E2E ran the stricter attendance test against a production build, and the dark-
+  theme rules were confirmed in a production CSS build and in the APK.
+
+v1.18.51 (2026-10-06), tag on `5a1427229`. It ships everything from 2026-10-01 to 2026-10-06: the Capacitor 7.6.9 security fix (install the new APK on every phone), the Docker SQLite→QNAP merge fix, Lite fail-closed for QNAP, the browser queue during QNAP outages, the i18n sweep, Students filters, the Outlook panel, and the Tailwind 4 migration with its follow-ups.
 
 Verified on the published v1.18.51 assets:
 - The installer's Authenticode signature is Valid (AUT MIEEK, timestamped, `v1.18.51`), and both SHA-256 hashes match GitHub's digests.
