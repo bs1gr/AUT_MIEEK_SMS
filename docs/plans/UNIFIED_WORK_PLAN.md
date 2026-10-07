@@ -243,10 +243,24 @@ real.
    `mobile.css`. The manifest test can only pass on a production build (`devOptions.enabled:
    false`), and the service-worker test awaited `serviceWorker.ready`, which passes or hangs
    whatever the result.
-5. **New, not changed: the dark theme (`theme=dark`) leaves the Grades page's selects and inputs
-   white**, with the theme's light text inherited, so placeholders and typed text are nearly
-   invisible. Present in v1.18.50 too. The dark theme has only three `.dark` rules in index.css;
-   these controls have no `dark:` classes.
+5. ~~**The dark theme (`theme=dark`) leaves the Grades page's selects and inputs white**~~ —
+   **fixed 2026-10-07.** It was wider than Grades: the theme only sets light text on `#root`,
+   and every white panel and form control without its own text class inherited it (preflight
+   gives controls `color: inherit`). The Add Student modal was blank: title, labels and fields
+   all light-on-white. Two zero-specificity rules in `index.css` now give `.bg-white` panels and
+   controls dark text under `.dark`. Any `text-*` or `dark:*` class still wins. Elements with a
+   `dark:bg-*` class (some admin-panel fields) and transparent controls (the shadcn `Input`,
+   which takes its colour from the panel) are left alone.
+   - Verified by full-page screenshots in `theme=dark` (14 views, baseline captured twice with
+     0 px noise): login, dashboard, calendar and System unchanged; Grades, Attendance, Search,
+     Courses, reports and the Add Student modal now readable. `theme=dark` combined with
+     `mieek-dark`: 0 px changed. Light themes cannot match the rules.
+   - **Still open in the dark theme (unchanged, owner's call whether to design it properly):**
+     page titles with explicit dark text classes (Courses, Attendance) on the dark background;
+     the Quick Actions heading on its light gradient; the Students filter labels (`text-slate-600`).
+   - **Also found:** the shadcn `Input` uses `placeholder:text-muted-foreground`, one of the
+     undefined colour variables (item 1), so its placeholders are the same colour as typed text
+     in every theme.
 
 **Fixed, found by the screenshots:** the Add and Edit Student modals' Academic Year dropdown
 offered "Please select a student and course" (`pleaseSelect`, a grading message) as its empty

@@ -146,6 +146,19 @@ html {
   color: #e2e8f0;
 }
 
+/* The light text above is inherited by white panels and form controls that set no text colour
+   of their own (preflight gives controls `color: inherit`), so modals, cards and fields were
+   light-on-white. Zero specificity: any text-* or dark:* class still wins. Elements with a
+   dark:bg-* class keep the light text, and so do transparent controls (the shadcn Input), which
+   take their colour from the panel they sit on. */
+:where(.dark) :where(.bg-white, input, select, textarea):where(:not([class*='dark:bg-'], .bg-transparent)) {
+  color: #111827;
+}
+
+:where(.dark) :where(input, textarea):where(:not([class*='dark:bg-'], .bg-transparent))::placeholder {
+  color: #6b7280;
+}
+
 /* Relaxing mode styles - masculine calming colors (ocean & forest tones) */
 .relaxing {
   --appearance-bg: linear-gradient(135deg, #e0f2f1 0%, #e8f5e9 50%, #e1f5fe 100%);
