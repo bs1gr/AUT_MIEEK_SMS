@@ -29,6 +29,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.52] - 2026-10-07
+
+### Bug Fixes
+- **ui**: readable white panels and form fields in the dark theme
+- **attendance**: keep the selected course while enrolments are re-checked; make E2E checks real
+- **release**: bump only the lockfile's root version; restore the CI-proven lockfile
+
+### Documentation
+- **plan**: record cloud-backend hosting as a research-first todo
+
 ## [1.18.51] - 2026-10-06
 
 ### Features
@@ -4576,6 +4587,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
