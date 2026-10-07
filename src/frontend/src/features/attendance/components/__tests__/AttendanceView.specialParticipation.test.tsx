@@ -240,4 +240,24 @@ describe('AttendanceView - Special Participation Labels', () => {
     });
     expect(screen.queryByRole('option', { name: 'OLD101 - No Active Enrollments' })).not.toBeInTheDocument();
   });
+
+  it('keeps the selected course while enrollments are re-checked', async () => {
+    const get = vi.mocked(apiModule.default.get);
+    const enrollmentChecks = () =>
+      get.mock.calls.filter(([url]) => String(url).includes('/enrollments/course/2/students')).length;
+
+    render(<AttendanceView courses={mockCourses} students={mockStudents} />);
+    const select = await screen.findByTestId('attendance-course-select');
+    await screen.findByRole('option', { name: 'MATH101 - Math 101' });
+    expect(enrollmentChecks()).toBe(1);
+
+    // Selecting a course fetches its details, which replaces the course list and re-runs the
+    // enrollment check. The selection used to be cleared while that check ran.
+    fireEvent.change(select, { target: { value: '1' } });
+
+    await waitFor(() => expect(get).toHaveBeenCalledWith('/courses/1'));
+    await waitFor(() => expect(enrollmentChecks()).toBe(2));
+    await new Promise((resolve) => setTimeout(resolve, 200)); // let the re-check settle
+    expect(select).toHaveValue('1');
+  });
 });

@@ -547,59 +547,27 @@ test.describe('Attendance Tracking', () => {
     await page.reload();
     await page.waitForLoadState('networkidle').catch(() => {});
 
-    // Wait for course selector and try to select the course
-    const courseSelect = page.locator('[data-testid="attendance-course-select"]').first();
+    // The course has an active enrollment, so the selector must offer it. This test used to
+    // return early (a silent pass) whenever a step failed, used isVisible({ timeout }), which
+    // checks once and ignores the timeout, and clicked the "mark all Present" quick action
+    // instead of the student's own button: with no date selected, no student row ever rendered.
+    const courseSelect = page.getByTestId('attendance-course-select');
+    await expect(courseSelect).toBeVisible({ timeout: 15000 });
+    await expect(courseSelect.locator(`option[value="${createdCourse.id}"]`)).toHaveCount(1, { timeout: 15000 });
+    await courseSelect.selectOption(`${createdCourse.id}`);
 
-    // Wait for select to be visible
-    const selectVisible = await courseSelect.isVisible({ timeout: 5000 }).catch(() => false);
-    if (!selectVisible) {
-      console.warn('Course select not visible, skipping test');
-      return;
-    }
+    // No teaching schedule, so every weekday is selectable; pick the first enabled day.
+    await page.locator('div.grid-cols-7 > button:not([disabled])').first().click();
 
-    // Wait a bit for options to populate
-    await page.waitForTimeout(1000);
+    const presentButton = page.getByRole('button', {
+      name: `Present - ${student.firstName} ${student.lastName}`,
+      exact: true,
+    });
+    await expect(presentButton).toBeVisible({ timeout: 15000 });
+    await presentButton.click();
+    await expect(presentButton).toHaveClass(/bg-green-500/);
 
-    // Try to select the course by value
-    try {
-      await courseSelect.selectOption(`${createdCourse.id}`);
-    } catch (err) {
-      // If direct selection fails, try by text
-      try {
-        const options = await courseSelect.locator('option').allTextContents();
-        const matchingOption = options.find(opt => opt.includes(course.courseCode));
-        if (matchingOption) {
-          await courseSelect.selectOption(matchingOption);
-        } else {
-          console.warn('Could not find matching course option');
-          return;
-        }
-      } catch {
-        console.warn('Could not select course');
-        return;
-      }
-    }
-
-    // Wait for students to load in the selected course
-    await page.waitForTimeout(1000);
-
-    // Try to find and click a "Present" button for the student (simplified approach)
-    const presentButtons = await page.locator('button:has-text("Present")').all().catch(() => []);
-
-    if (presentButtons.length === 0) {
-      console.warn('No Present buttons found, skipping test');
-      return;
-    }
-
-    // Click first Present button
-    await presentButtons[0].click({ force: true }).catch(() => {});
-
-    // Wait a bit for the action to register
-    await page.waitForTimeout(500);
-
-    // Just verify page didn't error out - success is if we can click without crashing
-    const hasError = await page.locator('[role="alert"]').locator('text=/error/i').isVisible({ timeout: 2000 }).catch(() => false);
-    expect(!hasError).toBe(true);
+    await expect(page.locator('[role="alert"]').filter({ hasText: /error/i })).toHaveCount(0);
   });
 });
 

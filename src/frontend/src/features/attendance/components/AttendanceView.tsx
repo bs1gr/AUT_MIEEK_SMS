@@ -492,9 +492,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       activeRequestsRef.current.add(requestKey);
 
       try {
-        // Keep the selector closed until enrollment checks complete: showing all courses here
-        // exposes courses with no active enrolled students when a remote database is slow.
-        setCoursesWithEnrollment(new Set());
+        // The selector starts closed (an empty set) until the first check completes, so courses
+        // with no active enrolled students are never offered. A re-check keeps the last known
+        // set instead of emptying it: selecting a course fetches its details, which replaces
+        // localCourses and re-runs this effect, and an empty set made the effect below clear
+        // the course the teacher had just picked.
 
         // Process courses in smaller batches to avoid overwhelming the server.
         // Use shorter timeout (5 seconds) per batch to avoid long waits on slow enrollments API

@@ -44,12 +44,11 @@ test.describe('Advanced Search & Filtering - E2E (smoke)', () => {
   });
 
   test('renders students or shows empty state', async ({ page }) => {
+    // A retrying assertion: isVisible({ timeout }) checks once and ignores the timeout, so it
+    // failed whenever the list was still loading or animating open.
     const emptyState = page.getByText(/no students found/i);
-    const listItem = page.getByRole('listitem').first();
+    const listItem = page.getByRole('listitem');
 
-    const sawEmpty = await emptyState.isVisible({ timeout: 5000 }).catch(() => false);
-    const sawListItem = await listItem.isVisible({ timeout: 5000 }).catch(() => false);
-
-    expect(sawEmpty || sawListItem).toBeTruthy();
+    await expect(emptyState.or(listItem).first()).toBeVisible({ timeout: 15000 });
   });
 });

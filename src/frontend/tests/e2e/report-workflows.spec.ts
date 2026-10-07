@@ -205,7 +205,12 @@ test.describe('Custom Reports Workflows', () => {
       }
 
       await restoreButton.click();
-      const hasTemplateAfterRestore = await templateCards.first().isVisible({ timeout: 15000 }).catch(() => false);
+      // waitFor retries; isVisible({ timeout }) would check once and ignore the timeout.
+      const hasTemplateAfterRestore = await templateCards
+        .first()
+        .waitFor({ state: 'visible', timeout: 15000 })
+        .then(() => true)
+        .catch(() => false);
       if (!hasTemplateAfterRestore) {
         test.skip(true, 'No templates available for this user after restore');
       }

@@ -147,9 +147,7 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
 
 **2026-10-06, later: four Dependabot alerts on development dependencies.**
 - **#281 `source-map-js` 1.2.1 (high, root lockfile, via `css-tree`).** Dependabot PR **#256**
-  bumps it to 1.2.2; its only failing check is auto-approve (todo 8). **Owner: approve and
-  merge #256.** Claude's attempt to approve and merge it was blocked by the permission
-  classifier, so the bump was deliberately not repeated locally.
+  bumps it to 1.2.2. **Merged by the owner** (`5269ce578`); the alert is closed.
 - **#283 `smol-toml` < 1.9.0 (medium) and #282 `katex` < 0.18.2 (low), root lockfile.** Both come
   in through `markdownlint-cli@0.49.1`, which is the latest release and still pins
   `smol-toml ~1.7.0` and (through `micromark-extension-math`) `katex ^0.16`. Root overrides now
@@ -162,8 +160,8 @@ Fixed in `963183010`. A manual CodeQL run on `main` marked both alerts **fixed**
   Dependabot's PR **#257** moves to Tailwind 4 and fails COMMIT_READY and Vitest. Instead, an
   override takes it to `^7.1.6`; 7.0.0's only breaking change is safe insertion during
   iteration. The built CSS is **byte-identical** to the 6.1.4 build (both files), with the
-  same four existing CSS warnings. #257 should close itself once the alert clears; the
-  Tailwind 4 migration stays an owner decision.
+  same four existing CSS warnings. #257 closed itself on 2026-10-06, and the Tailwind 4
+  migration was done by hand the same day (below).
 - **Fixed the same day (owner: "migrate to Tailwind 4 and replace that plugin"):** the full
   frontend audit used to list 9 high findings in build tooling (`braces`, `micromatch`,
   `fast-glob`, `chokidar` via `tailwindcss` 3; `@typescript-eslint` ≤ 8.2 via
@@ -240,8 +238,11 @@ real.
    `GradeDisplay.tsx` module (`GradeDisplay`, `GradeComparison`, `GradeProgressBar`) and its test.
    It had never been rendered since the initial commit; only the grading barrel's re-export kept
    it in the bundle (7 KB).
-4. `tests/e2e/pwa.spec.ts` is skipped as a whole; two of its tests check the install prompt and
-   `mobile.css`, both deleted.
+4. ~~`tests/e2e/pwa.spec.ts` is skipped as a whole~~ — **deleted 2026-10-07**, with its only
+   runner `run-pwa-audit.ps1`. Two of its tests checked the deleted install prompt and
+   `mobile.css`. The manifest test can only pass on a production build (`devOptions.enabled:
+   false`), and the service-worker test awaited `serviceWorker.ready`, which passes or hangs
+   whatever the result.
 5. **New, not changed: the dark theme (`theme=dark`) leaves the Grades page's selects and inputs
    white**, with the theme's light text inherited, so placeholders and typed text are nearly
    invisible. Present in v1.18.50 too. The dark theme has only three `.dark` rules in index.css;
@@ -587,6 +588,31 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+20. ~~**CI red on `main`: a flaky E2E test, and an Attendance bug hidden behind a vacuous one**~~
+    — **fixed 2026-10-07.**
+    - **Found by the pre-flight.** The CI/CD Pipeline's E2E job failed on `c1348c7ca` (docs only):
+      `advanced_search.spec.ts` "renders students or shows empty state", 3/3 attempts. The same
+      code had passed on `7a50b9b86`. The page snapshot at failure showed four students rendered.
+    - **Cause:** `locator.isVisible({ timeout })` ignores the timeout and checks once, so it lost
+      whenever the list was still loading or animating open. Now one retrying
+      `expect(empty.or(listItem)).toBeVisible()`. `report-workflows.spec.ts` had the same probe
+      before deciding to skip; it now waits with `waitFor`.
+    - **The attendance E2E test could not fail.** `student-management.spec.ts` "should mark
+      student attendance" returned early (a silent pass) at four points. It also clicked
+      `button:has-text("Present")`, which is the "mark all Present" quick action: with no date
+      selected, no student row ever rendered. It now selects the course, a day and the student's
+      own `Present - <name>` button, and checks that the button turns selected.
+    - **That stricter test found a real bug, released in v1.18.51.** Selecting a course in
+      Attendance fetches its details, which replaces `localCourses` and re-runs the enrolment
+      check. Since `0e80d0570` (todo 14) that check first emptied `coursesWithEnrollment`, and the
+      effect that keeps the selection valid then cleared the course. **A teacher's first pick of
+      each course bounced back to "Select course"** (picking it again worked: the details were
+      cached). A refetch of the student list did the same. Now a re-check keeps the last known
+      set; the set still starts empty, so a course is never offered before its enrolments are
+      known. Test: "keeps the selected course while enrollments are re-checked" in
+      `AttendanceView.specialParticipation.test.tsx` fails on the old code.
+    - Verified: the three changed specs pass in full against a disposable database (11 tests);
+      the attendance Vitest file passes (4 tests); ESLint 0 errors; `tsc` clean.
 
 ---
 
