@@ -450,8 +450,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
             <Settings className="text-white" size={22} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-xl md:text-3xl font-bold text-gray-800 leading-tight">{t('courseManagementTitle')}</h2>
-            <p className="text-sm text-gray-600">{t('configureCourseSettings')}</p>
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 leading-tight">{t('courseManagementTitle')}</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{t('configureCourseSettings')}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">

@@ -112,7 +112,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
         <div className="min-w-0">
           <strong className="block truncate">{student.first_name} {student.last_name}</strong>
           <div className="flex flex-wrap items-center gap-2 mt-1">
-            <span className="text-sm text-gray-600">{t('studentId')}: {student.student_id}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">{t('studentId')}: {student.student_id}</span>
             {classLabel && (
               <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
                 {classLabel}
@@ -167,8 +167,8 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
               </div>
               <div className="min-w-0">
                 <h3 className="text-base font-bold truncate">{student.first_name} {student.last_name}</h3>
-                <p className="text-xs text-slate-600">{t('studentID')}: {student.student_id}</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-slate-600">
+                <p className="text-xs text-slate-600 dark:text-slate-300">{t('studentID')}: {student.student_id}</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-slate-600 dark:text-slate-300">
                   {student.email && <span>📧 {student.email}</span>}
                   {classLabel && <span>🏫 {classLabel}</span>}
                   <span className={student.is_active ? 'text-emerald-600' : 'text-red-600'}>

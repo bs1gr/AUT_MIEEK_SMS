@@ -902,8 +902,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         <div className="flex items-center space-x-3">
           <div className="bg-linear-to-r/srgb from-indigo-600 to-purple-600 p-3 rounded-xl"><CalIcon className="text-white" size={24} /></div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{t('enhancedAttendanceTitle') || 'Attendance & Daily Performance'}</h2>
-            <p className="text-gray-600">{t('trackAttendanceDaily') || 'Track attendance and rate daily performance'}</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('enhancedAttendanceTitle') || 'Attendance & Daily Performance'}</h2>
+            <p className="text-gray-600 dark:text-gray-300">{t('trackAttendanceDaily') || 'Track attendance and rate daily performance'}</p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">

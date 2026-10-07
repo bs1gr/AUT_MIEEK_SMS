@@ -269,9 +269,14 @@ real.
      0 px noise): login, dashboard, calendar and System unchanged; Grades, Attendance, Search,
      Courses, reports and the Add Student modal now readable. `theme=dark` combined with
      `mieek-dark`: 0 px changed. Light themes cannot match the rules.
-   - **Still open in the dark theme (unchanged, owner's call whether to design it properly):**
-     page titles with explicit dark text classes (Courses, Attendance) on the dark background;
-     the Quick Actions heading on its light gradient; the Students filter labels (`text-slate-600`).
+   - **Fixed 2026-10-07 (not yet released; smoke-tested on a throwaway backend in `theme=dark` and light, contrast 11.9–16.1 measured):** the Courses and Attendance
+     titles (`dark:text-gray-100`), the Attendance Quick Actions heading on its light gradient
+     (`dark:text-gray-800`) and the three Students filter labels (`dark:text-slate-300`). Only
+     `dark:` classes, so light themes are unchanged. `tsc`, ESLint and 318 Vitest tests pass
+     (students, courses, attendance). The screenshots showed four more dim spots, fixed the
+     same way and re-measured (12.0 contrast): the Attendance and Courses subtitles
+     (`dark:text-gray-300`), the student-card ID line and the Students section arrow. Only
+     these three pages were checked; other pages may have the same pattern.
    - **Also found:** the shadcn `Input` uses `placeholder:text-muted-foreground`, one of the
      undefined colour variables (item 1), so its placeholders are the same colour as typed text
      in every theme.
@@ -316,7 +321,9 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    upgraded to v1.18.47.** The wiki's RBAC, Security and Deployment pages were updated.
 4. ~~**Confirm `SEMESTER_WEEKS` for ΜΙΕΕΚ**~~ — **confirmed by the owner on 2026-09-25: 14 weeks**,
    which matches the default. The absence limit's semester total is `periods_per_week × 14`.
-5. **`src/frontend/.env` has `VITE_API_URL=http://localhost:8000/api/v1`** (found 2026-09-25).
+5. ~~**`src/frontend/.env` has `VITE_API_URL=http://localhost:8000/api/v1`**~~ — **fixed 2026-10-07**:
+   the line is commented out in the local (git-ignored) `.env`, so the app uses the relative
+   `/api/v1` and the Vite proxy; a second stack needs no override. Original report (found 2026-09-25):
    Even when Vite proxies to a different backend (`VITE_DEV_PROXY_TARGET`), `/auth/refresh` goes to
    that absolute URL, so a second dev stack talks to the main backend's refresh endpoint. It is harmless
    with a single stack. Override `VITE_API_URL` whenever you run a second stack.

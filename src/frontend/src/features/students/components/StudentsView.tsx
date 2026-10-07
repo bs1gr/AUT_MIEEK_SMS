@@ -305,7 +305,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           onClick={() => setCascadedSectionExpanded(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }))}
           className="w-full flex items-center gap-3 px-6 py-4 bg-gray-100 hover:bg-gray-200 transition-colors rounded-lg border-b-2 border-gray-300"
         >
-          <span>{isExpanded ? '▼' : '▶'}</span>
+          <span className="dark:text-gray-900">{isExpanded ? '▼' : '▶'}</span>
           <h2 className="text-lg font-semibold text-gray-900">
             {title} ({students.length})
           </h2>
@@ -368,7 +368,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       </div>
 
       <div className="flex flex-wrap items-end gap-3" data-testid="student-filters">
-        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 dark:text-slate-300 sm:flex-none">
           {t('academicYear')}
           <select
             value={yearFilter}
@@ -383,7 +383,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             {hasMissingYear && <option value={NOT_SET}>{t('filterNotSet')}</option>}
           </select>
         </label>
-        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 dark:text-slate-300 sm:flex-none">
           {t('classDivision')}
           <select
             value={divisionFilter}
@@ -398,7 +398,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             {hasMissingDivision && <option value={NOT_SET}>{t('filterNotSet')}</option>}
           </select>
         </label>
-        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 sm:flex-none">
+        <label className="flex min-w-36 flex-1 flex-col text-xs font-medium text-slate-600 dark:text-slate-300 sm:flex-none">
           {t('sortBy')}
           <select
             value={sortKey}

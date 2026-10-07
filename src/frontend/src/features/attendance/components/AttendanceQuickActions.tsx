@@ -11,7 +11,7 @@ const AttendanceQuickActions = ({ t, selectAllAttendance, clearAllAttendance }: 
     <div className="bg-linear-to-r/srgb from-indigo-50 to-purple-50 rounded-2xl shadow-sm p-6 border border-indigo-200">
       <div className="flex items-center gap-2 mb-3">
         <Users size={20} className="text-indigo-600" />
-        <h4 className="font-semibold">{t('quickActions') || 'Quick Actions'}</h4>
+        <h4 className="font-semibold dark:text-gray-800">{t('quickActions') || 'Quick Actions'}</h4>
       </div>
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
         <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-green-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><CheckCircle size={14} className="shrink-0" /> {t('present') || 'Present'}</button>
