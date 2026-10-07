@@ -30,6 +30,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.53] - 2026-10-07
+
+### Bug Fixes
+- **ui**: define the shadcn colour tokens that were never set
+- **ui**: readable titles, subtitles and student cards in the dark theme
+
+### Documentation
+- **deployment**: runbook for rotating the QNAP PostgreSQL password
+- **security**: remove the rotated QNAP database password from docs and a script
+- **plan**: record the v1.18.52 release and its verification
+
 ## [1.18.52] - 2026-10-07
 
 ### Bug Fixes
@@ -4587,6 +4599,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
