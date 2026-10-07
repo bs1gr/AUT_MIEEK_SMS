@@ -1,8 +1,23 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.53
-**Last Updated**: October 7, 2026
-**Status**: ✅ **v1.18.53 released 2026-10-07** (tag on `7cd812fb4`). A frontend-only visual fix
+**Current Version**: 1.18.54
+**Last Updated**: October 8, 2026
+**Status**: ✅ **v1.18.54 released 2026-10-08** (tag on `a60da1e28`). Analytics rebuilt on final
+grades, the new ΜΙΕΕΚ absence rules (fail over 30%, Class Participation lost over 10%, no
+extended limit; migration `d5e9f3a2b7c4`, additive), special participation as Class Participation
+sub-weights in the Courses tab, the Overview dashboard (Top Performers, needs-attention and
+attendance-gap panels), and the fixes since v1.18.53 (invisible dark-modal Cancel button,
+dark-theme text, export tips, Credits logo). Verified on the published assets:
+- The installer's Authenticode signature is Valid (AUT MIEEK, DigiCert-timestamped, `v1.18.54`),
+  and both SHA-256 hashes match GitHub's digests.
+- The APK reports `1.18.54` (`versionCode 118054`) and bundles the new dashboard code.
+- All workflows on the release commit passed, including `main`'s CI/CD and E2E; the lockfile
+  change is only its two root `version` fields. The release notes carry a Highlights section.
+- The QNAP database already had the migration (applied by the owner's dev server on restart).
+  **Every install (laptop Docker, Lite installs, phones) should be updated**, so all of them
+  apply the same absence rules; the old extended-limit columns can be dropped after that.
+
+v1.18.53 released 2026-10-07 (tag on `7cd812fb4`). A frontend-only visual fix
 release: the shadcn colour tokens are defined (`404e2cf63`; login button, field borders,
 placeholders) and the remaining dark-theme text is readable (`1159386af`). Verified on the
 published assets:
