@@ -101,7 +101,7 @@ function Test-FileLocations {
             if ($file.Name -notmatch "SCRIPTS_CONSOLIDATION_GUIDE") {
                 Add-Issue -Type "Location" -File $file.Name `
                     -Message "Session/temporal document in root" `
-                    -Suggestion "Move to archive/sessions_2025-11/"
+                    -Suggestion "Delete it - session/status documents are not kept (see CLAUDE.md, Documentation rules)"
                 Write-Warning2 "Found: $($file.Name) (should be archived)"
             }
         }

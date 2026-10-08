@@ -213,11 +213,6 @@ jobs:
           echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
           echo "results=load-testing/results" >> $GITHUB_OUTPUT
           echo "rootdir=load-testing" >> $GITHUB_OUTPUT
-        elif [ -f "archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" ] && [ -f "archive/cleanup-feb2026/legacy-load-testing/scripts/generate_report.py" ]; then
-          echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
-          echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
-          echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
-          echo "rootdir=archive/cleanup-feb2026/legacy-load-testing/root" >> $GITHUB_OUTPUT
         else
           echo "missing=true" >> $GITHUB_OUTPUT
         fi

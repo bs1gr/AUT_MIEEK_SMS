@@ -193,7 +193,7 @@ end;
 
 ### 3. Emergency Cleanup Script (Commit ad5dcae86)
 
-**What**: Created `EMERGENCY_FIX_400_ERROR.ps1` (now archived at `archive/deprecated-scripts/EMERGENCY_FIX_400_ERROR.ps1`)
+**What**: Created `EMERGENCY_FIX_400_ERROR.ps1` (since removed from the tree; recover via commit `ad5dcae86` in git history)
 **Why**: Provided a manual cleanup path during the `v1.17.7` incident window
 **Result**: Retained only as historical traceability; current recovery should use the supported uninstall/reinstall flow
 
@@ -311,7 +311,7 @@ Start-Process "C:\Program Files\SMS\unins1.17.7.exe" -Wait
 
 **Related Documentation:**
 - `installer/INSTALLER_LOCKED_FILES_FIX.md` - File locking documentation
-- `archive/deprecated-scripts/EMERGENCY_FIX_400_ERROR.ps1` - Archived emergency cleanup script (historical only)
+- `EMERGENCY_FIX_400_ERROR.ps1` - Emergency cleanup script, removed from the tree (historical only; see commit `ad5dcae86`)
 - `installer/INSTALLER_UPGRADE_FIX_ANALYSIS.md` - Original analysis
 
 ---

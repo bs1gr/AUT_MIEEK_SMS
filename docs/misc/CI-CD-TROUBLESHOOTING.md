@@ -579,9 +579,8 @@ git status  # Should be clean
    ```
 
 3. **Search documentation**
-   - CI-CD-AUDIT-FIXES.md
-   - CI-CD-QUICK-REFERENCE.md
    - This guide
+   - `docs/deployment/CI_CD_PIPELINE_GUIDE.md`
 
 4. **Ask for help**
    - #devops Slack channel

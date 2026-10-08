@@ -214,7 +214,6 @@ src/backend/dist/
 installer_diag_*.zip
 
 # Temporary CI/local artifact folders
-tmp_artifacts/
 tmp_*
 
 # Local CI artifact folders and run logs created by automation runs
@@ -301,13 +300,11 @@ templates/students/*.csv
 *personal*.csv
 
 # Import/Export generated files (temporary user uploads)
-backend/data/imports/*.csv
 backend/data/imports/*.xlsx
 backend/data/imports/*.xls
 backend/data/exports/*.csv
 backend/data/exports/*.xlsx
 backend/data/exports/*.pdf
-src/backend/data/imports/
 src/backend/data/exports/
 
 # SMTP settings saved from Control Panel > Email (holds the SMTP password; repo is public)
@@ -376,7 +373,6 @@ docs/archive/
 
 # Encryption keys (v1.15.0)
 .keys/
-commit_msg.txt
 detect-out.txt
 detect-output.txt
 pre-commit-output.txt

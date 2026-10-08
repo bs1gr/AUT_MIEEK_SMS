@@ -438,7 +438,7 @@ docker logs sms-prometheus
 
 **Current workflow (v1.18.3+):** Ensure `SERVE_FRONTEND=1` (or the reverse proxy serves the built SPA) so the React router can handle `/power`. Rebuild the frontend (`npm run build` inside `frontend/`) if assets are missing.
 
-**Legacy template (≤ v1.18.3):** The `templates/power.html` Jinja file was removed from active builds and archived at `archive/obsolete/templates/power.html` for historical reference. Docker images built from v1.18.3+ intentionally omit this template, so `docker exec sms-app ls /app/templates/power.html` will no longer succeed.
+**Legacy template (≤ v1.18.3):** The `templates/power.html` Jinja file was removed from active builds (recoverable from git history). Docker images built from v1.18.3+ intentionally omit this template, so `docker exec sms-app ls /app/templates/power.html` will no longer succeed.
 
 **Check Route Registration:**
 

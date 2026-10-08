@@ -1,7 +1,7 @@
 # RELEASE_PREPARATION.ps1 - DEPRECATION NOTICE
 
 **Status**: ⛔ **DEPRECATED** as of February 13, 2026
-**Archive Location**: `archive/cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`
+**Archive Location**: removed from the tree; recover from git history (`git log --all -- archive/cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`)
 **Replacement**: `RELEASE_READY.ps1`
 
 ---
@@ -105,7 +105,7 @@ If you find documentation still referencing `RELEASE_PREPARATION.ps1`:
 
 ## Questions?
 
-- **Where is the archived script?** → `archive/cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`
+- **Where is the archived script?** → Removed from the tree; recover it from git history (see the path above)
 - **Can I still use it?** → No, it's been removed from the root directory
 - **What if I have a custom fork?** → Merge the validation logic into your `RELEASE_READY.ps1`
 - **Where are the tests?** → All tests validated by `RELEASE_READY.ps1` or `RUN_TESTS_BATCH.ps1`

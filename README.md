@@ -153,8 +153,7 @@ student-management-system/
 │   ├── reference/               # Quick reference sheets
 │   └── DOCUMENTATION_INDEX.md  # Master navigation index
 │
-├── monitoring/                  # Grafana, Prometheus, Loki config
-└── archive/                     # Historical session documents
+└── monitoring/                  # Grafana, Prometheus, Loki config
 ```
 
 ---

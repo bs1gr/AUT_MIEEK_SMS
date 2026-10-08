@@ -14,8 +14,6 @@
 - ❌ CI/CD automation (ci/ folder)
 - ❌ Development utilities (dev/ folder)
 
-**See**: [SCRIPTS_DEPLOYMENT_ANALYSIS.md](../SCRIPTS_DEPLOYMENT_ANALYSIS.md) for detailed breakdown.
-
 ---
 
 This directory contains management scripts for the Student Management System.

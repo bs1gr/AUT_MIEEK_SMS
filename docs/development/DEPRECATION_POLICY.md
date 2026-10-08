@@ -322,7 +322,7 @@ Use `WORKSPACE_CLEANUP.ps1` to verify:
 - **Feb 4, 2026**: Deprecation notice added to script header
 - **Feb 13, 2026**: Sunset period complete (40 days), script archived
 - **Current workflow docs**: `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`, `docs/RELEASE_PROCEDURE_MANDATORY.md`
-- **Archive location**: `archive/cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`
+- **Archive location**: removed from the tree; recover from git history (`git log --all -- archive/cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`)
 
 **Results**:
 - 50+ references updated across documentation

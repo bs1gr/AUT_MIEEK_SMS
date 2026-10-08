@@ -23,8 +23,7 @@ docs/
 ├── development/             # Developer documentation
 │   ├── INDEX.md
 │   ├── DEVELOPER_GUIDE_COMPLETE.md
-│   ├── ARCHITECTURE.md
-│   └── phase-reports/
+│   └── ARCHITECTURE.md
 ├── deployment/              # Deployment runbooks & guides
 │   ├── INDEX.md
 │   ├── DOCKER_OPERATIONS.md
