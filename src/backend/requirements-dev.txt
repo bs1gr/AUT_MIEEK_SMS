@@ -19,8 +19,8 @@ types-requests>=2.33.0.20260906
 pypdf>=6.19.0
 
 # Security constraints for development transitive dependencies
-filelock>=3.20.3
-virtualenv>=21.14.3  # Fixes PYSEC-2026-4013 activation-script injection
+filelock>=3.32.7
+virtualenv>=21.14.6  # Fixes PYSEC-2026-4013 activation-script injection
 wheel>=0.48.0
 werkzeug>=3.1.9
 keras>=3.13.1
