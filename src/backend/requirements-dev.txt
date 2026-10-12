@@ -23,5 +23,5 @@ filelock>=3.32.7
 virtualenv>=21.14.6  # Fixes PYSEC-2026-4013 activation-script injection
 wheel>=0.48.0
 werkzeug>=3.1.9
-keras>=3.13.1
+keras>=3.15.1
 orjson>=3.11.4  # CVE-2025-67221: No fix version listed, using latest
