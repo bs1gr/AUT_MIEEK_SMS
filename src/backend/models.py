@@ -25,7 +25,6 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
-    false,
     text,
 )
 from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
@@ -136,9 +135,11 @@ class Course(SoftDeleteMixin, Base):
     # over participation_limit_percent the Class Participation share counts as 0.
     absence_limit_percent = Column(Float, default=30.0, server_default="30")
     participation_limit_percent = Column(Float, default=10.0, server_default="10")
-    # Unused since 2026-10-07 (the extended limit was removed). Kept until no installed app
-    # reads it from the shared database; drop it in a later migration.
-    absence_limit_extended_percent = Column(Float, default=15.0, server_default="15")
+    # courses.absence_limit_extended_percent (unused since 2026-10-07) is no longer mapped but
+    # still in the database: every SQLAlchemy query selects all mapped columns, so installs still
+    # mapping it break the moment it is dropped. Drop it in a migration only after every install
+    # runs a release without the mapping (removed after v1.18.55). It has a server default, so
+    # inserts that omit it still work.
 
     # Course status: derived from enrollments (active while it has students with an
     # active enrollment) -- see services.course_activation. New courses start inactive.
@@ -201,11 +202,10 @@ class CourseEnrollment(SoftDeleteMixin, Base):
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
     enrolled_at = Column(Date, default=date.today, index=True)
     status = Column(String(20), default="active", nullable=False, index=True)
-    # Unused since 2026-10-07 (the Directorate-approved extended absence limit was removed).
-    # Kept until no installed app reads them from the shared database; drop them later.
-    extended_absence_approved = Column(Boolean, default=False, server_default=false(), nullable=False)
-    extended_absence_approved_at = Column(Date, nullable=True)
-    extended_absence_note = Column(Text, nullable=True)
+    # extended_absence_approved / _approved_at / _note (unused since 2026-10-07, the
+    # Directorate-approved extended limit was removed) are no longer mapped but still in the
+    # database; same two-step removal as Course.absence_limit_extended_percent. The NOT NULL one
+    # has a server default (false), so inserts that omit it still work.
 
     # Relationships
     student = relationship("Student", back_populates="enrollments")  # type: ignore[var-annotated]

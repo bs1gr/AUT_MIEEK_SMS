@@ -481,7 +481,14 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    `DEPENDABOT_MERGE_APP_CLIENT_ID` and `DEPENDABOT_MERGE_APP_PRIVATE_KEY` as both Actions and
    Dependabot secrets. Until then, Dependabot patch PRs are approved but not auto-merged.
    Re-run their failed "Auto-approve Dependabot" job afterwards. See the 2026-09-29 section.
-9. **Change the dev database's `admin@example.com` password** (found 2026-09-29). The account still
+9. ~~**Change the dev database's `admin@example.com` password**~~ — **resolved 2026-10-12 by
+   deactivating it** (owner's choice; they have their own admin). Since v1.18.55, bootstrap no
+   longer reactivates it. The same check found `admin@sms-lite.app` **recreated** on the QNAP
+   database at 17:01 (DB time), after its deletion that day. It was never used (forced password
+   change still pending, no sessions or audit rows), so an older SMS Lite started against QNAP
+   before being updated. Deleting it again was left to the owner (User Management). If it comes
+   back, some PC still runs Lite older than v1.18.55. Original report (found 2026-09-29):
+   **Change the dev database's `admin@example.com` password**. The account still
    has `password_change_required=True` from when bootstrap created it. Since v1.18.48 the server
    enforces that flag, so Native and Docker (same database) return `403
    AUTH_PASSWORD_CHANGE_REQUIRED` for every data request until the password is changed. The UI
@@ -904,7 +911,16 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
       (10) and sets every course's `absence_limit_percent` to 30. The old
       `courses.absence_limit_extended_percent` and `course_enrollments.extended_absence_*`
       columns stay, unused, because older installed apps share the QNAP database and still read
-      them. **Follow-up:** drop them once every install runs this version. Importing an export
+      them. **Follow-up, corrected 2026-10-12:** "drop them once every install runs this
+      version" was wrong. v1.18.54 and v1.18.55 still *map* the columns, and SQLAlchemy selects
+      every mapped column, so dropping them would break every course and enrollment query on
+      those installs. Two steps:
+      1. **Done on `main` after v1.18.55 (owner: all installs updated):** the four columns are no
+         longer mapped in `models.py`. The database keeps them; they have server defaults, so
+         inserts still work. `test_unmapped_legacy_columns.py` runs the real migrations to head
+         and checks that.
+      2. **Open:** once every install runs the next release (the first one without the mapping),
+         add the Alembic migration that drops them. Importing an export
       from before this change ignores its old `absence_limit_percent`, so the 10% fail rule
       cannot come back from a backup.
     - **Special participation moved to the Courses tab** (owner: "sub-weights of CP"): the
