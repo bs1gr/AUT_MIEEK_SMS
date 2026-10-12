@@ -10,9 +10,9 @@
     - Use -RetestFailed flag to re-run only previously failed tests
     - Eliminates need to re-run entire test suite after failures
 
-    A batch that exits non-zero having printed nothing did not run tests - the process
-    died - and is retried once. Reported test failures always print output and are never
-    retried.
+    A batch whose process died is retried once: it exited non-zero having printed nothing,
+    or its exit code is not one pytest returns (0-5), such as -1 part-way through a run.
+    Reported test failures exit 1 and are never retried.
 
 .PARAMETER BatchSize
     Number of test files per batch (default: 5)
@@ -265,10 +265,15 @@ foreach ($batch in $batches) {
     # Run pytest from the backend directory
     $backendDir = "$projectRoot/src/backend"
 
-    # A batch that exits non-zero without printing anything never ran its tests - the
-    # process died. That happened once during a commit gate (2026-09-16) and was not
-    # reproducible, so it is retried once: a real test failure always prints something and
-    # is never retried, and a genuine crash fails twice and still fails the run.
+    # A batch whose process died is retried once. Two signs of a death:
+    #  - it exits non-zero having printed nothing (seen once, 2026-09-16);
+    #  - its exit code is not one pytest itself returns (0-5). Seen three times, e.g.
+    #    -1 / 0xFFFFFFFF part-way through a run (2026-10-07, 2026-10-08): the dots had
+    #    already printed, so the "printed nothing" test alone never retried them. -1 is
+    #    what TerminateProcess(-1) leaves, and no crash report or antivirus detection was
+    #    logged, so something outside the interpreter ended it.
+    # A reported test failure exits 1 and is never retried; a genuine crash fails twice
+    # and still fails the run.
     $attempt = 0
     $retryAttempted = $false
     while ($true) {
@@ -293,10 +298,15 @@ foreach ($batch in $batches) {
 
         $outputStr = $output -join "`n"
         $abortedSilently = ($exitCode -ne 0) -and [string]::IsNullOrWhiteSpace($outputStr)
-        if (-not ($abortedSilently -and $attempt -eq 1)) { break }
+        $interpreterDied = $exitCode -notin 0..5
+        if (-not (($abortedSilently -or $interpreterDied) -and $attempt -eq 1)) { break }
 
         $retryAttempted = $true
-        Write-Warning "Batch $batchCount aborted with no output (exit code $exitCode) - retrying once"
+        $diedHow = if ($abortedSilently) { "with no output" } else { "part-way through the run" }
+        Write-Warning "Batch $batchCount aborted $diedHow (exit code $exitCode / $('0x{0:X8}' -f $exitCode)) - retrying once"
+        # Keep the evidence: the last progress line shows how far the dead run got.
+        $lastLine = @($output | Where-Object { $_ -is [string] -and $_.Trim() }) | Select-Object -Last 1
+        if ($lastLine) { Write-Log "  Last output before the abort: $lastLine`n" DarkGray }
     }
 
     $batchDuration = (Get-Date) - $batchStart

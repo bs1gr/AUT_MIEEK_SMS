@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.54
-**Last Updated**: October 8, 2026
+**Last Updated**: October 12, 2026
 **Status**: ✅ **v1.18.54 released 2026-10-08** (tag on `a60da1e28`). Analytics rebuilt on final
 grades, the new ΜΙΕΕΚ absence rules (fail over 30%, Class Participation lost over 10%, no
 extended limit; migration `d5e9f3a2b7c4`, additive), special participation as Class Participation
@@ -378,6 +378,24 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    **Third sighting 2026-10-08:** batch 24 (`test_search_*`, `test_semester_archive_*`), exit -1
    after 5 s; `-RetestFailed` passed the same files (127 tests). Three different batches now:
    worth a real investigation (e.g. capture a crash dump / faulthandler output) when time allows.
+   **Investigated 2026-10-12 — cause not found, gate hardened.**
+   - *Not a Python crash:* the Windows Application log has no Application Error / WER entry for
+     python around either sighting, and Defender logged no detection. pytest's faulthandler is
+     on by default and printed nothing. `-1` (0xFFFFFFFF) is what `TerminateProcess(-1)` leaves
+     (.NET's `Process.Kill()` and `Stop-Process` use it), so something outside the interpreter
+     ended it. Nothing in `COMMIT_READY.ps1` or the runner kills processes, and the backend
+     calls `os._exit` only with 0.
+   - *Why the gate still failed:* the runner retried only a batch that printed nothing. Sightings
+     2 and 3 had already printed dots, so they failed with no retry (the first sighting printed
+     nothing, which is why the original retry covered it).
+   - *Fix:* a batch is now retried once when its exit code is not one pytest returns (outside
+     0–5), whatever it printed; the log keeps the last progress line before the abort. A reported
+     failure (exit 1) is still never retried, and a batch that dies twice still fails the run.
+     `test_run_tests_batch_retry.py` (4 tests; two fail on the old runner) plays the runner against
+     a stub `python`.
+   - *Still open:* what kills the process. If it recurs, the log now says "aborted part-way
+     through the run" with the last progress line; run Process Monitor or an ETW trace on the
+     gate to see the killer's process name.
 2. ~~**`SMS_ALLOW_DIRECT_PYTEST=1` in the Windows user environment**~~ — **done 2026-09-22**,
    cleared from the User scope (`[Environment]::SetEnvironmentVariable(...,"User")`); the
    `conftest.py` guard now applies to new shells. This session's own process still carries the
