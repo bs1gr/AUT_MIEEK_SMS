@@ -238,6 +238,20 @@ def _debug_log(msg: str) -> None:
             pass
 
 
+def _admin_account_exists(email: str) -> bool:
+    try:
+        from backend.db import SessionLocal
+        from backend.models import User
+
+        session = SessionLocal()
+        try:
+            return session.query(User).filter(User.email == email.lower()).first() is not None
+        finally:
+            session.close()
+    except Exception:
+        return False
+
+
 def _open_browser_async() -> None:
     """Open browser after server startup (runs in background thread)."""
     try:
@@ -326,6 +340,7 @@ def main() -> None:
     # Ensure default admin account exists (even if migrations were skipped)
     if migrations_ok:
         _debug_log('[lite_simple_entrypoint] Creating/ensuring default admin account...')
+        bootstrap_ok = False
         try:
             from backend.scripts.admin.bootstrap import ensure_default_admin_account
             from backend.config import settings
@@ -338,19 +353,24 @@ def main() -> None:
                 logger=bootstrap_logger,
                 close_session=False,
             )
+            bootstrap_ok = True
             _debug_log('[lite_simple_entrypoint] ✅ Admin account created/verified')
-            # The installer's admin file holds a plaintext password and is single-use: once
-            # bootstrap has run, the account exists (or the database already had accounts).
-            if _initial_admin_file.exists():
-                try:
-                    _initial_admin_file.unlink()
-                    _debug_log('[lite_simple_entrypoint] Removed the installer admin file')
-                except OSError as rm_err:
-                    _debug_log(f'[lite_simple_entrypoint] Could not remove the installer admin file: {rm_err}')
         except Exception as admin_err:
             import traceback as _tb
             _debug_log(f'[lite_simple_entrypoint] Admin bootstrap warning: {type(admin_err).__name__}: {str(admin_err)[:500]}')
             _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:500]}')
+        # The installer's admin file holds a plaintext password and is single-use. Remove it once
+        # bootstrap has run, once the account exists even if something else in bootstrap failed,
+        # or when it was ignored (QNAP install, invalid contents); keep it only while the account
+        # still has to be created.
+        if _initial_admin_file.exists() and (
+            _initial_admin is None or bootstrap_ok or _admin_account_exists(_initial_admin['email'])
+        ):
+            try:
+                _initial_admin_file.unlink()
+                _debug_log('[lite_simple_entrypoint] Removed the installer admin file')
+            except OSError as rm_err:
+                _debug_log(f'[lite_simple_entrypoint] Could not remove the installer admin file: {rm_err}')
 
     # Create FastAPI app
     _debug_log('[lite_simple_entrypoint] Creating FastAPI app...')

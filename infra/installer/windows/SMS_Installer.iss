@@ -1829,6 +1829,8 @@ begin
   begin
     LiteQnapFileEdit.Text := SelectedFile;
     LoadLiteQnapCredentialsFromFile(SelectedFile);
+    // Only here: the same loader prefills saved settings silently when the wizard starts
+    MsgBox('Credentials loaded from file.' + #13 + 'Please verify the values before continuing.', mbInformation, MB_OK);
   end;
 end;
 
@@ -1916,8 +1918,6 @@ begin
   finally
     Lines.Free;
   end;
-
-  MsgBox('Credentials loaded from file.' + #13 + 'Please verify the values before continuing.', mbInformation, MB_OK);
 end;
 
 procedure BrowseCredentialsFile(Sender: TObject);

@@ -12,6 +12,19 @@ from backend.security.password_hash import get_password_hash as _hash_password
 from backend.security.password_hash import verify_password as _verify_password
 
 
+def _echo(message: str) -> None:
+    """Console note that can never fail the bootstrap.
+
+    The frozen SMS Lite's stdout uses the Windows code page, which cannot encode the emoji:
+    the print raised UnicodeEncodeError after the account was created, so Lite treated the
+    bootstrap as failed and kept the installer's plaintext admin file (2026-10-12).
+    """
+    try:
+        print(message)
+    except (UnicodeError, OSError, ValueError):
+        pass
+
+
 def _parse_bool(value: Any) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "yes", "on"}
@@ -124,7 +137,7 @@ def ensure_default_admin_account(
                 email,
                 change_required,
             )
-            print(f"✅ Admin user created: {email}")
+            _echo(f"✅ Admin user created: {email}")
             return
 
         changed_fields: list[str] = []
@@ -161,7 +174,7 @@ def ensure_default_admin_account(
                 email,
                 ", ".join(changed_fields),
             )
-            print(f"✅ Admin user updated: {email} ({', '.join(changed_fields)})")
+            _echo(f"✅ Admin user updated: {email} ({', '.join(changed_fields)})")
         else:
             log.debug("✅ Bootstrap: default admin user %s already up to date", email)
     except Exception as exc:
@@ -173,7 +186,7 @@ def ensure_default_admin_account(
             exc,
             exc_info=True,
         )
-        print(f"❌ BOOTSTRAP ERROR: Failed to create admin user: {exc}")
+        _echo(f"❌ BOOTSTRAP ERROR: Failed to create admin user: {exc}")
         raise  # Re-raise to ensure the error is visible
     finally:
         if close_session and session is not None:

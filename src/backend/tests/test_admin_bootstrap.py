@@ -140,6 +140,18 @@ def test_bootstrap_force_reset_creates_the_account_even_when_others_exist(db: Se
     assert verify_password("Recover123!", user.hashed_password)
 
 
+def test_console_that_cannot_encode_emoji_does_not_fail_the_bootstrap(db: Session, monkeypatch):
+    # Frozen SMS Lite: stdout uses the Windows code page. The emoji print raised after the account
+    # was created, so Lite kept the installer's plaintext admin file (smoke test, 2026-10-12).
+    import io
+    import sys
+
+    monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(io.BytesIO(), encoding="cp1253"))
+    ensure_default_admin_account(settings=_make_settings(), session_factory=lambda: db, close_session=False)
+
+    assert db.query(User).filter(User.email == "admin@example.com").one().role == "admin"
+
+
 def test_new_default_admin_must_change_password_unless_configured_otherwise(db: Session):
     ensure_default_admin_account(settings=_make_settings(), session_factory=lambda: db, close_session=False)
     assert db.query(User).filter(User.email == "admin@example.com").one().password_change_required is True
