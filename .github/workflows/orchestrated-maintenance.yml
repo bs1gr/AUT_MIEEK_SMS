@@ -93,7 +93,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Delete workflow runs older than 30 days
         run: |
@@ -138,7 +138,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Delete artifacts older than 14 days
         run: |
@@ -193,7 +193,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Trigger production health check
         run: |
@@ -211,7 +211,7 @@ jobs:
     if: needs.determine-tasks.outputs.run_deps_check == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -245,7 +245,7 @@ jobs:
     if: needs.determine-tasks.outputs.run_docs_validate == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Check documentation completeness
         run: |
@@ -298,7 +298,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Generate summary report
         run: |
