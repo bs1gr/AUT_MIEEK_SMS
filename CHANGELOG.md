@@ -32,6 +32,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.55] - 2026-10-12
+
+### Features
+- **lite**: ask for the current QNAP password; installer reachability check; no registration on local SQLite
+
+### Bug Fixes
+- **lite,auth**: no public default admin on a shared database; SQLite choice removes old QNAP settings
+- **test-runner**: retry a batch whose interpreter died part-way through
+
+### Documentation
+- **plan**: record the on-screen checks of the Lite password window and login page
+- **plan**: record the v1.18.54 release and its verification
+
+### Chores
+- **cleanup**: remove obsolete archives, status reports and one-off scripts
+
 ## [1.18.54] - 2026-10-08
 
 ### Features
@@ -4617,6 +4634,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
