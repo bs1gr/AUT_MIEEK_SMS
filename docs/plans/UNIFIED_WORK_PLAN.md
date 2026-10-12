@@ -1,8 +1,43 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.54
+**Current Version**: 1.18.55
 **Last Updated**: October 12, 2026
-**Status**: ✅ **v1.18.54 released 2026-10-08** (tag on `a60da1e28`). Analytics rebuilt on final
+**Status**: ✅ **v1.18.55 released 2026-10-12** (tag on `6abf8909b`). Todo 24 and its follow-ups:
+- No public-password default admin on a shared database.
+- The SMS Lite installer asks for a local-SQLite administrator, prefills QNAP on upgrades and
+  removes old QNAP settings when SQLite is chosen.
+- SMS Lite asks for the current QNAP password when QNAP refuses the saved one.
+- No self-registration on local SQLite.
+- The batch-runner retry fix.
+
+Smoke-tested before tagging (todo 24, "Release smoke test"); two bugs found there were fixed in
+`a10283871`. Verified on the published assets:
+- The installer's Authenticode signature is Valid (AUT MIEEK, timestamped, `v1.18.55`), and both
+  SHA-256 hashes match GitHub's digests.
+- The APK reports `1.18.55` (`versionCode 118055`).
+- The release, installer and APK workflows passed. The release notes carry a Highlights section.
+- **Update every SMS Lite PC:** until then, each Lite start can recreate the public
+  `admin@sms-lite.app` on the QNAP database.
+
+The same evening, Dependabot: the OpenTelemetry family went in as one commit (`e4f01de70`,
+replacing #263/#265, which pip could not resolve alone). #258–#262 (Actions majors, checked:
+no self-hosted runner registered, no github-script v9 incompatibility, no removed build-push
+variables), #264, #266 and #268 were merged. #267, #269, #270 and #272 were merged after
+Dependabot rebased them, each with all checks green. #271 (`@types/node` 26) was closed and that
+major ignored (the runtime is Node 22). No Dependabot PR is open.
+
+**⚠️ QNAP PostgreSQL on the public IP (todo 6 finding):** the owner removed the router
+port-forward on 2026-10-12, but a check from REC right after still found PostgreSQL on
+`77.83.249.220:55433`: it answered PostgreSQL's SSL probe with `N`, the same as on
+`172.16.0.2`. REC's own public IP is that address, so the request was looped back through the
+router, which only reaches the QNAP while some rule still forwards the port. Next, check:
+- the router's UPnP mappings, and myQNAPcloud's "Auto Router Configuration" on the QNAP;
+- a DMZ host pointing at `172.16.0.2`;
+- whether the change was saved and applied.
+
+Confirm from outside with an open-port check over mobile data.
+
+v1.18.54 released 2026-10-08 (tag on `a60da1e28`). Analytics rebuilt on final
 grades, the new ΜΙΕΕΚ absence rules (fail over 30%, Class Participation lost over 10%, no
 extended limit; migration `d5e9f3a2b7c4`, additive), special participation as Class Participation
 sub-weights in the Courses tab, the Overview dashboard (Top Performers, needs-attention and
