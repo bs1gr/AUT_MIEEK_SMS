@@ -26,7 +26,12 @@ variables), #264, #266 and #268 were merged. #267, #269, #270 and #272 were merg
 Dependabot rebased them, each with all checks green. #271 (`@types/node` 26) was closed and that
 major ignored (the runtime is Node 22). No Dependabot PR is open.
 
-**⚠️ QNAP PostgreSQL on the public IP (todo 6 finding):** the owner removed the router
+**✅ Fixed the same evening (owner):** after a second router change, the probe from REC gets no
+connection on `77.83.249.220:55433`. `172.16.0.2:55433` still answers on the LAN.
+`docs/misc/LITE_QNAP_SETUP.md` now says the public address is closed and to use Tailscale.
+What happened before the fix:
+
+**QNAP PostgreSQL on the public IP (todo 6 finding):** the owner removed the router
 port-forward on 2026-10-12, but a check from REC right after still found PostgreSQL on
 `77.83.249.220:55433`: it answered PostgreSQL's SSL probe with `N`, the same as on
 `172.16.0.2`. REC's own public IP is that address, so the request was looped back through the
@@ -460,7 +465,8 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    the owner's instruction** (tokens removed, no audit rows). That showed every Lite start would
    recreate `admin@sms-lite.app` with its public password on the shared database, so whoever
    logged in first could claim an admin account; fixed the same day (todo 24).
-   **⚠️ New, owner action: the QNAP PostgreSQL is reachable on the public IP.** A Lite PC's
+   **✅ Fixed 2026-10-12 (owner closed the router forward; verified from REC, see the header).
+   Found here: the QNAP PostgreSQL was reachable on the public IP.** A Lite PC's
    stale credentials pointed at `77.83.249.220:55433` and got `password authentication failed`
    back, so the PostgreSQL server answered there: the router forwards that port. The student
    database is then one 8-character password away from the internet. Remove the port

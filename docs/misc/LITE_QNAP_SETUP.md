@@ -1,18 +1,26 @@
 # SMS Native Lite - QNAP PostgreSQL Setup Guide
 
+> **The public address `77.83.249.220:55433` is closed (2026-10-12).** The router forwarded the
+> PostgreSQL port to the internet, so the student database was reachable from anywhere. Use the
+> LAN address `172.16.0.2:55433`, and from outside the school, Tailscale (subnet route
+> `172.16.0.2/32`; see [ANDROID_TAILSCALE_GUIDE.md](../deployment/ANDROID_TAILSCALE_GUIDE.md)).
+> Ignore the "external/web" instructions below. Never forward the database port again. Current
+> setup: the installer's QNAP page and
+> [LITE_EDITION_GUIDE.md](../deployment/LITE_EDITION_GUIDE.md).
+
 ## Overview
 
 The SMS Native Lite edition can run in two modes:
 
 1. **SQLite Mode** (default) - Local database on each PC, no connection to QNAP
-2. **QNAP Mode** - Connects to your central QNAP PostgreSQL database (local LAN or public IP)
+2. **QNAP Mode** - Connects to your central QNAP PostgreSQL database (LAN, or Tailscale from outside)
 
 This guide shows how to configure **QNAP Mode** so the lite edition uses the same database as your main admin interface.
 
 ### Connection Options
 
-- **Local LAN:** `172.16.0.2:55433` (fast, on same network)
-- **External/Web:** `77.83.249.220:55433` (remote access, uses public IP)
+- **Local LAN or Tailscale:** `172.16.0.2:55433`
+- ~~External/Web: `77.83.249.220:55433`~~ — closed 2026-10-12; use Tailscale
 
 ---
 
@@ -52,8 +60,8 @@ If you're installing on a **different PC** (like bs1gr) that doesn't have the so
    ```
 3. Enter your QNAP credentials when prompted. Choose based on your network:
    
-   **For external/web access (recommended for remote PCs):**
-   - Host: `77.83.249.220` (public IP)
+   **For remote PCs:** connect Tailscale first, then use the LAN address:
+   - Host: `172.16.0.2` (the public IP no longer works)
    - Port: `55433`
    - User: `sms_user`
    - Password: `<QNAP_DB_PASSWORD>`
