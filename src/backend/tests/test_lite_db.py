@@ -73,6 +73,89 @@ def test_unusable_credentials_also_stop_lite(tmp_path, content, expected):
     assert expected in asked[0]
 
 
+def test_rejected_password_says_so_instead_of_blaming_the_network(monkeypatch):
+    # 2026-10-12: after the QNAP password rotation, Lite said "unreachable ... check the network or
+    # Tailscale" for a password the server had refused, so Retry could never help.
+    import psycopg
+
+    def refuse(**kwargs):
+        raise psycopg.OperationalError('connection failed: FATAL:  password authentication failed for user "sms_user"')
+
+    monkeypatch.setattr(psycopg, "connect", refuse)
+    with pytest.raises(lite_db.QnapCredentialsRejected) as exc_info:
+        lite_db.probe(dict(CREDS, user="sms_user"))
+
+    message = lite_db.unavailable_message(str(exc_info.value), credentials_rejected=True)
+    assert 'rejected the saved password for user "sms_user"' in message
+    assert "Run the SMS installer again" in message
+    assert "Tailscale" not in message
+    assert "απέρριψε" in message  # bilingual
+
+
+def _admin_file(tmp_path, data):
+    path = tmp_path / "initial-admin.json"
+    path.write_text(json.dumps(data) if isinstance(data, dict) else data, encoding="utf-8-sig")
+    return path
+
+
+def test_initial_admin_from_the_installer_is_read(tmp_path):
+    path = _admin_file(tmp_path, {"email": " Head@School.gr ", "password": "Teacher2026!", "full_name": "Head Teacher"})
+    assert lite_db.load_initial_admin(path) == {
+        "email": "Head@school.gr",
+        "password": "Teacher2026!",
+        "full_name": "Head Teacher",
+    }
+    no_name = _admin_file(tmp_path, {"email": "head@school.gr", "password": "Teacher2026!"})
+    assert lite_db.load_initial_admin(no_name)["full_name"] == "System Administrator"
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"email": "head@school.gr", "password": "short1!"},  # config requires 8+ characters
+        {"email": "head@school.gr", "password": " Teacher2026! "},  # config strips it
+        {"email": "not-an-email", "password": "Teacher2026!"},
+        {"email": "head@school.local", "password": "Teacher2026!"},  # EmailStr rejects .local
+        {"password": "Teacher2026!"},
+        "{not json",
+        "[]",
+    ],
+)
+def test_an_initial_admin_that_startup_would_reject_is_ignored(tmp_path, data):
+    assert lite_db.load_initial_admin(_admin_file(tmp_path, data)) is None
+
+
+def test_no_initial_admin_file(tmp_path):
+    assert lite_db.load_initial_admin(tmp_path / "initial-admin.json") is None
+
+
+def test_entrypoint_uses_the_installer_admin_without_forcing_a_password_change(monkeypatch):
+    from pathlib import Path
+
+    if (Path(lite_db.__file__).resolve().parent.parent / "local-secrets" / "qnap-credentials.json").exists():
+        pytest.skip("this checkout has QNAP credentials for Lite")
+    monkeypatch.setattr(lite_db, "select_database", lambda *args, **kwargs: ("sqlite:///./data/from-test.db", None))
+    monkeypatch.setattr(
+        lite_db,
+        "load_initial_admin",
+        lambda path: {"email": "head@school.gr", "password": "Teacher2026!", "full_name": "Head Teacher"},
+    )
+    saved = dict(os.environ)
+    try:
+        for key in ("DEFAULT_ADMIN_EMAIL", "DEFAULT_ADMIN_PASSWORD", "DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED"):
+            os.environ.pop(key, None)
+        sys.modules.pop("backend.lite_simple_entrypoint", None)
+        importlib.import_module("backend.lite_simple_entrypoint")
+        assert os.environ["DEFAULT_ADMIN_EMAIL"] == "head@school.gr"
+        assert os.environ["DEFAULT_ADMIN_PASSWORD"] == "Teacher2026!"
+        assert os.environ["DEFAULT_ADMIN_FULL_NAME"] == "Head Teacher"
+        assert os.environ["DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED"] == "false"
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
+        sys.modules.pop("backend.lite_simple_entrypoint", None)
+
+
 def test_entrypoint_selects_the_database_through_lite_db(monkeypatch):
     calls = []
 

@@ -68,11 +68,14 @@ SECRET_KEY_STRICT_ENFORCEMENT
 - Default: `0`
 - Purpose: When enabled, the backend refuses to start with placeholder or short `SECRET_KEY` values even if authentication is disabled. Operators should turn this on for hardened deployments; leave it off only when you intentionally accept the risk (e.g., local debugging). CI and pytest automatically receive a random ephemeral secret when placeholders are detected.
 
-DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD / DEFAULT_ADMIN_FULL_NAME / DEFAULT_ADMIN_FORCE_RESET
+DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD / DEFAULT_ADMIN_FULL_NAME / DEFAULT_ADMIN_FORCE_RESET / DEFAULT_ADMIN_AUTO_RESET / DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED
 
-- Type: string / string / string / boolean ("1"/"0")
-- Default: unset
-- Purpose: When both email and password are provided, the application ensures an administrator account exists with those credentials on each startup. `DEFAULT_ADMIN_FULL_NAME` (optional) sets the display name. If `DEFAULT_ADMIN_FORCE_RESET` is truthy, the password is reset and all refresh tokens are revoked on startup.
+- Type: string / string / string / boolean ("1"/"0") / boolean / boolean
+- Default: unset (`DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED`: `1`)
+- Purpose: When both email and password are provided, startup creates that administrator, but **only in a database with no users yet** (a new install). A database that already has accounts, such as the shared QNAP one, never gets a default admin added, so a public default password cannot open a new admin account there. An existing account is left as an administrator set it (deactivated or demoted stays so); only `DEFAULT_ADMIN_FULL_NAME` is kept in sync.
+  - `DEFAULT_ADMIN_FORCE_RESET` (break-glass): creates the account even in a database with users, restores it to an active admin, resets the password and revokes all refresh tokens.
+  - `DEFAULT_ADMIN_AUTO_RESET`: restores the account to an active admin, and resets the password when it differs from the configured one.
+  - `DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED`: whether a newly created admin must change the password at first login. SMS Lite sets it to `0` when the installer asked the user for the password.
 
 CSRF_ENABLED
 

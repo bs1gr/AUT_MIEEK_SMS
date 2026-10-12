@@ -57,6 +57,8 @@ a = Analysis(
         'sqlalchemy.orm',
         'pydantic',
         'pydantic_settings',
+        # pydantic imports it lazily (EmailStr); lite_db validates the installer's admin email with it
+        'email_validator',
         'passlib',
         'passlib.context',
         'passlib.handlers.pbkdf2',

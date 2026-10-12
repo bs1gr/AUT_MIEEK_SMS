@@ -26,6 +26,10 @@ class QnapUnavailable(Exception):
     """QNAP credentials exist but cannot be used: unreadable, incomplete, or the server is unreachable."""
 
 
+class QnapCredentialsRejected(QnapUnavailable):
+    """The server answered but refused the saved user name or password: Retry cannot help."""
+
+
 def load_credentials(path: Path) -> dict[str, Any]:
     try:
         creds = json.loads(path.read_text(encoding="utf-8"))
@@ -53,6 +57,11 @@ def probe(creds: dict[str, Any]) -> None:
         ):
             pass
     except Exception as exc:  # psycopg raises several types; any failure means "not usable"
+        if "password authentication failed" in str(exc):
+            raise QnapCredentialsRejected(
+                f"QNAP PostgreSQL at {creds['host']}:{creds['port']} rejected the saved password for "
+                f"user \"{creds['user']}\""
+            ) from exc
         raise QnapUnavailable(f"QNAP PostgreSQL at {creds['host']}:{creds['port']} is unreachable ({exc})") from exc
 
 
@@ -63,8 +72,21 @@ def postgres_url(creds: dict[str, Any]) -> str:
     )
 
 
-def unavailable_message(reason: str) -> str:
+def unavailable_message(reason: str, credentials_rejected: bool = False) -> str:
     """Shown to the user (EN + EL: Lite has no language setting this early)."""
+    if credentials_rejected:
+        return (
+            "SMS Lite cannot use the shared QNAP database.\n"
+            f"{reason}.\n\n"
+            "The database password has probably been changed. Run the SMS installer again on this PC "
+            "and enter the current QNAP password (or choose local SQLite). Retry will not help until "
+            "then.\n\n"
+            "Το SMS Lite δεν μπορεί να χρησιμοποιήσει την κοινή βάση δεδομένων QNAP: η βάση απέρριψε "
+            "τον αποθηκευμένο κωδικό.\n\n"
+            "Πιθανότατα ο κωδικός της βάσης άλλαξε. Εκτελέστε ξανά την εγκατάσταση του SMS σε αυτόν τον "
+            "υπολογιστή και δώστε τον τρέχοντα κωδικό του QNAP (ή επιλέξτε τοπική SQLite). Η «Επανάληψη» "
+            "δεν θα βοηθήσει μέχρι τότε."
+        )
     return (
         "SMS Lite cannot use the shared QNAP database.\n"
         f"{reason}\n\n"
@@ -98,8 +120,40 @@ def select_database(
             probe_fn(creds)
             return postgres_url(creds), str(creds.get("sslmode", "disable"))
         except QnapUnavailable as exc:
-            if not ask_retry(unavailable_message(str(exc))):
+            message = unavailable_message(str(exc), isinstance(exc, QnapCredentialsRejected))
+            if not ask_retry(message):
                 raise SystemExit(f"SMS Lite stopped: {exc}") from exc
+
+
+def load_initial_admin(path: Path) -> dict[str, str] | None:
+    """The administrator the installer asked for on a local-SQLite install, or None.
+
+    ``initial-admin.json`` holds ``email``, ``password`` and optionally ``full_name``. It is
+    single-use: the entrypoint deletes it once bootstrap has run. An unreadable or invalid file
+    is ignored (the caller logs it), so a bad file never stops Lite from starting.
+    """
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    email = str(data.get("email") or "").strip()
+    password = str(data.get("password") or "")
+    # config.Settings validates these at startup (EmailStr; DEFAULT_ADMIN_PASSWORD stripped and at
+    # least 8 characters), so anything it would reject must be ignored here, not crash Lite.
+    if len(password) < 8 or password != password.strip():
+        return None
+    try:
+        from email_validator import EmailNotValidError, validate_email
+
+        email = validate_email(email, check_deliverability=False).normalized
+    except EmailNotValidError:
+        return None
+    full_name = str(data.get("full_name") or "").strip() or "System Administrator"
+    return {"email": email, "password": password, "full_name": full_name}
 
 
 def windows_retry_dialog(message: str) -> bool:

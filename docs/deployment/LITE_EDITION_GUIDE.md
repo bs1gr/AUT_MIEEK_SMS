@@ -43,19 +43,23 @@
 [x] Lite Edition (standalone - recommended for individual teachers)
 ```
 
-**Step 2: QNAP Configuration (Optional)**
+**Step 2: Database**
 ```
-SMS_Lite uses a local SQLite database by default.
-If you have a QNAP NAS with PostgreSQL, you can optionally configure it here.
-
-[x] No, use local SQLite database (default - recommended)
 [ ] Yes, I want to use QNAP PostgreSQL
     └─ Option A: Select credentials file (.json or .env)
-       └─ [Browse...] button to select file
-    └─ OR
-    └─ Option B: Enter credentials manually
-       └─ Host, Port, Database, Username, Password fields
+    └─ Option B: Host, Port, Database, Username, Password
+    You sign in with your existing account on the shared database.
+[x] No, use local SQLite database
+    └─ Administrator email, full name (optional), password, confirm
+       (only for a new local database; an existing one keeps its accounts)
 ```
+
+- **QNAP** needs all five fields; incomplete details no longer fall back to SQLite silently.
+- **Upgrading a PC that already uses QNAP:** QNAP is preselected and host, port, database and
+  user are filled in from the saved settings. Enter the current database password.
+- **Choosing local SQLite on a PC set up for QNAP** asks for confirmation, then removes the
+  saved QNAP settings (`local-secrets\qnap-credentials.json`). Before 2026-10-12 the old file
+  stayed, so Lite kept connecting to QNAP although SQLite had been chosen.
 
 **Step 3: Installation Complete**
 - SMS_Lite.exe will be installed to `C:\Program Files (x86)\SMS-UT\`
@@ -82,23 +86,27 @@ cd "C:\Program Files (x86)\SMS-UT\"
 .\SMS_Lite.exe
 ```
 
-### Default Login Credentials
+### First Login
 
-```
-Username: admin@sms-lite.app
-Password: AdminPassword123!
-```
+- **Local SQLite:** sign in with the administrator email and password you entered in the
+  installer. Lite creates the account on its first start and then deletes the file that
+  carried the password (`local-secrets\initial-admin.json`).
+- **QNAP:** sign in with your existing account on the shared database. No account is created.
+- **Fallback (silent install or an older installer, new local database only):**
+  `admin@sms-lite.app` / `AdminPassword123!`. This password is public, so the app only lets you
+  set a new one before showing any data.
 
-⚠️ **Important:** Change these credentials immediately after first login!
+A default administrator is only ever created in a database that has no users yet. A database
+that already has accounts, such as the shared QNAP one, never gets one added, and an account
+an administrator deactivated stays deactivated.
 
 ### First-Run Setup
 
 1. SMS_Lite.exe starts the backend server on port 8000
 2. Automatically opens browser to http://127.0.0.1:8000
 3. Frontend React application loads
-4. Default admin account automatically created
-5. Log in with credentials above
-6. Change password in Settings → Account
+4. A new local database gets its administrator account (see First Login)
+5. Log in
 
 ---
 
@@ -209,7 +217,7 @@ Password: AdminPassword123!
 3. **Verify Connection**
    - After SMS_Lite.exe starts, check: `debug.log` in AppData
    - Should show: `DATABASE_URL=postgresql://...` (not sqlite)
-   - If connection fails, falls back to SQLite automatically
+   - If the connection fails, Lite shows a Retry/Cancel box and never falls back to SQLite
 
 ---
 
@@ -265,7 +273,13 @@ C:\Program Files (x86)\SMS-UT\backups\
 **Debug:**
 - Open `C:\Users\{username}\AppData\Local\SMS_Native_Lite_Simple\debug.log`
 - Look for error messages about database connection
-- App will fall back to SQLite if QNAP fails
+- Lite never falls back to SQLite while QNAP is configured: it waits at the "SMS Lite — QNAP"
+  Retry/Cancel box
+
+**"rejected the saved password":** the database password was changed (for example the
+2026-10-07 rotation). Re-run the installer and enter the current password, or run
+`SaveLiteEditionQnapCredentials.ps1` (see
+[QNAP_DB_PASSWORD_ROTATION.md](QNAP_DB_PASSWORD_ROTATION.md) §7). Retry cannot help until then.
 
 **Fix:**
 - Correct credentials in `qnap-credentials.json`

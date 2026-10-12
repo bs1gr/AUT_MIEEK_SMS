@@ -417,10 +417,20 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    Even when Vite proxies to a different backend (`VITE_DEV_PROXY_TARGET`), `/auth/refresh` goes to
    that absolute URL, so a second dev stack talks to the main backend's refresh endpoint. It is harmless
    with a single stack. Override `VITE_API_URL` whenever you run a second stack.
-6. **Review accounts created by the old open registration** (found 2026-09-28). Until the
-   registration-approval change below, anyone who could reach the server could self-register
-   an *active* teacher account. Those accounts are still active. Check User Management and
-   delete or deactivate anyone you don't recognise.
+6. ~~**Review accounts created by the old open registration**~~ — **done 2026-10-12.** The QNAP
+   database had four users and no strangers: `admin@example.com` (Native/Docker bootstrap),
+   the owner, `admin@sms-lite.app` (Lite's default admin, 136 refresh tokens) and
+   `test@example.com` (the E2E user, left by an E2E run against the dev server on 2026-06-09;
+   1406 refresh tokens). Both default-password accounts were public in the repo; **deleted on
+   the owner's instruction** (tokens removed, no audit rows). That showed every Lite start would
+   recreate `admin@sms-lite.app` with its public password on the shared database, so whoever
+   logged in first could claim an admin account; fixed the same day (todo 24).
+   **⚠️ New, owner action: the QNAP PostgreSQL is reachable on the public IP.** A Lite PC's
+   stale credentials pointed at `77.83.249.220:55433` and got `password authentication failed`
+   back, so the PostgreSQL server answered there: the router forwards that port. The student
+   database is then one 8-character password away from the internet. Remove the port
+   forward on the router and reach QNAP over Tailscale only (subnet route `172.16.0.2/32`, as
+   the laptop does). `docs/misc/LITE_QNAP_SETUP.md` still documents the external address.
 7. **Optional: authenticate a sending domain in Brevo** (2026-09-28). SMTP works, but Brevo
    rewrites the `@gmail.com` sender to `…@…brevosend.com`, because it cannot send as Gmail. With your
    own domain verified in Brevo, emails can come from e.g. `noreply@<domain>` and are less likely
@@ -720,6 +730,36 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+24. ~~**Default admins on a shared database, and a Lite PC set to SQLite still using QNAP**~~ —
+    **fixed 2026-10-12 (owner's design; not yet released).** Reported by the owner with a
+    screenshot: after choosing local SQLite in the installer, Lite showed the "SMS Lite — QNAP"
+    box for an old external address and a rejected password.
+    - **Cause:** choosing SQLite only skipped writing `qnap-credentials.json`; a file left by
+      an earlier install stayed, and Lite treats its existence as "use QNAP". The page also
+      always preselected SQLite, even on a PC that used QNAP.
+    - **Bootstrap** (`scripts/admin/bootstrap.py`, also Docker and Native): a default admin is
+      created only in a database with no users (or with `DEFAULT_ADMIN_FORCE_RESET`). An existing
+      account is restored to an active admin only by `FORCE_RESET`/`AUTO_RESET`, so a deactivated
+      or demoted default admin stays so. New `DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED` (default
+      true). E2E is unaffected: `seed_e2e_data.py` creates its own users.
+    - **Installer (Lite page):**
+      - **QNAP:** all five fields are required; incomplete details used to fall back to SQLite
+        silently.
+      - **Local SQLite with no database yet:** asks for the administrator email, name and password
+        (owner: no forced change, they chose it). It writes `local-secrets\initial-admin.json`,
+        which Lite consumes on first start and deletes.
+      - **Existing QNAP settings:** QNAP is preselected and prefilled, except the password.
+        Choosing SQLite asks for confirmation, then removes `qnap-credentials.json`.
+      - **Silent installs** change nothing.
+      - **Also fixed:** the QNAP password field sat on top of the Port field, and the setup log
+        recorded the QNAP password in clear text.
+    - **Lite:** QNAP mode ignores `initial-admin.json`. A file whose email or password startup
+      would reject is ignored instead of crashing Lite (`email-validator` is now bundled
+      explicitly). A refused password gets its own EN/EL message ("re-run the installer"),
+      instead of "unreachable ... check Tailscale".
+    - **Tests:** `test_admin_bootstrap.py` (+3; 3 fail on the old code), `test_lite_db.py` (+11).
+      The installer compiles with ISCC (exit 0). **Not yet clicked through as a GUI:** do that in
+      the release smoke test (fresh PC, upgrade of a QNAP PC, switch to SQLite).
 23. ~~**Overview dashboard: active students only, "Recently Enrolled" replaced**~~ — **done
     2026-10-07 (owner's choice of panels; not yet released).**
     - Year-of-study counts only active students, as a share of active students.

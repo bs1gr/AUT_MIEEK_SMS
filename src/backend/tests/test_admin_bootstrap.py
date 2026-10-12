@@ -91,7 +91,8 @@ def test_bootstrap_updates_existing_user_with_force_reset(db: Session):
     assert token.revoked is True
 
 
-def test_bootstrap_updates_existing_user_without_force_reset(db: Session):
+def test_bootstrap_keeps_a_deactivated_or_demoted_default_admin_as_it_is(db: Session):
+    # An administrator deactivated or demoted the default account; a restart must not undo it.
     original_hash = _pbkdf2_hash("StablePass789!")
     user = User(
         email="admin@example.com",
@@ -107,10 +108,49 @@ def test_bootstrap_updates_existing_user_without_force_reset(db: Session):
     ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
 
     db.refresh(user)
-    assert user.role == "admin"
-    assert user.is_active is True
+    assert user.role == "teacher"
+    assert user.is_active is False
     assert user.full_name == "Updated Admin"
     assert user.hashed_password == original_hash
+
+
+def test_bootstrap_adds_no_default_admin_to_a_database_that_has_accounts(db: Session):
+    # The shared QNAP database: SMS Lite's public default admin must not be created there.
+    owner = User(email="owner@example.com", hashed_password=_pbkdf2_hash("Owner123!"), role="admin")
+    db.add(owner)
+    db.commit()
+
+    settings = _make_settings(DEFAULT_ADMIN_EMAIL="admin@sms-lite.app", DEFAULT_ADMIN_PASSWORD="AdminPassword123!")
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
+
+    assert db.query(User).filter(User.email == "admin@sms-lite.app").first() is None
+    assert _count_users(db) == 1
+
+
+def test_bootstrap_force_reset_creates_the_account_even_when_others_exist(db: Session):
+    # Break-glass: an operator who sets FORCE_RESET asked for this account explicitly.
+    db.add(User(email="owner@example.com", hashed_password=_pbkdf2_hash("Owner123!"), role="teacher"))
+    db.commit()
+
+    settings = _make_settings(DEFAULT_ADMIN_PASSWORD="Recover123!", DEFAULT_ADMIN_FORCE_RESET=True)
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
+
+    user = db.query(User).filter(User.email == "admin@example.com").one()
+    assert user.role == "admin"
+    assert verify_password("Recover123!", user.hashed_password)
+
+
+def test_new_default_admin_must_change_password_unless_configured_otherwise(db: Session):
+    ensure_default_admin_account(settings=_make_settings(), session_factory=lambda: db, close_session=False)
+    assert db.query(User).filter(User.email == "admin@example.com").one().password_change_required is True
+
+    db.query(User).delete()
+    db.commit()
+
+    # SMS Lite: the installer asked the user for this password
+    settings = _make_settings(DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED="false")
+    ensure_default_admin_account(settings=settings, session_factory=lambda: db, close_session=False)
+    assert db.query(User).filter(User.email == "admin@example.com").one().password_change_required is False
 
 
 def test_bootstrap_creates_user_and_allows_login(db: Session, client, monkeypatch):

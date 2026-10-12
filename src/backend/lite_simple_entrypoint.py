@@ -37,7 +37,7 @@ if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
         pass
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
-from backend.lite_db import select_database, windows_retry_dialog  # noqa: E402 - stdlib-only module
+from backend.lite_db import load_initial_admin, select_database, windows_retry_dialog  # noqa: E402 - stdlib-only module
 
 # QNAP PostgreSQL credentials: AppData when installed, next to the source tree in development.
 _lite_appdata: Path | None
@@ -83,12 +83,26 @@ os.environ.setdefault('SMS_ENV', 'development')
 os.environ.setdefault('AUTH_ENABLED', 'true')
 os.environ.setdefault('AUTH_MODE', 'strict')
 
-# Set default admin credentials for Native Lite (auto-create on first run). This password is
-# public (it is in this repo): the server only lets it be used to set a new password
-# (security/default_passwords.py + current_user.password_change_blocks).
-os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
-os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
-os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
+# First administrator. Bootstrap creates it only in a database with no users yet, so the
+# shared QNAP database never gets one: QNAP users sign in with their existing accounts.
+# - A local-SQLite install: the account the installer asked the user for
+#   (local-secrets/initial-admin.json; deleted once bootstrap has run, see main()).
+# - Otherwise (silent install, older installer): the fallback below. Its password is public
+#   (it is in this repo), so the server only lets it be used to set a new password
+#   (security/default_passwords.py + current_user.password_change_blocks).
+_initial_admin_file = _creds_candidate.parent / 'initial-admin.json'
+_initial_admin = None if qnap_creds_file else load_initial_admin(_initial_admin_file)
+if _initial_admin_file.exists() and _initial_admin is None:
+    print(f"[DEBUG] Ignoring {_initial_admin_file} (QNAP install, or not a valid email/password)", file=sys.stderr)
+if _initial_admin:
+    os.environ['DEFAULT_ADMIN_EMAIL'] = _initial_admin['email']
+    os.environ['DEFAULT_ADMIN_PASSWORD'] = _initial_admin['password']
+    os.environ['DEFAULT_ADMIN_FULL_NAME'] = _initial_admin['full_name']
+    os.environ['DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED'] = 'false'  # the user chose it in the installer
+else:
+    os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
+    os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
+    os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
 
 # Generate (once) and persist a real SECRET_KEY for this installation. There is no
 # bundled backend/.env in the frozen exe, so backend.config.Settings would otherwise
@@ -297,6 +311,14 @@ def main() -> None:
                 close_session=False,
             )
             _debug_log('[lite_simple_entrypoint] ✅ Admin account created/verified')
+            # The installer's admin file holds a plaintext password and is single-use: once
+            # bootstrap has run, the account exists (or the database already had accounts).
+            if _initial_admin_file.exists():
+                try:
+                    _initial_admin_file.unlink()
+                    _debug_log('[lite_simple_entrypoint] Removed the installer admin file')
+                except OSError as rm_err:
+                    _debug_log(f'[lite_simple_entrypoint] Could not remove the installer admin file: {rm_err}')
         except Exception as admin_err:
             import traceback as _tb
             _debug_log(f'[lite_simple_entrypoint] Admin bootstrap warning: {type(admin_err).__name__}: {str(admin_err)[:500]}')
@@ -491,10 +513,15 @@ def main() -> None:
         print("="*60)
         print("\n📱 Open your browser and go to:")
         print("   👉 http://127.0.0.1:8000")
-        print("\n🔐 First login (only if you have not set your own password yet):")
-        print("   Email:    admin@sms-lite.app")
-        print("   Password: AdminPassword123!")
-        print("   This default is public: you must choose a new password before using the app.")
+        if qnap_creds_file:
+            print("\n🔐 Sign in with your account on the shared QNAP database.")
+        elif _initial_admin:
+            print(f"\n🔐 Sign in as {_initial_admin['email']} with the password chosen in the installer.")
+        else:
+            print("\n🔐 First login (only on a new database, until you set your own password):")
+            print("   Email:    admin@sms-lite.app")
+            print("   Password: AdminPassword123!")
+            print("   This default is public: you must choose a new password before using the app.")
         print("\n" + "="*60 + "\n")
     except Exception:
         pass

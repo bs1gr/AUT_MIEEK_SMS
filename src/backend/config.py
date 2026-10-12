@@ -256,6 +256,9 @@ class Settings(BaseSettings):
     # application will auto-reset the admin's password (and revoke refresh
     # tokens) on startup. This makes rotating credentials easier for devops.
     DEFAULT_ADMIN_AUTO_RESET: bool = False
+    # A newly created default admin must change its password at first login. SMS Lite turns
+    # this off when the installer asked the user for the admin password.
+    DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED: bool = True
 
     # Database performance monitoring
     SQLALCHEMY_SLOW_QUERY_ENABLED: bool = True

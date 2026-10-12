@@ -27,11 +27,22 @@ def ensure_default_admin_account(
 ) -> None:
     """Ensure that a default administrator account exists.
 
-    The account is created or updated only when both `DEFAULT_ADMIN_EMAIL` and
-    `DEFAULT_ADMIN_PASSWORD` are configured. When the user already exists, the
-    function will ensure the role is `admin`, the account is active, and the
-    full name matches the configured value. When `DEFAULT_ADMIN_FORCE_RESET`
-    is enabled, the password is reset and any refresh tokens are revoked.
+    Nothing happens unless both `DEFAULT_ADMIN_EMAIL` and `DEFAULT_ADMIN_PASSWORD`
+    are configured.
+
+    - The account is created only in a database that has no users yet (a new install),
+      or when `DEFAULT_ADMIN_FORCE_RESET` asks for it. A database that already has
+      accounts, such as the shared QNAP one, never gets a default admin added: the
+      configured password may be a public default (SMS Lite's is in this repo), and
+      whoever logged in first could claim the account.
+    - An existing account is restored to an active admin only when
+      `DEFAULT_ADMIN_FORCE_RESET` or `DEFAULT_ADMIN_AUTO_RESET` is set (break-glass
+      recovery). Otherwise an administrator who deactivated or demoted it keeps it that
+      way; only the full name follows the configured value.
+    - `DEFAULT_ADMIN_FORCE_RESET` resets the password and revokes refresh tokens.
+    - A new account must change its password at first login unless
+      `DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED` is false (SMS Lite sets that when the
+      installer asked the user for the password).
     """
 
     log = logger or logging.getLogger(__name__)
@@ -57,6 +68,7 @@ def ensure_default_admin_account(
     full_name = str(full_name_raw).strip() if full_name_raw is not None else ""
     force_reset = _parse_bool(getattr(settings, "DEFAULT_ADMIN_FORCE_RESET", False))
     auto_reset = _parse_bool(getattr(settings, "DEFAULT_ADMIN_AUTO_RESET", False))
+    change_required = _parse_bool(getattr(settings, "DEFAULT_ADMIN_PASSWORD_CHANGE_REQUIRED", True))
 
     try:
         models_mod = importlib.import_module("backend.models")
@@ -69,6 +81,14 @@ def ensure_default_admin_account(
     try:
         session = session_factory()
         user = session.query(models_mod.User).filter(models_mod.User.email == email).first()
+
+        if user is None and not force_reset and session.query(models_mod.User).first() is not None:
+            log.info(
+                "Bootstrap: %s does not exist and the database already has accounts; "
+                "no default admin is created (sign in with an existing account)",
+                email,
+            )
+            return
 
         hashed_password: str | None = None
         # Compute whether we should set/reset the password.
@@ -95,26 +115,30 @@ def ensure_default_admin_account(
                 role="admin",
                 hashed_password=hashed_password or _hash_password(password),
                 is_active=True,
-                password_change_required=True,
+                password_change_required=change_required,
             )
             session.add(user)
             session.commit()
             log.info(
-                "✅ Bootstrap: created default admin user %s (password_change_required=True)",
+                "✅ Bootstrap: created default admin user %s (password_change_required=%s)",
                 email,
+                change_required,
             )
             print(f"✅ Admin user created: {email}")
             return
 
         changed_fields: list[str] = []
 
-        if user.role != "admin":
-            user.role = "admin"
-            changed_fields.append("role")
+        # Only break-glass recovery restores the account; otherwise an admin's decision
+        # to deactivate or demote it would be undone on every start.
+        if force_reset or auto_reset:
+            if user.role != "admin":
+                user.role = "admin"
+                changed_fields.append("role")
 
-        if not bool(getattr(user, "is_active", False)):
-            user.is_active = True
-            changed_fields.append("is_active")
+            if not bool(getattr(user, "is_active", False)):
+                user.is_active = True
+                changed_fields.append("is_active")
 
         if full_name and (user.full_name or "") != full_name:
             user.full_name = full_name

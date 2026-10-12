@@ -160,6 +160,20 @@ english.DbAuthValidationFailed=Could not verify authentication to the QNAP Postg
 english.DbTcpValidationFailed=Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?
 english.DbFileDialogTitle=Select database credentials file
 english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.json|ENV files|*.env;*.txt|All files|*.*
+; SMS Lite database and first administrator
+english.LiteDbIntro=Choose the database for this PC. With the shared QNAP database you sign in with your existing account there. With a local SQLite database, you create the administrator account below.
+english.LiteQnapLoadedExisting=QNAP settings saved on this PC were loaded. Enter the current database password.
+english.LiteQnapIncomplete=Enter the QNAP host, port, database name, user name and password, or choose the local SQLite database.
+english.LiteSwitchToSqliteConfirm=This PC is set up for the shared QNAP database. Switching to a local SQLite database removes those settings, and anything entered on this PC will not be on QNAP.%n%nSwitch to local SQLite?
+english.LiteAdminIntro=Administrator account for the new local database. You will sign in with it.
+english.LiteAdminExistingDb=This PC already has a local SMS Lite database. It is kept, and you sign in with its existing accounts.
+english.LiteAdminEmail=Administrator email:
+english.LiteAdminName=Full name (optional):
+english.LiteAdminPassword=Password (at least 8 characters):
+english.LiteAdminConfirm=Confirm password:
+english.LiteAdminEmailInvalid=Enter a valid administrator email address, for example name@school.gr. Addresses ending in .local cannot be used.
+english.LiteAdminPasswordShort=The administrator password must have at least 8 characters, with no spaces at the start or end.
+english.LiteAdminPasswordMismatch=The two passwords do not match.
 
 ; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
 
@@ -320,6 +334,18 @@ var
   LiteQnapUserEdit: TEdit;
   LiteQnapPassLabel: TLabel;
   LiteQnapPassEdit: TEdit;
+  // Local SQLite: the administrator account to create (bootstrap only creates one in an empty database)
+  LiteAdminLabel: TLabel;
+  LiteAdminEmailLabel: TLabel;
+  LiteAdminEmailEdit: TEdit;
+  LiteAdminNameLabel: TLabel;
+  LiteAdminNameEdit: TEdit;
+  LiteAdminPassLabel: TLabel;
+  LiteAdminPassEdit: TEdit;
+  LiteAdminConfirmLabel: TLabel;
+  LiteAdminConfirmEdit: TEdit;
+  LiteHadQnapCredentials: Boolean;
+  LiteLocalDbExists: Boolean;
   PostgresPage: TWizardPage;
   DbProfileInfoLabel: TLabel;
   LocalSQLiteRadio: TRadioButton;
@@ -367,6 +393,10 @@ function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward
 function TestDockerReady: Boolean; forward;
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
 procedure UpdateLiteQnapUI(Sender: TObject); forward;
+function LiteQnapCredentialsPath: String; forward;
+function LiteLocalDbPath: String; forward;
+function IsAcceptableAdminEmail(const Email: String): Boolean; forward;
+procedure SaveLiteEditionLocalSetup; forward;
 procedure BrowseLiteQnapCredentialsFile(Sender: TObject); forward;
 procedure LoadLiteQnapCredentialsFromFile(FileName: String); forward;
 procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
@@ -435,6 +465,94 @@ var
   ResultCode: Integer;
 begin
   Result := Exec('cmd', '/c docker inspect sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+// SMS Lite's per-user data, the same paths lite_simple_entrypoint.py uses when frozen
+function LiteSecretsDir: String;
+begin
+  Result := ExpandConstant('{localappdata}\SMS_Native_Lite_Simple\local-secrets');
+end;
+
+function LiteQnapCredentialsPath: String;
+begin
+  Result := LiteSecretsDir + '\qnap-credentials.json';
+end;
+
+function LiteLocalDbPath: String;
+begin
+  Result := ExpandConstant('{localappdata}\SMS_Native_Lite_Simple\sms_lite.db');
+end;
+
+function JsonEscape(const S: String): String;
+begin
+  Result := S;
+  StringChangeEx(Result, '\', '\\', True);
+  StringChangeEx(Result, '"', '\"', True);
+end;
+
+// A rough pre-check; Lite validates the address as the backend does (email-validator) and
+// ignores the file if it would be rejected, so this only catches typing mistakes early.
+function IsAcceptableAdminEmail(const Email: String): Boolean;
+var
+  AtPos: Integer;
+  Domain: String;
+begin
+  Result := False;
+  AtPos := Pos('@', Email);
+  if (AtPos < 2) or (Pos(' ', Email) > 0) then
+    Exit;
+  Domain := LowerCase(Copy(Email, AtPos + 1, Length(Email)));
+  if (Pos('@', Domain) > 0) or (Pos('.', Domain) < 2) or (Domain[Length(Domain)] = '.') then
+    Exit;
+  // email-validator rejects special-use names such as .local
+  if ((Length(Domain) >= 6) and (Copy(Domain, Length(Domain) - 5, 6) = '.local')) or
+     ((Length(Domain) >= 10) and (Copy(Domain, Length(Domain) - 9, 10) = '.localhost')) then
+    Exit;
+  Result := True;
+end;
+
+// Local SQLite was chosen. Remove QNAP credentials left by an earlier install: Lite treats the
+// file's mere existence as "use QNAP" (2026-10-12: a PC set to SQLite kept dialling an old QNAP
+// address with a rotated password). For a new database, leave the administrator the user chose
+// in initial-admin.json; Lite creates the account on first start and deletes the file.
+procedure SaveLiteEditionLocalSetup;
+var
+  Lines: TArrayOfString;
+begin
+  if WizardSilent then
+  begin
+    // Silent upgrades skip the page, so nothing was chosen: change nothing.
+    Log('Lite Edition (silent): database settings left unchanged');
+    Exit;
+  end;
+
+  if FileExists(LiteQnapCredentialsPath) then
+  begin
+    if DeleteFile(LiteQnapCredentialsPath) then
+      Log('Lite Edition: removed QNAP credentials (local SQLite chosen)')
+    else
+      Log('[WARN] Lite Edition: could not remove ' + LiteQnapCredentialsPath);
+  end;
+
+  if LiteLocalDbExists or (Trim(LiteAdminEmailEdit.Text) = '') then
+    Exit;
+
+  if not ForceDirectories(LiteSecretsDir) then
+  begin
+    Log('[ERROR] Lite Edition: could not create ' + LiteSecretsDir);
+    Exit;
+  end;
+  SetArrayLength(Lines, 5);
+  Lines[0] := '{';
+  Lines[1] := '  "email": "' + JsonEscape(Trim(LiteAdminEmailEdit.Text)) + '",';
+  Lines[2] := '  "full_name": "' + JsonEscape(Trim(LiteAdminNameEdit.Text)) + '",';
+  Lines[3] := '  "password": "' + JsonEscape(LiteAdminPassEdit.Text) + '"';
+  Lines[4] := '}';
+  // %LOCALAPPDATA% is private to this Windows user
+  if SaveStringsToUTF8File(LiteSecretsDir + '\initial-admin.json', Lines, False) then
+    Log('Lite Edition: administrator account saved for first start: ' + Trim(LiteAdminEmailEdit.Text))
+  else
+    Log('[ERROR] Lite Edition: could not write the administrator account file');
 end;
 
 function ExtractJsonValue(const JsonContent: String; const Key: String): String;
@@ -1149,9 +1267,90 @@ begin
   LiteQnapPassEdit := TEdit.Create(LiteQnapPage);
   LiteQnapPassEdit.Parent := LiteQnapPage.Surface;
   LiteQnapPassEdit.Left := 292;
-  LiteQnapPassEdit.Top := 238;
+  LiteQnapPassEdit.Top := 333;  // was 238, on top of the Port field
   LiteQnapPassEdit.Width := 200;
   LiteQnapPassEdit.PasswordChar := '*';
+
+  // Local SQLite: administrator account for a new database (shown instead of the QNAP fields)
+  LiteAdminLabel := TLabel.Create(LiteQnapPage);
+  LiteAdminLabel.Parent := LiteQnapPage.Surface;
+  LiteAdminLabel.AutoSize := False;
+  LiteAdminLabel.WordWrap := True;
+  LiteAdminLabel.Left := 0;
+  LiteAdminLabel.Top := 120;
+  LiteAdminLabel.Width := LiteQnapPage.SurfaceWidth;
+  LiteAdminLabel.Height := 34;
+
+  LiteAdminEmailLabel := TLabel.Create(LiteQnapPage);
+  LiteAdminEmailLabel.Parent := LiteQnapPage.Surface;
+  LiteAdminEmailLabel.Left := 0;
+  LiteAdminEmailLabel.Top := 160;
+  LiteAdminEmailLabel.Caption := CustomMessage('LiteAdminEmail');
+
+  LiteAdminEmailEdit := TEdit.Create(LiteQnapPage);
+  LiteAdminEmailEdit.Parent := LiteQnapPage.Surface;
+  LiteAdminEmailEdit.Left := 0;
+  LiteAdminEmailEdit.Top := 178;
+  LiteAdminEmailEdit.Width := 280;
+
+  LiteAdminNameLabel := TLabel.Create(LiteQnapPage);
+  LiteAdminNameLabel.Parent := LiteQnapPage.Surface;
+  LiteAdminNameLabel.Left := 292;
+  LiteAdminNameLabel.Top := 160;
+  LiteAdminNameLabel.Caption := CustomMessage('LiteAdminName');
+
+  LiteAdminNameEdit := TEdit.Create(LiteQnapPage);
+  LiteAdminNameEdit.Parent := LiteQnapPage.Surface;
+  LiteAdminNameEdit.Left := 292;
+  LiteAdminNameEdit.Top := 178;
+  LiteAdminNameEdit.Width := 200;
+
+  LiteAdminPassLabel := TLabel.Create(LiteQnapPage);
+  LiteAdminPassLabel.Parent := LiteQnapPage.Surface;
+  LiteAdminPassLabel.Left := 0;
+  LiteAdminPassLabel.Top := 212;
+  LiteAdminPassLabel.Caption := CustomMessage('LiteAdminPassword');
+
+  LiteAdminPassEdit := TEdit.Create(LiteQnapPage);
+  LiteAdminPassEdit.Parent := LiteQnapPage.Surface;
+  LiteAdminPassEdit.Left := 0;
+  LiteAdminPassEdit.Top := 230;
+  LiteAdminPassEdit.Width := 280;
+  LiteAdminPassEdit.PasswordChar := '*';
+
+  LiteAdminConfirmLabel := TLabel.Create(LiteQnapPage);
+  LiteAdminConfirmLabel.Parent := LiteQnapPage.Surface;
+  LiteAdminConfirmLabel.Left := 292;
+  LiteAdminConfirmLabel.Top := 212;
+  LiteAdminConfirmLabel.Caption := CustomMessage('LiteAdminConfirm');
+
+  LiteAdminConfirmEdit := TEdit.Create(LiteQnapPage);
+  LiteAdminConfirmEdit.Parent := LiteQnapPage.Surface;
+  LiteAdminConfirmEdit.Left := 292;
+  LiteAdminConfirmEdit.Top := 230;
+  LiteAdminConfirmEdit.Width := 200;
+  LiteAdminConfirmEdit.PasswordChar := '*';
+
+  // What this PC already has. Lite treats an existing qnap-credentials.json as "use QNAP", so an
+  // upgrade must keep QNAP selected; only choosing SQLite on purpose removes it.
+  LiteHadQnapCredentials := FileExists(LiteQnapCredentialsPath);
+  LiteLocalDbExists := FileExists(LiteLocalDbPath);
+  LiteQnapLabel.Caption := CustomMessage('LiteDbIntro');
+  if LiteHadQnapCredentials then
+  begin
+    LoadLiteQnapCredentialsFromFile(LiteQnapCredentialsPath);
+    // The saved password is usually the stale one (it is what a rotation breaks), and the JSON
+    // reader does not unescape it: ask for the current one.
+    LiteQnapPassEdit.Text := '';
+    LiteQnapYesRadio.Checked := True;
+    LiteQnapNoRadio.Checked := False;
+    LiteQnapManualLabel.Caption := CustomMessage('LiteQnapLoadedExisting');
+    Log('Lite Edition: existing QNAP credentials found - QNAP preselected');
+  end;
+  if LiteLocalDbExists then
+    LiteAdminLabel.Caption := CustomMessage('LiteAdminExistingDb')
+  else
+    LiteAdminLabel.Caption := CustomMessage('LiteAdminIntro');
 
   UpdateLiteQnapUI(nil);
 
@@ -1444,6 +1643,7 @@ end;
 procedure UpdateLiteQnapUI(Sender: TObject);
 var
   UseQnap: Boolean;
+  ShowAdmin: Boolean;
 begin
   UseQnap := LiteQnapYesRadio.Checked;
 
@@ -1465,6 +1665,18 @@ begin
   LiteQnapUserEdit.Visible := UseQnap;
   LiteQnapPassLabel.Visible := UseQnap;
   LiteQnapPassEdit.Visible := UseQnap;
+
+  // Local SQLite: ask for the administrator only when a new database will be created
+  LiteAdminLabel.Visible := not UseQnap;
+  ShowAdmin := (not UseQnap) and (not LiteLocalDbExists);
+  LiteAdminEmailLabel.Visible := ShowAdmin;
+  LiteAdminEmailEdit.Visible := ShowAdmin;
+  LiteAdminNameLabel.Visible := ShowAdmin;
+  LiteAdminNameEdit.Visible := ShowAdmin;
+  LiteAdminPassLabel.Visible := ShowAdmin;
+  LiteAdminPassEdit.Visible := ShowAdmin;
+  LiteAdminConfirmLabel.Visible := ShowAdmin;
+  LiteAdminConfirmEdit.Visible := ShowAdmin;
 end;
 
 procedure UpdateDatabaseProfileUI(Sender: TObject);
@@ -2025,6 +2237,55 @@ begin
     end;
   end;
 
+  if CurPageID = LiteQnapPage.ID then
+  begin
+    if LiteQnapYesRadio.Checked then
+    begin
+      // Incomplete details used to fall back to local SQLite without a word
+      if (Trim(LiteQnapHostEdit.Text) = '') or (Trim(LiteQnapPortEdit.Text) = '') or
+         (Trim(LiteQnapDbEdit.Text) = '') or (Trim(LiteQnapUserEdit.Text) = '') or
+         (LiteQnapPassEdit.Text = '') then
+      begin
+        MsgBox(CustomMessage('LiteQnapIncomplete'), mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+    end
+    else
+    begin
+      if LiteHadQnapCredentials then
+      begin
+        if MsgBox(CustomMessage('LiteSwitchToSqliteConfirm'), mbConfirmation, MB_YESNO) = IDNO then
+        begin
+          Result := False;
+          Exit;
+        end;
+      end;
+      if not LiteLocalDbExists then
+      begin
+        if not IsAcceptableAdminEmail(Trim(LiteAdminEmailEdit.Text)) then
+        begin
+          MsgBox(CustomMessage('LiteAdminEmailInvalid'), mbError, MB_OK);
+          Result := False;
+          Exit;
+        end;
+        // Same rule as the backend: at least 8 characters, and it strips surrounding spaces
+        if (Length(LiteAdminPassEdit.Text) < 8) or (Trim(LiteAdminPassEdit.Text) <> LiteAdminPassEdit.Text) then
+        begin
+          MsgBox(CustomMessage('LiteAdminPasswordShort'), mbError, MB_OK);
+          Result := False;
+          Exit;
+        end;
+        if LiteAdminPassEdit.Text <> LiteAdminConfirmEdit.Text then
+        begin
+          MsgBox(CustomMessage('LiteAdminPasswordMismatch'), mbError, MB_OK);
+          Result := False;
+          Exit;
+        end;
+      end;
+    end;
+  end;
+
   if CurPageID = PostgresPage.ID then
   begin
     if QnapPostgresRadio.Checked then
@@ -2337,6 +2598,7 @@ var
   PowerShellExe: String;
   ScriptPath: String;
   Command: String;
+  LogCommand: String;
   ResultCode: Integer;
 begin
   // Get PowerShell executable path
@@ -2367,7 +2629,10 @@ begin
     '-PgPass "' + PgPass + '" ' +
     '-PgSSLMode "' + PgSsl + '"';
 
-  Log('Executing: ' + PowerShellExe + ' ' + Command);
+  // Never log the password: the setup log stays in %TEMP%
+  LogCommand := Command;
+  StringChangeEx(LogCommand, '-PgPass "' + PgPass + '"', '-PgPass "********"', True);
+  Log('Executing: ' + PowerShellExe + ' ' + LogCommand);
 
   if Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin
@@ -2571,6 +2836,7 @@ begin
       end
       else
       begin
+        SaveLiteEditionLocalSetup;
         Log('Lite Edition: Using local SQLite (QNAP not selected or credentials incomplete)');
         Log('  LiteQnapYesRadio.Checked=' + Format('%d', [Integer(LiteQnapYesRadio.Checked)]));
         Log('  LiteQnapHost empty=' + Format('%d', [Integer(Trim(LiteQnapHostEdit.Text) = '')]));
