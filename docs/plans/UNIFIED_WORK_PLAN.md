@@ -1,8 +1,38 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.55
-**Last Updated**: October 12, 2026
-**Status**: ✅ **v1.18.55 released 2026-10-12** (tag on `6abf8909b`). Todo 24 and its follow-ups:
+**Current Version**: 1.18.56
+**Last Updated**: October 13, 2026
+**Status**: ✅ **v1.18.56 released 2026-10-13** (tag on `025f20920`). It ships:
+- todo 25: registration requests told apart from deactivated accounts (migration
+  `e7a1c9d4f2b8`, additive), and one password rule everywhere;
+- step 1 of removing the old absence columns: they are no longer mapped;
+- the OpenTelemetry and Dependabot updates.
+
+**Smoke test before tagging**, on the release build:
+- **SMS Lite upgrade:** the frozen exe opened the database that v1.18.55 had created in the
+  previous smoke test.
+  - The migration ran, `d5e9f3a2b7c4` → `e7a1c9d4f2b8`, and the users-table rebuild kept the user
+    and its referencing refresh token.
+  - The existing admin logs in, and `/admin/users` returns `registration_pending`.
+  - Courses return 200 with the legacy columns still in the database.
+- **Fresh local SQLite and QNAP password window:** the same checks as v1.18.55, all passed.
+- **Installer Lite page:** the owner clicked through it. On REC it shows the existing-database
+  note; the password-rule message needs a PC without a Lite database.
+
+**Verified on the published assets:**
+- The installer's Authenticode signature is Valid (AUT MIEEK, timestamped, `v1.18.56`), and both
+  SHA-256 hashes match GitHub's digests.
+- The APK reports `1.18.56` (`versionCode 118056`).
+- All eight workflows on the release commit passed: the release, installer and APK workflows
+  (the first real runs of `checkout` v7 and `github-script` v9), and CI/CD and E2E.
+- **Not exercised:** Docker publish did not run for this tag, so `build-push-action` v7 and
+  `login-action` v4 still await a real run.
+- The release notes carry a Highlights section.
+
+**Next:** once every install runs v1.18.56, add the migration that drops the four legacy absence
+columns (todo 22 follow-up, step 2).
+
+v1.18.55 released 2026-10-12 (tag on `6abf8909b`). Todo 24 and its follow-ups:
 - No public-password default admin on a shared database.
 - The SMS Lite installer asks for a local-SQLite administrator, prefills QNAP on upgrades and
   removes old QNAP settings when SQLite is chosen.
