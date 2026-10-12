@@ -778,8 +778,15 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
       - **Tests:** `test_lite_db.py` (+5: prompt-and-save, wrong-then-cancel, dialog script parses
         in PowerShell, registration off on SQLite / on with QNAP), `test_registration_approval.py`
         (+3), `RegisterWidget.test.tsx` (+3), `AuthControls.test.tsx` updated.
-      - **Smoke test:** the password window has not been opened on screen yet. Check its layout
-        in EN/EL with a deliberately wrong password.
+      - **Checked on screen (2026-10-12):**
+        - **Password window:** the real `PASSWORD_DIALOG_PS` was opened from Python as Lite opens
+          it, then captured by its window handle. Title "SMS Lite - QNAP", EN and EL text fit, and
+          the field has focus. It opens on the active monitor.
+        - **Login page:** a throwaway backend (`SELF_REGISTRATION_MODE=disabled`, temporary SQLite)
+          and Vite were screenshotted with Playwright in EN and EL. The note shows, there are no
+          registration fields, and no request failed.
+        - **Still for the release smoke test:** clicking through the installer's Lite page
+          (fresh PC, upgrade of a QNAP PC, switch to SQLite, unreachable host).
 23. ~~**Overview dashboard: active students only, "Recently Enrolled" replaced**~~ — **done
     2026-10-07 (owner's choice of panels; not yet released).**
     - Year-of-study counts only active students, as a share of active students.
