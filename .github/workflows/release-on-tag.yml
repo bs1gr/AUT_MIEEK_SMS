@@ -140,7 +140,7 @@ jobs:
 
       - name: Create release (or update if exists)
         id: create_release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -190,7 +190,7 @@ jobs:
     needs: create-release
     steps:
       - name: Trigger Release Installer Workflow
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -219,7 +219,7 @@ jobs:
     needs: create-release
     steps:
       - name: Trigger Android APK Workflow
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
