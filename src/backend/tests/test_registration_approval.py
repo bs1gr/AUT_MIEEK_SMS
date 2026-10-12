@@ -115,6 +115,35 @@ def test_admin_activation_lets_the_user_log_in(client, db, registration_mode):
     assert login.status_code == 200, login.text
 
 
+def test_pending_registration_is_told_apart_from_a_deactivated_account(client, db, registration_mode):
+    # 2026-10-12: a deactivated admin@example.com was listed as "waiting for approval", with an
+    # Approve button. Only a real self-registration is pending; approving clears it.
+    registration_mode("approval")
+    admin = _make_admin(db)
+    token = _login(client, "approver@example.com", ADMIN_PASSWORD).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    applicant = client.post("/api/v1/auth/register", json=APPLICANT).json()
+    assert applicant["registration_pending"] is True
+
+    retired = models.User(email="retired@example.com", role="teacher",
+                          hashed_password=get_password_hash(ADMIN_PASSWORD), is_active=True)
+    db.add(retired)
+    db.commit()
+    off = client.patch(f"/api/v1/admin/users/{retired.id}", json={"is_active": False}, headers=headers)
+    assert off.status_code == 200, off.text
+    assert off.json()["registration_pending"] is False
+
+    listed = {u["email"]: u for u in client.get("/api/v1/admin/users", headers=headers).json()}
+    assert (listed[APPLICANT["email"]]["is_active"], listed[APPLICANT["email"]]["registration_pending"]) == (False, True)
+    assert (listed["retired@example.com"]["is_active"], listed["retired@example.com"]["registration_pending"]) == (False, False)
+    assert listed[admin.email]["registration_pending"] is False
+
+    approved = client.patch(f"/api/v1/admin/users/{applicant['id']}", json={"is_active": True}, headers=headers)
+    assert approved.status_code == 200, approved.text
+    assert approved.json()["registration_pending"] is False
+
+
 @pytest.fixture
 def smtp(monkeypatch):
     """Fake SMTP: records sends; `configured` / `succeed` control the outcome."""

@@ -472,11 +472,23 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    database is then one 8-character password away from the internet. Remove the port
    forward on the router and reach QNAP over Tailscale only (subnet route `172.16.0.2/32`, as
    the laptop does). `docs/misc/LITE_QNAP_SETUP.md` still documents the external address.
-7. **Optional: authenticate a sending domain in Brevo** (2026-09-28). SMTP works, but Brevo
+7. ~~**Optional: authenticate a sending domain in Brevo**~~ — **closed 2026-10-12, owner: keep
+   as is.** Brevo has one sender, `AUT MIEEK <faltsasam@gmail.com>` (verified), and no domain.
+   DKIM is Brevo's default and DMARC says "Freemail domain not recommended", both because the
+   sender is Gmail. Mail is delivered with Brevo's rewritten sender. Reopen only to use the
+   school's domain or a bought one (Brevo code, DKIM and DMARC DNS records). Original (2026-09-28):
+   SMTP works, but Brevo
    rewrites the `@gmail.com` sender to `…@…brevosend.com`, because it cannot send as Gmail. With your
    own domain verified in Brevo, emails can come from e.g. `noreply@<domain>` and are less likely
    to land in spam.
-8. **Create the Dependabot merge GitHub App and store its secrets** (2026-09-29). The App needs
+8. ~~**Create the Dependabot merge GitHub App and store its secrets**~~ — **done 2026-10-12.**
+   `sms-dependabot-merge-bs1gr` (App ID 5291512) is private, has no webhook and is installed on
+   this repo only. It has Contents and Pull requests read/write (plus metadata read). Both
+   `DEPENDABOT_MERGE_APP_CLIENT_ID` and `DEPENDABOT_MERGE_APP_PRIVATE_KEY` are set as Actions
+   **and** Dependabot secrets. Verified by signing a JWT with the key and getting an
+   installation token that reaches only `bs1gr/AUT_MIEEK_SMS`. No Dependabot PR was open to watch
+   a real auto-merge; check the next one. The owner was asked to delete the local `.pem` (it was in a OneDrive-synced
+   folder). Original: (2026-09-29). The App needs
    Contents and Pull requests read/write only, and should be installed on this repo only. Store
    `DEPENDABOT_MERGE_APP_CLIENT_ID` and `DEPENDABOT_MERGE_APP_PRIVATE_KEY` as both Actions and
    Dependabot secrets. Until then, Dependabot patch PRs are approved but not auto-merged.
@@ -486,7 +498,8 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
    longer reactivates it. The same check found `admin@sms-lite.app` **recreated** on the QNAP
    database at 17:01 (DB time), after its deletion that day. It was never used (forced password
    change still pending, no sessions or audit rows), so an older SMS Lite started against QNAP
-   before being updated. Deleting it again was left to the owner (User Management). If it comes
+   before being updated. The owner deleted it again in User Management the same evening; the QNAP
+database now has only `admin@example.com` (inactive) and the owner's account. If it comes
    back, some PC still runs Lite older than v1.18.55. Original report (found 2026-09-29):
    **Change the dev database's `admin@example.com` password**. The account still
    has `password_change_required=True` from when bootstrap created it. Since v1.18.48 the server
@@ -778,6 +791,34 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+25. ~~**A deactivated account looked like a registration request; two password rules**~~ —
+    **fixed 2026-10-12 (owner: "yes please"; not yet released).** Found in the owner's
+    screenshot of User Management.
+    - **Deactivated vs pending.** The panel treated every inactive account as a self-registration
+      awaiting approval. The deactivated `admin@example.com` was under "new registrations wait
+      here", one click on Approve from being active again. Migration `e7a1c9d4f2b8` (additive)
+      adds `users.registration_pending`:
+      - self-registration in approval mode sets it, and activation (Approve, or Edit → active)
+        clears it;
+      - the backfill marks inactive users named by a "registration" notification;
+      - the panel shows "Pending approval" with Approve only for those, and "Inactive" with no
+        Approve for deactivated accounts (re-activate with Edit). The banner counts only
+        requests.
+    - **One password rule.** The backend requires 8–128 characters, no whitespace, an uppercase and a
+      lowercase letter, a digit and a symbol. The forced-change dialog listed that rule. The
+      panel's own 0–6 score accepted passwords the server refused (12 characters without a
+      symbol) and its hint said "at least 12". The installer checked only the length.
+      - **Frontend:** `utils/passwordPolicy.ts` mirrors the backend (Unicode letters, as Python's
+        `isupper` does). The change-own, reset and create forms check it before sending and name
+        the missing requirements. The meter counts requirements met.
+      - **Installer:** `MeetsPasswordRule` applies the same rule to the Lite admin password.
+    - **Tests:**
+      - `test_registration_approval.py` (+1);
+      - `test_registration_pending_migration.py` (backfill on a real migration chain);
+      - `passwordPolicy.test.ts`;
+      - `AdminUsersPanel.approval.test.tsx` (+3: deactivated has no Approve, own-password rule,
+        refused reset never calls the API);
+      - the installer compiles.
 24. ~~**Default admins on a shared database, and a Lite PC set to SQLite still using QNAP**~~ —
     **fixed 2026-10-12 (owner's design; not yet released).** Reported by the owner with a
     screenshot: after choosing local SQLite in the installer, Lite showed the "SMS Lite — QNAP"

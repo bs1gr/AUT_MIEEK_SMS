@@ -654,6 +654,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
             role=assigned_role,
             hashed_password=get_password_hash(payload.password),
             is_active=not requires_approval,
+            registration_pending=requires_approval,
         )
         db.add(user)
         db.commit()
@@ -1128,6 +1129,8 @@ async def admin_update_user(
         user.role = payload.role
     if payload.is_active is not None:
         user.is_active = payload.is_active
+        if payload.is_active:
+            user.registration_pending = False  # approved, or re-activated
 
     if original_role == "admin" and original_active:
         still_admin_and_active = user.role == "admin" and bool(user.is_active)

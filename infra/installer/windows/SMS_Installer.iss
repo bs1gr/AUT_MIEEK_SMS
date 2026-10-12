@@ -171,10 +171,10 @@ english.LiteAdminIntro=Administrator account for the new local database. You wil
 english.LiteAdminExistingDb=This PC already has a local SMS Lite database. It is kept, and you sign in with its existing accounts.
 english.LiteAdminEmail=Administrator email:
 english.LiteAdminName=Full name (optional):
-english.LiteAdminPassword=Password (at least 8 characters):
+english.LiteAdminPassword=Password (8+ characters, A-z, 0-9, symbol):
 english.LiteAdminConfirm=Confirm password:
 english.LiteAdminEmailInvalid=Enter a valid administrator email address, for example name@school.gr. Addresses ending in .local cannot be used.
-english.LiteAdminPasswordShort=The administrator password must have at least 8 characters, with no spaces at the start or end.
+english.LiteAdminPasswordShort=The administrator password needs at least 8 characters, with an uppercase and a lowercase letter, a number and a symbol, and no spaces.
 english.LiteAdminPasswordMismatch=The two passwords do not match.
 
 ; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
@@ -490,6 +490,36 @@ begin
   Result := S;
   StringChangeEx(Result, '\', '\\', True);
   StringChangeEx(Result, '"', '\"', True);
+end;
+
+// The app's one password rule (backend schemas/auth.py, frontend utils/passwordPolicy.ts):
+// 8-128 characters, no whitespace, an uppercase and a lowercase letter, a digit and a symbol.
+// AnsiUppercase/AnsiLowercase follow Unicode, so a Greek capital counts as uppercase.
+function MeetsPasswordRule(const Pw: String): Boolean;
+var
+  i: Integer;
+  C: String;
+  HasUpper, HasLower, HasDigit, HasSymbol: Boolean;
+begin
+  Result := False;
+  if (Length(Pw) < 8) or (Length(Pw) > 128) then
+    Exit;
+  HasUpper := False; HasLower := False; HasDigit := False; HasSymbol := False;
+  for i := 1 to Length(Pw) do
+  begin
+    C := Copy(Pw, i, 1);
+    if (C = ' ') or (C = #9) or (C = #10) or (C = #13) or (C = #160) then
+      Exit;
+    if (C >= '0') and (C <= '9') then
+      HasDigit := True
+    else if AnsiUppercase(C) <> AnsiLowercase(C) then
+    begin
+      if C = AnsiUppercase(C) then HasUpper := True else HasLower := True;
+    end
+    else
+      HasSymbol := True;
+  end;
+  Result := HasUpper and HasLower and HasDigit and HasSymbol;
 end;
 
 function IsSafeHostName(const Host: String): Boolean;
@@ -2304,8 +2334,8 @@ begin
           Result := False;
           Exit;
         end;
-        // Same rule as the backend: at least 8 characters, and it strips surrounding spaces
-        if (Length(LiteAdminPassEdit.Text) < 8) or (Trim(LiteAdminPassEdit.Text) <> LiteAdminPassEdit.Text) then
+        // The app's password rule, so the first password change follows the same rule
+        if not MeetsPasswordRule(LiteAdminPassEdit.Text) then
         begin
           MsgBox(CustomMessage('LiteAdminPasswordShort'), mbError, MB_OK);
           Result := False;

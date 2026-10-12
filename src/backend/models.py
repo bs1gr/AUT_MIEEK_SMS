@@ -25,6 +25,7 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
+    false,
     text,
 )
 from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
@@ -421,6 +422,9 @@ class User(Base):
     role = Column(String(50), nullable=False, index=True, default="teacher")  # Legacy role field
     is_active = Column(Boolean, default=True, index=True)
     password_change_required = Column(Boolean, default=False, nullable=False, index=True)
+    # A self-registration waiting for an administrator's approval. False for an account an
+    # administrator deactivated: is_active alone cannot tell the two apart.
+    registration_pending = Column(Boolean, default=False, server_default=false(), nullable=False)
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     last_failed_login_at = Column(DateTime(timezone=True), nullable=True, index=True)
     lockout_until = Column(DateTime(timezone=True), nullable=True, index=True)

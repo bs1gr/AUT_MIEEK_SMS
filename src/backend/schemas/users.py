@@ -14,3 +14,5 @@ class UserResponse(BaseModel):
     # The frontend's ChangePasswordPromptModal keys off this; without it the prompt
     # could never appear (this is the UserResponse that backend.schemas exports).
     password_change_required: bool = False
+    # A self-registration awaiting approval, as opposed to an account an admin deactivated
+    registration_pending: bool = False

@@ -160,6 +160,8 @@ export interface UserAccount {
   role: UserRole;
   is_active: boolean;
   password_change_required?: boolean;
+  /** A self-registration awaiting approval (an admin-deactivated account is inactive but not pending) */
+  registration_pending?: boolean;
   /** Set by PATCH /admin/users/{id} when the update activated the account. */
   activation_email?: 'sent' | 'failed' | 'not_configured' | null;
   // Allow extra unknown properties (auth/profile endpoints may include additional fields)

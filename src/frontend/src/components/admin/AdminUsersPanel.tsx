@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { adminUsersAPI, rbacAPI } from '@/api/api';
 import type { CreateUserPayload, UpdateUserPayload, UserAccount, UserRole } from '@/types';
 import type { ToastState } from '@/features/operations/components/DevToolsPanel';
+import { unmetPasswordRequirements, type PasswordRequirementKey } from '@/utils/passwordPolicy';
 
 interface AdminUsersPanelProps {
   onToast: (toast: ToastState) => void;
@@ -61,7 +62,12 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
 
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
-      // Inactive accounts (incl. registrations awaiting approval) first, so they get seen
+      // Registrations awaiting approval first, then other inactive accounts, so they get seen
+      const aPending = !a.is_active && !!a.registration_pending;
+      const bPending = !b.is_active && !!b.registration_pending;
+      if (aPending !== bPending) {
+        return aPending ? -1 : 1;
+      }
       if (a.is_active !== b.is_active) {
         return a.is_active ? 1 : -1;
       }
@@ -132,6 +138,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       onToast({ message: t('createUserValidation'), type: 'error' });
       return;
     }
+    const createUnmet = unmetPasswordRequirements(createForm.password);
+    if (createUnmet.length > 0) {
+      onToast({ message: describeUnmet(createUnmet), type: 'error' });
+      return;
+    }
     if (!user || user.role !== 'admin') {
       onToast({ message: t('adminAccessRequired'), type: 'error' });
       return;
@@ -154,17 +165,12 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     }
   };
 
-  const passwordStrength = useMemo(() => {
-    const pwd = newPassword;
-    if (!pwd) return 0;
-    let score = 0;
-    if (pwd.length >= 12) score += 2; else if (pwd.length >= 8) score += 1;
-    if (/[A-Z]/.test(pwd)) score += 1;
-    if (/[a-z]/.test(pwd)) score += 1;
-    if (/\d/.test(pwd)) score += 1;
-    if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
-    return Math.min(score, 6);
-  }, [newPassword]);
+  // The server's rule (utils/passwordPolicy). The meter counts the six requirements met; it used
+  // to be its own score, which accepted passwords the server refused and asked for 12 characters.
+  const ownUnmet = useMemo(() => unmetPasswordRequirements(newPassword), [newPassword]);
+  const passwordStrength = newPassword ? 6 - ownUnmet.length : 0;
+  const describeUnmet = (unmet: PasswordRequirementKey[]) =>
+    `${t('passwordStillNeeds')}: ${unmet.map((key) => t(key)).join(', ')}`;
 
   const handleChangeOwnPassword = async (e: FormEvent) => {
     e.preventDefault();
@@ -176,8 +182,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       onToast({ message: t('changeOwnPasswordMismatch'), type: 'error' });
       return;
     }
-    if (passwordStrength < 4) {
-      onToast({ message: t('changeOwnPasswordWeak'), type: 'error' });
+    if (ownUnmet.length > 0) {
+      onToast({ message: describeUnmet(ownUnmet), type: 'error' });
       return;
     }
     setChangingOwnPassword(true);
@@ -299,7 +305,10 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     }
   };
 
-  const inactiveCount = users.filter((u) => !u.is_active).length;
+  // A self-registration awaiting approval. An account an admin deactivated is inactive but not
+  // pending: it gets no Approve button (re-activate it with Edit).
+  const isPending = (u: UserAccount) => !u.is_active && !!u.registration_pending;
+  const pendingCount = users.filter(isPending).length;
 
   const handleDelete = async (user: UserAccount) => {
     if (!window.confirm(t('confirmDeleteUser'))) {
@@ -323,6 +332,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       onToast({ message: t('resetPasswordValidation'), type: 'error' });
       return;
     }
+    const resetUnmet = unmetPasswordRequirements(resetPassword);
+    if (resetUnmet.length > 0) {
+      onToast({ message: describeUnmet(resetUnmet), type: 'error' });
+      return;
+    }
     setResetSubmitting(true);
     try {
       await adminUsersAPI.resetPassword(resetId, resetPassword);
@@ -339,15 +353,22 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
 
   const currentResetUser = resetId ? sortedUsers.find((user) => user.id === resetId) : null;
 
-  const statusBadge = (isActive: boolean) => (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-        isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
-      }`}
-    >
-      {isActive ? t('active') : t('inactive')}
-    </span>
-  );
+  const statusBadge = (account: UserAccount) => {
+    const pending = isPending(account);
+    const tone = account.is_active
+      ? 'bg-green-100 text-green-700'
+      : pending
+        ? 'bg-amber-100 text-amber-800'
+        : 'bg-gray-200 text-gray-600';
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}
+        data-testid={`user-status-${account.id}`}
+      >
+        {account.is_active ? t('active') : pending ? t('statusPendingApproval') : t('inactive')}
+      </span>
+    );
+  };
 
   // Show access denied message if not authorized
   if (accessDenied) {
@@ -434,7 +455,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <div className="md:col-span-3 flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              disabled={changingOwnPassword || !currentPassword || !newPassword || passwordStrength < 4 || newPassword !== confirmPassword}
+              disabled={changingOwnPassword || !currentPassword || !newPassword || ownUnmet.length > 0 || newPassword !== confirmPassword}
               className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={14} /> {t('changeOwnPasswordButton')}
@@ -452,7 +473,9 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
             {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('currentPassword') })}</p>}
             {!newPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('newPassword') })}</p>}
-            {newPassword && passwordStrength < 4 && <p>{t('bullet')} {t('changeOwnPasswordHint')}</p>}
+            {newPassword && ownUnmet.length > 0 && (
+              <p data-testid="own-password-unmet">{t('bullet')} {describeUnmet(ownUnmet)}</p>
+            )}
             {newPassword && confirmPassword && newPassword !== confirmPassword && <p>{t('bullet')} {t('changeOwnPasswordMismatch')}</p>}
             <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('changeOwnPasswordHint')}</p>
           </div>
@@ -478,13 +501,13 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           </button>
         </header>
 
-        {inactiveCount > 0 && (
+        {pendingCount > 0 && (
           <div
             className="flex items-start gap-2 border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200"
             data-testid="pending-users-notice"
           >
             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-            <p>{t('pendingApprovalNotice', { count: inactiveCount })}</p>
+            <p>{t('pendingApprovalNotice', { count: pendingCount })}</p>
           </div>
         )}
 
@@ -563,7 +586,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                         {t('isActiveLabel')}
                       </label>
                     ) : (
-                      statusBadge(user.is_active)
+                      statusBadge(user)
                     )}
                   </td>
                   <td className="px-3 py-3 text-right">
@@ -587,7 +610,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                       </div>
                     ) : (
                       <div className="flex flex-wrap justify-end gap-2">
-                        {!user.is_active && (
+                        {isPending(user) && (
                           <button
                             type="button"
                             onClick={() => void handleApprove(user)}

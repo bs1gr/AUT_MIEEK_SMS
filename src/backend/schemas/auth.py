@@ -89,6 +89,8 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     password_change_required: bool = False
+    # A self-registration awaiting approval, as opposed to an account an admin deactivated
+    registration_pending: bool = False
 
     # Pydantic v2 style configuration
     model_config = ConfigDict(from_attributes=True)
