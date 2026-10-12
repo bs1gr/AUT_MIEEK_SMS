@@ -33,6 +33,26 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.56] - 2026-10-13
+
+### Bug Fixes
+- **users**: tell registration requests from deactivated accounts; one password rule
+
+### Refactoring
+- **models**: stop mapping the four unused extended-absence columns
+
+### Documentation
+- the public QNAP database port is closed; use the LAN address or Tailscale
+- **plan**: record the v1.18.55 release, the Dependabot round and the public QNAP port
+
+### CI/CD
+- bump actions/labeler from 5 to 7 (#262)
+- bump docker/build-push-action from 5 to 7 (#261)
+- bump actions/checkout from 5 to 7 (#260)
+- bump docker/login-action from 3 to 4 (#259)
+- bump actions/github-script from 7 to 9 (#258)
+
 ## [1.18.55] - 2026-10-12
 
 ### Features
@@ -4635,6 +4655,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
