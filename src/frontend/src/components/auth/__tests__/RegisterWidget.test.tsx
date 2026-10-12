@@ -15,15 +15,16 @@ vi.mock('@/LanguageContext', () => ({
   useLanguage: () => ({ t: (key: string) => key }),
 }));
 
-const mockedApiClient = apiClient as unknown as { post: ReturnType<typeof vi.fn> };
+const mockedApiClient = apiClient as unknown as { post: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
 
 describe('RegisterWidget', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedApiClient.get.mockResolvedValue({ data: { mode: 'approval' } });
   });
 
   const fillAndSubmit = async (user: ReturnType<typeof userEvent.setup>) => {
-    await user.type(screen.getByTestId('register-email'), 'new@example.com');
+    await user.type(await screen.findByTestId('register-email'), 'new@example.com');
     await user.type(screen.getByTestId('register-password'), 'secret123');
     await user.type(screen.getByTestId('register-fullname'), 'New User');
     await user.click(screen.getByTestId('register-submit'));
@@ -116,14 +117,42 @@ describe('RegisterWidget', () => {
     expect(mockLogin).not.toHaveBeenCalled();
   });
 
+  describe('when the server accepts no registrations (SMS Lite on local SQLite)', () => {
+    it('shows no form, only who creates accounts', async () => {
+      mockedApiClient.get.mockResolvedValue({ data: { mode: 'disabled' } });
+      render(<RegisterWidget variant="inline" collapsedByDefault />);
+
+      expect(await screen.findByTestId('register-admin-only')).toHaveTextContent('auth.registerByAdminOnly');
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/auth/registration-mode');
+      expect(screen.queryByTestId('register-toggle')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('register-email')).not.toBeInTheDocument();
+    });
+
+    it('renders nothing in the dialog variant', async () => {
+      mockedApiClient.get.mockResolvedValue({ data: { mode: 'disabled' } });
+      const { container } = render(<RegisterWidget variant="dialog" />);
+
+      await waitFor(() => expect(mockedApiClient.get).toHaveBeenCalled());
+      await waitFor(() => expect(container).toBeEmptyDOMElement());
+    });
+
+    it('keeps the form when the server is older and has no mode endpoint', async () => {
+      mockedApiClient.get.mockRejectedValue({ response: { status: 404 } });
+      render(<RegisterWidget variant="inline" />);
+
+      expect(await screen.findByTestId('register-email')).toBeInTheDocument();
+    });
+  });
+
   describe('inline variant collapse toggle', () => {
     it('starts collapsed when collapsedByDefault is set and expands on toggle', async () => {
       const user = userEvent.setup();
       render(<RegisterWidget variant="inline" collapsedByDefault />);
 
+      const toggle = await screen.findByTestId('register-toggle');
       expect(screen.queryByTestId('register-email')).not.toBeInTheDocument();
 
-      await user.click(screen.getByTestId('register-toggle'));
+      await user.click(toggle);
 
       expect(screen.getByTestId('register-email')).toBeInTheDocument();
     });
@@ -134,9 +163,7 @@ describe('RegisterWidget', () => {
       const user = userEvent.setup();
       render(<RegisterWidget variant="dialog" />);
 
-      expect(screen.queryByTestId('register-email')).not.toBeInTheDocument();
-
-      await user.click(screen.getByTestId('register-open'));
+      await user.click(await screen.findByTestId('register-open'));
 
       expect(await screen.findByTestId('register-email')).toBeInTheDocument();
     });

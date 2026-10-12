@@ -40,6 +40,25 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const role = 'teacher' as const; // Guard against privilege escalation for self-registration
   const [collapsed, setCollapsed] = useState(collapsedByDefault);
+  // null until the server says. 'disabled' on an install whose requests nobody could approve
+  // (SMS Lite on local SQLite: its only administrators are on that PC).
+  const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiClient
+      .get<{ mode?: string }>('/auth/registration-mode')
+      .then((response) => {
+        if (!cancelled) setRegistrationOpen(response.data?.mode !== 'disabled');
+      })
+      .catch(() => {
+        // An older server has no such endpoint; it still enforces its own mode on submit.
+        if (!cancelled) setRegistrationOpen(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (variant === 'dialog' && !open) {
@@ -97,6 +116,17 @@ const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onR
       setBusy(false);
     }
   };
+
+  if (registrationOpen === null) {
+    return null;
+  }
+  if (!registrationOpen) {
+    return variant === 'inline' ? (
+      <p className="text-sm text-gray-600 dark:text-gray-300" data-testid="register-admin-only">
+        {t('auth.registerByAdminOnly')}
+      </p>
+    ) : null;
+  }
 
   const feedbackTone = feedback?.type === 'error'
     ? 'text-red-600 dark:text-red-400'

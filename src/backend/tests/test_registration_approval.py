@@ -283,6 +283,17 @@ def test_disabled_mode_still_allows_admin_token_registration(client, db, registr
     assert r.json()["is_active"] is True
 
 
+@pytest.mark.parametrize("mode", ["approval", "open", "disabled"])
+def test_registration_mode_is_public_so_the_login_page_can_hide_the_form(client, registration_mode, mode):
+    # SMS Lite on local SQLite runs with "disabled": a request would only reach that PC's own
+    # administrator, and nobody at the school would ever answer it.
+    registration_mode(mode)
+
+    r = client.get("/api/v1/auth/registration-mode")  # no token
+    assert r.status_code == 200, r.text
+    assert r.json() == {"mode": mode}
+
+
 def test_login_refused_for_admin_deactivated_account(client, db):
     user = models.User(
         email="deactivated@example.com",

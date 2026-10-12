@@ -163,6 +163,8 @@ english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.jso
 ; SMS Lite database and first administrator
 english.LiteDbIntro=Choose the database for this PC. With the shared QNAP database you sign in with your existing account there. With a local SQLite database, you create the administrator account below.
 english.LiteQnapLoadedExisting=QNAP settings saved on this PC were loaded. Enter the current database password.
+english.LiteQnapBadAddress=The QNAP host may contain only letters, digits, dots, hyphens and colons, and the port must be a number from 1 to 65535.
+english.LiteQnapUnreachable=The QNAP database at %1:%2 did not answer from this PC just now.%n%nIf this PC is not on the school network or Tailscale at the moment, you can continue: SMS Lite connects when it starts. If the address or port is wrong, choose No and correct it.%n%nThe password cannot be checked here. If it is wrong, SMS Lite asks for the current one when it starts.%n%nContinue anyway?
 english.LiteQnapIncomplete=Enter the QNAP host, port, database name, user name and password, or choose the local SQLite database.
 english.LiteSwitchToSqliteConfirm=This PC is set up for the shared QNAP database. Switching to a local SQLite database removes those settings, and anything entered on this PC will not be on QNAP.%n%nSwitch to local SQLite?
 english.LiteAdminIntro=Administrator account for the new local database. You will sign in with it.
@@ -488,6 +490,20 @@ begin
   Result := S;
   StringChangeEx(Result, '\', '\\', True);
   StringChangeEx(Result, '"', '\"', True);
+end;
+
+function IsSafeHostName(const Host: String): Boolean;
+var
+  i: Integer;
+begin
+  Result := Host <> '';
+  for i := 1 to Length(Host) do
+    if not (((Host[i] >= 'a') and (Host[i] <= 'z')) or ((Host[i] >= 'A') and (Host[i] <= 'Z')) or
+            ((Host[i] >= '0') and (Host[i] <= '9')) or (Host[i] = '.') or (Host[i] = '-') or (Host[i] = ':')) then
+    begin
+      Result := False;
+      Exit;
+    end;
 end;
 
 // A rough pre-check; Lite validates the address as the backend does (email-validator) and
@@ -2249,6 +2265,25 @@ begin
         MsgBox(CustomMessage('LiteQnapIncomplete'), mbError, MB_OK);
         Result := False;
         Exit;
+      end;
+      // The host goes into a PowerShell command line below: letters, digits, '.', '-', ':' only
+      if not IsSafeHostName(Trim(LiteQnapHostEdit.Text)) or
+         (StrToIntDef(Trim(LiteQnapPortEdit.Text), 0) < 1) or (StrToIntDef(Trim(LiteQnapPortEdit.Text), 0) > 65535) then
+      begin
+        MsgBox(CustomMessage('LiteQnapBadAddress'), mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+      // Only reachability can be checked here (a login test needs Docker, which Lite PCs lack).
+      // A wrong password is caught when SMS Lite starts: it then asks for the current one.
+      if not TestPostgresTcpConnection(Trim(LiteQnapHostEdit.Text), Trim(LiteQnapPortEdit.Text)) then
+      begin
+        if MsgBox(FmtMessage(CustomMessage('LiteQnapUnreachable'), [Trim(LiteQnapHostEdit.Text), Trim(LiteQnapPortEdit.Text)]),
+                  mbConfirmation, MB_YESNO) = IDNO then
+        begin
+          Result := False;
+          Exit;
+        end;
       end;
     end
     else

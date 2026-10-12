@@ -276,10 +276,23 @@ C:\Program Files (x86)\SMS-UT\backups\
 - Lite never falls back to SQLite while QNAP is configured: it waits at the "SMS Lite — QNAP"
   Retry/Cancel box
 
-**"rejected the saved password":** the database password was changed (for example the
-2026-10-07 rotation). Re-run the installer and enter the current password, or run
-`SaveLiteEditionQnapCredentials.ps1` (see
-[QNAP_DB_PASSWORD_ROTATION.md](QNAP_DB_PASSWORD_ROTATION.md) §7). Retry cannot help until then.
+**QNAP refuses the saved password** (for example after the 2026-10-07 rotation, or a typo in
+the installer): SMS Lite opens a "SMS Lite - QNAP" window asking for the current database
+password. It tests the password, saves it in `qnap-credentials.json` if it works, and carries on
+starting; a wrong one is asked again, and Cancel quits. No reinstall is needed. Re-running the
+installer, or `SaveLiteEditionQnapCredentials.ps1`
+([QNAP_DB_PASSWORD_ROTATION.md](QNAP_DB_PASSWORD_ROTATION.md) §7), still works too.
+
+The installer can only check that the QNAP host and port answer (a login test would need
+Docker). If they do not, it warns before installing; you can still continue when the PC is
+off the school network or Tailscale.
+
+### Registration on the login page
+
+On a **local SQLite** install there is no "Need an account?" form: a request would only reach
+this PC's own administrator, and nobody at the school would see it. The page says that the
+installation's administrator creates accounts (User Management). On **QNAP**, requests go to
+the shared database's administrators for approval, as before.
 
 **Fix:**
 - Correct credentials in `qnap-credentials.json`

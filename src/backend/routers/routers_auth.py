@@ -601,6 +601,18 @@ def _notify_admins_activation_email_failed(db: Session, activated: User, reason:
         logger.exception("Failed to notify admins that the activation email was not sent")
 
 
+def _registration_mode() -> str:
+    mode = str(getattr(settings, "SELF_REGISTRATION_MODE", "approval") or "approval").lower()
+    return mode if mode in {"approval", "open", "disabled"} else "approval"
+
+
+@router.get("/auth/registration-mode")
+@limiter.limit(RATE_LIMIT_READ)
+async def get_registration_mode(request: Request):
+    """Public: lets the login page hide self-registration where nobody could approve it."""
+    return {"mode": _registration_mode()}
+
+
 @router.post("/auth/register", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
 async def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
@@ -626,7 +638,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
         # Public self-registration grants teacher access to every student's data, so by
         # default it only files a request: the account stays inactive (login refused with
         # AUTH_ACCOUNT_INACTIVE) until an admin activates it.
-        registration_mode = str(getattr(settings, "SELF_REGISTRATION_MODE", "approval") or "approval").lower()
+        registration_mode = _registration_mode()
         if not created_by_admin and registration_mode == "disabled":
             raise http_error(
                 status.HTTP_403_FORBIDDEN,

@@ -760,6 +760,26 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
     - **Tests:** `test_admin_bootstrap.py` (+3; 3 fail on the old code), `test_lite_db.py` (+11).
       The installer compiles with ISCC (exit 0). **Not yet clicked through as a GUI:** do that in
       the release smoke test (fresh PC, upgrade of a QNAP PC, switch to SQLite).
+    - **Follow-ups the same day (owner: "add the 2 improvements", and registration on SQLite):**
+      - **Wrong QNAP password, after installation:** when QNAP refuses the saved password, Lite
+        opens a WinForms password window (PowerShell; the message goes in through an environment
+        variable and the password comes back on stdout, never on a command line). It tests the
+        password, saves only that field in `qnap-credentials.json` if it works, asks again if
+        not, and quits on Cancel.
+      - **Installer:** the QNAP host and port must be valid (the host goes into a PowerShell
+        command) and are checked for an answer (5 s TCP). If they don't answer, it warns and
+        offers to continue. A login test would need Docker, so the password is left to Lite's
+        prompt.
+      - **Registration on local SQLite:** Lite without QNAP credentials runs with
+        `SELF_REGISTRATION_MODE=disabled` (requests could only reach that PC's own admin).
+        `GET /auth/registration-mode` (public) lets the login page show "Accounts on this
+        installation are created by its administrator" instead of the form (EN/EL). An older
+        server without the endpoint keeps the form. QNAP, Docker and Native keep approval.
+      - **Tests:** `test_lite_db.py` (+5: prompt-and-save, wrong-then-cancel, dialog script parses
+        in PowerShell, registration off on SQLite / on with QNAP), `test_registration_approval.py`
+        (+3), `RegisterWidget.test.tsx` (+3), `AuthControls.test.tsx` updated.
+      - **Smoke test:** the password window has not been opened on screen yet. Check its layout
+        in EN/EL with a deliberately wrong password.
 23. ~~**Overview dashboard: active students only, "Recently Enrolled" replaced**~~ — **done
     2026-10-07 (owner's choice of panels; not yet released).**
     - Year-of-study counts only active students, as a share of active students.

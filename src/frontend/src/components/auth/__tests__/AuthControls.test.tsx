@@ -11,6 +11,10 @@ vi.mock('@/LanguageContext', () => ({
   useLanguage: () => ({ t: (key: string) => key }),
 }));
 
+vi.mock('@/api/api', () => ({
+  default: { get: vi.fn().mockResolvedValue({ data: { mode: 'approval' } }), post: vi.fn() },
+}));
+
 describe('AuthControls', () => {
   it('renders nothing when a user is already signed in', () => {
     mockUseAuth.mockReturnValue({ user: { id: 1, email: 'a@b.com', role: 'admin' } });
@@ -20,12 +24,12 @@ describe('AuthControls', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders login and register controls when signed out', () => {
+  it('renders login and register controls when signed out', async () => {
     mockUseAuth.mockReturnValue({ user: null });
 
     render(<AuthControls />);
 
     expect(screen.getByRole('button', { name: 'common.login' })).toBeInTheDocument();
-    expect(screen.getByTestId('register-open')).toBeInTheDocument();
+    expect(await screen.findByTestId('register-open')).toBeInTheDocument();
   });
 });

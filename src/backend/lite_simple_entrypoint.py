@@ -37,7 +37,12 @@ if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
         pass
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
-from backend.lite_db import load_initial_admin, select_database, windows_retry_dialog  # noqa: E402 - stdlib-only module
+from backend.lite_db import (  # noqa: E402 - stdlib-only module
+    load_initial_admin,
+    select_database,
+    windows_password_dialog,
+    windows_retry_dialog,
+)
 
 # QNAP PostgreSQL credentials: AppData when installed, next to the source tree in development.
 _lite_appdata: Path | None
@@ -68,8 +73,24 @@ def _ask_retry(message: str) -> bool:
     return False  # running from source: no dialog, just stop
 
 
+def _ask_password(message: str) -> str | None:
+    """QNAP refused the saved password: ask for the current one (frozen app), or stop."""
+    print(message, file=sys.stderr)
+    if _lite_appdata is None:
+        return None  # running from source: no dialog
+    try:
+        _lite_appdata.mkdir(parents=True, exist_ok=True)
+        with open(_lite_appdata / 'debug.log', 'a', encoding='utf-8', errors='replace') as _log:
+            _log.write('QNAP refused the saved password; asking the user for the current one\n')
+    except Exception:
+        pass
+    return windows_password_dialog(message)
+
+
 # With credentials, Lite runs on QNAP or not at all - never on a local database (lite_db.py).
-_database_url, _sslmode = select_database(qnap_creds_file, _local_sqlite_url, _ask_retry)
+_database_url, _sslmode = select_database(
+    qnap_creds_file, _local_sqlite_url, _ask_retry, ask_password=_ask_password
+)
 os.environ['DATABASE_URL'] = _database_url
 if _sslmode is not None:
     os.environ['POSTGRES_SSLMODE'] = _sslmode
@@ -103,6 +124,13 @@ else:
     os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
     os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
     os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
+
+# Self-registration only files a request for an administrator to approve. On a local SQLite
+# install the only administrators are on this PC, and nobody at the school sees the request,
+# so the login page offers no registration there: the PC's administrator creates accounts in
+# User Management. On QNAP the shared database's administrators approve requests as usual.
+if not qnap_creds_file:
+    os.environ.setdefault('SELF_REGISTRATION_MODE', 'disabled')
 
 # Generate (once) and persist a real SECRET_KEY for this installation. There is no
 # bundled backend/.env in the frozen exe, so backend.config.Settings would otherwise

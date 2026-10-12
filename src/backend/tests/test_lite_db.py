@@ -156,10 +156,97 @@ def test_entrypoint_uses_the_installer_admin_without_forcing_a_password_change(m
         sys.modules.pop("backend.lite_simple_entrypoint", None)
 
 
+def _import_entrypoint(monkeypatch, qnap_credentials: bool):
+    """Import the Lite entrypoint's module code with or without a QNAP credentials file."""
+    from pathlib import Path
+
+    monkeypatch.setattr(lite_db, "select_database", lambda *args, **kwargs: ("sqlite:///./data/from-test.db", None))
+    real_exists = Path.exists
+    monkeypatch.setattr(
+        Path,
+        "exists",
+        lambda self: qnap_credentials if self.name == "qnap-credentials.json" else real_exists(self),
+    )
+    os.environ.pop("SELF_REGISTRATION_MODE", None)
+    sys.modules.pop("backend.lite_simple_entrypoint", None)
+    return importlib.import_module("backend.lite_simple_entrypoint")
+
+
+@pytest.mark.parametrize(("qnap_credentials", "expected"), [(False, "disabled"), (True, None)])
+def test_registration_is_off_on_a_local_sqlite_install(monkeypatch, qnap_credentials, expected):
+    # Self-registration files a request for an administrator. On local SQLite the only admins are
+    # on that PC, so nobody at the school would ever answer it; on QNAP the usual approval applies.
+    saved = dict(os.environ)
+    try:
+        _import_entrypoint(monkeypatch, qnap_credentials)
+        assert os.environ.get("SELF_REGISTRATION_MODE") == expected
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
+        sys.modules.pop("backend.lite_simple_entrypoint", None)
+
+
+def test_refused_password_asks_for_the_current_one_and_saves_it(tmp_path):
+    creds_file = _creds_file(tmp_path, dict(CREDS, password="old-password"))
+    tried = []
+
+    def server(creds):
+        tried.append(creds["password"])
+        if creds["password"] != "new-password":
+            raise lite_db.QnapCredentialsRejected("QNAP PostgreSQL at 172.16.0.2:55433 rejected the saved password")
+
+    prompts = []
+    url, _ = lite_db.select_database(
+        creds_file,
+        SQLITE_URL,
+        _never_asked,
+        probe_fn=server,
+        ask_password=lambda message: prompts.append(message) or "new-password",
+    )
+
+    assert tried == ["old-password", "new-password"]
+    assert len(prompts) == 1 and "τρέχοντα κωδικό" in prompts[0]  # bilingual
+    assert url == "postgresql+psycopg://sms+user:new-password@172.16.0.2:55433/student_management"
+    saved = json.loads(creds_file.read_text(encoding="utf-8"))
+    assert saved == dict(CREDS, password="new-password")  # only the password changed
+
+
+def test_wrong_password_typed_asks_again_and_cancel_stops_lite(tmp_path):
+    creds_file = _creds_file(tmp_path, dict(CREDS, password="old-password"))
+    answers = iter(["still-wrong", None])
+
+    def refuse(creds):
+        raise lite_db.QnapCredentialsRejected("rejected")
+
+    with pytest.raises(SystemExit):
+        lite_db.select_database(creds_file, SQLITE_URL, _never_asked, probe_fn=refuse, ask_password=lambda m: next(answers))
+    # nothing that failed was saved
+    assert json.loads(creds_file.read_text(encoding="utf-8"))["password"] == "old-password"
+
+
+def test_password_dialog_script_parses():
+    import shutil
+    import subprocess
+
+    shell = shutil.which("pwsh") or shutil.which("powershell")
+    if shell is None:
+        pytest.skip("no PowerShell")
+    check = "[void][scriptblock]::Create([Console]::In.ReadToEnd()); 'ok'"
+    result = subprocess.run(
+        [shell, "-NoProfile", "-NonInteractive", "-Command", check],
+        input=lite_db.PASSWORD_DIALOG_PS,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+    )
+    assert result.stdout.strip() == "ok", result.stderr
+
+
 def test_entrypoint_selects_the_database_through_lite_db(monkeypatch):
     calls = []
 
-    def fake_select(creds_file, sqlite_url, ask_retry, probe_fn=None):
+    def fake_select(creds_file, sqlite_url, ask_retry, probe_fn=None, ask_password=None):
         calls.append((creds_file, sqlite_url))
         return "sqlite:///./data/from-test.db", None
 

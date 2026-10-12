@@ -10,6 +10,7 @@ export default {
   serverUnreachable: 'The server is not available right now. Try again in a moment or contact an administrator.',
   registerPendingApproval: 'Your request has been submitted. An administrator must approve your account before you can sign in.',
   registerDisabled: 'Public registration is disabled. Ask an administrator to create your account.',
+  registerByAdminOnly: 'Accounts on this installation are created by its administrator.',
   accountInactive: 'Your account is not active. If you just registered, wait for an administrator to approve it; otherwise contact an administrator.',
   registerCta: 'Need an account to access the system?',
   openRegisterPrompt: 'Request access',

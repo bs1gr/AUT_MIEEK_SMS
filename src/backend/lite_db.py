@@ -100,28 +100,67 @@ def unavailable_message(reason: str, credentials_rejected: bool = False) -> str:
     )
 
 
+def password_prompt_message(reason: str) -> str:
+    """Shown above the password field when QNAP refused the saved password (EN + EL)."""
+    return (
+        f"{reason}.\n"
+        "The database password has probably been changed. Enter the current QNAP database password; "
+        "it is tested and then saved on this PC.\n\n"
+        "Το QNAP απέρριψε τον αποθηκευμένο κωδικό. Πιθανότατα ο κωδικός της βάσης άλλαξε. Δώστε τον "
+        "τρέχοντα κωδικό της βάσης QNAP· θα ελεγχθεί και θα αποθηκευτεί σε αυτόν τον υπολογιστή."
+    )
+
+
+def save_password(creds_file: Path, password: str) -> None:
+    """Replace only the password in the credentials file, keeping every other setting."""
+    data = json.loads(creds_file.read_text(encoding="utf-8-sig"))
+    data["password"] = password
+    creds_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
 def select_database(
     creds_file: Path | None,
     sqlite_url: str,
     ask_retry: Callable[[str], bool],
     probe_fn: Callable[[dict[str, Any]], None] = probe,
+    ask_password: Callable[[str], str | None] | None = None,
 ) -> tuple[str, str | None]:
     """Return (DATABASE_URL, POSTGRES_SSLMODE or None).
 
     No credentials file: the local SQLite URL. Credentials present: the QNAP URL once a
     connection succeeds; while it does not, ``ask_retry(message)`` decides whether to try
     again. Declining raises ``SystemExit``: Lite must not start on a local database.
+
+    When the server refuses the saved password, Retry cannot help, so ``ask_password``
+    (if given) asks for the current one instead. A password that works is saved to the
+    credentials file; cancelling stops Lite. Without ``ask_password`` it falls back to
+    ``ask_retry``.
     """
     if creds_file is None:
         return sqlite_url, None
+    typed_password: str | None = None
     while True:
         try:
             creds = load_credentials(creds_file)
+            if typed_password is not None:
+                creds["password"] = typed_password
             probe_fn(creds)
+            if typed_password is not None:
+                try:
+                    save_password(creds_file, typed_password)
+                except (OSError, ValueError):
+                    pass  # this session works; the next start asks again
             return postgres_url(creds), str(creds.get("sslmode", "disable"))
+        except QnapCredentialsRejected as exc:
+            if ask_password is None:
+                if not ask_retry(unavailable_message(str(exc), credentials_rejected=True)):
+                    raise SystemExit(f"SMS Lite stopped: {exc}") from exc
+                continue
+            typed_password = ask_password(password_prompt_message(str(exc)))
+            if not typed_password:
+                raise SystemExit(f"SMS Lite stopped: {exc}") from exc
         except QnapUnavailable as exc:
-            message = unavailable_message(str(exc), isinstance(exc, QnapCredentialsRejected))
-            if not ask_retry(message):
+            if not ask_retry(unavailable_message(str(exc))):
                 raise SystemExit(f"SMS Lite stopped: {exc}") from exc
 
 
@@ -154,6 +193,65 @@ def load_initial_admin(path: Path) -> dict[str, str] | None:
         return None
     full_name = str(data.get("full_name") or "").strip() or "System Administrator"
     return {"email": email, "password": password, "full_name": full_name}
+
+
+# A small WinForms window: the message, a hidden password field, OK / Cancel. The message comes
+# in through an environment variable and the password goes out on stdout, so neither is ever on
+# a command line. Exit code 0 = OK.
+PASSWORD_DIALOG_PS = r"""
+Add-Type -AssemblyName System.Windows.Forms
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+$form = New-Object Windows.Forms.Form
+$form.Text = 'SMS Lite - QNAP'
+$form.FormBorderStyle = 'FixedDialog'
+$form.StartPosition = 'CenterScreen'
+$form.MinimizeBox = $false
+$form.MaximizeBox = $false
+$form.TopMost = $true
+$form.ClientSize = New-Object Drawing.Size(520, 250)
+$label = New-Object Windows.Forms.Label
+$label.Text = $env:SMS_LITE_PROMPT
+$label.SetBounds(12, 12, 496, 140)
+$box = New-Object Windows.Forms.TextBox
+$box.UseSystemPasswordChar = $true
+$box.SetBounds(12, 160, 496, 24)
+$ok = New-Object Windows.Forms.Button
+$ok.Text = 'OK'
+$ok.DialogResult = 'OK'
+$ok.SetBounds(302, 205, 90, 28)
+$cancel = New-Object Windows.Forms.Button
+$cancel.Text = 'Cancel / Άκυρο'
+$cancel.DialogResult = 'Cancel'
+$cancel.SetBounds(398, 205, 110, 28)
+$form.Controls.AddRange(@($label, $box, $ok, $cancel))
+$form.AcceptButton = $ok
+$form.CancelButton = $cancel
+$form.Add_Shown({ $box.Focus() })
+if ($form.ShowDialog() -eq 'OK' -and $box.Text) { [Console]::Out.Write($box.Text); exit 0 }
+exit 1
+"""
+
+
+def windows_password_dialog(message: str) -> str | None:
+    """Ask for the QNAP password in a native window. None = cancelled."""
+    import base64
+    import os
+    import subprocess
+
+    encoded = base64.b64encode(PASSWORD_DIALOG_PS.encode("utf-16-le")).decode("ascii")
+    try:
+        result = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded],
+            capture_output=True,
+            env={**os.environ, "SMS_LITE_PROMPT": message},
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            timeout=1800,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout.decode("utf-8-sig", errors="replace") or None
 
 
 def windows_retry_dialog(message: str) -> bool:
