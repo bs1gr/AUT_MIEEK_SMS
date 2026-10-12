@@ -40,6 +40,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Bug Fixes
 - **lite,auth**: no public default admin on a shared database; SQLite choice removes old QNAP settings
+- **lite**: delete the installer's admin file even when bootstrap's console print fails; no "Credentials loaded" box at installer start (both found by the release smoke test)
 - **test-runner**: retry a batch whose interpreter died part-way through
 
 ### Documentation

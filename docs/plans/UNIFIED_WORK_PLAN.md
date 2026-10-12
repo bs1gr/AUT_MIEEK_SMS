@@ -785,8 +785,28 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
         - **Login page:** a throwaway backend (`SELF_REGISTRATION_MODE=disabled`, temporary SQLite)
           and Vite were screenshotted with Playwright in EN and EL. The note shows, there are no
           registration fields, and no request failed.
-        - **Still for the release smoke test:** clicking through the installer's Lite page
-          (fresh PC, upgrade of a QNAP PC, switch to SQLite, unreachable host).
+        - **Release smoke test (v1.18.55, 2026-10-12)** on the frozen `SMS_Lite.exe` and the
+          signed installer:
+          - **Throwaway profile:** `USERPROFILE` was redirected, so the real Lite data was never
+            touched.
+          - **QNAP refuses the saved password:** a fake PostgreSQL that refuses `WrongPass` showed
+            the password window. Typing the right password connected, and only the password
+            changed in `qnap-credentials.json`.
+          - **Local SQLite with `initial-admin.json`:**
+            - healthy in seconds;
+            - `registration-mode` disabled, and anonymous registration gets 403;
+            - the installer's admin logs in with no forced change and reads data (200);
+            - `admin@sms-lite.app` does not exist (400 invalid credentials);
+            - the admin file is gone.
+          - **Two bugs found and fixed before tagging (`a10283871`):**
+            - bootstrap's emoji `print` raised `UnicodeEncodeError` on the frozen app's
+              code-page stdout after creating the account, so the plaintext admin file was kept;
+            - prefilling saved QNAP settings showed the Browse button's "Credentials loaded" box
+              before the wizard opened.
+          - **Installer Lite page:** clicked through by the owner on the rebuilt installer, all
+            as expected. QNAP was preselected and prefilled without the password; the
+            empty-password, unreachable-host, switch-to-SQLite and admin-field messages appeared;
+            setup was cancelled. UI Automation could not drive the Inno wizard's buttons.
 23. ~~**Overview dashboard: active students only, "Recently Enrolled" replaced**~~ — **done
     2026-10-07 (owner's choice of panels; not yet released).**
     - Year-of-study counts only active students, as a share of active students.
