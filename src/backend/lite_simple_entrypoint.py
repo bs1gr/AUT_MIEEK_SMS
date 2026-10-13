@@ -106,6 +106,10 @@ os.environ.setdefault('SMS_ENV', 'development')
 os.environ.setdefault('AUTH_ENABLED', 'true')
 os.environ.setdefault('AUTH_MODE', 'strict')
 
+# Tells the Control Panel's Update which edition this is: SMS Lite updates by installing only the
+# Lite edition in place (routers/control/maintenance.py), not like Docker or a developer checkout.
+os.environ['SMS_DEPLOYMENT_MODE'] = 'lite'
+
 # First administrator. Bootstrap creates it only in a database with no users yet, so the
 # shared QNAP database never gets one: QNAP users sign in with their existing accounts.
 # - A local-SQLite install: the account the installer asked the user for

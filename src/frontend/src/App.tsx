@@ -18,6 +18,7 @@ import { useAuth } from './contexts/AuthContext';
 import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptModal';
 import BackendStatusBanner from './components/common/BackendStatusBanner';
 import OfflineBanner from './components/common/OfflineBanner';
+import AppUpdateBanner from './components/common/AppUpdateBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
 import { getApiBaseUrl, isLocalMode } from '@/utils/serverUrl';
 import { useAndroidBackButton } from '@/hooks/useAndroidBackButton';
@@ -157,6 +158,9 @@ function AppLayout({ children }: AppLayoutProps) {
 
       {/* Offline / Pending-Sync Banner */}
       <OfflineBanner />
+
+      {/* Android app only: a newer APK is published */}
+      <AppUpdateBanner />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

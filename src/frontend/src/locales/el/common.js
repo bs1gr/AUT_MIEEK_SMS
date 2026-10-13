@@ -1,4 +1,8 @@
 export default {
+  // Προσφορά ενημέρωσης της εφαρμογής Android (AppUpdateBanner)
+  appUpdateAvailable: 'Υπάρχει νέα έκδοση της εφαρμογής ({{version}}).',
+  appUpdateDownload: 'Λήψη',
+  appUpdateLater: 'Αργότερα',
   // Διαχείριση Σπουδαστών & Μαθημάτων (Ειδοποιήσεις, Επιβεβαιώσεις)
   failedToLoadSomeData: 'Αποτυχία φόρτωσης ορισμένων δεδομένων. Ίσως λείπουν endpoints.',
   failedToLoadDataServer: 'Αποτυχία φόρτωσης δεδομένων. Ο διακομιστής επέστρεψε σφάλμα.',

@@ -164,13 +164,19 @@ def test_updates_check_docker_mode_returns_manual_instructions(client, monkeypat
     )
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
 
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "0")
+
     resp = client.get("/control/api/maintenance/updates/check")
     assert resp.status_code == 200
     data = resp.json()
     assert data["deployment_mode"] == "docker"
+    assert data["update_method"] == "host_task"
+    assert data["host_updater_ready"] is False
     assert data["update_available"] is True
     assert data["update_instructions_key"] == "maintenance.update.instructions_docker"
-    assert "DOCKER.ps1 -UpdateClean" in data["update_instructions"]
+    # -UpdateClean only rebuilds the installed sources; a release needs its installer first
+    assert "DOCKER.ps1 -Update" in data["update_instructions"]
+    assert "SMS_Installer" in data["update_instructions"]
 
 
 def test_auto_install_update_docker_mode_blocked(client, monkeypatch):
@@ -199,6 +205,86 @@ def test_auto_install_update_docker_mode_blocked(client, monkeypatch):
     assert data["message_key"] == "maintenance.update.auto_install_docker_blocked"
     assert data["details"]["deployment_mode"] == "docker"
     assert data["details"]["bridge_enabled"] is False
+    assert data["details"]["host_updater_ready"] is False
+
+
+def _docker_context(monkeypatch):
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(environment=RuntimeEnvironment.PRODUCTION, is_docker=True, is_ci=False, source="test"),
+    )
+
+
+def _heartbeat(trigger_dir: Path, age_seconds: float = 0.0) -> None:
+    import os
+    import time
+
+    beat = trigger_dir / "update_watcher_heartbeat.json"
+    beat.write_text("{}", encoding="utf-8")
+    stamp = time.time() - age_seconds
+    os.utime(beat, (stamp, stamp))
+
+
+def test_docker_update_is_refused_when_the_host_task_is_not_running(client, monkeypatch, tmp_path):
+    # A writable trigger directory with nobody watching it used to accept the request, which then
+    # waited forever. Without a recent heartbeat from the host task the update is refused.
+    _docker_context(monkeypatch)
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "auto")
+    monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+    _heartbeat(tmp_path, age_seconds=600)  # a task that stopped ten minutes ago
+
+    data = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()
+    assert data["success"] is False
+    assert data["message_key"] == "maintenance.update.auto_install_docker_blocked"
+    assert not list(tmp_path.glob("update_request_*.json"))
+
+
+def test_docker_status_survives_the_container_rebuild(client, monkeypatch, tmp_path):
+    # The update rebuilds the container, so the job held in memory is gone when the app returns;
+    # the host task's status file still says how it ended.
+    from backend.routers.control import maintenance
+
+    _docker_context(monkeypatch)
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "1")
+    monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+    job_id = "ab" * 16
+    (tmp_path / f"update_status_{job_id}.json").write_text(
+        json.dumps({"job_id": job_id, "status": "completed", "phase": "bridge_completed",
+                    "progress_percent": 100, "message": "Updated to 1.18.57.", "target_version": "1.18.57"}),
+        encoding="utf-8",
+    )
+    assert maintenance._get_auto_update_job(job_id) is None
+
+    data = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status").json()
+    assert (data["status"], data["phase"], data["target_version"]) == ("completed", "bridge_completed", "1.18.57")
+
+
+def test_native_checkout_is_never_updated_with_the_installer(client, monkeypatch):
+    # A developer's checkout (NATIVE.ps1) used to download and run the full installer over itself.
+    from backend.routers.control import maintenance
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(environment=RuntimeEnvironment.DEVELOPMENT, is_docker=False, is_ci=False, source="test"),
+    )
+    monkeypatch.delenv("SMS_DEPLOYMENT_MODE", raising=False)
+    started = []
+    monkeypatch.setattr(maintenance, "_start_auto_update_job", lambda *args: started.append(args))
+
+    data = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()
+    assert data["success"] is False
+    assert data["message_key"] == "maintenance.update.auto_install_native_manual"
+    assert started == []
+
+    monkeypatch.setattr(maintenance, "_fetch_github_release", lambda channel="stable": {"tag_name": "v9.9.9", "assets": []})
+    check = client.get("/control/api/maintenance/updates/check").json()
+    assert (check["deployment_mode"], check["update_method"]) == ("native", "manual")
+    assert "git pull --ff-only" in check["update_instructions"]
 
 
 def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, tmp_path):
@@ -219,6 +305,7 @@ def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, 
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.18.7")
     monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "1")
     monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+    _heartbeat(tmp_path)
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
@@ -234,8 +321,8 @@ def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, 
 
     trigger_payload = json.loads(trigger_file.read_text(encoding="utf-8"))
     assert trigger_payload["job_id"] == job_id
-    assert trigger_payload["action"] == "docker_update_clean"
-    assert trigger_payload["command"] == ".\\DOCKER.ps1 -UpdateClean"
+    assert trigger_payload["action"] == "install_latest_release"
+    assert "command" not in trigger_payload  # the host task never runs a command from the container
 
 
 def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeypatch, tmp_path):
@@ -256,6 +343,7 @@ def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeyp
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.18.7")
     monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "1")
     monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+    _heartbeat(tmp_path)
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
@@ -289,22 +377,34 @@ def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeyp
     assert status_data["target_version"] == "1.18.8"
 
 
-def test_auto_install_update_native_windows_success(client, monkeypatch, tmp_path):
-    """Auto-install should create job and expose completed status when runner is synchronized."""
+def _lite_launch_mocks(monkeypatch):
+    """SMS Lite mode with the UAC launch and the process exit replaced by recorders."""
     from backend.routers.control import maintenance
     import backend.environment as environment_module
 
     monkeypatch.setattr(
         environment_module,
         "get_runtime_context",
-        lambda: RuntimeContext(
-            environment=RuntimeEnvironment.DEVELOPMENT,
-            is_docker=False,
-            is_ci=False,
-            source="test",
-        ),
+        lambda: RuntimeContext(environment=RuntimeEnvironment.DEVELOPMENT, is_docker=False, is_ci=False, source="test"),
     )
+    monkeypatch.setenv("SMS_DEPLOYMENT_MODE", "lite")
     monkeypatch.setattr(maintenance, "_is_native_windows", lambda: True)
+    calls = {"launched": [], "exits": 0}
+    monkeypatch.setattr(maintenance, "_launch_installer_elevated", lambda path, args: calls["launched"].append((path, args)))
+
+    def _exit():
+        calls["exits"] += 1
+
+    monkeypatch.setattr(maintenance, "_schedule_lite_exit", _exit)
+    monkeypatch.setattr(maintenance, "_start_auto_update_job", lambda job_id, payload, current: maintenance._run_auto_update_job(job_id, payload, current))
+    return calls
+
+
+def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypatch, tmp_path):
+    """SMS Lite: download, verify, start the installer elevated with the Lite-only switches, exit."""
+    from backend.routers.control import maintenance
+
+    calls = _lite_launch_mocks(monkeypatch)
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
     monkeypatch.setattr(
         maintenance,
@@ -332,16 +432,6 @@ def test_auto_install_update_native_windows_success(client, monkeypatch, tmp_pat
     monkeypatch.setattr(maintenance, "_download_file", _mock_download_file)
     monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: Path(tmp_path))
 
-    class _Proc:
-        pid = 4242
-
-    monkeypatch.setattr(maintenance.subprocess, "Popen", lambda *args, **kwargs: _Proc())
-
-    def _start_sync(job_id, payload, current_version):
-        maintenance._run_auto_update_job(job_id, payload, current_version)
-
-    monkeypatch.setattr(maintenance, "_start_auto_update_job", _start_sync)
-
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
         json={"channel": "stable", "install_mode": "silent"},
@@ -352,13 +442,18 @@ def test_auto_install_update_native_windows_success(client, monkeypatch, tmp_pat
     job_id = data["details"]["job_id"]
     assert isinstance(job_id, str) and len(job_id) > 8
 
+    # Only the Lite edition, restarted afterwards, after this SMS Lite has exited
+    assert calls["launched"] == [(tmp_path / "sms.exe", maintenance.LITE_INSTALLER_ARGS)]
+    for switch in ("/VERYSILENT", "/EDITION=lite", "/RESTARTLITE=1", "/WAITLITE=1"):
+        assert switch in maintenance.LITE_INSTALLER_ARGS
+    assert calls["exits"] == 1
+
     status_resp = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status")
     assert status_resp.status_code == 200
     status_data = status_resp.json()
     assert status_data["status"] == "completed"
     assert status_data["target_version"] == "1.0.1"
     assert status_data["installer_launched"] is True
-    assert status_data["installer_process_id"] == 4242
     history = status_data.get("phase_history")
     assert isinstance(history, list)
     assert len(history) >= 4
@@ -430,22 +525,11 @@ def test_updates_check_native_uses_asset_digest_without_sha_sidecar(client, monk
     assert data["installer_hash"] == ("deadbeef" * 8)
 
 
-def test_auto_install_update_native_windows_uses_asset_digest(client, monkeypatch, tmp_path):
-    """Auto-install should verify digest metadata from installer asset when no sidecar exists."""
+def test_lite_update_uses_the_asset_digest(client, monkeypatch, tmp_path):
+    """The installer's SHA-256 can come from the asset's digest when no sidecar exists."""
     from backend.routers.control import maintenance
-    import backend.environment as environment_module
 
-    monkeypatch.setattr(
-        environment_module,
-        "get_runtime_context",
-        lambda: RuntimeContext(
-            environment=RuntimeEnvironment.DEVELOPMENT,
-            is_docker=False,
-            is_ci=False,
-            source="test",
-        ),
-    )
-    monkeypatch.setattr(maintenance, "_is_native_windows", lambda: True)
+    _lite_launch_mocks(monkeypatch)
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
     monkeypatch.setattr(
         maintenance,
@@ -472,16 +556,6 @@ def test_auto_install_update_native_windows_uses_asset_digest(client, monkeypatc
     monkeypatch.setattr(maintenance, "_download_file", _mock_download_file)
     monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
 
-    class _Proc:
-        pid = 4242
-
-    monkeypatch.setattr(maintenance.subprocess, "Popen", lambda *args, **kwargs: _Proc())
-
-    def _start_sync(job_id, payload, current_version):
-        maintenance._run_auto_update_job(job_id, payload, current_version)
-
-    monkeypatch.setattr(maintenance, "_start_auto_update_job", _start_sync)
-
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
         json={"channel": "stable", "install_mode": "silent"},
@@ -495,3 +569,65 @@ def test_auto_install_update_native_windows_uses_asset_digest(client, monkeypatc
     status_data = status_resp.json()
     assert status_data["status"] == "completed"
     assert status_data["installer_sha256"] == ("deadbeef" * 8)
+
+
+def _lite_release(monkeypatch, assets):
+    from backend.routers.control import maintenance
+
+    monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
+    monkeypatch.setattr(maintenance, "_fetch_github_release", lambda channel="stable": {"tag_name": "v1.0.1", "assets": assets})
+
+    def _download(_url, destination, progress_callback=None):
+        destination.write_bytes(b"x")
+        return "deadbeef" * 8
+
+    monkeypatch.setattr(maintenance, "_download_file", _download)
+
+
+def test_lite_update_declined_at_uac_keeps_sms_lite_running(client, monkeypatch, tmp_path):
+    from backend.routers.control import maintenance
+
+    calls = _lite_launch_mocks(monkeypatch)
+    monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
+    _lite_release(monkeypatch, [{"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/s.exe",
+                                 "digest": "sha256:" + "deadbeef" * 8}])
+
+    def _declined(path, args):
+        err = OSError("The operation was canceled by the user.")
+        err.winerror = 1223
+        raise err
+
+    monkeypatch.setattr(maintenance, "_launch_installer_elevated", _declined)
+    job_id = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()["details"]["job_id"]
+
+    status = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status").json()
+    assert status["status"] == "failed"
+    assert "cancelled at the Windows security prompt" in status["message"]
+    assert calls["exits"] == 0  # SMS Lite keeps running
+
+
+def test_lite_update_refuses_an_installer_without_a_published_hash(client, monkeypatch, tmp_path):
+    from backend.routers.control import maintenance
+
+    calls = _lite_launch_mocks(monkeypatch)
+    monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
+    _lite_release(monkeypatch, [{"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/s.exe"}])
+
+    job_id = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()["details"]["job_id"]
+    status = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status").json()
+    assert status["status"] == "failed"
+    assert "no SHA-256" in status["message"]
+    assert calls["launched"] == [] and calls["exits"] == 0
+    assert not (tmp_path / "s.exe").exists()
+
+
+def test_installer_asset_is_chosen_by_name():
+    from backend.routers.control import maintenance
+
+    url, digest = maintenance._pick_installer_asset([
+        {"name": "helper-tool.exe", "browser_download_url": "https://example.invalid/helper.exe"},
+        {"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/sms.exe",
+         "digest": "sha256:" + "ab" * 32},
+    ])
+    assert url == "https://example.invalid/sms.exe"
+    assert digest == "ab" * 32

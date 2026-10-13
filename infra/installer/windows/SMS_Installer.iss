@@ -186,14 +186,18 @@ Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{c
 
 
 [Files]
-; Core application files - backend/frontend ALWAYS needed for Docker build
+; Core application files - backend/frontend sources for the Docker build. SMS Lite carries its
+; own backend, frontend and settings inside SMS_Lite\_internal, so it gets none of these (an update
+; of SMS Lite installs only SMS Lite; see ResolveEdition).
 ; Exclude local runtime/test DB artifacts so workstation-only files cannot leak into installer builds.
-Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3,build,.ruff_cache,dist"
-Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts,android"
-Source: "..\..\..\infra\docker\compose\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3,build,.ruff_cache,dist"; Check: not IsLiteInstall
+Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts,android"; Check: not IsLiteInstall
+Source: "..\..\..\infra\docker\compose\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"; Check: not IsLiteInstall
 Source: "..\..\..\.dockerignore"; DestDir: "{app}"; DestName: ".dockerignore"; Flags: ignoreversion; Check: IsDockerInstall
-Source: "..\..\..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: not IsLiteInstall
+Source: "..\..\..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: not IsLiteInstall
+; Docker: the host updater task (registered after install) behind the Control Panel's Update
+Source: "..\..\..\scripts\update-watcher.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsDockerInstall
 ; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
 Source: "..\..\..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
 Source: "..\..\..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -307,6 +311,15 @@ Filename: "{app}\SMS_Lite.exe"; Description: "{cm:LaunchApp}"; Flags: postinstal
 
 ; Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
+
+; SMS Lite's own Update (/RESTARTLITE=1): start SMS Lite again after a silent update, as the user
+; who started setup. Not a postinstall entry, so it also runs in silent mode.
+Filename: "{app}\SMS_Lite.exe"; Flags: nowait runasoriginaluser; WorkingDir: "{app}"; Check: ShouldRestartLiteAfterUpdate
+
+[UninstallRun]
+; Docker: remove the host updater task (the script ignores a task that does not exist)
+; (Check is evaluated at install time, so only Docker installs record this entry.)
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\scripts\update-watcher.ps1"" -Uninstall"; Flags: runhidden; RunOnceId: "RemoveUpdateWatcher"; Check: IsDockerInstall
 
 [Code]
 var
@@ -425,6 +438,77 @@ end;
 function IsDevInstall: Boolean;
 begin
   Result := False; // Production installer does not support dev environment
+end;
+
+// Which edition this run installs. An update must keep the edition already installed: silent
+// runs skip the edition page, and the default used to be Docker, so the Control Panel's Update
+// installed the Docker edition's files on SMS Lite PCs and never replaced SMS_Lite.exe
+// (2026-10-13). Order: /EDITION=lite|docker, the edition the last install recorded, the files of
+// an existing install, then Docker (a new interactive install still shows the edition page).
+function ResolveEdition: String;
+var
+  Value, Dir: String;
+begin
+  Value := LowerCase(Trim(ExpandConstant('{param:EDITION|}')));
+  if (Value = 'lite') or (Value = 'docker') then
+  begin
+    Log('Edition from /EDITION: ' + Value);
+    Result := Value;
+    Exit;
+  end;
+  Value := LowerCase(Trim(GetPreviousData('Edition', '')));
+  if (Value = 'lite') or (Value = 'docker') then
+  begin
+    Log('Edition recorded by the previous install: ' + Value);
+    Result := Value;
+    Exit;
+  end;
+  Dir := PreviousInstallPath;
+  if Dir <> '' then
+  begin
+    Dir := AddBackslash(Dir);
+    if FileExists(Dir + 'SMS_Lite.exe') and not FileExists(Dir + 'DOCKER.ps1') then
+    begin
+      Log('Edition from the existing install''s files: lite');
+      Result := 'lite';
+      Exit;
+    end;
+    if FileExists(Dir + 'DOCKER.ps1') or FileExists(Dir + 'SMS_Manager.exe') then
+    begin
+      Log('Edition from the existing install''s files: docker');
+      Result := 'docker';
+      Exit;
+    end;
+  end;
+  Result := 'docker';
+end;
+
+// The next run (an update) installs the same edition: stored with the uninstall information.
+procedure RegisterPreviousData(PreviousDataKey: Integer);
+begin
+  SetPreviousData(PreviousDataKey, 'Edition', SelectedInstallationType);
+end;
+
+function IsLiteRunning: Boolean;
+var
+  Locator, Service, Found: Variant;
+begin
+  Result := False;
+  try
+    Locator := CreateOleObject('WbemScripting.SWbemLocator');
+    Service := Locator.ConnectServer('.', 'root\cimv2');
+    Found := Service.ExecQuery('SELECT ProcessId FROM Win32_Process WHERE Name = ''SMS_Lite.exe''');
+    Result := Found.Count > 0;
+  except
+    Result := False;
+  end;
+end;
+
+// SMS Lite's own Update passes /RESTARTLITE=1: start it again once the files are replaced, as
+// the user who started setup (not elevated), so it finds that user's data.
+function ShouldRestartLiteAfterUpdate: Boolean;
+begin
+  Result := IsLiteInstall and (ExpandConstant('{param:RESTARTLITE|0}') = '1');
 end;
 
 // Function to check if this is a production install (always true)
@@ -994,9 +1078,23 @@ var
   ExistingPath: String;
   AppExists: Boolean;
   IsSameVersion: Boolean;
+  Waited: Integer;
 begin
   Result := True;
   IsUpgrade := False;
+
+  // SMS Lite's Update starts this installer and then exits, so its files can be replaced
+  // (/WAITLITE=1): wait up to a minute for it to go.
+  if ExpandConstant('{param:WAITLITE|0}') = '1' then
+  begin
+    Waited := 0;
+    while IsLiteRunning and (Waited < 60) do
+    begin
+      Sleep(1000);
+      Waited := Waited + 1;
+    end;
+    Log('Waited ' + IntToStr(Waited) + ' s for SMS Lite to exit; still running: ' + Format('%d', [Integer(IsLiteRunning)]));
+  end;
 
   // Clean up old shortcuts from previous installations
   DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
@@ -1090,8 +1188,8 @@ var
   DevEnvDesc: TLabel;
   InstallTypeDesc: TLabel;
 begin
-  // Initialize default installation type
-  SelectedInstallationType := 'docker';
+  // The edition being updated, or Docker for a new install (see ResolveEdition)
+  SelectedInstallationType := ResolveEdition;
 
   // Create custom Installation Type selection page (early in wizard)
   InstallTypeSelectionPage := CreateCustomPage(wpLicense, CustomMessage('InstallationType'),
@@ -1131,8 +1229,10 @@ begin
   LiteEditionRadio.Top := 136;
   LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
   LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition');
-  LiteEditionRadio.Checked := False;
   LiteEditionRadio.Enabled := True;  // Lite Edition now built in GitHub Actions via PyInstaller
+  // Preselect the installed edition on an update
+  LiteEditionRadio.Checked := (SelectedInstallationType = 'lite');
+  DockerEditionRadio.Checked := not LiteEditionRadio.Checked;
 
   DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
   DevEnvDesc.Parent := InstallTypeSelectionPage.Surface;
@@ -2773,6 +2873,16 @@ begin
   end
   else if CurStep = ssPostInstall then
   begin
+    // Docker: the host updater task behind the Control Panel's Update (update-watcher.ps1)
+    if IsDockerInstall then
+    begin
+      if Exec('powershell.exe', '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\scripts\update-watcher.ps1') + '" -Install',
+              '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0) then
+        Log('[OK] Host updater task registered')
+      else
+        Log('[WARN] Host updater task not registered (exit ' + IntToStr(ResultCode) + '); Update in the Control Panel will show the manual steps');
+    end;
+
     if IsUpgrade and (UpgradeBackupPath <> '') then
     begin
       Log('Post-install upgrade handling - preserving user data only');

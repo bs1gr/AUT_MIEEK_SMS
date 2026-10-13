@@ -11,7 +11,6 @@ import hashlib
 import logging
 import os
 import re
-import subprocess
 import threading
 import urllib.request
 from datetime import datetime, timezone
@@ -26,8 +25,6 @@ from pydantic import BaseModel, Field
 from backend.control_auth import require_control_admin
 from backend.security.path_validation import validate_filename
 
-from .common import _hidden_window_kwargs
-
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -35,6 +32,26 @@ router = APIRouter()
 def _is_native_windows() -> bool:
     """Check if running natively on Windows (safe to mock without corrupting os.name)."""
     return os.name == "nt"
+
+
+# lite: SMS Lite (sets SMS_DEPLOYMENT_MODE=lite at start). docker: the Docker edition.
+# native: a developer's checkout (NATIVE.ps1) - never updated by running the installer.
+DeploymentMode = Literal["docker", "native", "lite"]
+
+
+def _deployment_mode(context: Any) -> DeploymentMode:
+    if context.is_docker:
+        return "docker"
+    if os.environ.get("SMS_DEPLOYMENT_MODE", "").strip().lower() == "lite":
+        return "lite"
+    return "native"
+
+
+# Installer switches for updating SMS Lite in place (SMS_Installer.iss): only the Lite edition's
+# files, then start SMS Lite again; the installer first waits for this SMS Lite to exit.
+LITE_INSTALLER_ARGS = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /EDITION=lite /RESTARTLITE=1 /WAITLITE=1"
+LITE_EXIT_DELAY_SECONDS = 3.0
+HOST_UPDATER_HEARTBEAT_MAX_AGE_SECONDS = 90
 
 
 class AuthSettingsResponse(BaseModel):
@@ -84,7 +101,12 @@ class UpdateCheckResponse(BaseModel):
     update_instructions: str
     update_instructions_key: Optional[str] = None
     release_channel: Literal["stable", "preview"] = Field(default="stable")
-    deployment_mode: Literal["docker", "native"] = Field(description="Detected deployment mode for localization")
+    deployment_mode: DeploymentMode = Field(description="Detected deployment mode for localization")
+    # How this instance updates: the installer for its own edition (SMS Lite), the host updater
+    # task (Docker), or by hand (a developer checkout). The panel shows the matching action.
+    update_method: Literal["installer", "host_task", "manual"] = "manual"
+    # Docker only: whether the host updater task is running (its heartbeat is recent).
+    host_updater_ready: Optional[bool] = None
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -199,6 +221,55 @@ def _host_updater_bridge_enabled() -> bool:
         return False
 
 
+def _host_updater_ready() -> bool:
+    """Whether the host updater task is running: it rewrites a heartbeat file every few seconds.
+
+    A request written while nothing watches the trigger directory used to wait forever.
+    """
+    if not _host_updater_bridge_enabled():
+        return False
+    heartbeat = _host_updater_trigger_dir() / "update_watcher_heartbeat.json"
+    try:
+        age = datetime.now(timezone.utc).timestamp() - heartbeat.stat().st_mtime
+    except OSError:
+        return False
+    return age <= HOST_UPDATER_HEARTBEAT_MAX_AGE_SECONDS
+
+
+def _pick_installer_asset(assets: list[Dict[str, Any]]) -> tuple[Optional[str], Optional[str]]:
+    """(download URL, SHA-256) of the release's Windows installer, preferring SMS_Installer_*.exe."""
+    candidates = [a for a in assets if str(a.get("name", "")).endswith(".exe") and a.get("browser_download_url")]
+    candidates.sort(key=lambda a: 0 if str(a.get("name", "")).startswith("SMS_Installer_") else 1)
+    if not candidates:
+        return None, None
+    chosen = candidates[0]
+    installer_hash = _asset_sha256(chosen)
+    if not installer_hash:
+        sidecar = next(
+            (a for a in assets if a.get("name") == f"{chosen.get('name')}.sha256" and a.get("browser_download_url")),
+            None,
+        ) or next((a for a in assets if str(a.get("name", "")).endswith(".sha256") and a.get("browser_download_url")), None)
+        if sidecar:
+            installer_hash = _download_text(sidecar["browser_download_url"])
+    return chosen["browser_download_url"], installer_hash
+
+
+def _launch_installer_elevated(installer_path: Path, arguments: str) -> None:
+    """Start the installer through UAC. SMS Lite runs unelevated and the installer requires admin
+    rights, so CreateProcess (subprocess) fails with ERROR_ELEVATION_REQUIRED; ShellExecute's
+    "runas" shows the UAC prompt. Raises OSError (winerror 1223) if the user declines it."""
+    startfile = getattr(os, "startfile")  # Windows only
+    startfile(str(installer_path), "runas", arguments)
+
+
+def _schedule_lite_exit(delay_seconds: float = LITE_EXIT_DELAY_SECONDS) -> None:
+    """Let the response reach the browser, then end this SMS Lite process so the installer can
+    replace its files (the installer waits for it, then starts SMS Lite again)."""
+    timer = threading.Timer(delay_seconds, os._exit, args=(0,))
+    timer.daemon = True
+    timer.start()
+
+
 def _host_updater_trigger_file(job_id: str) -> Path:
     return _resolve_host_updater_json_path(job_id, "update_request")
 
@@ -211,10 +282,12 @@ def _write_host_updater_trigger(job_id: str, payload: AutoUpdateRequest, current
     trigger_dir = _host_updater_trigger_dir()
     trigger_dir.mkdir(parents=True, exist_ok=True)
     trigger_file = _host_updater_trigger_file(job_id)
+    # The host task reads only job_id from this file. It decides what to run itself (the latest
+    # signed release's installer for the Docker edition, then DOCKER.ps1 -Update), so a file
+    # written from inside the container can never choose a command to run on the host.
     trigger_payload = {
         "job_id": job_id,
-        "action": "docker_update_clean",
-        "command": ".\\DOCKER.ps1 -UpdateClean",
+        "action": "install_latest_release",
         "requested_at": _now_iso(),
         "current_version": current_version,
         "channel": payload.channel,
@@ -407,18 +480,7 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
             _mark_auto_update_failed(job_id, "No newer update available for the selected channel.")
             return
 
-        installer_url: Optional[str] = None
-        installer_hash: Optional[str] = None
-        for asset in release.get("assets", []) or []:
-            name = asset.get("name", "")
-            url = asset.get("browser_download_url")
-            if not name or not url:
-                continue
-            if name.endswith(".exe") and not installer_url:
-                installer_url = url
-                installer_hash = installer_hash or _asset_sha256(asset)
-            elif name.endswith(".sha256") and not installer_hash:
-                installer_hash = _download_text(url)
+        installer_url, installer_hash = _pick_installer_asset(release.get("assets", []) or [])
 
         if not installer_url:
             _mark_auto_update_failed(job_id, "No Windows installer asset was found for the selected release.")
@@ -457,7 +519,12 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
 
         _update_auto_update_job(job_id, phase="verifying", progress_percent=85, message="Verifying installer checksum.")
         expected_hash = _extract_sha256(installer_hash)
-        if expected_hash and computed_hash.lower() != expected_hash.lower():
+        if not expected_hash:
+            # Without a published hash there is nothing to check the download against.
+            installer_path.unlink(missing_ok=True)
+            _mark_auto_update_failed(job_id, "The release publishes no SHA-256 for its installer; not installing it.")
+            return
+        if computed_hash.lower() != expected_hash.lower():
             installer_path.unlink(missing_ok=True)
             _mark_auto_update_failed(
                 job_id,
@@ -466,22 +533,25 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
             )
             return
 
-        cmd = [str(installer_path)]
-        if payload.install_mode == "silent":
-            cmd.extend(
-                [
-                    "/VERYSILENT",
-                    "/SUPPRESSMSGBOXES",
-                    "/NORESTART",
-                    "/CLOSEAPPLICATIONS",
-                    "/SP-",
-                ]
+        # SMS Lite: install only the Lite edition, in place, then start SMS Lite again.
+        _update_auto_update_job(
+            job_id,
+            phase="launching",
+            progress_percent=95,
+            message="Waiting for the Windows security prompt (UAC).",
+        )
+        try:
+            _launch_installer_elevated(installer_path, LITE_INSTALLER_ARGS)
+        except OSError as exc:
+            declined = getattr(exc, "winerror", None) == 1223
+            _mark_auto_update_failed(
+                job_id,
+                "The update was cancelled at the Windows security prompt."
+                if declined
+                else "The installer could not be started.",
+                error=str(exc),
             )
-        else:
-            cmd.append("/CLOSEAPPLICATIONS")
-
-        _update_auto_update_job(job_id, phase="launching", progress_percent=95, message="Launching installer.")
-        proc = _launch_installer(cmd)
+            return
 
         _update_auto_update_job(
             job_id,
@@ -490,31 +560,13 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
             progress_percent=100,
             installer_sha256=computed_hash,
             installer_launched=True,
-            installer_process_id=proc.pid,
-            message="Installer launched. Follow installer prompts to finish update.",
+            message="SMS Lite is closing to update and will start again in about a minute.",
             error=None,
         )
+        _schedule_lite_exit()
     except Exception as exc:  # pragma: no cover - defensive catch
         logger.error("Smart updater job failed: %s", exc, exc_info=True)
         _mark_auto_update_failed(job_id, "Updater job failed unexpectedly.", error=str(exc))
-
-
-def _launch_installer(cmd: list[str]) -> subprocess.Popen:
-    creation_flags = 0
-    if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
-        creation_flags |= subprocess.CREATE_NEW_PROCESS_GROUP
-    if hasattr(subprocess, "DETACHED_PROCESS"):
-        creation_flags |= subprocess.DETACHED_PROCESS
-
-    si_kwargs = _hidden_window_kwargs()
-    return subprocess.Popen(
-        cmd,
-        cwd=str(Path(__file__).resolve().parents[3]),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        creationflags=creation_flags,
-        startupinfo=si_kwargs.get("startupinfo"),
-    )
 
 
 def _get_policy_description(enabled: bool, mode: str) -> str:
@@ -796,7 +848,11 @@ def check_for_updates(
     from backend.environment import get_runtime_context
 
     context = get_runtime_context()
-    deployment_mode: Literal["docker", "native"] = "docker" if context.is_docker else "native"
+    deployment_mode = _deployment_mode(context)
+    update_method: Literal["installer", "host_task", "manual"] = (
+        "installer" if deployment_mode == "lite" else "host_task" if deployment_mode == "docker" else "manual"
+    )
+    host_updater_ready = _host_updater_ready() if deployment_mode == "docker" else None
 
     current_version = _get_version()
 
@@ -811,53 +867,41 @@ def check_for_updates(
                 update_instructions_key="maintenance.update.check_error",
                 release_channel=channel,
                 deployment_mode=deployment_mode,
+                update_method=update_method,
+                host_updater_ready=host_updater_ready,
             )
 
         latest_version = str(latest_release.get("tag_name", "")).lstrip("v")
         update_available = _version_is_newer(latest_version, current_version)
 
-        assets = latest_release.get("assets", []) or []
-        installer_url: Optional[str] = None
-        installer_hash: Optional[str] = None
+        installer_url, installer_hash = _pick_installer_asset(latest_release.get("assets", []) or [])
 
-        for asset in assets:
-            name = asset.get("name", "")
-            url = asset.get("browser_download_url")
-            if not name or not url:
-                continue
-
-            if name.endswith(".exe") and not installer_url:
-                installer_url = url
-                installer_hash = installer_hash or _asset_sha256(asset)
-            elif name.endswith(".sha256") and not installer_hash:
-                installer_hash = _download_text(url)
-
-        if context.is_docker:
+        if deployment_mode == "docker":
+            # DOCKER.ps1 -UpdateClean only rebuilds the sources already installed; a new release
+            # needs the new installer. The host updater task does both.
             instructions = (
-                "To update your Docker deployment:\n\n"
-                "1. On your host machine, run:\n"
-                "   .\\DOCKER.ps1 -UpdateClean\n\n"
-                "2. This will:\n"
-                "   - Pull the latest code\n"
-                "   - Create an automatic backup\n"
-                "   - Rebuild Docker image with latest fixes\n"
-                "   - Restart the container\n\n"
-                "3. The application will be available again shortly."
+                "Docker edition: Update asks the host updater task to install this release on the host.\n"
+                "It downloads the Docker edition's installer, checks its SHA-256 and signature, installs it,\n"
+                "rebuilds the container and starts it again. The app is unavailable for a few minutes.\n\n"
+                "Without the task, on the host (in the SMS folder, as administrator):\n"
+                "  1. Run the new SMS_Installer and keep the Docker edition.\n"
+                "  2. .\\DOCKER.ps1 -Update"
             )
             instructions_key = "maintenance.update.instructions_docker"
-        else:
-            release_label = "stable" if channel == "stable" else "preview/prerelease"
+        elif deployment_mode == "lite":
             instructions = (
-                f"Update channel: {release_label}\n\n"
-                "To update your native installation:\n\n"
-                "1. Download the latest installer from:\n"
-                f"   {installer_url}\n\n"
-                "2. Run the installer to update your installation\n\n"
-                "   - Or use 'Download & Install Now' in this tab for automatic in-place update\n\n"
-                "3. Or if using source code:\n"
-                "   git pull\n"
-                "   .\\NATIVE.ps1 -Setup\n"
-                "   .\\NATIVE.ps1 -Start"
+                "SMS Lite: Update downloads the installer, checks its SHA-256 and installs only SMS Lite,\n"
+                "keeping your data and settings. Windows asks for permission (UAC); SMS Lite then closes\n"
+                "and starts again by itself in about a minute."
+            )
+            instructions_key = "maintenance.update.instructions_lite"
+        else:
+            instructions = (
+                "Developer checkout (NATIVE.ps1): update the source code, not with the installer.\n"
+                "  1. .\\infra\\scripts\\dev\\NATIVE.ps1 -Stop\n"
+                "  2. git pull --ff-only\n"
+                "  3. .\\infra\\scripts\\dev\\NATIVE.ps1 -Setup\n"
+                "  4. .\\infra\\scripts\\dev\\NATIVE.ps1 -Start"
             )
             instructions_key = "maintenance.update.instructions_native"
 
@@ -875,6 +919,8 @@ def check_for_updates(
             update_instructions_key=instructions_key,
             release_channel=channel,
             deployment_mode=deployment_mode,
+            update_method=update_method,
+            host_updater_ready=host_updater_ready,
         )
     except Exception as exc:
         logger.error("Error checking for updates: %s", exc, exc_info=True)
@@ -886,17 +932,25 @@ def check_for_updates(
             update_instructions_key="maintenance.update.check_error",
             release_channel=channel,
             deployment_mode=deployment_mode,
+            update_method=update_method,
+            host_updater_ready=host_updater_ready,
         )
 
 
 @router.post("/maintenance/updates/auto-install", response_model=OperationResult)
 def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Depends(require_control_admin)):
-    """Start background smart updater job (native Windows only)."""
+    """Update this instance in place, the way its edition updates.
+
+    - SMS Lite: download the installer, verify it, and install only the Lite edition (UAC).
+    - Docker: ask the host updater task (registered by the installer) to install the release.
+    - Developer checkout (native): refused - update it with git (see the check's instructions).
+    """
     from backend.environment import get_runtime_context
 
     context = get_runtime_context()
-    if context.is_docker:
-        if _host_updater_bridge_enabled():
+    mode = _deployment_mode(context)
+    if mode == "docker":
+        if _host_updater_ready():
             current_version = _get_version()
             job_id = _create_auto_update_job(
                 current_version=current_version,
@@ -908,10 +962,7 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
                 status="running",
                 phase="bridge_queued",
                 progress_percent=5,
-                message=(
-                    "Docker host updater bridge accepted request. "
-                    "Waiting for host watcher to execute DOCKER.ps1 -UpdateClean."
-                ),
+                message="Update requested. Waiting for the host updater task to install the release.",
             )
 
             try:
@@ -940,8 +991,8 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
             return OperationResult(
                 success=True,
                 message=(
-                    "Host updater bridge request queued. "
-                    "The watcher service will run DOCKER.ps1 -UpdateClean on the host."
+                    "Update requested. The host updater task installs the release, rebuilds the "
+                    "container and starts it again; the app is unavailable for a few minutes."
                 ),
                 message_key="maintenance.update.host_bridge_started",
                 details={
@@ -950,22 +1001,33 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
                     "job_id": job_id,
                     "trigger_file": str(trigger_file),
                     "status_endpoint": f"/control/api/maintenance/updates/auto-install/{job_id}/status",
-                    "watcher_hint": ".\\scripts\\update-watcher.ps1 -Start",
                 },
             )
 
         return OperationResult(
             success=False,
             message=(
-                "Automatic installer updates are not available in Docker mode because host bridge is disabled. "
-                "Use .\\DOCKER.ps1 -UpdateClean or enable SMS_HOST_UPDATER_BRIDGE."
+                "The host updater task is not running, so the update cannot start from here. "
+                "On the host: run the new SMS_Installer (Docker edition), then .\\DOCKER.ps1 -Update."
             ),
             message_key="maintenance.update.auto_install_docker_blocked",
             details={
                 "deployment_mode": "docker",
-                "bridge_enabled": False,
+                "bridge_enabled": _host_updater_bridge_enabled(),
+                "host_updater_ready": False,
                 "bridge_mode": os.environ.get("SMS_HOST_UPDATER_BRIDGE", "auto"),
             },
+        )
+
+    if mode == "native":
+        return OperationResult(
+            success=False,
+            message=(
+                "This is a developer checkout: update it with git, not with the installer "
+                "(NATIVE.ps1 -Stop, git pull --ff-only, NATIVE.ps1 -Setup, NATIVE.ps1 -Start)."
+            ),
+            message_key="maintenance.update.auto_install_native_manual",
+            details={"deployment_mode": "native"},
         )
 
     if not _is_native_windows():
@@ -1017,6 +1079,26 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
     _sync_job_from_host_updater_status(safe_job_id)
     job = _get_auto_update_job(safe_job_id)
     if not job:
+        # Docker: the update rebuilds this container, so the job held in memory is gone when the
+        # app is back. The host task's status file still says how it ended.
+        host_status = _read_host_updater_status(safe_job_id)
+        if host_status:
+            raw = str(host_status.get("status", "running")).strip().lower()
+            try:
+                progress = max(0, min(100, int(host_status.get("progress_percent", 0))))
+            except (TypeError, ValueError):
+                progress = 0
+            return AutoUpdateStatusResponse(
+                job_id=safe_job_id,
+                status=raw if raw in {"queued", "running", "completed", "failed"} else "running",  # type: ignore[arg-type]
+                phase=str(host_status.get("phase") or "bridge_waiting"),
+                progress_percent=progress,
+                target_version=host_status.get("target_version"),
+                message=host_status.get("message"),
+                error=host_status.get("error"),
+                updated_at=host_status.get("updated_at"),
+                phase_history=[],
+            )
         return AutoUpdateStatusResponse(
             job_id=safe_job_id,
             status="not_found",

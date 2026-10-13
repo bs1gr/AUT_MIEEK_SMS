@@ -16,9 +16,18 @@ interface UpdateCheckResponse {
   docker_image_url: string | null;
   update_instructions: string;
   release_channel: 'stable' | 'preview';
-  deployment_mode: 'docker' | 'native';
+  /** lite: SMS Lite; docker: the Docker edition; native: a developer checkout (NATIVE.ps1) */
+  deployment_mode: 'docker' | 'native' | 'lite';
+  /** installer: SMS Lite installs only its own edition; host_task: the Docker host updater task;
+   *  manual: a developer checkout, updated with git */
+  update_method?: 'installer' | 'host_task' | 'manual';
+  /** Docker: whether the host updater task is running */
+  host_updater_ready?: boolean | null;
   timestamp: string;
 }
+
+/** How long a Docker update may keep the app unreachable (installer + rebuild) before giving up. */
+const DOCKER_UPDATE_MAX_WAIT_MS = 20 * 60 * 1000;
 
 interface UpdatesPanelProps {
   controlApi: string;
@@ -83,6 +92,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   const [lastChecked, setLastChecked] = useState<string | null>(null);
   const [releaseChannel, setReleaseChannel] = useState<'stable' | 'preview'>('stable');
   const updaterPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollStartedAtRef = useRef<number>(0);
 
   const groupedPhaseHistory = useMemo(() => {
     if (!updaterStatus?.phase_history?.length) {
@@ -147,10 +157,24 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   }, []);
 
   const fetchUpdaterStatus = useCallback(async (jobId: string) => {
-    const response = await axios.get<AutoUpdateStatusResponse>(
-      `${controlApi}/maintenance/updates/auto-install/${jobId}/status`,
-    );
-    const status = response.data;
+    let status: AutoUpdateStatusResponse;
+    try {
+      const response = await axios.get<AutoUpdateStatusResponse>(
+        `${controlApi}/maintenance/updates/auto-install/${jobId}/status`,
+      );
+      status = response.data;
+    } catch {
+      // A Docker update stops and rebuilds this very container, so the app is unreachable for a
+      // few minutes: keep asking until it is back (it then reads the host task's status file).
+      if (updateInfo?.deployment_mode === 'docker' && Date.now() - pollStartedAtRef.current < DOCKER_UPDATE_MAX_WAIT_MS) {
+        setInstallMessage(t('updateWaitingForRestart'));
+        return;
+      }
+      stopUpdaterPolling();
+      setInstalling(false);
+      setError(t('updateInstallFailed'));
+      return;
+    }
     setUpdaterStatus(status);
 
     if (status.status === 'completed') {
@@ -162,15 +186,16 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
       setInstalling(false);
       setError(status.error || status.message || (t('updateInstallFailed') || 'Automatic update failed.'));
     }
-  }, [controlApi, stopUpdaterPolling, t]);
+  }, [controlApi, stopUpdaterPolling, t, updateInfo?.deployment_mode]);
 
   const startUpdaterPolling = useCallback(async (jobId: string) => {
     stopUpdaterPolling();
+    pollStartedAtRef.current = Date.now();
     await fetchUpdaterStatus(jobId);
     updaterPollRef.current = setInterval(() => {
       void fetchUpdaterStatus(jobId);
-    }, 1200);
-  }, [fetchUpdaterStatus, stopUpdaterPolling]);
+    }, updateInfo?.deployment_mode === 'docker' ? 4000 : 1200);
+  }, [fetchUpdaterStatus, stopUpdaterPolling, updateInfo?.deployment_mode]);
 
   const checkForUpdates = useCallback(async (channel: 'stable' | 'preview') => {
     setLoading(true);
@@ -206,22 +231,18 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     setError(null);
     setUpdaterStatus(null);
 
-    if (updateInfo?.deployment_mode === 'native' && !updateInfo?.installer_url) {
-      setError(
-        t('updateInstallerMissing')
-        || 'Installer asset is not available for this release yet. Please open the release page and retry shortly.',
-      );
-      setInstalling(false);
-      return;
-    }
-
     try {
       const response = await axios.post<AutoInstallStartResponse>(`${controlApi}/maintenance/updates/auto-install`, {
         channel: releaseChannel,
         install_mode: 'silent',
       });
-      const message = response?.data?.message || (t('updateInstallStarted') || 'Installer launched successfully.');
-      setInstallMessage(message);
+      if (response?.data?.success === false) {
+        // e.g. Docker without the host task, or a developer checkout: the message says what to do
+        setError(response.data.message || t('updateInstallFailed'));
+        setInstalling(false);
+        return;
+      }
+      setInstallMessage(response?.data?.message || t('updateInstallStarted'));
       const jobId = response?.data?.details?.job_id;
       if (jobId) {
         await startUpdaterPolling(jobId);
@@ -229,34 +250,13 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
         setInstalling(false);
       }
     } catch (err) {
-      const fallback = t('updateInstallFailed') || 'Automatic update failed. Please run the installer manually.';
-      if (axios.isAxiosError(err)) {
-        const detail = (err.response?.data as { detail?: string; message?: string } | undefined)?.message
-          || (err.response?.data as { detail?: string; message?: string } | undefined)?.detail
-          || err.message;
-        const fallbackDetail = detail || fallback;
-        if (updateInfo?.deployment_mode === 'docker') {
-          setError(`${fallbackDetail} ${(t('updateDockerManualCta') || 'Run .\\DOCKER.ps1 -UpdateClean on the host machine.')}`);
-          if (updateInfo?.release_url) {
-            window.open(updateInfo.release_url, '_blank', 'noopener,noreferrer');
-          }
-        } else {
-          setError(fallbackDetail);
-        }
-      } else {
-        const fallbackDetail = err instanceof Error ? err.message : fallback;
-        if (updateInfo?.deployment_mode === 'docker') {
-          setError(`${fallbackDetail} ${(t('updateDockerManualCta') || 'Run .\\DOCKER.ps1 -UpdateClean on the host machine.')}`);
-          if (updateInfo?.release_url) {
-            window.open(updateInfo.release_url, '_blank', 'noopener,noreferrer');
-          }
-        } else {
-          setError(fallbackDetail);
-        }
-      }
+      const data = axios.isAxiosError(err)
+        ? (err.response?.data as { detail?: string; message?: string } | undefined)
+        : undefined;
+      setError(data?.message || data?.detail || (err instanceof Error ? err.message : '') || t('updateInstallFailed'));
       setInstalling(false);
     }
-  }, [controlApi, releaseChannel, startUpdaterPolling, t, updateInfo]);
+  }, [controlApi, releaseChannel, startUpdaterPolling, t]);
 
   // No auto-check on mount — updates are only checked when the user clicks a button
 
@@ -269,10 +269,23 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   }, [timelineMode]);
 
   const hasAvailableUpdate = Boolean(updateInfo?.update_available);
-  const isDockerMode = updateInfo?.deployment_mode === 'docker';
-  const isNativeMode = updateInfo?.deployment_mode === 'native';
-  const canStartNativeInstall = isNativeMode && Boolean(updateInfo?.installer_url);
-  const canUseUpdateButton = hasAvailableUpdate && (canStartNativeInstall || isDockerMode);
+  const mode = updateInfo?.deployment_mode;
+  const isDockerMode = mode === 'docker';
+  const isLiteMode = mode === 'lite';
+  const isDevCheckout = mode === 'native';
+  const hostTaskReady = Boolean(updateInfo?.host_updater_ready);
+  // Each edition updates itself in its own way; a developer checkout is updated with git.
+  const canUseUpdateButton = hasAvailableUpdate && (
+    (isLiteMode && Boolean(updateInfo?.installer_url)) || (isDockerMode && hostTaskReady)
+  );
+  const updateButtonLabel = isLiteMode ? t('updateLiteNow') : isDockerMode ? t('updateDockerNow') : t('updateNow');
+  const updateButtonTitle = !hasAvailableUpdate
+    ? t('upToDateDescription')
+    : isDockerMode && !hostTaskReady
+      ? t('updateHostTaskMissing')
+      : isLiteMode && !updateInfo?.installer_url
+        ? t('updateInstallerMissing')
+        : undefined;
 
   return (
     <div className="space-y-6">
@@ -302,30 +315,36 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             {t('checkForUpdates') || 'Check for Updates'}
           </button>
-          <button
-            onClick={installUpdate}
-            disabled={loading || installing || !canUseUpdateButton}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
-            title={
-              !hasAvailableUpdate
-                ? (t('upToDateDescription') || 'You are running the latest version of the application.')
-                : (!canStartNativeInstall && !isDockerMode)
-                    ? (t('updateInstallerMissing') || 'Installer asset is not available for this release yet.')
-                    : undefined
-            }
-          >
-            <Download size={16} className={installing ? 'animate-pulse' : ''} />
-            {installing
-              ? (t('updateInstallingNow') || 'Preparing installer...')
-              : (t('updateNow') || 'Update')}
-          </button>
+          {!isDevCheckout && (
+            <button
+              onClick={installUpdate}
+              disabled={loading || installing || !canUseUpdateButton}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+              title={updateButtonTitle}
+              data-testid="update-now"
+            >
+              <Download size={16} className={installing ? 'animate-pulse' : ''} />
+              {installing ? t('updateInstallingNow') : updateButtonLabel}
+            </button>
+          )}
         </div>
       </div>
 
-      {updateInfo?.update_available && isDockerMode && (
-        <p className="text-xs text-amber-400 -mt-2">
-          {t('updateDockerHint') || 'Docker mode: host updater bridge will be used if available; otherwise run .\\DOCKER.ps1 -UpdateClean on the host machine.'}
-        </p>
+      {/* What Update does on this installation */}
+      {mode && (
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-4 text-sm" data-testid="update-mode-card">
+          <p className="font-semibold text-gray-900 dark:text-gray-100">
+            {isLiteMode ? t('updateModeLite') : isDockerMode ? t('updateModeDocker') : t('updateModeDev')}
+          </p>
+          <p className="mt-1 text-gray-600 dark:text-gray-300">
+            {isLiteMode ? t('updateModeLiteHint') : isDockerMode ? t('updateModeDockerHint') : t('updateModeDevHint')}
+          </p>
+          {isDockerMode && !hostTaskReady && (
+            <p className="mt-2 text-amber-700 dark:text-amber-400" data-testid="host-task-missing">
+              {t('updateHostTaskMissing')}
+            </p>
+          )}
+        </div>
       )}
 
       {/* Last Checked */}
@@ -532,39 +551,6 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
                         {t('sha256')}: {updateInfo.installer_hash}
                       </p>
                     )}
-                  </div>
-                )}
-                {updateInfo.deployment_mode === 'native' && updateInfo.installer_url && (
-                  <div className="mt-4 pt-3 border-t border-gray-700">
-                    <button
-                      onClick={installUpdate}
-                      disabled={installing}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
-                    >
-                      <Download size={16} className={installing ? 'animate-pulse' : ''} />
-                      {installing
-                        ? (t('updateInstallingNow') || 'Preparing installer...')
-                        : (t('downloadAndInstallNow') || 'Download & Install Now')}
-                    </button>
-                    <p className="text-xs text-gray-400 mt-2">
-                      {t('downloadAndInstallHint') || 'Downloads the selected release installer, verifies SHA256 when available, and starts in-place update.'}
-                    </p>
-                  </div>
-                )}
-                {updateInfo.docker_image_url && (
-                  <div className="bg-gray-900/50 p-4 rounded border border-gray-700">
-                    <p className="font-semibold text-purple-300 mb-2">{t('dockerImage') || 'Docker Image'}</p>
-                    <a
-                      href={updateInfo.docker_image_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
-                    >
-                      {t('viewDockerPackages') || 'View Docker Packages'}
-                    </a>
-                    <p className="text-xs text-gray-400 mt-2">
-                      {t('dockerImageInfo') || 'To update Docker deployment, run: .\\DOCKER.ps1 -UpdateClean'}
-                    </p>
                   </div>
                 )}
               </div>

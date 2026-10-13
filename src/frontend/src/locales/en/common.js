@@ -1,4 +1,8 @@
 export default {
+  // Android app update offer (AppUpdateBanner)
+  appUpdateAvailable: 'A new version of the app ({{version}}) is available.',
+  appUpdateDownload: 'Download',
+  appUpdateLater: 'Later',
   // Student & Course Management (Toasts, Confirmations)
   failedToLoadSomeData: 'Failed to load some data. Endpoints might be missing.',
   failedToLoadDataServer: 'Failed to load data. Server returned an error.',

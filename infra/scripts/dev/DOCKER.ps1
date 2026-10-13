@@ -3165,6 +3165,15 @@ function Start-Application {
         $runArgs += @("-v", "${templatesPath}:/app/templates:ro")
     }
 
+    # The Control Panel's Update writes its request here and the host updater task
+    # (scripts\update-watcher.ps1) reads it and answers with status files. Without this mount the
+    # request stayed inside the container and the host never saw it.
+    $triggersPath = Join-Path $PROJECT_ROOT "data\.triggers"
+    if (-not (Test-Path $triggersPath)) {
+        New-Item -ItemType Directory -Path $triggersPath -Force | Out-Null
+    }
+    $runArgs += @("-v", "${triggersPath}:/app/data/.triggers", "-e", "SMS_HOST_UPDATER_TRIGGER_DIR=/app/data/.triggers")
+
     if (Test-Path $ROOT_ENV) {
         $runArgs += @("--env-file", $ROOT_ENV)
     }

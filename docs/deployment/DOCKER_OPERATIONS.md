@@ -89,6 +89,38 @@ The system follows a **clean separation of concerns** between host operations an
 
 ---
 
+## Updating to a new release
+
+`DOCKER.ps1 -Update` and `-UpdateClean` rebuild the container from the files **already installed**;
+they never download a newer release. A new release comes with its installer.
+
+### From the Control Panel (v1.18.57 and later)
+
+**Control Panel → Updates → Update on the host.** The installer registers a scheduled task on the
+host, **SMS Update Watcher** (`scripts\update-watcher.ps1`). It starts at logon of the user who
+installed SMS, with highest privileges, because the installer needs them. When asked from the
+Control Panel, it:
+
+1. reads the latest release and downloads `SMS_Installer_<version>.exe`;
+2. installs it only if it matches the release's SHA-256 digest **and** is validly signed by
+   AUT MIEEK;
+3. runs it silently as the Docker edition (`/EDITION=docker`), then `DOCKER.ps1 -Update`.
+
+The app is unavailable for a few minutes; the Updates tab keeps waiting and shows the result when
+the app is back (`data\.triggers\update_status_<job>.json`, log: `logs\update-watcher.log`).
+The container can only *ask* for an update: the task never runs anything taken from the request.
+
+If the task is not running, the Update button is disabled and the tab says so. Check it with
+`.\scripts\update-watcher.ps1 -Status`; register it again with `-Install` (as administrator) or by
+re-running the installer.
+
+### By hand
+
+1. Run the new `SMS_Installer_<version>.exe` on the host; it keeps the Docker edition.
+2. `.\DOCKER.ps1 -Update`
+
+---
+
 ### Daily Container Management
 
 ```powershell

@@ -333,27 +333,31 @@ the shared database's administrators for approval, as before.
 
 ## 🔄 Updating SMS_Lite
 
-### Automatic Update (When Available)
+### From the Control Panel (v1.18.57 and later)
 
-1. SMS_Lite checks for updates on startup
-2. If newer version available, notification appears in app
-3. Click "Update" to download and install
-4. App restarts with new version
+**Control Panel → Updates → Check for Updates → Update SMS Lite.** SMS Lite then:
+
+1. downloads the release's installer and checks it against the SHA-256 the release publishes
+   (no published hash, no install);
+2. starts it through Windows' permission prompt (UAC; answer **Yes**);
+3. closes itself; the installer waits for it, installs **only SMS Lite** (no Docker files, no
+   source code) and starts SMS Lite again, in about a minute.
+
+Your local database, QNAP settings and accounts live in `%LOCALAPPDATA%\SMS_Native_Lite_Simple`
+and are not touched. Declining the UAC prompt cancels the update and SMS Lite keeps running.
+
+> **Updating from v1.18.56 or older:** use the manual update once. Those versions' Update ran the
+> installer in a way that installed the Docker edition's files instead of SMS Lite.
 
 ### Manual Update
 
-1. **Download** latest installer from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
-2. **Run** SMS_Installer_X.X.X.exe as Administrator
-3. **Choose** "Upgrade existing installation"
-4. Data is automatically backed up before upgrade
-5. SMS_Lite restarts with new version
+1. **Download** the latest installer from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
+2. **Run** `SMS_Installer_X.X.X.exe` and answer **Yes** to the upgrade question
+3. The installer recognises the installed edition (it is recorded at install time, or detected
+   from the files) and preselects **SMS Lite**
+4. Start SMS Lite again when it finishes
 
-### Update Behavior
-
-- ✅ **Data Preserved:** SQLite database, QNAP credentials, user data
-- ✅ **Configuration Preserved:** Custom settings, accounts
-- ✅ **Automatic Backup:** Previous version backed up to `backups/`
-- ✅ **Zero Downtime:** Seamless upgrade process
+The installer also accepts `/EDITION=lite` (or `docker`) on the command line, for silent installs.
 
 ---
 

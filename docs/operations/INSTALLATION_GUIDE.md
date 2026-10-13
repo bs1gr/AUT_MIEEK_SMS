@@ -140,7 +140,7 @@ The application is now running. Here's what you can do:
 .\DOCKER.ps1 -Stop               # Stop SMS
 .\DOCKER.ps1 -Status             # Check if running
 .\DOCKER.ps1 -Logs               # View application logs
-.\DOCKER.ps1 -Update             # Update to latest version (with automatic backup)
+.\DOCKER.ps1 -Update             # Rebuild + restart from the installed files (with backup); a new release needs its installer first, or Control Panel → Updates
 .\DOCKER.ps1 -UpdateClean        # Clean update (rebuild from scratch)
 .\DOCKER.ps1 -Backup             # Create manual database backup
 .\DOCKER.ps1 -WithMonitoring     # Start with Grafana/Prometheus monitoring

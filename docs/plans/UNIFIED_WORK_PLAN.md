@@ -821,6 +821,58 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+28. ~~**Control Panel Update: each edition updates itself in place**~~ — **done 2026-10-13 (owner's
+    choices: installer as the Lite-only update engine, a host task for Docker, guidance for a dev
+    checkout and an APK offer for Android; one release; not yet released).**
+    - **What was wrong:**
+      - **SMS Lite:** Update ran the installer `/VERYSILENT`. Silent runs skip the edition page,
+        and the edition defaulted to Docker. So an SMS Lite PC got the Docker edition's files,
+        while `SMS_Lite.exe` was never replaced. The launch itself used `Popen` on an installer that
+        requires admin rights, which Windows refuses without UAC.
+      - **Every edition** received the backend and frontend sources, the compose files, `config` and
+        `.github/scripts`.
+      - **Developer checkouts** counted as "native" and would have run the installer too.
+      - **Docker:** `DOCKER.ps1 -UpdateClean` only rebuilds the sources already installed, so it never
+        fetches a release. The host watcher was never installed or started, and the triggers folder
+        was not mounted into the container: the bridge could not work.
+    - **Now:**
+      - **Installer.** `ResolveEdition` picks the edition from `/EDITION=lite|docker`, then the
+        edition the last install recorded (`RegisterPreviousData`), then the existing files, then
+        Docker. SMS Lite gets only its own folder plus `templates`.
+        - `/WAITLITE=1` waits for SMS Lite to exit, using WMI; `/RESTARTLITE=1` starts it again as
+          the original user.
+        - For Docker, `scripts\update-watcher.ps1` is installed and registered as the scheduled task
+          "SMS Update Watcher": at logon of the installing user, highest privileges, interactive
+          (no stored password). It is removed on uninstall.
+      - **Backend** (`routers/control/maintenance.py`). Modes are `lite` (`SMS_DEPLOYMENT_MODE` is set
+        by the Lite entrypoint), `docker` and `native`.
+        - Lite: verify the SHA-256 (refused without a published hash), launch the installer through
+          UAC with `LITE_INSTALLER_ARGS`, then exit. Declining UAC fails cleanly and leaves Lite
+          running.
+        - Docker: a request is accepted only while the host task's heartbeat is recent. The request
+          carries no command.
+        - Native: refused, with the git steps.
+        - After the Docker rebuild, status is read from the host status file.
+      - **Host task.** It takes only a 32-hex job id from the request. It installs the latest
+        release only if the SHA-256 matches the asset digest and the signature is a valid AUT MIEEK
+        one, then runs `DOCKER.ps1 -Update`. It writes a heartbeat and status files, holds a
+        single-instance mutex, and restarts itself after an update. `DOCKER.ps1` now mounts
+        `data\.triggers` into the container.
+      - **Panel.** A card per mode explains what Update does. The button is enabled only where it
+        can work (Lite with an installer; Docker with the task running) and is hidden on a dev
+        checkout. Docker polling survives the container restart.
+      - **Android.** `AppUpdateBanner` compares the APK's build version with the latest release and
+        offers `SMS_Android_*.apk`; "Later" hides it until the next version.
+    - **Tests:**
+      - `test_control_maintenance.py` (22: per mode, UAC declined, no hash, Docker status after the
+        rebuild, installer chosen by name);
+      - `test_update_watcher_ps1.py` (6, under pwsh: a verified install as the Docker edition, then
+        the rebuild; SHA-256 mismatch, wrong signer or no digest installs nothing; same version is
+        left alone; a malformed job id is ignored);
+      - `UpdatesPanel.modes.test.tsx` (5) and `AppUpdateBanner.test.tsx` (5);
+      - the installer compiles.
+    - **First update from v1.18.56 or older must be manual:** those versions' Update could not do
+      it (see above).
 27. ~~**"Routes: 53" in the laptop's Lite log**~~ — **not a lost API; fixed the Lite check it
     misled (2026-10-13; not yet released).** The laptop's `debug.log` (copied by the owner)
     showed ~343–348 routes per start before, and 53 since v1.18.56. My own v1.18.56 smoke runs
