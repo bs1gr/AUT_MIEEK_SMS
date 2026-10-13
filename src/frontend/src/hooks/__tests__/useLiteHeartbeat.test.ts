@@ -20,11 +20,17 @@ describe('useLiteHeartbeat', () => {
     vi.unstubAllGlobals();
   });
 
+  const reply = (status: number) => ({ status, text: vi.fn().mockResolvedValue('{}') });
+
   it('beats at once and every 10 s on an SMS Lite server', async () => {
-    fetchMock.mockResolvedValue({ status: 200 });
+    const response = reply(200);
+    fetchMock.mockResolvedValue(response);
     const { unmount } = renderHook(() => useLiteHeartbeat());
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(0);
+    // An unread body keeps the request open, and the page never goes network-idle.
+    expect(response.text).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/lite/heartbeat', expect.objectContaining({ method: 'GET' }));
     await vi.advanceTimersByTimeAsync(LITE_HEARTBEAT_INTERVAL_MS * 3);
     expect(fetchMock).toHaveBeenCalledTimes(4);
@@ -35,11 +41,13 @@ describe('useLiteHeartbeat', () => {
   });
 
   it('stops after a 404 (not an SMS Lite server)', async () => {
-    fetchMock.mockResolvedValue({ status: 404 });
+    const response = reply(404);
+    fetchMock.mockResolvedValue(response);
     renderHook(() => useLiteHeartbeat());
 
     await vi.advanceTimersByTimeAsync(LITE_HEARTBEAT_INTERVAL_MS * 5);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(response.text).toHaveBeenCalledTimes(1);
   });
 
   it('keeps beating while the server cannot be reached', async () => {

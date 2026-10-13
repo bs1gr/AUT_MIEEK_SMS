@@ -22,6 +22,9 @@ export function useLiteHeartbeat(): void {
     const beat = async () => {
       try {
         const response = await fetch(url, { method: 'GET', cache: 'no-store', credentials: 'omit' });
+        // Read the body: until it is read the browser keeps the request open, so the page never
+        // goes network-idle (it broke every E2E wait for 'networkidle', 2026-10-13).
+        await response.text().catch(() => undefined);
         if (response.status === 404) {
           stopped = true; // not an SMS Lite server
           window.clearInterval(timer);
