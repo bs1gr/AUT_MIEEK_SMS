@@ -35,6 +35,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.58] - 2026-10-14
+
+### Features
+- announce every new release to all users; fix dev live notifications and E2E seed
+
+### Bug Fixes
+- **grading**: grade breakdown no longer labels every grade a fail
+- **grading**: participation observations deduct a share of the day
+
+### Documentation
+- **plan**: record the v1.18.57 release, its smoke test and the asset verification
+
 ## [1.18.57] - 2026-10-13
 
 ### Features
@@ -4672,6 +4685,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
