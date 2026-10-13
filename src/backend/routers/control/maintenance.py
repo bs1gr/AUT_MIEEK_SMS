@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 
 from backend.control_auth import require_control_admin
 from backend.security.path_validation import validate_filename
+from backend.version import get_version
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -1113,11 +1114,13 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
 
 
 def _get_version() -> str:
-    """Read version from VERSION file or default."""
-    version_file = Path(__file__).resolve().parents[4] / "VERSION"
-    if version_file.exists():
-        return version_file.read_text(encoding="utf-8").strip()
-    return "unknown"
+    """The installed version, from the VERSION file wherever this layout keeps it.
+
+    A path fixed relative to this file only works in a source checkout: the Docker image keeps
+    VERSION at /app/VERSION and SMS Lite under _internal, so both reported "unknown" and never
+    saw a newer release (found in the v1.18.57 smoke test). backend.version knows all three.
+    """
+    return get_version()
 
 
 def _download_text(url: str) -> Optional[str]:

@@ -631,3 +631,14 @@ def test_installer_asset_is_chosen_by_name():
     ])
     assert url == "https://example.invalid/sms.exe"
     assert digest == "ab" * 32
+
+
+def test_installed_version_comes_from_backend_version(monkeypatch):
+    # The Docker image (/app/VERSION) and SMS Lite (_internal/VERSION) keep VERSION elsewhere than
+    # a checkout; a path fixed relative to maintenance.py made both report "unknown", so neither
+    # was ever offered an update (v1.18.57 smoke test). backend.version handles every layout.
+    from backend.version import get_version
+
+    assert maintenance._get_version() == get_version() != "unknown"
+    monkeypatch.setattr(maintenance, "get_version", lambda: "v9.8.7")
+    assert maintenance._get_version() == "v9.8.7"

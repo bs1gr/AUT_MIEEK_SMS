@@ -821,6 +821,19 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+29. ~~**Update saw SMS Lite and Docker as version "unknown"**~~ — **fixed 2026-10-13, found in
+    the v1.18.57 smoke test.** On the frozen Lite build the update check returned
+    `current_version: "unknown"`, `update_available: false`, so todo 28's Update would never
+    have offered a newer release.
+    - **Cause:** `maintenance._get_version()` read `VERSION` four folders above itself. That holds
+      only in a checkout: SMS Lite keeps it in `_internal\VERSION`, the Docker image at
+      `/app/VERSION`. Older releases had the same bug.
+    - **Fix:** it uses `backend.version.get_version()`, which knows all three layouts. Test:
+      `test_control_maintenance.py` (+1).
+    - **The same smoke test passed:**
+      - the v1.18.56 Lite database upgraded, and the four absence columns were dropped;
+      - a page held open for 130 s kept Lite running, and Lite exited 89 s after it closed;
+      - Lite exited 31 s after Logout with the page still open.
 28. ~~**Control Panel Update: each edition updates itself in place**~~ — **done 2026-10-13 (owner's
     choices: installer as the Lite-only update engine, a host task for Docker, guidance for a dev
     checkout and an APK offer for Android; one release; not yet released).**
