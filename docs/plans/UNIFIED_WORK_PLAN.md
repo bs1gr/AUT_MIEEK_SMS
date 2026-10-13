@@ -1,8 +1,30 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.57
-**Last Updated**: October 13, 2026
-**Status**: ✅ **v1.18.57 released 2026-10-13** (tag on `67042f28c`). It ships:
+**Current Version**: 1.18.58
+**Last Updated**: October 14, 2026
+**Status**: ✅ **v1.18.58 released 2026-10-14** (annotated tag on `092992de2`). It ships:
+- participation observations as deductions (owner, 2026-10-13): a share of each attended day's
+  Class Participation, 60/40/20% by severity, editable per course; the rest of the day is credit
+  for presence (see todo 22, "Superseded 2026-10-13"). Existing courses fold their old sub-weights
+  back into Class Participation, so **grades with ticked observations change**;
+- a new-release announcement for every signed-in user (banner + bell; Install for admins);
+- the grade breakdown's Greek-scale label (it said "Fail" for every grade);
+- dev/test fixes: Vite proxies `/socket.io` (native dev live notifications), the E2E seed
+  activates its courses.
+
+**Smoke test before tagging**, on the release build:
+- dev stack: every page loads cleanly; the observation flow (Courses defaults, Attendance tick,
+  final grade 78.8 as calculated, breakdown note); it found the breakdown label bug above;
+- frozen SMS Lite: the v1.18.57 database opens; `/notifications/release-announcement` is in the
+  bundle; the observation grade via the API is exactly as calculated (77); the Courses tab shows
+  the new panel; a copy reporting v1.18.50 shows the announcement with Install, no errors.
+
+**Verified on the published assets:** installer signature Valid (AUT MIEEK, DigiCert timestamp);
+both SHA-256 hashes match GitHub's digests; the APK reports `1.18.58` (`versionCode 118058`); all
+eight workflows on the release commit passed. Docker publish is manual-only and was not run (as
+before). The announcement first appears when a release newer than v1.18.58 is published.
+
+v1.18.57 released 2026-10-13 (tag on `67042f28c`). It ships:
 - todo 28: Control Panel Update per edition (Lite-only installer, Docker host task, guidance on a
   dev checkout, APK offer on Android);
 - todo 29: Update reads the installed version correctly on Lite and Docker;
