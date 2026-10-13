@@ -13,12 +13,16 @@ import hashlib
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 PWSH = shutil.which("pwsh")
-pytestmark = pytest.mark.skipif(PWSH is None, reason="pwsh is not installed")
+# The task runs on Windows Docker hosts and uses Windows paths (data\.triggers).
+pytestmark = pytest.mark.skipif(
+    PWSH is None or sys.platform != "win32", reason="Windows host tool; needs pwsh on Windows"
+)
 
 WATCHER = Path(__file__).resolve().parents[3] / "scripts" / "update-watcher.ps1"
 INSTALLER_BYTES = b"pretend signed installer"
