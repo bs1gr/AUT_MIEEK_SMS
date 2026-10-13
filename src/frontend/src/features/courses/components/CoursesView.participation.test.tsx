@@ -50,7 +50,17 @@ const renderCourses = async (c: Course = course()) => {
   return screen.findByTestId('special-participation-weights');
 };
 
-describe('CoursesView: Class Participation sub-weights and absence limits', () => {
+const observationCourse = () =>
+  course({
+    evaluation_rules: [
+      { category: 'Class Participation', weight: 10 },
+      { category: 'No participation', weight: 0, deduction_percent: 70 },
+      { category: 'Minor participation (mobile usage)', weight: 0, deduction_percent: 0 },
+      { category: 'Final Exam', weight: 90 },
+    ],
+  });
+
+describe('CoursesView: participation observation deductions and absence limits', () => {
   beforeEach(async () => {
     localStorage.setItem('i18nextLng', 'en');
     await i18n.changeLanguage('en');
@@ -58,28 +68,36 @@ describe('CoursesView: Class Participation sub-weights and absence limits', () =
     api.put.mockReset().mockResolvedValue({ data: {} });
   });
 
-  it('shows Class Participation as its whole share, split into the special sub-weights', async () => {
-    const panel = await renderCourses();
-    // The share is 7 + 2 + 1 = 10; the special rules are not separate rows.
+  it('shows Class Participation whole, each observation as a share of the day, and what stays for presence', async () => {
+    const panel = await renderCourses(observationCourse());
     expect(screen.getAllByDisplayValue('10').length).toBeGreaterThanOrEqual(2); // share, participation limit
     expect(screen.getByDisplayValue('90')).toBeInTheDocument();
     expect(screen.queryByDisplayValue('No participation')).toBeNull();
-    expect(within(panel).getByLabelText('No participation')).toHaveValue(2);
-    expect(within(panel).getByLabelText('Minor participation')).toHaveValue(1);
+    expect(within(panel).getByLabelText('No participation')).toHaveValue(70);
     expect(within(panel).getByLabelText('Minor participation (mobile usage)')).toHaveValue(0);
-    expect(screen.getByTestId('participation-ratings-weight')).toHaveTextContent('7.0%');
+    expect(within(panel).getByLabelText('Minor participation')).toHaveValue(20); // not saved: default
+    expect(within(panel).getAllByText('% of the day')).toHaveLength(3);
+    expect(screen.getByTestId('presence-credit-No participation')).toHaveTextContent('30% of the day stays for presence');
     const limits = screen.getByTestId('course-absence-limits');
     expect(within(limits).getByLabelText('Fail limit (% of periods)')).toHaveValue(30);
     expect(within(limits).getByLabelText('Class Participation limit (% of periods)')).toHaveValue(10);
   });
 
-  it('saves Class Participation as the remainder plus the three special rules, and the limits', async () => {
+  it('gives an old-layout course Class Participation back and the defaults by severity', async () => {
+    const panel = await renderCourses(); // 7 + 2 + 1
+    expect(screen.getAllByDisplayValue('10').length).toBeGreaterThanOrEqual(2);
+    expect(within(panel).getByLabelText('No participation')).toHaveValue(60);
+    expect(within(panel).getByLabelText('Minor participation (mobile usage)')).toHaveValue(40);
+    expect(within(panel).getByLabelText('Minor participation')).toHaveValue(20);
+    expect(screen.getByTestId('presence-credit-Minor participation')).toHaveTextContent('80% of the day stays for presence');
+  });
+
+  it('saves Class Participation whole, the observations as weight-0 percentages, and the limits', async () => {
     const panel = await renderCourses();
-    fireEvent.change(within(panel).getByLabelText('Minor participation (mobile usage)'), { target: { value: '0.5' } });
+    fireEvent.change(within(panel).getByLabelText('Minor participation (mobile usage)'), { target: { value: '50' } });
     fireEvent.change(within(screen.getByTestId('course-absence-limits')).getByLabelText('Fail limit (% of periods)'), {
       target: { value: '25' },
     });
-    await waitFor(() => expect(screen.getByTestId('participation-ratings-weight')).toHaveTextContent('6.5%'));
 
     fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
 
@@ -87,26 +105,15 @@ describe('CoursesView: Class Participation sub-weights and absence limits', () =
     const [url, payload] = api.put.mock.calls[0];
     expect(url).toBe('/courses/5');
     expect(payload.evaluation_rules).toEqual([
-      expect.objectContaining({ category: 'Class Participation', weight: 6.5 }),
+      expect.objectContaining({ category: 'Class Participation', weight: 10 }),
       expect.objectContaining({ category: 'Final Exam', weight: 90 }),
-      { category: 'No participation', weight: 2 },
-      { category: 'Minor participation', weight: 1 },
-      { category: 'Minor participation (mobile usage)', weight: 0.5 },
+      { category: 'No participation', weight: 0, deduction_percent: 60 },
+      { category: 'Minor participation (mobile usage)', weight: 0, deduction_percent: 50 },
+      { category: 'Minor participation', weight: 0, deduction_percent: 20 },
     ]);
     expect(payload.absence_limit_percent).toBe(25);
     expect(payload.participation_limit_percent).toBe(10);
   });
-
-  it('refuses sub-weights larger than the Class Participation share', async () => {
-    const panel = await renderCourses();
-    fireEvent.change(within(panel).getByLabelText('No participation'), { target: { value: '12' } });
-    expect(await within(panel).findByText('The special sub-weights are larger than the Class Participation share.')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(api.put).not.toHaveBeenCalled();
-  });
-
   it('gives a course without limits the 30% fail and 10% Class Participation defaults', async () => {
     await renderCourses(course({ absence_limit_percent: undefined, participation_limit_percent: undefined }));
     const limits = screen.getByTestId('course-absence-limits');

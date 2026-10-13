@@ -43,14 +43,16 @@ class AnalyticsService:
         "τελική εξέταση",
         "τελική",
     }
-    # Normalized names (see _normalize_category) of Class Participation and its special
-    # sub-weights; together they are the share lost over the participation absence limit.
-    participation_categories = {
-        "participation",
-        "no participation",
-        "minor participation",
-        "minor participation (mobile usage)",
+    # Participation observations ticked per day in Attendance, by normalized name (see
+    # _normalize_category), with the default share of that day's Class Participation each one
+    # takes, by severity (owner, 2026-10-13). A rule's `deduction_percent` overrides the default.
+    # They are deductions, not weighted categories; what a day keeps is credit for being present.
+    observation_default_percent = {
+        "no participation": 60.0,
+        "minor participation (mobile usage)": 40.0,
+        "minor participation": 20.0,
     }
+    participation_observations = set(observation_default_percent)
 
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -944,8 +946,32 @@ class AnalyticsService:
                     return key
             return n
 
+        def _as_float(value: Any) -> float:
+            try:
+                return float(value or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        # Participation observations leave the weighted rules. Sub-weights saved under the old
+        # layout (weight carved out of Class Participation) go back into Class Participation.
+        weighted_rules: List[Dict[str, Any]] = []
+        observation_rules: List[Dict[str, Any]] = []
+        returned_weight = 0.0
+        for rule in evaluation_rules:
+            if _normalize_category(rule.get("category")) in self.participation_observations:
+                observation_rules.append(rule)
+                returned_weight += max(0.0, _as_float(rule.get("weight")))
+            else:
+                weighted_rules.append(dict(rule))
+        participation_rule = next(
+            (r for r in weighted_rules if _normalize_category(r.get("category")) == "participation"), None
+        )
+        if participation_rule is not None and returned_weight > 0:
+            participation_rule["weight"] = _as_float(participation_rule.get("weight")) + returned_weight
+        evaluation_rules = weighted_rules
+
         # ΜΙΕΕΚ: over the Class Participation absence limit (10%), the whole Class Participation
-        # share, including its special-participation sub-weights, counts as 0.
+        # share counts as 0 (and there is nothing left to deduct observations from).
         participation_forfeited = bool(
             absence_limit_service.evaluate_records(course, attendance)["participation_forfeited"]
         )
@@ -959,7 +985,7 @@ class AnalyticsService:
             if not category or weight <= 0:
                 continue
 
-            if participation_forfeited and _normalize_category(category) in self.participation_categories:
+            if participation_forfeited and _normalize_category(category) == "participation":
                 category_scores[category] = 0.0
                 category_details[category] = {
                     "average": 0.0,
@@ -1031,8 +1057,43 @@ class AnalyticsService:
 
         # Normalize to 100% scale based on completed work
         # If only 40% of work is done, scale up to show current performance out of 100%
-        if total_weight_used > 0 and total_weight_used < 100:
-            final_grade = (final_grade / total_weight_used) * 100
+        normalization = 100.0 / total_weight_used if 0 < total_weight_used < 100 else 1.0
+        final_grade *= normalization
+
+        # Each attended day is worth an equal slice of Class Participation. The most severe
+        # observation ticked on a day takes its percentage of that slice; the rest of the slice
+        # stays as credit for being present. Never more than Class Participation earned (its whole
+        # share when the student has no participation ratings yet).
+        observations: Dict[str, Dict[str, float]] = {}
+        participation_deduction = 0.0
+        if participation_rule is not None and not participation_forfeited:
+            percents = dict(self.observation_default_percent)
+            for rule in observation_rules:
+                if rule.get("deduction_percent") is not None:
+                    percents[_normalize_category(rule.get("category"))] = min(
+                        100.0, max(0.0, _as_float(rule.get("deduction_percent")))
+                    )
+            observations = {name: {"ticks": 0, "percent": pct} for name, pct in percents.items()}
+            day_loss: Dict[Any, float] = {}
+            for perf in daily_performance:
+                perf_norm = _normalize_category(getattr(perf, "category", None))
+                if perf_norm in percents:
+                    observations[perf_norm]["ticks"] += 1
+                    day_loss[perf.date] = max(day_loss.get(perf.date, 0.0), percents[perf_norm])
+            attended_days = {a.date for a in attendance if str(a.status).lower() in {"present", "late"}} | set(day_loss)
+            participation_weight = _as_float(participation_rule.get("weight"))
+            requested = sum(day_loss.values()) / 100 * participation_weight / len(attended_days) if day_loss else 0.0
+            if requested > 0:
+                participation_category = participation_rule["category"]
+                if participation_category in category_scores:
+                    requested *= normalization
+                    earned = category_scores[participation_category] * participation_weight / 100 * normalization
+                else:
+                    earned = participation_weight
+                participation_deduction = max(0.0, min(requested, earned, final_grade))
+                final_grade -= participation_deduction
+                if participation_category in category_details:
+                    category_details[participation_category]["deduction"] = round(participation_deduction, 2)
 
         penalty_per_absence = float(getattr(course, "absence_penalty", 0.0) or 0.0)
         unexcused_absences = 0
@@ -1061,6 +1122,8 @@ class AnalyticsService:
             "unexcused_absences": unexcused_absences,
             "absence_deduction": round(absence_deduction, 2),
             "participation_forfeited": participation_forfeited,
+            "participation_deduction": round(participation_deduction, 2),
+            "participation_observations": observations,
         }
 
     # ----------------------------- Cache Invalidation ---------------------------------

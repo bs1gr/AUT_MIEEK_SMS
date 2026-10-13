@@ -1138,6 +1138,15 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       inputs now live in `CoursesView.tsx` (the real Courses tab, which had no limit inputs at
       all, so the limits were never editable in the app), and the dead component is deleted.
       Both save paths (Save, and "Clear all" on the schedule tab) write the same layout.
+    - **Superseded 2026-10-13 (owner): observations are deductions, not sub-weights.** A tick
+      used to add a 2/10-style category with positive weight. Now Class Participation keeps its
+      whole share; each attended day is an equal slice of it, and the most severe observation
+      ticked that day takes its `deduction_percent` of the slice (defaults by severity: no
+      participation 60%, mobile use 40%, minor 20%; editable per course). The rest of each day
+      is credit for physical presence. Capped at what Class Participation earned; nothing when
+      the share is forfeited. Stored as weight-0 rules; old sub-weights fold back into Class
+      Participation when read (no migration). Older installs on the shared QNAP DB ignore the
+      weight-0 rules once a course is re-saved (no deduction, full share).
     - **Analytics:** "Grades: 0" next to a final grade came from participation ratings; the
       course rows now count them. A lost Class Participation share is marked and is an at-risk
       reason.

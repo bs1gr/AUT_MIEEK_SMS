@@ -73,7 +73,12 @@ def _normalise_dict_rule(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if not category:
         return None
 
-    return {"category": category, "weight": float(weight)}
+    rule: Dict[str, Any] = {"category": category, "weight": float(weight)}
+    # Participation observations carry the share of a day's participation they take (see AnalyticsService).
+    deduction_percent = _coerce_weight(data.get("deduction_percent"))
+    if deduction_percent is not None:
+        rule["deduction_percent"] = min(100.0, max(0.0, deduction_percent))
+    return rule
 
 
 def _build_rule_pair(category: str, weight_value: Any) -> Optional[Dict[str, Any]]:

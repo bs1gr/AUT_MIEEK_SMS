@@ -172,6 +172,13 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
               </div>
             )}
 
+            {/* Participation observations: already taken off the final grade above */}
+            {Number(data.participation_deduction || 0) > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700" data-testid="breakdown-participation-deduction">
+                {t('participationDeductionNote', { points: Number(data.participation_deduction).toFixed(2) })}
+              </div>
+            )}
+
             {/* ΜΙΕΕΚ Class Participation limit exceeded: that share already counts as 0 above */}
             {data.participation_forfeited && data.absence_limit && (
               <div role="status" className="bg-amber-50 border border-amber-300 rounded-lg p-4 text-sm text-amber-900" data-testid="breakdown-participation-forfeited">

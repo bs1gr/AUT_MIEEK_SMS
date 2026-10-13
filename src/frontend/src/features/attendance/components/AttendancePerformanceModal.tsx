@@ -58,17 +58,13 @@ const AttendancePerformanceModal = ({
     >
       <h5 className="font-semibold text-gray-800">{t('participationObservations') || 'Participation observations'}</h5>
       <p className="mt-1 text-xs text-gray-600">
-        {t('participationObservationsHelp') || 'Select only the observations that apply. Unselected observations are not recorded and do not affect the aggregate participation score.'}
+        {t('participationObservationsHelp')}
       </p>
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
         {specialParticipationRules.map((rule) => {
           const key = `${selectedStudentForPerformance.id}-${rule.category}`;
-          const existingScore = dailyPerformance[key];
-          const scoreWhenChecked = getSpecialParticipationScore(rule.category);
-          const isChecked = typeof existingScore === 'number';
-          const isCustomScore = typeof existingScore === 'number'
-            && scoreWhenChecked !== null
-            && Math.abs(existingScore - scoreWhenChecked) > 0.01;
+          const isChecked = typeof dailyPerformance[key] === 'number';
+          const percent = rule.deductionPercent ?? 0;
 
           return (
             <label key={rule.category} className="flex min-w-0 items-start gap-2 rounded border border-indigo-100 bg-white p-3 text-sm text-gray-700">
@@ -82,12 +78,10 @@ const AttendancePerformanceModal = ({
               />
               <span className="min-w-0">
                 <span className="block font-medium">{translateCategory(rule.category)}</span>
-                <span className="block text-xs text-indigo-700">
-                  {isChecked
-                    ? (isCustomScore
-                      ? `${t('applied') || 'Applied'} (${existingScore}/10, custom)`
-                      : `${t('applied') || 'Applied'} (${scoreWhenChecked}/10)`)
-                    : (t('notScored') || 'Not assessed — no score is recorded')}
+                <span className={`block text-xs ${isChecked && percent > 0 ? 'text-red-700' : 'text-indigo-700'}`}>
+                  {percent > 0
+                    ? t(isChecked ? 'observationDeductionApplied' : 'observationDeductionPerTick', { percent })
+                    : t('observationNoDeduction')}
                 </span>
               </span>
             </label>

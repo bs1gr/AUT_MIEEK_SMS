@@ -25,9 +25,10 @@ import {
 } from '@/features/courses/utils/courseSchedule';
 import {
   CLASS_PARTICIPATION,
+  DEFAULT_DEDUCTION_PERCENTS,
   SPECIAL_PARTICIPATION_CATEGORIES,
   SPECIAL_PARTICIPATION_LABEL_KEYS,
-  isSpecialParticipation,
+  splitParticipationRules,
   type SpecialParticipationCategory,
 } from '@/utils/participation';
 
@@ -41,13 +42,8 @@ type CourseUpdatePayload = {
   absence_limit_percent: number;
   participation_limit_percent: number;
 };
-// Sub-weights of the Class Participation share (see utils/participation).
-type SpecialWeights = Record<SpecialParticipationCategory, string | number>;
-const NO_SPECIAL_WEIGHTS: SpecialWeights = {
-  'No participation': 0,
-  'Minor participation': 0,
-  'Minor participation (mobile usage)': 0,
-};
+// Per-tick deductions of the participation observations (see utils/participation).
+type ObservationInputs = Record<SpecialParticipationCategory, string | number>;
 const toNumber = (value: unknown) => parseFloat(String(value).replace(',', '.')) || 0;
 type StudentLite = {
   id: number;
@@ -77,8 +73,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [evaluationRules, setEvaluationRules] = useState<Rule[]>([]);
-  // The Class Participation row holds its whole share; these split it (stored as their own rules).
-  const [specialWeights, setSpecialWeights] = useState<SpecialWeights>(NO_SPECIAL_WEIGHTS);
+  // Points each ticked observation deducts (stored as weight-0 rules beside Class Participation).
+  const [observationDeductions, setObservationDeductions] = useState<ObservationInputs>(DEFAULT_DEDUCTION_PERCENTS);
   // ΜΙΕΕΚ absence rules (% of scheduled periods): fail limit and Class Participation limit.
   const [absenceLimit, setAbsenceLimit] = useState<number>(30);
   const [participationLimit, setParticipationLimit] = useState<number>(10);
@@ -179,25 +175,19 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const loadCourseData = useCallback(() => {
     const course = courses.find((c) => c.id === selectedCourse!);
     if (course) {
-      const specials: SpecialWeights = { ...NO_SPECIAL_WEIGHTS };
-      const others: Rule[] = [];
-      ((course.evaluation_rules as Rule[]) || []).forEach((rule) => {
-        const canonical = getCanonicalCategory(String(rule.category || ''), t);
-        if (isSpecialParticipation(canonical)) specials[canonical] = toNumber(specials[canonical]) + toNumber(rule.weight);
-        else others.push({ ...rule });
-      });
-      const specialSum = SPECIAL_PARTICIPATION_CATEGORIES.reduce((sum, c) => sum + toNumber(specials[c]), 0);
-      const participation = others.find((r) => getCanonicalCategory(String(r.category || ''), t) === CLASS_PARTICIPATION);
-      if (participation) participation.weight = Number((toNumber(participation.weight) + specialSum).toFixed(2));
-      setEvaluationRules(others);
-      setSpecialWeights(specials);
+      const { rules, deductions } = splitParticipationRules(
+        (course.evaluation_rules as Rule[]) || [],
+        (category) => getCanonicalCategory(category, t),
+      );
+      setEvaluationRules(rules);
+      setObservationDeductions(deductions);
       setAbsenceLimit(typeof course.absence_limit_percent === 'number' ? course.absence_limit_percent : 30);
       setParticipationLimit(typeof course.participation_limit_percent === 'number' ? course.participation_limit_percent : 10);
       setWeeklySchedule(normalizeTeachingSchedule(course.teaching_schedule));
       setHoursPerWeek(course.hours_per_week || 0);
     } else {
       setEvaluationRules([]);
-      setSpecialWeights(NO_SPECIAL_WEIGHTS);
+      setObservationDeductions(DEFAULT_DEDUCTION_PERCENTS);
       setAbsenceLimit(30);
       setParticipationLimit(10);
       setWeeklySchedule({});
@@ -207,20 +197,19 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
   const isParticipationRule = (rule: Rule) => getCanonicalCategory(String(rule.category || ''), t) === CLASS_PARTICIPATION;
   const participationRule = evaluationRules.find(isParticipationRule);
-  const specialTotal = SPECIAL_PARTICIPATION_CATEGORIES.reduce((sum, c) => sum + toNumber(specialWeights[c]), 0);
-  const ratingsWeight = participationRule ? toNumber(participationRule.weight) - specialTotal : 0;
 
-  // Stored layout (unchanged for grading): canonical names, Class Participation keeps what the
-  // special sub-weights leave, then the three special rules.
+  // Stored layout: canonical names, Class Participation with its whole share, then the three
+  // observations as weight-0 rules carrying their per-tick deduction.
   const rulesForSave = (): Rule[] => {
-    const rules = (evaluationRules || []).map((r) => {
-      const category = getCanonicalCategory(String(r.category || ''), t);
-      return category === CLASS_PARTICIPATION ? { ...r, category, weight: Number(ratingsWeight.toFixed(2)) } : { ...r, category };
-    });
-    const specials = participationRule
-      ? SPECIAL_PARTICIPATION_CATEGORIES.map((category) => ({ category, weight: toNumber(specialWeights[category]) }))
+    const rules = (evaluationRules || []).map((r) => ({ ...r, category: getCanonicalCategory(String(r.category || ''), t) }));
+    const observations = participationRule
+      ? SPECIAL_PARTICIPATION_CATEGORIES.map((category) => ({
+        category,
+        weight: 0,
+        deduction_percent: Math.min(100, Math.max(0, toNumber(observationDeductions[category]))),
+      }))
       : [];
-    return [...rules, ...specials];
+    return [...rules, ...observations];
   };
 
   // Evaluation Rules Functions
@@ -260,11 +249,6 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         showToast(t('allRulesRequired'), 'error');
         return false;
       }
-    }
-
-    if (participationRule && ratingsWeight < -0.01) {
-      showToast(t('specialWeightsTooHigh'), 'error');
-      return false;
     }
 
     return true;
@@ -741,34 +725,32 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                           <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4" data-testid="special-participation-weights">
                             <h4 className="text-sm font-bold text-gray-800">{t('specialParticipationWeightsTitle')}</h4>
                             <p className="mb-3 text-xs text-gray-700">{t('specialParticipationWeightsDescription')}</p>
-                            <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                               {SPECIAL_PARTICIPATION_CATEGORIES.map((category) => (
                                 <label key={category} className="block text-xs font-medium text-gray-700">
                                   {t(SPECIAL_PARTICIPATION_LABEL_KEYS[category])}
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.1"
-                                    value={specialWeights[category]}
-                                    onChange={(e) => setSpecialWeights((prev) => ({ ...prev, [category]: e.target.value }))}
-                                    className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-emerald-400"
-                                  />
+                                  <span className="mt-1 flex items-center gap-1">
+                                    <span className="text-sm font-semibold text-red-700">−</span>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      step="5"
+                                      aria-label={t(SPECIAL_PARTICIPATION_LABEL_KEYS[category])}
+                                      value={observationDeductions[category]}
+                                      onChange={(e) => setObservationDeductions((prev) => ({ ...prev, [category]: e.target.value }))}
+                                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:ring-2 focus:ring-emerald-400"
+                                    />
+                                    <span className="whitespace-nowrap text-gray-600">{t('deductionPerTickUnit')}</span>
+                                  </span>
+                                  <span className="mt-1 block font-normal text-emerald-800" data-testid={`presence-credit-${category}`}>
+                                    {t('presenceCreditRemainder', {
+                                      percent: Number((100 - Math.min(100, Math.max(0, toNumber(observationDeductions[category])))).toFixed(1)),
+                                    })}
+                                  </span>
                                 </label>
                               ))}
-                              <div className="text-xs font-medium text-gray-700">
-                                {t('participationRatingsWeight')}
-                                <div
-                                  className={`mt-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
-                                    ratingsWeight < -0.01 ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-200 bg-white text-gray-900'
-                                  }`}
-                                  data-testid="participation-ratings-weight"
-                                >
-                                  {ratingsWeight.toFixed(1)}%
-                                </div>
-                              </div>
                             </div>
-                            {ratingsWeight < -0.01 && <p className="mt-2 text-xs text-red-700">{t('specialWeightsTooHigh')}</p>}
                           </div>
                         )}
                       </div>
@@ -1131,7 +1113,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
               onClick={async () => {
                 if (activeTab === 'evaluation') {
                   setEvaluationRules([]);
-                  setSpecialWeights(NO_SPECIAL_WEIGHTS);
+                  setObservationDeductions(DEFAULT_DEDUCTION_PERCENTS);
                 } else {
                   // Clear schedule and save immediately
                   setWeeklySchedule({});

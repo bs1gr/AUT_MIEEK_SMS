@@ -23,6 +23,8 @@ import AttendanceAnalyticsSnapshot from './AttendanceAnalyticsSnapshot';
 import AttendanceStudentList from './AttendanceStudentList';
 import AttendancePerformanceModal from './AttendancePerformanceModal';
 import AbsenceLimitsPanel from './AbsenceLimitsPanel';
+import { getCanonicalCategory } from '@/utils/categoryLabels';
+import { splitParticipationRules, type SpecialParticipationCategory } from '@/utils/participation';
 
 // Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
 // the correct server URL dynamically and injects the Authorization header.
@@ -42,13 +44,14 @@ type Props = { courses: Course[]; students?: Student[] };
 // Teaching schedule can arrive either as an array of entries or an object keyed by day.
 
 
-type EvaluationRule = { category: string; weight?: number };
-type SpecialParticipationOption = { category: string; scoreWhenChecked: number };
+type EvaluationRule = { category: string; weight?: number; deductionPercent?: number };
+// A tick is stored as a daily-performance record; the grade counts ticks, not this score.
+type SpecialParticipationOption = { category: SpecialParticipationCategory; scoreWhenChecked: number };
 
 const SPECIAL_PARTICIPATION_OPTIONS: SpecialParticipationOption[] = [
   { category: 'No participation', scoreWhenChecked: 0 },
-  { category: 'Minor participation', scoreWhenChecked: 4 },
   { category: 'Minor participation (mobile usage)', scoreWhenChecked: 2 },
+  { category: 'Minor participation', scoreWhenChecked: 4 },
 ];
 
 const SPECIAL_PARTICIPATION_SCORE_MAP: Record<string, number> = SPECIAL_PARTICIPATION_OPTIONS.reduce(
@@ -419,22 +422,20 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     if (!selectedCourse) { setEvaluationCategories([]); return; }
     try {
       const course = localCourses.find((c) => c.id === selectedCourse);
-      if (course?.evaluation_rules) {
-        const dailyCats = (course.evaluation_rules as EvaluationRule[]).filter((rule) =>
-          dailyTrackableCategories.some((cat) => rule.category?.includes(cat) || rule.category?.toLowerCase?.().includes(cat.toLowerCase()))
-        );
-        const existingSpecials = new Set(dailyCats.map((rule) => rule.category));
-        const missingSpecials: EvaluationRule[] = SPECIAL_PARTICIPATION_OPTIONS
-          .filter((option) => !existingSpecials.has(option.category))
-          .map((option) => ({ category: option.category, weight: 0 }));
-        setEvaluationCategories([...dailyCats, ...missingSpecials]);
-      } else {
-        setEvaluationCategories(SPECIAL_PARTICIPATION_OPTIONS.map((option) => ({ category: option.category, weight: 0 })));
-      }
+      const { rules, deductions } = splitParticipationRules(
+        (course?.evaluation_rules as EvaluationRule[] | undefined) || [],
+        (category) => getCanonicalCategory(category, t),
+      );
+      const dailyCats = rules.filter((rule) =>
+        dailyTrackableCategories.some((cat) => rule.category?.includes(cat) || rule.category?.toLowerCase?.().includes(cat.toLowerCase()))
+      );
+      const observations: EvaluationRule[] = SPECIAL_PARTICIPATION_OPTIONS
+        .map((option) => ({ category: option.category, weight: 0, deductionPercent: deductions[option.category] }));
+      setEvaluationCategories([...dailyCats, ...observations]);
     } catch {
       setEvaluationCategories([]);
     }
-  }, [selectedCourse, localCourses, dailyTrackableCategories]);
+  }, [selectedCourse, localCourses, dailyTrackableCategories, t]);
 
   // Sync local courses with props (only on initial mount or when props change)
   useEffect(() => {
@@ -976,7 +977,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                 {evaluationCategories.map((rule, idx) => (
                   <div key={idx} className="bg-white rounded p-3 text-sm">
                     <p className="font-semibold text-gray-700">{translateCategory(rule.category)}</p>
-                    <p className="text-xs text-gray-500">{t('weight') || 'Weight'}: {rule.weight}%</p>
+                    <p className="text-xs text-gray-500">
+                      {getSpecialParticipationScore(rule.category) === null
+                        ? `${t('weight') || 'Weight'}: ${rule.weight}%`
+                        : t('observationDeductionPerTick', { percent: rule.deductionPercent ?? 0 })}
+                    </p>
                   </div>
                 ))}
               </div>

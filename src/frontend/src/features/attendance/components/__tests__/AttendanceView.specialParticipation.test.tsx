@@ -68,9 +68,9 @@ const mockCourses = [
     is_active: true,
     evaluation_rules: [
       { category: 'Class Participation', weight: 10 },
-      { category: 'No participation', weight: 0 },
-      { category: 'Minor participation', weight: 0 },
-      { category: 'Minor participation (mobile usage)', weight: 5 },
+      { category: 'No participation', weight: 0, deductionPercent: 60 },
+      { category: 'Minor participation', weight: 0, deductionPercent: 0 },
+      { category: 'Minor participation (mobile usage)', weight: 0, deductionPercent: 40 },
     ],
   },
   {
@@ -94,9 +94,13 @@ const renderPerformanceModal = (dailyPerformance: Record<string, number> = {}) =
   const setPerformanceScore = vi.fn();
   const setSpecialParticipationOption = vi.fn();
 
+  // Other keys fall back to the component's English defaults.
+  const t = (key: string, options?: Record<string, unknown>) =>
+    key.startsWith('observation') ? `${key}(${options?.percent ?? ''})` : '';
+
   render(
     <AttendancePerformanceModal
-      t={() => ''}
+      t={t}
       formatDate={(value) => String(value)}
       formatWeekday={() => 'Weekday'}
       localeOverride="en-US"
@@ -203,12 +207,14 @@ describe('AttendanceView - Special Participation Labels', () => {
     vi.unstubAllGlobals();
   });
 
-  it('shows a custom applied label when stored special score differs from canonical preset', async () => {
+  it('labels each observation with its share of the day, never with a score', async () => {
     renderPerformanceModal({ '1-Minor participation (mobile usage)': 8 });
 
     const specialOptions = await screen.findByTestId('special-participation-options');
-    expect(within(specialOptions).getByText('Applied (8/10, custom)')).toBeInTheDocument();
-    expect(within(specialOptions).queryByText('Applied (2/10)')).not.toBeInTheDocument();
+    expect(within(specialOptions).getByText('observationDeductionApplied(40)')).toBeInTheDocument();
+    expect(within(specialOptions).getByText('observationDeductionPerTick(60)')).toBeInTheDocument();
+    expect(within(specialOptions).getByText('observationNoDeduction()')).toBeInTheDocument();
+    expect(within(specialOptions).queryByText(/\/10/)).not.toBeInTheDocument();
   });
 
   it('groups optional participation observations under the participation assessment', async () => {
@@ -218,8 +224,6 @@ describe('AttendanceView - Special Participation Labels', () => {
 
     const specialOptions = await screen.findByTestId('special-participation-options');
     expect(within(specialOptions).getAllByRole('checkbox')).toHaveLength(3);
-    expect(within(specialOptions).getAllByText('Not assessed — no score is recorded')).toHaveLength(2);
-    expect(within(specialOptions).queryByText('Not applied (10/10)')).not.toBeInTheDocument();
     expect(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: Minor participation (mobile usage)' })).toBeChecked();
     expect(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: No participation' })).not.toBeChecked();
     expect(within(specialOptions).getByRole('checkbox', { name: 'Daily Performance: No participation' }).closest('div')).toHaveClass('sm:grid-cols-3');

@@ -198,7 +198,10 @@ def test_final_grade_over_the_fail_limit_is_flagged_not_blocked(client):
 
 
 def _participation_course(client):
-    """Class Participation 8% with a 2% special sub-weight, Final Exam 90%."""
+    """Old layout: Class Participation 8% with a 2% special sub-weight, Final Exam 90%.
+
+    The sub-weight goes back into Class Participation (10%); the observation takes its default.
+    """
     rules = [
         {"category": "Class Participation", "weight": 8},
         {"category": "No participation", "weight": 2},
@@ -224,7 +227,11 @@ def test_class_participation_counts_up_to_the_participation_limit(client):
     _mark(client, course["id"], s["id"], ["Absent"] * 4)  # 4 of 4 allowed
     data = client.get(f"/api/v1/analytics/student/{s['id']}/course/{course['id']}/final-grade").json()
     assert data["participation_forfeited"] is False
-    assert data["final_grade"] == 80.0  # (100*8 + 0*2 + 80*90) / 100
+    assert data["category_breakdown"]["Class Participation"]["weight"] == 10.0
+    assert "No participation" not in data["category_breakdown"]
+    # (100*10 + 80*90) / 100 = 82, minus the default 60% of the one ticked day (the whole share)
+    assert data["participation_deduction"] == 6.0
+    assert data["final_grade"] == 76.0
 
 
 def test_class_participation_share_is_lost_over_the_participation_limit(client):
@@ -232,10 +239,136 @@ def test_class_participation_share_is_lost_over_the_participation_limit(client):
     _mark(client, course["id"], s["id"], ["Absent"] * 4 + ["Excused"])  # 5 > 4
     data = client.get(f"/api/v1/analytics/student/{s['id']}/course/{course['id']}/final-grade").json()
     assert data["participation_forfeited"] is True
-    assert data["final_grade"] == 72.0  # (0*8 + 0*2 + 80*90) / 100
+    assert data["final_grade"] == 72.0  # (0*10 + 80*90) / 100
     assert data["category_breakdown"]["Class Participation"]["forfeited"] is True
-    assert data["category_breakdown"]["No participation"]["forfeited"] is True
     assert data["attendance_insufficient"] is False
+
+
+# ------------------- participation observations are deductions -----------------------
+# Owner, 2026-10-13: each attended day is worth an equal slice of Class Participation; the most
+# severe observation ticked that day takes its percentage of the slice (defaults by severity:
+# no participation 60%, mobile use 40%, minor 20%) and the rest stays as credit for being
+# present. Never a weighted category, never more than Class Participation earned.
+# Below: Class Participation 10%, Final Exam 90% (80/100 = 72 points), 10 attended days, so each
+# day's slice is 1 point.
+
+
+def _observation_course(client, percents=None, final_grade=80, present_days=10):
+    rules = [{"category": "Class Participation", "weight": 10}, {"category": "Final Exam", "weight": 90}]
+    for category, percent in (percents or {}).items():
+        rules.append({"category": category, "weight": 0, "deduction_percent": percent})
+    course = _course(client, evaluation_rules=rules)
+    s = _student(client)
+    _enroll(client, course["id"], s["id"])
+    if final_grade is not None:
+        _post(client, "/api/v1/grades/", {
+            "student_id": s["id"], "course_id": course["id"], "assignment_name": "Final",
+            "category": "Final Exam", "grade": final_grade, "max_grade": 100,
+        })
+    if present_days:
+        _mark(client, course["id"], s["id"], ["Present"] * present_days)  # 2026-09-01 onwards
+    return course, s
+
+
+def _perf(client, course, s, category, day, score=0):
+    _post(client, "/api/v1/daily-performance/", {
+        "student_id": s["id"], "course_id": course["id"], "date": f"2026-09-{day:02d}",
+        "category": category, "score": score, "max_score": 10,
+    })
+
+
+def _final(client, course, s):
+    r = client.get(f"/api/v1/analytics/student/{s['id']}/course/{course['id']}/final-grade")
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_course_keeps_the_observation_percent(client):
+    course, _ = _observation_course(client, {"No participation": 70, "Minor participation": 150}, final_grade=None)
+    rules = {r["category"]: r for r in course["evaluation_rules"]}
+    assert rules["No participation"] == {"category": "No participation", "weight": 0.0, "deduction_percent": 70.0}
+    assert rules["Minor participation"]["deduction_percent"] == 100.0
+    assert "deduction_percent" not in rules["Final Exam"]
+
+
+def test_default_percent_by_severity_takes_part_of_the_day(client):
+    course, s = _observation_course(client)
+    _perf(client, course, s, "Class Participation", 1, score=7)
+    assert _final(client, course, s)["final_grade"] == 79.0  # 7 + 72, no ticks
+
+    _perf(client, course, s, "Minor participation (mobile usage)", 1, score=2)
+    _perf(client, course, s, "Minor participation (mobile usage)", 2, score=2)
+    data = _final(client, course, s)
+    assert data["participation_deduction"] == 0.8  # 2 days x 40% x 1 point
+    assert data["final_grade"] == 78.2
+    assert data["participation_observations"]["minor participation (mobile usage)"] == {"ticks": 2, "percent": 40.0}
+    assert data["participation_observations"]["no participation"] == {"ticks": 0, "percent": 60.0}
+    assert data["category_breakdown"]["Class Participation"]["deduction"] == 0.8
+    assert set(data["category_breakdown"]) == {"Class Participation", "Final Exam"}
+
+
+def test_course_percent_overrides_the_default_and_a_day_counts_once(client):
+    course, s = _observation_course(client, {"No participation": 100})
+    _perf(client, course, s, "Class Participation", 1, score=10)
+    _perf(client, course, s, "No participation", 1)
+    _perf(client, course, s, "Minor participation", 1)  # same day: only the most severe counts
+    _perf(client, course, s, "Minor participation", 2)  # default 20%
+    data = _final(client, course, s)
+    assert data["participation_deduction"] == 1.2
+    assert data["final_grade"] == 80.8  # 82 - (1.0 + 0.2)
+
+
+def test_presence_keeps_the_rest_of_every_day(client):
+    course, s = _observation_course(client)
+    _perf(client, course, s, "Class Participation", 1, score=10)
+    for day in range(1, 11):
+        _perf(client, course, s, "No participation", day)
+    data = _final(client, course, s)
+    assert data["participation_deduction"] == 6.0  # 60% of the share; 40% stays for presence
+    assert data["final_grade"] == 76.0
+
+
+def test_deduction_never_exceeds_what_participation_earned(client):
+    course, s = _observation_course(client)
+    _perf(client, course, s, "Class Participation", 1, score=2)
+    for day in range(1, 11):
+        _perf(client, course, s, "No participation", day)
+    data = _final(client, course, s)
+    assert data["participation_deduction"] == 2.0  # asked 6, Class Participation earned 2
+    assert data["final_grade"] == 72.0
+
+
+def test_unrated_participation_still_loses_its_slice(client):
+    course, s = _observation_course(client)
+    _perf(client, course, s, "Minor participation (mobile usage)", 1, score=2)
+    _perf(client, course, s, "Minor participation (mobile usage)", 2, score=2)
+    data = _final(client, course, s)
+    assert data["final_grade"] == 79.2  # Final Exam alone = 80, minus 2 x 40% x 1 point
+
+
+def test_zero_percent_turns_an_observation_off(client):
+    course, s = _observation_course(client, {"Minor participation": 0})
+    _perf(client, course, s, "Class Participation", 1, score=7)
+    _perf(client, course, s, "Minor participation", 1)
+    assert _final(client, course, s)["participation_deduction"] == 0.0
+
+
+def test_reported_deduction_is_what_actually_came_off(client):
+    course, s = _observation_course(client, final_grade=None)
+    _perf(client, course, s, "No participation", 1)
+    data = _final(client, course, s)
+    assert (data["final_grade"], data["participation_deduction"]) == (0.0, 0.0)
+
+
+def test_no_deduction_once_participation_is_forfeited(client):
+    course, s = _observation_course(client, present_days=0)
+    _perf(client, course, s, "Class Participation", 6, score=7)
+    _perf(client, course, s, "No participation", 6)
+    _mark(client, course["id"], s["id"], ["Absent"] * 5)
+    data = _final(client, course, s)
+    assert data["participation_forfeited"] is True
+    assert data["participation_deduction"] == 0.0
+    assert data["final_grade"] == 72.0
 
 
 def test_import_of_an_old_export_does_not_restore_the_old_limit(db):

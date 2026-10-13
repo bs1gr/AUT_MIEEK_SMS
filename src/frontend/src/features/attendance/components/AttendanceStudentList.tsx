@@ -10,6 +10,8 @@ export interface AttendanceAggregatedStatus {
 export interface AttendanceEvaluationRule {
   category: string;
   weight?: number;
+  /** Participation observations only: share (%) of the day's participation a tick takes. */
+  deductionPercent?: number;
 }
 
 export interface AttendanceStudentListProps {

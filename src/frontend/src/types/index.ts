@@ -35,7 +35,9 @@ export interface Course {
   // across the UI_helpers and calendar utilities.
   teaching_schedule?: Array<{ day: string; start_time: string; end_time?: string; periods?: number; duration?: number; location?: string; }> | Record<string, { periods?: number; start_time?: string; duration?: number }>;
   // Optional evaluation rules attached to the course used by grading and analytics views
-  evaluation_rules?: Array<{ id?: number; category: string; weight?: number; description?: string }>;
+  // Participation observations are weight-0 rules; `deduction_percent` is the share of a day's
+  // Class Participation a tick takes (see utils/participation).
+  evaluation_rules?: Array<{ id?: number; category: string; weight?: number; description?: string; deduction_percent?: number }>;
   academic_year?: string;
   absence_penalty?: number;
   // ΜΙΕΕΚ absence rules (% of scheduled periods): over absence_limit_percent the course is
@@ -277,6 +279,8 @@ export interface FinalGrade {
   // Participation limit the Class Participation share already counts as 0 in final_grade.
   attendance_insufficient?: boolean;
   participation_forfeited?: boolean;
+  // Points the ticked participation observations took off final_grade (already applied).
+  participation_deduction?: number;
   absence_limit?: AbsenceLimitStatus;
 }
 

@@ -8,6 +8,8 @@ import { Student, Course, Grade } from '@/types';
 import { formatLocalDate } from '@/utils/date';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useGradeEntrySync } from '@/features/grading/hooks/useGradeEntrySync';
+import { getCanonicalCategory } from '@/utils/categoryLabels';
+import { splitParticipationRules } from '@/utils/participation';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -192,10 +194,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   }, [studentId, coursesString, courseId, activeCourses]); // Use coursesString to avoid infinite loop and include courseId
 
   const selectedCourse = useMemo(() => courses.find((c) => c.id === courseId), [courses, courseId]);
+  // Weighted rules only: participation observations are deductions, not grade categories.
   const evaluationRules: EvaluationRule[] = useMemo(() => {
-    if (!courseId) return [];
-    return Array.isArray(selectedCourse?.evaluation_rules) ? (selectedCourse.evaluation_rules as EvaluationRule[]) : [];
-  }, [courseId, selectedCourse]);
+    if (!courseId || !Array.isArray(selectedCourse?.evaluation_rules)) return [];
+    return splitParticipationRules(selectedCourse.evaluation_rules as EvaluationRule[], (category) => getCanonicalCategory(category, t)).rules;
+  }, [courseId, selectedCourse, t]);
 
   // Category options with display names
   const categoryOptions: CategoryOption[] = useMemo(() => {

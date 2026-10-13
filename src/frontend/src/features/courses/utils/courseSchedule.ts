@@ -15,7 +15,7 @@
  * few lines of time math.
  */
 
-export type Rule = { category: string; weight: string | number; description?: string };
+export type Rule = { category: string; weight: string | number; description?: string; deduction_percent?: string | number };
 export type DaySchedule = { periods: number; start_time: string; duration: number };
 export type TeachingScheduleItem = { day: string; periods: number; start_time: string; duration: number };
 
