@@ -160,7 +160,11 @@ _shutdown_lock = threading.Lock()
 _shutdown_after: float | None = None   # epoch time when to terminate; None = no timer
 _last_api_request: float = time.time()  # updated by middleware on every /api/* hit
 
-INACTIVITY_TIMEOUT_SECS = 30 * 60  # 30 minutes of zero API traffic → exit
+# Owner's rule (2026-10-13): Lite exits 30 s after Logout, or once no SMS page is open. Every
+# open page - the login page too - sends /api/v1/lite/heartbeat every 10 s, so 90 s without any
+# API request means no page is open. 90, not 30: browsers slow timers in background tabs to
+# about one a minute, and a tab left in the background must not lose its server.
+INACTIVITY_TIMEOUT_SECS = 90
 
 _LOOPBACK_HOSTS = {'127.0.0.1', '::1', 'localhost'}
 
@@ -220,7 +224,7 @@ def _monitor_shutdown() -> None:
             _debug_log('[lite_simple_entrypoint] Auto-shutdown: logout grace period expired.')
             _cleanup_and_exit()
         if idle >= INACTIVITY_TIMEOUT_SECS:
-            _debug_log(f'[lite_simple_entrypoint] Auto-shutdown: {INACTIVITY_TIMEOUT_SECS//60} min inactivity.')
+            _debug_log(f'[lite_simple_entrypoint] Auto-shutdown: no SMS page open for {INACTIVITY_TIMEOUT_SECS} s.')
             _cleanup_and_exit()
 
 
@@ -434,6 +438,13 @@ def main() -> None:
         _debug_log('[lite_simple_entrypoint] Shutdown cancelled (new login).')
         return _JSONResponse({'cancelled': True})
 
+    # Sent every 10 s by every open SMS page (also from phones and PCs on the LAN), logged in or
+    # not. The activity middleware below records it. It only keeps Lite alive, so it needs no
+    # login and is not restricted to this machine. It does not cancel a Logout shutdown.
+    @app.get('/api/v1/lite/heartbeat', include_in_schema=False)
+    async def _lite_heartbeat():
+        return _JSONResponse({'alive': True})
+
     @app.middleware('http')
     async def _track_activity(request: _Request, call_next):
         global _last_api_request
@@ -442,7 +453,10 @@ def main() -> None:
                 _last_api_request = time.time()
         return await call_next(request)
 
-    # Start background shutdown monitor
+    # Start background shutdown monitor. The inactivity clock starts now, not at import: startup
+    # can wait minutes (QNAP retry or password window), and the browser opens only after that.
+    with _shutdown_lock:
+        _last_api_request = time.time()
     _mon = threading.Thread(target=_monitor_shutdown, daemon=True, name='lite-shutdown-monitor')
     _mon.start()
     _debug_log('[lite_simple_entrypoint] Shutdown monitor started.')

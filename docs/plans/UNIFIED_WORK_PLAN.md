@@ -821,6 +821,32 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+26. ~~**SMS Lite stopped 30 s after the login page appeared**~~ — **fixed 2026-10-13 (owner's
+    rule; not yet released).** Reported from the laptop: a login attempt on a local-SQLite Lite got
+    "the server is not available".
+    - **Cause:** a failed session refresh, which happens every time the login page opens with no
+      session, called `logout()`, and that scheduled Lite's 30-second shutdown. Only a
+      successful login cancelled it.
+    - **Owner's rule:** Lite stops 30 s after Logout, or once no SMS page is open.
+    - **Now:**
+      - Only an explicit Logout schedules the shutdown (`AuthContext.endSession`).
+      - Every open page, including the login page and LAN/phone pages, sends
+        `GET /api/v1/lite/heartbeat` every 10 s (`useLiteHeartbeat`). A non-Lite server's 404
+        stops it after one request.
+      - Lite exits after 90 s with no API request (`INACTIVITY_TIMEOUT_SECS`, was 30 min). The
+        owner chose 90 s over 30: browsers slow background-tab timers to about once a minute.
+      - The inactivity clock starts when the server starts, not at import: startup can wait at
+        the QNAP retry or password window.
+    - **Tests:** `useLiteHeartbeat.test.ts` (3); `AuthContext.test.tsx` (+2: Logout schedules, a
+      failed refresh does not). Check the frozen exe's behaviour in the next release smoke test.
+    - **Same day:**
+      - REC's local `debug.log`, which held one pre-redaction line with a QNAP connection
+        password, was deleted (owner).
+      - For the laptop's admin access, the owner was given a one-time `DEFAULT_ADMIN_*` +
+        `DEFAULT_ADMIN_FORCE_RESET` start. It was verified on the v1.18.56 build: the account is
+        created in a database that already has users and must change its password. The
+        laptop's result is not confirmed yet.
+      - The laptop's own `debug.log` is the one to read for its Lite problems.
 25. ~~**A deactivated account looked like a registration request; two password rules**~~ —
     **fixed 2026-10-12 (owner: "yes please"; not yet released).** Found in the owner's
     screenshot of User Management.

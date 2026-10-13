@@ -17,6 +17,12 @@ vi.mock('@/utils/appStorage', () => ({
   init: () => Promise.resolve(),
 }));
 
+const liteLocalPage = vi.hoisted(() => ({ value: false }));
+vi.mock('@/utils/serverUrl', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/serverUrl')>()),
+  isLiteLocalPage: () => liteLocalPage.value,
+}));
+
 const mockAuthService = authService as unknown as {
   getAccessToken: ReturnType<typeof vi.fn>;
   clearAccessToken: ReturnType<typeof vi.fn>;
@@ -261,6 +267,45 @@ describe('AuthContext', () => {
       expect(mockAuthService.clearAccessToken).toHaveBeenCalled();
       expect(result.current.user).toBeNull();
       expect(result.current.accessToken).toBeNull();
+    });
+  });
+
+  describe('SMS Lite shutdown', () => {
+    // Owner's rule (2026-10-13): Lite exits 30 s after an explicit Logout. A failed session
+    // refresh, which happens whenever the login page opens with no session, used to schedule
+    // that shutdown too, so Lite stopped 30 s after the login page appeared.
+    const shutdownCalls = (fetchMock: ReturnType<typeof vi.fn>) =>
+      fetchMock.mock.calls.filter(([url]) => String(url).includes('/lite/schedule-shutdown'));
+    let fetchMock: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      liteLocalPage.value = true;
+      fetchMock = vi.fn().mockResolvedValue({ status: 200 });
+      vi.stubGlobal('fetch', fetchMock);
+      mockApiClient.post.mockResolvedValue({ data: {} });
+    });
+
+    afterEach(() => {
+      liteLocalPage.value = false;
+      vi.unstubAllGlobals();
+    });
+
+    it('schedules the shutdown when the user clicks Logout', async () => {
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await act(async () => {
+        await result.current.logout();
+      });
+      expect(shutdownCalls(fetchMock)).toHaveLength(1);
+    });
+
+    it('does not schedule it when a session refresh fails (login page opened)', async () => {
+      mockAuthService.refreshAccessToken.mockResolvedValue(null);
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await act(async () => {
+        await result.current.refresh();
+      });
+      expect(result.current.user).toBeNull();
+      expect(shutdownCalls(fetchMock)).toHaveLength(0);
     });
   });
 

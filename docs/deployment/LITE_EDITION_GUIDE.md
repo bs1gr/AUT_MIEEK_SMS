@@ -100,6 +100,17 @@ A default administrator is only ever created in a database that has no users yet
 that already has accounts, such as the shared QNAP one, never gets one added, and an account
 an administrator deactivated stays deactivated.
 
+### When SMS Lite Stops by Itself
+
+- **Logout:** SMS Lite stops 30 seconds after someone clicks Logout. Logging in again within
+  those 30 seconds keeps it running.
+- **No SMS page open:** every open SMS page sends SMS Lite a signal every 10 seconds. That
+  includes the login page, and pages on phones or other PCs using this PC's Lite. About 90
+  seconds after the last page is closed, SMS Lite stops.
+- **The login page alone does not stop it.** Before v1.18.57, opening the login page counted as
+  a logout, so SMS Lite stopped 30 seconds later and a slow login got "the server is not
+  available". Until a PC runs v1.18.57, log in within 30 seconds, or start SMS Lite again.
+
 ### First-Run Setup
 
 1. SMS_Lite.exe starts the backend server on port 8000

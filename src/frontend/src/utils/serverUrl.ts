@@ -68,6 +68,18 @@ export function clearServerUrl(): void {
   }
 }
 
+/**
+ * True on the SMS Lite PC itself (its UI is served at 127.0.0.1:8000). Only that page may ask
+ * Lite to shut down on Logout; Lite accepts the request from this machine only.
+ */
+export function isLiteLocalPage(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.location.hostname === '127.0.0.1' &&
+    window.location.port === '8000'
+  );
+}
+
 /** Returns the best available API base URL at runtime. */
 export function getApiBaseUrl(): string {
   // Local (offline) mode: use relative path — intercepted by service worker

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import authService from '@/services/authService';
 import apiClient, { controlApiClient } from '@/api/api';
 import { getItem, setItem, removeItem } from '@/utils/appStorage';
+import { useLiteHeartbeat } from '@/hooks/useLiteHeartbeat';
+import { isLiteLocalPage } from '@/utils/serverUrl';
 
 // Clean up legacy localStorage token keys from older versions.
 authService.clearLegacyTokens?.();
@@ -52,6 +54,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const initialUserRef = useRef(user);
   const initialAccessTokenRef = useRef(accessToken);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  // SMS Lite stays up while any page is open (login page included); see useLiteHeartbeat.
+  useLiteHeartbeat();
 
   useEffect(() => {
     // keep authService in sync
@@ -212,10 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []); // Empty dependency - run only once on mount
 
-  const _isLiteMode = () =>
-    typeof window !== 'undefined' &&
-    window.location.hostname === '127.0.0.1' &&
-    window.location.port === '8000';
+  const _isLiteMode = () => isLiteLocalPage();
 
   const login = async (email: string, password: string) => {
     const url = '/auth/login';
@@ -269,7 +271,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     throw lastErr ?? new Error('Failed to fetch /auth/me');
   };
 
-  const logout = async () => {
+  const endSession = async (userClickedLogout: boolean) => {
     try {
       await apiClient.post('/auth/logout', {}, { withCredentials: true });
     } catch {
@@ -279,13 +281,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccessTokenState(null);
     setUser(null);
     try { removeItem(LOCAL_USER_KEY); } catch {}
-    // In Lite mode: schedule process termination after 30-second grace period.
-    // Use fetch (not apiClient) — token is already cleared so apiClient interceptors
+    // In Lite mode, only an explicit Logout schedules the process to exit (30-second grace).
+    // A failed session refresh is not a logout: it happens whenever the login page opens with
+    // no session, and used to stop Lite 30 s after the login page appeared (2026-10-13).
+    // Use fetch (not apiClient) — the token is already cleared, so apiClient interceptors
     // would silently drop the request before it sends.
-    if (_isLiteMode()) {
+    if (userClickedLogout && _isLiteMode()) {
       fetch('/api/v1/lite/schedule-shutdown', { method: 'POST' }).catch(() => {});
     }
   };
+
+  const logout = () => endSession(true);
 
   const refresh = async (): Promise<boolean> => {
     const token = await authService.refreshAccessToken();
@@ -293,7 +299,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAccessTokenState(token);
       return true;
     }
-    await logout();
+    await endSession(false);
     return false;
   };
 
