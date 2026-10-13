@@ -273,8 +273,6 @@ export interface FinalGrade {
   absence_penalty: number;
   unexcused_absences: number;
   absence_deduction: number;
-  // Optional human-readable Greek description present in some analytics responses
-  greek_description?: string;
   // ΜΙΕΕΚ: over the fail limit is a flag only (the grade is never blocked); over the Class
   // Participation limit the Class Participation share already counts as 0 in final_grade.
   attendance_insufficient?: boolean;

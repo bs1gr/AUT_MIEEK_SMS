@@ -3,6 +3,7 @@ import { XCircle, PieChart, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { FinalGrade } from '@/types';
 import apiClient from '@/api/api';
+import { getGreekGradeDescription } from '@/utils/gradeUtils';
 
 interface Props {
   studentId: number;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName, onClose }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<FinalGrade | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +112,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                   <div className="text-3xl font-bold text-blue-700">
                     {data.greek_grade ? data.greek_grade.toFixed(1) : '0.0'}/20
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{data.greek_description || t('fail')}</div>
+                  <div className="text-xs text-gray-500 mt-1">{getGreekGradeDescription(Number(data.greek_grade || 0), language === 'en' ? 'en' : 'el')}</div>
                 </div>
 
                 {/* Letter Grade */}

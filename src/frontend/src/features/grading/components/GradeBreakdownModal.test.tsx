@@ -66,6 +66,15 @@ describe('GradeBreakdownModal', () => {
     expect(screen.getByText(/Intro to Programming/)).toBeInTheDocument();
   });
 
+  it('describes the Greek grade from the grade itself, not always as a fail', async () => {
+    mockedApiClient.get.mockResolvedValue({ data: FINAL_GRADE }); // 17.5/20
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    expect(await screen.findByText('Λίαν Καλώς')).toBeInTheDocument();
+    expect(screen.queryByText('fail')).not.toBeInTheDocument();
+  });
+
   it('renders a row per category with its weight and contribution', async () => {
     mockedApiClient.get.mockResolvedValue({ data: FINAL_GRADE });
 
