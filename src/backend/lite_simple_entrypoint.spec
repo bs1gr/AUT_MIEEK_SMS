@@ -111,6 +111,7 @@ a = Analysis(
         'backend.services.semester_export_service',
         'backend.services.session_data_service',
         'backend.services.backup_service_encrypted',
+        'backend.services.release_announcement',
         # Control router and all its sub-modules
         'backend.routers.routers_control',
         'backend.routers.control',

@@ -144,6 +144,12 @@ export default defineConfig(({ mode }) => {
         target: devProxyTarget,
         changeOrigin: true,
       },
+      // Live notifications: with a relative VITE_API_URL the socket connects to this dev server.
+      '/socket.io': {
+        target: devProxyTarget,
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
   build: {

@@ -12,6 +12,7 @@ from backend.config import settings
 from backend.models import Base, Course, CourseEnrollment, Role, Student, User, UserRole
 from backend.routers.routers_rbac import ensure_defaults_startup
 from backend.security.password_hash import get_password_hash
+from backend.services import course_activation
 
 """Seed test data for E2E tests.
 
@@ -185,6 +186,9 @@ def seed_e2e_data(force: bool = False):
                     db.add(enrollment)
                     enrollment_count += 1
 
+        # A course is active while it has active enrollments; the app sets this when it
+        # enrolls, so seeding enrollments directly must do the same.
+        course_activation.sync_course_activation(db, [c.id for c in courses])
         db.commit()
 
         # Validate seeded data

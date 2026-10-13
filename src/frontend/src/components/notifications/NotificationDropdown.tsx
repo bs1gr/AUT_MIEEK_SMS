@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from './NotificationItem';
+import { dismissReleaseAnnouncement } from '@/utils/releaseAnnouncement';
 import './NotificationDropdown.css';
 
 export interface NotificationDropdownProps {
@@ -72,10 +73,15 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const hasNotifications = displayNotifications.length > 0 || !!updateAvailable;
 
   // Dismiss update notification
+  // (hides that version until the next release, here and in the release banner)
   const handleDismissUpdate = () => {
-    localStorage.removeItem('sms.updateAvailable');
+    if (updateAvailable?.version) {
+      dismissReleaseAnnouncement(updateAvailable.version);
+    } else {
+      localStorage.removeItem('sms.updateAvailable');
+      window.dispatchEvent(new CustomEvent('sms:update-status'));
+    }
     setUpdateAvailable(null);
-    window.dispatchEvent(new CustomEvent('sms:update-status'));
   };
 
   // Return null if dropdown is not open

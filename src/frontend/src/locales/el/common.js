@@ -3,6 +3,10 @@ export default {
   appUpdateAvailable: 'Υπάρχει νέα έκδοση της εφαρμογής ({{version}}).',
   appUpdateDownload: 'Λήψη',
   appUpdateLater: 'Αργότερα',
+  // Ανακοίνωση νέας έκδοσης για κάθε συνδεδεμένο χρήστη (ReleaseAnnouncementBanner)
+  releaseAnnouncement: 'Κυκλοφόρησε η νέα έκδοση {{version}}.',
+  releaseAnnouncementWhatsNew: 'Τι νέο υπάρχει',
+  releaseAnnouncementInstall: 'Εγκατάσταση',
   // Διαχείριση Σπουδαστών & Μαθημάτων (Ειδοποιήσεις, Επιβεβαιώσεις)
   failedToLoadSomeData: 'Αποτυχία φόρτωσης ορισμένων δεδομένων. Ίσως λείπουν endpoints.',
   failedToLoadDataServer: 'Αποτυχία φόρτωσης δεδομένων. Ο διακομιστής επέστρεψε σφάλμα.',

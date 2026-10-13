@@ -6,6 +6,7 @@ Handles getting, managing, and broadcasting notifications.
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
 from backend.db import SessionLocal, get_session as get_db
@@ -22,6 +23,7 @@ from backend.schemas import (
     NotificationUpdate,
 )
 from backend.dependencies import get_notification_service
+from backend.services import release_announcement
 from backend.services.notification_service import NotificationPreferenceService, NotificationService
 from backend.services.websocket_manager import broadcast_notification, manager
 from backend.security.current_user import decode_token
@@ -165,6 +167,18 @@ async def get_unread_count(
     count = service.get_unread_count(user_id)
 
     return {"unread_count": count}
+
+
+@router.get("/release-announcement", response_model=dict)
+@limiter.limit(RATE_LIMIT_READ)
+async def get_release_announcement(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Whether a newer stable release is published (shown to every signed-in user)."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return await run_in_threadpool(release_announcement.get_release_announcement)
 
 
 @router.post("/read-all", response_model=dict)

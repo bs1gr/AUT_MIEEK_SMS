@@ -101,11 +101,20 @@ function urlRequestsUserManagement(): boolean {
   }
 }
 
+/** ?tab=updates (e.g. #/power?showControl=1&tab=updates from the new-release banner's Install) opens that tab. */
+function urlRequestedTab(): string | null {
+  try {
+    return new URLSearchParams(window.location.hash.split('?')[1] ?? '').get('tab');
+  } catch {
+    return null;
+  }
+}
+
 const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant = 'full', initialTab }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>(
-    initialTab || (variant === 'embedded' || urlRequestsUserManagement() ? 'maintenance' : 'operations')
+    () => initialTab || urlRequestedTab() || (variant === 'embedded' || urlRequestsUserManagement() ? 'maintenance' : 'operations')
   );
   const [showRuntimeDetails, setShowRuntimeDetails] = useState<boolean>(false);
   // Maintenance panel collapse states (closed by default)
@@ -113,6 +122,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(urlRequestsUserManagement);
   useEffect(() => {
     const onHashChange = () => {
+      const tab = urlRequestedTab();
+      if (tab) setActiveTab(tab);
       if (urlRequestsUserManagement()) {
         setActiveTab('maintenance');
         setExpandAdminUsers(true);

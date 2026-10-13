@@ -19,6 +19,7 @@ import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptM
 import BackendStatusBanner from './components/common/BackendStatusBanner';
 import OfflineBanner from './components/common/OfflineBanner';
 import AppUpdateBanner from './components/common/AppUpdateBanner';
+import ReleaseAnnouncementBanner from './components/common/ReleaseAnnouncementBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
 import { getApiBaseUrl, isLocalMode } from '@/utils/serverUrl';
 import { useAndroidBackButton } from '@/hooks/useAndroidBackButton';
@@ -161,6 +162,9 @@ function AppLayout({ children }: AppLayoutProps) {
 
       {/* Android app only: a newer APK is published */}
       <AppUpdateBanner />
+
+      {/* Browser and desktop editions: a newer release is published */}
+      {isAuthenticated && <ReleaseAnnouncementBanner />}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

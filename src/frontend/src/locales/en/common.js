@@ -3,6 +3,10 @@ export default {
   appUpdateAvailable: 'A new version of the app ({{version}}) is available.',
   appUpdateDownload: 'Download',
   appUpdateLater: 'Later',
+  // New-release announcement for every signed-in user (ReleaseAnnouncementBanner)
+  releaseAnnouncement: 'New version {{version}} is out.',
+  releaseAnnouncementWhatsNew: "What's new",
+  releaseAnnouncementInstall: 'Install',
   // Student & Course Management (Toasts, Confirmations)
   failedToLoadSomeData: 'Failed to load some data. Endpoints might be missing.',
   failedToLoadDataServer: 'Failed to load data. Server returned an error.',
