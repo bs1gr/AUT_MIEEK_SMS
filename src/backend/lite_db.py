@@ -164,6 +164,36 @@ def select_database(
                 raise SystemExit(f"SMS Lite stopped: {exc}") from exc
 
 
+def app_serves(app: Any, path: str, method: str = "GET") -> bool:
+    """Whether the app routes `method path` anywhere.
+
+    Since FastAPI 0.143 an included router is one nested entry in app.routes, not a copy of its
+    routes, so listing route paths misses everything included (2026-10-13: Lite logged
+    "Control router NOT in app" and registered it a second time). Matching goes through nested
+    routers.
+    """
+    from starlette.routing import Match
+
+    scope = {"type": "http", "path": path, "method": method, "root_path": "", "headers": [], "query_string": b""}
+    for route in app.routes:
+        try:
+            match, _ = route.matches(scope)
+        except Exception:
+            continue
+        if match != Match.NONE:
+            return True
+    return False
+
+
+def api_operation_count(app: Any) -> int | None:
+    """Operations in the OpenAPI schema: the meaningful size of the API (len(app.routes) only
+    counts top-level entries since FastAPI 0.143). None if the schema cannot be built."""
+    try:
+        return sum(len(methods) for methods in app.openapi().get("paths", {}).values())
+    except Exception:
+        return None
+
+
 def load_initial_admin(path: Path) -> dict[str, str] | None:
     """The administrator the installer asked for on a local-SQLite install, or None.
 

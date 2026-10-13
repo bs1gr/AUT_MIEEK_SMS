@@ -38,6 +38,8 @@ if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
 from backend.lite_db import (  # noqa: E402 - stdlib-only module
+    api_operation_count,
+    app_serves,
     load_initial_admin,
     select_database,
     windows_password_dialog,
@@ -381,18 +383,20 @@ def main() -> None:
     try:
         from backend.app_factory import create_app
         app = create_app()
-        _debug_log(f'[lite_simple_entrypoint] App created. Routes: {len(app.routes)}')
+        # len(app.routes) counts only top-level entries since FastAPI 0.143 (an included router is
+        # one entry), so it fell from ~343 to 53 although every endpoint was there: log the API's
+        # operations instead.
+        _debug_log(f'[lite_simple_entrypoint] App created. API operations: {api_operation_count(app)}')
         # Verify control router is registered; if not, attempt explicit registration
         # and log the actual error so it appears in debug.log (not just uvicorn's logger).
-        _control_paths = {getattr(r, 'path', '') for r in app.routes}
-        if '/control/api/status' not in _control_paths:
+        if not app_serves(app, '/control/api/status'):
             _debug_log('[lite_simple_entrypoint] Control router NOT in app — attempting explicit registration...')
             try:
                 import importlib as _il
                 import traceback as _tb2
                 _ctrl = _il.import_module('backend.routers.routers_control')
                 app.include_router(getattr(_ctrl, 'router'), tags=['Control'])
-                _debug_log(f'[lite_simple_entrypoint] Control router explicitly registered OK. Routes now: {len(app.routes)}')
+                _debug_log('[lite_simple_entrypoint] Control router explicitly registered OK.')
             except Exception as _ce:
                 import traceback as _tb2
                 _debug_log(f'[lite_simple_entrypoint] Control router FAILED: {type(_ce).__name__}: {str(_ce)[:500]}')

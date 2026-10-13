@@ -136,11 +136,10 @@ class Course(SoftDeleteMixin, Base):
     # over participation_limit_percent the Class Participation share counts as 0.
     absence_limit_percent = Column(Float, default=30.0, server_default="30")
     participation_limit_percent = Column(Float, default=10.0, server_default="10")
-    # courses.absence_limit_extended_percent (unused since 2026-10-07) is no longer mapped but
-    # still in the database: every SQLAlchemy query selects all mapped columns, so installs still
-    # mapping it break the moment it is dropped. Drop it in a migration only after every install
-    # runs a release without the mapping (removed after v1.18.55). It has a server default, so
-    # inserts that omit it still work.
+    # courses.absence_limit_extended_percent (unused since 2026-10-07) was unmapped in v1.18.56
+    # and dropped by migration f2b6d8a1c3e5 once every install ran it. Removing a column from
+    # this shared database always takes those two releases: SQLAlchemy selects every mapped
+    # column, so an install still mapping one fails on every query once it is dropped.
 
     # Course status: derived from enrollments (active while it has students with an
     # active enrollment) -- see services.course_activation. New courses start inactive.
@@ -203,10 +202,9 @@ class CourseEnrollment(SoftDeleteMixin, Base):
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
     enrolled_at = Column(Date, default=date.today, index=True)
     status = Column(String(20), default="active", nullable=False, index=True)
-    # extended_absence_approved / _approved_at / _note (unused since 2026-10-07, the
-    # Directorate-approved extended limit was removed) are no longer mapped but still in the
-    # database; same two-step removal as Course.absence_limit_extended_percent. The NOT NULL one
-    # has a server default (false), so inserts that omit it still work.
+    # extended_absence_approved / _approved_at / _note (the Directorate-approved extended limit,
+    # removed 2026-10-07): unmapped in v1.18.56, dropped by f2b6d8a1c3e5, the same two-step
+    # removal as Course.absence_limit_extended_percent.
 
     # Relationships
     student = relationship("Student", back_populates="enrollments")  # type: ignore[var-annotated]

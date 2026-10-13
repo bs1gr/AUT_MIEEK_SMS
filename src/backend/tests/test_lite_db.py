@@ -243,6 +243,33 @@ def test_password_dialog_script_parses():
     assert result.stdout.strip() == "ok", result.stderr
 
 
+def test_app_serves_finds_routes_inside_included_routers():
+    # FastAPI 0.143 keeps an included router as one nested entry, so a list of route paths no
+    # longer shows its routes: Lite logged "Control router NOT in app" and added it twice.
+    from fastapi import APIRouter, FastAPI
+
+    inner = APIRouter(prefix="/control/api")
+
+    @inner.get("/status")
+    def status():
+        return {}
+
+    app = FastAPI()
+    app.include_router(inner)
+    assert lite_db.app_serves(app, "/control/api/status")
+    assert not lite_db.app_serves(app, "/control/api/missing")
+    assert lite_db.api_operation_count(app) == 1
+
+
+def test_real_app_serves_the_control_router_and_its_full_api():
+    from backend.app_factory import create_app
+
+    app = create_app()
+    assert lite_db.app_serves(app, "/control/api/status")
+    # ~340 operations; len(app.routes) is only the top level (about 50) since FastAPI 0.143
+    assert lite_db.api_operation_count(app) > 250
+
+
 def test_entrypoint_selects_the_database_through_lite_db(monkeypatch):
     calls = []
 

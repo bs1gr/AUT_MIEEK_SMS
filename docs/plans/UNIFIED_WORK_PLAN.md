@@ -821,6 +821,23 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+27. ~~**"Routes: 53" in the laptop's Lite log**~~ — **not a lost API; fixed the Lite check it
+    misled (2026-10-13; not yet released).** The laptop's `debug.log` (copied by the owner)
+    showed ~343–348 routes per start before, and 53 since v1.18.56. My own v1.18.56 smoke runs
+    logged 53 too and still passed, because they only called endpoints that were present.
+    - **Cause:** FastAPI 0.143.0 (in v1.18.56 via the pip group) keeps an included router as one
+      nested `_IncludedRouter` entry in `app.routes`. The count dropped while the API stayed
+      complete: 289 paths and 339 operations in OpenAPI, and grades, analytics and
+      notifications answer 401, not 404.
+    - **Side effect fixed:** Lite's startup check listed route paths, so it found no Control router
+      and registered it a second time. `lite_db.app_serves()` now asks routing (through nested
+      routers) whether a path is served, and the log shows OpenAPI operations
+      (`api_operation_count`). Only the Lite entrypoint walked `app.routes`.
+    - **Tests:** `test_lite_db.py` (+2: a nested router; the real app serves
+      `/control/api/status` with more than 250 operations).
+    - **Also in that log:** 32 lines from older builds carry a database URL with its password
+      unmasked. The owner should delete the laptop's `debug.log` and the copy on the OneDrive
+      desktop.
 26. ~~**SMS Lite stopped 30 s after the login page appeared**~~ — **fixed 2026-10-13 (owner's
     rule; not yet released).** Reported from the laptop: a login attempt on a local-SQLite Lite got
     "the server is not available".
@@ -1016,8 +1033,11 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
          longer mapped in `models.py`. The database keeps them; they have server defaults, so
          inserts still work. `test_unmapped_legacy_columns.py` runs the real migrations to head
          and checks that.
-      2. **Open:** once every install runs the next release (the first one without the mapping),
-         add the Alembic migration that drops them. Importing an export
+      2. **Done 2026-10-13 (owner: every device runs v1.18.56; not yet released):** migration
+         `f2b6d8a1c3e5` drops the four columns. Downgrade restores them empty, with their old
+         defaults. `test_unmapped_legacy_columns.py` runs the chain on SQLite: courses and
+         enrollments survive the batch rebuild, and downgrade brings the columns back. The
+         owner's `--reload` dev backend applies it to QNAP when it restarts. Importing an export
       from before this change ignores its old `absence_limit_percent`, so the 10% fail rule
       cannot come back from a backup.
     - **Special participation moved to the Courses tab** (owner: "sub-weights of CP"): the
