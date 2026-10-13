@@ -34,6 +34,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.57] - 2026-10-13
+
+### Features
+- **update**: each edition updates itself in place (Lite, Docker, dev checkout, Android)
+- **db**: drop the four unused extended-absence columns; Lite's route check survives FastAPI 0.143
+
+### Bug Fixes
+- **lite**: read the heartbeat's response so pages go network-idle
+- **lite**: stop only after Logout or once no SMS page is open
+
+### Documentation
+- **plan**: record the v1.18.56 release, its smoke test and the asset verification
+
+### Tests
+- **update**: run the host updater task tests on Windows only
+
 ## [1.18.56] - 2026-10-13
 
 ### Bug Fixes
@@ -4655,6 +4672,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
