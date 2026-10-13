@@ -1,8 +1,34 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.56
+**Current Version**: 1.18.57
 **Last Updated**: October 13, 2026
-**Status**: ✅ **v1.18.56 released 2026-10-13** (tag on `025f20920`). It ships:
+**Status**: ✅ **v1.18.57 released 2026-10-13** (tag on `67042f28c`). It ships:
+- todo 28: Control Panel Update per edition (Lite-only installer, Docker host task, guidance on a
+  dev checkout, APK offer on Android);
+- todo 29: Update reads the installed version correctly on Lite and Docker;
+- todo 26: Lite stops after Logout or once no page is open;
+- todo 22 step 2: the four legacy absence columns are dropped (owner: every device ran v1.18.56).
+  The E2E failure from the heartbeat was fixed first (`066d2a18f`).
+
+**Smoke test before tagging**, on the release build (todo 29 has the results):
+- the v1.18.56 Lite database upgraded;
+- the Lite lifetime rules held;
+- the update check runs in Lite mode.
+
+It found todo 29; the fix was rebuilt and the smoke test re-run.
+
+**Verified on the published assets:**
+- The installer's signature is Valid (AUT MIEEK, timestamped, `v1.18.57`), and both SHA-256 hashes
+  match GitHub's digests.
+- The APK reports `1.18.57` (`versionCode 118057`).
+- All eight workflows on the release commit passed.
+- A copy of the new Lite set to report v1.18.56 is offered v1.18.57, with the published installer
+  and its digest.
+- **Not exercised yet:** a real Update install through UAC, the Docker host task end to end, and
+  the Android offer on a device. Each needs an install one version behind.
+- **First move to v1.18.57 is manual on every PC.**
+
+v1.18.56 released 2026-10-13 (tag on `025f20920`). It ships:
 - todo 25: registration requests told apart from deactivated accounts (migration
   `e7a1c9d4f2b8`, additive), and one password rule everywhere;
 - step 1 of removing the old absence columns: they are no longer mapped;
@@ -28,9 +54,6 @@
 - **Not exercised:** Docker publish did not run for this tag, so `build-push-action` v7 and
   `login-action` v4 still await a real run.
 - The release notes carry a Highlights section.
-
-**Next:** once every install runs v1.18.56, add the migration that drops the four legacy absence
-columns (todo 22 follow-up, step 2).
 
 v1.18.55 released 2026-10-12 (tag on `6abf8909b`). Todo 24 and its follow-ups:
 - No public-password default admin on a shared database.
