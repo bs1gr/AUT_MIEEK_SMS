@@ -8,7 +8,7 @@ pytest-html==4.2.0
 pytest-json-report==1.5.0
 types-redis==4.6.0.20241004
 detect-secrets>=1.5.0
-ruff==0.16.10
+ruff==0.17.1
 pytest-asyncio==1.4.0  # required for pytest>=9 support (0.23.5 capped pytest<9)
 mypy>=2.4.0
 aiosqlite==0.22.1
@@ -20,7 +20,7 @@ pypdf>=6.20.1
 
 # Security constraints for development transitive dependencies
 filelock>=3.32.7
-virtualenv>=21.14.6  # Fixes PYSEC-2026-4013 activation-script injection
+virtualenv>=21.14.8  # Fixes PYSEC-2026-4013 activation-script injection
 wheel>=0.48.0
 werkzeug>=3.1.9
 keras>=3.15.1
