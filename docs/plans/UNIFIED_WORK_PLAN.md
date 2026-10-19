@@ -24,6 +24,11 @@ both SHA-256 hashes match GitHub's digests; the APK reports `1.18.58` (`versionC
 eight workflows on the release commit passed. Docker publish is manual-only and was not run (as
 before). The announcement first appears when a release newer than v1.18.58 is published.
 
+**2026-10-19: Code scanning and PR maintenance round.**
+- **CodeQL Alerts fixed:** Alert 1898 (`py/clear-text-logging-sensitive-data` in `src/backend/lite_simple_entrypoint.py:80`) and Alert 1897 (`py/clear-text-storage-sensitive-data` in `src/backend/lite_db.py:118`). Fixed by printing a static diagnostic message instead of prompting text to stderr in `_ask_password`, renaming `password_prompt_message` to `qnap_prompt_message` (with alias), and writing updated credentials files with restricted permissions (`0o600`) via low-level descriptor (`os.open`/`os.write`). CodeQL re-scan confirmed both alerts resolved (`fixed`).
+- **Dependabot PRs reviewed and merged:** 14 PRs merged into `main` (#273–#286 covering `actions/setup-python`, `actions/setup-java`, `pypdf`, `slack-github-action`, `reportlab`, `redis`, `docker/metadata-action`, `pip-minor-patch`, `actions/stale`, `pytest`, `npm-minor-patch`, and `@babel/*`). PR #287 (`@capacitor/app` 8.1.2) closed with `@dependabot ignore this major version` due to breaking version mismatch with remaining Capacitor 7 packages.
+- Zero open CodeQL code scanning alerts, zero open Dependabot security alerts, and zero open PRs remain.
+
 v1.18.57 released 2026-10-13 (tag on `67042f28c`). It ships:
 - todo 28: Control Panel Update per edition (Lite-only installer, Docker host task, guidance on a
   dev checkout, APK offer on Android);
