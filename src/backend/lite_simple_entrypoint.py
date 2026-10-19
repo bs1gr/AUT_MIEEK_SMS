@@ -77,7 +77,7 @@ def _ask_retry(message: str) -> bool:
 
 def _ask_password(message: str) -> str | None:
     """QNAP refused the saved password: ask for the current one (frozen app), or stop."""
-    print(message, file=sys.stderr)
+    print("QNAP refused saved database credentials; prompting user for current password.", file=sys.stderr)
     if _lite_appdata is None:
         return None  # running from source: no dialog
     try:
@@ -338,7 +338,7 @@ def main() -> None:
         try:
             from backend.db import engine
             from backend.models import Base
-            Base.metadata.create_all(engine)  # noqa: SMS-lite-frozen-exe-fallback
+            Base.metadata.create_all(engine)  # noqa  # SMS-lite-frozen-exe-fallback
             _debug_log('[lite_simple_entrypoint] ✅ Schema created via SQLAlchemy fallback')
             migrations_ok = True
         except Exception as fallback_err:

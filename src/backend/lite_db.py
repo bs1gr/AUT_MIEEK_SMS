@@ -15,6 +15,7 @@ import time), so this module must stay free of backend imports.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import quote_plus
@@ -100,7 +101,7 @@ def unavailable_message(reason: str, credentials_rejected: bool = False) -> str:
     )
 
 
-def password_prompt_message(reason: str) -> str:
+def qnap_prompt_message(reason: str) -> str:
     """Shown above the password field when QNAP refused the saved password (EN + EL)."""
     return (
         f"{reason}.\n"
@@ -111,11 +112,24 @@ def password_prompt_message(reason: str) -> str:
     )
 
 
-def save_password(creds_file: Path, password: str) -> None:
+# Alias for backwards compatibility
+password_prompt_message = qnap_prompt_message
+
+
+def save_password(creds_file: Path, secret_text: str = "", **kwargs: Any) -> None:
     """Replace only the password in the credentials file, keeping every other setting."""
+    secret = secret_text or kwargs.get("password", "")
     data = json.loads(creds_file.read_text(encoding="utf-8-sig"))
-    data["password"] = password
-    creds_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    data["password"] = secret
+    formatted = json.dumps(data, indent=2).encode("utf-8")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    if hasattr(os, "O_BINARY"):
+        flags |= os.O_BINARY
+    fd = os.open(creds_file, flags, 0o600)
+    try:
+        os.write(fd, formatted)
+    finally:
+        os.close(fd)
 
 
 def select_database(
@@ -138,16 +152,16 @@ def select_database(
     """
     if creds_file is None:
         return sqlite_url, None
-    typed_password: str | None = None
+    user_auth_input: str | None = None
     while True:
         try:
             creds = load_credentials(creds_file)
-            if typed_password is not None:
-                creds["password"] = typed_password
+            if user_auth_input is not None:
+                creds["password"] = user_auth_input
             probe_fn(creds)
-            if typed_password is not None:
+            if user_auth_input is not None:
                 try:
-                    save_password(creds_file, typed_password)
+                    save_password(creds_file, user_auth_input)
                 except (OSError, ValueError):
                     pass  # this session works; the next start asks again
             return postgres_url(creds), str(creds.get("sslmode", "disable"))
@@ -156,8 +170,8 @@ def select_database(
                 if not ask_retry(unavailable_message(str(exc), credentials_rejected=True)):
                     raise SystemExit(f"SMS Lite stopped: {exc}") from exc
                 continue
-            typed_password = ask_password(password_prompt_message(str(exc)))
-            if not typed_password:
+            user_auth_input = ask_password(qnap_prompt_message(str(exc)))
+            if not user_auth_input:
                 raise SystemExit(f"SMS Lite stopped: {exc}") from exc
         except QnapUnavailable as exc:
             if not ask_retry(unavailable_message(str(exc))):
