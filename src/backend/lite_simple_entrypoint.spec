@@ -157,6 +157,25 @@ a = Analysis(
     noarchive=False,
 )
 
+# SQLAlchemy's Cython speedups (sqlalchemy/**/_*_cy.*.pyd) are unsigned, and Windows
+# Smart App Control blocks them: v1.18.58 Lite exited at startup on any PC with it
+# enforced ("an application control policy has blocked this file"). The wheel ships
+# each one's pure-Python source beside it, so bundle that module instead of the .pyd.
+_sqla_cy = [b for b in a.binaries
+            if b[2] == 'EXTENSION' and b[0].replace('\\', '/').startswith('sqlalchemy/')
+            and os.path.basename(b[0]).split('.')[0].endswith('_cy')]
+for _dest, _src, _typecode in _sqla_cy:
+    _stem = os.path.basename(_src).split('.')[0]  # _processors_cy.cp313-win_amd64.pyd -> _processors_cy
+    _py_src = os.path.join(os.path.dirname(_src), _stem + '.py')
+    if not os.path.isfile(_py_src):
+        raise SystemExit(f'SQLAlchemy pure-Python source missing for {_dest}: {_py_src}')
+    _package = os.path.dirname(_dest.replace('\\', '/')).replace('/', '.')
+    a.pure.append((f'{_package}.{_stem}', _py_src, 'PYMODULE'))
+a.binaries = [b for b in a.binaries if b not in _sqla_cy]
+print(f'SQLAlchemy: bundled {len(_sqla_cy)} Cython extension(s) as pure-Python modules')
+if any(b[0].replace('\\', '/').startswith('sqlalchemy/') and b[0].endswith('.pyd') for b in a.binaries):
+    raise SystemExit('SQLAlchemy compiled extensions are still bundled; Smart App Control would block them')
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 # onedir build: EXE holds only the bootstrap + Python bytecode (exclude_binaries=True
