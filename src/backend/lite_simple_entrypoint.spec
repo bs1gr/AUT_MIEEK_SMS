@@ -36,6 +36,11 @@ a = Analysis(
         # Database migrations (Alembic) - CRITICAL: alembic.ini must be in backend/ directory
         ('alembic.ini', 'backend'),
         ('migrations', 'backend/migrations'),
+        # DejaVu fonts for Greek in PDFs: the exporters load backend/fonts/*.ttf next to their
+        # own modules. Without them report_exporters fell back to Helvetica (no Greek glyphs)
+        # and the student report, which registers DejaVuSans unconditionally, failed outright.
+        ('fonts/DejaVuSans.ttf', 'backend/fonts'),
+        ('fonts/DejaVuSans-Bold.ttf', 'backend/fonts'),
     ] + collect_data_files('bottle', includes=['**/*']) + pydantic_core_datas,
     hiddenimports=[
         # Core dependencies
