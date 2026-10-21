@@ -1,8 +1,41 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.58
-**Last Updated**: October 14, 2026
-**Status**: ✅ **v1.18.58 released 2026-10-14** (annotated tag on `092992de2`). It ships:
+**Current Version**: 1.18.59
+**Last Updated**: October 21, 2026
+**Status**: ✅ **v1.18.59 released 2026-10-21** (annotated tag on `a40b2f0b8`). It ships:
+- **SMS Lite no longer bundles SQLAlchemy's compiled extensions** (`b4f6076aa`). Windows Smart
+  App Control blocks those unsigned `.pyd` files, and **v1.18.58 Lite exited at startup on any PC
+  with it enforced** (reproduced: exit 1 after 17 s, Code Integrity event 3077 on
+  `_processors_cy.pyd`). The spec swaps all eight `_*_cy` extensions for the pure-Python
+  modules the wheel ships beside them, and fails the build if one is left. **This is not
+  enough on its own: Smart App Control also blocks the new unsigned `SMS_Lite.exe` itself**
+  (todo 30);
+- **SMS Lite bundles its PDF fonts** (`857613ba5`). It never shipped `backend/fonts`, so
+  exports fell back to Helvetica, which has no Greek glyphs, and the student report PDF failed.
+  This is the likely cause of the old "Greek PDF black squares" reports: ReportLab does embed
+  DejaVuSans subsets;
+- vite 7.3.7 (dev server `launch-editor` advisories), markdown-it 15.0.3, reportlab 5, redis 8,
+  and the 2026-10-19 Dependabot and CodeQL round (below).
+
+**Checked before tagging:**
+- reportlab 5.0.1 renders Greek with the repo's DejaVuSans (embedded subsets, text extracts).
+- redis-py 8.1.0 against `redis:7-alpine` (7.4.11, the compose image): 13/13 checks over both
+  cache classes, including TTLs, pattern invalidation and `flushdb`.
+- The SQLAlchemy swap on a frozen build from the `cp313-win_amd64` wheel, as CI uses: 8 swapped,
+  0 left, and it ran with `cext=False`.
+- Frozen v1.18.59 Lite, with Smart App Control off on the owner's PC (owner switched it off for
+  the test): `/health` reports v1.18.59 within 6 s; login works; a student with a Greek name was
+  created; the student report and student list PDFs embed DejaVuSans and contain the Greek
+  name. No migrations since v1.18.58, so no database upgrade test.
+
+**Verified on the published assets:** installer signature Valid (AUT MIEEK, DigiCert timestamp),
+version `v1.18.59`; both SHA-256 hashes match GitHub's digests; the APK reports `1.18.59`
+(`versionCode 118059`); all four tag workflows passed. The CI build log shows `SQLAlchemy: bundled
+8 Cython extension(s) as pure-Python modules`, so the published Lite has none of the blocked
+`.pyd` files. The markdown-it alerts closed after the dependency graph refreshed; no
+Dependabot alerts are open. Docker publish is manual-only and was not run (as before).
+
+v1.18.58 released 2026-10-14 (annotated tag on `092992de2`). It ships:
 - participation observations as deductions (owner, 2026-10-13): a share of each attended day's
   Class Participation, 60/40/20% by severity, editable per course; the rest of the day is credit
   for presence (see todo 22, "Superseded 2026-10-13"). Existing courses fold their old sub-weights
@@ -871,6 +904,50 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+30. **Sign SMS Lite with a publicly trusted certificate (Smart App Control)** (raised 2026-10-21;
+    owner: ship the SQLAlchemy fix in v1.18.59 now, signing next). **Highest priority: until
+    then SMS Lite does not start on any PC where Smart App Control is enforced.**
+    - **What blocks it:** the `VerifiedAndReputableDesktop` policy allows a file only if
+      Microsoft's cloud trusts it or it carries a trusted signature. Only the installer is
+      signed. `SMS_Lite.exe` and 188 of the 260 binaries in v1.18.58's `_internal` were unsigned.
+      A new build's exe has no reputation, so it is blocked outright (Code Integrity 3077/3033).
+    - **The AUT MIEEK certificate does not help:** it is self-signed. A test-signed
+      `SMS_Lite.exe` was still blocked on the owner's PC, where that certificate is in the
+      trusted root store: Code Integrity rated the signature at signing level 1 (VerificationError
+      18). Microsoft's FAQ: there are no per-app exceptions; the fix is "a valid certificate"
+      (Microsoft Trusted Root Program).
+    - **Options:** Azure Artifact Signing (formerly Trusted Signing; about $10/month, identity
+      validation, works from GitHub Actions), or an OV code-signing certificate from a public CA.
+      Sign `SMS_Lite.exe`, every unsigned `.exe`/`.dll`/`.pyd` under `_internal`, and the
+      installer, in both `INSTALLER_BUILDER.ps1` and `release-installer-with-sha.yml`. Then
+      re-test with Smart App Control on.
+    - **Owner's PC:** Smart App Control blocks SQLAlchemy's `.pyd` in the dev venv too, which
+      now has the pure-Python `sqlalchemy-2.1.4-py3-none-any.whl`. A `pip install
+      --force-reinstall` from `requirements.txt` would bring the blocked binary wheel back.
+31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
+    Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
+    `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
+    unnoticed: the spec never listed them, from its first commit (2026-06-12) to v1.18.58. The local build also comes from the developer's venv, not from the clean
+    `pip install` that CI uses for the published installer. Add a runtime check to the release
+    workflow before upload: start the exe in a throwaway profile (`USERPROFILE`/`LOCALAPPDATA`
+    redirected, `BROWSER` set to a no-op, `DEFAULT_ADMIN_*` env vars), wait for `/health`, log
+    in, create a student with a Greek name, and fetch a PDF export. Then check that DejaVuSans is
+    embedded and the Greek text extracts. The v1.18.59 smoke scripts did exactly this
+    (`lite_sac_start.ps1`, `lite_api_check.py`). CI runners do not enforce Smart App Control, so
+    this does not replace todo 30's test.
+32. **The Lite spec's exclude list has never worked** (found 2026-10-21).
+    `lite_simple_entrypoint.spec` passes `excludedimports=[...]`, but PyInstaller's argument is
+    `excludes=`, and `Analysis(**_kwargs)` drops unknown names silently. So pytest, numpy,
+    pandas, matplotlib, torch and the rest of the list are bundled when something pulls them in
+    (pandas, numpy and PIL alone are about 30 MB of the 123 MB `_internal`, and more unsigned
+    binaries for todo 30). **Check what the backend imports at runtime before switching** (for
+    example, whether imports or exports use pandas). Excluding a module Lite uses would break
+    that feature only in Lite. Same file: the hidden imports `bottle` and `proxy_tools`
+    (PyWebView leftovers) are not installed, so every build logs two errors. And
+    `collect_submodules('passlib')` also bundles `passlib.tests`.
+33. **`SMS_Manager.exe` targets .NET 5** (found 2026-10-21, build log): `net5.0` is out of
+    support (NETSDK1138), and `Program.cs` lines 670 and 703 have four nullable-reference
+    warnings. Docker installs only.
 29. ~~**Update saw SMS Lite and Docker as version "unknown"**~~ — **fixed 2026-10-13, found in
     the v1.18.57 smoke test.** On the frozen Lite build the update check returned
     `current_version: "unknown"`, `update_available: false`, so todo 28's Update would never
