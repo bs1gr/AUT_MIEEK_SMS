@@ -36,6 +36,28 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.59] - 2026-10-21
+
+### Bug Fixes
+- **lite**: bundle the DejaVu fonts so PDFs keep their Greek text
+- **lite**: bundle SQLAlchemy's pure-Python modules, not its Cython .pyd
+- **security**: resolve CodeQL alerts in lite entrypoint and credentials save
+
+### Documentation
+- **plan**: record CodeQL security alert fixes and Dependabot PR maintenance round
+- **plan**: record the v1.18.58 release, its smoke test and the asset verification
+
+### Build System
+- **deps-dev**: bump markdown-it from 15.0.1 to 15.0.3 (#288)
+
+### CI/CD
+- bump actions/stale from 9 to 11 (#281)
+- bump docker/metadata-action from 5 to 6 (#279)
+- bump slackapi/slack-github-action from 2.0.0 to 4.0.0 (#276)
+- bump actions/setup-java from 4 to 6 (#274)
+- bump actions/setup-python from 6 to 7 (#273)
+
 ## [1.18.58] - 2026-10-14
 
 ### Features
@@ -4685,6 +4707,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 

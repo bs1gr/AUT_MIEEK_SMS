@@ -1,6 +1,6 @@
 """
 Student Management System - Main Entry Point
-Version: 1.18.58
+Version: 1.18.59
 
 Minimal entry point that creates and runs the FastAPI application.
 All application logic has been modularized into:
