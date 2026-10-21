@@ -921,9 +921,10 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       Sign `SMS_Lite.exe`, every unsigned `.exe`/`.dll`/`.pyd` under `_internal`, and the
       installer, in both `INSTALLER_BUILDER.ps1` and `release-installer-with-sha.yml`. Then
       re-test with Smart App Control on.
-    - **Owner's PC:** Smart App Control blocks SQLAlchemy's `.pyd` in the dev venv too, which
-      now has the pure-Python `sqlalchemy-2.1.4-py3-none-any.whl`. A `pip install
-      --force-reinstall` from `requirements.txt` would bring the blocked binary wheel back.
+    - **Owner's PC:** Smart App Control is **permanently off** there since 2026-10-21 (owner's
+      decision), so it can no longer show what users see. Test the signed build on another PC
+      with Smart App Control enforced. The dev venv has the pure-Python
+      `sqlalchemy-2.1.4-py3-none-any.whl`, which matches what Lite now bundles.
 31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
     Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
     `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
