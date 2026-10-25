@@ -47,7 +47,7 @@ dependencies = [
     "PyJWT==2.15.0",  # CVE-2024-33663/33664/33665/33666 and 2026 JWT-algorithm-confusion fixes
     "docker==7.1.0",
     "prometheus-client==0.21.0",
-    "opentelemetry-api==1.39.1",
+    "opentelemetry-api==1.45.1",
     "opentelemetry-sdk==1.39.1",
     "opentelemetry-exporter-otlp==1.39.1",
     "opentelemetry-instrumentation-fastapi==0.60b1",
