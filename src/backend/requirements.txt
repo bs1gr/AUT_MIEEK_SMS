@@ -34,7 +34,7 @@ psycopg2-binary==2.9.13
 python-socketio==5.17.0  # CVE-2026-48804: binary attachment accumulation DoS fixed in >=5.16.2
 python-engineio==4.14.0  # CVE-2026-48802/48809: thread + payload DoS fixed in >=4.13.2
 pandas==3.0.6
-protobuf==6.33.6  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.0
+protobuf==7.36.2  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.0
 apscheduler==3.11.3
 
 # Security constraints for transitive dependencies
