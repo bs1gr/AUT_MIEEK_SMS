@@ -28,8 +28,8 @@ const LanguageSwitcher: React.FC = () => {
     <button
       onClick={toggleLanguage}
       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 shadow-xs"
-      aria-label={t('lang.switchLabel', { defaultValue: `Switch to ${currentLanguage === 'en' ? 'Greek' : 'English'}` })}
-      title={t('lang.currentLabel', { defaultValue: `Current language: ${currentLanguage === 'en' ? 'English' : 'Ελληνικά'}` })}
+      aria-label={t(currentLanguage === 'en' ? 'common.lang.switchToGreek' : 'common.lang.switchToEnglish')}
+      title={t(currentLanguage === 'en' ? 'common.lang.currentEnglish' : 'common.lang.currentGreek')}
     >
       <Globe className="w-5 h-5 text-gray-600 dark:text-gray-300" />
       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">

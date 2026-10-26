@@ -43,7 +43,7 @@ export default function Navigation({ activeView, tabs, className, onViewChange }
   const activeTab = tabs.find((t) => t.path === location.pathname || t.key === activeView);
 
   return (
-    <nav className={cn('relative z-40', className)} aria-label="Main navigation">
+    <nav className={cn('relative z-40', className)} aria-label={t('common.mainNavigation')}>
 
       {/* Desktop: horizontal tabs (md and above) */}
       <div className="hidden md:flex flex-wrap gap-2">
@@ -76,7 +76,7 @@ export default function Navigation({ activeView, tabs, className, onViewChange }
         <button
           onClick={() => setMobileOpen((o) => !o)}
           className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 min-h-[52px]"
-          aria-label="Navigation menu"
+          aria-label={t('common.navigationMenu')}
           aria-expanded={mobileOpen}
           type="button"
         >

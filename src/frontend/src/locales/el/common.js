@@ -208,8 +208,14 @@ export default {
   opsShort: 'Λειτουργίες',
   lang: {
     enShort: 'En',
-    elShort: 'Ελ'
+    elShort: 'Ελ',
+    switchToGreek: 'Αλλαγή σε Ελληνικά',
+    switchToEnglish: 'Αλλαγή σε Αγγλικά',
+    currentEnglish: 'Τρέχουσα γλώσσα: Αγγλικά',
+    currentGreek: 'Τρέχουσα γλώσσα: Ελληνικά'
   },
+  mainNavigation: 'Κύρια πλοήγηση',
+  navigationMenu: 'Μενού πλοήγησης',
   validationPassed: 'Έλεγχος επιτυχής',
   readyToImport: 'Έτοιμο για εισαγωγή:',
   validate: 'Επικύρωση',
