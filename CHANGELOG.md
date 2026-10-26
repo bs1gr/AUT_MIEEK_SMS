@@ -37,6 +37,40 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+## [1.18.60] - 2026-10-27
+
+### Security
+- **deps**: filelock 3.32.7 -> 4.2.4 (ReadWriteLock/SoftFileLock advisories; also unblocked the pip-audit job)
+- **deps**: OpenTelemetry family 1.45.1/0.66b1 in the root pyproject.toml, matching requirements.txt
+- **deps**: vitest and @vitest/* 4.1.11 -> 4.1.12 (mocker code injection, Windows path traversal)
+- **deps**: npm override xcode -> uuid ^11.1.1 (GHSA-w5hq-g745-h8pq via @capacitor/cli)
+- **deps**: protobuf 6.33.6 -> 7.36.2 (CVE-2026-0994)
+
+### Bug Fixes
+- **i18n**: language switcher wrong on regional locales (en-US); locale reduced to the two shipped codes
+- **i18n**: switcher and navigation accessibility labels translated in EN and EL (keys previously missing)
+- **docker**: Dockerfile.fullstack / Dockerfile.frontend copy the lockfile and run `npm ci`; main's Docker build had failed since 2026-10-25
+- **android**: ExampleInstrumentedTest checks cy.mieek.sms instead of the Capacitor template package
+
+### Android
+- **capacitor**: 7.6.9 -> 8.5.3 with the official migration: minSdk 24, compile/target SDK 36, AndroidX and cordova-android updates, `density` in configChanges
+- **capacitor**: index.html drops viewport-fit=cover so the WebView is padded natively on every WebView version
+- **gradle**: AGP 9.4.1, google-services 4.5.0, Gradle 9.6; manifest ordering, fullBackupContent=false + data_extraction_rules.xml
+- Capacitor 8 CLI requires Node 22 or later
+
+### Build System
+- **deps**: FastAPI 0.161.1, Starlette 1.9.0, SQLAlchemy 2.1.6, Alembic 1.20.1, pandas 3.1.0, reportlab 5.1.0, pydantic-settings 2.16.1, ruff 0.17.2, pypdf >= 6.21.2, virtualenv 21.14.13 (#289); root pyproject.toml pins synced
+- **deps**: every in-range frontend minor/patch update; serialize-javascript 7.1.4 (#292), fast-uri 3.1.9 (#291); @vitest/eslint-plugin pinned to 1.6.27 until TypeScript 6
+- Supersedes Dependabot #293-#304 (#306)
+
+### CI/CD
+- bump actions/setup-node v6 -> v7, dependabot/fetch-metadata v2 -> v3.1.0, actions/create-github-app-token 3.2.0 -> 3.3.0
+- frontend lint job: drop the Playwright browser install, Python setup and a dead installer Greek-text step
+- dependabot.yml: ignore @vitest/eslint-plugin >= 1.6.28 until TypeScript 6
+
+### Documentation
+- **plan**: record the v1.18.59 release and its Smart App Control follow-ups; Smart App Control permanently off on the owner's PC
+- **plan**: record the 2026-10-26 security/upgrade round (todos 34-36)
 ## [1.18.59] - 2026-10-21
 
 ### Bug Fixes
