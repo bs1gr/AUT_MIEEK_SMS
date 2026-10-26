@@ -19,7 +19,7 @@ types-requests>=2.33.0.20260906
 pypdf>=6.20.1
 
 # Security constraints for development transitive dependencies
-filelock>=3.32.7
+filelock>=4.2.4  # 3.20.4–4.2.0 ReadWriteLock/SoftFileLock advisories
 virtualenv>=21.14.13  # Fixes PYSEC-2026-4013 activation-script injection
 wheel>=0.48.0
 werkzeug>=3.1.9

@@ -5,16 +5,20 @@
 # will automatically invalidate the cache and trigger rebuild
 FROM node:22-slim AS fe
 WORKDIR /app/frontend
-# Copy only package.json (not the Windows lockfile) so npm resolves Linux-native
-# esbuild/rollup binaries correctly. Alpine musl issues also avoided by using slim.
-COPY src/frontend/package.json ./
+# Install from the lockfile so the image gets exactly the audited dependency
+# tree. The lockfile is generated with npm 11, which records every platform's
+# optional esbuild/rollup/lightningcss binaries, so npm ci picks the Linux ones.
+# (A bare `npm install` re-resolved ranges at build time and broke whenever a
+# new upstream release had an incompatible peer, e.g. @vitest/eslint-plugin
+# 1.6.28 requiring TypeScript >=6.) Alpine musl issues avoided by using slim.
+COPY src/frontend/package.json src/frontend/package-lock.json ./
 COPY VERSION /VERSION
 # node:22-slim ships npm 10.9.8, whose arborist has a reproducible crash
 # ("Cannot read properties of null (reading 'edgesOut')") resolving this
 # project's peer-dependency graph (vite/vitest's optional @vitejs/devtools*
 # and @vitest/browser-playwright peers). npm 11 fixes it; pin the major
 # version rather than tracking latest.
-RUN npm install -g npm@11 && npm install
+RUN npm install -g npm@11 && npm ci
 COPY src/frontend/ .
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}

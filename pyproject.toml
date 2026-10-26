@@ -47,11 +47,11 @@ dependencies = [
     "PyJWT==2.15.0",  # CVE-2024-33663/33664/33665/33666 and 2026 JWT-algorithm-confusion fixes
     "docker==7.1.0",
     "prometheus-client==0.21.0",
-    "opentelemetry-api==1.39.1",
-    "opentelemetry-sdk==1.39.1",
-    "opentelemetry-exporter-otlp==1.39.1",
-    "opentelemetry-instrumentation-fastapi==0.60b1",
-    "opentelemetry-semantic-conventions==0.60b1",
+    "opentelemetry-api==1.45.1",  # unbounded tracestate parsing fixed in 1.45.1; keep in step with requirements.txt
+    "opentelemetry-sdk==1.45.1",
+    "opentelemetry-exporter-otlp==1.45.1",
+    "opentelemetry-instrumentation-fastapi==0.66b1",
+    "opentelemetry-semantic-conventions==0.66b1",
     "redis==5.0.1",
     "psycopg2-binary==2.9.12",
     "python-socketio==5.16.3",  # CVE-2026-48804: binary attachment accumulation DoS fixed in >=5.16.2

@@ -43,6 +43,11 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # 1.6.28+ declares a TypeScript >=6 peer; the project is on TS 5.9, so
+      # npm ci rejects the tree. Drop this once TypeScript moves to 6.
+      - dependency-name: "@vitest/eslint-plugin"
+        versions: [">=1.6.28"]
     commit-message:
       prefix: "deps"
     labels:
