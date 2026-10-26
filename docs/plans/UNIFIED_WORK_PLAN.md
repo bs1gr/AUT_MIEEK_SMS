@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.59
-**Last Updated**: October 21, 2026
+**Last Updated**: October 26, 2026
 **Status**: ✅ **v1.18.59 released 2026-10-21** (annotated tag on `a40b2f0b8`). It ships:
 - **SMS Lite no longer bundles SQLAlchemy's compiled extensions** (`b4f6076aa`). Windows Smart
   App Control blocks those unsigned `.pyd` files, and **v1.18.58 Lite exited at startup on any PC
@@ -61,6 +61,36 @@ before). The announcement first appears when a release newer than v1.18.58 is pu
 - **CodeQL Alerts fixed:** Alert 1898 (`py/clear-text-logging-sensitive-data` in `src/backend/lite_simple_entrypoint.py:80`) and Alert 1897 (`py/clear-text-storage-sensitive-data` in `src/backend/lite_db.py:118`). Fixed by printing a static diagnostic message instead of prompting text to stderr in `_ask_password`, renaming `password_prompt_message` to `qnap_prompt_message` (with alias), and writing updated credentials files with restricted permissions (`0o600`) via low-level descriptor (`os.open`/`os.write`). CodeQL re-scan confirmed both alerts resolved (`fixed`).
 - **Dependabot PRs reviewed and merged:** 14 PRs merged into `main` (#273–#286 covering `actions/setup-python`, `actions/setup-java`, `pypdf`, `slack-github-action`, `reportlab`, `redis`, `docker/metadata-action`, `pip-minor-patch`, `actions/stale`, `pytest`, `npm-minor-patch`, and `@babel/*`). PR #287 (`@capacitor/app` 8.1.2) closed with `@dependabot ignore this major version` due to breaking version mismatch with remaining Capacitor 7 packages.
 - Zero open CodeQL code scanning alerts, zero open Dependabot security alerts, and zero open PRs remain.
+
+**2026-10-26: Security fixes, Capacitor 8 and dependency round (PRs #305, #306; awaiting the
+owner's merge, unreleased).**
+- **#305:** filelock 4.2.4 (Dependabot #291–293, code scanning #1900–1902; it also failed the
+  pip `audit` job on every pip PR), the root `pyproject.toml` OpenTelemetry family at 1.45.1
+  (#290), vitest 4.1.12 (#288, #294).
+- **`main` had been red since 2026-10-25:** `Dockerfile.fullstack` and `Dockerfile.frontend` ran
+  `npm install` without the lockfile, which picked up `@vitest/eslint-plugin` 1.6.28 (TypeScript ≥ 6
+  peer). Both now `npm ci` from the lockfile.
+- **#306** (stacked on #305; merging it lands both):
+  - Capacitor 8.5.3 with the Android migration (SDK 36, min 24; AGP 9.4 and Gradle 9.6 kept).
+  - `viewport-fit=cover` dropped (todo 36).
+  - An npm override for `xcode → uuid` (GHSA-w5hq-g745-h8pq).
+  - protobuf 7.36.2.
+  - All backend and frontend minor/patch updates.
+  - The root `pyproject.toml` pins synced to `requirements.txt` (24 were months stale).
+  - setup-node 7, fetch-metadata 3.1.0.
+  - It supersedes Dependabot #293–#304.
+- **Found by the Android smoke and fixed in #306:** on an `en-US` phone the language switcher
+  showed "ΕΛ" over English text and the first tap did nothing (i18next keeps the regional
+  locale). The switcher's and navigation's accessibility labels never translated.
+- **Smoke test** (results on #306), every target on a throwaway database:
+  - isolated E2E: 40 passed. The one failure, a 3 s load check run beside a Docker build,
+    passed 18/18 when re-run alone.
+  - Docker production image and frozen Lite: 13/13 API, PDF and SPA checks each.
+  - release APK on an Android 16 emulator: login, Greek UI, back button, offline banner,
+    server URL kept across an upgrade.
+  - Backend batches: 1247 passed, 0 failed. Vitest: 1820 passed.
+- Follow-ups: todos 34 (major upgrades review), 35 (Node 22 locally), 36 (system bars on a real
+  phone).
 
 v1.18.57 released 2026-10-13 (tag on `67042f28c`). It ships:
 - todo 28: Control Panel Update per edition (Lite-only installer, Docker host task, guidance on a
@@ -949,6 +979,35 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
 33. **`SMS_Manager.exe` targets .NET 5** (found 2026-10-21, build log): `net5.0` is out of
     support (NETSDK1138), and `Program.cs` lines 670 and 703 have four nullable-reference
     warnings. Docker installs only.
+34. **Review the remaining major upgrades and plan them** (raised 2026-10-26; owner: "sooner or
+    later we have to review all the larger upgrades"). PR #306 took only the recommended set
+    (Capacitor 8, protobuf 7, Actions majors). Still behind, all frontend. The backend majors
+    (Pillow 13, python-dateutil 3, …) are transitive and arrive when their parents allow them:
+
+    | Group | From → to | What it touches |
+    |---|---|---|
+    | TypeScript | 5.9 → 6 (7 is the Go-native compiler, evaluate separately) | `tsconfig` deprecations; **lifts the `@vitest/eslint-plugin` 1.6.27 pin** (1.6.28 needs TS ≥ 6) and its Dependabot ignore in `.github/dependabot.yml` |
+    | Build/test toolchain (move together) | Vite 7 → 8, Vitest 4 → 5 (+ `@vitest/ui`, `coverage-v8`), `@vitejs/plugin-react` 5 → 6, `vite-plugin-pwa` 1 → 2, jsdom 27 → 29 | `vite.config.ts`, PWA/service worker, test setup, the Android/Lite/Docker builds |
+    | Lint | ESLint 9 → 10, `@eslint/js` 10 | rule churn, plugin compatibility (flat config already in use) |
+    | i18n | i18next 25 → 26, react-i18next 16 → 17 | every screen; `LanguageContext`'s namespace-fallback `t()` |
+    | UI libraries | lucide-react 0.557 → 1.x, framer-motion 12 → 14, date-fns 3 → 4, `@hookform/resolvers` 5 → 6 | icon renames, animations (the fixed-clock tests), date formatting, form validation |
+
+    - **Deliverable of the review:** per group, the breaking changes that apply to this codebase,
+      an effort and risk estimate, and an order, for the owner to approve. Then one PR per group,
+      each with the full smoke test (isolated E2E, Docker, frozen Lite, Android emulator).
+      Suggested order: TypeScript 6 → toolchain → ESLint → UI libraries → i18n.
+    - Until then Dependabot keeps opening one PR per major. Close them with
+      `@dependabot ignore this major version` only if a group is deliberately deferred.
+35. **Node 22 on the dev PC** (raised 2026-10-26). The Capacitor 8 CLI refuses Node < 22, and
+    nvm's default here is 20.19.5, so `npm run build:android` / `npx cap sync` fail locally. CI
+    already uses Node 22. Fix: `nvm install 22` then `nvm use 22`. Vite 7 and the rest of the
+    toolchain run on 22. The 2026-10-26 smoke used a portable Node 22 just for `cap sync`.
+36. **Check Capacitor 8's system-bar handling on a real phone** (raised 2026-10-26). PR #306 drops
+    `viewport-fit=cover`, so Capacitor pads the WebView instead of drawing under the status and
+    navigation bars (no CSS reads the safe-area insets, and many overlays are `position: fixed`).
+    The emulator smoke ran WebView 133, which takes the padded path. **WebView ≥ 140 takes the
+    viewport-fit path, and only a real, updated phone shows it.** Check the header, modals, the
+    offline banner and the bottom of long pages for overlap with the bars, in both themes.
 29. ~~**Update saw SMS Lite and Docker as version "unknown"**~~ — **fixed 2026-10-13, found in
     the v1.18.57 smoke test.** On the frozen Lite build the update check returned
     `current_version: "unknown"`, `update_available: false`, so todo 28's Update would never
