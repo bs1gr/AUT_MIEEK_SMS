@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { LanguageProvider, useLanguage } from './LanguageContext';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { LanguageProvider, useLanguage, toSupportedLanguage } from './LanguageContext';
 import type { ReactNode } from 'react';
 
 // Don't mock i18next - use the real implementation since LanguageContext wraps it
@@ -137,6 +137,29 @@ describe('LanguageContext', () => {
         await result.current.setLanguage('en');
       });
       expect(localStorage.getItem('i18nextLng')).toBe('en');
+    });
+  });
+
+  describe('regional locales', () => {
+    it.each([
+      ['en-US', 'en'],
+      ['en-GB', 'en'],
+      ['el-GR', 'el'],
+      ['de-DE', 'en'],
+      [null, 'el'],
+      ['', 'el'],
+    ])('toSupportedLanguage(%s) -> %s', (input, expected) => {
+      expect(toSupportedLanguage(input)).toBe(expected);
+    });
+
+    it('reports a detected en-US device locale as en, so the switcher matches the rendered text', async () => {
+      // An Android WebView on an English phone stores the detected locale verbatim.
+      localStorage.setItem('i18nextLng', 'en-US');
+
+      const { result } = renderHook(() => useLanguage(), { wrapper });
+
+      expect(result.current.language).toBe('en');
+      await waitFor(() => expect(localStorage.getItem('i18nextLng')).toBe('en'));
     });
   });
 

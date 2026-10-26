@@ -2,19 +2,19 @@
 # Generated from pyproject.toml [project.dependencies]
 # Last updated: 2026-06-27 (Security fixes: python-socketio 5.16.3, python-engineio 4.13.3 — Trivy DoS CVEs)
 
-fastapi==0.143.3
-starlette==1.8.0
+fastapi==0.161.1
+starlette==1.9.0
 uvicorn[standard]==0.54.0
-sqlalchemy==2.1.4
+sqlalchemy==2.1.6
 psycopg[binary]==3.3.6
 cryptography==50.0.2  # CVE-2026-69247 fixed in 50.0.0
 pydantic==2.14.1
 email-validator==2.3.0
 python-multipart==0.0.32  # Dependabot #185-197 fixed in >=0.0.31
 openpyxl==3.1.5
-reportlab==5.0.1
-pydantic-settings==2.16.0
-alembic==1.20.0
+reportlab==5.1.0
+pydantic-settings==2.16.1
+alembic==1.20.1
 psutil==7.2.2
 httpx==0.28.1
 requests==2.34.2
@@ -33,12 +33,12 @@ redis==8.1.0
 psycopg2-binary==2.9.13
 python-socketio==5.17.0  # CVE-2026-48804: binary attachment accumulation DoS fixed in >=5.16.2
 python-engineio==4.14.0  # CVE-2026-48802/48809: thread + payload DoS fixed in >=4.13.2
-pandas==3.0.6
-protobuf==6.33.6  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.0
+pandas==3.1.0
+protobuf==7.36.2  # CVE-2026-0994 fixed since 6.x; opentelemetry-proto 1.45.1 allows <8.0
 apscheduler==3.11.3
 
 # Security constraints for transitive dependencies
-filelock==3.32.7
+filelock==4.2.4  # GHSA ReadWriteLock/SoftFileLock side-file + oplock fixes (3.20.4–4.2.0 affected)
 virtualenv==21.14.13  # Fixes PYSEC-2026-4013 activation-script injection
 wheel==0.48.0
 werkzeug==3.1.9

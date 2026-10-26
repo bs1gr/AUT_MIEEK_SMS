@@ -9,10 +9,11 @@ ARG VCS_REF
 
 WORKDIR /app/frontend
 
-# Dependencies — copy only package.json (not the Windows-created lockfile) so npm
-# resolves platform-specific binaries correctly for Linux.
-COPY src/frontend/package.json ./
-RUN npm install
+# Dependencies — install from the lockfile (generated with npm 11, so it lists
+# the Linux-native optional binaries) to get exactly the audited tree. npm 11
+# also avoids node:22-slim's npm 10 arborist crash (see Dockerfile.fullstack).
+COPY src/frontend/package.json src/frontend/package-lock.json ./
+RUN npm install -g npm@11 && npm ci
 
 # Build
 COPY src/frontend/ .

@@ -209,8 +209,14 @@ export default {
   opsShort: 'Ops',
   lang: {
     enShort: 'En',
-    elShort: 'Ελ'
+    elShort: 'Ελ',
+    switchToGreek: 'Switch to Greek',
+    switchToEnglish: 'Switch to English',
+    currentEnglish: 'Current language: English',
+    currentGreek: 'Current language: Greek'
   },
+  mainNavigation: 'Main navigation',
+  navigationMenu: 'Navigation menu',
   validationPassed: 'Validation Passed',
   readyToImport: 'Ready to import:',
   validate: 'Validate',

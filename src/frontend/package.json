@@ -19,16 +19,16 @@
     "generate-icons": "node ../../scripts/generate-pwa-icons.js",
     "build:android": "npm run prebuild && vite build --mode android && npx cap sync android",
     "cap:sync": "npx cap sync android",
-    "cap:open": "cross-env CAPACITOR_ANDROID_STUDIO_PATH=\"C:\\Users\\Vasilis\\AppData\\Local\\Programs\\Android Studio\\bin\\studio64.exe\" npx cap open android"
+    "cap:open": "cross-env CAPACITOR_ANDROID_STUDIO_PATH=\"C:\\Program Files\\Android\\Android Studio\\bin\\studio64.exe\" npx cap open android"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.3.0",
-    "@capacitor/android": "^7.6.9",
-    "@capacitor/app": "^7.1.2",
-    "@capacitor/cli": "^7.6.9",
-    "@capacitor/core": "^7.6.9",
-    "@capacitor/network": "^7.0.4",
-    "@capacitor/preferences": "^7.0.4",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/preferences": "^8.0.1",
     "@emotion/is-prop-valid": "^1.4.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.9.1",
@@ -93,8 +93,8 @@
     "@typescript-eslint/visitor-keys": "^8.71.2",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.8",
-    "@vitest/eslint-plugin": "^1.6.27",
-    "@vitest/ui": "^4.0.8",
+    "@vitest/eslint-plugin": "1.6.27",
+    "@vitest/ui": "^4.1.12",
     "ajv": "^8.18.0",
     "autoprefixer": "^10.6.1",
     "cross-env": "^10.1.0",
@@ -118,9 +118,12 @@
     "uri-js": "^4.4.1",
     "vite": "^7.3.7",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "overrides": {
+    "xcode": {
+      "uuid": "^11.1.1"
+    },
     "esbuild": "^0.28.2",
     "serialize-javascript": "^7.1.4",
     "flatted": ">=3.4.0",

@@ -9,6 +9,14 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// The detector reports the device locale as-is ('en-US', 'el-GR'), but the app only ships
+// 'en' and 'el' and the switcher compares against those, so reduce it to a supported code.
+// Any other locale renders through fallbackLng 'en', so report it as 'en'.
+export const toSupportedLanguage = (lang: string | null | undefined): string => {
+  if (!lang) return 'el';
+  return lang.toLowerCase().startsWith('el') ? 'el' : 'en';
+};
+
 interface LanguageProviderProps {
   children: ReactNode;
 }
@@ -17,13 +25,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const { t: i18nT, i18n } = useTranslation();
   const [language, setLanguageState] = useState(() => {
     const stored = localStorage.getItem('i18nextLng');
-    return stored || i18n.language || 'el';
+    return toSupportedLanguage(stored || i18n.language);
   });
 
   // Sync with i18next when language changes (including persisted value)
   useEffect(() => {
     const stored = localStorage.getItem('i18nextLng');
-    const effectiveLang = stored || i18n.language || 'el';
+    const effectiveLang = toSupportedLanguage(stored || i18n.language);
 
     // Ensure i18n and state reflect persisted language
     if (effectiveLang && i18n.language !== effectiveLang) {
@@ -36,9 +44,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Update i18next when language is changed via setLanguage
   const setLanguage = useCallback((lang: string) => {
-    i18n.changeLanguage(lang);
-    localStorage.setItem('i18nextLng', lang);
-    setLanguageState(lang);
+    const supported = toSupportedLanguage(lang);
+    i18n.changeLanguage(supported);
+    localStorage.setItem('i18nextLng', supported);
+    setLanguageState(supported);
   }, [i18n]);
 
   useEffect(() => {
