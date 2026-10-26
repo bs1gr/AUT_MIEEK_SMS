@@ -19,7 +19,7 @@
     "generate-icons": "node ../../scripts/generate-pwa-icons.js",
     "build:android": "npm run prebuild && vite build --mode android && npx cap sync android",
     "cap:sync": "npx cap sync android",
-    "cap:open": "cross-env CAPACITOR_ANDROID_STUDIO_PATH=\"C:\\Users\\Vasilis\\AppData\\Local\\Programs\\Android Studio\\bin\\studio64.exe\" npx cap open android"
+    "cap:open": "cross-env CAPACITOR_ANDROID_STUDIO_PATH=\"C:\\Program Files\\Android\\Android Studio\\bin\\studio64.exe\" npx cap open android"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.3.0",

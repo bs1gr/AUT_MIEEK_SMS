@@ -998,10 +998,12 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       Suggested order: TypeScript 6 → toolchain → ESLint → UI libraries → i18n.
     - Until then Dependabot keeps opening one PR per major. Close them with
       `@dependabot ignore this major version` only if a group is deliberately deferred.
-35. **Node 22 on the dev PC** (raised 2026-10-26). The Capacitor 8 CLI refuses Node < 22, and
-    nvm's default here is 20.19.5, so `npm run build:android` / `npx cap sync` fail locally. CI
-    already uses Node 22. Fix: `nvm install 22` then `nvm use 22`. Vite 7 and the rest of the
-    toolchain run on 22. The 2026-10-26 smoke used a portable Node 22 just for `cap sync`.
+35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
+    nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
+    arborist crash. The old npm 8.19.1 is gone, which also ends the lockfile `libc` stripping.
+    `npm run build:android` and `cap doctor` pass. Global tools were reinstalled at their old
+    versions. npm 11 skips global install scripts by default, so react-devtools' Electron
+    binary was not downloaded. Node 20.19.5 is still installed (`nvm use 20.19.5`).
 36. **Check Capacitor 8's system-bar handling on a real phone** (raised 2026-10-26). PR #306 drops
     `viewport-fit=cover`, so Capacitor pads the WebView instead of drawing under the status and
     navigation bars (no CSS reads the safe-area insets, and many overlays are `position: fixed`).
