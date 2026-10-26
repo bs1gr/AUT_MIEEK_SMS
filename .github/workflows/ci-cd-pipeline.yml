@@ -235,34 +235,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: src/frontend/package-lock.json
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('src/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - name: Setup Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
+      # ESLint and tsc only need node_modules (the @playwright/test types come from npm).
+      # This job used to download Playwright browsers with --with-deps and run Python,
+      # neither of which lint uses; the browser install hung until the 25-minute
+      # timeout on 2026-10-26. The installer Greek-text step it also had looked for
+      # fix_greek_encoding_permanent.py at the repo root, which has not existed since
+      # the structure flattening, so it always skipped.
       - name: Install dependencies
         run: cd src/frontend && npm ci --silent
-
-      - name: Install Playwright browsers (with cache)
-        run: cd src/frontend && npx playwright install --with-deps
-
-      - name: Prepare installer Greek text assets
-        shell: pwsh
-        run: |
-          Write-Host "Ensuring installer Greek text assets are regenerated"
-          if (Test-Path "fix_greek_encoding_permanent.py") {
-            python "fix_greek_encoding_permanent.py"
-          } else {
-            Write-Host "Skipping fix_greek_encoding_permanent.py (file not found)"
-          }
 
       - name: Run ESLint
         # ESLint warnings tracked in docs/plans/UNIFIED_WORK_PLAN.md (Issue 1)
