@@ -1197,6 +1197,31 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       `var(--safe-area-inset-*)`, which the default `css` mode injects). Either way add
       `EdgeToEdge.enable(this)` to `MainActivity` as the docs recommend (Capacitor 9 defaults
       `insetsHandling` to `native`).
+    - **Decision + done 2026-10-27: option (a), strips follow the app chrome.** Capacitor's docs
+      close the easy routes: with targetSdk 36 Android enforces edge-to-edge,
+      `StatusBar.setBackgroundColor` and `overlaysWebView` "no longer have any effect", and the
+      core `SystemBars` plugin only has `setStyle` (icon colour). The strips show the
+      window/WebView background, which follows the *device* night mode (DayNight theme). So a
+      40-line local plugin, `WindowChromePlugin.java` (`setBackgroundColor`, repaints the
+      activity window + WebView background), plus `src/frontend/src/utils/nativeSystemBars.ts`,
+      which reads the live `<html>` (`.dark` from ThemeContext → `#1a202c`; appearance
+      `mieek-dark` → `#0a0a0a`, `modern-dark` → `#0f172a`; else white) and calls
+      `WindowChrome.setBackgroundColor` + `SystemBars.setStyle` (Dark = light icons). Both
+      providers call it after they update the DOM; no-op on the web, failures logged.
+      `MainActivity` registers the plugin and calls `EdgeToEdge.enable(this)` before
+      `super.onCreate` (the docs' recommendation; Capacitor 9's default). Three lessons from the
+      emulator and `SystemBars.java`: (1) setting only the icon style is wrong in padded mode
+      (device dark → black strip, forced dark icons → unreadable); the strip colour has to be
+      ours first. (2) The strips are the *decor view's* inset padding, so they show the decor
+      background, and `SystemBars.setStyle` (line 300) resets that to the theme's
+      `windowBackground` on every call, including the two it makes itself on every
+      configuration change — the plugin therefore recolours the decor view, and re-applies the
+      last colour (posted after Capacitor's handler) in `handleOnConfigurationChanged`; the web
+      side calls `setStyle` first and the colour second. (3) Never hand the decor view a new
+      window drawable: `DecorView` resets its padding for a new background, which wiped the
+      inset padding and drew the header under the status bar. **Still open:**
+      real edge-to-edge (`viewport-fit=cover` + safe-area padding on the header and fixed
+      overlays) — only a WebView ≥ 140 device can show it and the emulator image has 133.
 29. ~~**Update saw SMS Lite and Docker as version "unknown"**~~ — **fixed 2026-10-13, found in
     the v1.18.57 smoke test.** On the frozen Lite build the update check returned
     `current_version: "unknown"`, `update_available: false`, so todo 28's Update would never
