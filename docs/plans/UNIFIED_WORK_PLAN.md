@@ -1047,12 +1047,14 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       keeps the certificate in one `$CodeSignThumbprint`. The release gate in
       `release-installer-with-sha.yml` now fails (exit 1) on skipped signing, missing
       thumbprint secret, missing signer, thumbprint mismatch or any status other than
-      `Valid`/`UnknownError`; it used to warn and pass on all of them. **Owner action:** the
-      `CODESIGN_CERT_THUMBPRINT` repository secret does not exist, so the hardened gate will
-      fail the next release until it is set to `2693C1B15C8A8E5E45614308489DC6F4268B075D` (the
-      Limassol certificate that signs the published installers; the assistant's attempt to set
-      it was blocked by its permission policy). When the trusted certificate arrives: change
-      `$CodeSignThumbprint`, the secret, and drop `UnknownError` from the gate.
+      `Valid`/`UnknownError`; it used to warn and pass on all of them. The
+      `CODESIGN_CERT_THUMBPRINT` repository secret had never existed (which is why the old gate
+      always skipped); **the owner set it on 2026-10-27** to
+      `2693C1B15C8A8E5E45614308489DC6F4268B075D`, the Limassol certificate that signs the
+      published installers, so the gate is live from the next release. When the trusted
+      certificate arrives: change `$CodeSignThumbprint`, the secret, and drop `UnknownError`
+      from the gate. Still untested: the hardened gate on a real tag run (PR #325 could only
+      exercise the local build path).
 31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
     Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
     `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
