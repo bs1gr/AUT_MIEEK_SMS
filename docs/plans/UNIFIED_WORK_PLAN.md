@@ -1069,7 +1069,17 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     **2026-10-27 partial:** `RELEASE_READY.ps1` now runs `INSTALLER_BUILDER -Action test`
     (Authenticode Valid + version resource) right after the installer build and fails the
     release if it fails — it had never run that phase. The v1.18.60 installer passed it when run
-    by hand. The Lite runtime check above is still open.
+    by hand. **Done 2026-10-28:** `infra/scripts/release/LITE_RUNTIME_CHECK.ps1` +
+    `lite_runtime_check.py` start the built `SMS_Lite.exe` in a throwaway profile
+    (`USERPROFILE`/`LOCALAPPDATA`/`APPDATA` under `%TEMP%`, `BROWSER` no-op, seeded admin), wait
+    for `/health`, then check login, a Greek student and course, both PDF exports (DejaVu
+    embedded + Greek text extractable), the Excel export, the SPA index and every referenced
+    asset, and stop the process tree. `INSTALLER_BUILDER`'s smoke test runs it whenever
+    `dist\SMS_Lite\SMS_Lite.exe` exists (`-SkipLiteRuntimeCheck` to opt out), so `-Action test`,
+    `-Action build`, `RELEASE_READY` and the tag workflow all get it; the script refuses to start
+    if port 8000 is taken because Lite shuts down whatever holds it. 11 checks, ~20 s locally.
+    pypdf is dev-only, so the wrapper pip-installs it when missing (CI installs
+    requirements.txt only).
 32. ~~**The Lite spec's exclude list has never worked**~~ (found 2026-10-21) — **fixed 2026-10-27.**
     `lite_simple_entrypoint.spec` passed `excludedimports=[...]`, but PyInstaller's argument is
     `excludes=`, and `Analysis(**_kwargs)` dropped unknown names silently. The runtime audit

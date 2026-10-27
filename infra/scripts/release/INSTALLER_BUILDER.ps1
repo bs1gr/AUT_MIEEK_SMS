@@ -116,6 +116,8 @@ param(
     [string]$Version,
     [switch]$SkipCodeSign,
     [switch]$SkipTest,
+    # Skip only the frozen-Lite runtime check inside the smoke test (e.g. when port 8000 is busy).
+    [switch]$SkipLiteRuntimeCheck,
     [switch]$TagAndPush,
     [switch]$NoUpload,
     [switch]$AutoFix,
@@ -921,6 +923,26 @@ function Test-InstallerSmoke {
         $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($InstallerExe)
         Write-Result Info "File version: $($version.FileVersion)"
         Write-Result Info "Product version: $($version.ProductVersion)"
+
+        # Run the frozen Lite the installer is about to ship (plan todo 31): a build that
+        # succeeds can still be missing fonts, a frontend dist or a hidden import, and only
+        # starting the exe shows that. LITE_RUNTIME_CHECK.ps1 isolates it in a throwaway
+        # profile and refuses to run if port 8000 is already taken.
+        $liteExe = Join-Path $InstallerDir "dist\SMS_Lite\SMS_Lite.exe"
+        if ($SkipLiteRuntimeCheck) {
+            Write-Result Warning "Lite runtime check skipped (-SkipLiteRuntimeCheck)"
+        } elseif (-not (Test-Path $liteExe)) {
+            Write-Result Warning "SMS_Lite.exe not present — Lite runtime check skipped"
+        } else {
+            $liteCheck = Join-Path $PSScriptRoot "LITE_RUNTIME_CHECK.ps1"
+            Write-Result Info "Running the frozen Lite runtime check..."
+            & $liteCheck -LiteExe $liteExe 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+            if ($LASTEXITCODE -ne 0) {
+                Write-Result Error "Frozen Lite runtime check failed (exit code: $LASTEXITCODE)"
+                return $false
+            }
+            Write-Result Success "Frozen Lite runtime check passed ✓"
+        }
 
         Write-Result Success "Installer smoke test passed ✓"
         return $true
