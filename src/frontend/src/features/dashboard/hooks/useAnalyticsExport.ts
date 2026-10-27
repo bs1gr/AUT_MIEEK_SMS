@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { getStoredDateTimeSettings } from '@/utils/dateTime';
+import { downloadBlob } from '@/utils/downloadFile';
 
 /**
  * Hook for exporting analytics data
@@ -36,14 +37,7 @@ export function useAnalyticsExport() {
             : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
 
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        await downloadBlob(blob, filename);
 
         return { success: true, format, filename };
       } catch (error: unknown) {

@@ -2,7 +2,19 @@
 
 **Current Version**: 1.18.60
 **Last Updated**: October 27, 2026
-**Status**: ✅ **v1.18.60 released 2026-10-27** (tag on `614a2f2cf`; PR #306 squash `0854f69c5`). It ships:
+**Status**: ✅ **v1.18.60 released 2026-10-27** (tag on `614a2f2cf`; PR #306 squash `0854f69c5`).
+
+**Unreleased on `main` (2026-10-27, after the release):**
+- **Exports never downloaded in the Android app.** The owner's first check of the new APK on a
+  real phone: PDF export did nothing. All 12 export sites used `URL.createObjectURL` +
+  `<a download>`, which Android's WebView drops for `blob:` URLs — broken since the APK existed.
+  New `utils/downloadFile.ts`: web keeps the anchor; native writes to the app cache
+  (`@capacitor/filesystem` 8.1.5) and opens the share sheet (`@capacitor/share` 8.0.3). Verified
+  on the emulator: Export Center → Students → PDF fetched the report, wrote a valid 23.5 KB PDF
+  and opened the chooser (Print, Drive, Messages…). **Needs v1.18.61 to reach phones.**
+- `RELEASE_READY.ps1` now runs `INSTALLER_BUILDER -Action test` after the build (`444a35a7f`).
+
+v1.18.60 ships:
 - **Capacitor 7 → 8.5.3** with the Android project migration (compile/target SDK 36, min 24;
   AGP 9.4.1, Gradle 9.6 kept). `viewport-fit=cover` dropped so Capacitor pads the WebView
   (todo 36 checks the WebView ≥ 140 path on a real phone).

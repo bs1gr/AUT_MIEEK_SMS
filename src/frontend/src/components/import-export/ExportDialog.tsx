@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { downloadBlob } from '@/utils/downloadFile';
 
 export interface ExportDialogProps {
   isOpen: boolean;
@@ -66,14 +67,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
           const downloadResponse = await fetch(`/api/v1/import-export/exports/${jobId}/download`);
           if (downloadResponse.ok) {
             const blob = await downloadResponse.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${type}-export.${format === 'excel' ? 'xlsx' : format}`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            await downloadBlob(blob, `${type}-export.${format === 'excel' ? 'xlsx' : format}`);
             completed = true;
           }
         } else if (job && job.status === 'failed') {

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { controlApiClient } from '@/api/api';
 import { useLanguage } from '../../LanguageContext';
+import { downloadBlob } from '../../utils/downloadFile';
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -206,14 +207,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
         `/database/backups/${encodeURIComponent(filename)}/download`,
         { responseType: 'blob' },
       );
-      const url = window.URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      await downloadBlob(res.data, filename);
     } catch {
       setError('Download failed');
     }

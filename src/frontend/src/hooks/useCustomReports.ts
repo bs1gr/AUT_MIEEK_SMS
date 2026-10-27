@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI';
 import type { CustomReport, GenerateReportRequest, GenerateReportResponse, ReportTemplate } from '@/api/customReportsAPI';
 import i18n from '@/i18n';
+import { downloadBlob } from '@/utils/downloadFile';
 
 // ==================== QUERY KEYS ====================
 
@@ -314,19 +315,10 @@ export function useDownloadReport() {
   return useMutation({
     mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
       customReportsAPI.download(reportId, generatedId),
-    onSuccess: (response) => {
-      // Extract blob and filename from response
+    onSuccess: async (response) => {
+      // Use filename from server
       const { blob, filename } = response;
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename; // Use filename from server
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadBlob(blob, filename);
     },
   });
 }

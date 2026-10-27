@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sessionAPI } from '@/api/api';
+import { downloadBlob } from '@/utils/downloadFile';
 
 export type MergeStrategy = 'update' | 'skip';
 
@@ -86,19 +87,11 @@ export function useSessionExportImport({ t, showToast }: UseSessionExportImportP
     try {
       // The sessionAPI returns the raw Blob for exports
       const blob = await sessionAPI.exportSession(selectedSemester);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
 
       // No headers are available when the API client returns a raw Blob, so
       // fall back to a sensible default filename.
       const filename = `session_export_${selectedSemester.replace(/\s+/g, '_')}.json`;
-
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadBlob(blob, filename);
 
       showToast(t('sessionExportSuccess'), 'success');
     } catch (error) {

@@ -9,6 +9,7 @@ import type { OperationsLocationState } from '@/features/operations/types';
 import type { Course as CourseType } from '@/types';
 import SessionExportImport from './SessionExportImport';
 import PrintableCalendarSheet from './PrintableCalendarSheet';
+import { downloadBlob, downloadText } from '@/utils/downloadFile';
 import {
   DEFAULT_CALENDAR_LAYOUT,
   WEEKDAY_CONFIG,
@@ -145,15 +146,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
         },
       });
 
-      const blob = response.data;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      await downloadBlob(response.data, filename);
 
       showToast(t('downloading'), 'success');
     } catch {
@@ -205,15 +198,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       .join('\n');
     const csvWithBom = `\uFEFF${csv}`;
-    const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'calendar_export.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    void downloadText(csvWithBom, 'calendar_export.csv', 'text/csv;charset=utf-8;');
   };
 
 

@@ -17,6 +17,7 @@ import DevToolsDatabaseTools from './DevToolsDatabaseTools';
 import DevToolsClearCard from './DevToolsClearCard';
 import DevToolsImportCard from './DevToolsImportCard';
 import { RAW_API_BASE } from './devToolsBackendUrl';
+import { downloadBlob } from '@/utils/downloadFile';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
 
@@ -345,17 +346,7 @@ const DevToolsPanel = ({
         credentials: 'include',
       });
       if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      const objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        URL.revokeObjectURL(objectUrl);
-        a.remove();
-      }, 0);
+      await downloadBlob(await res.blob(), filename);
     } catch {
       onToast({ message: t('error'), type: 'error' });
     }
@@ -374,17 +365,7 @@ const DevToolsPanel = ({
         credentials: 'include',
       });
       if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      const objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-      a.download = 'sms_backups_all.zip';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        URL.revokeObjectURL(objectUrl);
-        a.remove();
-      }, 0);
+      await downloadBlob(await res.blob(), 'sms_backups_all.zip');
     } catch {
       onToast({ message: t('error'), type: 'error' });
     }
@@ -405,19 +386,9 @@ const DevToolsPanel = ({
         body: JSON.stringify({ filenames: Array.from(selectedBackups) }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
       const isoTimestamp = new Date().toISOString();
       const ts = isoTimestamp.replaceAll('-', '').replaceAll(':', '').replace('T', '').slice(0, 15);
-      a.download = `sms_backups_selected_${ts}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        a.remove();
-      }, 0);
+      await downloadBlob(await res.blob(), `sms_backups_selected_${ts}.zip`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       onToast({ message: msg || (t('error') as string), type: 'error' });

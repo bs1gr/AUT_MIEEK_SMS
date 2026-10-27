@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 import { reportsAPI } from '@/api/api';
 import { getLocalizedCategory } from '@/utils/categoryLabels';
+import { downloadBlob } from '@/utils/downloadFile';
 
 // TypeScript interfaces for report data
 interface AttendanceSummary {
@@ -193,16 +194,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         course_notes: Object.keys(courseNotes).length > 0 ? courseNotes : undefined
       };
       const blob = await reportsAPI.downloadStudentReport(reportRequest);
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `student_performance_${studentId}_${config.period}.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadBlob(blob, `student_performance_${studentId}_${config.period}.${format}`);
     } catch (error: unknown) {
       setError(getErrorMessage(error, t('downloadError', { ns: 'reports' }) || 'Download failed'));
     } finally {

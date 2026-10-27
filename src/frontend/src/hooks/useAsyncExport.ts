@@ -11,6 +11,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import apiClient from '../api/api';
+import { downloadBlob } from '../utils/downloadFile';
 
 export interface ExportJob {
   id: number;
@@ -94,15 +95,10 @@ export const useAsyncExport = () => {
         { responseType: 'blob' }
       );
 
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${job.export_type}_export_${job.id}.${job.file_format}`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadBlob(
+        new Blob([response.data]),
+        `${job.export_type}_export_${job.id}.${job.file_format}`
+      );
     } catch (error) {
       console.error('Failed to download export:', error);
     }

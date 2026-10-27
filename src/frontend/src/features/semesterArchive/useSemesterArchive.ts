@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import apiClient from '@/api/api';
+import { downloadBlob } from '@/utils/downloadFile';
 
 export interface SemesterListItem {
   semester: string;
@@ -145,14 +146,7 @@ export function useSemesterArchive() {
   const downloadExport = useCallback(async (exportId: number, filename: string) => {
     try {
       const res = await apiClient.get(`/semester-archive/exports/${exportId}/download`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      await downloadBlob(res.data, filename);
     } catch (err) {
       setError(extractErrorMessage(err, t('downloadFailed')));
     }

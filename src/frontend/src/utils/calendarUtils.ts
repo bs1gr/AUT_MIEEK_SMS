@@ -3,6 +3,8 @@
  * Generate ICS (iCalendar) files for teaching schedules
  */
 
+import { downloadText } from './downloadFile';
+
 export interface ScheduleEvent {
   day: string;
   startTime: string;
@@ -258,16 +260,7 @@ export function generateAllCoursesScheduleICS(
 /**
  * Download ICS file
  */
-export function downloadICS(content: string, filename: string): void {
-  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename.endsWith('.ics') ? filename : `${filename}.ics`;
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  // Clean up
-  setTimeout(() => URL.revokeObjectURL(link.href), 100);
+export function downloadICS(content: string, filename: string): Promise<void> {
+  const name = filename.endsWith('.ics') ? filename : `${filename}.ics`;
+  return downloadText(content, name, 'text/calendar;charset=utf-8');
 }
