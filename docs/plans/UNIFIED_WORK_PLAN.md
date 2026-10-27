@@ -1114,13 +1114,18 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         works on Vite 8, can follow later). jsdom 30 needs Node ≥ 22.22 (dev PC 22.23, CI
         latest 22). Medium–high; touches the Android, Lite and Docker builds.
       - **Order (one PR each, full smoke each):** (1) small majors in one PR: drop date-fns,
-        resolvers 6, framer-motion 14, i18next 26 + react-i18next 17 → **started 2026-10-27**;
-        (2) TypeScript 6 + unpin `@vitest/eslint-plugin` and its Dependabot ignore;
+        resolvers 6, framer-motion 14, i18next 26 + react-i18next 17 → **PR #313, 2026-10-27**;
+        (2) TypeScript 6 + unpin `@vitest/eslint-plugin` and its Dependabot ignore → **started
+        2026-10-27** (TS 6.0.3: config already matched the new defaults, tsc clean with no code
+        change; `DOM.Iterable` dropped from `lib` because 6.0 folds it into `DOM`);
         (3) ESLint 10 + the two plugin bumps; (4) lucide-react 1.x after deleting the shims;
         (5) toolchain last, optionally via `rolldown-vite` first.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
     arborist crash. The old npm 8.19.1 is gone, which also ends the lockfile `libc` stripping.
+    **Correction 2026-10-27:** a second npm 8.19.1 (a 2022 `npm install -g npm`) still lived in
+    `%APPDATA%\npm` ahead of nvm on PATH and stripped `libc` again; its shims and
+    `node_modules\npm` are parked in `%APPDATA%\npm-stale-npm8-backup`.
     `npm run build:android` and `cap doctor` pass. Global tools were reinstalled at their old
     versions. npm 11 skips global install scripts by default, so react-devtools' Electron
     binary was not downloaded. Node 20.19.5 is still installed (`nvm use 20.19.5`).
