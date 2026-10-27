@@ -615,6 +615,7 @@ jobs:
           path: |
             src/frontend/coverage/
             src/frontend/test-results/
+            src/frontend/.vitest/
           retention-days: 30
 
       - name: Publish frontend coverage summary

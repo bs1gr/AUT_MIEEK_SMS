@@ -1129,10 +1129,17 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         the plugin ships ESLint 10 support — then drop the overrides). New `eslint:recommended`
         rule `preserve-caught-error` found 5 rethrows without `cause` in the dashboard hooks
         (fixed; `ES2022.Error` added to `lib`). `--format unix` left core (not used).
-        (4) lucide-react 1.x after deleting the shims → **started 2026-10-27**: 0.557 → 1.62.0,
-        both `.d.ts` shims deleted, tsc clean with no renames needed (1.x still exports every
-        alias we use, confirmed at runtime for all 70 names), icons chunk 14 → 18 KB;
-        (5) toolchain last, optionally via `rolldown-vite` first.
+        (4) lucide-react 1.x after deleting the shims → **PR #318, merged 2026-10-27**: 0.557 →
+        1.62.0, both `.d.ts` shims deleted, tsc clean with no renames needed (1.x still exports
+        every alias we use, confirmed at runtime for all 70 names), icons chunk 14 → 18 KB;
+        (5) toolchain last, split in two: (5a) Vitest 5 + jsdom 30 → **started 2026-10-27**
+        (vitest/coverage-v8/ui 5.0.5, jsdom 30.1.3; pre-scan found no nested `vi.mock`, no
+        unawaited `.resolves/.rejects`, no removed subpath imports, no `sequential`; the new
+        `clearMocks: true` default broke nothing; one file broke because Vitest 5 forwards
+        `global.document = …` to jsdom (`calendarUtils.test.ts` now spies on the real document);
+        json/html/junit reporters write under `.vitest/` → git-ignored and added to the CI
+        artifact upload); (5b) Vite 8 + plugin-react 6 + vite-plugin-pwa 2 next, with a frozen
+        Lite smoke and an emulator check on top of the usual E2E.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
     arborist crash. The old npm 8.19.1 is gone, which also ends the lockfile `libc` stripping.
