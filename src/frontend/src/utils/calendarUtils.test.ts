@@ -8,11 +8,9 @@ import {
 } from './calendarUtils';
 import type { CourseSchedule } from './calendarUtils';
 
-// Mock document methods for downloadICS tests
-const mockCreateElement = vi.fn();
-const mockAppendChild = vi.fn();
-const mockRemoveChild = vi.fn();
-const mockClick = vi.fn();
+// jsdom has no URL.createObjectURL / revokeObjectURL; the downloadICS tests
+// install these on the real URL constructor (Vitest 5 forwards global
+// assignments to jsdom, so replacing `document` wholesale is no longer possible).
 const mockCreateObjectURL = vi.fn();
 const mockRevokeObjectURL = vi.fn();
 
@@ -303,78 +301,66 @@ describe('calendarUtils', () => {
   });
 
   describe('downloadICS', () => {
+    const urlCtor = URL as unknown as Record<string, unknown>;
+    let createElementSpy: ReturnType<typeof vi.spyOn>;
+    let appendChildSpy: ReturnType<typeof vi.spyOn>;
+    let removeChildSpy: ReturnType<typeof vi.spyOn>;
+    let clickSpy: ReturnType<typeof vi.spyOn>;
+
     beforeEach(() => {
-      // Mock DOM elements
-      const mockLink = {
-        href: '',
-        download: '',
-        click: mockClick,
-      };
-
-      mockCreateElement.mockReturnValue(mockLink);
-
-      global.document = {
-        createElement: mockCreateElement,
-        body: {
-          appendChild: mockAppendChild,
-          removeChild: mockRemoveChild,
-        },
-      } as unknown as Document;
-
-      global.URL = {
-        createObjectURL: mockCreateObjectURL,
-        revokeObjectURL: mockRevokeObjectURL,
-      } as unknown as typeof URL;
-
-      global.Blob = class MockBlob {
-        constructor(public content: unknown[], public options: Record<string, unknown> | undefined) {}
-      } as unknown as typeof Blob;
+      urlCtor.createObjectURL = mockCreateObjectURL;
+      urlCtor.revokeObjectURL = mockRevokeObjectURL;
+      createElementSpy = vi.spyOn(document, 'createElement');
+      appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      removeChildSpy = vi.spyOn(document.body, 'removeChild');
+      // jsdom logs "Not implemented: navigation" for a download click; keep it inert.
+      clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     });
 
     afterEach(() => {
       vi.restoreAllMocks();
+      delete urlCtor.createObjectURL;
+      delete urlCtor.revokeObjectURL;
     });
 
-    it('creates blob with correct content type', () => {
-      const content = 'ICS content';
-      downloadICS(content, 'test.ics');
+    const createdLink = () => createElementSpy.mock.results[0].value as HTMLAnchorElement;
 
-      expect(mockCreateElement).toHaveBeenCalledWith('a');
+    it('creates blob with correct content type', () => {
+      downloadICS('ICS content', 'test.ics');
+
+      expect(createElementSpy).toHaveBeenCalledWith('a');
+      const blob = mockCreateObjectURL.mock.calls[0][0] as Blob;
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.type).toBe('text/calendar;charset=utf-8');
     });
 
     it('sets correct filename with .ics extension', () => {
-      const content = 'ICS content';
-      downloadICS(content, 'schedule');
+      downloadICS('ICS content', 'schedule');
 
-      const link = mockCreateElement.mock.results[0].value;
-      expect(link.download).toBe('schedule.ics');
+      expect(createdLink().download).toBe('schedule.ics');
     });
 
     it('preserves .ics extension if already provided', () => {
-      const content = 'ICS content';
-      downloadICS(content, 'schedule.ics');
+      downloadICS('ICS content', 'schedule.ics');
 
-      const link = mockCreateElement.mock.results[0].value;
-      expect(link.download).toBe('schedule.ics');
+      expect(createdLink().download).toBe('schedule.ics');
     });
 
     it('triggers click and cleanup', () => {
-      const content = 'ICS content';
-      downloadICS(content, 'test.ics');
+      downloadICS('ICS content', 'test.ics');
 
-      expect(mockClick).toHaveBeenCalled();
-      expect(mockAppendChild).toHaveBeenCalled();
-      expect(mockRemoveChild).toHaveBeenCalled();
+      const link = createdLink();
+      expect(link.href).toBe('blob:mock-url');
+      expect(clickSpy).toHaveBeenCalledTimes(1);
+      expect(appendChildSpy).toHaveBeenCalledWith(link);
+      expect(removeChildSpy).toHaveBeenCalledWith(link);
+      expect(document.body.contains(link)).toBe(false);
     });
 
-    it('revokes object URL after timeout', async () => {
-      const content = 'ICS content';
-      downloadICS(content, 'test.ics');
+    it('revokes the object URL after the click', () => {
+      downloadICS('ICS content', 'test.ics');
 
-      // Wait for timeout
-      await new Promise(resolve => setTimeout(resolve, 150));
-
-      expect(mockRevokeObjectURL).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
     });
   });
 

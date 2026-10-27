@@ -157,6 +157,9 @@ docs/reports/
 src/frontend/test-results*.json
 src/frontend/test-results-*.json
 src/frontend/vitest-results.xml
+# Vitest 5 artifact root (json/html/junit reporter output, attachments) + v8 coverage
+src/frontend/.vitest/
+src/frontend/coverage/
 src/frontend/test-diagnostics/
 src/frontend/test-output.log
 src/frontend/e2e-results.txt
