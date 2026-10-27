@@ -7,8 +7,8 @@ Listens on http://0.0.0.0:8000
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 import os
 
-# Collect passlib submodules (handlers, etc.)
-passlib_hiddenimports = collect_submodules('passlib')
+# Collect passlib submodules (handlers, etc.) — without its test-suite package.
+passlib_hiddenimports = [m for m in collect_submodules('passlib') if not m.startswith('passlib.tests')]
 
 # pydantic_core is a separate compiled (Rust) extension package from pydantic.
 # pyinstaller-hooks-contrib's hook-pydantic.py only covers the pure-Python
@@ -41,7 +41,7 @@ a = Analysis(
         # and the student report, which registers DejaVuSans unconditionally, failed outright.
         ('fonts/DejaVuSans.ttf', 'backend/fonts'),
         ('fonts/DejaVuSans-Bold.ttf', 'backend/fonts'),
-    ] + collect_data_files('bottle', includes=['**/*']) + pydantic_core_datas,
+    ] + pydantic_core_datas,
     hiddenimports=[
         # Core dependencies
         'backend',
@@ -68,8 +68,6 @@ a = Analysis(
         'passlib.context',
         'passlib.handlers.pbkdf2',
         'jwt',
-        'bottle',
-        'proxy_tools',
         'requests',
         # Service layer
         'backend.services',
@@ -138,20 +136,29 @@ a = Analysis(
     hookspath=['backend/pyinstaller_hooks'],  # Use custom hooks to override problematic ones
     hooksconfig={},
     runtime_hooks=[],
-    excludedimports=[
+    # PyInstaller's argument is `excludes=`. Until 2026-10-27 this list was passed as
+    # `excludedimports=`, which Analysis silently ignored, so nothing here was ever applied.
+    # Entries removed when the list was finally switched on, because Lite imports them:
+    #   redis (backend.cache / cache_service import it at module load; REDIS_ENABLED=false
+    #   only stops connecting), pandas + numpy (CSV/Excel import in import_export_service),
+    #   pythoncom / pywintypes / win32com (dnspython's win32util and the docker SDK).
+    excludes=[
+        # mypy is only reached through pydantic.mypy (the type-checker plugin, never
+        # imported at runtime); it alone added 72 unsigned .pyd files to _internal.
+        'mypy',
+        'mypyc',
         'pytest',
+        '_pytest',
         'django',
         'flask',
         'flask_cors',
         'celery',
-        'redis',
         'plotly',
         'matplotlib',
-        'numpy',
-        'pandas',
-        'pythoncom',
-        'win32com',
-        'pywintypes',
+        'IPython',
+        'jupyter',
+        'notebook',
+        'tkinter',
         'torch',
         'tensorflow',
         'webview',  # No PyWebView in headless version
