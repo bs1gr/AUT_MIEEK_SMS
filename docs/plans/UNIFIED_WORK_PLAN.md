@@ -11,7 +11,8 @@ v1.18.61 ships (same day as v1.18.60, prompted by the owner's first real-phone c
   native writes to the app cache (`@capacitor/filesystem` 8.1.5) and opens the share sheet
   (`@capacitor/share` 8.0.3). Verified on the emulator: Export Center → Students → PDF fetched the
   report, wrote a valid 23.5 KB PDF and opened the chooser (Print, Drive, Messages…).
-  **Still to confirm on the owner's real phone with the published APK.**
+  **Confirmed by the owner on the real phone with the published APK (2026-10-27): export
+  works.**
 - `RELEASE_READY.ps1` now runs `INSTALLER_BUILDER -Action test` after the build (`444a35a7f`);
   it ran for the first time in this release and passed.
 
