@@ -157,6 +157,11 @@ $Certificate = Join-Path $InstallerDir "AUT_MIEEK_CodeSign.pfx"
 $SmsManagerProject = Join-Path $InstallerDir "SMS_Manager\SMS_Manager.csproj"
 $SmsManagerExe = Join-Path $InstallerDir "dist\SMS_Manager.exe"
 
+# Certificate behind every signature this script produces (store-based; the release workflow
+# imports the PFX into CurrentUser\My first). One place to change when todo 30's publicly
+# trusted certificate arrives. Today: the self-signed AUT MIEEK (Limassol, CY) certificate.
+$CodeSignThumbprint = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
+
 # Inno Setup paths (common installation locations)
 $InnoSetupPaths = @(
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
@@ -452,6 +457,19 @@ function Invoke-InstallerCompilation {
             Write-Result Info "SMS_Lite not found - Docker Edition only"
         }
 
+        # Let Inno Setup sign the uninstaller (and Setup.exe) at compile time through the same
+        # signer script. `$f` and `$q` are Inno's placeholders for the file name and a double
+        # quote; /S defines the tool for this compile only, so no IDE configuration is needed.
+        # SMS_Installer.iss enables its SignTool directive only when SMS_SIGN is defined, so a
+        # -SkipCodeSign build still compiles.
+        if (-not $SkipCodeSign) {
+            $pwshExe = (Get-Process -Id $PID).Path
+            $signCmd = "`$q$pwshExe`$q -NoProfile -ExecutionPolicy Bypass -File `$q$SignerScript`$q -UseStore -Thumbprint $CodeSignThumbprint -Path `$f"
+            $innoArgs += "/dSMS_SIGN"
+            $innoArgs += "/Ssmssign=$signCmd"
+            Write-Result Info "Uninstaller signing enabled (Inno SignTool via SIGN_INSTALLER.ps1)"
+        }
+
         & $iscc $innoArgs 2>&1 | ForEach-Object { Write-Result Info "  $_" }
         Pop-Location
 
@@ -736,6 +754,73 @@ function Invoke-SmsManagerBuild {
     }
 }
 
+function Get-UnsignedPeFiles {
+    param([Parameter(Mandatory)][string]$Root)
+    Get-ChildItem -Path $Root -Recurse -File -Include *.exe, *.dll, *.pyd |
+        Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -eq 'NotSigned' }
+}
+
+function Invoke-PayloadSigning {
+    <#
+    .SYNOPSIS
+        Signs SMS_Lite.exe, every unsigned binary under its _internal folder and SMS_Manager.exe
+        before Inno Setup packs them.
+    .NOTES
+        Smart App Control judges every PE file on its own: a signed installer that unpacks an
+        unsigned SMS_Lite.exe (plus 100+ unsigned .pyd/.dll files) is still blocked at launch
+        (todo 30). Binaries that already carry someone else's signature (PSF, Microsoft) are
+        left as they are; SIGN_INSTALLER.ps1 signs only what has no signature and skips what
+        already carries ours, so the step is idempotent.
+    #>
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+    Write-Result Info "PAYLOAD SIGNING (SMS_Lite + SMS_Manager binaries)"
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+
+    if (-not (Test-FileExists $SignerScript)) {
+        Write-Result Error "Signing script not found: $SignerScript"
+        return $false
+    }
+
+    $liteDir = Join-Path $InstallerDir "dist\SMS_Lite"
+    $liteExe = Join-Path $liteDir "SMS_Lite.exe"
+    $targets = @()
+    if (Test-Path $liteExe) { $targets += $liteDir } else { Write-Result Warning "SMS_Lite not present — nothing to sign for the Lite edition" }
+    if (Test-Path $SmsManagerExe) { $targets += $SmsManagerExe } else { Write-Result Warning "SMS_Manager.exe not present — skipped" }
+    if ($targets.Count -eq 0) { return $true }
+
+    if (Test-Path $liteExe) {
+        $before = @(Get-UnsignedPeFiles -Root $liteDir).Count
+        Write-Result Info "Unsigned PE files under SMS_Lite before signing: $before"
+    }
+
+    $startTime = Get-Date
+    & $SignerScript -UseStore -Thumbprint $CodeSignThumbprint -Path $targets 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Result Error "Payload signing failed (exit code: $LASTEXITCODE)"
+        return $false
+    }
+
+    if (Test-Path $liteExe) {
+        $left = @(Get-UnsignedPeFiles -Root $liteDir)
+        if ($left.Count -gt 0) {
+            $left | Select-Object -First 10 | ForEach-Object { Write-Result Error "  unsigned: $($_.FullName)" }
+            Write-Result Error "$($left.Count) PE file(s) under SMS_Lite are still unsigned"
+            return $false
+        }
+    }
+    foreach ($exe in @($liteExe, $SmsManagerExe)) {
+        if (-not (Test-Path $exe)) { continue }
+        $sig = Get-AuthenticodeSignature $exe
+        $thumb = if ($sig.SignerCertificate) { $sig.SignerCertificate.Thumbprint } else { '' }
+        if ($thumb -ne $CodeSignThumbprint) {
+            Write-Result Error "$exe is not signed with $CodeSignThumbprint (status $($sig.Status), signer '$thumb')"
+            return $false
+        }
+    }
+    Write-Result Success "Payload signed in $([Math]::Round(((Get-Date) - $startTime).TotalSeconds)) s: every PE file under SMS_Lite carries a signature ✓"
+    return $true
+}
+
 function Invoke-CodeSigning {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "CODE SIGNING (Authenticode - AUT MIEEK Certificate)"
@@ -760,10 +845,9 @@ function Invoke-CodeSigning {
     try {
         Write-Result Info "Signing installer with AUT MIEEK certificate..."
 
-        # Prefer store-based signing with Limassol (CY) certificate thumbprint
-        $limassolThumb = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
-        # Call signing script (it can use SMS_CODESIGN_PFX_PASSWORD env var as fallback)
-        & $SignerScript -UseStore -Thumbprint $limassolThumb
+        # Store-based signing with the configured certificate. With the Inno SignTool directive
+        # Setup.exe is usually signed already; the signer skips files that carry our signature.
+        & $SignerScript -UseStore -Thumbprint $CodeSignThumbprint -Path $InstallerExe
 
         if ($LASTEXITCODE -eq 0) {
             # Strict post-build signature verification
@@ -787,10 +871,10 @@ function Invoke-CodeSigning {
             }
 
             # Verify thumbprint matches expected
-            $expectedThumb = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
             $actualThumb = $sig.SignerCertificate.Thumbprint
-            if ($actualThumb -ne $expectedThumb) {
-                Write-Result Warning "Signer thumbprint mismatch (expected: $expectedThumb, got: $actualThumb)"
+            if ($actualThumb -ne $CodeSignThumbprint) {
+                Write-Result Error "Signer thumbprint mismatch (expected: $CodeSignThumbprint, got: $actualThumb)"
+                return $false
             }
 
             return $true
@@ -941,6 +1025,14 @@ switch ($Action) {
             exit 1
         }
 
+        # Sign the payload before Inno packs it (todo 30): the installer signature alone does
+        # not keep Smart App Control from blocking an unsigned SMS_Lite.exe at launch.
+        if (-not $SkipCodeSign) {
+            if (-not (Invoke-PayloadSigning)) {
+                exit 1
+            }
+        }
+
         if (Invoke-WizardImageRegeneration) {
             if (-not (Invoke-InstallerReleaseInputValidation -RequireGeneratedArtifacts)) {
                 exit 1
@@ -997,6 +1089,11 @@ switch ($Action) {
         Invoke-GreekEncodingAudit | Out-Null
 
         if (-not (Invoke-SmsManagerBuild)) {
+            exit 1
+        }
+
+        # Release builds always sign the payload (see 'build' above for why).
+        if (-not (Invoke-PayloadSigning)) {
             exit 1
         }
 

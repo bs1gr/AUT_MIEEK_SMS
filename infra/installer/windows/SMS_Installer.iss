@@ -61,6 +61,13 @@ MinVersion=10.0
 UninstallDisplayIcon={app}\favicon.ico
 UninstallFilesDir={app}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
+; Signed uninstaller + Setup.exe. INSTALLER_BUILDER.ps1 defines SMS_SIGN and the "smssign"
+; tool (/Ssmssign=... → SIGN_INSTALLER.ps1) on the ISCC command line; a -SkipCodeSign build
+; leaves both out so the compile still succeeds.
+#ifdef SMS_SIGN
+SignTool=smssign
+SignedUninstaller=yes
+#endif
 ShowLanguageDialog=yes
 DisableWelcomePage=no
 ; Version info for Windows (shows in Properties and UAC dialogs)

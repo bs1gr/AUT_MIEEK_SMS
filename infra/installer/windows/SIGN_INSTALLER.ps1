@@ -1,26 +1,43 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
-    Signs the SMS Installer executable with the AUT MIEEK code signing certificate.
+    Signs the SMS installer, or any set of PE files, with the AUT MIEEK code signing certificate.
 
 .DESCRIPTION
-    This script signs the installer executable using the self-signed code signing
-    certificate. The signed installer will show "AUT MIEEK" as the verified publisher.
+    Two modes:
+      * Installer mode (default, no -Path): signs the newest SMS_Installer_*.exe in dist\ or the
+        file given with -InstallerPath. Unchanged behaviour.
+      * Path mode (-Path): signs every file given, and for each directory every *.exe, *.dll and
+        *.pyd beneath it that carries no signature at all. Files already signed by someone else
+        (Python's PSF-signed DLLs, Microsoft's CRT) are left alone: replacing their signature
+        with ours gains nothing and loses their reputation. Files already signed with the
+        selected certificate are skipped, so the script is idempotent — Inno Setup's SignTool
+        directive and INSTALLER_BUILDER can both call it on the same file.
+
+    Signing uses signtool with SHA-256 digest and an RFC 3161 timestamp. The certificate comes
+    from the store (-UseStore with -Thumbprint or -SubjectMatch) or from a PFX (-CertPath /
+    SMS_CODESIGN_PFX_PATH + SMS_CODESIGN_PFX_PASSWORD). After signing, every target must carry
+    the selected certificate; the status may be Valid, or UnknownError on a machine that does
+    not trust the certificate chain (CI runners with the self-signed AUT MIEEK certificate).
+
+.PARAMETER Path
+    Files and/or directories to sign (path mode). Directories are searched recursively.
 
 .PARAMETER InstallerPath
-    Path to the installer executable to sign. Defaults to the latest in dist folder.
+    Installer executable to sign (installer mode). Defaults to the newest in dist\.
+
+.EXAMPLE
+    .\SIGN_INSTALLER.ps1 -UseStore -Thumbprint 2693C1B1... -Path dist\SMS_Lite, dist\SMS_Manager.exe
+    Signs SMS_Lite.exe, every unsigned binary under _internal, and SMS_Manager.exe.
 
 .EXAMPLE
     .\SIGN_INSTALLER.ps1
     Signs the default installer in dist folder.
-
-.EXAMPLE
-    .\SIGN_INSTALLER.ps1 -InstallerPath "dist\SMS_Installer_2.0.0.exe"
-    Signs a specific installer file.
 #>
 
 param(
     [string]$InstallerPath,
+    [string[]]$Path,
     [string]$CertPath,
     [string]$CertPassword,
     [string]$Thumbprint,
@@ -35,6 +52,7 @@ $ProjectRoot = Split-Path -Parent $ScriptDir
 # Certificate settings (can be overridden via parameters or environment variables)
 $DefaultCertPath = Join-Path $ScriptDir "AUT_MIEEK_CodeSign.pfx"
 $TimestampServer = "http://timestamp.digicert.com"
+$BatchSize = 25   # files per signtool invocation (keeps the command line short, one timestamp request per file regardless)
 
 # Prefer secure env variables provided by CI secrets
 if (-not $CertPath -and $env:SMS_CODESIGN_PFX_PATH) {
@@ -59,22 +77,44 @@ if (-not $CertPassword) {
     }
 }
 
-# Find installer if not specified
-if (-not $InstallerPath) {
-    $DistDir = Join-Path $ProjectRoot "dist"
-    $Installers = @(Get-ChildItem -Path $DistDir -Filter "SMS_Installer_*.exe" | Sort-Object LastWriteTime -Descending)
-    if ($Installers.Count -eq 0) {
-        Write-Error "No installer found in $DistDir. Build the installer first."
+# ---------------------------------------------------------------------------
+# Targets
+# ---------------------------------------------------------------------------
+$pathMode = $Path -and $Path.Count -gt 0
+$explicitTargets = [System.Collections.Generic.List[string]]::new()   # sign unless already ours
+$discoveredTargets = [System.Collections.Generic.List[string]]::new() # sign only if unsigned
+
+if ($pathMode) {
+    foreach ($p in $Path) {
+        if (-not (Test-Path $p)) {
+            Write-Error "Path not found: $p"
+            exit 1
+        }
+        $item = Get-Item $p
+        if ($item.PSIsContainer) {
+            Get-ChildItem -Path $item.FullName -Recurse -File -Include *.exe, *.dll, *.pyd |
+                ForEach-Object { $discoveredTargets.Add($_.FullName) }
+        } else {
+            $explicitTargets.Add($item.FullName)
+        }
+    }
+} else {
+    # Installer mode: find installer if not specified
+    if (-not $InstallerPath) {
+        $DistDir = Join-Path $ProjectRoot "dist"
+        $Installers = @(Get-ChildItem -Path $DistDir -Filter "SMS_Installer_*.exe" | Sort-Object LastWriteTime -Descending)
+        if ($Installers.Count -eq 0) {
+            Write-Error "No installer found in $DistDir. Build the installer first."
+            exit 1
+        }
+        $InstallerPath = $Installers[0].FullName
+        Write-Host "Found installer: $InstallerPath" -ForegroundColor Cyan
+    }
+    if (-not (Test-Path $InstallerPath)) {
+        Write-Error "Installer not found: $InstallerPath"
         exit 1
     }
-    $InstallerPath = $Installers[0].FullName
-    Write-Host "Found installer: $InstallerPath" -ForegroundColor Cyan
-}
-
-# Verify installer path early
-if (-not (Test-Path $InstallerPath)) {
-    Write-Error "Installer not found: $InstallerPath"
-    exit 1
+    $explicitTargets.Add((Get-Item $InstallerPath).FullName)
 }
 
 # Find signtool
@@ -88,14 +128,17 @@ if (-not $SignTool) {
     exit 1
 }
 
-Write-Host "`n=== Signing Installer ===" -ForegroundColor Green
-Write-Host "Installer: $InstallerPath"
+Write-Host "`n=== Code Signing ===" -ForegroundColor Green
 Write-Host "SignTool: $SignTool"
 
-# Determine signing method: Prefer store-based if requested or if Thumbprint/SubjectMatch provided
+# ---------------------------------------------------------------------------
+# Certificate selection → $signArgs (signtool arguments before the file list) + $expectedThumb
+# ---------------------------------------------------------------------------
+$signArgs = $null
+$expectedThumb = $null
 $usedMethod = $null
+
 if ($UseStore -or $Thumbprint -or $SubjectMatch) {
-    # Enumerate store
     $storeCerts = @()
     try { $storeCerts += Get-ChildItem Cert:\CurrentUser\My -ErrorAction SilentlyContinue } catch {}
     try { $storeCerts += Get-ChildItem Cert:\LocalMachine\My -ErrorAction SilentlyContinue } catch {}
@@ -103,7 +146,6 @@ if ($UseStore -or $Thumbprint -or $SubjectMatch) {
     # Filter to code-signing capable certs when EKU is present
     $codeSigning = @()
     foreach ($c in $storeCerts) {
-        $added = $false
         try {
             $eku = $c.EnhancedKeyUsageList
             if ($eku) {
@@ -114,15 +156,12 @@ if ($UseStore -or $Thumbprint -or $SubjectMatch) {
                 ) | Where-Object { $_ }
                 if ($ekuNames -contains 'Code Signing' -or $ekuNames -contains 'Υπογραφή κώδικα' -or $ekuOids -contains '1.3.6.1.5.5.7.3.3') {
                     $codeSigning += $c
-                    $added = $true
                 }
             }
         } catch {
             # Some certs may not expose EKU via this property
             $codeSigning += $c
-            $added = $true
         }
-        if (-not $added) { continue }
     }
 
     $selected = $null
@@ -142,23 +181,18 @@ if ($UseStore -or $Thumbprint -or $SubjectMatch) {
         }
     }
     else {
-        # Require explicit thumbprint or subject match when using store signing
         Write-Error "Store-based signing requires -Thumbprint or -SubjectMatch parameter. No automatic cert selection."
         exit 1
     }
 
-    if ($selected) {
-        Write-Host "Using store certificate:" -ForegroundColor Cyan
-        $selected | Select-Object Subject, Thumbprint, NotAfter | Format-List | Out-String | Write-Host
-        $tp = ($selected.Thumbprint -replace '\s','')
-        & $SignTool sign /fd SHA256 /tr $TimestampServer /td SHA256 /sha1 $tp $InstallerPath
-        $usedMethod = "store:$tp"
-    } else {
-        Write-Host "No matching certificate found in store; will fall back to PFX if available." -ForegroundColor Yellow
-    }
+    Write-Host "Using store certificate:" -ForegroundColor Cyan
+    $selected | Select-Object Subject, Thumbprint, NotAfter | Format-List | Out-String | Write-Host
+    $expectedThumb = ($selected.Thumbprint -replace '\s','').ToUpperInvariant()
+    $signArgs = @('sign', '/fd', 'SHA256', '/tr', $TimestampServer, '/td', 'SHA256', '/d', 'Student Management System', '/sha1', $expectedThumb)
+    $usedMethod = "store:$expectedThumb"
 }
 
-if (-not $usedMethod) {
+if (-not $signArgs) {
     # PFX path method
     if (-not (Test-Path $CertPath)) {
         Write-Error "Certificate not found: $CertPath. Provide -CertPath or set SMS_CODESIGN_PFX_PATH, or use -UseStore/Thumbprint."
@@ -169,26 +203,84 @@ if (-not $usedMethod) {
         exit 1
     }
     Write-Host "Certificate: $CertPath"
-    & $SignTool sign /f $CertPath /p $CertPassword /fd SHA256 /tr $TimestampServer /td SHA256 /d "Student Management System" $InstallerPath
+    try {
+        $pfxCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($CertPath, $CertPassword)
+        $expectedThumb = ($pfxCert.Thumbprint -replace '\s','').ToUpperInvariant()
+    } catch {
+        Write-Error "Cannot open certificate ${CertPath}: $($_.Exception.Message)"
+        exit 1
+    }
+    $signArgs = @('sign', '/f', $CertPath, '/p', $CertPassword, '/fd', 'SHA256', '/tr', $TimestampServer, '/td', 'SHA256', '/d', 'Student Management System')
     $usedMethod = "pfx:$CertPath"
 }
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Signing failed with exit code $LASTEXITCODE"
+# ---------------------------------------------------------------------------
+# Decide what actually needs signing
+# ---------------------------------------------------------------------------
+function Get-SignerThumb([string]$file) {
+    $s = Get-AuthenticodeSignature -FilePath $file
+    if ($s.SignerCertificate) { return ($s.SignerCertificate.Thumbprint -replace '\s','').ToUpperInvariant() }
+    return $null
+}
+
+$toSign = [System.Collections.Generic.List[string]]::new()
+$skippedOurs = 0
+$skippedForeign = 0
+
+foreach ($f in $explicitTargets) {
+    if ((Get-SignerThumb $f) -eq $expectedThumb) { $skippedOurs++; continue }
+    $toSign.Add($f)
+}
+foreach ($f in $discoveredTargets) {
+    $thumb = Get-SignerThumb $f
+    if ($null -eq $thumb) { $toSign.Add($f); continue }
+    if ($thumb -eq $expectedThumb) { $skippedOurs++ } else { $skippedForeign++ }
+}
+
+$allTargets = @($explicitTargets) + @($discoveredTargets | Where-Object { ($toSign -contains $_) -or ((Get-SignerThumb $_) -eq $expectedThumb) })
+
+Write-Host ("Targets: {0} to sign, {1} already signed with this certificate, {2} signed by others (left alone)" -f $toSign.Count, $skippedOurs, $skippedForeign)
+
+# ---------------------------------------------------------------------------
+# Sign in batches
+# ---------------------------------------------------------------------------
+$signed = 0
+for ($i = 0; $i -lt $toSign.Count; $i += $BatchSize) {
+    $end = [Math]::Min($i + $BatchSize, $toSign.Count) - 1
+    $batch = @($toSign[$i..$end])
+    & $SignTool @signArgs @batch 2>&1 | ForEach-Object { Write-Host "  $_" }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Signing failed with exit code $LASTEXITCODE (batch starting at $($batch[0]))"
+        exit 1
+    }
+    $signed += $batch.Count
+}
+
+# ---------------------------------------------------------------------------
+# Verify: every target must now carry the selected certificate
+# ---------------------------------------------------------------------------
+Write-Host "`n=== Verifying Signatures ===" -ForegroundColor Green
+$bad = @()
+foreach ($f in $allTargets) {
+    $s = Get-AuthenticodeSignature -FilePath $f
+    $thumb = if ($s.SignerCertificate) { ($s.SignerCertificate.Thumbprint -replace '\s','').ToUpperInvariant() } else { $null }
+    $chainOk = $s.Status -eq 'Valid' -or $s.Status -eq 'UnknownError'   # UnknownError = chain not trusted on this machine, signature intact
+    if ($thumb -ne $expectedThumb -or -not $chainOk) {
+        $bad += "$f → status $($s.Status), signer $thumb"
+    }
+}
+
+if ($bad.Count -gt 0) {
+    $bad | ForEach-Object { Write-Host "  ✗ $_" -ForegroundColor Red }
+    Write-Error "Signature verification failed for $($bad.Count) file(s)"
     exit 1
 }
 
-# Verify signature
-Write-Host "`n=== Verifying Signature ===" -ForegroundColor Green
-$Signature = Get-AuthenticodeSignature $InstallerPath
-Write-Host "Status: $($Signature.Status)"
-Write-Host "Signer: $($Signature.SignerCertificate.Subject)"
-
-if ($Signature.Status -eq "Valid") {
-    Write-Host "`n✅ Installer signed successfully!" -ForegroundColor Green
-    Write-Host "   Publisher: $($Signature.SignerCertificate.Subject)" -ForegroundColor Cyan
-    Write-Host "   Method: $usedMethod" -ForegroundColor DarkCyan
-} else {
-    Write-Error "Signature verification failed: $($Signature.StatusMessage)"
-    exit 1
+if (-not $pathMode) {
+    $Signature = Get-AuthenticodeSignature $InstallerPath
+    Write-Host "Status: $($Signature.Status)"
+    Write-Host "Signer: $($Signature.SignerCertificate.Subject)"
 }
+
+Write-Host "`n✅ Signed $signed file(s); $($allTargets.Count) target(s) verified with certificate $expectedThumb" -ForegroundColor Green
+Write-Host "   Method: $usedMethod" -ForegroundColor DarkCyan
