@@ -1139,7 +1139,8 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         Vitest 5 forwards `global.document = …` to jsdom (`calendarUtils.test.ts` now spies on
         the real document); json/html/junit reporters write under `.vitest/` → git-ignored and
         added to the CI artifact upload); (5b) Vite 8.3.5 + plugin-react 6.1.2 +
-        vite-plugin-pwa 2.0.0 → **started 2026-10-27**. Config: `rollupOptions` →
+        vite-plugin-pwa 2.0.0 → **PR #320, merged 2026-10-27 — todo 34 complete, only the
+        follow-ups below remain.** Config: `rollupOptions` →
         `rolldownOptions` (same keys; the `manualChunks` function is deprecated in favour of
         `advancedChunks` but kept because the chunk graph is the TDZ-safe one), `__dirname` →
         `import.meta.dirname` in both configs (Vite 8 warns that the upcoming native config
