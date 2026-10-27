@@ -1151,10 +1151,11 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         Edge on Lite). Verified: tsc, lint, Vitest 1835, isolated E2E 59/36 skipped,
         `build:android` + emulator (WebView 133: login, Dashboard, Analytics, all API 200),
         frozen Lite bundle built from the Vite 8 dist (same-origin build, no absolute API URL
-        baked, index.html bundled) — **the Lite exe itself was not launched** because it binds
-        port 8000 and kills whatever holds it, and the owner's `--reload` dev server was on
-        8000 at the time; run the frozen-Lite smoke from [[session-2026-10-21-v1-18-59-release-sac]]
-        before the next release. Follow-ups: `manualChunks` → Rolldown `codeSplitting` (the
+        baked, index.html bundled) and **launched later the same day once the owner stopped the
+        NATIVE dev server that held port 8000: smoke 14/14** (health, login, Greek student +
+        course, both PDFs with DejaVu embedded, Excel export, SPA index + all 11 referenced
+        assets; health "degraded" only from host RAM ≥ 90 %). Never launch the Lite exe while
+        anything else holds 8000 — it kills the holder. Follow-ups: `manualChunks` → Rolldown `codeSplitting` (the
         current name; `advancedChunks` is also deprecated) → **done 2026-10-27**, one group
         with the same `name(id)` logic; the output is byte-identical to the #320 build (every
         chunk hash unchanged), so the TDZ check is satisfied by construction; drop the
