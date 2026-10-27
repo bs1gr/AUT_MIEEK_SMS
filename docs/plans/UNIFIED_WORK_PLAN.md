@@ -1018,6 +1018,24 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       decision), so it can no longer show what users see. Test the signed build on another PC
       with Smart App Control enforced. The dev venv has the pure-Python
       `sqlalchemy-2.1.4-py3-none-any.whl`, which matches what Lite now bundles.
+    - **Review 2026-10-27.** State today: the installer is signed with the self-signed AUT MIEEK
+      PFX held in GitHub secrets; `SIGN_INSTALLER.ps1` signs one file (the installer); the CI
+      gate in `release-installer-with-sha.yml` skips when `CODESIGN_CERT_THUMBPRINT` is unset
+      and accepts `UnknownError`, so it cannot fail; the local Lite build has 180 of 210
+      `.exe/.dll/.pyd` files unsigned (the other 30 are PSF/Microsoft-signed). Providers:
+      (a) **SignPath Foundation** — free for OSS, the MIT public repo qualifies, the project
+      applies at signpath.org; publisher shows "SignPath Foundation", every release needs a
+      manual approval in their portal, approval is discretionary. (b) **Azure Artifact
+      Signing** — ~$10/month + a paid Azure subscription; EU organisations qualify (the
+      college, not a person: individuals must be in the US/Canada; organisations need ~3 years
+      of tax history); signs from GitHub Actions via OIDC, PFX secrets go away. (c) **OV cert
+      from a public CA** — €70–400/year; keys must sit in an HSM, so CI signing needs the CA's
+      cloud signer. **Decision: apply to SignPath first, Azure as fallback.** Owner action:
+      the SignPath application. Engineering (same for every provider, can start now): sign
+      every unsigned binary under `_internal`, `SMS_Lite.exe` and `SMS_Manager.exe` before Inno
+      packs them, add Inno's `SignTool` directive for the uninstaller, then make the CI gate
+      require `Valid` + the new thumbprint and drop the `UnknownError` allowance. Todo 32's
+      exclude-list fix first shrinks the file count.
 31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
     Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
     `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
@@ -1065,6 +1083,41 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       Suggested order: TypeScript 6 → toolchain → ESLint → UI libraries → i18n.
     - Until then Dependabot keeps opening one PR per major. Close them with
       `@dependabot ignore this major version` only if a group is deliberately deferred.
+    - **Review 2026-10-27 (usage survey of `src/frontend`), replaces the order above:**
+      - `date-fns`: **zero imports** — remove the dependency, don't upgrade it.
+      - `@hookform/resolvers` 6: only the Effect resolver broke; we use `zodResolver` in 4
+        files. Trivial. `framer-motion` 14: only `motion`/`AnimatePresence` in 10 files, 7
+        tests mock the package, Motion lists no breaking change for that usage. Trivial.
+      - `i18next` 26 + `react-i18next` 17 (together; 17 needs i18next ≥ 26.2): the removed
+        options (`initImmediate`, `interpolation.format`, `simplifyPluralSuffix`) are not set;
+        the 3 `<Trans>` usages have explicit `i18nKey`; plurals already use `_one/_other`.
+        Low risk, but 84 files import it → full Vitest + E2E.
+      - TypeScript 6: no `baseUrl`, resolution already `bundler`, `types` set explicitly, tests
+        excluded from tsc. Low risk; lifts the `@vitest/eslint-plugin` pin. **TypeScript 7.0.2
+        is on npm but has no stable JS compiler API and typescript-eslint's peer stops at
+        < 6.1 → stays out.**
+      - ESLint 10: flat config already, no jiti. `eslint-plugin-react` 7.37.5 and
+        `eslint-plugin-jsx-a11y` 6.10.2 peer-range stops at ESLint 9 → bump them too; expect new
+        `eslint:recommended` findings. Low–medium.
+      - `lucide-react` 1.x: 72 distinct icons, no brand icons. **Hazard is in-repo:**
+        `src/lucide-react.d.ts` and `src/types/lucide-react.d.ts` declare the module and
+        re-export aliases (`LucidePenLine as Edit3`), which would hide a removed export from
+        tsc and reach runtime as `undefined`. Delete both shims first, then let tsc list the
+        real renames (`XCircle`, `CheckCircle`, `AlertCircle`, `HelpCircle`, `Edit`, `Edit3`,
+        `BarChart3`, `PieChart` are the usual ones). Medium, mechanical.
+      - Toolchain (Vite 8 / Vitest 5 / plugin-react 6 / vite-plugin-pwa 2 / jsdom 30): the only
+        large group. `vite.config.ts` touchpoints: `manualChunks` function, `minify: 'terser'`
+        - options, `assetFileNames` function, `modulePreload.polyfill` — verify each against the
+        official Rolldown migration guide. Vitest 5 clears mocks before every test by default
+        and throws on non-top-level `vi.mock`/`vi.hoisted` (68 mocking files, 11 hoisted);
+        reporter output moves under `.vitest/`. plugin-react 6 drops Babel (we pass none; v5
+        works on Vite 8, can follow later). jsdom 30 needs Node ≥ 22.22 (dev PC 22.23, CI
+        latest 22). Medium–high; touches the Android, Lite and Docker builds.
+      - **Order (one PR each, full smoke each):** (1) small majors in one PR: drop date-fns,
+        resolvers 6, framer-motion 14, i18next 26 + react-i18next 17 → **started 2026-10-27**;
+        (2) TypeScript 6 + unpin `@vitest/eslint-plugin` and its Dependabot ignore;
+        (3) ESLint 10 + the two plugin bumps; (4) lucide-react 1.x after deleting the shims;
+        (5) toolchain last, optionally via `rolldown-vite` first.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
     arborist crash. The old npm 8.19.1 is gone, which also ends the lockfile `libc` stripping.
@@ -1077,6 +1130,24 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     The emulator smoke ran WebView 133, which takes the padded path. **WebView ≥ 140 takes the
     viewport-fit path, and only a real, updated phone shows it.** Check the header, modals, the
     offline banner and the bottom of long pages for overlap with the bars, in both themes.
+    - **Review 2026-10-27: the premise is wrong.** Capacitor 8.5.3's `SystemBars.java` takes
+      the edge-to-edge path only when WebView ≥ 140 **and** the viewport meta contains
+      `viewport-fit=cover` (`shouldPassthroughInsets`, line 194). The tag is gone, so every
+      WebView version takes the padded path the emulator (WebView 133) already exercised; no
+      untested branch is left for a real phone. The docs agree (`native`/`css` honour
+      `viewport-fit` only on ≥ 140; default mode `css`). The owner used the published v1.18.61
+      APK on their phone on 2026-10-27 and reported nothing about the bars. What a phone (or
+      the emulator) can still show: (a) the padded strips show the *native window background*
+      and the status-bar icon colour follows the *system* night mode, while the app theme is
+      independent (ThemeContext) → app dark + system light = light strip, dark icons, dark
+      header; (b) keyboard: bottom padding switches to the IME inset — check a form at the
+      bottom of a long page; (c) a notched phone shows whether the cutout inset is padded.
+      **Downgraded** to a quick look at the next phone check, plus one small follow-up to pick:
+      keep padding and set the window background to the app colours, or go edge-to-edge
+      properly (restore `viewport-fit=cover`, pad the header and fixed overlays with
+      `var(--safe-area-inset-*)`, which the default `css` mode injects). Either way add
+      `EdgeToEdge.enable(this)` to `MainActivity` as the docs recommend (Capacitor 9 defaults
+      `insetsHandling` to `native`).
 29. ~~**Update saw SMS Lite and Docker as version "unknown"**~~ — **fixed 2026-10-13, found in
     the v1.18.57 smoke test.** On the frozen Lite build the update check returned
     `current_version: "unknown"`, `update_available: false`, so todo 28's Update would never

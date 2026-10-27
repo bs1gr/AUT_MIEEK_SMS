@@ -191,7 +191,7 @@ export default defineConfig(({ mode }) => {
           if (id.includes('lucide-react')) {
             return 'icons-vendors';
           }
-          if (id.includes('framer-motion')) {
+          if (/[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) {
             return 'animation-vendors';
           }
           if (id.includes('zustand')) {
