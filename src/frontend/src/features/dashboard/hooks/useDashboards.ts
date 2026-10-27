@@ -76,7 +76,7 @@ export function useDashboards() {
       } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
         const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to create dashboard';
-        throw new Error(message);
+        throw new Error(message, { cause: error });
       }
     },
     onSuccess: () => {
@@ -104,7 +104,7 @@ export function useDashboards() {
       } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
         const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to update dashboard';
-        throw new Error(message);
+        throw new Error(message, { cause: error });
       }
     },
     onSuccess: () => {
@@ -122,7 +122,7 @@ export function useDashboards() {
       } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
         const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to delete dashboard';
-        throw new Error(message);
+        throw new Error(message, { cause: error });
       }
     },
     onSuccess: () => {
@@ -140,7 +140,7 @@ export function useDashboards() {
       } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
         const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to set default dashboard';
-        throw new Error(message);
+        throw new Error(message, { cause: error });
       }
     },
     onSuccess: () => {

@@ -42,7 +42,7 @@ export function useAnalyticsExport() {
         return { success: true, format, filename };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Failed to export';
-        throw new Error(`Failed to export as ${format}: ${message}`);
+        throw new Error(`Failed to export as ${format}: ${message}`, { cause: error });
       }
     },
   });
