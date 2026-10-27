@@ -1118,7 +1118,7 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         (2) TypeScript 6 + unpin `@vitest/eslint-plugin` and its Dependabot ignore → **PR #315,
         merged 2026-10-27** (TS 6.0.3: config already matched the new defaults, tsc clean with no
         code change; `DOM.Iterable` dropped from `lib` because 6.0 folds it into `DOM`);
-        (3) ESLint 10 → **started 2026-10-27.** The "two plugin bumps" do not exist:
+        (3) ESLint 10 → **PR #317, merged 2026-10-27.** The "two plugin bumps" do not exist:
         `eslint-plugin-react` 7.37.5 and `eslint-plugin-jsx-a11y` 6.10.2 are still the newest
         releases and their peer ranges stop at ESLint 9, so `npm install` refuses ESLint 10.
         Resolution: package.json `overrides` pin both plugins' `eslint` peer to `$eslint`
@@ -1129,7 +1129,9 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         the plugin ships ESLint 10 support — then drop the overrides). New `eslint:recommended`
         rule `preserve-caught-error` found 5 rethrows without `cause` in the dashboard hooks
         (fixed; `ES2022.Error` added to `lib`). `--format unix` left core (not used).
-        (4) lucide-react 1.x after deleting the shims;
+        (4) lucide-react 1.x after deleting the shims → **started 2026-10-27**: 0.557 → 1.62.0,
+        both `.d.ts` shims deleted, tsc clean with no renames needed (1.x still exports every
+        alias we use, confirmed at runtime for all 70 names), icons chunk 14 → 18 KB;
         (5) toolchain last, optionally via `rolldown-vite` first.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
