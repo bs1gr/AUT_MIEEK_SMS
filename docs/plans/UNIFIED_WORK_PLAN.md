@@ -1004,6 +1004,10 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     embedded and the Greek text extracts. The v1.18.59 smoke scripts did exactly this
     (`lite_sac_start.ps1`, `lite_api_check.py`). CI runners do not enforce Smart App Control, so
     this does not replace todo 30's test.
+    **2026-10-27 partial:** `RELEASE_READY.ps1` now runs `INSTALLER_BUILDER -Action test`
+    (Authenticode Valid + version resource) right after the installer build and fails the
+    release if it fails — it had never run that phase. The v1.18.60 installer passed it when run
+    by hand. The Lite runtime check above is still open.
 32. **The Lite spec's exclude list has never worked** (found 2026-10-21).
     `lite_simple_entrypoint.spec` passes `excludedimports=[...]`, but PyInstaller's argument is
     `excludes=`, and `Analysis(**_kwargs)` drops unknown names silently. So pytest, numpy,

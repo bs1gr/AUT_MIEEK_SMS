@@ -370,6 +370,15 @@ function Invoke-InstallerBuild {
             Write-Host "  File: $installerPath" -ForegroundColor Gray
             Write-Host "  Size: $([math]::Round($size, 2)) MB" -ForegroundColor Gray
             Write-Host ""
+
+            # Phase 2 of CLAUDE.md's release workflow ends with INSTALLER_BUILDER -Action test
+            # (Authenticode Valid + version resource). Until v1.18.60 this script never ran it,
+            # so an unsigned or mis-versioned installer could reach the tag step unnoticed.
+            & $installerBuilderScript -Action test -Version $Version
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "❌ Installer smoke test failed (signature / version resource)" -ForegroundColor Red
+                return $false
+            }
             return $true
         } else {
             Write-Host "❌ Installer file not found in expected locations:" -ForegroundColor Red
