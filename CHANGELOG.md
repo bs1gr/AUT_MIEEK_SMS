@@ -37,6 +37,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+## [1.18.61] - 2026-10-27
+
+### Bug Fixes
+- **android**: exports never downloaded in the APK; blob URL + `<a download>` is dropped by Android's WebView. All 12 export sites now go through `utils/downloadFile.ts`: on native, write to the app cache (@capacitor/filesystem) and open the share sheet (@capacitor/share). Web unchanged. Broken since the APK existed.
+
+### Android
+- **capacitor**: add @capacitor/filesystem 8.1.5 and @capacitor/share 8.0.3
+
+### Build System
+- **release**: RELEASE_READY.ps1 runs `INSTALLER_BUILDER -Action test` (signature + version resource) after the installer build and fails on a non-zero exit
 ## [1.18.60] - 2026-10-27
 
 ### Security
