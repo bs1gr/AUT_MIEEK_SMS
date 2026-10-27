@@ -14,6 +14,9 @@ try {
 
 const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://127.0.0.1:8000';
 
+// Vite 8's native config loader has no `__dirname` shim; `import.meta.dirname` is Node ≥ 20.11.
+const configDir = import.meta.dirname;
+
 export default defineConfig(({ mode }) => {
   // Capacitor serves from file:// — relative base required for Android builds
   const isAndroid = mode === 'android';
@@ -108,13 +111,13 @@ export default defineConfig(({ mode }) => {
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/api': path.resolve(__dirname, './src/api'),
-      '@/utils': path.resolve(__dirname, './src/utils'),
-      '@/types': path.resolve(__dirname, './src/types'),
-      '@/hooks': path.resolve(__dirname, './src/hooks'),
-      '@/stores': path.resolve(__dirname, './src/stores'),
+      '@': path.resolve(configDir, './src'),
+      '@/components': path.resolve(configDir, './src/components'),
+      '@/api': path.resolve(configDir, './src/api'),
+      '@/utils': path.resolve(configDir, './src/utils'),
+      '@/types': path.resolve(configDir, './src/types'),
+      '@/hooks': path.resolve(configDir, './src/hooks'),
+      '@/stores': path.resolve(configDir, './src/stores'),
     },
   },
   optimizeDeps: {
@@ -165,9 +168,12 @@ export default defineConfig(({ mode }) => {
         safari10: true, // Ensure Safari 10+ compatibility
       },
     },
-    rollupOptions: {
+    // Vite 8 bundles with Rolldown; `rollupOptions` is only a deprecated alias of this.
+    rolldownOptions: {
       output: {
-        // Optimize chunk splitting for better caching
+        // Optimize chunk splitting for better caching.
+        // Rolldown deprecates the manualChunks function in favour of `advancedChunks`;
+        // kept as-is for now because the chunk graph below is known-good (see the TDZ note).
         manualChunks(id) {
           // App code is NOT manually chunked — routes.ts uses lazy() dynamic imports
           // which create natural split boundaries without circular dependencies.

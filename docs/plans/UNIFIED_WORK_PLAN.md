@@ -1132,14 +1132,30 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         (4) lucide-react 1.x after deleting the shims → **PR #318, merged 2026-10-27**: 0.557 →
         1.62.0, both `.d.ts` shims deleted, tsc clean with no renames needed (1.x still exports
         every alias we use, confirmed at runtime for all 70 names), icons chunk 14 → 18 KB;
-        (5) toolchain last, split in two: (5a) Vitest 5 + jsdom 30 → **started 2026-10-27**
-        (vitest/coverage-v8/ui 5.0.5, jsdom 30.1.3; pre-scan found no nested `vi.mock`, no
-        unawaited `.resolves/.rejects`, no removed subpath imports, no `sequential`; the new
-        `clearMocks: true` default broke nothing; one file broke because Vitest 5 forwards
-        `global.document = …` to jsdom (`calendarUtils.test.ts` now spies on the real document);
-        json/html/junit reporters write under `.vitest/` → git-ignored and added to the CI
-        artifact upload); (5b) Vite 8 + plugin-react 6 + vite-plugin-pwa 2 next, with a frozen
-        Lite smoke and an emulator check on top of the usual E2E.
+        (5) toolchain last, split in two: (5a) Vitest 5 + jsdom 30 → **PR #319, merged
+        2026-10-27** (vitest/coverage-v8/ui 5.0.5, jsdom 30.1.3; pre-scan found no nested
+        `vi.mock`, no unawaited `.resolves/.rejects`, no removed subpath imports, no
+        `sequential`; the new `clearMocks: true` default broke nothing; one file broke because
+        Vitest 5 forwards `global.document = …` to jsdom (`calendarUtils.test.ts` now spies on
+        the real document); json/html/junit reporters write under `.vitest/` → git-ignored and
+        added to the CI artifact upload); (5b) Vite 8.3.5 + plugin-react 6.1.2 +
+        vite-plugin-pwa 2.0.0 → **started 2026-10-27**. Config: `rollupOptions` →
+        `rolldownOptions` (same keys; the `manualChunks` function is deprecated in favour of
+        `advancedChunks` but kept because the chunk graph is the TDZ-safe one), `__dirname` →
+        `import.meta.dirname` in both configs (Vite 8 warns that the upcoming native config
+        loader has no `__dirname`). `minify: 'terser'` + `terserOptions` still honoured.
+        Build 13.5 s → 6.5 s; 96 → 83 precache entries at the same total bytes (Rolldown emits
+        fewer tiny chunks; every css/html/icon/image entry still present). Default
+        `build.target` rose to chrome111/safari16.4 (fine for the WebView ≥ 133 we ship to and
+        Edge on Lite). Verified: tsc, lint, Vitest 1835, isolated E2E 59/36 skipped,
+        `build:android` + emulator (WebView 133: login, Dashboard, Analytics, all API 200),
+        frozen Lite bundle built from the Vite 8 dist (same-origin build, no absolute API URL
+        baked, index.html bundled) — **the Lite exe itself was not launched** because it binds
+        port 8000 and kills whatever holds it, and the owner's `--reload` dev server was on
+        8000 at the time; run the frozen-Lite smoke from [[session-2026-10-21-v1-18-59-release-sac]]
+        before the next release. Follow-ups: move `manualChunks` to `advancedChunks` in its own
+        PR (chunk graph change → re-run the TDZ check); drop `rollupOptions` alias warnings if
+        Vite 9 removes it.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
     arborist crash. The old npm 8.19.1 is gone, which also ends the lockfile `libc` stripping.
