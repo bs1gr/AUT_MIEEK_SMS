@@ -1115,10 +1115,21 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         latest 22). Medium–high; touches the Android, Lite and Docker builds.
       - **Order (one PR each, full smoke each):** (1) small majors in one PR: drop date-fns,
         resolvers 6, framer-motion 14, i18next 26 + react-i18next 17 → **PR #313, 2026-10-27**;
-        (2) TypeScript 6 + unpin `@vitest/eslint-plugin` and its Dependabot ignore → **started
-        2026-10-27** (TS 6.0.3: config already matched the new defaults, tsc clean with no code
-        change; `DOM.Iterable` dropped from `lib` because 6.0 folds it into `DOM`);
-        (3) ESLint 10 + the two plugin bumps; (4) lucide-react 1.x after deleting the shims;
+        (2) TypeScript 6 + unpin `@vitest/eslint-plugin` and its Dependabot ignore → **PR #315,
+        merged 2026-10-27** (TS 6.0.3: config already matched the new defaults, tsc clean with no
+        code change; `DOM.Iterable` dropped from `lib` because 6.0 folds it into `DOM`);
+        (3) ESLint 10 → **started 2026-10-27.** The "two plugin bumps" do not exist:
+        `eslint-plugin-react` 7.37.5 and `eslint-plugin-jsx-a11y` 6.10.2 are still the newest
+        releases and their peer ranges stop at ESLint 9, so `npm install` refuses ESLint 10.
+        Resolution: package.json `overrides` pin both plugins' `eslint` peer to `$eslint`
+        (a declared npm mechanism, honoured by `npm ci`; no `--legacy-peer-deps`). Safe because
+        jsx-a11y calls none of the APIs ESLint 10 removed and the only react rule we enable,
+        `react/no-unescaped-entities`, is clean (the plugin's other rules still use
+        `context.getSourceCode()` / `isSpaceBetweenTokens()`, so do not enable more of them until
+        the plugin ships ESLint 10 support — then drop the overrides). New `eslint:recommended`
+        rule `preserve-caught-error` found 5 rethrows without `cause` in the dashboard hooks
+        (fixed; `ES2022.Error` added to `lib`). `--format unix` left core (not used).
+        (4) lucide-react 1.x after deleting the shims;
         (5) toolchain last, optionally via `rolldown-vite` first.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
