@@ -455,31 +455,34 @@ jobs:
             exit 1
           }
 
+          # This gate is a release blocker. It used to warn and exit 0 on every problem, so it
+          # had never failed a release; now every branch below that is not a pass exits 1.
           if ($skipSigning) {
-            Write-Warning "Code signing was skipped. Installer is unsigned."
+            Write-Error "Code signing was skipped (CODESIGN_PFX_BASE64 / CODESIGN_PFX_PASSWORD missing or not importable). Release assets must be signed."
             "subject=UNSIGNED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             "thumbprint=UNSIGNED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             "status=UNSIGNED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-            exit 0
+            exit 1
           }
 
           if ([string]::IsNullOrWhiteSpace($requiredThumbprint)) {
-            Write-Warning "CODESIGN_CERT_THUMBPRINT secret is not configured. Skipping signature verification."
+            Write-Error "CODESIGN_CERT_THUMBPRINT secret is not configured; the gate cannot tell the expected signer from an impostor. Set it to the signing certificate's SHA-1 thumbprint."
             "subject=UNCONFIGURED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             "thumbprint=UNCONFIGURED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             "status=UNCONFIGURED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-            exit 0
+            exit 1
           }
+          $requiredThumbprint = ($requiredThumbprint -replace '\\s','').ToUpperInvariant()
 
           $sig = Get-AuthenticodeSignature $installer
           Write-Host "Signature status: $($sig.Status)"
 
           if (-not $sig.SignerCertificate) {
-            Write-Warning "Installer has no signer certificate (unsigned or invalid signature)."
+            Write-Error "Installer has no signer certificate (unsigned or invalid signature)."
             "subject=UNSIGNED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             "thumbprint=UNSIGNED" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             "status=$($sig.Status)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-            exit 0
+            exit 1
           }
 
           $subject = $sig.SignerCertificate.Subject
@@ -491,14 +494,18 @@ jobs:
           "status=$($sig.Status)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
           if ($actualThumbprint -ne $requiredThumbprint) {
-            Write-Warning "Signer thumbprint mismatch. Expected $requiredThumbprint, got $actualThumbprint"
+            Write-Error "Signer thumbprint mismatch. Expected $requiredThumbprint, got $actualThumbprint"
+            exit 1
           }
 
+          # 'UnknownError' is what this runner reports for the self-signed AUT MIEEK certificate
+          # (signature intact, chain not trusted here). Remove it from the allowed set once the
+          # publicly trusted certificate from todo 30 is in use, so that only 'Valid' passes.
           if ($sig.Status -ne 'Valid' -and $sig.Status -ne 'UnknownError') {
-            Write-Warning "Unexpected signature verification status: $($sig.Status)"
-          } else {
-            Write-Host "✓ Signature gate passed"
+            Write-Error "Unexpected signature verification status: $($sig.Status)"
+            exit 1
           }
+          Write-Host "✓ Signature gate passed (status $($sig.Status), signer $actualThumbprint)"
 
       - name: Signer subject allowlist telemetry (non-blocking)
         shell: pwsh
