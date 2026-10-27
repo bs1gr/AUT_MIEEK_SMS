@@ -171,48 +171,58 @@ export default defineConfig(({ mode }) => {
     // Vite 8 bundles with Rolldown; `rollupOptions` is only a deprecated alias of this.
     rolldownOptions: {
       output: {
-        // Optimize chunk splitting for better caching.
-        // Rolldown deprecates the manualChunks function in favour of `advancedChunks`;
-        // kept as-is for now because the chunk graph below is known-good (see the TDZ note).
-        manualChunks(id) {
-          // App code is NOT manually chunked — routes.ts uses lazy() dynamic imports
-          // which create natural split boundaries without circular dependencies.
-          // Per-feature named chunks caused circular chunk deps (dashboard ↔ students
-          // ↔ attendance ↔ grading), making Rollup emit a TDZ that prevented React
-          // from mounting ("Cannot access 'l' before initialization").
-          if (!id.includes('node_modules')) {
-            return undefined;
-          }
+        // Optimize chunk splitting for better caching. Rolldown's `codeSplitting` replaces
+        // Rollup's `manualChunks` (deprecated alias in Vite 8): one group whose `name(id)`
+        // returns the vendor chunk, or null to leave the module to automatic splitting.
+        // Unlike manualChunks, a captured module's dependencies are pulled into the same
+        // group by default (`includeDependenciesRecursively`), which is what keeps
+        // vendor chunks from forming cycles.
+        codeSplitting: {
+          groups: [
+            {
+              debugName: 'vendors',
+              name(id: string) {
+                // App code is NOT manually chunked — routes.ts uses lazy() dynamic imports
+                // which create natural split boundaries without circular dependencies.
+                // Per-feature named chunks caused circular chunk deps (dashboard ↔ students
+                // ↔ attendance ↔ grading), making the bundler emit a TDZ that prevented React
+                // from mounting ("Cannot access 'l' before initialization").
+                if (!id.includes('node_modules')) {
+                  return null;
+                }
 
-          // Vendor chunk splitting for optimal caching
-          if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) {
-            return 'react-vendors';
-          }
-          if (id.includes('@tanstack')) {
-            return 'query-vendors';
-          }
-          if (id.includes('i18next') || id.includes('react-i18next')) {
-            return 'i18n-vendors';
-          }
-          if (id.includes('lucide-react')) {
-            return 'icons-vendors';
-          }
-          if (/[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) {
-            return 'animation-vendors';
-          }
-          if (id.includes('zustand')) {
-            return 'state-vendors';
-          }
-          if (id.includes('zod')) {
-            return 'validation-vendors';
-          }
-          if (id.includes('axios')) {
-            return 'http-vendors';
-          }
-          if (id.includes('@radix-ui')) {
-            return 'ui-vendors';
-          }
-          return 'vendor';
+                // Vendor chunk splitting for optimal caching
+                if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) {
+                  return 'react-vendors';
+                }
+                if (id.includes('@tanstack')) {
+                  return 'query-vendors';
+                }
+                if (id.includes('i18next') || id.includes('react-i18next')) {
+                  return 'i18n-vendors';
+                }
+                if (id.includes('lucide-react')) {
+                  return 'icons-vendors';
+                }
+                if (/[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) {
+                  return 'animation-vendors';
+                }
+                if (id.includes('zustand')) {
+                  return 'state-vendors';
+                }
+                if (id.includes('zod')) {
+                  return 'validation-vendors';
+                }
+                if (id.includes('axios')) {
+                  return 'http-vendors';
+                }
+                if (id.includes('@radix-ui')) {
+                  return 'ui-vendors';
+                }
+                return 'vendor';
+              },
+            },
+          ],
         },
         // Optimize asset file names for better caching
         chunkFileNames: (chunkInfo) => {

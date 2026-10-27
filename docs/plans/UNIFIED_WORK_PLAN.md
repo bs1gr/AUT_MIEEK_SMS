@@ -1154,9 +1154,11 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         baked, index.html bundled) — **the Lite exe itself was not launched** because it binds
         port 8000 and kills whatever holds it, and the owner's `--reload` dev server was on
         8000 at the time; run the frozen-Lite smoke from [[session-2026-10-21-v1-18-59-release-sac]]
-        before the next release. Follow-ups: move `manualChunks` to `advancedChunks` in its own
-        PR (chunk graph change → re-run the TDZ check); drop `rollupOptions` alias warnings if
-        Vite 9 removes it.
+        before the next release. Follow-ups: `manualChunks` → Rolldown `codeSplitting` (the
+        current name; `advancedChunks` is also deprecated) → **done 2026-10-27**, one group
+        with the same `name(id)` logic; the output is byte-identical to the #320 build (every
+        chunk hash unchanged), so the TDZ check is satisfied by construction; drop the
+        `rollupOptions` alias warnings if Vite 9 removes it.
 35. ~~**Node 22 on the dev PC**~~ — **done 2026-10-26.** The Capacitor 8 CLI refuses Node < 22.
     nvm-windows now uses Node 22.23.4 (CI's major), with npm 11.21.1, not npm 10.9 with its
     arborist crash. The old npm 8.19.1 is gone, which also ends the lockfile `libc` stripping.
