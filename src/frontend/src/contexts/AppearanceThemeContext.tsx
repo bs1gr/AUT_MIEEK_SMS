@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { syncSystemBarsWithDocument } from '@/utils/nativeSystemBars';
 
 export type AppearanceThemeVariant =
   | 'default'
@@ -41,10 +42,12 @@ const hydrateAttributes = (theme: AppearanceThemeVariant) => {
   if (theme === 'default') {
     root?.removeAttribute(DATA_ATTRIBUTE);
     body?.removeAttribute(DATA_ATTRIBUTE);
-    return;
+  } else {
+    root?.setAttribute(DATA_ATTRIBUTE, theme);
+    body?.setAttribute(DATA_ATTRIBUTE, theme);
   }
-  root?.setAttribute(DATA_ATTRIBUTE, theme);
-  body?.setAttribute(DATA_ATTRIBUTE, theme);
+  // Android: a dark appearance (mieek-dark, modern-dark) needs light bar icons (no-op on the web)
+  syncSystemBarsWithDocument();
 };
 
 const AppearanceThemeContext = createContext<AppearanceThemeContextValue | undefined>(undefined);

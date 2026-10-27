@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useLayoutEffect, ReactNode } from 'react';
+import { syncSystemBarsWithDocument } from '@/utils/nativeSystemBars';
 
 type Theme = 'light' | 'dark' | 'relaxing' | 'fancy' | 'system';
 
@@ -85,6 +86,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       void root.offsetHeight;
     }
 
+    // Android: bar icons follow the chrome we just applied (no-op on the web)
+    syncSystemBarsWithDocument();
+
     // Log actual state after applying
     setTimeout(() => {
       if (!root || !body) return;
@@ -112,6 +116,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         } else {
           void root.offsetHeight;
         }
+        syncSystemBarsWithDocument();
       };
       // Modern browsers including Edge support addEventListener
       if (typeof mediaQuery.addEventListener === 'function') {
