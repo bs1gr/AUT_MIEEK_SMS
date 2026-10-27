@@ -1,8 +1,46 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.59
-**Last Updated**: October 26, 2026
-**Status**: ✅ **v1.18.59 released 2026-10-21** (annotated tag on `a40b2f0b8`). It ships:
+**Current Version**: 1.18.60
+**Last Updated**: October 27, 2026
+**Status**: ✅ **v1.18.60 released 2026-10-27** (tag on `614a2f2cf`; PR #306 squash `0854f69c5`). It ships:
+- **Capacitor 7 → 8.5.3** with the Android project migration (compile/target SDK 36, min 24;
+  AGP 9.4.1, Gradle 9.6 kept). `viewport-fit=cover` dropped so Capacitor pads the WebView
+  (todo 36 checks the WebView ≥ 140 path on a real phone).
+- **Every open security alert fixed:** filelock 4.2.4 (Dependabot #291–293, code scanning
+  #1900–1902), root `pyproject.toml` OpenTelemetry 1.45.1 (#290), vitest 4.1.12 (#288, #294),
+  and an npm override for `xcode → uuid` 11 (GHSA-w5hq-g745-h8pq). pip-audit and npm audit clean.
+- **The Docker build was red on `main` from 2026-10-25:** the Dockerfiles ran a lockfile-less
+  `npm install`, which floated to `@vitest/eslint-plugin` 1.6.28 (TypeScript ≥ 6 peer). Both
+  now `npm ci` from the lockfile; Dependabot ignores that plugin ≥ 1.6.28 until TypeScript 6
+  (todo 34).
+- **Language switcher on regional locales** (`en-US` showed "ΕΛ → EN" over English text; first
+  tap did nothing) and the switcher's and navigation's accessibility labels, which never
+  translated.
+- protobuf 7.36.2; all backend and frontend minor/patch updates; the root `pyproject.toml`
+  pins synced to `requirements.txt`; setup-node 7, fetch-metadata 3.1.0; the frontend lint job
+  no longer installs Playwright browsers (it hung for its full 25-minute limit once).
+
+**Release run (RELEASE_READY, 32 min):** COMMIT_READY passed; batches 45/45 (1247 passed, 39
+skipped); VERIFY_VERSION 11/11; Lite 151.9 MB with "SQLAlchemy: bundled 8 Cython extension(s) as
+pure-Python modules"; installer 82.45 MB signed. **The APK tag workflow failed:**
+`release-android-apk.yml` (and `release-installer-with-sha.yml`) still pinned Node 20, which
+Capacitor 8's CLI refuses; `ci-cd-pipeline.yml` already used 22, so no PR run showed it. Fixed on
+`main` in `a0dbadb4c`; the APK workflow was re-dispatched on `main` with `tag=v1.18.60` (it checks
+the tag's source out), which is a re-run for the current release, not a historical tag.
+
+**Verified on the published assets:** installer `SMS_Installer_1.18.60.exe` 82,111,776 bytes,
+SHA-256 `2964f8e8…fa42` = GitHub's digest, Authenticode Valid (AUT MIEEK, DigiCert timestamp).
+APK `SMS_Android_1.18.60.apk` (re-dispatched run 40424608692, success) 4,086,638 bytes, SHA-256
+`65ea445b…564e` = GitHub's digest, `versionName 1.18.60` / `versionCode 118060`, min SDK 24,
+target/compile SDK 36, signed with the MIEEK SMS release certificate. Docker publish is
+manual-only and was not run (as before).
+
+**Smoke test before the merge** (all on throwaway databases; results on PR #306): isolated E2E 40
+passed; Docker image and frozen Lite 13/13 API, PDF and SPA checks each; release APK on an
+Android 16 emulator (login, Greek UI, back button, offline banner, server URL kept across an
+upgrade); instrumented test 1/1 under the new Android Studio Rabbit 2026.2.1.
+
+v1.18.59 released 2026-10-21 (annotated tag on `a40b2f0b8`). It ships:
 - **SMS Lite no longer bundles SQLAlchemy's compiled extensions** (`b4f6076aa`). Windows Smart
   App Control blocks those unsigned `.pyd` files, and **v1.18.58 Lite exited at startup on any PC
   with it enforced** (reproduced: exit 1 after 17 s, Code Integrity event 3077 on
