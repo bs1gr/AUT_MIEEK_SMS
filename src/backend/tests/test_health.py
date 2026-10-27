@@ -1,7 +1,25 @@
 from __future__ import annotations
 
+import pytest
 
-def test_health_endpoint(client):
+from backend.health_checks import HealthChecker, HealthCheckStatus
+
+
+@pytest.fixture
+def calm_host(monkeypatch):
+    """Pin the host-resource checks to HEALTHY.
+
+    /health reports "degraded" whenever the machine running the tests has >= 90 % RAM or disk
+    in use (a running Android emulator or Docker Desktop's vmmem is enough). That is correct
+    behaviour for the endpoint but has nothing to do with the code under test, so the resource
+    probes are stubbed here; test_health_checks.py covers their thresholds in isolation.
+    """
+    healthy = {"status": HealthCheckStatus.HEALTHY, "message": "stubbed for the test", "details": {}}
+    monkeypatch.setattr(HealthChecker, "_check_memory_usage", lambda self, *a, **k: dict(healthy))
+    monkeypatch.setattr(HealthChecker, "_check_disk_space", lambda self, *a, **k: dict(healthy))
+
+
+def test_health_endpoint(client, calm_host):
     """Test the /health endpoint returns expected fields."""
     r = client.get("/health")
     assert r.status_code == 200

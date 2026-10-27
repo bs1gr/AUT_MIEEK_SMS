@@ -47,6 +47,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Build System
 - **release**: RELEASE_READY.ps1 runs `INSTALLER_BUILDER -Action test` (signature + version resource) after the installer build and fails on a non-zero exit
+
 ## [1.18.60] - 2026-10-27
 
 ### Security

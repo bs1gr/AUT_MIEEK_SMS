@@ -1,20 +1,32 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.60
+**Current Version**: 1.18.61
 **Last Updated**: October 27, 2026
-**Status**: ✅ **v1.18.60 released 2026-10-27** (tag on `614a2f2cf`; PR #306 squash `0854f69c5`).
+**Status**: ✅ **v1.18.61 released 2026-10-27** (tag on `6749d7860`; fix commit `8c88f1613`).
 
-**Unreleased on `main` (2026-10-27, after the release):**
-- **Exports never downloaded in the Android app.** The owner's first check of the new APK on a
-  real phone: PDF export did nothing. All 12 export sites used `URL.createObjectURL` +
-  `<a download>`, which Android's WebView drops for `blob:` URLs — broken since the APK existed.
-  New `utils/downloadFile.ts`: web keeps the anchor; native writes to the app cache
-  (`@capacitor/filesystem` 8.1.5) and opens the share sheet (`@capacitor/share` 8.0.3). Verified
-  on the emulator: Export Center → Students → PDF fetched the report, wrote a valid 23.5 KB PDF
-  and opened the chooser (Print, Drive, Messages…). **Needs v1.18.61 to reach phones.**
-- `RELEASE_READY.ps1` now runs `INSTALLER_BUILDER -Action test` after the build (`444a35a7f`).
+v1.18.61 ships (same day as v1.18.60, prompted by the owner's first real-phone check):
+- **Exports never downloaded in the Android app.** PDF export did nothing on the phone. All 12
+  export sites used `URL.createObjectURL` + `<a download>`, which Android's WebView drops for
+  `blob:` URLs — broken since the APK existed. New `utils/downloadFile.ts`: web keeps the anchor;
+  native writes to the app cache (`@capacitor/filesystem` 8.1.5) and opens the share sheet
+  (`@capacitor/share` 8.0.3). Verified on the emulator: Export Center → Students → PDF fetched the
+  report, wrote a valid 23.5 KB PDF and opened the chooser (Print, Drive, Messages…).
+  **Still to confirm on the owner's real phone with the published APK.**
+- `RELEASE_READY.ps1` now runs `INSTALLER_BUILDER -Action test` after the build (`444a35a7f`);
+  it ran for the first time in this release and passed.
 
-v1.18.60 ships:
+**Verified on the published v1.18.61 assets:** installer `SMS_Installer_1.18.61.exe` 82,118,568
+bytes, SHA-256 `70b8d8a5…6fd3` = GitHub's digest, Authenticode Valid (CN=AUT MIEEK, DigiCert
+timestamp), file/product version v1.18.61. APK `SMS_Android_1.18.61.apk` 4,180,294 bytes, SHA-256
+`45aaf776…d3ab` = GitHub's digest, `versionName 1.18.61` / `versionCode 118061`, min SDK 24,
+target SDK 36, signer CN=MIEEK SMS. Tag workflows (release-on-tag, installer, APK, wiki sync) and
+the main CI/E2E run on `6749d7860` all succeeded. Release-time notes: the CI runner's own
+Authenticode check still reports UnknownError (self-signed root not trusted there) and the
+`CODESIGN_CERT_THUMBPRINT` gate is skipped — the gate is effectively soft (pre-existing, see
+todo 30); `test_health.py::test_health_endpoint` reports "degraded" whenever host memory ≥ 90 %
+(a running emulator tripped it once) — environment-sensitive, consider mocking the resource check.
+
+v1.18.60 shipped (2026-10-27, tag on `614a2f2cf`; PR #306 squash `0854f69c5`):
 - **Capacitor 7 → 8.5.3** with the Android project migration (compile/target SDK 36, min 24;
   AGP 9.4.1, Gradle 9.6 kept). `viewport-fit=cover` dropped so Capacitor pads the WebView
   (todo 36 checks the WebView ≥ 140 path on a real phone).
