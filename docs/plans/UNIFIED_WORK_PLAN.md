@@ -1051,16 +1051,20 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     (Authenticode Valid + version resource) right after the installer build and fails the
     release if it fails — it had never run that phase. The v1.18.60 installer passed it when run
     by hand. The Lite runtime check above is still open.
-32. **The Lite spec's exclude list has never worked** (found 2026-10-21).
-    `lite_simple_entrypoint.spec` passes `excludedimports=[...]`, but PyInstaller's argument is
-    `excludes=`, and `Analysis(**_kwargs)` drops unknown names silently. So pytest, numpy,
-    pandas, matplotlib, torch and the rest of the list are bundled when something pulls them in
-    (pandas, numpy and PIL alone are about 30 MB of the 123 MB `_internal`, and more unsigned
-    binaries for todo 30). **Check what the backend imports at runtime before switching** (for
-    example, whether imports or exports use pandas). Excluding a module Lite uses would break
-    that feature only in Lite. Same file: the hidden imports `bottle` and `proxy_tools`
-    (PyWebView leftovers) are not installed, so every build logs two errors. And
-    `collect_submodules('passlib')` also bundles `passlib.tests`.
+32. ~~**The Lite spec's exclude list has never worked**~~ (found 2026-10-21) — **fixed 2026-10-27.**
+    `lite_simple_entrypoint.spec` passed `excludedimports=[...]`, but PyInstaller's argument is
+    `excludes=`, and `Analysis(**_kwargs)` dropped unknown names silently. The runtime audit
+    before switching it on found that three entries would have broken Lite: `redis`
+    (`backend.cache` and `cache_service` import it at module load; `REDIS_ENABLED=false` only
+    stops connecting), `pandas` + `numpy` (CSV/Excel import in `import_export_service`), and
+    `pythoncom`/`pywintypes`/`win32com` (dnspython's `win32util`, the docker SDK). Those stay.
+    The real win was `mypy`: reached only through `pydantic.mypy` (the type-checker plugin), it
+    alone contributed 75 unsigned `.pyd` files. Result: unsigned PE files in `_internal` 180 → 105,
+    bundle 152 → 147 MB, frozen-Lite smoke 14/14. Same change: the `bottle`/`proxy_tools` hidden
+    imports and `collect_data_files('bottle')` are gone (two errors per build), and
+    `collect_submodules('passlib')` no longer bundles `passlib.tests`. Still bundled and
+    worth a look later: PIL 12.8 MB (reportlab/openpyxl optional image support), grpc 10.7 MB
+    (OTel gRPC exporter), and both psycopg 2 and 3 drivers (6.3 MB each).
 33. **`SMS_Manager.exe` targets .NET 5** (found 2026-10-21, build log): `net5.0` is out of
     support (NETSDK1138), and `Program.cs` lines 670 and 703 have four nullable-reference
     warnings. Docker installs only.
