@@ -25,7 +25,7 @@ authors = [
   { name = "ΜΙΕΕΚ Cyprus", email = "faltsasam@gmail.com" }
 ]
 dependencies = [
-    "fastapi==0.161.1",
+    "fastapi==0.162.0",
     "starlette==1.9.0",
     "uvicorn[standard]==0.54.0",
     "sqlalchemy==2.1.6",
