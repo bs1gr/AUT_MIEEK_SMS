@@ -186,10 +186,15 @@ $DOCKERFILE_FULLSTACK    = Join-Path $DOCKER_DIR "Dockerfile.fullstack"
 # The Dockerfile was copied from the dev repo and references src/backend and src/frontend
 # COPY paths that don't exist in the installed layout (which has backend/ and frontend/ directly).
 # Patch it in-place on first run so every subsequent docker build finds the correct paths.
+# Every source path on a COPY line is rewritten, not only the first: v1.18.60 added
+# "COPY src/frontend/package.json src/frontend/package-lock.json ./" and the old rewrite left the
+# second path alone, so the Docker edition's first build failed (2026-10-28). The pattern also
+# repairs a Dockerfile that the old rewrite already half-patched.
+$_installedCopyPathPattern = '(?m)(?<=^COPY\b[^\r\n]*\s)src/(?=(frontend|backend)\b)'
 if ($_isInstalledLayout -and (Test-Path $DOCKERFILE_FULLSTACK)) {
     $df = Get-Content $DOCKERFILE_FULLSTACK -Raw
-    if ($df -match 'COPY src/frontend|COPY src/backend') {
-        ($df -replace 'COPY src/frontend/', 'COPY frontend/' -replace 'COPY src/backend', 'COPY backend') |
+    if ($df -match $_installedCopyPathPattern) {
+        ($df -replace $_installedCopyPathPattern, '') |
             Set-Content $DOCKERFILE_FULLSTACK -Encoding UTF8
     }
 }
@@ -268,7 +273,14 @@ function Invoke-DockerBuildWithProgress {
         $result.Output | ForEach-Object { Write-InstallerLog $_ }
     }
 
-    return $(if ($result) { [int]$result.ExitCode } else { 1 })
+    $exitCode = $(if ($result) { [int]$result.ExitCode } else { 1 })
+    # The spinner hides docker's output; without it a failed build only said "Build failed".
+    if ($exitCode -ne 0 -and $result -and $result.Output) {
+        Write-Host "--- docker build output (last 25 lines) ---" -ForegroundColor Yellow
+        $result.Output | Select-Object -Last 25 | ForEach-Object { Write-Host "  $_" }
+    }
+
+    return $exitCode
 }
 
 function Test-Administrator {
