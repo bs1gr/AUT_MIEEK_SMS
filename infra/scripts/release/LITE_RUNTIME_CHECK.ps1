@@ -96,7 +96,13 @@ $start = Get-Date
 try {
     $proc = Start-Process -FilePath $LiteExe -WorkingDirectory (Split-Path $LiteExe) -RedirectStandardOutput $outLog -RedirectStandardError $errLog -PassThru -WindowStyle Hidden
 } finally {
-    foreach ($k in $saved.Keys) { [Environment]::SetEnvironmentVariable($k, $saved[$k], 'Process') }
+    # A variable that did not exist before must be removed, not set to "": PowerShell turns
+    # $null into an empty string here, and an empty DEFAULT_ADMIN_EMAIL later broke the
+    # backend test batch that RELEASE_READY runs in this same process.
+    foreach ($k in $saved.Keys) {
+        if ($null -eq $saved[$k]) { Remove-Item -Path "Env:$k" -ErrorAction SilentlyContinue }
+        else { [Environment]::SetEnvironmentVariable($k, $saved[$k], 'Process') }
+    }
 }
 $exitCode = 1
 function Show-LiteLogs {
