@@ -1354,13 +1354,15 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       inset padding and drew the header under the status bar. **Still open:**
       real edge-to-edge (`viewport-fit=cover` + safe-area padding on the header and fixed
       overlays) — only a WebView ≥ 140 device can show it and the emulator image has 133.
-37. **`test_health.py::test_health_endpoint` fails when the host is short of memory** (raised
-    2026-10-27, made a todo 2026-10-28). The health endpoint reports "degraded" once host memory
-    use reaches 90 %, and the test asserts "healthy", so a running emulator, Docker or a heavy IDE
-    session fails the gate. It failed three COMMIT_READY runs on 2026-10-27 and is a release risk
-    (RELEASE_READY runs the gate twice). Fix: make the test independent of the real machine by
-    mocking the memory/resource check (and keep a separate test that the 90 % threshold reports
-    "degraded"), rather than loosening the endpoint.
+37. ~~**`test_health.py::test_health_endpoint` fails when the host is short of memory**~~ (raised
+    2026-10-27, made a todo 2026-10-28) — **done 2026-10-28.** The endpoint half was already fixed
+    on 2026-10-27 in `e8caee6c0` (a `calm_host` fixture stubs the memory and disk probes), right
+    after the three failed gate runs; the plan audit missed that. What was still missing: the
+    fixture claimed the 90 % thresholds were tested elsewhere, but every test replaced both
+    probes, so the rule itself had no test. New `test_health_resource_thresholds.py` (11 tests)
+    fakes `psutil.virtual_memory` and `shutil.disk_usage`: 89.9 % healthy, 90 % and above
+    degraded, a configurable threshold, no psutil, and a disk read error. Flipping `>=` to `>`
+    in `health_checks.py` fails exactly the two 90 % cases.
 38. **First CI build of SMS_Manager on .NET 10** (raised 2026-10-28). #332 moved it to `net10.0`
     and pinned the 10.0.x SDK in the release, installer and sync workflows, but no workflow that
     builds it has run since: `installer.yml` is dispatch-only and publishes, so it was not used as
