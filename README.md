@@ -4,7 +4,7 @@
 [![CodeQL](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/codeql.yml)
 [![Release](https://img.shields.io/github/v/release/bs1gr/AUT_MIEEK_SMS?sort=semver)](https://github.com/bs1gr/AUT_MIEEK_SMS/releases)
 
-**Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
+**Built for:** [Public School of Higher Vocational Education and Training - MIEEK](https://www.mieek.ac.cy/index.php/el/) (Δημόσια Σχολή Ανώτερης Επαγγελματικής Εκπαίδευσης και Κατάρτισης - ΜΙΕΕΚ), Automotive Engineering
 **Location:** Limassol, Cyprus
 **Version:** see the [latest release](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
 
@@ -14,7 +14,7 @@ Bilingual (EN/EL) student management system with dual deployment modes: Docker p
 
 ## What it does
 
-A Windows application for a technical college's teaching staff and administrators: student and course records, enrolments, attendance with the institute's absence limits, course evaluation and final-grade calculation, analytics dashboards, PDF/Excel/CSV reports, and bulk import/export. The interface is bilingual (English and Greek). It ships as a Windows installer with two editions (a standalone Lite edition and a Docker edition) plus an Android app that connects to a running server.
+A Windows application for the teaching staff and administrators of a public vocational school: student and course records, enrolments, attendance with the institute's absence limits, course evaluation and final-grade calculation, analytics dashboards, PDF/Excel/CSV reports, and bulk import/export. The interface is bilingual (English and Greek). It ships as a Windows installer with two editions (a standalone Lite edition and a Docker edition) plus an Android app that connects to a running server.
 
 See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
