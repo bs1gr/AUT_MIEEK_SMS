@@ -10,12 +10,15 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Local plugin: the web app paints the system-bar strips in its own theme colours.
+        // Must be registered before super.onCreate, which creates the bridge.
         registerPlugin(WindowChromePlugin.class);
-        // Capacitor 8's System Bars docs: call this when insetsHandling is not 'disable'
-        // (Capacitor 9 will do it by default). It makes the bars transparent on every Android
-        // version, so the padding Capacitor adds below them shows the window background
-        // consistently instead of each OEM's bar colour; Android 15+ enforces this anyway.
-        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
+        // AFTER super.onCreate, never before: BridgeActivity.onCreate swaps the launch (splash)
+        // theme for AppTheme.NoActionBar. EdgeToEdge.enable touches the window decor, so calling
+        // it first built the window under the splash theme, whose android:background
+        // (@drawable/splash) then stuck to the views and was drawn over the page header
+        // (v1.18.62: faint "SMS — ΜΙΕΕΚ" covering the header and the language switch).
+        // Capacitor's System Bars docs recommend it "inside BridgeActivity.onCreate".
+        EdgeToEdge.enable(this);
     }
 }
