@@ -1054,6 +1054,11 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       published installers, so the gate is live from the next release. When the trusted
       certificate arrives: change `$CodeSignThumbprint`, the secret, and drop `UnknownError`
       from the gate.
+    - **SignPath Foundation application SUBMITTED by the owner 2026-10-28** ("Thank you, we'll
+      be in touch soon"). Answers given: maintainer type "Individual maintainer(s)", no company,
+      build system GitHub Actions, privacy URL `…#privacy-policy`, honest reputation note
+      (single-school use, small public footprint). Waiting on SignPath; on approval follow the
+      steps below. If declined: Azure Artifact Signing (registered to the school).
     - **SignPath Foundation application prepared 2026-10-28.** Their conditions (signpath.org/terms):
       OSI licence for all components (MIT; bundled DejaVu fonts are free-licensed), no
       proprietary components, actively maintained, already released in the form to be signed,
