@@ -1065,7 +1065,7 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       runner. Follow-up: `LocalMachine\Root` (the hosted runner is admin, no prompt) and a
       5-minute `timeout-minutes` on that step. Re-dispatched again for the same tag (allowed:
       it is the current release, not a historical one).
-31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
+31. ~~**Run the frozen Lite in the release pipeline, not just build it**~~ (raised 2026-10-21) — **done 2026-10-28, first ran in CI on the v1.18.62 tag.**
     Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
     `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
     unnoticed: the spec never listed them, from its first commit (2026-06-12) to v1.18.58. The local build also comes from the developer's venv, not from the clean
@@ -1104,10 +1104,18 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     `collect_submodules('passlib')` no longer bundles `passlib.tests`. Still bundled and
     worth a look later: PIL 12.8 MB (reportlab/openpyxl optional image support), grpc 10.7 MB
     (OTel gRPC exporter), and both psycopg 2 and 3 drivers (6.3 MB each).
-33. **`SMS_Manager.exe` targets .NET 5** (found 2026-10-21, build log): `net5.0` is out of
-    support (NETSDK1138), and `Program.cs` lines 670 and 703 have four nullable-reference
-    warnings. Docker installs only.
-34. **Review the remaining major upgrades and plan them** (raised 2026-10-26; owner: "sooner or
+33. ~~**`SMS_Manager.exe` targets .NET 5**~~ (found 2026-10-21, build log) — **fixed 2026-10-28.**
+    `net5.0` was out of support (NETSDK1138), and `Program.cs` lines 670 and 703 had four
+    nullable-reference warnings. Docker installs only. Now `net10.0` (LTS to Nov 2028; net8.0
+    would have lapsed in Nov 2026); the obsolete `System.Security.Principal.Windows` /
+    `Microsoft.Win32.Registry` 5.0.0 packages are gone (both in the shared framework); the
+    `MainModule.FileName` lookups use `Environment.ProcessPath` with an `AppContext.BaseDirectory`
+    fallback. Build 7 warnings → 0. CI: `installer.yml` and `sync-installer-artifact.yml` SDK
+    8.0.x → 10.0.x, and `release-installer-with-sha.yml` now sets up 10.0.x explicitly instead of
+    relying on the runner image. Single-file exe 59 → 80 MB (the .NET 10 runtime; Inno's LZMA
+    compresses it). Not run interactively: it relaunches itself elevated (UAC prompt) and drives
+    Docker, so the Docker-edition launch is the owner's check on the next install.
+34. ~~**Review the remaining major upgrades and plan them**~~ — **done 2026-10-27, all five steps merged, shipped in v1.18.62** (raised 2026-10-26; owner: "sooner or
     later we have to review all the larger upgrades"). PR #306 took only the recommended set
     (Capacitor 8, protobuf 7, Actions majors). Still behind, all frontend. The backend majors
     (Pillow 13, python-dateutil 3, …) are transitive and arrive when their parents allow them:
