@@ -1354,6 +1354,20 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       inset padding and drew the header under the status bar. **Still open:**
       real edge-to-edge (`viewport-fit=cover` + safe-area padding on the header and fixed
       overlays) — only a WebView ≥ 140 device can show it and the emulator image has 133.
+    - **Real-phone check 2026-10-28 (owner's Samsung Galaxy A55, Android 16, WebView 155, device
+      night mode on, over Wi-Fi debugging):** v1.18.61 showed the original bug (dark strips above
+      and below a white app). The published v1.18.62 APK, installed over it with data kept, fixed
+      the strips (white, dark icons, `mLastAppearance=LIGHT_STATUS_BARS LIGHT_NAVIGATION_BARS`) but
+      **introduced a regression: an opaque bar with the app label "SMS — ΜΙΕΕΚ" covered the top of
+      the page, hiding the app header and language switch.** Cause: `MainActivity` called
+      `EdgeToEdge.enable(this)` *before* `super.onCreate`, which builds the window while the launch
+      (splash) theme is still active; Capacitor swaps to `AppTheme.NoActionBar` inside
+      `super.onCreate`, too late for the already-built decor. The emulator screenshots of
+      2026-10-27 showed the same bar and were misread as a loading state. **Fixed** by calling it
+      after `super.onCreate` (as Capacitor's docs say); verified on the emulator in night mode:
+      header and language switch back, strips still white with dark icons. Needs a release to
+      reach the phone. Keyboard inset not conclusively tested (emulator keyboard floats). The
+      WebView ≥ 140 edge-to-edge path remains unused because `viewport-fit=cover` is absent.
 37. ~~**`test_health.py::test_health_endpoint` fails when the host is short of memory**~~ (raised
     2026-10-27, made a todo 2026-10-28) — **done 2026-10-28.** The endpoint half was already fixed
     on 2026-10-27 in `e8caee6c0` (a `calm_host` fixture stubs the memory and disk probes), right
