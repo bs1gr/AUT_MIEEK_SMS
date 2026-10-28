@@ -1,8 +1,40 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.61
-**Last Updated**: October 27, 2026
-**Status**: ✅ **v1.18.61 released 2026-10-27** (tag on `6749d7860`; fix commit `8c88f1613`).
+**Current Version**: 1.18.62
+**Last Updated**: October 28, 2026
+**Status**: ✅ **v1.18.62 released 2026-10-28** (tag on `345434cf2`).
+
+v1.18.62 ships the deferred majors and a hardened release pipeline:
+- **Toolchain majors (todo 34):** TypeScript 6, ESLint 10, lucide-react 1, Vitest 5 + jsdom 30,
+  Vite 8 (Rolldown, `codeSplitting`) + plugin-react 6 + vite-plugin-pwa 2.
+- **SMS Lite:** the PyInstaller exclude list finally applies (todo 32; unsigned binaries 180 →
+  105), every PE file under `SMS_Lite`, `SMS_Manager.exe`, the uninstaller and the installer are
+  signed (todo 30 engineering), and the frozen Lite is started and checked in the installer smoke
+  test (todo 31: login, Greek data, PDFs with DejaVu, Excel, SPA).
+- **Android:** the system-bar strips follow the app's theme (todo 36, `WindowChromePlugin`).
+- **Release gate:** fails on skipped signing, a missing thumbprint secret, a wrong signer or a bad
+  status; it had never failed a release before.
+
+Getting it out took three pipeline fixes, all found by the new gates: the Lite check leaked empty
+env vars into RELEASE_READY's later test run (#329); the CI runner did not trust the self-signed
+chain, so the builder's post-sign check blocked the installer (#330); and trusting it in
+`CurrentUser\Root` hung the headless runner on a confirmation prompt for 50 minutes (#331, now
+`LocalMachine\Root` + a 5-minute step timeout). The installer workflow was re-dispatched for the
+same tag (run `40626337286`, all green, gate "Signature status: Valid").
+
+**Verified on the published v1.18.62 assets:** `SMS_Installer_1.18.62.exe` 81,935,192 bytes,
+SHA-256 `c83bdbcc…407dfc2` = GitHub's digest, Authenticode Valid, signer thumbprint
+`2693C1B1…075D`, DigiCert timestamp. `SMS_Android_1.18.62.apk` 4,177,060 bytes, SHA-256
+`c6b18198…efeb62da5` = GitHub's digest.
+
+Since the tag (on `main`, unreleased): SMS_Manager on .NET 10 (todo 33, #332), README code
+signing / privacy sections and official institution name (#333, #334), SignPath Foundation
+applied and declined, then **no paid signing by owner decision** (todo 30 closed, #335, #337),
+todo 1 closed as mitigated (#336).
+
+---
+
+**Previous status (v1.18.61, released 2026-10-27,** tag on `6749d7860`; fix commit `8c88f1613`**).**
 
 v1.18.61 ships (same day as v1.18.60, prompted by the owner's first real-phone check):
 - **Exports never downloaded in the Android app.** PDF export did nothing on the phone. All 12
@@ -21,11 +53,11 @@ bytes, SHA-256 `70b8d8a5…6fd3` = GitHub's digest, Authenticode Valid (CN=AUT M
 timestamp), file/product version v1.18.61. APK `SMS_Android_1.18.61.apk` 4,180,294 bytes, SHA-256
 `45aaf776…d3ab` = GitHub's digest, `versionName 1.18.61` / `versionCode 118061`, min SDK 24,
 target SDK 36, signer CN=MIEEK SMS. Tag workflows (release-on-tag, installer, APK, wiki sync) and
-the main CI/E2E run on `6749d7860` all succeeded. Release-time notes: the CI runner's own
-Authenticode check still reports UnknownError (self-signed root not trusted there) and the
-`CODESIGN_CERT_THUMBPRINT` gate is skipped — the gate is effectively soft (pre-existing, see
-todo 30); `test_health.py::test_health_endpoint` reports "degraded" whenever host memory ≥ 90 %
-(a running emulator tripped it once) — environment-sensitive, consider mocking the resource check.
+the main CI/E2E run on `6749d7860` all succeeded. Release-time notes: at the time the CI
+runner's Authenticode check reported UnknownError and the `CODESIGN_CERT_THUMBPRINT` gate was
+skipped, so the gate was effectively soft — **fixed for v1.18.62** (#325, #330, #331; the gate
+now fails hard and reported Valid on the tag run). `test_health.py::test_health_endpoint`
+reports "degraded" whenever host memory ≥ 90 % — now tracked as todo 37.
 
 v1.18.60 shipped (2026-10-27, tag on `614a2f2cf`; PR #306 squash `0854f69c5`):
 - **Capacitor 7 → 8.5.3** with the Android project migration (compile/target SDK 36, min 24;
@@ -1322,6 +1354,19 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       inset padding and drew the header under the status bar. **Still open:**
       real edge-to-edge (`viewport-fit=cover` + safe-area padding on the header and fixed
       overlays) — only a WebView ≥ 140 device can show it and the emulator image has 133.
+37. **`test_health.py::test_health_endpoint` fails when the host is short of memory** (raised
+    2026-10-27, made a todo 2026-10-28). The health endpoint reports "degraded" once host memory
+    use reaches 90 %, and the test asserts "healthy", so a running emulator, Docker or a heavy IDE
+    session fails the gate. It failed three COMMIT_READY runs on 2026-10-27 and is a release risk
+    (RELEASE_READY runs the gate twice). Fix: make the test independent of the real machine by
+    mocking the memory/resource check (and keep a separate test that the 90 % threshold reports
+    "degraded"), rather than loosening the endpoint.
+38. **First CI build of SMS_Manager on .NET 10** (raised 2026-10-28). #332 moved it to `net10.0`
+    and pinned the 10.0.x SDK in the release, installer and sync workflows, but no workflow that
+    builds it has run since: `installer.yml` is dispatch-only and publishes, so it was not used as
+    a test. The next release's installer run is the first real check — confirm "Build installer"
+    publishes `SMS_Manager.exe` and that the Docker edition launches it after install (it
+    relaunches itself elevated, so it cannot be smoke-run headless).
 29. ~~**Update saw SMS Lite and Docker as version "unknown"**~~ — **fixed 2026-10-13, found in
     the v1.18.57 smoke test.** On the frozen Lite build the update check returned
     `current_version: "unknown"`, `update_available: false`, so todo 28's Update would never
