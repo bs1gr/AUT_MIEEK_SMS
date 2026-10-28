@@ -310,13 +310,33 @@ the shared database's administrators for approval, as before.
 - Restart SMS_Lite.exe
 - Check logs again
 
+### Problem: Windows blocks the installer or SMS_Lite.exe
+
+SMS is signed with the project's own certificate, not one bought from a public certificate
+authority (a deliberate, permanent choice: the project does not pay for code signing). Windows
+therefore treats the publisher as unknown, and you may see one of these:
+
+- **"Windows protected your PC"** (SmartScreen) when you run the installer: click **More info**,
+  then **Run anyway**.
+- **"Smart App Control blocked an app that may be unsafe"** when SMS Lite starts, or SMS Lite
+  closes immediately with nothing on screen: Smart App Control is enforced on that PC and only
+  allows apps from publicly trusted publishers. There is no per-app exception. SMS Lite can run
+  there only after Smart App Control is turned off:
+  **Settings → Privacy & security → Windows Security → App & browser control → Smart App Control
+  settings → Off**. On many Windows 11 versions this cannot be switched back on without
+  resetting Windows, so on a school-managed PC ask the IT administrator first.
+
+The **Docker edition** is not affected in the same way, because the application itself runs inside
+Docker; only the `SMS_Manager.exe` launcher runs on Windows.
+
 ### Problem: SMS_Lite.exe won't start
 
 **Try:**
-1. Check Windows Event Viewer for error details
-2. Verify no other app is using port 8000
-3. Reinstall from installer
-4. Contact support with `debug.log` contents
+1. If Windows showed a Smart App Control message, see the section above
+2. Check Windows Event Viewer for error details
+3. Verify no other app is using port 8000
+4. Reinstall from installer
+5. Contact support with `debug.log` contents
 
 ### Problem: Data lost after uninstall
 

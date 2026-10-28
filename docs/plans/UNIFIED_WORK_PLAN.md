@@ -1005,9 +1005,19 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
-30. **Sign SMS Lite with a publicly trusted certificate (Smart App Control)** (raised 2026-10-21;
-    owner: ship the SQLAlchemy fix in v1.18.59 now, signing next). **Highest priority: until
-    then SMS Lite does not start on any PC where Smart App Control is enforced.**
+30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
+    **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
+    signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and
+    installer since #325; release gate enforces the thumbprint). **Accepted consequence:** SMS
+    Lite cannot start on a PC where Smart App Control is enforced (no per-app exception exists),
+    and SmartScreen shows the installer as from an unknown publisher. Users are told how to proceed
+    in `docs/deployment/LITE_EDITION_GUIDE.md` ("Windows blocks the installer or SMS_Lite.exe"):
+    SmartScreen "More info → Run anyway"; Smart App Control must be turned off (ask IT on school
+    PCs). Do not reopen unless the owner changes the decision; a free route would only come from
+    reapplying to SignPath Foundation once the project has more public visibility.
+    History below.
+    (original: owner: ship the SQLAlchemy fix in v1.18.59 now, signing next. Until then SMS Lite
+    does not start on any PC where Smart App Control is enforced.)
     - **What blocks it:** the `VerifiedAndReputableDesktop` policy allows a file only if
       Microsoft's cloud trusts it or it carries a trusted signature. Only the installer is
       signed. `SMS_Lite.exe` and 188 of the 260 binaries in v1.18.58's `_internal` were unsigned.
@@ -1062,6 +1072,17 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       published installers, so the gate is live from the next release. When the trusted
       certificate arrives: change `$CodeSignThumbprint`, the secret, and drop `UnknownError`
       from the gate.
+    - **SignPath Foundation DECLINED 2026-10-28** (reply from SignPath): not enough public
+      visibility. They weigh community adoption (stars, forks, contributors), external
+      references, "institutional backing" and sustained activity; reapplying is welcome once the
+      project is more visible. Their paid subscription is the alternative they offer. Remaining
+      routes, cheapest first: (a) an OV code-signing certificate for an individual from a public
+      CA, e.g. Certum Standard Code Signing in the Cloud (~€49/yr list, cloud HSM "SimplySign", no
+      USB token; Certum's "Open Source" tier was historically token-based, check before buying);
+      publisher becomes the owner's name; (b) Azure Artifact Signing (~$10/month) — individuals
+      only in the US/Canada, so it must be registered by the school as an organisation; (c)
+      reapply to SignPath with an institutional-backing letter from the school. **Owner chose
+      none of them (2026-10-28): no paid signing.** See the closing note at the top of todo 30.
     - **SignPath Foundation application SUBMITTED by the owner 2026-10-28** ("Thank you, we'll
       be in touch soon"). Answers given: maintainer type "Individual maintainer(s)", no company,
       build system GitHub Actions, privacy URL `…#privacy-policy`, honest reputation note
