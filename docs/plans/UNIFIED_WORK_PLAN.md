@@ -1,8 +1,26 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.62
+**Current Version**: 1.18.63
 **Last Updated**: October 28, 2026
-**Status**: ✅ **v1.18.62 released 2026-10-28** (tag on `345434cf2`).
+**Status**: ✅ **v1.18.63 released 2026-10-28** (hotfix; tag on `9fb5f6e73`, run by the owner).
+
+v1.18.63 fixes a v1.18.62 regression found on the owner's phone: an opaque bar with the app label
+covered the top of every page in the Android app, hiding the header and language switch
+(`EdgeToEdge.enable` ran before `super.onCreate`; #340). It also ships SMS_Manager on .NET 10
+(#332, first CI build: "Setup .NET SDK" 10.0.x and "Build installer" succeeded, "SMS_Manager.exe
+ready"), the health-threshold tests (#339) and the README/plan changes since v1.18.62.
+**Verified on the published assets:** `SMS_Installer_1.18.63.exe` 87,288,824 bytes, SHA-256
+`c8a3abaf…b5f59f44` = GitHub's digest, Authenticode Valid, thumbprint `2693C1B1…075D`, DigiCert
+timestamp, product version v1.18.63; `SMS_Android_1.18.63.apk` 4,177,100 bytes, SHA-256
+`790aa82c…84110ed3` = GitHub's digest. Installer run `40751027910`: payload signed in 16 s,
+uninstaller signed, frozen-Lite runtime check passed, gate "Signature status: Valid". APK run
+`40751026832` succeeded. RELEASE_READY was run by the owner from their own shell (the assistant's
+attempt was blocked by its permission policy as a public-surface action); that shell needed the
+venv, Git, GitHub CLI and Node prepended to PATH.
+
+---
+
+**v1.18.62 (released 2026-10-28,** tag on `345434cf2`**).**
 
 v1.18.62 ships the deferred majors and a hardened release pipeline:
 - **Toolchain majors (todo 34):** TypeScript 6, ESLint 10, lucide-react 1, Vitest 5 + jsdom 30,
@@ -1377,7 +1395,9 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     fakes `psutil.virtual_memory` and `shutil.disk_usage`: 89.9 % healthy, 90 % and above
     degraded, a configurable threshold, no psutil, and a disk read error. Flipping `>=` to `>`
     in `health_checks.py` fails exactly the two 90 % cases.
-38. **First CI build of SMS_Manager on .NET 10** (raised 2026-10-28). #332 moved it to `net10.0`
+38. **First CI build of SMS_Manager on .NET 10** (raised 2026-10-28) — **CI half done 2026-10-28:**
+    the v1.18.63 installer run built and signed it (setup-dotnet 10.0.x, "SMS_Manager.exe ready").
+    Still open: launching the Docker edition from an installed v1.18.63 (owner check). #332 moved it to `net10.0`
     and pinned the 10.0.x SDK in the release, installer and sync workflows, but no workflow that
     builds it has run since: `installer.yml` is dispatch-only and publishes, so it was not used as
     a test. The next release's installer run is the first real check — confirm "Build installer"
