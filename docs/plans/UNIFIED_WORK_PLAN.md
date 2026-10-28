@@ -1058,10 +1058,13 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       self-signed chain is untrusted there and `Get-AuthenticodeSignature` reports
       `UnknownError`; INSTALLER_BUILDER's post-sign check demanded `Valid` and blocked the
       build (the APK workflow succeeded, so the release was published with the APK only).
-      Fix: the import step now also adds the certificate's public part to `CurrentUser\Root`
-      on the runner, and the builder accepts `UnknownError` only together with the expected
-      thumbprint. The installer workflow was re-dispatched for the same tag (allowed: it is the
-      current release, not a historical one).
+      Fix (#330): the import step also adds the certificate's public part to the runner's
+      Root store, and the builder accepts `UnknownError` only together with the expected
+      thumbprint. The first re-dispatch then **hung 50 minutes** in the import step: adding to
+      `CurrentUser\Root` pops a modal security confirmation nobody can click on a headless
+      runner. Follow-up: `LocalMachine\Root` (the hosted runner is admin, no prompt) and a
+      5-minute `timeout-minutes` on that step. Re-dispatched again for the same tag (allowed:
+      it is the current release, not a historical one).
 31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
     Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
     `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
