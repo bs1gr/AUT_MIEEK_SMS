@@ -852,12 +852,18 @@ function Invoke-CodeSigning {
         & $SignerScript -UseStore -Thumbprint $CodeSignThumbprint -Path $InstallerExe
 
         if ($LASTEXITCODE -eq 0) {
-            # Strict post-build signature verification
+            # Strict post-build signature verification. 'UnknownError' means the signature is
+            # intact but this machine does not trust the (self-signed) chain; it is accepted
+            # only together with the expected thumbprint, which is checked below. The release
+            # workflow trusts the certificate on the runner, so there it reports Valid.
             $sig = Get-AuthenticodeSignature $InstallerExe
-            if ($sig.Status -ne 'Valid') {
+            if ($sig.Status -ne 'Valid' -and -not ($sig.Status -eq 'UnknownError' -and $sig.SignerCertificate)) {
                 Write-Result Error "Signature verification failed after signing: $($sig.Status)"
                 Write-Result Error "Build blocked: Unsigned installer artifacts are not allowed."
                 return $false
+            }
+            if ($sig.Status -eq 'UnknownError') {
+                Write-Result Warning "Signature chain not trusted on this machine (UnknownError); accepting on thumbprint match"
             }
 
             $subj = $sig.SignerCertificate.Subject

@@ -303,10 +303,22 @@ jobs:
           try {
             [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:CODESIGN_PFX_BASE64))
             $securePassword = ConvertTo-SecureString $env:CODESIGN_PFX_PASSWORD -AsPlainText -Force
-            Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation "Cert:\CurrentUser\My" -Password $securePassword -ErrorAction Stop | Out-Null
+            $imported = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation "Cert:\CurrentUser\My" -Password $securePassword -ErrorAction Stop
+            # The AUT MIEEK certificate is self-signed, so the runner must also trust it as a
+            # root or Get-AuthenticodeSignature reports UnknownError for everything we sign and
+            # INSTALLER_BUILDER's post-sign check (Status must be Valid) fails the build — which
+            # is how the v1.18.62 installer run died. The public part only goes into Root.
+            $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root', 'CurrentUser')
+            $rootStore.Open('ReadWrite')
+            foreach ($c in @($imported)) {
+              # ::new, not New-Object: New-Object would splat the byte array into hundreds of arguments.
+              $public = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new([byte[]]$c.Export('Cert'))
+              $rootStore.Add($public)
+            }
+            $rootStore.Close()
             "pfx_path=$pfxPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
             "skip_signing=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-            Write-Host "Code signing certificate imported to CurrentUser store."
+            Write-Host "Code signing certificate imported to CurrentUser\My and trusted in CurrentUser\Root ($(@($imported).Count) cert(s))."
           } catch {
             Write-Warning "Failed to import code signing certificate: $_. Installer will be unsigned."
             "pfx_path=" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
