@@ -520,9 +520,10 @@ jobs:
             exit 1
           }
 
-          # 'UnknownError' is what this runner reports for the self-signed AUT MIEEK certificate
-          # (signature intact, chain not trusted here). Remove it from the allowed set once the
-          # publicly trusted certificate from todo 30 is in use, so that only 'Valid' passes.
+          # 'UnknownError' means the signature is intact but this machine does not trust the
+          # chain. The project signs with its own self-signed AUT MIEEK certificate by owner
+          # decision (no paid signing, plan todo 30), and the import step above trusts it on the
+          # runner, so this normally reports Valid; the thumbprint check above is what matters.
           if ($sig.Status -ne 'Valid' -and $sig.Status -ne 'UnknownError') {
             Write-Error "Unexpected signature verification status: $($sig.Status)"
             exit 1

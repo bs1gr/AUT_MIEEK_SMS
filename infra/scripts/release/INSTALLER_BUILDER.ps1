@@ -160,8 +160,8 @@ $SmsManagerProject = Join-Path $InstallerDir "SMS_Manager\SMS_Manager.csproj"
 $SmsManagerExe = Join-Path $InstallerDir "dist\SMS_Manager.exe"
 
 # Certificate behind every signature this script produces (store-based; the release workflow
-# imports the PFX into CurrentUser\My first). One place to change when todo 30's publicly
-# trusted certificate arrives. Today: the self-signed AUT MIEEK (Limassol, CY) certificate.
+# imports the PFX into CurrentUser\My first). The self-signed AUT MIEEK (Limassol, CY)
+# certificate: the project does not buy a publicly trusted one (owner decision, plan todo 30).
 $CodeSignThumbprint = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
 
 # Inno Setup paths (common installation locations)
