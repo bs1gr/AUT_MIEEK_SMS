@@ -1053,8 +1053,15 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       `2693C1B15C8A8E5E45614308489DC6F4268B075D`, the Limassol certificate that signs the
       published installers, so the gate is live from the next release. When the trusted
       certificate arrives: change `$CodeSignThumbprint`, the secret, and drop `UnknownError`
-      from the gate. Still untested: the hardened gate on a real tag run (PR #325 could only
-      exercise the local build path).
+      from the gate. **First real tag run (v1.18.62, 2026-10-28): the installer workflow failed
+      before the gate.** The runner imports the PFX only into `CurrentUser\My`, so the
+      self-signed chain is untrusted there and `Get-AuthenticodeSignature` reports
+      `UnknownError`; INSTALLER_BUILDER's post-sign check demanded `Valid` and blocked the
+      build (the APK workflow succeeded, so the release was published with the APK only).
+      Fix: the import step now also adds the certificate's public part to `CurrentUser\Root`
+      on the runner, and the builder accepts `UnknownError` only together with the expected
+      thumbprint. The installer workflow was re-dispatched for the same tag (allowed: it is the
+      current release, not a historical one).
 31. **Run the frozen Lite in the release pipeline, not just build it** (raised 2026-10-21).
     Neither `RELEASE_READY.ps1` nor `INSTALLER_BUILDER.ps1 -Action test` starts the built
     `SMS_Lite.exe`, which is how the missing PDF fonts (fixed in v1.18.59, `857613ba5`) shipped
