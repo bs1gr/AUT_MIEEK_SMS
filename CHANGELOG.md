@@ -39,6 +39,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.64] - 2026-10-28
+
+### Bug Fixes
+- **docker**: Docker edition's first build failed since v1.18.60 (#343)
+
+### Documentation
+- **plan**: record v1.18.63 hotfix release; todo 38 CI half done (#341)
+
+### Chores
+- **deps**: bump fastapi 0.161.1 -> 0.162.0 in requirements and pyproject (#342)
+
 ## [1.18.63] - 2026-10-28
 
 ### Bug Fixes
@@ -4802,6 +4814,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
