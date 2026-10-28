@@ -667,7 +667,8 @@ namespace SMS_Manager
                 {
                     var psi = new ProcessStartInfo
                     {
-                        FileName = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName,
+                        // Environment.ProcessPath is the exe even for a single-file publish.
+                        FileName = System.Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "SMS_Manager.exe"),
                         Verb = "runas",
                         UseShellExecute = true
                     };
@@ -700,7 +701,8 @@ namespace SMS_Manager
             catch { }
 
             // Fallback: parent directory of this EXE
-            return Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+            var exeDir = System.Environment.ProcessPath is { } exe ? Path.GetDirectoryName(exe) : null;
+            return exeDir ?? AppContext.BaseDirectory;
         }
     }
 }

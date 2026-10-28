@@ -3,7 +3,9 @@
   <!-- ===== Project Metadata ===== -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <!-- .NET 10 LTS (supported to Nov 2028). net5.0 was out of support (NETSDK1138, plan todo 33);
+         net8.0 would have reached end of support in Nov 2026. -->
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <UseWindowsForms>false</UseWindowsForms>
@@ -42,10 +44,8 @@
   </PropertyGroup>
 
   <!-- ===== Dependencies ===== -->
-  <ItemGroup>
-    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-  </ItemGroup>
+  <!-- None: WindowsIdentity and Microsoft.Win32.Registry ship in the .NET 10 shared framework;
+       the 5.0.0 packages the net5.0 build referenced are obsolete there. -->
 
   <!-- ===== Build Targets ===== -->
   <Target Name="PublishToInstaller" AfterTargets="Publish">
