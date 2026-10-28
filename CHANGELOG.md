@@ -38,6 +38,28 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.63] - 2026-10-28
+
+### Bug Fixes
+- **android**: EdgeToEdge.enable after super.onCreate - splash bar covered the header (#340)
+- **release**: trust the signing cert in LocalMachine\Root, time-box the import (#331)
+- **release**: trust the signing certificate on the CI runner (#330)
+
+### Documentation
+- **plan**: v1.18.62 status block, correct the gate note, todos 37-38 (#338)
+- no paid code signing - close todo 30, tell Lite users how to get past Windows (#337)
+- **plan**: close todo 1 - commit-gate flake mitigated by the retry (#336)
+- **plan**: todo 30 - SignPath Foundation application submitted (#335)
+- **readme**: use the institution's official name (#334)
+- **readme**: code signing policy, privacy policy and description for SignPath (#333)
+
+### Tests
+- **health**: cover the 90 % memory/disk thresholds; close todo 37 (#339)
+
+### Chores
+- **installer**: SMS_Manager on .NET 10 LTS; close plan todos 31, 33, 34 (#332)
+
 ## [1.18.62] - 2026-10-28
 
 ### Features
@@ -4780,6 +4802,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
