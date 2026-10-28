@@ -1053,7 +1053,26 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       `2693C1B15C8A8E5E45614308489DC6F4268B075D`, the Limassol certificate that signs the
       published installers, so the gate is live from the next release. When the trusted
       certificate arrives: change `$CodeSignThumbprint`, the secret, and drop `UnknownError`
-      from the gate. **First real tag run (v1.18.62, 2026-10-28): the installer workflow failed
+      from the gate.
+    - **SignPath Foundation application prepared 2026-10-28.** Their conditions (signpath.org/terms):
+      OSI licence for all components (MIT; bundled DejaVu fonts are free-licensed), no
+      proprietary components, actively maintained, already released in the form to be signed,
+      functionality described on the download page, a "Code signing policy" section with team
+      roles, a privacy statement, MFA for every team member on GitHub and SignPath, manual
+      approval of every signing request, and builds only on GitHub-hosted runners (our release
+      workflow already is). The README now has "What it does", "Code signing policy" (roles:
+      Vasilis Samaras as committer, reviewer and approver) and "Privacy policy" (no telemetry;
+      only the GitHub releases update check, admin-configured SMTP, and the user's own server for
+      Android). **After approval:** add the line "Free code signing provided by SignPath.io,
+      certificate by SignPath Foundation" to that README section; move signing from the local
+      PFX to `signpath/github-action-submit-signing-request@v3` in the release workflow (upload
+      the unsigned `SMS_Lite` folder + `SMS_Manager.exe` as an artifact, deep-sign every PE file
+      via an artifact configuration with `<directory>`/`<pe-file-set>`, then compile and submit
+      the Inno installer as a second request, since SignPath documents nested signing for MSI but
+      not for Inno); set `$CodeSignThumbprint` and the `CODESIGN_CERT_THUMBPRINT` secret to the
+      new certificate; drop `UnknownError` from the gate. Publisher shown to users becomes
+      "SignPath Foundation". Then test with Smart App Control enforced on another PC.
+    - **First real tag run (v1.18.62, 2026-10-28): the installer workflow failed
       before the gate.** The runner imports the PFX only into `CurrentUser\My`, so the
       self-signed chain is untrusted there and `Get-AuthenticodeSignature` reports
       `UnknownError`; INSTALLER_BUILDER's post-sign check demanded `Valid` and blocked the

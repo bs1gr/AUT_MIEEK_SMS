@@ -6,20 +6,17 @@
 
 **Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
 **Location:** Limassol, Cyprus
-**Version:** v1.18.30 (Production Ready)
+**Version:** see the [latest release](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
 
 Bilingual (EN/EL) student management system with dual deployment modes: Docker production stack and native development mode. Features RBAC, analytics dashboards, bulk import/export, attendance tracking, and a Windows installer.
 
 ---
 
-## Current Status (June 2026)
+## What it does
 
-- Backend tests: 929 passing
-- Frontend tests: 1,939 passing
-- E2E tests: 82 passing
-- Installer: `SMS_Installer_1.18.30.exe` (25.08 MB), signed
+A Windows application for a technical college's teaching staff and administrators: student and course records, enrolments, attendance with the institute's absence limits, course evaluation and final-grade calculation, analytics dashboards, PDF/Excel/CSV reports, and bulk import/export. The interface is bilingual (English and Greek). It ships as a Windows installer with two editions (a standalone Lite edition and a Docker edition) plus an Android app that connects to a running server.
 
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
+See [CHANGELOG.md](CHANGELOG.md) for the version history.
 
 ---
 
@@ -33,7 +30,7 @@ Read [CLAUDE.md](CLAUDE.md) before working on this project. It contains all mand
 
 ### End Users — Windows Installer
 
-1. Download `SMS_Installer_1.18.30.exe` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
+1. Download `SMS_Installer_<version>.exe` from the [latest GitHub release](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
 2. Right-click → **Run as Administrator**
 3. Follow the installation wizard
 4. Choose your edition:
@@ -178,6 +175,43 @@ student-management-system/
 - Password strength validation, login throttling, CSRF protection
 - All admin endpoints respect `AUTH_MODE` for emergency access
 - See [docs/security/](docs/security/) for full security documentation
+
+---
+
+## Code signing policy
+
+Windows releases are built from this public repository by the
+[release workflow](.github/workflows/release-installer-with-sha.yml) on GitHub-hosted runners.
+Every executable and library the project produces (the installer, its uninstaller, `SMS_Manager.exe`,
+`SMS_Lite.exe` and the binaries bundled with it) is signed; third-party files that already carry
+their publisher's signature keep it.
+
+Team and roles:
+
+| Role | Members |
+|---|---|
+| Committers and reviewers | [Vasilis Samaras](https://github.com/bs1gr) |
+| Approvers (approve each signing request) | [Vasilis Samaras](https://github.com/bs1gr) |
+
+Contributions from people who are not committers are reviewed before they are merged.
+Every release is approved by hand before it is signed.
+
+---
+
+## Privacy policy
+
+This program does not collect or transmit personal data, telemetry or usage statistics to the
+developers or to any third party. Student, course and grade data stay in the database you choose
+(a local SQLite file for the Lite edition, or your own PostgreSQL server).
+
+The program connects to other systems only in these cases:
+
+- **Update check:** it reads the public list of releases from the GitHub API
+  (`api.github.com/repos/bs1gr/AUT_MIEEK_SMS/releases`) to tell an administrator that a newer
+  version exists. No data about you or your institution is sent.
+- **Email:** if an administrator configures an SMTP server, the program sends account emails
+  (for example, a registration approval) through that server.
+- **Your own server:** the Android app connects only to the server address you enter.
 
 ---
 
