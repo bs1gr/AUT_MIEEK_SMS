@@ -1,8 +1,23 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.63
+**Current Version**: 1.18.64
 **Last Updated**: October 28, 2026
-**Status**: ✅ **v1.18.63 released 2026-10-28** (hotfix; tag on `9fb5f6e73`, run by the owner).
+**Status**: ✅ **v1.18.64 released 2026-10-28** (tag on `b57d08916`, run by the assistant).
+
+v1.18.64 fixes the Docker edition's first start, broken since v1.18.60: `DOCKER.ps1` rewrote only
+the first `src/` path on a COPY line, and #306 added `COPY src/frontend/package.json
+src/frontend/package-lock.json ./`, so every fresh install failed with "Build failed" (#343; a
+failed build now also prints docker's output). Found by installing the published v1.18.63 Docker
+edition on the dev PC and starting it from SMS_Manager; with the fix the container ran healthy on
+:8080. Also ships FastAPI 0.162.0 (#342, supersedes Dependabot #307).
+**Verified on the published assets:** `SMS_Installer_1.18.64.exe` 87,286,920 bytes, SHA-256
+`ef9e9baf…1449b809e` = GitHub's digest, Authenticode Valid, thumbprint `2693C1B1…075D`;
+`SMS_Android_1.18.64.apk` 4,177,132 bytes, SHA-256 `c47587c0…39688104` = GitHub's digest. Installer,
+APK and release workflows on the tag all succeeded. Dependabot alert #300 (`deepmerge`, low, no
+patched version, build-time only via vite-plugin-pwa → workbox-build) is for the owner to dismiss as
+tolerable risk.
+
+### v1.18.63 (2026-10-28, hotfix; tag on `9fb5f6e73`, run by the owner)
 
 v1.18.63 fixes a v1.18.62 regression found on the owner's phone: an opaque bar with the app label
 covered the top of every page in the Android app, hiding the header and language switch
@@ -1395,9 +1410,10 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     fakes `psutil.virtual_memory` and `shutil.disk_usage`: 89.9 % healthy, 90 % and above
     degraded, a configurable threshold, no psutil, and a disk read error. Flipping `>=` to `>`
     in `health_checks.py` fails exactly the two 90 % cases.
-38. **First CI build of SMS_Manager on .NET 10** (raised 2026-10-28) — **CI half done 2026-10-28:**
-    the v1.18.63 installer run built and signed it (setup-dotnet 10.0.x, "SMS_Manager.exe ready").
-    Still open: launching the Docker edition from an installed v1.18.63 (owner check). #332 moved it to `net10.0`
+38. **First CI build of SMS_Manager on .NET 10** (raised 2026-10-28) — ✅ **CLOSED 2026-10-28:**
+    the v1.18.63 installer run built and signed it (setup-dotnet 10.0.x, "SMS_Manager.exe ready"),
+    and the installed v1.18.63 Docker edition's SMS_Manager.exe (signed, Valid) launched and started
+    the container. That check found the first-build bug fixed in v1.18.64 (#343). #332 moved it to `net10.0`
     and pinned the 10.0.x SDK in the release, installer and sync workflows, but no workflow that
     builds it has run since: `installer.yml` is dispatch-only and publishes, so it was not used as
     a test. The next release's installer run is the first real check — confirm "Build installer"
