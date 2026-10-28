@@ -12,7 +12,7 @@ def calm_host(monkeypatch):
     /health reports "degraded" whenever the machine running the tests has >= 90 % RAM or disk
     in use (a running Android emulator or Docker Desktop's vmmem is enough). That is correct
     behaviour for the endpoint but has nothing to do with the code under test, so the resource
-    probes are stubbed here; test_health_checks.py covers their thresholds in isolation.
+    probes are stubbed here; test_health_resource_thresholds.py covers their thresholds in isolation.
     """
     healthy = {"status": HealthCheckStatus.HEALTHY, "message": "stubbed for the test", "details": {}}
     monkeypatch.setattr(HealthChecker, "_check_memory_usage", lambda self, *a, **k: dict(healthy))
