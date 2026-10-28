@@ -612,7 +612,15 @@ option. It now reads "Select academic year" / "Επιλέξτε τάξη" (`sele
   - the majors move to the Node 24 runtime;
   - setup-buildx v4 drops inputs this repo does not use;
   - setup-dotnet v6 and cache v6 are internal ESM migrations.
-1. **The 0.7s commit-gate flake** (2026-09-16) — *no action until it recurs.* The batch runner
+1. ~~**The 0.7s commit-gate flake**~~ (2026-09-16) — **closed 2026-10-28: mitigated, cause
+   unknown.** Since the 2026-10-12 retry fix, 117 backend batch runs logged 3 sightings
+   (2026-10-12 23:35 batch 9, 23:54 batch 1; 2026-10-26 23:39 batch 10), each the same exit −1
+   part-way through, and the one retry passed every time. None of the 7 failed runs in that
+   window was this flake: 2 were the 2026-10-21 Smart App Control incident, 3 were
+   `test_health` under ≥ 90 % host RAM (2026-10-27), 2 were the env-var leak fixed in #329. At
+   ~2.6 % of runs and fully absorbed by the retry it no longer blocks anything; reopen only if
+   a batch dies twice in a row (the runner then fails with "aborted part-way" twice), and then
+   capture the killer with Process Monitor or an ETW trace as noted below. The batch runner
    now logs the exit code, names a silent abort and retries it once, so the next occurrence
    should explain itself. Evidence: "The batch runner now records *why* a batch failed".
    **Recurred 2026-10-07 21:37** (COMMIT_READY -Quick, frontend-only change): batch 21 of 26
