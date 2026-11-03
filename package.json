@@ -3,7 +3,7 @@
   "private": true,
   "description": "Meta package file. Frontend dependencies live under src/frontend/package.json.",
   "overrides": {
-    "minimatch": "10.2.4",
+    "minimatch": "^11.0.1",
     "brace-expansion@^5.0.5": "^5.0.12",
     "markdown-it": "^15.0.3",
     "linkify-it": "^5.0.2",
