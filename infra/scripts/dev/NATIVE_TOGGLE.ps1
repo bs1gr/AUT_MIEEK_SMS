@@ -11,8 +11,9 @@ $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $scriptDir))
 $nativeScript = Join-Path $scriptDir 'NATIVE.ps1'
-$backendProcessFile = Join-Path $scriptDir '.backend.pid'
-$frontendProcessFile = Join-Path $scriptDir '.frontend.pid'
+# Must match $BACKEND_PID_FILE / $FRONTEND_PID_FILE in NATIVE.ps1 (project root).
+$backendProcessFile = Join-Path $projectRoot '.backend.pid'
+$frontendProcessFile = Join-Path $projectRoot '.frontend.pid'
 $backendVenvPath = Join-Path $projectRoot '.venv'
 $frontendNodeModulesPath = Join-Path $projectRoot 'src\frontend\node_modules'
 $desktopShortcutPath = Join-Path ([Environment]::GetFolderPath('Desktop')) 'SMS Native Toggle.lnk'
