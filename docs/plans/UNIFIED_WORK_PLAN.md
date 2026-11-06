@@ -1,8 +1,20 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.64
+**Current Version**: 1.18.65
 **Last Updated**: November 6, 2026
-**Status**: ✅ **v1.18.64 released 2026-10-28** (tag on `b57d08916`, run by the assistant).
+**Status**: ✅ **v1.18.65 released 2026-11-06** (tag on `de71fd9cf`, run by the owner).
+
+v1.18.65 is a maintenance release: the `NATIVE_TOGGLE.ps1` PID-file fix, the minimatch 11 / glob 14 /
+rimraf 6.1.4 security bump and routine Dependabot updates (pypdf, pytest, mypy, babel, pip and npm
+minor/patch groups). Pre-release backend batch run: 46/46 batches, 1300 tests (1261 passed, 39
+gated skips, 0 failed). **Verified on the published assets:** `SMS_Installer_1.18.65.exe`
+87,342,168 bytes, SHA-256 `5cc3c351…cd252` = GitHub's digest, Authenticode Valid, thumbprint
+`2693C1B1…075D`, DigiCert timestamp, product version v1.18.65; `SMS_Android_1.18.65.apk` 4,179,856
+bytes, SHA-256 `24edd8cd…38df2` = GitHub's digest. Installer, APK and release workflows on the tag
+and the `main` CI/E2E runs all succeeded. Todo 36 (system bars on a real phone) closed by the owner;
+Dependabot alert #300 is dismissed as tolerable risk.
+
+### v1.18.64 (2026-10-28; tag on `b57d08916`, run by the assistant)
 
 v1.18.64 fixes the Docker edition's first start, broken since v1.18.60: `DOCKER.ps1` rewrote only
 the first `src/` path on a COPY line, and #306 added `COPY src/frontend/package.json
@@ -17,7 +29,7 @@ APK and release workflows on the tag all succeeded. Dependabot alert #300 (`deep
 patched version, build-time only via vite-plugin-pwa → workbox-build) is for the owner to dismiss as
 tolerable risk.
 
-**Since the v1.18.64 tag (on `main`, unreleased, 2026-11-06):**
+**Shipped in v1.18.65 (after the v1.18.64 tag):**
 - `672f969c2` — `NATIVE_TOGGLE.ps1` reads its PID files from the project root.
 - `2217789f3` — security bump: minimatch 11, glob 14, rimraf 6.1.4.
 - Routine Dependabot merges: pypdf ≥ 6.21.4 (#345), pytest ≥ 9.2.0 (#346), pip minor/patch group
