@@ -40,6 +40,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.65] - 2026-11-06
+
+### Bug Fixes
+- **dev**: NATIVE_TOGGLE reads PID files from project root
+- **security**: bump minimatch to 11, glob to 14, rimraf to 6.1.4
+
+### Documentation
+- **plan**: record post-v1.18.64 changes; close todo 36
+- **plan**: record v1.18.64 release; close todo 38 (#344)
+
 ## [1.18.64] - 2026-10-28
 
 ### Bug Fixes
@@ -4814,6 +4825,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 

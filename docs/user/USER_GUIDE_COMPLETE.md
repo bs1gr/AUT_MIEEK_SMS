@@ -1,6 +1,6 @@
 # Complete User Guide - Student Management System
 
-**Version:** 1.18.64
+**Version:** 1.18.65
 **Last Updated:** June 11, 2026
 **Status:** ✅ Active
 
