@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.64
-**Last Updated**: October 28, 2026
+**Last Updated**: November 6, 2026
 **Status**: ✅ **v1.18.64 released 2026-10-28** (tag on `b57d08916`, run by the assistant).
 
 v1.18.64 fixes the Docker edition's first start, broken since v1.18.60: `DOCKER.ps1` rewrote only
@@ -16,6 +16,12 @@ edition on the dev PC and starting it from SMS_Manager; with the fix the contain
 APK and release workflows on the tag all succeeded. Dependabot alert #300 (`deepmerge`, low, no
 patched version, build-time only via vite-plugin-pwa → workbox-build) is for the owner to dismiss as
 tolerable risk.
+
+**Since the v1.18.64 tag (on `main`, unreleased, 2026-11-06):**
+- `672f969c2` — `NATIVE_TOGGLE.ps1` reads its PID files from the project root.
+- `2217789f3` — security bump: minimatch 11, glob 14, rimraf 6.1.4.
+- Routine Dependabot merges: pypdf ≥ 6.21.4 (#345), pytest ≥ 9.2.0 (#346), pip minor/patch group
+  (#347), mypy ≥ 2.4.1 (#348), babel packages (#351–#354), npm minor/patch group (#356).
 
 ### v1.18.63 (2026-10-28, hotfix; tag on `9fb5f6e73`, run by the owner)
 
@@ -1338,7 +1344,10 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     `npm run build:android` and `cap doctor` pass. Global tools were reinstalled at their old
     versions. npm 11 skips global install scripts by default, so react-devtools' Electron
     binary was not downloaded. Node 20.19.5 is still installed (`nvm use 20.19.5`).
-36. **Check Capacitor 8's system-bar handling on a real phone** (raised 2026-10-26). PR #306 drops
+36. ~~**Check Capacitor 8's system-bar handling on a real phone**~~ — ✅ **CLOSED 2026-11-06:**
+    the owner checked and confirmed it on the phone (v1.18.63 carries the `EdgeToEdge.enable`
+    fix). Real edge-to-edge (`viewport-fit=cover`) stays unused by design. History below.
+    (raised 2026-10-26). PR #306 drops
     `viewport-fit=cover`, so Capacitor pads the WebView instead of drawing under the status and
     navigation bars (no CSS reads the safe-area insets, and many overlays are `position: fixed`).
     The emulator smoke ran WebView 133, which takes the padded path. **WebView ≥ 140 takes the
