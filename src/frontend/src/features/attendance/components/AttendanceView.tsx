@@ -143,7 +143,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
 
       try {
-        const response = await apiClient.get('/students?limit=1000');
+        // Trailing slash: SMS Lite answers the slash-less path with 404 (its SPA catch-all
+        // matches before the router's slash redirect); the other editions redirect.
+        const response = await apiClient.get('/students/?limit=1000');
         const payload = response.data;
         const items: Student[] = Array.isArray(payload)
           ? payload
@@ -464,7 +466,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
       const fetchCourses = async () => {
         try {
-          const response = await apiClient.get('/courses?limit=999');
+          const response = await apiClient.get('/courses/?limit=999');
           const data = response.data;
           const courseList = Array.isArray(data) ? data : data.items || [];
           if (courseList.length > 0) {

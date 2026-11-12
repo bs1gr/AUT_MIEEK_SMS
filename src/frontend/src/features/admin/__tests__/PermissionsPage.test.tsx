@@ -78,7 +78,7 @@ describe('PermissionsPage', () => {
     };
 
     vi.mocked(apiModule.apiClient.get).mockImplementation((url: string) => {
-      if (url === '/permissions') {
+      if (url === '/permissions/') {
         return Promise.resolve({ data: mockPermissions });
       }
       if (url === '/permissions/by-resource') {
@@ -158,7 +158,7 @@ describe('PermissionsPage', () => {
     };
 
     vi.mocked(apiModule.apiClient.get).mockImplementation((url: string) => {
-      if (url === '/permissions') return Promise.resolve({ data: mockPermissions });
+      if (url === '/permissions/') return Promise.resolve({ data: mockPermissions });
       if (url === '/permissions/by-resource') return Promise.resolve({ data: mockPermissionsByResource });
       if (url === '/permissions/stats') return Promise.resolve({ data: mockStats });
       if (url === '/rbac/roles') return Promise.resolve({ data: mockRoles });

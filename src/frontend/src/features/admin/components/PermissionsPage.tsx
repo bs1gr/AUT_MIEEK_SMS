@@ -89,7 +89,7 @@ export default function PermissionsPage() {
   const { data, isLoading, isError } = useQuery<Permission[]>({
     queryKey: ['permissions', 'list'],
     queryFn: async () => {
-      const res = await apiClient.get('/permissions');
+      const res = await apiClient.get('/permissions/');
       return extractAPIResponseData(res.data) ?? [];
     },
     staleTime: 5 * 60 * 1000,

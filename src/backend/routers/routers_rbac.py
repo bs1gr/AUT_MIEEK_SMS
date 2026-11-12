@@ -435,6 +435,8 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
         ("enrollments:view", "enrollments", "view", "View enrollments"),
         ("enrollments:manage", "enrollments", "manage", "Create/update/delete enrollments"),
         ("reports:view", "reports", "view", "View and generate reports"),
+        ("reports:generate", "reports", "generate", "Generate reports and analytics views"),
+        ("reports:export", "reports", "export", "Export reports and analytics"),
         ("analytics:view", "analytics", "view", "View analytics dashboards"),
         ("users:view", "users", "view", "View user list"),
         ("users:manage", "users", "manage", "Create/update/delete users and roles"),
@@ -515,6 +517,11 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
         "enrollments:view",
         "enrollments:manage",
         "reports:view",
+        # Every /analytics, /reports and /metrics endpoint asks for reports:generate (the
+        # Dashboard overview included). Keep this list in step with backend.rbac's defaults;
+        # existing databases got the two grants from migration d3a7b9c1e5f2.
+        "reports:generate",
+        "reports:export",
         "analytics:view",
         "system:import",
         "system:export",

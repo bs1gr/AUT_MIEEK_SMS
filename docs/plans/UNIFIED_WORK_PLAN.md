@@ -49,6 +49,45 @@ written by hand in `d2cb7eba9`, before the tag (the generator was fixed afterwar
 worktree, the Playwright global setup following `PLAYWRIGHT_API_BASE_URL`, and a per-test restore of
 logging and environment state in the backend tests). A v1.18.67 release has not been requested.
 
+**Pre-release smoke test of `main` (2026-11-12, `3e2c24b9d`, asked for by the owner before
+deciding on v1.18.67).** Run from a clone, on throwaway databases only (never the QNAP one):
+- *Editions:* the backend from source on SQLite and on PostgreSQL 16 (a container), a frozen SMS
+  Lite built from the commit, and the Docker image on PostgreSQL. Each started from the v1.18.66
+  schema; the Lite one opened a database that the published v1.18.66 Lite had created and filled.
+  Every startup path applied `c8e1f4a7d2b9` and kept the existing data.
+- *Checks, all passing on every edition:* 24 lesson-log API checks under `AUTH_MODE=strict`
+  (partial update, blank to NULL, the 20 000-character limit, 404/422 cases, 401 without a token,
+  teacher allowed, student 403, a deleted course hides its logs, update check reports its
+  version); a real-browser run as a teacher (form login, autosave without a click, reload, the
+  offline queue and its flush when the server returns, history edit, Greek labels, 412 px width,
+  no console errors); and on Lite and Docker the packaging check (Greek PDFs with DejaVu, Excel,
+  SPA assets).
+- *Two bugs found, both older than this release, fixed in the same PR:*
+  1. **A teacher's Dashboard showed "Error loading analytics data" in three cards, and the
+     Analytics endpoints answered 403.** Every `/analytics`, `/reports`, `/metrics` and
+     custom-report endpoint requires `reports:generate`. `backend.rbac`'s defaults and the
+     permission reference give it (and `reports:export`) to teachers, but the roles seeded into
+     the database (`routers_rbac._seed_defaults`) had neither, the two permission rows did not
+     exist at all, and the seed only runs on an empty RBAC table. Fixed in the seed, plus the
+     data-only migration `d3a7b9c1e5f2` for existing databases (it adds the two rows and links
+     them to `teacher`; additive). A test now fails if the seed and the defaults drift apart for
+     any permission a router requires. Verified on the Docker image against a PostgreSQL that
+     was seeded before the fix, and on a rebuilt Lite. **Whether the QNAP database was affected
+     was not checked** (it was not read); the migration is a no-op where the grants exist.
+     The read-only roles `viewer` and `guest` still get 403 on the Dashboard overview
+     (`reports:generate` is not theirs by either list): the owner's call.
+  2. **SMS Lite answered a `GET` on an API path without its trailing slash with 404** (its SPA
+     catch-all matched before the router's slash redirect; the other editions redirect). Three
+     callers: Attendance's fallback loads of students and courses, and the admin Permissions
+     page. The three URLs got their slash, and the Lite catch-all now redirects like the other
+     editions (verified on the rebuilt Lite: 307, then the real answer).
+- *Not covered:* the Android app (no native change since v1.18.66; the same SPA was driven at
+  phone width in Chromium, not in the WebView), the installer itself, and the owner's native dev
+  server. Noticed, not changed: `lifespan.py` skips migrations and the admin bootstrap whenever
+  `pytest` is importable (so a plain `uvicorn` from the root `.venv` does neither; `NATIVE.ps1`
+  uses `src/backend/.venv`, which has no pytest), that venv is behind `requirements.txt`
+  (SQLAlchemy 2.0.44 against 2.1.8), and the Absence limits table is cut off at 412 px.
+
 ### v1.18.65 (2026-11-06; tag on `de71fd9cf`, run by the owner)
 
 v1.18.65 is a maintenance release: the `NATIVE_TOGGLE.ps1` PID-file fix, the minimatch 11 / glob 14 /
