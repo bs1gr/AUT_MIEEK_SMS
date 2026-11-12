@@ -41,6 +41,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.66] - 2026-11-12
+
+### Documentation
+- **plan**: record v1.18.65 release
+
+### CI/CD
+- **gitleaks**: retry the Gitleaks download; docs(plan): record main since v1.18.65 (#367)
+
 ## [1.18.65] - 2026-11-06
 
 ### Bug Fixes
@@ -4825,6 +4834,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
