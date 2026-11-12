@@ -110,10 +110,14 @@ $script:Config = @{
         'docs'     = @{ Label = 'Documentation'; Icon = '📝'; Priority = 6 }
         'style'    = @{ Label = 'Styling'; Icon = '💎'; Priority = 7 }
         'test'     = @{ Label = 'Tests'; Icon = '✅'; Priority = 8 }
-        'build'    = @{ Label = 'Build System'; Icon = '🔨'; Priority = 9 }
-        'ci'       = @{ Label = 'CI/CD'; Icon = '🤖'; Priority = 10 }
-        'chore'    = @{ Label = 'Chores'; Icon = '🧹'; Priority = 11 }
-        'revert'   = @{ Label = 'Reverts'; Icon = '⏪'; Priority = 12 }
+        # Dependabot's commit prefix (.github/dependabot.yml: prefix "deps"). Without this entry
+        # every dependency update was "unrecognized": left out of CHANGELOG.md and of the GitHub
+        # release body, so a release made only of updates (v1.18.66) had an empty "What's Included".
+        'deps'     = @{ Label = 'Dependencies'; Icon = '⬆️'; Priority = 9 }
+        'build'    = @{ Label = 'Build System'; Icon = '🔨'; Priority = 10 }
+        'ci'       = @{ Label = 'CI/CD'; Icon = '🤖'; Priority = 11 }
+        'chore'    = @{ Label = 'Chores'; Icon = '🧹'; Priority = 12 }
+        'revert'   = @{ Label = 'Reverts'; Icon = '⏪'; Priority = 13 }
     }
     # Kept for reference only — breaking-change detection is done with explicit
     # Conventional Commits regexes at the categorisation step, not by substring match.
@@ -429,6 +433,16 @@ function Get-GitHubReleaseDescription {
             $prefix = if ($item.Scope) { "**$($item.Scope)**: " } else { "" }
             [void]$sb.AppendLine("- $prefix$($item.Description)")
         }
+        [void]$sb.AppendLine()
+    }
+
+    # Dependency updates are not highlights, but a release made only of them must still say so.
+    if ($Categorized.ContainsKey('deps')) {
+        $count = $Categorized['deps'].Count
+        $noun = if ($count -eq 1) { 'dependency update' } else { 'dependency updates' }
+        [void]$sb.AppendLine("### ⬆️ Dependencies")
+        [void]$sb.AppendLine()
+        [void]$sb.AppendLine("$count $noun (see CHANGELOG.md for the list).")
         [void]$sb.AppendLine()
     }
 

@@ -317,6 +317,23 @@ function Get-ChangedFiles {
     return @($files | Where-Object { $_ -and $_.Trim() -ne "" } | Sort-Object -Unique)
 }
 
+# Where git looks for this checkout's pre-commit hook. "$PROJECT_ROOT\.git\hooks" is wrong in a
+# linked worktree, where .git is a file and the hooks are shared with the main checkout (the old
+# path made the hook-install step below stop COMMIT_READY with "Could not find a part of the
+# path"), and wrong again whenever core.hooksPath is set. git knows the answer. Returns $null when
+# it cannot be resolved, which skips the install instead of failing the run.
+function Get-PreCommitHookPath {
+    param([string]$ProjectRoot)
+
+    $hookPath = git -C $ProjectRoot rev-parse --git-path hooks/pre-commit 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $hookPath) { return $null }
+    if (-not [System.IO.Path]::IsPathRooted($hookPath)) { $hookPath = Join-Path $ProjectRoot $hookPath }
+
+    $hooksDir = Split-Path -Parent $hookPath
+    if (-not (Test-Path $hooksDir)) { New-Item -ItemType Directory -Path $hooksDir -Force | Out-Null }
+    return $hookPath
+}
+
 # PHASE 0: PRE-COMMIT HOOK VALIDATION (must come after utility functions)
 function Invoke-PreCommitHookValidation {
     if ($script:SkipPreCommitHooks) {
@@ -361,8 +378,8 @@ function Invoke-PreCommitHookValidation {
         }
 
         # Ensure the git hook is configured to use COMMIT_READY.ps1 (which handles PATH correctly)
-        $gitHookPath = Join-Path $PROJECT_ROOT ".git\hooks\pre-commit"
-                if (Test-Path (Join-Path $PROJECT_ROOT ".git")) {
+        $gitHookPath = Get-PreCommitHookPath -ProjectRoot $PROJECT_ROOT
+                if ($gitHookPath) {
                         # Lightweight guard: the hook only verifies the COMMIT_READY checkpoint and version format.
                         # Full validations (lint/tests) run when the developer executes COMMIT_READY manually.
                         $hookContent = @'

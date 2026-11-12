@@ -19,27 +19,17 @@ def _alembic(url: str):
     from alembic.config import Config
 
     # Deliberately no alembic.ini. migrations/env.py calls logging.config.fileConfig() whenever the
-    # config has a file name, and fileConfig() disables every logger that already exists. CI runs
-    # the whole backend suite in one process and this file sorts before test_performance_monitor,
-    # whose log capture then saw nothing ("Slow query detected" missing). With no file name,
-    # env.py skips it; the script location and the database are set explicitly below.
+    # config has a file name, and fileConfig() disables every logger that already exists (and
+    # replaces the root logger's handlers). CI runs the whole backend suite in one process and this
+    # file sorts before test_performance_monitor, whose log capture then saw nothing ("Slow query
+    # detected" missing). With no file name, env.py skips it; the script location and the database
+    # are set explicitly below. (conftest's restore_process_state undoes the disabled loggers and
+    # the environment variables after each test, but not the root logger's handlers.)
     backend_dir = Path(__file__).resolve().parents[1]
     cfg = Config()
     cfg.set_main_option("script_location", str(backend_dir / "migrations"))
     cfg.set_main_option("sqlalchemy.url", url)
     return cfg
-
-
-@pytest.fixture(autouse=True)
-def _restore_environment():
-    """env.py setdefault()s these two variables; do not leak them into the tests that follow."""
-    saved = {name: os.environ.get(name) for name in ("SMS_PROJECT_ROOT", "PYTHONPATH")}
-    yield
-    for name, value in saved.items():
-        if value is None:
-            os.environ.pop(name, None)
-        else:
-            os.environ[name] = value
 
 
 @pytest.fixture
@@ -139,7 +129,7 @@ def test_running_the_migration_leaves_logging_alone(deployed):
     command.upgrade(cfg, "head")
 
     assert not canary.disabled
-    assert "SMS_PROJECT_ROOT" in os.environ  # env.py does set it; the fixture undoes it afterwards
+    assert "SMS_PROJECT_ROOT" in os.environ  # env.py does set it; restore_process_state undoes it
 
 
 def test_downgrade_removes_the_table(deployed):

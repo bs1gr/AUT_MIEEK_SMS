@@ -107,9 +107,10 @@ function Get-ComprehensiveGitHubReleaseDescription {
     [void]$sb.AppendLine("### 📊 What's Included in v$Version")
     [void]$sb.AppendLine()
 
-    # Feature/fix summary
+    # Feature/fix/dependency summary
     $featureCount = if ($Categorized.ContainsKey('feat')) { $Categorized['feat'].Count } else { 0 }
     $fixCount = if ($Categorized.ContainsKey('fix')) { $Categorized['fix'].Count } else { 0 }
+    $depsCount = if ($Categorized.ContainsKey('deps')) { $Categorized['deps'].Count } else { 0 }
 
     if ($featureCount -gt 0) {
         [void]$sb.AppendLine("- **$featureCount new features** - Enhancement and new capabilities")
@@ -117,8 +118,17 @@ function Get-ComprehensiveGitHubReleaseDescription {
     if ($fixCount -gt 0) {
         [void]$sb.AppendLine("- **$fixCount bug fixes** - Stability and reliability improvements")
     }
+    if ($depsCount -gt 0) {
+        # Dependabot groups many packages into one commit, so this counts updates merged, not packages.
+        $depsNoun = if ($depsCount -eq 1) { 'dependency update' } else { 'dependency updates' }
+        [void]$sb.AppendLine("- **$depsCount $depsNoun** - Library and tooling updates (see the CHANGELOG for the list)")
+    }
     if ($BreakingChanges.Count -gt 0) {
         [void]$sb.AppendLine("- **Deprecated modules removed** - Clean codebase, reduced maintenance")
+    }
+    # A release with no features, fixes or updates (docs and CI only) used to publish an empty section.
+    if ($featureCount -eq 0 -and $fixCount -eq 0 -and $depsCount -eq 0 -and $BreakingChanges.Count -eq 0) {
+        [void]$sb.AppendLine("- **Maintenance release** - Internal and documentation changes only; see the CHANGELOG")
     }
     [void]$sb.AppendLine()
 
