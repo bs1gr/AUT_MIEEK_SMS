@@ -163,6 +163,20 @@ The backend logs a warning at startup whenever `AUTH_MODE` is not `strict`.
 - Students can view their own attendance records and statistics
 - Students cannot log or modify attendance
 
+### Lesson Log Endpoints (`/api/v1/lesson-logs/*`)
+
+The material covered and the teacher's private notes for each teaching period (one row per course, date and `period_number`).
+
+| Method | Endpoint | Required Permission | Allow Self Access |
+|--------|----------|---------------------|-------------------|
+| GET | `/lesson-logs` | `attendance:edit` | No |
+| PUT | `/lesson-logs` | `attendance:edit` | No |
+
+**Why reads need `attendance:edit`, not `attendance:view`**:
+- The `guest` and `viewer` roles hold `attendance:view`, and the teacher's notes are private to people who can edit attendance (admin, staff, teacher).
+- Students have no access at all.
+- `PUT` is an idempotent upsert for autosave: a text field left out of the body keeps its stored value, and an empty string clears it.
+
 ### Daily Performance Endpoints (`/api/v1/performance/*`)
 
 | Method | Endpoint | Required Permission | Allow Self Access |

@@ -156,6 +156,14 @@ const HelpDocumentation = () => {
           answer: t('helpRecordAttendanceAnswer')
         },
         {
+          question: t('helpHowToRecordLesson'),
+          answer: t('helpRecordLessonAnswer')
+        },
+        {
+          question: t('helpWhereToReviewLessonLog'),
+          answer: t('helpReviewLessonLogAnswer')
+        },
+        {
           question: t('helpWhatDoAttendanceStatusesMean'),
           answer: t('helpAttendanceStatusAnswer')
         },

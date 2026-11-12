@@ -192,6 +192,42 @@ class Attendance(SoftDeleteMixin, Base):
         )
 
 
+class LessonLog(Base):
+    """What was taught (material_covered) and the teacher's private notes for one teaching period.
+
+    One row per course, date and period_number (the same period_number Attendance uses), stored
+    once per session rather than per student, which is why it is not a column on Attendance.
+
+    Deliberately not a SoftDeleteMixin model: the unique key below would keep a soft-deleted row's
+    place while the global soft-delete filter hides it from the upsert's lookup, so re-saving that
+    period would collide with the hidden row. Nothing deletes lesson logs; a cleared log is a row
+    with NULL text. The foreign key cascades, so removing a course for good removes its logs.
+    """
+
+    __tablename__ = "lesson_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+    # NOT NULL on purpose: NULLs are distinct in a unique index, so a nullable period would let
+    # duplicates through for the same course and date.
+    period_number = Column(Integer, nullable=False, default=1)
+    material_covered = Column(Text)
+    teacher_notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (Index("idx_lesson_logs_course_date_period", "course_id", "date", "period_number", unique=True),)
+
+    def __repr__(self):
+        return f"<LessonLog(course={self.course_id}, date={self.date}, period={self.period_number})>"
+
+
 class CourseEnrollment(SoftDeleteMixin, Base):
     """Enrollment linking students to courses"""
 

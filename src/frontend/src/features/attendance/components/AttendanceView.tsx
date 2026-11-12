@@ -23,6 +23,8 @@ import AttendanceAnalyticsSnapshot from './AttendanceAnalyticsSnapshot';
 import AttendanceStudentList from './AttendanceStudentList';
 import AttendancePerformanceModal from './AttendancePerformanceModal';
 import AbsenceLimitsPanel from './AbsenceLimitsPanel';
+import LessonLogCard from './LessonLogCard';
+import LessonLogHistory from './LessonLogHistory';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { splitParticipationRules, type SpecialParticipationCategory } from '@/utils/participation';
 
@@ -103,6 +105,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
   const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getPendingAttendanceSyncCount());
+  // Bumped whenever the lesson-log card saves, so the course's lesson-log history reloads.
+  const [lessonLogRefreshKey, setLessonLogRefreshKey] = useState(0);
+  const handleLessonLogSaved = useCallback(() => setLessonLogRefreshKey((count) => count + 1), []);
   const todayStr = formatLocalDate(new Date());
 
   // Request deduplication - prevent concurrent duplicate requests
@@ -1033,12 +1038,29 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         setShowPerformanceModal={setShowPerformanceModal}
       />
 
+      {/* Material covered and teacher's notes for the selected course, date and period (autosaved) */}
+      <LessonLogCard
+        t={t}
+        courseId={selectedCourse}
+        dateStr={selectedDateStr}
+        periods={activePeriods}
+        onSaved={handleLessonLogSaved}
+      />
+
       {/* ΜΙΕΕΚ absence limit (semester-wide, per student) */}
       <AbsenceLimitsPanel
         t={t}
         courseId={selectedCourse}
         students={enrolledStudents}
         refreshKey={persistedAttendanceRecords}
+      />
+
+      {/* Every saved lesson-log entry of the course: review and edit */}
+      <LessonLogHistory
+        t={t}
+        courseId={selectedCourse}
+        formatDate={formatDate}
+        refreshKey={lessonLogRefreshKey}
       />
 
       {/* Performance Modal */}

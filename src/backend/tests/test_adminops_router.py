@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 from sqlalchemy import create_engine
 
-from backend.models import Attendance, Course, CourseEnrollment, Grade, Student
+from backend.models import Attendance, Course, CourseEnrollment, Grade, LessonLog, Student
 from backend.routers import routers_adminops
 
 
@@ -132,6 +132,7 @@ class TestClear:
         )
         db.add(Attendance(student_id=student.id, course_id=course.id, date=date.today(), status="Present"))
         db.add(CourseEnrollment(student_id=student.id, course_id=course.id))
+        db.add(LessonLog(course_id=course.id, date=date.today(), period_number=1, material_covered="Chapter 1"))
         db.commit()
 
         response = client.post("/api/v1/adminops/clear", json={"confirm": True, "scope": "data_only"})
@@ -141,6 +142,7 @@ class TestClear:
         assert db.query(Grade).count() == 0
         assert db.query(Attendance).count() == 0
         assert db.query(CourseEnrollment).count() == 0
+        assert db.query(LessonLog).count() == 0
         assert db.query(Student).filter(Student.id == student.id).count() == 1
         assert db.query(Course).filter(Course.id == course.id).count() == 1
 
@@ -149,6 +151,9 @@ class TestClear:
         course = Course(course_code="CLR102", course_name="Clear Test Course 2", semester="Fall 2026")
         db.add_all([student, course])
         db.commit()
+        # A lesson log references its course, so it has to go before the course does.
+        db.add(LessonLog(course_id=course.id, date=date.today(), period_number=1, teacher_notes="private"))
+        db.commit()
 
         response = client.post("/api/v1/adminops/clear", json={"confirm": True, "scope": "all"})
         assert response.status_code == 200, response.text
@@ -156,3 +161,4 @@ class TestClear:
 
         assert db.query(Student).count() == 0
         assert db.query(Course).count() == 0
+        assert db.query(LessonLog).count() == 0

@@ -1141,25 +1141,43 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     Never exercised: the Lite installer through UAC, the Docker host task, and the Android offer on
     a device. Each needs an install one release behind a published one: v1.18.66 is now out, so a
     PC on v1.18.65 can be updated to it.
-41. **Attendance: record the material covered and the teacher's notes for each teaching period**
-    (raised 2026-11-12 by the owner; not started). In each teaching period (διδακτική περίοδος),
-    when absences are recorded, the instructor can enter free text with the material covered
-    (διδακτέα ύλη) and, in a separate field, the teacher's own notes (Σημειώσεις του καθηγητή).
-    Both save automatically to the database, and the app gets an appropriate place to view and
-    edit them.
-    - **Today:** `attendances` (`Attendance` in `src/backend/models.py`) has one row per student,
-      course, date and `period_number`, plus a per-student `notes` text. Nothing is stored once per
-      session, so the two texts need their own table keyed by course, date and period, not columns
-      repeated on every student's row.
-    - **Questions for the owner before building:** (1) is a "teaching period" the existing
-      `period_number` on a date? (2) who may read the teacher's notes (only that teacher, or admins
-      too), and is the material covered visible beyond the teacher (reports, exports)? (3) where
-      should they be viewed and edited: a course-level log, the Attendance page's history, or both?
-      (4) should a course's log be printable or exportable?
-    - **Constraints:** an additive Alembic migration only (the QNAP database is shared, and older
-      installs must keep working until updated); autosave that does not lose text during a database
-      outage (see the browser queue added in v1.18.51) and reuses `useAttendanceSaveSync` where it
-      fits; every label in `en/` and `el/`; tests for the API, the autosave and the permissions.
+41. ~~**Attendance: record the material covered and the teacher's notes for each teaching period**~~
+    (raised 2026-11-12 by the owner) — **built 2026-11-12, not yet released.** In each teaching
+    period (διδακτική περίοδος), when absences are recorded, the instructor enters free text with the
+    material covered (διδακτέα ύλη) and, in a separate box, the teacher's own notes (Σημειώσεις
+    καθηγητή). Both save automatically, and the course's entries can be viewed and edited.
+    - **Entering it:** a "Lesson log" card under the student list on the Attendance page, once a
+      course and a date are chosen. One pair of boxes per teaching period: a day with several periods
+      (from the course's teaching schedule) gets Period 1…N buttons. It saves 2 s after typing stops,
+      at once when a box loses focus, and when the page is left; a line under the boxes says Saving
+      or Saved. Text typed while the server or its database is unreachable is kept in the browser
+      (`lessonLogQueue`) and sent when it returns, like the attendance queue. The boxes stay disabled
+      until the stored text has loaded, so typing can never overwrite it.
+    - **Viewing and editing it:** a "Lesson log history" card at the bottom of the same page lists the
+      course's entries, newest first (the title shows the count; "Load more" pages through them).
+      Edit opens the same autosaving boxes inline.
+    - **Backend:** table `lesson_logs` (one row per course, date and `period_number`; migration
+      `c8e1f4a7d2b9`, additive) and `GET` / `PUT /api/v1/lesson-logs/`. `PUT` is an idempotent upsert
+      that leaves a field it does not receive unchanged, so the two boxes save independently; a
+      concurrent first save is retried as an update. Blank text is stored as NULL; limit 20 000
+      characters per box.
+    - **Choices made for the four open questions (the owner can overrule any):** (1) a "teaching
+      period" is the existing `period_number` of a date; (2) **both boxes are private to people who
+      can edit attendance** (admin, staff, teacher): the read-only roles `guest` and `viewer` hold
+      `attendance:view`, so reads need `attendance:edit` too, and students have no access; (3) both
+      places above, on the Attendance page; (4) no printable or exportable view yet.
+    - **Not part of it:** lesson logs are not in semester session export/import or the other
+      exports, the table has no soft delete (a cleared box is stored as empty), and it records no
+      author. `clear_database` removes them with the other dated records.
+    - **Verified:** backend router, migration and adminops tests (the migration test runs the whole
+      chain on SQLite and checks the unique key and the downgrade); 63 new Vitest tests, with the 89
+      existing attendance, i18n and Help tests still passing; and a Playwright spec
+      (`lesson-log.spec.ts`) that types without clicking save, reads the row back through the API,
+      reloads, and edits from the history. Seen in a real browser in English and Greek, on a desktop
+      and a 412 px phone, including a two-period day.
+    - **When it ships:** every startup path (native dev server, Docker entrypoint, SMS Lite) applies
+      the migration, so the shared QNAP database gets the table the first time a build containing it
+      starts against it. It is additive, so installs that are still older keep working.
 42. **Release notes skip Dependabot's `deps:` commits** (found 2026-11-12, cutting v1.18.66) —
     `GENERATE_RELEASE_DOCS.ps1` reports them as "unrecognized": it lists them only under "Other
     Changes" in `docs/releases/RELEASE_NOTES_v<version>.md` and leaves them out of `CHANGELOG.md`
@@ -1167,6 +1185,24 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     made only of dependency updates, the body had an empty "What's Included" section (v1.18.65 had
     the same gap), so the notes were written by hand. Fix: file `deps` / `deps-dev` commits under a
     "Dependencies" heading in all three outputs, with a test.
+43. **Dev tooling problems found while building todo 41** (2026-11-12; none blocks anything):
+    - **`COMMIT_READY.ps1` cannot run in a git worktree.** Its hook-install step builds
+      `$PROJECT_ROOT\.git\hooks\pre-commit`, and in a worktree `.git` is a file, so the script stops
+      with "Could not find a part of the path" (line ~409). Resolve the path with
+      `git rev-parse --git-path hooks/pre-commit`. A worktree would otherwise be the safe place to
+      work on a migration while the native dev server runs from the main tree: that server
+      (`uvicorn --reload`) applies every migration file it sees to the shared QNAP database at each
+      restart. A local clone was used instead.
+    - **`playwright-global-setup.ts` always checks `http://127.0.0.1:8000`** (and would start a
+      backend there) even when `PLAYWRIGHT_BASE_URL` points at another port, so an isolated E2E run
+      still reaches whatever is on :8000. It should follow `PLAYWRIGHT_BASE_URL`.
+    - **Alembic-in-process tests leak process state.** Tests that run migrations with `alembic.ini`
+      (`test_registration_pending_migration.py`, `test_run_migrations*.py`) make `env.py` call
+      `logging.config.fileConfig`, which disables every existing logger, and `setdefault`
+      `SMS_PROJECT_ROOT`. They are harmless only because they sort after `test_performance_monitor.py`:
+      CI runs the whole backend suite in one process (`pytest tests/ -m "not slow"`), where the new
+      `test_lesson_logs_migration.py` broke that test on all three backend jobs until it built its
+      `Config` without the ini file. The older tests should do the same.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and

@@ -168,6 +168,7 @@ def clear_database(
             Grade,
             Highlight,
             CourseEnrollment,
+            LessonLog,
             Course,
             Student,
         ) = import_names(
@@ -177,12 +178,15 @@ def clear_database(
             "Grade",
             "Highlight",
             "CourseEnrollment",
+            "LessonLog",
             "Course",
             "Student",
         )
 
         # Delete child tables first (maintains referential integrity)
         db.query(Attendance).delete(synchronize_session=False)
+        # Lesson logs are dated teaching records like attendance, and reference courses.
+        db.query(LessonLog).delete(synchronize_session=False)
         db.query(DailyPerformance).delete(synchronize_session=False)
         db.query(Grade).delete(synchronize_session=False)
         db.query(Highlight).delete(synchronize_session=False)
