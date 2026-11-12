@@ -1338,6 +1338,14 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       built: settle the Python wheels with a build-only run, see todo 48); a short Linux deploy
       for the VM (compose file, environment template, no `DOCKER.ps1`); `CORS_ORIGINS` with
       `https://localhost` and `TRUSTED_HOSTS` for the VM; a runbook under `docs/deployment/`.
+      **Done 2026-11-13, unreleased and not yet run on a VM:** `infra/docker/cloud/`
+      (`docker-compose.cloud.yml`: the full-stack image built on the VM, the QNAP database through
+      `POSTGRES_*`, port 8000 on loopback only, `COOKIE_SECURE`, no default admin, no Redis; and
+      `.env.cloud.example`) and the runbook `docs/deployment/CLOUD_HOST_ORACLE.md` (VM, Tailscale
+      with `--accept-routes`, `tailscale serve` for tailnet-only HTTPS, phones, switching back to
+      the home address, running both hosts on the same release). The backend's settings were
+      loaded with that environment and gave the expected database URL, CORS list and trusted
+      host; nothing else in it has been executed.
     - *Owner side:* open the Oracle account with Frankfurt as home region (card and phone needed),
       create the VM, join it to the tailnet. Before student data flows through it: confirm that
       Oracle's data-processing agreement covers Always Free and that ΜΙΕΕΚ policy allows it.
@@ -1358,6 +1366,12 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     accepted) — dispatch `docker-publish.yml` with `dry_run` in the release flow, so a broken
     `Dockerfile.fullstack` shows in CI and not on the owner's PC, and add `linux/arm64` to it
     (needed for todo 44's ARM VM; whether every Python wheel exists for arm64 is unknown).
+    - **arm64 half done 2026-11-12:** `docker-publish.yml` has a `platforms` input (amd64, arm64
+      or both; arm64 under QEMU) and the Dockerfile's frontend stage builds on
+      `$BUILDPLATFORM`, so npm never runs emulated. A build-only arm64 run on the branch (run
+      43314118411) succeeded in 5.5 minutes: 42 `aarch64` wheels downloaded, nothing compiled
+      from source. The image was built, not started: its first real run is on the VM.
+    - **Still open:** dispatching the build-only run from the release flow.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and

@@ -28,6 +28,7 @@ Documentation for deploying and operating the Student Management System in produ
 
 ### Mobile (Android) Deployment
 
+- **[CLOUD_HOST_ORACLE.md](CLOUD_HOST_ORACLE.md)** - Backend on an Oracle Always Free VM, database on the QNAP over Tailscale; the home setup stays as the backup (prepared 2026-11-12, not yet deployed)
 - **[ANDROID_TAILSCALE_GUIDE.md](ANDROID_TAILSCALE_GUIDE.md)** - Android APK + Tailscale remote access
   - Tailscale VPN setup (why not DDNS/QNAP proxy)
   - Server URL configuration on the phone
