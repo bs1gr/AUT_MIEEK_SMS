@@ -636,6 +636,24 @@ For each course, view:
 - Uncheck absences individually
 - Saves time for large classes
 
+**Lesson Log (Material Covered and Teacher's Notes):**
+
+Under the student list, once a course and a date are selected, the **Lesson log** card lets you record what was taught:
+
+1. Write the **Material covered** (the syllabus content of the lesson)
+
+2. Write your own **Teacher's notes** in the second box (visible to teachers and administrators only)
+
+3. If the course has several periods that day, pick the period with the buttons at the top of the card (**Period 1**, **Period 2**, ...); each period has its own entry
+
+4. There is nothing to click: both boxes **save automatically** about 2 seconds after you stop typing, and immediately when you leave a box. A line under the boxes shows *Saving…*, *Saved*, or — if the connection is down — that the text is kept on this device and will be sent when it returns
+
+**Reviewing and editing earlier entries:**
+
+- At the bottom of the Attendance page, open **Lesson log history** for the selected course
+- Entries are listed newest first; click **Edit** on an entry to change it (it saves automatically too) and **Close** when finished
+- The title shows how many entries the course has; use **Load more** for older ones
+
 ### Viewing Attendance
 
 **Individual Student:**

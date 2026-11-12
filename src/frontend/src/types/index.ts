@@ -70,6 +70,27 @@ export interface Attendance {
   notes?: string;
 }
 
+/** Material covered and the teacher's notes for one teaching period (GET/PUT /lesson-logs/). */
+export interface LessonLog {
+  id: number;
+  course_id: number;
+  date: string;
+  period_number: number;
+  material_covered: string | null;
+  teacher_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Body of PUT /lesson-logs/: a text field that is left out keeps its stored value; '' clears it. */
+export interface LessonLogSavePayload {
+  course_id: number;
+  date: string;
+  period_number: number;
+  material_covered?: string;
+  teacher_notes?: string;
+}
+
 export interface CourseEnrollment {
   id: number;
   student_id: number;
