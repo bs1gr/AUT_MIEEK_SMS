@@ -1135,6 +1135,40 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+    - **Host research, done 2026-11-12 (web research by the assistant; a proposal, not yet
+      approved, and nothing was deployed or measured).** Free-tier terms as read that day:
+      - *Oracle Always Free* is the only candidate that is free, can sit in the EU and gives a
+        real VM with a persistent disk. The ARM (A1) allowance was halved on 2026-06-15 to
+        2 OCPU / 12 GB in total (still far more than the app needs); two AMD micro VMs (1/8 OCPU,
+        1 GB each) are the fallback; 200 GB block storage, 10 TB egress. The resources exist only
+        in the home region chosen at signup, so the account must be opened with Frankfurt (or
+        another EU region). A card and a phone number are needed at signup. An instance is
+        reclaimed when, over 7 days, CPU p95, network and (A1 only) memory all stay under 20%:
+        a small idle app is below that. "Out of host capacity" for A1 is documented by Oracle.
+      - *Ruled out:* GCP e2-micro (free only in three US regions, so no EU residency); Render
+        free (sleeps after 15 minutes, about a minute to wake, no persistent disk); Koyeb
+        (scale-to-zero, no volumes, and its pricing page no longer lists a free plan after the
+        Mistral acquisition); Fly.io, AWS and Azure (no always-free VM confirmed).
+      - *Tailscale Personal plan:* subnet routers and Funnel are available on every plan, but
+        the plan is licensed for non-commercial use; whether a college's app counts was not
+        confirmed.
+      - *Paid fallback if free hosting fails:* Hetzner CPX02 (1 vCPU, 1 GB, 20 GB), about
+        €5.49–6.49 a month before VAT.
+      - **Proposed decision:** Oracle Always Free, home region Frankfurt, A1 with the AMD micro
+        as fallback (the image must then build for arm64, see the code findings above).
+        Topology A first (backend on the VM, PostgreSQL stays on the QNAP over Tailscale): it
+        keeps the student data at home, so the GDPR question is transit and processing rather
+        than storage, and the VM stays disposable. It does not remove the home dependency (the
+        QNAP and the home line must be up); only topology B does, and B puts the data on a tier
+        with no SLA found and reported unexplained account terminations, so it needs a nightly
+        `pg_dump` to the QNAP and a tested restore before it is trusted.
+      - **Not confirmed, to settle before any deployment:** whether Oracle's DPA covers Always
+        Free tenancies and whether ΜΙΕΕΚ policy allows the data to be processed there; whether
+        upgrading to Pay As You Go (resources stay free) really exempts an instance from idle
+        reclamation; A1 capacity in Frankfurt on the day; VM-to-QNAP latency (measure on a real
+        VM). Sources: Oracle's Always Free resources page, Google Cloud's free-features page,
+        Render's and Koyeb's free-tier docs and pricing pages, Tailscale's pricing and
+        subnet/Funnel docs, Hetzner's cloud page, and InfoQ (2026-07) for the A1 cut.
 39. **Run the Docker publish workflow once, or retire it** (raised 2026-11-12, plan-review) —
     `docker-publish.yml` ("Manual Docker Publish and Release", dispatch-only, pushes to `ghcr.io`)
     has no run on record. `docker/build-push-action` v7 and `docker/login-action` v4 were merged in
@@ -1142,6 +1176,20 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     executed here, and every release since has said "Docker publish was not run". A dispatch
     publishes an image, which is public, so the owner chooses the tag; if Docker publishing is
     retired, delete the workflow and say so here.
+    - **2026-11-12, the build half is now exercised; the publish itself stays the owner's call.**
+      The workflow got a `dry_run` input (build the dispatched ref, `push: false`, no Docker Hub
+      login). A dry run on the branch (run 43292574583) succeeded: `docker/login-action` v4
+      logged in to `ghcr.io`, `docker/build-push-action` v7 built `Dockerfile.fullstack`, the log
+      shows `push: false`, and the registry was unchanged afterwards. Only the push step of v7
+      is still unexecuted.
+    - **Bug found and fixed in the same change:** the workflow checked out the dispatched ref
+      and labelled the image with the input tag, so a dispatch on `main` would have published
+      unreleased commits as that release. A publish now checks out `refs/tags/<tag>` first
+      (that path runs only in a real publish, so it is untested).
+    - **For the decision:** the public package `ghcr.io/bs1gr/aut_mieek_sms` still exists and
+      its `latest` is **1.18.1 from 2026-06-16**. No install pulls it (`DOCKER.ps1` builds
+      locally). Either publish the current release so `latest` is not five months stale (todo
+      19's cloud VM would pull this image), or retire the workflow and delete the package.
 40. **A real Update install, end to end** (open since the v1.18.57 smoke test, 2026-10-13; todo 28) —
     verified so far: the update check offers the published release on a frozen Lite and on Docker.
     Never exercised: the Lite installer through UAC, the Docker host task, and the Android offer on
