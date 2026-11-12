@@ -44,11 +44,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.18.66] - 2026-11-12
 
-### Documentation
-- **plan**: record v1.18.65 release
+Maintenance release: dependency updates only. No new features and no database changes.
+
+### Dependencies
+- **backend**: SQLAlchemy 2.1.8, psycopg 3.3.8, pydantic 2.14.3, python-socketio 5.18.1, pandas 3.1.1, python-multipart 0.0.33, virtualenv 21.15.5 and ruff 0.17.4 (pip group, #357); pytest-asyncio 1.4.1.post1 (#358); types-requests (#359)
+- **frontend**: npm minor/patch group of 92 updates, including TanStack Query 5.106, i18next 26.7, react-i18next 17.1, lucide-react 1.69, Vite 8.3.6 and Playwright 1.65 (#360)
+- **frontend**: five `@babel/*` patch updates (#362-#366)
+- **frontend**: `@types/node` 24 to 25, type definitions only (#361)
 
 ### CI/CD
-- **gitleaks**: retry the Gitleaks download; docs(plan): record main since v1.18.65 (#367)
+- **gitleaks**: the secret-scan download retries transient errors and fails at once on an HTTP error (#367)
+
+### Documentation
+- **plan**: record the v1.18.65 release and the changes on `main` since (#367)
 
 ## [1.18.65] - 2026-11-06
 
