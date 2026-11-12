@@ -47,7 +47,8 @@ written by hand in `d2cb7eba9`, before the tag (the generator was fixed afterwar
 `lesson_logs` table through the additive migration `c8e1f4a7d2b9`), then the release-notes
 `Dependencies` category and three dev-tooling fixes (todos 42 and 43: `COMMIT_READY` in a git
 worktree, the Playwright global setup following `PLAYWRIGHT_API_BASE_URL`, and a per-test restore of
-logging and environment state in the backend tests). A v1.18.67 release has not been requested.
+logging and environment state in the backend tests). **The owner asked for v1.18.67 on 2026-11-12,
+after the smoke test below**; it ships the lesson log, those fixes and the two smoke-test fixes.
 
 **Pre-release smoke test of `main` (2026-11-12, `3e2c24b9d`, asked for by the owner before
 deciding on v1.18.67).** Run from a clone, on throwaway databases only (never the QNAP one):
@@ -1174,8 +1175,9 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
-    - **Host research, done 2026-11-12 (web research by the assistant; a proposal, not yet
-      approved, and nothing was deployed or measured).** Free-tier terms as read that day:
+    - **Host research, done 2026-11-12 (web research by the assistant; nothing was deployed or
+      measured). The owner approved the proposed decision the same day, on the condition that the
+      current setup stays as a backup; the work continues in todo 44.** Free-tier terms as read that day:
       - *Oracle Always Free* is the only candidate that is free, can sit in the EU and gives a
         real VM with a persistent disk. The ARM (A1) allowance was halved on 2026-06-15 to
         2 OCPU / 12 GB in total (still far more than the app needs); two AMD micro VMs (1/8 OCPU,
@@ -1208,7 +1210,13 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         VM). Sources: Oracle's Always Free resources page, Google Cloud's free-features page,
         Render's and Koyeb's free-tier docs and pricing pages, Tailscale's pricing and
         subnet/Funnel docs, Hetzner's cloud page, and InfoQ (2026-07) for the A1 cut.
-39. **Run the Docker publish workflow once, or retire it** (raised 2026-11-12, plan-review) —
+39. ~~**Run the Docker publish workflow once, or retire it**~~ — **decided by the owner
+    2026-11-12:** the public image `ghcr.io/bs1gr/aut_mieek_sms` was an attempt to run the whole
+    stack in the QNAP's Docker environment; the limits of that system made the owner abandon it,
+    so the old image is obsolete and will not be refreshed. A proper full-stack image for a cloud
+    host is a new effort with that host's requirements (todos 44 and 48); the workflow stays as
+    its vehicle. Still open, for the owner to confirm: deleting the stale public package (its
+    `latest` is 1.18.1). Original text (raised 2026-11-12, plan-review) —
     `docker-publish.yml` ("Manual Docker Publish and Release", dispatch-only, pushes to `ghcr.io`)
     has no run on record. `docker/build-push-action` v7 and `docker/login-action` v4 were merged in
     the 2026-10-12 Actions-majors round after a check only for removed inputs, so neither has ever
@@ -1320,6 +1328,36 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       (`assert 'Slow query detected' in ''`). It deliberately does not touch the root logger's
       handlers or levels (pytest swaps its own handlers per phase), which `fileConfig` also
       replaces; extend it if a leak of that kind shows up.
+44. **Cloud host: deploy the backend on Oracle Always Free, keeping today's setup as the backup**
+    (owner approved todo 19's proposal on 2026-11-12) — Oracle Always Free, home region
+    Frankfurt, ARM (A1) with the AMD micro as fallback; the backend on the VM, PostgreSQL stays on
+    the QNAP over Tailscale. **Owner's condition: the current way of running (the home PC's Docker
+    or Lite against the QNAP database) stays in place as a backup, for redundancy**; the cloud
+    host is added, nothing is retired. Steps, in order:
+    - *Repository side (the assistant can do these now):* an image that runs on arm64 (never
+      built: settle the Python wheels with a build-only run, see todo 48); a short Linux deploy
+      for the VM (compose file, environment template, no `DOCKER.ps1`); `CORS_ORIGINS` with
+      `https://localhost` and `TRUSTED_HOSTS` for the VM; a runbook under `docs/deployment/`.
+    - *Owner side:* open the Oracle account with Frankfurt as home region (card and phone needed),
+      create the VM, join it to the tailnet. Before student data flows through it: confirm that
+      Oracle's data-processing agreement covers Always Free and that ΜΙΕΕΚ policy allows it.
+    - *Then, on the real VM:* measure VM-to-QNAP latency, decide how to keep the instance from
+      being reclaimed as idle, point one phone at it, and write down how to switch a phone back
+      to the home address when the VM is unavailable (and the other way round).
+45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
+    the owner) — a PDF and an Excel of the material covered, by date and teaching period, so it
+    can serve as the official record. Today it can only be read on the Attendance page. To decide
+    while building: whether the teacher's notes are included (default: no, they are private).
+46. **Lesson log: record who last edited an entry** (suggested 2026-11-12, accepted) — any admin,
+    staff or teacher account can read and overwrite any course's entries and no author is stored.
+    Add `updated_by` through an additive migration and show it in the history. Restricting the
+    private notes to their author is a bigger choice and is not part of this todo.
+47. **Lesson log in the semester export / import** (suggested 2026-11-12, accepted) — it is left
+    out today, so moving a semester between installs drops it.
+48. **Docker image: build-only run before each tag, and an arm64 build** (suggested 2026-11-12,
+    accepted) — dispatch `docker-publish.yml` with `dry_run` in the release flow, so a broken
+    `Dockerfile.fullstack` shows in CI and not on the owner's PC, and add `linux/arm64` to it
+    (needed for todo 44's ARM VM; whether every Python wheel exists for arm64 is unknown).
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and
