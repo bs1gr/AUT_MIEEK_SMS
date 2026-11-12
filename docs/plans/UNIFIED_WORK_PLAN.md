@@ -41,7 +41,13 @@ Valid" and the frozen-Lite check passing in CI.
 **Release-notes gap, worked around:** the notes generator does not recognise Dependabot's `deps:`
 commits ("Found 10 unrecognized commits"), so the generated GitHub release body had an empty "What's
 Included" section and the CHANGELOG entry listed none of the ten updates. The v1.18.66 notes were
-written by hand in `d2cb7eba9`, before the tag (todo 42 tracks the generator).
+written by hand in `d2cb7eba9`, before the tag (the generator was fixed afterwards, todo 42).
+
+**On `main` since v1.18.66 (unreleased):** the attendance lesson log (todo 41, #368; it adds the
+`lesson_logs` table through the additive migration `c8e1f4a7d2b9`), then the release-notes
+`Dependencies` category and three dev-tooling fixes (todos 42 and 43: `COMMIT_READY` in a git
+worktree, the Playwright global setup following `PLAYWRIGHT_API_BASE_URL`, and a per-test restore of
+logging and environment state in the backend tests). A v1.18.67 release has not been requested.
 
 ### v1.18.65 (2026-11-06; tag on `de71fd9cf`, run by the owner)
 
@@ -1178,31 +1184,55 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     - **When it ships:** every startup path (native dev server, Docker entrypoint, SMS Lite) applies
       the migration, so the shared QNAP database gets the table the first time a build containing it
       starts against it. It is additive, so installs that are still older keep working.
-42. **Release notes skip Dependabot's `deps:` commits** (found 2026-11-12, cutting v1.18.66) —
-    `GENERATE_RELEASE_DOCS.ps1` reports them as "unrecognized": it lists them only under "Other
-    Changes" in `docs/releases/RELEASE_NOTES_v<version>.md` and leaves them out of `CHANGELOG.md`
-    and the GitHub release body (`.github/RELEASE_NOTES_v<version>.md`). For v1.18.66, a release
-    made only of dependency updates, the body had an empty "What's Included" section (v1.18.65 had
-    the same gap), so the notes were written by hand. Fix: file `deps` / `deps-dev` commits under a
-    "Dependencies" heading in all three outputs, with a test.
-43. **Dev tooling problems found while building todo 41** (2026-11-12; none blocks anything):
-    - **`COMMIT_READY.ps1` cannot run in a git worktree.** Its hook-install step builds
-      `$PROJECT_ROOT\.git\hooks\pre-commit`, and in a worktree `.git` is a file, so the script stops
-      with "Could not find a part of the path" (line ~409). Resolve the path with
-      `git rev-parse --git-path hooks/pre-commit`. A worktree would otherwise be the safe place to
-      work on a migration while the native dev server runs from the main tree: that server
-      (`uvicorn --reload`) applies every migration file it sees to the shared QNAP database at each
-      restart. A local clone was used instead.
-    - **`playwright-global-setup.ts` always checks `http://127.0.0.1:8000`** (and would start a
-      backend there) even when `PLAYWRIGHT_BASE_URL` points at another port, so an isolated E2E run
-      still reaches whatever is on :8000. It should follow `PLAYWRIGHT_BASE_URL`.
-    - **Alembic-in-process tests leak process state.** Tests that run migrations with `alembic.ini`
-      (`test_registration_pending_migration.py`, `test_run_migrations*.py`) make `env.py` call
-      `logging.config.fileConfig`, which disables every existing logger, and `setdefault`
-      `SMS_PROJECT_ROOT`. They are harmless only because they sort after `test_performance_monitor.py`:
-      CI runs the whole backend suite in one process (`pytest tests/ -m "not slow"`), where the new
-      `test_lesson_logs_migration.py` broke that test on all three backend jobs until it built its
-      `Config` without the ini file. The older tests should do the same.
+42. ~~**Release notes skip Dependabot's `deps:` commits**~~ (found 2026-11-12, cutting v1.18.66) —
+    **fixed 2026-11-12; takes effect from the next release.** `GENERATE_RELEASE_DOCS.ps1` reported
+    them as "unrecognized": they appeared only under "Other Changes" in
+    `docs/releases/RELEASE_NOTES_v<version>.md` and were left out of `CHANGELOG.md` and the GitHub
+    release body (`.github/RELEASE_NOTES_v<version>.md`), so a release made only of dependency
+    updates (v1.18.65, v1.18.66) had an empty "What's Included" section and its notes were written
+    by hand. `deps:` commits (the prefix Dependabot uses here) now get a "Dependencies" heading in
+    all three outputs; the GitHub body counts them under "What's Included" and, when a release has
+    no features, fixes or dependency updates, says it is a maintenance release.
+    `test_release_docs_generator.py` runs the real generator against a throwaway git repository
+    and checks all three outputs; it fails without the change.
+43. ~~**Dev tooling problems found while building todo 41**~~ (2026-11-12) — **all three fixed
+    2026-11-12:**
+    - **`COMMIT_READY.ps1` could not run in a git worktree.** Its hook-install step built
+      `$PROJECT_ROOT\.git\hooks\pre-commit`, and in a worktree `.git` is a file, so the script
+      stopped with "Could not find a part of the path" before any check ran. It now asks git
+      (`Get-PreCommitHookPath`: `git rev-parse --git-path hooks/pre-commit`, so a worktree uses the
+      main checkout's hooks and `core.hooksPath` is honoured).
+      `test_commit_ready_hook_path.py` runs that function, taken from the script itself, in a normal
+      checkout, a linked worktree, a custom hooks path and a non-repository. A worktree is the
+      natural place to work on a migration while the native dev server runs from the main tree: that
+      server (`uvicorn --reload`) applies every migration file it sees to the shared QNAP database
+      at each restart. Only the hook step was seen to stop the script; the rest of it has not been
+      run from a worktree.
+    - **`playwright-global-setup.ts` always checked `http://127.0.0.1:8000`** (and would start a
+      backend there) even when the run was pointed at another backend, so an isolated E2E run still
+      reached whatever was on :8000. It now uses `getApiBase()` like the specs and the teardown
+      (`PLAYWRIGHT_API_BASE_URL`, else derived from `PLAYWRIGHT_BASE_URL`: the same origin on a
+      Docker port, otherwise that host on :8000; else `127.0.0.1:8000`), and never tries to start
+      a backend that is not on this machine. Checked
+      against a stand-in server on :8011 (it received `GET /health` and the run reported that URL)
+      and against an unreachable remote URL (warning only, nothing started). The file is outside
+      every tsconfig and the `lint` glob (`src/**`); it was type-checked on its own, which also
+      removed an unused `config` parameter.
+    - **Alembic-in-process tests leaked process state.** Tests that run migrations with
+      `alembic.ini` (`test_registration_pending_migration.py`, `test_run_migrations*.py`) make
+      `env.py` call `logging.config.fileConfig`, which disables every existing logger, and
+      `setdefault` `SMS_PROJECT_ROOT` / `PYTHONPATH`. They were harmless only because they sort
+      after `test_performance_monitor.py`: CI runs the whole backend suite in one process
+      (`pytest tests/ -m "not slow"`), where the new `test_lesson_logs_migration.py` broke that test
+      on all three backend jobs until it built its `Config` without the ini file. Instead of
+      changing every such test, `tests/conftest.py` now has an autouse fixture,
+      `restore_process_state` (`tests/process_state.py`), that puts back which loggers are
+      disabled, `logging.disable` and those two variables after every test, so no test can do this
+      again whatever it sorts before. Shown on the real failure: an ini-based Alembic run followed
+      by `test_performance_monitor.py` passes with the fixture and fails with it switched off
+      (`assert 'Slow query detected' in ''`). It deliberately does not touch the root logger's
+      handlers or levels (pytest swaps its own handlers per phase), which `fileConfig` also
+      replaces; extend it if a leak of that kind shows up.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and

@@ -65,6 +65,8 @@ from backend.tests.db_setup import TestingSessionLocal, engine
 # Import ORM Base for schema creation
 from backend.models import Base
 
+from backend.tests.process_state import restored_process_state
+
 # CRITICAL: Create all database tables at module load time
 # This ensures tables exist before any fixtures run or tests execute
 # This is necessary for session-scoped fixtures to work properly in pytest
@@ -215,6 +217,19 @@ def protect_developer_env_file():
             "(monkeypatch the writer's path to tmp_path).",
             stacklevel=1,
         )
+
+
+@pytest.fixture(scope="function", autouse=True)
+def restore_process_state():
+    """Nothing a test changes process-wide may reach the tests after it.
+
+    CI runs the whole backend suite in one process. An Alembic run with an ini file calls
+    logging.config.fileConfig(), which disables every existing logger, and a later test that reads
+    its log output (test_performance_monitor) then fails although nothing in it is wrong.
+    See tests/process_state.py for what is restored.
+    """
+    with restored_process_state():
+        yield
 
 
 @pytest.fixture(scope="function", autouse=True)
