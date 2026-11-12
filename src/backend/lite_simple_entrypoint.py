@@ -497,12 +497,22 @@ def main() -> None:
 
     # Serve index.html for all non-API routes (SPA routing)
     @app.get("/{path:path}")
-    async def serve_frontend(path: str):
+    async def serve_frontend(path: str, request: _Request):
         if path.startswith("api/") or path.startswith("control/"):
             # API and control routes are handled by routers — return 404 so the
             # actual route handler (or the error handler) produces the real response
             # instead of silently serving index.html (which breaks JSON callers).
-            from fastapi.responses import JSONResponse
+            from fastapi.responses import JSONResponse, RedirectResponse
+
+            # This catch-all matches before the router's own trailing-slash redirect can
+            # run, so GET /api/v1/students (declared as /students/) was a 404 here while
+            # every other edition redirects it. Do the same redirect; a path that still
+            # matches nothing comes back here with its slash and gets the 404.
+            if not path.endswith("/"):
+                target = "/" + path + "/"
+                if request.url.query:
+                    target += "?" + request.url.query
+                return RedirectResponse(target, status_code=307)
             return JSONResponse({"detail": "Not found"}, status_code=404)
 
         # Real files in the bundled dist must win over the SPA fallback. This used to
