@@ -1,8 +1,10 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.65
-**Last Updated**: November 6, 2026
-**Status**: ✅ **v1.18.65 released 2026-11-06** (tag on `de71fd9cf`, run by the owner).
+**Last Updated**: November 12, 2026
+**Status**: ✅ **v1.18.65 released 2026-11-06** (tag on `de71fd9cf`, run by the owner). `main` is ten
+Dependabot merges ahead of it (see "On `main` since the v1.18.65 tag" below); v1.18.66 is being cut
+from `main` on 2026-11-12.
 
 v1.18.65 is a maintenance release: the `NATIVE_TOGGLE.ps1` PID-file fix, the minimatch 11 / glob 14 /
 rimraf 6.1.4 security bump and routine Dependabot updates (pypdf, pytest, mypy, babel, pip and npm
@@ -13,6 +15,24 @@ gated skips, 0 failed). **Verified on the published assets:** `SMS_Installer_1.1
 bytes, SHA-256 `24edd8cd…38df2` = GitHub's digest. Installer, APK and release workflows on the tag
 and the `main` CI/E2E runs all succeeded. Todo 36 (system bars on a real phone) closed by the owner;
 Dependabot alert #300 is dismissed as tolerable risk.
+
+**On `main` since the v1.18.65 tag (2026-11-09 and 11-10):** ten Dependabot merges, #357–#366, with
+CI/CD and E2E green on the tip (`296db7ba0`). None of it was in v1.18.65.
+- pip minor/patch group (#357): SQLAlchemy 2.1.8, psycopg 3.3.8, pydantic 2.14.3, python-socketio
+  5.18.1, pandas 3.1.1, python-multipart 0.0.33, virtualenv 21.15.5, ruff 0.17.4. SMS Lite bundles
+  the runtime ones, so the frozen-Lite check in the next installer build is the real test. Also
+  pytest-asyncio 1.4.1.post1 (#358) and types-requests (#359).
+- npm minor/patch group of 92 updates (#360) and five `@babel/*` patch bumps (#362–#366).
+- `@types/node` 24 → 25 (#361), a major. The 2026-10-12 "ignore this major" covered only 26 ("the
+  runtime is Node 22"); CI and the APK build run Node 22, the E2E and dependency workflows Node 24,
+  and nothing runs 25. It is types only and green; whether to ignore the major is the owner's call.
+- **CI flake, hardened.** The `Install Gitleaks` step failed on at least seven Dependabot branches
+  between 05:29 and 06:01 UTC on 2026-11-09 (plus one CodeQL `Initialize CodeQL` failure) and passed
+  later: #357, #360 and #361 merged on 2026-11-10 with every non-skipped check green. The step
+  downloaded with `curl -sSL` (no `-f`, no retry) and its error text could not be retrieved, so a
+  transient download failure is an inference. Both downloads now use `curl -fsSL --retry 5
+  --retry-delay 3 --retry-all-errors`. One Dependabot npm version-update job also timed out that
+  day (npm hung 900 s on `typescript`); later runs succeeded.
 
 ### v1.18.64 (2026-10-28; tag on `b57d08916`, run by the assistant)
 
@@ -1088,6 +1108,18 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
         currently has no `CORS_ORIGINS`. `TRUSTED_HOSTS` must also name the VM's host/IP.
     - **Deliverable of the research step:** a written decision (host, topology, exposure model,
       backup plan) recorded here, for the owner to approve before any deployment work.
+39. **Run the Docker publish workflow once, or retire it** (raised 2026-11-12, plan-review) —
+    `docker-publish.yml` ("Manual Docker Publish and Release", dispatch-only, pushes to `ghcr.io`)
+    has no run on record. `docker/build-push-action` v7 and `docker/login-action` v4 were merged in
+    the 2026-10-12 Actions-majors round after a check only for removed inputs, so neither has ever
+    executed here, and every release since has said "Docker publish was not run". A dispatch
+    publishes an image, which is public, so the owner chooses the tag; if Docker publishing is
+    retired, delete the workflow and say so here.
+40. **A real Update install, end to end** (open since the v1.18.57 smoke test, 2026-10-13; todo 28) —
+    verified so far: the update check offers the published release on a frozen Lite and on Docker.
+    Never exercised: the Lite installer through UAC, the Docker host task, and the Android offer on
+    a device. Each needs an install one release behind a published one, for example v1.18.65 on a PC
+    once v1.18.66 is out.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and

@@ -273,9 +273,11 @@ jobs:
           GITLEAKS_VERSION="8.18.4"
           RELEASE_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
 
-          # Download the binary and checksums
-          curl -sSL "${RELEASE_URL}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
-          curl -sSL "${RELEASE_URL}/gitleaks_${GITLEAKS_VERSION}_checksums.txt" -o checksums.txt
+          # Download the binary and checksums. -f makes an HTTP error fail the download itself
+          # (not surface later as a checksum mismatch on an error page); --retry rides out the
+          # transient release-CDN failures that broke seven Dependabot runs on 2026-11-09.
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors "${RELEASE_URL}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors "${RELEASE_URL}/gitleaks_${GITLEAKS_VERSION}_checksums.txt" -o checksums.txt
 
           # Verify integrity using SHA256
           echo "Verifying SHA256 checksum..."
