@@ -1,8 +1,37 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.66
-**Last Updated**: November 12, 2026
-**Status**: ✅ **v1.18.66 released 2026-11-12** (tag on `d2cb7eba9`, run by the assistant).
+**Current Version**: 1.18.67
+**Last Updated**: November 13, 2026
+**Status**: ✅ **v1.18.67 released 2026-11-13** (tag on `ec987afa8`, run by the assistant).
+
+v1.18.67 ships the attendance lesson log (todo 41, #368), the tooling fixes (todos 42 and 43,
+# 369), the Docker publish workflow fix (#370) and the two bugs the pre-release smoke test found
+(#371: teacher report permissions with migration `d3a7b9c1e5f2`, and SMS Lite's 404 on API paths
+without a trailing slash). Two additive migrations: `c8e1f4a7d2b9` (`lesson_logs`) and
+`d3a7b9c1e5f2`. The smoke test is described under "On `main` since v1.18.66" below.
+
+**Before the tag:** `RELEASE_READY` (no `-TagRelease`) took 36 minutes and exited 0: every
+`COMMIT_READY -Quick` gate passed, the backend suite ran 1313 passed, 39 gated skips, 0 failed,
+and the local installer was built and signed with the frozen-Lite check passing 11/11. The
+generated GitHub body only counted "1 new feature, 1 bug fix" (the generator lists changes in
+the CHANGELOG, not in the body), so it was rewritten by hand in `ec987afa8`; the tag was pushed
+once CI/CD and E2E were green on that commit.
+
+**Verified on the published assets:** `SMS_Installer_1.18.67.exe` 87,552,824 bytes, SHA-256
+`2db12bdc…71df2` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK (Limassol),
+thumbprint `2693C1B1…075D`, DigiCert timestamp, file and product version v1.18.67;
+`SMS_Android_1.18.67.apk` 4,191,900 bytes, SHA-256 `b8393d5c…22421` = GitHub's digest,
+`versionName 1.18.67` / `versionCode 118067`, min SDK 24, target SDK 36, signed with the same
+certificate as v1.18.66 (SHA-256 `686fb6ed…d2ea`, so phones upgrade in place). The release,
+installer and APK workflows on the tag succeeded. Not checked: the installer was not installed,
+and the APK was not run on a device.
+
+**Release-flow note:** a `COMMIT_READY` run in a clone upgrades packages in the main tree's
+root `.venv`; the owner's dev backend (`uvicorn --reload`, started from the project root) saw
+those files change and restarted three times, which Vite reported as `ECONNRESET`. Starting it
+with `--reload-dir src/backend` would stop that.
+
+### v1.18.66 (2026-11-12; tag on `d2cb7eba9`, run by the assistant)
 
 v1.18.66 is a maintenance release: ten Dependabot merges (#357–#366) and a CI fix (#367). No
 features and no database changes.
@@ -43,7 +72,7 @@ commits ("Found 10 unrecognized commits"), so the generated GitHub release body 
 Included" section and the CHANGELOG entry listed none of the ten updates. The v1.18.66 notes were
 written by hand in `d2cb7eba9`, before the tag (the generator was fixed afterwards, todo 42).
 
-**On `main` since v1.18.66 (unreleased):** the attendance lesson log (todo 41, #368; it adds the
+**On `main` since v1.18.66 (released in v1.18.67):** the attendance lesson log (todo 41, #368; it adds the
 `lesson_logs` table through the additive migration `c8e1f4a7d2b9`), then the release-notes
 `Dependencies` category and three dev-tooling fixes (todos 42 and 43: `COMMIT_READY` in a git
 worktree, the Playwright global setup following `PLAYWRIGHT_API_BASE_URL`, and a per-test restore of
