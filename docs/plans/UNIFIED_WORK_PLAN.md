@@ -1185,6 +1185,24 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     made only of dependency updates, the body had an empty "What's Included" section (v1.18.65 had
     the same gap), so the notes were written by hand. Fix: file `deps` / `deps-dev` commits under a
     "Dependencies" heading in all three outputs, with a test.
+43. **Dev tooling problems found while building todo 41** (2026-11-12; none blocks anything):
+    - **`COMMIT_READY.ps1` cannot run in a git worktree.** Its hook-install step builds
+      `$PROJECT_ROOT\.git\hooks\pre-commit`, and in a worktree `.git` is a file, so the script stops
+      with "Could not find a part of the path" (line ~409). Resolve the path with
+      `git rev-parse --git-path hooks/pre-commit`. A worktree would otherwise be the safe place to
+      work on a migration while the native dev server runs from the main tree: that server
+      (`uvicorn --reload`) applies every migration file it sees to the shared QNAP database at each
+      restart. A local clone was used instead.
+    - **`playwright-global-setup.ts` always checks `http://127.0.0.1:8000`** (and would start a
+      backend there) even when `PLAYWRIGHT_BASE_URL` points at another port, so an isolated E2E run
+      still reaches whatever is on :8000. It should follow `PLAYWRIGHT_BASE_URL`.
+    - **Alembic-in-process tests leak process state.** Tests that run migrations with `alembic.ini`
+      (`test_registration_pending_migration.py`, `test_run_migrations*.py`) make `env.py` call
+      `logging.config.fileConfig`, which disables every existing logger, and `setdefault`
+      `SMS_PROJECT_ROOT`. They are harmless only because they sort after `test_performance_monitor.py`:
+      CI runs the whole backend suite in one process (`pytest tests/ -m "not slow"`), where the new
+      `test_lesson_logs_migration.py` broke that test on all three backend jobs until it built its
+      `Config` without the ini file. The older tests should do the same.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and
