@@ -5,6 +5,7 @@ from the models when migrations cannot run), and it must give the table the uniq
 course + date + period key that the upsert and its retry rely on.
 """
 
+import os
 from pathlib import Path
 
 import pytest
@@ -17,11 +18,28 @@ PREVIOUS_HEAD = "f2b6d8a1c3e5"
 def _alembic(url: str):
     from alembic.config import Config
 
+    # Deliberately no alembic.ini. migrations/env.py calls logging.config.fileConfig() whenever the
+    # config has a file name, and fileConfig() disables every logger that already exists. CI runs
+    # the whole backend suite in one process and this file sorts before test_performance_monitor,
+    # whose log capture then saw nothing ("Slow query detected" missing). With no file name,
+    # env.py skips it; the script location and the database are set explicitly below.
     backend_dir = Path(__file__).resolve().parents[1]
-    cfg = Config(str(backend_dir / "alembic.ini"))
+    cfg = Config()
     cfg.set_main_option("script_location", str(backend_dir / "migrations"))
     cfg.set_main_option("sqlalchemy.url", url)
     return cfg
+
+
+@pytest.fixture(autouse=True)
+def _restore_environment():
+    """env.py setdefault()s these two variables; do not leak them into the tests that follow."""
+    saved = {name: os.environ.get(name) for name in ("SMS_PROJECT_ROOT", "PYTHONPATH")}
+    yield
+    for name, value in saved.items():
+        if value is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = value
 
 
 @pytest.fixture
@@ -105,6 +123,23 @@ def test_upgrade_is_a_no_op_when_the_table_already_exists(deployed):
     command.upgrade(cfg, "head")  # must not fail with "table already exists"
 
     assert "lesson_logs" in inspect(engine).get_table_names()
+
+
+def test_running_the_migration_leaves_logging_alone(deployed):
+    # logging.config.fileConfig() would disable this logger (see _alembic) and with it the log
+    # capture of every test that runs later in the same process.
+    import logging
+
+    from alembic import command
+
+    cfg, _engine = deployed
+    canary = logging.getLogger("backend.tests.lesson_logs_migration_canary")
+    assert not canary.disabled
+
+    command.upgrade(cfg, "head")
+
+    assert not canary.disabled
+    assert "SMS_PROJECT_ROOT" in os.environ  # env.py does set it; the fixture undoes it afterwards
 
 
 def test_downgrade_removes_the_table(deployed):
