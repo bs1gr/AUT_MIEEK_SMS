@@ -12,6 +12,15 @@ on:
         required: false
         type: boolean
         default: false
+      platforms:
+        description: 'Target platforms (arm64 is built under QEMU emulation)'
+        required: false
+        type: choice
+        default: linux/amd64
+        options:
+          - linux/amd64
+          - linux/arm64
+          - linux/amd64,linux/arm64
 
 env:
   DOCKER_REGISTRY: ghcr.io
@@ -44,6 +53,10 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: refs/tags/${{ steps.version.outputs.version_tag }}
+
+      - name: Set up QEMU (only when a non-native platform is built)
+        if: ${{ contains(inputs.platforms, 'arm64') }}
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -79,6 +92,7 @@ jobs:
         with:
           context: .
           file: ./infra/docker/compose/Dockerfile.fullstack
+          platforms: ${{ inputs.platforms }}
           push: ${{ !inputs.dry_run }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
