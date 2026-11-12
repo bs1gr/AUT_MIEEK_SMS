@@ -42,6 +42,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.67] - 2026-11-13
+
+### Features
+- **attendance**: lesson log - material covered and teacher's notes per teaching period (#368)
+
+### Bug Fixes
+- **rbac,lite**: teachers can load the Dashboard and Analytics; Lite redirects slash-less API paths (#371)
+
+### Documentation
+- **plan**: owner decisions of 2026-11-12 - v1.18.67 requested, cloud host approved, old Docker image abandoned; todos 44-48 (#372)
+- **plan**: record v1.18.66 release; add todos 41 and 42
+
+### CI/CD
+- **docker-publish**: build from the release tag, add a dry run; plan: cloud-host research (#370)
+
+### Chores
+- **tooling**: close plan todos 42 and 43 (release notes, worktree gate, E2E setup, test isolation) (#369)
+
 ## [1.18.66] - 2026-11-12
 
 Maintenance release: dependency updates only. No new features and no database changes.
@@ -4842,6 +4861,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
