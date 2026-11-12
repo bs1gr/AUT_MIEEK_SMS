@@ -1215,8 +1215,10 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     stack in the QNAP's Docker environment; the limits of that system made the owner abandon it,
     so the old image is obsolete and will not be refreshed. A proper full-stack image for a cloud
     host is a new effort with that host's requirements (todos 44 and 48); the workflow stays as
-    its vehicle. Still open, for the owner to confirm: deleting the stale public package (its
-    `latest` is 1.18.1). Original text (raised 2026-11-12, plan-review) —
+    its vehicle. **The stale public package was deleted on 2026-11-13 on the owner's
+    instruction** (1306 versions, 7 tagged, newest `1.18.1` from 2026-06-16; nothing in the
+    repository pulled it). A future publish creates it afresh. Original text (raised 2026-11-12,
+    plan-review) —
     `docker-publish.yml` ("Manual Docker Publish and Release", dispatch-only, pushes to `ghcr.io`)
     has no run on record. `docker/build-push-action` v7 and `docker/login-action` v4 were merged in
     the 2026-10-12 Actions-majors round after a check only for removed inputs, so neither has ever
