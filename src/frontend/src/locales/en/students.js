@@ -99,7 +99,7 @@ export default {
   noteSaveFailed: 'Not saved. It will be retried on your next change.',
   notePrivateHint: 'Your own notes: only your account can see them.',
   privacyPanelTitle: 'Personal data (administrators only)',
-  privacyPanelHint: 'Health information is shown nowhere else. The file and the erasure answer a request from the student under data protection law.',
+  privacyPanelHint: 'The file and the erasure answer a request from the student under data protection law. Health information, where this installation records it, is shown nowhere else.',
   healthInfoLabel: 'Health information',
   healthInfoSave: 'Save health information',
   healthInfoSaved: 'Saved',

@@ -35,7 +35,7 @@ describe('StudentPrivacyPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getHealth.mockResolvedValue('Asthma');
+    api.getHealth.mockResolvedValue({ text: 'Asthma', enabled: true });
     api.saveHealth.mockImplementation(async (_id: number, text: string) => text);
     api.exportData.mockResolvedValue({ blob: new Blob(['{}']), filename: 'personal_data_S_007_20261113.json' });
     api.erase.mockResolvedValue(undefined);
@@ -62,6 +62,16 @@ describe('StudentPrivacyPanel', () => {
     const { container } = render(<StudentPrivacyPanel student={student} onErased={onErased} />);
 
     await waitFor(() => expect(container).toBeEmptyDOMElement());
+  });
+
+  it('leaves the health field out where the installation does not record it, and keeps the rest', async () => {
+    api.getHealth.mockResolvedValue({ text: '', enabled: false });
+
+    render(<StudentPrivacyPanel student={student} onErased={onErased} />);
+
+    expect(await screen.findByTestId('student-data-export')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId('student-health-info')).toBeNull());
+    expect(screen.getByTestId('student-erase-toggle')).toBeInTheDocument();
   });
 
   it('downloads the personal-data file', async () => {

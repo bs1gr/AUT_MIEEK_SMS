@@ -24,7 +24,20 @@ shown (Law 112(I)/2004, section 14, exempts what is strictly necessary).
 
 ### Health information (`students.health_issue`)
 
-Health data is a special category (GDPR Article 9).
+Health data is a special category (GDPR Article 9), and some hosting terms forbid it: Oracle's
+Data Processing Agreement (version 14 August 2025, section 2.6) says the customer may not provide
+data that imposes specific data-protection obligations, and names regulated health information.
+
+**It is not recorded by default.** With `HEALTH_DATA_ENABLED` unset or false the application
+neither stores, imports, shows nor exports health information: the student routes and every
+importer drop the field, the model refuses to write it whatever code path tries, the health
+endpoint returns nothing and refuses writes (409), and the administrator section of the Edit
+dialog has no health field. Text an installation already holds is left alone until it is
+cleared; on the ΜΙΕΕΚ database it was cleared on 2026-11-13 (4 students, and the copies in 6
+audit rows) on the owner's decision.
+
+Set `HEALTH_DATA_ENABLED=true` only where the institution has a legal ground and the host
+allows it. Never on the Oracle cloud host. With it on:
 
 - It is **not** part of any general student response (lists, single student, analytics).
 - Only an **administrator** reads or writes it: `GET` / `PUT /api/v1/students/{id}/health`.
@@ -97,7 +110,7 @@ otherwise. They are proposals, not legal advice, and none of them is enforced au
 |---|---|
 | Lawful basis, student records (identity, enrolments, grades, attendance) | Article 6(1)(e), task in the public interest, with 6(1)(c) where the law requires the record. Not consent. |
 | Lawful basis, staff accounts and audit log | Article 6(1)(e) and the security duty of Article 32. |
-| Health information | Record only what staff need for the student's safety, in the administrator-only field. Condition: Article 9(2)(g) where a law provides for it, otherwise the student's explicit written consent kept by the office (9(2)(a)). If neither is in place, leave the field empty. |
+| Health information | Not recorded (`HEALTH_DATA_ENABLED` off, the default). If the office needs it for a student's safety, it keeps it on paper. Switching recording on needs an Article 9 condition (9(2)(g) where a law provides for it, otherwise explicit written consent, 9(2)(a)) and a host whose terms allow it. |
 | Consent register | Not needed: nothing in the system relies on consent. If the office collects consent for health information or anything else, it keeps the signed form itself. |
 | Retention, student academic record | The period the institution's archive rules set for academic records. Until that is written down, nothing is deleted automatically. |
 | Retention, staff private notes | Deleted by their author when no longer needed, and removed with the account. Proposed: clear at the end of each academic year. |
@@ -120,11 +133,14 @@ the decision itself is the institution's and is not recorded anywhere in the pro
 3. **Retention.** Set how long student records, audit logs, backups and semester archives are
    kept, and apply it.
 4. **Processors.** A written data-processing agreement with every host that sees the data. For
-   the Oracle cloud host: Oracle publishes a Data Processing Agreement for Oracle Cloud Services
-   under which it acts as processor for the services a customer orders; whether an Always Free
-   account counts as such an order could not be confirmed from public documents (checked
-   2026-11-13). Ask Oracle, or read the agreement accepted at sign-up, and confirm that the
-   institution's policy allows the hosting.
+   the Oracle cloud host: Oracle's Data Processing Agreement for Oracle Services (version 14
+   August 2025, read 2026-11-13) applies automatically to the services in the customer's
+   Services Agreement, with Oracle as processor, storage in the chosen region (Frankfurt) and
+   breach notice within 24 hours; it has no exclusion for trials. It defines the Services
+   Agreement as the order for services "purchased" from Oracle, so whether an Always Free
+   account (no payment is possible for this installation) is covered depends on the Oracle
+   Cloud Services Agreement accepted at sign-up, which has not been read yet. Confirm that, and
+   that the institution's policy allows the hosting.
 5. **Records and requests.** Keep the record of processing activities, and have a way to answer
    access, correction and deletion requests.
 6. **The notice text.** Review the wording of the Privacy page and supply the contact details.

@@ -30,7 +30,7 @@ from backend.services.session_data_service import serialize_highlight as _serial
 from backend.services.session_data_service import serialize_lesson_logs
 from backend.services.session_data_service import serialize_performance as _serialize_performance
 from backend.services.session_data_service import serialize_student as _serialize_student
-from backend.security.current_user import may_see_health_data
+from backend.security.current_user import health_data_access
 
 logger = logging.getLogger(__name__)
 
@@ -234,13 +234,13 @@ async def export_session(
     semester: str,
     include_health: bool = False,
     db: Session = Depends(get_db),
-    health_allowed: bool = Depends(may_see_health_data),
+    health_allowed: bool = Depends(health_data_access),
 ):
     """
     Export complete session data package for a specific semester.
 
     Students' health information is left out unless **include_health** is true, and then only
-    for an administrator.
+    for an administrator on an installation that records it (HEALTH_DATA_ENABLED).
 
     Includes:
     - Courses for the semester

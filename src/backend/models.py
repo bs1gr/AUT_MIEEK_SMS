@@ -117,6 +117,34 @@ class Student(SoftDeleteMixin, Base):
         return f"<Student(id={self.id}, name={self.first_name} {self.last_name}, email={self.email})>"
 
 
+def _keep_health_out_when_not_recorded(mapper, connection, target) -> None:
+    """Last line of defence: while HEALTH_DATA_ENABLED is off, no code path can store health text.
+
+    Routes and importers already drop the field; this catches any path that does not. It only acts
+    when the value is being written (a new row, or a change to the field), so editing something
+    else about a student never touches what an installation already holds.
+    """
+    from sqlalchemy import inspect as _inspect
+
+    from backend.config import settings as _settings
+
+    if bool(getattr(_settings, "HEALTH_DATA_ENABLED", False)) or not target.health_issue:
+        return
+    state = _inspect(target)
+    if state.pending or state.transient or state.attrs.health_issue.history.has_changes():
+        target.health_issue = None
+
+
+def _install_health_guard() -> None:
+    from sqlalchemy import event as _event
+
+    _event.listen(Student, "before_insert", _keep_health_out_when_not_recorded)
+    _event.listen(Student, "before_update", _keep_health_out_when_not_recorded)
+
+
+_install_health_guard()
+
+
 class Course(SoftDeleteMixin, Base):
     """Course/Subject information with evaluation rules and schedule"""
 

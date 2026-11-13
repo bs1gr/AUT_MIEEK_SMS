@@ -40,6 +40,14 @@ def _headers(db, email: str, role: str) -> dict:
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 
+@pytest.fixture(autouse=True)
+def health_recording_on(monkeypatch):
+    """These tests are about an installation that records health information (off by default)."""
+    from backend.config import settings
+
+    monkeypatch.setattr(settings, "HEALTH_DATA_ENABLED", True, raising=False)
+
+
 @pytest.fixture
 def strict_auth(monkeypatch):
     from backend.config import settings
@@ -74,7 +82,11 @@ def test_student_responses_never_carry_health_information(client, student_with_h
 def test_the_health_endpoint_reads_and_writes_it(client, student_with_health):
     url = f"{STUDENTS}{student_with_health}/health"
 
-    assert client.get(url).json() == {"student_id": student_with_health, "health_issue": "Διαβήτης τύπου 1"}
+    assert client.get(url).json() == {
+        "student_id": student_with_health,
+        "health_issue": "Διαβήτης τύπου 1",
+        "recording_enabled": True,
+    }
     assert client.put(url, json={"health_issue": "Αλλεργία"}).json()["health_issue"] == "Αλλεργία"
     assert client.put(url, json={"health_issue": "  "}).json()["health_issue"] is None
     assert client.get(f"{STUDENTS}987654/health").status_code == 404

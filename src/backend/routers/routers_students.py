@@ -25,7 +25,7 @@ from backend.schemas.students import (
     StudentResponse,
     StudentUpdate,
 )
-from backend.security.current_user import may_see_health_data
+from backend.security.current_user import health_data_access, health_recording_enabled, may_see_health_data
 from backend.services import StudentService
 
 # Setup logging
@@ -53,7 +53,7 @@ def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
-    health_allowed: bool = Depends(may_see_health_data),
+    health_allowed: bool = Depends(health_data_access),
 ):
     """Create a new student with duplicate protections."""
 
@@ -118,6 +118,9 @@ def get_student_health(
     """A student's health information (special-category data): administrators only."""
 
     _health_admin_only(health_allowed)
+    if not health_recording_enabled():
+        # Recording is switched off on this installation: nothing is shown, whatever is stored.
+        return {"student_id": student_id, "health_issue": None, "recording_enabled": False}
     return StudentService(db, request).get_health_info(student_id)
 
 
@@ -134,6 +137,8 @@ def set_student_health(
     """Record or clear a student's health information: administrators only."""
 
     _health_admin_only(health_allowed)
+    if not health_recording_enabled():
+        raise HTTPException(status_code=409, detail="Health information is not recorded on this installation")
     return StudentService(db, request).set_health_info(student_id, payload.health_issue)
 
 
@@ -145,7 +150,7 @@ def update_student(
     student_id: int,
     student_data: StudentUpdate,
     db: Session = Depends(get_db),
-    health_allowed: bool = Depends(may_see_health_data),
+    health_allowed: bool = Depends(health_data_access),
 ):
     """Update a student's information."""
 
@@ -217,7 +222,7 @@ async def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),
-    health_allowed: bool = Depends(may_see_health_data),
+    health_allowed: bool = Depends(health_data_access),
 ):
     """
     Create multiple students at once.

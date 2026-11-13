@@ -252,6 +252,8 @@ class StudentHealthInfo(BaseModel):
 
     student_id: int
     health_issue: str | None = None
+    # False when the installation does not record health information (HEALTH_DATA_ENABLED).
+    recording_enabled: bool = True
 
 
 class StudentHealthUpdate(BaseModel):

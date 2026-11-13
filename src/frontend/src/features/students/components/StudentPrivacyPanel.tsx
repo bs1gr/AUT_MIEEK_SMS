@@ -25,6 +25,8 @@ const StudentPrivacyPanel: React.FC<StudentPrivacyPanelProps> = ({ student, onEr
   const [health, setHealth] = useState('');
   const [stored, setStored] = useState('');
   const [healthState, setHealthState] = useState<HealthState>('loading');
+  // False on an installation that does not record health information: the field is then left out.
+  const [healthEnabled, setHealthEnabled] = useState(true);
   const [busy, setBusy] = useState<Busy>(null);
   const [message, setMessage] = useState<'exportFailed' | 'eraseFailed' | null>(null);
   const [eraseOpen, setEraseOpen] = useState(false);
@@ -35,8 +37,9 @@ const StudentPrivacyPanel: React.FC<StudentPrivacyPanelProps> = ({ student, onEr
     setHealthState('loading');
     dataSubjectAPI
       .getHealth(student.id)
-      .then((text) => {
+      .then(({ text, enabled }) => {
         if (!active) return;
+        setHealthEnabled(enabled);
         setHealth(text);
         setStored(text);
         setHealthState('ready');
@@ -100,6 +103,8 @@ const StudentPrivacyPanel: React.FC<StudentPrivacyPanelProps> = ({ student, onEr
       </h3>
       <p className="mt-1 text-xs text-amber-900">{t('privacyPanelHint')}</p>
 
+      {healthEnabled && (
+        <>
       <label htmlFor="student-health-info" className="mt-3 block text-sm font-semibold text-gray-800">
         {t('healthInfoLabel')}
       </label>
@@ -131,6 +136,8 @@ const StudentPrivacyPanel: React.FC<StudentPrivacyPanelProps> = ({ student, onEr
           {healthState === 'failed' && <span className="text-red-600">{t('healthInfoFailed')}</span>}
         </span>
       </div>
+        </>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-amber-200 pt-3">
         <button

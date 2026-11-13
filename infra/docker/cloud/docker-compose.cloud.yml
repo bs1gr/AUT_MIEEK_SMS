@@ -49,6 +49,8 @@ services:
       - DB_AUTOCOMMIT_READS=${DB_AUTOCOMMIT_READS:-true}
       - PERMISSION_CACHE_TTL_SECONDS=${PERMISSION_CACHE_TTL_SECONDS:-30}
       # Shown on the Privacy page (docs/admin/PRIVACY_AND_GDPR.md); empty = "ask the school office".
+      # Fixed, not read from .env: Oracle's terms do not allow health data on this host.
+      - HEALTH_DATA_ENABLED=false
       - PRIVACY_CONTROLLER_NAME=${PRIVACY_CONTROLLER_NAME:-}
       - PRIVACY_CONTACT=${PRIVACY_CONTACT:-}
       - PRIVACY_DPO_CONTACT=${PRIVACY_DPO_CONTACT:-}

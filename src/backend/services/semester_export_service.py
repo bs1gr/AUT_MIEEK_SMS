@@ -48,7 +48,10 @@ class SemesterExportService:
         and `backup_path`. Raises on failure (caller decides how to record it)."""
         # The archive is the encrypted, complete record of the semester, so it keeps the health
         # information that the plain download leaves out by default.
-        payload = build_semester_export_payload(self.db, semester, include_health=True)
+        # (where the installation records it at all).
+        payload = build_semester_export_payload(
+            self.db, semester, include_health=bool(getattr(settings, "HEALTH_DATA_ENABLED", False))
+        )
         payload["metadata"]["pass_threshold"] = pass_threshold
         payload["metadata"]["export_purpose"] = "semester_archive"
 

@@ -19,6 +19,14 @@ def _headers(db, email: str, role: str) -> dict:
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 
+@pytest.fixture(autouse=True)
+def health_recording_on(monkeypatch):
+    """These tests are about an installation that records health information (off by default)."""
+    from backend.config import settings
+
+    monkeypatch.setattr(settings, "HEALTH_DATA_ENABLED", True, raising=False)
+
+
 @pytest.fixture
 def strict_auth(monkeypatch):
     from backend.config import settings
