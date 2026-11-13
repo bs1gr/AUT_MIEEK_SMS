@@ -20,6 +20,22 @@ export interface LessonLogListParams {
   limit?: number;
 }
 
+export type LessonLogExportFormat = 'pdf' | 'excel';
+
+export interface LessonLogExportParams {
+  course_id: number;
+  include_notes?: boolean;
+  start_date?: string;
+  end_date?: string;
+  /** 'en' or 'el': the language of the headings in the file. */
+  lang?: string;
+}
+
+export interface LessonLogExportFile {
+  blob: Blob;
+  filename: string;
+}
+
 // Saves go out one at a time, in call order. A save that was queued while the server was
 // unreachable and a newer one typed afterwards must never reach the server the other way round.
 let saveChain: Promise<unknown> = Promise.resolve();
@@ -38,6 +54,19 @@ export const lessonLogsAPI = {
       pages: body.pages ?? 1,
       current_page: body.current_page ?? 1,
     };
+  },
+
+  /**
+   * The course's lesson log as a PDF or Excel file (material covered by date and period). The
+   * teacher's notes are private and only printed when `include_notes` is set.
+   */
+  exportFile: async (format: LessonLogExportFormat, params: LessonLogExportParams): Promise<LessonLogExportFile> => {
+    const response = await apiClient.get<Blob>(`/lesson-logs/export/${format}`, { params, responseType: 'blob' });
+    const extension = format === 'pdf' ? 'pdf' : 'xlsx';
+    // The header is not always readable (cross-origin on the phone), so there is a fallback name.
+    const disposition = String((response.headers as Record<string, unknown> | undefined)?.['content-disposition'] ?? '');
+    const named = /filename="?([A-Za-z0-9._-]+)"?/.exec(disposition)?.[1];
+    return { blob: response.data, filename: named || `lesson_log_${params.course_id}.${extension}` };
   },
 
   /** Create the log of one period, or update the fields that are present in the payload. */

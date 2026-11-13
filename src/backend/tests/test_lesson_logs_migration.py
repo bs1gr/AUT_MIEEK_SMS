@@ -13,6 +13,7 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import IntegrityError
 
 PREVIOUS_HEAD = "f2b6d8a1c3e5"
+REVISION = "c8e1f4a7d2b9"
 
 
 def _alembic(url: str):
@@ -54,7 +55,7 @@ def test_upgrade_adds_only_the_lesson_logs_table(deployed):
     before = set(inspect(engine).get_table_names())
     assert "lesson_logs" not in before
 
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, REVISION)  # this revision only; later ones add columns to the table
 
     inspector = inspect(engine)
     assert set(inspector.get_table_names()) - before == {"lesson_logs"}

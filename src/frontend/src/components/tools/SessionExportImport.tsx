@@ -174,6 +174,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
                         <li>{validationResult.counts?.courses || 0} {t('courses')}</li>
                         <li>{validationResult.counts?.students || 0} {t('students')}</li>
                         <li>{validationResult.counts?.grades || 0} {t('grades')}</li>
+                        <li>{validationResult.counts?.lesson_logs || 0} {t('lessonLogEntries')}</li>
                       </ul>
                     </div>
                   </div>

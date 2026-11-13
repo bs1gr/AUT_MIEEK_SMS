@@ -32,6 +32,9 @@ class LessonLogResponse(BaseModel):
     period_number: int
     material_covered: Optional[str] = None
     teacher_notes: Optional[str] = None
+    # Name of the account that last changed the text; None for entries saved before this was
+    # recorded, or saved while authentication is off.
+    updated_by_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

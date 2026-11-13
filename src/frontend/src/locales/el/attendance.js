@@ -149,4 +149,11 @@ export default {
   lessonLogEntryEdit: 'Επεξεργασία',
   lessonLogEntryDone: 'Κλείσιμο',
   lessonLogNothingRecorded: 'Δεν έχει καταγραφεί τίποτα',
+  lessonLogLastEditedBy: 'Τελευταία επεξεργασία: {{name}}',
+  lessonLogExportTitle: 'Λήψη της διδακτέας ύλης',
+  lessonLogExportPdf: 'PDF',
+  lessonLogExportExcel: 'Excel',
+  lessonLogExportIncludeNotes: 'Να συμπεριληφθούν οι σημειώσεις καθηγητή',
+  lessonLogExportWorking: 'Προετοιμασία αρχείου…',
+  lessonLogExportFailed: 'Δεν ήταν δυνατή η δημιουργία του αρχείου. Δοκιμάστε ξανά.',
 };

@@ -1075,6 +1075,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         t={t}
         courseId={selectedCourse}
         formatDate={formatDate}
+        language={language}
         refreshKey={lessonLogRefreshKey}
       />
 

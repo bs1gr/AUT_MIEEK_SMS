@@ -78,6 +78,8 @@ export interface LessonLog {
   period_number: number;
   material_covered: string | null;
   teacher_notes: string | null;
+  /** Who last changed the text; absent or null when it was never recorded. */
+  updated_by_name?: string | null;
   created_at: string;
   updated_at: string;
 }

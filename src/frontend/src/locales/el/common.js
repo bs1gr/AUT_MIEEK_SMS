@@ -218,6 +218,7 @@ export default {
   navigationMenu: 'Μενού πλοήγησης',
   validationPassed: 'Έλεγχος επιτυχής',
   readyToImport: 'Έτοιμο για εισαγωγή:',
+  lessonLogEntries: 'Καταγραφές μαθήματος',
   validate: 'Επικύρωση',
   validating: 'Εκτελείται επικύρωση...',
   validationFailed: 'Αποτυχία επικύρωσης: {{count}} σφάλματα',

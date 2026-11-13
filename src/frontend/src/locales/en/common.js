@@ -219,6 +219,7 @@ export default {
   navigationMenu: 'Navigation menu',
   validationPassed: 'Validation Passed',
   readyToImport: 'Ready to import:',
+  lessonLogEntries: 'Lesson log entries',
   validate: 'Validate',
   validating: 'Validating...',
   validationFailed: 'Validation Failed: {{count}} errors',
