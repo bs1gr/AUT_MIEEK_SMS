@@ -204,6 +204,10 @@ class Settings(BaseSettings):
 
     # Privacy notice (GDPR Art. 13): who the controller is and how to reach them. Shown on the
     # app's Privacy page; while they are empty the page tells people to ask the school office.
+    # Health information about students is special-category data (GDPR Art. 9) and some hosting
+    # terms forbid it. Off by default: the app then neither stores, imports, shows nor exports
+    # it. Switch on only where the institution has a legal ground and the host allows it.
+    HEALTH_DATA_ENABLED: bool = False
     PRIVACY_CONTROLLER_NAME: str = ""
     PRIVACY_CONTACT: str = ""
     PRIVACY_DPO_CONTACT: str = ""

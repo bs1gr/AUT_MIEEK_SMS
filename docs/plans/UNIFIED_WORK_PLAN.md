@@ -5340,3 +5340,14 @@ for that.
       guess is not a default), and switching health recording off (the CSV import carries a
       health column on purpose; it is now admin-only instead). Oracle's agreement for Always
       Free could not be confirmed from public documents.
+    - **Health data switched off, 2026-11-13 (owner: "make sure that no health data is passed
+      ... if exist, we have to correct it asap"; no payment is possible, so the host stays on
+      Always Free).** Oracle's Data Processing Agreement (14 August 2025) was read: no trial
+      exclusion, but section 2.6 rules out regulated health data. A count on the real database
+      found health text for 4 of 81 students and copies in 6 audit rows; the owner chose to
+      delete it, and it was removed the same day (verified by count: 0 and 0, 81 students).
+      `HEALTH_DATA_ENABLED` (default false) now keeps the app from storing, importing, showing
+      or exporting it, with a guard on the model itself; the cloud compose file fixes it to
+      false. **Not reached:** database backups, semester archives and export files made before
+      that day may still contain the text. **Still open:** read the Oracle Cloud Services
+      Agreement accepted at sign-up for how it treats a free account.

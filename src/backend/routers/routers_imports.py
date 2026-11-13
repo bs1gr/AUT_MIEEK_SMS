@@ -20,6 +20,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPExcepti
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.errors import ErrorCode, http_error
+from backend.security.current_user import health_recording_enabled
 from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_TEACHER_IMPORT, limiter
 from backend.schemas.audit import AuditAction, AuditResource
 from backend.security.api_keys import verify_api_key_optional
@@ -414,7 +415,7 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
                         val = str(row.get(csv_col, "")).strip()
                         if val:
                             student[model_field] = val
-                    if health_col and str(row.get(health_col, "")).strip():
+                    if health_col and health_recording_enabled() and str(row.get(health_col, "")).strip():
                         student["health_issue"] = str(row.get(health_col)).strip()
                     _process(student, row_no)
                 except Exception as exc:

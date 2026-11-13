@@ -20,7 +20,7 @@ export default {
   dataStudents:
     "Students: name, student number, e-mail address, phone numbers, father's name, class and year of study, course enrolments, grades, attendance and absences, daily performance, highlights and staff notes.",
   dataHealth:
-    'Health information, where the institution records it, can be seen and changed by administrators only. It is not shown in student lists, and it is left out of exported files unless an administrator asks for it.',
+    'Health information is not recorded by default. Where the institution has switched it on, it can be seen and changed by administrators only, it is not shown in student lists, and it is left out of exported files unless an administrator asks for it.',
   dataStaff:
     'Staff accounts: name, e-mail address, role, a protected (hashed) password, sign-in attempts and a log of the changes each account makes.',
 

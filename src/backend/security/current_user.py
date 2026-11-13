@@ -183,3 +183,13 @@ async def may_see_health_data(request: Request, db: Session = Depends(get_db)) -
     auth_enabled = bool(getattr(settings, "AUTH_ENABLED", False))
     auth_mode = str(getattr(settings, "AUTH_MODE", "disabled") or "disabled").lower()
     return (not auth_enabled) or auth_mode != "strict"
+
+
+def health_recording_enabled() -> bool:
+    """Whether this installation records students' health information at all (default: no)."""
+    return bool(getattr(settings, "HEALTH_DATA_ENABLED", False))
+
+
+async def health_data_access(request: Request, db: Session = Depends(get_db)) -> bool:
+    """True only when health recording is switched on AND the caller is an administrator."""
+    return health_recording_enabled() and await may_see_health_data(request, db)

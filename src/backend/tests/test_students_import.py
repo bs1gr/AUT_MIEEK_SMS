@@ -2,8 +2,16 @@
 
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
+
+@pytest.fixture(autouse=True)
+def health_recording_on(monkeypatch):
+    """The health column of these files is only imported where recording is switched on."""
+    from backend.config import settings
+
+    monkeypatch.setattr(settings, "HEALTH_DATA_ENABLED", True, raising=False)
 
 def test_upload_students_preserves_all_fields(client: TestClient):
     """Test that students with extended profile fields are preserved correctly."""

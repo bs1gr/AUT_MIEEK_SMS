@@ -11,9 +11,12 @@ export interface DataSubjectFile {
 }
 
 export const dataSubjectAPI = {
-  getHealth: async (studentId: number): Promise<string> => {
-    const response = await apiClient.get<{ health_issue?: string | null }>(`/students/${studentId}/health`);
-    return response?.data?.health_issue ?? '';
+  /** The stored text, and whether this installation records health information at all. */
+  getHealth: async (studentId: number): Promise<{ text: string; enabled: boolean }> => {
+    const response = await apiClient.get<{ health_issue?: string | null; recording_enabled?: boolean }>(
+      `/students/${studentId}/health`
+    );
+    return { text: response?.data?.health_issue ?? '', enabled: response?.data?.recording_enabled !== false };
   },
 
   saveHealth: async (studentId: number, text: string): Promise<string> => {

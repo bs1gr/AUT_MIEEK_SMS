@@ -4,6 +4,13 @@ from fastapi.testclient import TestClient
 pytestmark = pytest.mark.auth_required
 
 
+@pytest.fixture(autouse=True)
+def health_recording_on(monkeypatch):
+    """The health column of these files is only imported where recording is switched on."""
+    from backend.config import settings
+
+    monkeypatch.setattr(settings, "HEALTH_DATA_ENABLED", True, raising=False)
+
 def test_csv_import_students_with_greek_columns(client: TestClient):
     """Test CSV import with Greek column names (AUT registration format)."""
 

@@ -229,6 +229,11 @@ class ImportService:
             "study_year",
         ]
         cleaned = {k: v for k, v in student_data.items() if k in allowed}
+        from backend.security.current_user import health_recording_enabled
+
+        if not health_recording_enabled():
+            # Health information is not recorded here: a file that carries it is imported without it.
+            cleaned.pop("health_issue", None)
 
         db_student = db.query(Student).filter((Student.student_id == sid) | (Student.email == email)).first()
 
