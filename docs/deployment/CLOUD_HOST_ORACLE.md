@@ -168,8 +168,11 @@ cd infra/docker/cloud && sudo docker compose -f docker-compose.cloud.yml up -d -
 - Idle reclamation: Oracle reclaims an Always Free instance whose CPU, network and (on A1)
   memory all stay under 20 % for 7 days. Whether real usage keeps this VM above that, and
   whether a Pay As You Go upgrade (the resources stay free) exempts it, is not known yet.
-- The public address is ephemeral: it changes if the instance is stopped and started. Only SSH
-  uses it; reach the VM as `ubuntu@sms-cloud` over the tailnet instead.
+- The public address is "ephemeral": Oracle can release it (certainly when the instance is
+  terminated or the address is unassigned; it survived a reboot on 2026-11-13). Only SSH uses
+  it; reach the VM as `ubuntu@sms-cloud` over the tailnet instead.
+- Restart test, 2026-11-13: after `sudo systemctl reboot` (new kernel) the container, Tailscale
+  and the HTTPS address were back within about a minute with no manual step.
 - The Tailscale node key expires after about six months unless key expiry is disabled for the
   VM and the QNAP in the Tailscale admin console.
 - Whether Tailscale's free Personal plan (licensed for non-commercial use) fits a college's app.

@@ -62,6 +62,12 @@ window.addEventListener('unhandledrejection', (event) => {
   recoverFromChunkLoadError(event.reason);
 });
 
+// Vite reports a page file it could not load (the server was updated under an open tab) with
+// this event before the import rejects.
+window.addEventListener('vite:preloadError', (event) => {
+  recoverFromChunkLoadError((event as Event & { payload?: unknown }).payload);
+});
+
 // Preload critical routes after initial render
 setTimeout(preloadCriticalRoutes, 100);
 

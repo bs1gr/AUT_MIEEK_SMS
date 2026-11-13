@@ -5,6 +5,7 @@
 import React, { Component, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
+import { recoverFromChunkLoadError } from '../utils/chunkLoadRecovery';
 
 // Types
 type FallbackFunction = (error: Error | null, retry: () => void) => ReactNode;
@@ -36,6 +37,11 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    // Updated server, stale tab: reload instead of showing a broken section (see ErrorBoundary).
+    if (recoverFromChunkLoadError(error)) {
+      return;
+    }
+
     console.error(`SectionErrorBoundary (${this.props.section}) caught error:`, error, errorInfo);
 
     // Log to backend

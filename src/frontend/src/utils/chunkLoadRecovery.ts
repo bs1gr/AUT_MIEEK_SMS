@@ -7,6 +7,7 @@ const CHUNK_ERROR_PATTERNS: RegExp[] = [
   /ChunkLoadError/i,
   /Loading chunk\s+\S+\s+failed/i,
   /dynamically imported module/i,
+  /Unable to preload CSS/i,
 ];
 
 function toErrorMessage(error: unknown): string {
