@@ -117,6 +117,7 @@ a = Analysis(
         'backend.services.lesson_log_export',
         'backend.routers.routers_student_notes',
         'backend.routers.routers_privacy',
+        'backend.routers.routers_data_subject',
         'backend.services.semester_export_service',
         'backend.services.session_data_service',
         'backend.services.backup_service_encrypted',
