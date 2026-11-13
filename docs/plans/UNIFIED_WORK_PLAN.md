@@ -2,9 +2,17 @@
 
 **Current Version**: 1.18.68
 **Last Updated**: November 13, 2026
-**Status**: 🟡 **v1.18.68 prepared 2026-11-13** (version commit `ca9331cba`; the tag follows once
-CI and E2E are green on the notes commit). v1.18.67 was released the same morning (tag on
-`ec987afa8`).
+**Status**: ✅ **v1.18.68 released 2026-11-13** (tag on `1acc6c053`, run by the assistant).
+v1.18.67 was released the same morning (tag on `ec987afa8`).
+
+**Verified on the published assets:** `SMS_Installer_1.18.68.exe` 87,615,104 bytes, SHA-256
+`d03fecf8…2bd101` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.68; `SMS_Android_1.18.68.apk` 4,200,925
+bytes, SHA-256 `b236e817…871ef7` = GitHub's digest, `versionName 1.18.68` /
+`versionCode 118068`, target SDK 36, signed with the same certificate as v1.18.67 (SHA-256
+`686fb6ed…d2ea`, so phones upgrade in place). The release, installer and APK workflows on the
+tag succeeded; CI/CD and E2E were green on the tagged commit. Not checked: the installer was
+not installed, and the APK was not run on a device.
 
 v1.18.68 ships the lesson-log follow-ups (todos 45-47, #376), the privacy round (todo 50, #377,
 # 378, #379: health information off by default, staff notes on the server, the Privacy page, the
