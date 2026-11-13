@@ -18,6 +18,7 @@ interface StudentCardProps {
   isExpanded: boolean;
   noteValue: string;
   onNoteChange: (value: string) => void;
+  noteSaveFailed?: boolean;
   onToggleExpand: (id: number) => void;
   onEdit: (student: Student) => void;
   onDelete: (id: number) => void;
@@ -34,6 +35,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   isExpanded,
   noteValue,
   onNoteChange,
+  noteSaveFailed,
   onToggleExpand,
   onEdit,
   onDelete,
@@ -293,7 +295,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
             </div>
           )}
 
-          <NotesSection value={noteValue} onChange={onNoteChange} />
+          <NotesSection value={noteValue} onChange={onNoteChange} saveFailed={noteSaveFailed} />
         </div>
       )}
     </motion.li>
@@ -303,6 +305,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   prevProps.isExpanded === nextProps.isExpanded &&
   prevProps.stats === nextProps.stats &&
   prevProps.noteValue === nextProps.noteValue &&
+  prevProps.noteSaveFailed === nextProps.noteSaveFailed &&
   prevProps.coursesMap === nextProps.coursesMap &&
   prevProps.onNavigateToCourse === nextProps.onNavigateToCourse
 ));

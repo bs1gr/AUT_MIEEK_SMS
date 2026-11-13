@@ -237,10 +237,22 @@ class StudentResponse(BaseModel):
     father_name: str | None
     mobile_phone: str | None
     phone: str | None
-    health_issue: str | None
+    # health_issue is deliberately not here: it is special-category data (GDPR Art. 9) and this
+    # schema is returned by every student list. Administrators read it at /students/{id}/health.
     note: str | None
     study_year: int | None
     academic_year: str | None
     class_division: str | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StudentHealthInfo(BaseModel):
+    """A student's health information, read and written only by administrators."""
+
+    student_id: int
+    health_issue: str | None = None
+
+
+class StudentHealthUpdate(BaseModel):
+    health_issue: str | None = Field(default=None, max_length=5000)

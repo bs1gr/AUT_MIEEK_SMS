@@ -23,7 +23,8 @@ describe('NotesSection', () => {
   describe('Rendering', () => {
     it('renders the component with title', () => {
       renderWithLanguage(<NotesSection value="" onChange={mockOnChange} />);
-      expect(screen.getByText(/notes/i)).toBeInTheDocument();
+      // The title, and below the field the hint that the notes are the account's own.
+      expect(screen.getAllByText(/notes/i).length).toBeGreaterThan(0);
     });
 
     it('renders textarea element', () => {

@@ -202,6 +202,13 @@ class Settings(BaseSettings):
     # Refresh token expiry (days); used for cookie max_age and refresh token rotation
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    # Privacy notice (GDPR Art. 13): who the controller is and how to reach them. Shown on the
+    # app's Privacy page; while they are empty the page tells people to ask the school office.
+    PRIVACY_CONTROLLER_NAME: str = ""
+    PRIVACY_CONTACT: str = ""
+    PRIVACY_DPO_CONTACT: str = ""
+    PRIVACY_NOTICE_URL: str = ""
+
     # CSRF Protection
     CSRF_ENABLED: bool = False
     CSRF_HEADER_NAME: str = "X-CSRF-Token"

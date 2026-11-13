@@ -22,7 +22,7 @@ from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.lesson_log import LessonLogResponse, LessonLogUpsert
-from backend.security.current_user import get_current_user
+from backend.security.current_user import optional_signed_in_user
 from backend.services import lesson_log_export
 from backend.services.lesson_log_service import LessonLogService
 
@@ -137,20 +137,6 @@ async def export_lesson_log(
         raise internal_server_error(request=request)
 
 
-async def _signed_in_user(request: Request, db: Session = Depends(get_db)):
-    """The account behind this request, or None when there is no bearer token.
-
-    Used only to record who edited an entry. Access is decided by ``require_permission``; with
-    authentication switched off there is nobody to name, so nothing is recorded.
-    """
-    if not str(request.headers.get("Authorization", "")).startswith("Bearer "):
-        return None
-    try:
-        return await get_current_user(request=request, db=db)
-    except HTTPException:
-        return None
-
-
 @router.put("/", response_model=LessonLogResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("attendance:edit")
@@ -158,7 +144,7 @@ async def upsert_lesson_log(
     request: Request,
     payload: LessonLogUpsert,
     db: Session = Depends(get_db),
-    editor=Depends(_signed_in_user),
+    editor=Depends(optional_signed_in_user),
 ):
     """
     Save the lesson log of one teaching period (creates it, or updates the fields that were sent).

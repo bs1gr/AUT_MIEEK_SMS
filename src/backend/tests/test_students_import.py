@@ -64,7 +64,9 @@ def test_upload_students_preserves_all_fields(client: TestClient):
     assert found.get("father_name") == "Test Father"
     assert found.get("mobile_phone") == "+30 6901234567"
     assert found.get("phone") == "210-1234567"
-    assert found.get("health_issue") == "None reported"
+    assert "health_issue" not in found  # not part of the general student response
+    health = client.get(f"/api/v1/students/{found['id']}/health").json()
+    assert health["health_issue"] == "None reported"
     assert found.get("note") == "Test note for verification"
     assert found.get("study_year") == 1
 

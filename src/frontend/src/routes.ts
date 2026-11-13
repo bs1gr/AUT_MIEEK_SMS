@@ -43,6 +43,8 @@ export const CalendarPage = lazy(() =>
   import(/* webpackChunkName: "calendar" */ './pages/CalendarPage')
 );
 
+export const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+
 export const SearchPage = lazy(() =>
   import(/* webpackChunkName: "search" */ './pages/SearchPage')
 );

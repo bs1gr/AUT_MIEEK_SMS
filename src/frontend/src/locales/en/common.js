@@ -483,6 +483,7 @@ export default {
   },
   // Footer
   footerCredits: 'Student Management System © {{year}} Vasilis Samaras - {{version}}',
+  privacyLink: 'Privacy notice',
 
   // Pagination & Navigation
   previous: 'Previous',

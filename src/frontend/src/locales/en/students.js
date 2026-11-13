@@ -96,6 +96,8 @@ export default {
   emailPlaceholder: 'Email Address',
   healthIssuesPlaceholder: 'Health issues or special needs',
   notePlaceholder: 'Additional notes',
+  noteSaveFailed: 'Not saved. It will be retried on your next change.',
+  notePrivateHint: 'Your own notes: only your account can see them.',
   studyYearPlaceholder: 'Year of Study',
   addressPlaceholder: 'Address',
   dateOfBirth: 'Date of Birth',

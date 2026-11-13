@@ -19,6 +19,7 @@ i18n
         translation: translations.en,
         search: translationNamespaces.en.search,
         errors: translationNamespaces.en.errors,
+        privacy: translationNamespaces.en.privacy,
         dashboard: translationNamespaces.en.dashboard,
         courses: translationNamespaces.en.courses,
         students: translationNamespaces.en.students,
@@ -47,6 +48,7 @@ i18n
         translation: translations.el,
         search: translationNamespaces.el.search,
         errors: translationNamespaces.el.errors,
+        privacy: translationNamespaces.el.privacy,
         dashboard: translationNamespaces.el.dashboard,
         courses: translationNamespaces.el.courses,
         students: translationNamespaces.el.students,
@@ -72,7 +74,7 @@ i18n
         offline: translationNamespaces.el.offline
       }
     },
-    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system', 'semesterArchive', 'exportAdmin', 'offline'],
+    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system', 'semesterArchive', 'exportAdmin', 'offline', 'privacy'],
     defaultNS: 'translation',
     lng: isTestEnvironment ? 'en' : undefined,
     fallbackLng: 'en',

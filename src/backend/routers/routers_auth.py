@@ -1226,6 +1226,15 @@ async def admin_delete_user(
         db.query(models.AuditLog).filter(models.AuditLog.user_id == user.id).update(
             {models.AuditLog.user_id: None}, synchronize_session=False
         )
+        # The account's private notes about students go with the account. In a savepoint: on a
+        # database that predates the table the failure must not abort the whole deletion.
+        try:
+            with db.begin_nested():
+                db.query(models.StudentPrivateNote).filter(models.StudentPrivateNote.user_id == user.id).delete(
+                    synchronize_session=False
+                )
+        except Exception as notes_exc:
+            logger.warning("Could not remove the private notes of user %s: %r", user_id, notes_exc)
         # Use query-based delete to avoid ORM cascade against
         # tables that may not exist in older database schemas.
         db.query(models.User).filter(models.User.id == user.id).delete(synchronize_session=False)

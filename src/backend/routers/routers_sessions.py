@@ -30,6 +30,7 @@ from backend.services.session_data_service import serialize_highlight as _serial
 from backend.services.session_data_service import serialize_lesson_logs
 from backend.services.session_data_service import serialize_performance as _serialize_performance
 from backend.services.session_data_service import serialize_student as _serialize_student
+from backend.security.current_user import may_see_health_data
 
 logger = logging.getLogger(__name__)
 
@@ -231,10 +232,15 @@ async def list_semesters(request: Request, db: Session = Depends(get_db)):
 async def export_session(
     request: Request,
     semester: str,
+    include_health: bool = False,
     db: Session = Depends(get_db),
+    health_allowed: bool = Depends(may_see_health_data),
 ):
     """
     Export complete session data package for a specific semester.
+
+    Students' health information is left out unless **include_health** is true, and then only
+    for an administrator.
 
     Includes:
     - Courses for the semester
@@ -287,7 +293,7 @@ async def export_session(
                 },
             },
             "courses": [_serialize_course(c) for c in courses],
-            "students": [_serialize_student(s) for s in students],
+            "students": [_serialize_student(s, include_health and health_allowed) for s in students],
             "enrollments": [_serialize_enrollment(e) for e in enrollments],
             "grades": [_serialize_grade(g) for g in grades],
             "attendance": [_serialize_attendance(a) for a in attendance],

@@ -44,7 +44,7 @@ def test_create_student_allows_empty_optional_strings(client):
     assert data["father_name"] is None
     assert data["mobile_phone"] is None
     assert data["phone"] is None
-    assert data["health_issue"] is None
+    assert "health_issue" not in data  # administrators read it at /students/{id}/health
     assert data["note"] is None
     assert data["enrollment_date"] is None
     assert data["study_year"] is None

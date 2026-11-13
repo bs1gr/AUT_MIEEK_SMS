@@ -234,6 +234,33 @@ class LessonLog(Base):
         return f"<LessonLog(course={self.course_id}, date={self.date}, period={self.period_number})>"
 
 
+class StudentPrivateNote(Base):
+    """A staff member's own working note about a student, kept per account.
+
+    These notes used to live in the browser's localStorage (unencrypted, on whichever device was
+    used, never backed up). Here they follow the account, are covered by the database's access
+    control and backups, and go when the student is removed for good.
+
+    user_id is 0 on an install that runs without authentication (one shared notebook). It is not
+    a foreign key for that reason; deleting an account removes its notes (routers_auth).
+    """
+
+    __tablename__ = "student_private_notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, default=0, index=True)
+    text = Column(Text, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (Index("idx_student_private_notes_student_user", "student_id", "user_id", unique=True),)
+
+
 class CourseEnrollment(SoftDeleteMixin, Base):
     """Enrollment linking students to courses"""
 

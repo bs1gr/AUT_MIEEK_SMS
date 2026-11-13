@@ -54,6 +54,7 @@ docs/
 | Developer | [development/INDEX.md](development/INDEX.md) |
 | Operator / DevOps | [deployment/INDEX.md](deployment/INDEX.md) |
 | Admin (RBAC/permissions) | [admin/RBAC_ADMIN_GUIDE.md](admin/RBAC_ADMIN_GUIDE.md), [admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md) |
+| Privacy / GDPR (health data, notes, privacy notice, what the institution must decide) | [admin/PRIVACY_AND_GDPR.md](admin/PRIVACY_AND_GDPR.md) |
 
 Each section `INDEX.md` is the authoritative, current list for that section — trust
 it over anything enumerated here.

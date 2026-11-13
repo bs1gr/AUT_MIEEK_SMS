@@ -10,7 +10,7 @@ def import_names(*args, **kwargs):
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from backend.cache import CacheConfig, cached, invalidate_cache
@@ -18,7 +18,14 @@ from backend.db import get_session as get_db
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
 from backend.schemas.common import PaginatedResponse
-from backend.schemas.students import StudentCreate, StudentResponse, StudentUpdate
+from backend.schemas.students import (
+    StudentCreate,
+    StudentHealthInfo,
+    StudentHealthUpdate,
+    StudentResponse,
+    StudentUpdate,
+)
+from backend.security.current_user import may_see_health_data
 from backend.services import StudentService
 
 # Setup logging
@@ -30,6 +37,12 @@ router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"desc
 
 # ========== DEPENDENCY INJECTION ==========
 
+
+def _health_admin_only(allowed: bool) -> None:
+    if not allowed:
+        raise HTTPException(status_code=403, detail="Health information is limited to administrators")
+
+
 # ========== ENDPOINTS ==========
 
 
@@ -40,8 +53,13 @@ def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
+    health_allowed: bool = Depends(may_see_health_data),
 ):
     """Create a new student with duplicate protections."""
+
+    if not health_allowed:
+        # Only an administrator may record health information; anything else in the body is kept.
+        student = student.model_copy(update={"health_issue": None})
 
     service = StudentService(db, request)
     result = service.create_student(student)
@@ -88,6 +106,37 @@ def get_student(
     return service.get_student(student_id)
 
 
+@router.get("/{student_id}/health", response_model=StudentHealthInfo)
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("students:view")
+def get_student_health(
+    request: Request,
+    student_id: int,
+    db: Session = Depends(get_db),
+    health_allowed: bool = Depends(may_see_health_data),
+):
+    """A student's health information (special-category data): administrators only."""
+
+    _health_admin_only(health_allowed)
+    return StudentService(db, request).get_health_info(student_id)
+
+
+@router.put("/{student_id}/health", response_model=StudentHealthInfo)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
+def set_student_health(
+    request: Request,
+    student_id: int,
+    payload: StudentHealthUpdate,
+    db: Session = Depends(get_db),
+    health_allowed: bool = Depends(may_see_health_data),
+):
+    """Record or clear a student's health information: administrators only."""
+
+    _health_admin_only(health_allowed)
+    return StudentService(db, request).set_health_info(student_id, payload.health_issue)
+
+
 @router.put("/{student_id}", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:edit")
@@ -96,8 +145,13 @@ def update_student(
     student_id: int,
     student_data: StudentUpdate,
     db: Session = Depends(get_db),
+    health_allowed: bool = Depends(may_see_health_data),
 ):
     """Update a student's information."""
+
+    if not health_allowed:
+        # Leave the stored health information alone, whatever the body says about it.
+        student_data.model_fields_set.discard("health_issue")
 
     service = StudentService(db, request)
     result = service.update_student(student_id, student_data)
@@ -163,12 +217,15 @@ async def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),
+    health_allowed: bool = Depends(may_see_health_data),
 ):
     """
     Create multiple students at once.
 
     Useful for importing student lists.
     """
+    if not health_allowed:
+        students_data = [item.model_copy(update={"health_issue": None}) for item in students_data]
     service = StudentService(db, request)
     result = service.bulk_create_students(students_data)
     # Invalidate cache

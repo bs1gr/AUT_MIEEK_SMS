@@ -25,6 +25,11 @@ logger = logging.getLogger(__name__)
 DuplicateCheckResult = Tuple[int, ErrorCode, str, Optional[Dict[str, Any]]]
 
 
+def _health_marker(value: Optional[str]) -> Optional[str]:
+    """What the audit log stores in place of a student's health text."""
+    return "[recorded]" if value and str(value).strip() else None
+
+
 class StudentService:
     """Encapsulates business logic for student CRUD + bulk operations."""
 
@@ -122,6 +127,28 @@ class StudentService:
             query = query.filter((self.Student.first_name.ilike(like)) | (self.Student.last_name.ilike(like)))
 
         return paginate(query, skip, limit)
+
+    def get_health_info(self, student_id: int) -> Dict[str, Any]:
+        student = get_by_id_or_404(self.db, self.Student, student_id)
+        logger.info("Health information read for student %s", student.id)
+        return {"student_id": student.id, "health_issue": student.health_issue}
+
+    def set_health_info(self, student_id: int, health_issue: Optional[str]) -> Dict[str, Any]:
+        student = get_by_id_or_404(self.db, self.Student, student_id)
+        old_values = self._serialize_student(student)
+        cleaned = health_issue.strip() if health_issue and health_issue.strip() else None
+        with transaction(self.db):
+            student.health_issue = cleaned
+            self.db.flush()
+            self.db.refresh(student)
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=str(student.id),
+            details={"field": "health_issue"},
+            old_values=old_values,
+            new_values=self._serialize_student(student),
+        )
+        return {"student_id": student.id, "health_issue": student.health_issue}
 
     def get_student(self, student_id: int):
         student = get_by_id_or_404(self.db, self.Student, student_id)
@@ -485,7 +512,8 @@ class StudentService:
             "father_name": student.father_name,
             "mobile_phone": student.mobile_phone,
             "phone": student.phone,
-            "health_issue": student.health_issue,
+            # The audit log records that health information exists or changed, never its text.
+            "health_issue": _health_marker(student.health_issue),
             "note": student.note,
             "study_year": student.study_year,
             "academic_year": getattr(student, "academic_year", None),
