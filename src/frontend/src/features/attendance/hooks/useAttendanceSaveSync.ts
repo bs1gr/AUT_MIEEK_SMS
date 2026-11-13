@@ -12,6 +12,11 @@ import {
 } from '@/features/attendance/utils/offlineAttendanceQueue';
 import { isOfflineError } from '@/utils/databaseAvailability';
 import { useQueueFlushTriggers } from '@/hooks/useQueueFlushTriggers';
+import {
+  saveAttendanceSheet,
+  type AttendanceSheetOutcome,
+  type AttendanceSheetPayload,
+} from '@/api/attendanceSheetAPI';
 
 export type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
 export type RawDailyPerformanceRecord = { student_id: number; category: string; score: number };
@@ -188,6 +193,55 @@ export async function syncAttendanceAndPerformanceRequests(
   }
 }
 
+export type AttendanceSheetOptions = Pick<
+  SyncAttendanceAndPerformanceOptions,
+  'courseId' | 'fallbackDate' | 'attendanceRecords' | 'dailyPerformance' | 'performanceDeleteKeys'
+>;
+
+/**
+ * The same data as syncAttendanceAndPerformanceRequests, sent as one request per date (in
+ * practice one request: a sheet is one course on one day). Resolves 'unsupported', having saved
+ * nothing, when the server has no sheet endpoint; the caller then sends the records one by one.
+ */
+export async function saveAttendanceAsSheet(options: AttendanceSheetOptions): Promise<AttendanceSheetOutcome> {
+  const { courseId, fallbackDate, attendanceRecords, dailyPerformance, performanceDeleteKeys } = options;
+
+  const sheets = new Map<string, AttendanceSheetPayload>();
+  const sheetFor = (date: string): AttendanceSheetPayload => {
+    let sheet = sheets.get(date);
+    if (!sheet) {
+      sheet = { course_id: courseId, date, attendance: [], daily_performance: [], daily_performance_deletes: [] };
+      sheets.set(date, sheet);
+    }
+    return sheet;
+  };
+
+  Object.entries(attendanceRecords).forEach(([key, status]) => {
+    const parsed = parseAttendanceKey(key, fallbackDate);
+    if (!parsed.studentId) return;
+    sheetFor(parsed.payloadDate).attendance.push({
+      student_id: parsed.studentId,
+      period_number: parsed.periodNumber,
+      status,
+    });
+  });
+  Object.entries(dailyPerformance).forEach(([key, score]) => {
+    const { studentId, category } = parseDailyPerformanceKey(key);
+    if (!studentId || !category) return;
+    sheetFor(fallbackDate).daily_performance.push({ student_id: studentId, category, score, max_score: 10.0 });
+  });
+  performanceDeleteKeys.forEach((key) => {
+    const { studentId, category } = parseDailyPerformanceKey(key);
+    if (!studentId || !category) return;
+    sheetFor(fallbackDate).daily_performance_deletes.push({ student_id: studentId, category });
+  });
+
+  for (const sheet of sheets.values()) {
+    if ((await saveAttendanceSheet(sheet)) === 'unsupported') return 'unsupported';
+  }
+  return 'saved';
+}
+
 interface UseAttendanceSaveSyncParams {
   selectedCourse: number | '';
   selectedDate: Date | null;
@@ -269,6 +323,17 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
   }, [selectedCourse, attendanceRecords, dailyPerformance, pendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance, updatePendingSyncCount]);
 
   const syncSnapshotToServer = useCallback(async (snapshot: AttendanceSyncSnapshot) => {
+    // One request for the whole sheet; the server matches existing rows itself, so the two
+    // look-ups below are only needed for a server that still wants one request per record.
+    const outcome = await saveAttendanceAsSheet({
+      courseId: snapshot.courseId,
+      fallbackDate: snapshot.date,
+      attendanceRecords: snapshot.attendanceRecords,
+      dailyPerformance: snapshot.dailyPerformance,
+      performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
+    });
+    if (outcome === 'saved') return;
+
     const attendanceIdMap: Record<string, number> = {};
     const performanceIdMap: Record<string, number> = {};
 
@@ -460,16 +525,26 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       }
 
       const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
-      await syncAttendanceAndPerformanceRequests({
+      const performanceDeleteKeys = Array.from(pendingPerformanceDeleteKeys);
+      const outcome = await saveAttendanceAsSheet({
         courseId,
         fallbackDate: dateStr,
         attendanceRecords,
-        attendanceIdMap: attendanceRecordIds,
         dailyPerformance,
-        performanceIdMap: dailyPerformanceIds,
-        performanceDeleteKeys: Array.from(pendingPerformanceDeleteKeys),
-        onPerformanceIdAssigned: (key, id) => setDailyPerformanceIds(prev => ({ ...prev, [key]: id })),
+        performanceDeleteKeys,
       });
+      if (outcome === 'unsupported') {
+        await syncAttendanceAndPerformanceRequests({
+          courseId,
+          fallbackDate: dateStr,
+          attendanceRecords,
+          attendanceIdMap: attendanceRecordIds,
+          dailyPerformance,
+          performanceIdMap: dailyPerformanceIds,
+          performanceDeleteKeys,
+          onPerformanceIdAssigned: (key, id) => setDailyPerformanceIds(prev => ({ ...prev, [key]: id })),
+        });
+      }
 
       // Emit events to notify other components that attendance/performance changed
       // Extract unique student IDs from the records

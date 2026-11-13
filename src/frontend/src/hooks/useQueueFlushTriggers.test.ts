@@ -38,6 +38,60 @@ describe('useQueueFlushTriggers', () => {
     expect(flush).toHaveBeenCalledTimes(2);
   });
 
+  it('does not flush again just because a re-render passed a new flush function', () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const { rerender } = renderHook(({ flush }) => useQueueFlushTriggers(flush), { initialProps: { flush: first } });
+    rerender({ flush: second });
+    rerender({ flush: vi.fn() });
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).not.toHaveBeenCalled();
+  });
+
+  it('calls the latest flush function on the next trigger', () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const { rerender } = renderHook(({ flush }) => useQueueFlushTriggers(flush), { initialProps: { flush: first } });
+    rerender({ flush: second });
+    act(() => {
+      vi.advanceTimersByTime(QUEUE_RETRY_MS);
+    });
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start a second flush while one is still running', async () => {
+    let finish: () => void = () => undefined;
+    const flush = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    renderHook(() => useQueueFlushTriggers(flush));
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+      vi.advanceTimersByTime(QUEUE_RETRY_MS);
+    });
+    expect(flush).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      finish();
+      await Promise.resolve();
+    });
+    act(() => {
+      vi.advanceTimersByTime(QUEUE_RETRY_MS);
+    });
+    expect(flush).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps retrying after a flush that threw or rejected', async () => {
+    const flush = vi.fn().mockRejectedValueOnce(new Error('boom'));
+    renderHook(() => useQueueFlushTriggers(flush));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      vi.advanceTimersByTime(QUEUE_RETRY_MS);
+    });
+    expect(flush).toHaveBeenCalledTimes(2);
+  });
+
   it('flushes when the browser comes back online, and stops after unmount', () => {
     const flush = vi.fn();
     const { unmount } = renderHook(() => useQueueFlushTriggers(flush));
