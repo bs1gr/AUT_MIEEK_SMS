@@ -43,6 +43,22 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.68] - 2026-11-13
+
+### Features
+- **privacy**: administrator tools for access and erasure requests, health information in the edit dialog (todo 50) (#378)
+- **privacy**: health data admin-only, staff notes on the server, privacy notice page (todo 50) (#377)
+- **lesson-log**: PDF/Excel export, last editor, and the log in the semester export/import (todos 45-47) (#376)
+- **cloud**: arm64 image build, Linux deploy files and runbook for the Oracle VM (todos 44, 48) (#373)
+
+### Bug Fixes
+- **privacy**: health information is not recorded unless HEALTH_DATA_ENABLED is set (todo 50) (#379)
+- **frontend**: a tab left open across an update reloads itself instead of showing "Unknown error" (#375)
+
+### Performance
+- cloud host speed - opt-in database round-trip savers; Attendance offers active courses at once (todo 49) (#374)
+
 ## [1.18.67] - 2026-11-13
 
 ### Features
@@ -4861,6 +4877,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
