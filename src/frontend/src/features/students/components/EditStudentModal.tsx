@@ -27,9 +27,11 @@ interface EditStudentModalProps {
   student: Student;
   onClose: () => void;
   onUpdate: (student: StudentUpdatePayload) => void;
+  /** Extra section below the form; the Students page puts the administrator's privacy panel here. */
+  adminPanel?: React.ReactNode;
 }
 
-const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, onUpdate }) => {
+const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, onUpdate, adminPanel }) => {
   const { t } = useLanguage();
 
   const form = useForm<StudentUpdateFormData>({
@@ -353,6 +355,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
             </div>
           </form>
         </Form>
+        {adminPanel}
       </motion.div>
     </motion.div>
     </AnimatePresence>

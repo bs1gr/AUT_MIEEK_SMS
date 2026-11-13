@@ -36,8 +36,8 @@ Health data is a special category (GDPR Article 9).
 - The **encrypted semester archive** keeps it: that archive is the complete record of the semester.
 - Custom reports already drop sensitive fields for everyone except administrators.
 
-There is no screen that shows health information. An administrator who needs it uses a custom
-report or the API endpoint above.
+An administrator sees and edits it in the student's **Edit** dialog, in the section "Personal data
+(administrators only)". No other screen or list shows it.
 
 ### Staff notes about students
 
@@ -69,9 +69,48 @@ to ask the school office:
 Set them in the backend `.env` of each installation (for the cloud host:
 `infra/docker/cloud/.env`) and restart.
 
+### Requests from a student (access and erasure)
+
+In the student's **Edit** dialog an administrator has, under "Personal data (administrators
+only)":
+
+- **Download all data about this student**: one JSON file with every record the database holds
+  about them, including records that were hidden by a normal delete
+  (`GET /api/v1/data-subject/students/{id}/export`). Staff members' private working notes are
+  not part of it.
+- **Erase permanently**: removes the student and every grade, attendance record, enrolment,
+  performance record, highlight and staff note about them, and blanks the personal details in
+  the audit entries of that student (`DELETE /api/v1/data-subject/students/{id}?confirm=<registry
+  number>`). The registry number must be typed to confirm. This is different from **Delete**,
+  which only hides the student and can be undone by re-importing.
+
+Erasure does not reach database backups, semester archives or files exported earlier; those
+follow the retention rules below. Whether a request must be granted is the institution's
+decision: it may be obliged to keep the academic record.
+
+## Recommended defaults (to be confirmed by the institution)
+
+These are the defaults the system and this document assume until the institution decides
+otherwise. They are proposals, not legal advice, and none of them is enforced automatically.
+
+| Topic | Recommended default |
+|---|---|
+| Lawful basis, student records (identity, enrolments, grades, attendance) | Article 6(1)(e), task in the public interest, with 6(1)(c) where the law requires the record. Not consent. |
+| Lawful basis, staff accounts and audit log | Article 6(1)(e) and the security duty of Article 32. |
+| Health information | Record only what staff need for the student's safety, in the administrator-only field. Condition: Article 9(2)(g) where a law provides for it, otherwise the student's explicit written consent kept by the office (9(2)(a)). If neither is in place, leave the field empty. |
+| Consent register | Not needed: nothing in the system relies on consent. If the office collects consent for health information or anything else, it keeps the signed form itself. |
+| Retention, student academic record | The period the institution's archive rules set for academic records. Until that is written down, nothing is deleted automatically. |
+| Retention, staff private notes | Deleted by their author when no longer needed, and removed with the account. Proposed: clear at the end of each academic year. |
+| Retention, audit log | Proposed: two years. |
+| Retention, backups and semester archives | Proposed: backups one year, semester archives as long as the academic record. |
+| Semester export files | Without health information (the default). Delete the file once it has been imported elsewhere. |
+| Hosting | Inside the EU, with a written data-processing agreement (see below). |
+| Privacy notice | The built-in page, with the four `PRIVACY_*` settings filled in. |
+
 ## What the institution must do
 
-The software cannot do these, and none of them is recorded in the project:
+The software cannot do these. The table above gives the default this document assumes for each;
+the decision itself is the institution's and is not recorded anywhere in the project:
 
 1. **Lawful basis.** Decide and document it (for a public educational body normally Article
    6(1)(e) or (c), not consent) and, for health data, the Article 9 condition. If consent is
@@ -81,8 +120,11 @@ The software cannot do these, and none of them is recorded in the project:
 3. **Retention.** Set how long student records, audit logs, backups and semester archives are
    kept, and apply it.
 4. **Processors.** A written data-processing agreement with every host that sees the data. For
-   the Oracle cloud host: confirm that Oracle's agreement covers the Always Free tier, and that
-   the institution's policy allows the hosting.
+   the Oracle cloud host: Oracle publishes a Data Processing Agreement for Oracle Cloud Services
+   under which it acts as processor for the services a customer orders; whether an Always Free
+   account counts as such an order could not be confirmed from public documents (checked
+   2026-11-13). Ask Oracle, or read the agreement accepted at sign-up, and confirm that the
+   institution's policy allows the hosting.
 5. **Records and requests.** Keep the record of processing activities, and have a way to answer
    access, correction and deletion requests.
 6. **The notice text.** Review the wording of the Privacy page and supply the contact details.

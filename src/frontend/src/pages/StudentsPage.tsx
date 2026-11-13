@@ -1,9 +1,11 @@
 import { StudentsView, AddStudentModal, EditStudentModal } from '@/features/students';
+import StudentPrivacyPanel from '@/features/students/components/StudentPrivacyPanel';
+import { AuthContext } from '@/contexts/AuthContext';
 import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useStudentsStore } from '@/stores';
 import { useStudents, useStudentModals, useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks';
 import { useLanguage } from '@/LanguageContext';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import type { Student, StudentFormData } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/components/ui/Toast';
@@ -15,6 +17,9 @@ export default function StudentsPage() {
   const students = useStudentsStore((state) => state.students);
   const selectedStudent = useStudentsStore((state) => state.selectedStudent);
   const selectStudent = useStudentsStore((state) => state.selectStudent);
+  const removeStudentFromStore = useStudentsStore((state) => state.deleteStudent);
+  // Read the context directly: the page also renders (in tests) without an AuthProvider.
+  const isAdmin = String(useContext(AuthContext)?.user?.role ?? '').toLowerCase() === 'admin';
 
   const studentModals = useStudentModals();
   const createStudent = useCreateStudent();
@@ -96,6 +101,18 @@ export default function StudentsPage() {
         <EditStudentModal
           student={selectedStudent}
           onClose={studentModals.editModal.close}
+          adminPanel={
+            isAdmin ? (
+              <StudentPrivacyPanel
+                student={selectedStudent}
+                onErased={(studentId) => {
+                  removeStudentFromStore(studentId);
+                  studentModals.editModal.close();
+                  showToast(t('studentErased'), 'success');
+                }}
+              />
+            ) : null
+          }
           onUpdate={async (updatedStudent: Student) => {
             try {
               const wasActive = selectedStudent.is_active;

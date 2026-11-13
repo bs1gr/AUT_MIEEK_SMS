@@ -5327,5 +5327,16 @@ for that.
       condition for health data, or clearing that column), retention periods, Oracle's
       data-processing agreement for Always Free, the wording of the notice and the four contact
       settings. **The cloud VM stays on `54eab4a67` until the owner says otherwise.**
-    - **Not built:** a consent register (nothing in the system relies on consent today), an
-      admin screen for health information, and a data-subject export / erase function.
+    - **Second round, same day (owner: "try to satisfy all above at a default state as
+      recommended"), unreleased:** an administrator-only section in the student Edit dialog
+      with the health information, a personal-data file for access requests
+      (`/data-subject/students/{id}/export`, soft-deleted records included) and permanent
+      erasure (`DELETE /data-subject/students/{id}`, registry number typed to confirm; audit
+      entries of that student lose their personal details). The admin document gained a table
+      of recommended defaults (lawful basis, health data, retention, hosting) that the
+      institution confirms or changes; none is enforced automatically.
+    - **Deliberately not done:** a consent register (nothing relies on consent), automatic
+      deletion by retention period (no period has been decided, and deleting real records on a
+      guess is not a default), and switching health recording off (the CSV import carries a
+      health column on purpose; it is now admin-only instead). Oracle's agreement for Always
+      Free could not be confirmed from public documents.
