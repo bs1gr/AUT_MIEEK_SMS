@@ -564,8 +564,46 @@ test.describe('Attendance Tracking', () => {
       exact: true,
     });
     await expect(presentButton).toBeVisible({ timeout: 15000 });
+
+    // The autosave (2 s after the click) must send the whole sheet in ONE request and the
+    // server must accept it; the per-record requests are only a fallback for older servers.
+    const perRecordWrites: string[] = [];
+    page.on('request', (request) => {
+      const path = new URL(request.url()).pathname;
+      if (request.method() !== 'GET' && request.method() !== 'OPTIONS' && /\/api\/v1\/attendance\/(\d+)?$/.test(path)) {
+        perRecordWrites.push(`${request.method()} ${path}`);
+      }
+    });
+    const sheetSaved = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' && new URL(response.url()).pathname.endsWith('/api/v1/attendance/sheet'),
+      { timeout: 20000 }
+    );
+
     await presentButton.click();
     await expect(presentButton).toHaveClass(/bg-green-500/);
+
+    const sheetResponse = await sheetSaved;
+    expect(sheetResponse.status()).toBe(200);
+    const sheetRequest = sheetResponse.request().postDataJSON() as {
+      course_id: number;
+      attendance: Array<{ student_id: number; status: string }>;
+    };
+    expect(sheetRequest.course_id).toBe(createdCourse.id);
+    expect(sheetRequest.attendance.length).toBeGreaterThan(0);
+    expect(sheetRequest.attendance.every((entry) => entry.status === 'Present')).toBe(true);
+    expect((await sheetResponse.json()).attendance_created).toBe(sheetRequest.attendance.length);
+    expect(perRecordWrites).toEqual([]);
+
+    // And it is really in the database: read it back through the API.
+    const savedResp = await page.request.get(
+      `${getApiBase()}/api/v1/attendance/?course_id=${createdCourse.id}&limit=100`
+    );
+    expect(savedResp.ok()).toBe(true);
+    const savedBody = await savedResp.json();
+    const savedRows: Array<{ student_id: number; status: string }> = savedBody.items ?? savedBody;
+    expect(savedRows.length).toBe(sheetRequest.attendance.length);
+    expect(savedRows.every((row) => row.status === 'Present')).toBe(true);
 
     await expect(page.locator('[role="alert"]').filter({ hasText: /error/i })).toHaveCount(0);
   });
