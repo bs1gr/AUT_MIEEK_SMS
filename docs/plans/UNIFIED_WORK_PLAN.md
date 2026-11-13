@@ -1431,12 +1431,34 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     the owner) — a PDF and an Excel of the material covered, by date and teaching period, so it
     can serve as the official record. Today it can only be read on the Attendance page. To decide
     while building: whether the teacher's notes are included (default: no, they are private).
+    - **Done 2026-11-13 (unreleased):** `GET /api/v1/lesson-logs/export/{pdf|excel}` for one
+      course (optional date range, `lang`), same permission as the log itself
+      (`attendance:edit`). Oldest entry first. The notes are printed only with
+      `include_notes=true`; without it a period that holds only a note is not listed at all.
+      The PDF is paragraphs, not a table, because a table row cannot break across pages and an
+      entry can be 20,000 characters. Excel keeps typed text as text (a line starting with `=`
+      is not a formula). Buttons and the notes tick box are in "Lesson log history" (EN/EL);
+      the phone uses the share sheet through `downloadBlob`.
+      **Not checked:** the download on a real phone, and the PDF from the frozen SMS Lite (both
+      fonts it loads are in the Lite spec).
 46. **Lesson log: record who last edited an entry** (suggested 2026-11-12, accepted) — any admin,
     staff or teacher account can read and overwrite any course's entries and no author is stored.
     Add `updated_by` through an additive migration and show it in the history. Restricting the
     private notes to their author is a bigger choice and is not part of this todo.
+    - **Done 2026-11-13 (unreleased):** additive migration `e5b2c7a9d4f1` adds nullable
+      `updated_by_id` and `updated_by_name`. The name (full name, else e-mail) is a snapshot
+      taken at save time and is what the history, the PDF and the Excel show; the id is not a
+      foreign key. It changes only when the text really changes, so a retried autosave or the
+      offline queue replaying does not rename the editor. Entries saved before the migration,
+      or with authentication off, show no name.
 47. **Lesson log in the semester export / import** (suggested 2026-11-12, accepted) — it is left
     out today, so moving a semester between installs drops it.
+    - **Done 2026-11-13 (unreleased):** `lesson_logs` section in `/sessions/export` and in the
+      encrypted semester archive (same payload builder), keyed by course code, with the notes
+      and the last editor's name. `/sessions/import` creates, updates or skips them by course +
+      date + period, counts them in the dry run and the summary, and accepts older files that
+      have no such section. Logs belong to the course, so a course without enrolments keeps
+      them. The import preview in Operations shows the count.
 48. **Docker image: build-only run before each tag, and an arm64 build** (suggested 2026-11-12,
     accepted) — dispatch `docker-publish.yml` with `dry_run` in the release flow, so a broken
     `Dockerfile.fullstack` shows in CI and not on the owner's PC, and add `linux/arm64` to it

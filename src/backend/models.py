@@ -214,6 +214,12 @@ class LessonLog(Base):
     period_number = Column(Integer, nullable=False, default=1)
     material_covered = Column(Text)
     teacher_notes = Column(Text)
+    # Who last changed the text. The name is a snapshot taken at save time: it is what the history
+    # and the exports show, it survives the account being renamed or deleted, and it travels with a
+    # semester export to an install where the user ids mean someone else. The id is deliberately
+    # not a foreign key for the same reason (and is NULL for imported entries).
+    updated_by_id = Column(Integer)
+    updated_by_name = Column(String(255))
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
         DateTime(timezone=True),

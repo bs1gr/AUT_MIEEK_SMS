@@ -9,7 +9,7 @@ export type ImportValidationResult = {
   errors?: unknown[];
   total_errors?: number;
   summary?: Record<string, { created?: number; updated?: number; errors?: unknown[] }>;
-  counts?: { courses?: number; students?: number; grades?: number };
+  counts?: { courses?: number; students?: number; grades?: number; lesson_logs?: number };
   [key: string]: unknown;
 } | null;
 

@@ -15,8 +15,16 @@ from backend.import_resolver import import_names
 
 def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
     """Query every ORM row belonging to `semester`, keyed by entity name."""
-    Course, Student, CourseEnrollment, Grade, Attendance, DailyPerformance, Highlight = import_names(
-        "models", "Course", "Student", "CourseEnrollment", "Grade", "Attendance", "DailyPerformance", "Highlight"
+    Course, Student, CourseEnrollment, Grade, Attendance, DailyPerformance, Highlight, LessonLog = import_names(
+        "models",
+        "Course",
+        "Student",
+        "CourseEnrollment",
+        "Grade",
+        "Attendance",
+        "DailyPerformance",
+        "Highlight",
+        "LessonLog",
     )
 
     courses = db.query(Course).filter(Course.semester == semester, Course.deleted_at.is_(None)).all()
@@ -85,6 +93,16 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
         else []
     )
 
+    # Lesson logs belong to the course, not to a student, so a course with no enrolments keeps them.
+    lesson_logs = (
+        db.query(LessonLog)
+        .filter(LessonLog.course_id.in_(course_ids))
+        .order_by(LessonLog.course_id, LessonLog.date, LessonLog.period_number)
+        .all()
+        if course_ids
+        else []
+    )
+
     return {
         "courses": courses,
         "students": students,
@@ -93,6 +111,7 @@ def fetch_semester_dataset(db: Session, semester: str) -> Dict[str, List[Any]]:
         "attendance": attendance,
         "daily_performance": daily_performance,
         "highlights": highlights,
+        "lesson_logs": lesson_logs,
     }
 
 
@@ -188,6 +207,24 @@ def serialize_highlight(highlight) -> Dict[str, Any]:
     }
 
 
+def serialize_lesson_log(lesson_log, course_code: Any) -> Dict[str, Any]:
+    return {
+        "course_code_ref": course_code,
+        "date": str(lesson_log.date) if lesson_log.date else None,
+        "period_number": lesson_log.period_number,
+        "material_covered": lesson_log.material_covered,
+        "teacher_notes": lesson_log.teacher_notes,
+        # The name only: user ids mean someone else on the install that imports this.
+        "updated_by_name": lesson_log.updated_by_name,
+    }
+
+
+def serialize_lesson_logs(dataset: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
+    """The dataset's lesson logs, each pointing at its course by code (the model has no relationship)."""
+    codes = {course.id: course.course_code for course in dataset["courses"]}
+    return [serialize_lesson_log(entry, codes.get(entry.course_id)) for entry in dataset["lesson_logs"]]
+
+
 def build_semester_export_payload(db: Session, semester: str) -> Dict[str, Any]:
     """Build the full semester export JSON payload (same shape used by
     GET /api/v1/sessions/export)."""
@@ -208,4 +245,5 @@ def build_semester_export_payload(db: Session, semester: str) -> Dict[str, Any]:
         "attendance": [serialize_attendance(a) for a in dataset["attendance"]],
         "daily_performance": [serialize_performance(dp) for dp in dataset["daily_performance"]],
         "highlights": [serialize_highlight(h) for h in dataset["highlights"]],
+        "lesson_logs": serialize_lesson_logs(dataset),
     }

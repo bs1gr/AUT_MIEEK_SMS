@@ -653,6 +653,15 @@ Under the student list, once a course and a date are selected, the **Lesson log*
 - At the bottom of the Attendance page, open **Lesson log history** for the selected course
 - Entries are listed newest first; click **Edit** on an entry to change it (it saves automatically too) and **Close** when finished
 - The title shows how many entries the course has; use **Load more** for older ones
+- Each entry shows who edited it last (entries saved before v1.18.68 show no name)
+
+**Downloading the material covered (PDF / Excel):**
+
+- In **Lesson log history**, the **PDF** and **Excel** buttons download the course's material covered, by date and teaching period, oldest first
+- The teacher's notes are private and are **not** in the file unless you tick **Include the teacher's notes**; a period that only has a note is then left out completely
+- The headings follow the language of the page (English or Greek)
+
+The semester export and import (Operations) also carry the lesson log, so it moves with the semester to another installation.
 
 ### Viewing Attendance
 

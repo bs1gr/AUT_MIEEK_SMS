@@ -4,8 +4,9 @@
  * an entry can be corrected later without going back to that date in the calendar.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { History } from 'lucide-react';
-import { lessonLogsAPI } from '@/api/lessonLogsAPI';
+import { Download, History } from 'lucide-react';
+import { lessonLogsAPI, type LessonLogExportFormat } from '@/api/lessonLogsAPI';
+import { downloadBlob } from '@/utils/downloadFile';
 import type { LessonLog } from '@/types';
 import LessonLogFields from './LessonLogFields';
 
@@ -15,6 +16,8 @@ export interface LessonLogHistoryProps {
   t: Translate;
   courseId: number | '';
   formatDate: (value: Date | string) => string;
+  /** 'en' or 'el': the language of the headings in the downloaded PDF / Excel. */
+  language?: string;
   /** Any value that changes after a lesson log is saved elsewhere on the page; reloads the list. */
   refreshKey?: unknown;
 }
@@ -32,7 +35,7 @@ const parseDay = (day: string): Date => {
 const httpStatus = (error: unknown): number | undefined =>
   (error as { response?: { status?: number } } | null)?.response?.status;
 
-const LessonLogHistory = ({ t, courseId, formatDate, refreshKey }: LessonLogHistoryProps) => {
+const LessonLogHistory = ({ t, courseId, formatDate, language, refreshKey }: LessonLogHistoryProps) => {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<LessonLog[]>([]);
   const [total, setTotal] = useState(0);
@@ -40,6 +43,9 @@ const LessonLogHistory = ({ t, courseId, formatDate, refreshKey }: LessonLogHist
   const [loadingMore, setLoadingMore] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [includeNotes, setIncludeNotes] = useState(false);
+  const [exporting, setExporting] = useState<LessonLogExportFormat | null>(null);
+  const [exportFailed, setExportFailed] = useState(false);
   // Only the newest request may write the list, whatever order the responses arrive in.
   const latestRequest = useRef(0);
 
@@ -88,6 +94,24 @@ const LessonLogHistory = ({ t, courseId, formatDate, refreshKey }: LessonLogHist
     }
   };
 
+  const exportLog = async (format: LessonLogExportFormat) => {
+    if (!courseId || exporting) return;
+    setExporting(format);
+    setExportFailed(false);
+    try {
+      const file = await lessonLogsAPI.exportFile(format, {
+        course_id: courseId,
+        include_notes: includeNotes,
+        ...(language ? { lang: language } : {}),
+      });
+      await downloadBlob(file.blob, file.filename);
+    } catch {
+      setExportFailed(true);
+    } finally {
+      setExporting(null);
+    }
+  };
+
   const handleRowSaved = useCallback((log: LessonLog) => {
     setRows((current) => current.map((row) => (row.id === log.id ? log : row)));
   }, []);
@@ -130,6 +154,45 @@ const LessonLogHistory = ({ t, courseId, formatDate, refreshKey }: LessonLogHist
             </p>
           ) : (
             <>
+              <div
+                className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg bg-gray-50 px-3 py-2"
+                data-testid="lesson-log-export"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <Download size={16} className="text-indigo-600" />
+                  {t('lessonLogExportTitle') || 'Download the material covered'}
+                </span>
+                {(['pdf', 'excel'] as const).map((format) => (
+                  <button
+                    key={format}
+                    type="button"
+                    onClick={() => void exportLog(format)}
+                    disabled={exporting !== null}
+                    className="rounded-md border border-indigo-200 bg-white px-3 py-1 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+                    data-testid={`lesson-log-export-${format}`}
+                  >
+                    {format === 'pdf' ? t('lessonLogExportPdf') || 'PDF' : t('lessonLogExportExcel') || 'Excel'}
+                  </button>
+                ))}
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={includeNotes}
+                    onChange={(event) => setIncludeNotes(event.target.checked)}
+                    data-testid="lesson-log-export-notes"
+                  />
+                  {t('lessonLogExportIncludeNotes') || "Include the teacher's notes"}
+                </label>
+                <span className="text-sm" role="status">
+                  {exporting ? (
+                    <span className="text-gray-600">{t('lessonLogExportWorking') || 'Preparing the file…'}</span>
+                  ) : exportFailed ? (
+                    <span className="text-red-600">
+                      {t('lessonLogExportFailed') || 'The file could not be created. Please try again.'}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
               <ul className="divide-y">
                 {rows.map((row) => {
                   const editing = editingId === row.id;
@@ -162,6 +225,7 @@ const LessonLogHistory = ({ t, courseId, formatDate, refreshKey }: LessonLogHist
                           />
                         </div>
                       ) : (
+                        <>
                         <dl className="mt-2 grid gap-3 text-sm md:grid-cols-2">
                           <div>
                             <dt className="text-xs font-semibold text-gray-600">
@@ -184,6 +248,13 @@ const LessonLogHistory = ({ t, courseId, formatDate, refreshKey }: LessonLogHist
                             </dd>
                           </div>
                         </dl>
+                        {row.updated_by_name && (
+                          <p className="mt-2 text-xs text-gray-600" data-testid={`lesson-log-row-${row.id}-editor`}>
+                            {t('lessonLogLastEditedBy', { name: row.updated_by_name }) ||
+                              `Last edited by ${row.updated_by_name}`}
+                          </p>
+                        )}
+                        </>
                       )}
                     </li>
                   );

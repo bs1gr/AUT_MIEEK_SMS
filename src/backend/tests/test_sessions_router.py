@@ -81,6 +81,7 @@ def test_sessions_import_dry_run_valid_empty(client):
         "attendance": 0,
         "daily_performance": 0,
         "highlights": 0,
+        "lesson_logs": 0,
     }
 
 

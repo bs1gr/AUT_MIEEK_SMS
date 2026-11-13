@@ -149,4 +149,11 @@ export default {
   lessonLogEntryEdit: 'Edit',
   lessonLogEntryDone: 'Done',
   lessonLogNothingRecorded: 'Nothing recorded',
+  lessonLogLastEditedBy: 'Last edited by {{name}}',
+  lessonLogExportTitle: 'Download the material covered',
+  lessonLogExportPdf: 'PDF',
+  lessonLogExportExcel: 'Excel',
+  lessonLogExportIncludeNotes: "Include the teacher's notes",
+  lessonLogExportWorking: 'Preparing the file…',
+  lessonLogExportFailed: 'The file could not be created. Please try again.',
 };

@@ -6,12 +6,18 @@ import type { LessonLog } from '@/types';
 import { clearLessonLogQueue } from '../utils/lessonLogQueue';
 
 vi.mock('@/api/lessonLogsAPI', () => ({
-  lessonLogsAPI: { list: vi.fn(), save: vi.fn() },
+  lessonLogsAPI: { list: vi.fn(), save: vi.fn(), exportFile: vi.fn() },
+}));
+
+const downloadBlob = vi.fn();
+vi.mock('@/utils/downloadFile', () => ({
+  downloadBlob: (...args: unknown[]) => downloadBlob(...args),
 }));
 
 const api = lessonLogsAPI as unknown as {
   list: ReturnType<typeof vi.fn>;
   save: ReturnType<typeof vi.fn>;
+  exportFile: ReturnType<typeof vi.fn>;
 };
 
 const t = (key: string, options?: Record<string, unknown>) => (options ? `${key} ${JSON.stringify(options)}` : key);
@@ -174,6 +180,71 @@ describe('LessonLogHistory', () => {
     rerender(<LessonLogHistory {...props} refreshKey={1} />);
 
     await waitFor(() => expect(api.list).toHaveBeenCalledTimes(2));
+  });
+
+  it('names the last editor of an entry, and says nothing when none was recorded', async () => {
+    api.list.mockResolvedValue(
+      pageOf([log({ id: 2, material_covered: 'a', updated_by_name: 'Μαρία Παπαδοπούλου' }), log({ id: 1, material_covered: 'b' })])
+    );
+    render(<LessonLogHistory {...props} />);
+    await open();
+
+    expect(await screen.findByTestId('lesson-log-row-2-editor')).toHaveTextContent(
+      'lessonLogLastEditedBy {"name":"Μαρία Παπαδοπούλου"}'
+    );
+    expect(screen.queryByTestId('lesson-log-row-1-editor')).toBeNull();
+  });
+
+  describe('download', () => {
+    const file = { blob: new Blob(['x']), filename: 'lesson_log_LX101_20261113.pdf' };
+
+    beforeEach(() => {
+      api.list.mockResolvedValue(pageOf([log({ id: 1, material_covered: 'Chapter 1' })]));
+      api.exportFile.mockResolvedValue(file);
+      downloadBlob.mockResolvedValue(undefined);
+    });
+
+    it('is not offered for a course without entries', async () => {
+      api.list.mockResolvedValue(pageOf([]));
+      render(<LessonLogHistory {...props} />);
+      await open();
+      await screen.findByText('lessonLogHistoryEmpty');
+      expect(screen.queryByTestId('lesson-log-export')).toBeNull();
+    });
+
+    it('downloads the PDF without the notes by default, in the page language', async () => {
+      render(<LessonLogHistory {...props} language="el" />);
+      await open();
+
+      fireEvent.click(await screen.findByTestId('lesson-log-export-pdf'));
+
+      await waitFor(() => expect(downloadBlob).toHaveBeenCalledWith(file.blob, file.filename));
+      expect(api.exportFile).toHaveBeenCalledWith('pdf', { course_id: 7, include_notes: false, lang: 'el' });
+    });
+
+    it('includes the notes in the Excel file only after the box is ticked', async () => {
+      render(<LessonLogHistory {...props} />);
+      await open();
+
+      fireEvent.click(await screen.findByTestId('lesson-log-export-notes'));
+      fireEvent.click(screen.getByTestId('lesson-log-export-excel'));
+
+      await waitFor(() => expect(api.exportFile).toHaveBeenCalledWith('excel', { course_id: 7, include_notes: true }));
+    });
+
+    it('says so when the file cannot be created, and lets the user try again', async () => {
+      api.exportFile.mockRejectedValueOnce(new Error('boom'));
+      render(<LessonLogHistory {...props} />);
+      await open();
+
+      fireEvent.click(await screen.findByTestId('lesson-log-export-pdf'));
+      expect(await screen.findByText('lessonLogExportFailed')).toBeInTheDocument();
+      expect(downloadBlob).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByTestId('lesson-log-export-pdf'));
+      await waitFor(() => expect(downloadBlob).toHaveBeenCalledTimes(1));
+      expect(screen.queryByText('lessonLogExportFailed')).toBeNull();
+    });
   });
 
   it('starts over for another course', async () => {

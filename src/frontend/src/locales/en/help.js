@@ -55,7 +55,7 @@ export default {
   helpHowToRecordLesson: 'How do I record what I taught?',
   helpRecordLessonAnswer: '1. Go to Attendance and select a course and a date\n2. Find the "Lesson log" card under the student list\n3. Write the material covered and, separately, your own notes\n4. If the day has several periods, pick the period first\n\n⚡ Autosaves 2 seconds after you stop typing. The notes are visible to teachers and administrators only.',
   helpWhereToReviewLessonLog: 'Where can I review or edit earlier entries?',
-  helpReviewLessonLogAnswer: 'At the bottom of the Attendance page, open "Lesson log history" for the selected course. The newest entries come first; click Edit on an entry to change it. Changes save automatically.',
+  helpReviewLessonLogAnswer: 'At the bottom of the Attendance page, open "Lesson log history" for the selected course. The newest entries come first; click Edit on an entry to change it. Changes save automatically, and each entry shows who edited it last.\n\n📄 PDF and Excel buttons above the list download the material covered, by date and period. Your notes are left out unless you tick "Include the teacher\'s notes".',
   helpWhatDoAttendanceStatusesMean: 'What do the statuses mean?',
   helpAttendanceStatusAnswer: '• ✓ Present: In class\n• ✗ Absent: Did not attend\n• ⏰ Late: Arrived late\n• 📋 Excused: Approved absence\n\n💡 Only unexcused absences affect grades.',
 

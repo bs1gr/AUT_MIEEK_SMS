@@ -27,6 +27,7 @@ from backend.services.session_data_service import serialize_course as _serialize
 from backend.services.session_data_service import serialize_enrollment as _serialize_enrollment
 from backend.services.session_data_service import serialize_grade as _serialize_grade
 from backend.services.session_data_service import serialize_highlight as _serialize_highlight
+from backend.services.session_data_service import serialize_lesson_logs
 from backend.services.session_data_service import serialize_performance as _serialize_performance
 from backend.services.session_data_service import serialize_student as _serialize_student
 
@@ -243,6 +244,7 @@ async def export_session(
     - Attendance records
     - Daily performance records
     - Highlights for enrolled students
+    - Lesson logs of those courses (material covered and teacher's notes)
 
     Returns a JSON file containing all related data.
     """
@@ -255,6 +257,7 @@ async def export_session(
         attendance = dataset["attendance"]
         daily_performance = dataset["daily_performance"]
         highlights = dataset["highlights"]
+        lesson_logs = dataset["lesson_logs"]
 
         if not courses:
             raise http_error(
@@ -280,6 +283,7 @@ async def export_session(
                     "attendance": len(attendance),
                     "daily_performance": len(daily_performance),
                     "highlights": len(highlights),
+                    "lesson_logs": len(lesson_logs),
                 },
             },
             "courses": [_serialize_course(c) for c in courses],
@@ -289,6 +293,7 @@ async def export_session(
             "attendance": [_serialize_attendance(a) for a in attendance],
             "daily_performance": [_serialize_performance(dp) for dp in daily_performance],
             "highlights": [_serialize_highlight(h) for h in highlights],
+            "lesson_logs": serialize_lesson_logs(dataset),
         }
 
         # Create JSON file
@@ -413,6 +418,7 @@ async def import_session(
                     "attendance": len(import_data.get("attendance", [])),
                     "daily_performance": len(import_data.get("daily_performance", [])),
                     "highlights": len(import_data.get("highlights", [])),
+                    "lesson_logs": len(import_data.get("lesson_logs", [])),
                 },
                 "message": "Validation passed. Safe to import.",
             }
@@ -469,6 +475,7 @@ async def import_session(
                 "attendance": {"created": 0, "updated": 0, "skipped": 0, "errors": []},
                 "daily_performance": {"created": 0, "updated": 0, "skipped": 0, "errors": []},
                 "highlights": {"created": 0, "updated": 0, "skipped": 0, "errors": []},
+                "lesson_logs": {"created": 0, "updated": 0, "skipped": 0, "errors": []},
             },
         }
 
@@ -578,6 +585,8 @@ async def import_session(
         _import_attendance(db, import_data.get("attendance", []), merge_strategy, results)
         _import_daily_performance(db, import_data.get("daily_performance", []), merge_strategy, results)
         _import_highlights(db, import_data.get("highlights", []), merge_strategy, results)
+        # Older export files have no lesson_logs section; that is simply nothing to import.
+        _import_lesson_logs(db, import_data.get("lesson_logs") or [], merge_strategy, results)
 
         # Imported courses carry the exporter's is_active; re-derive it from enrollments
         from backend.services.course_activation import sync_course_activation
@@ -1126,3 +1135,75 @@ def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str,
         except Exception as e:
             logger.error("Highlight import failed: %s", e, exc_info=True)
             results["summary"]["highlights"]["errors"].append("Highlight import failed")
+
+
+def _import_lesson_logs(db: Session, lesson_logs: List[Dict], merge_strategy: str, results: Dict):
+    """Import lesson logs (material covered and teacher's notes per course, date and period).
+
+    The key is course + date + period, the same unique key the table has. The session does not
+    autoflush, so entries added earlier in this same import are remembered here: a file that
+    repeats a key must update the first one, not collide with it at commit.
+    """
+    from backend.schemas.lesson_log import MAX_LESSON_LOG_TEXT
+
+    LessonLog, Course = import_names("models", "LessonLog", "Course")
+    summary = results["summary"]["lesson_logs"]
+    added: Dict[tuple, Any] = {}
+
+    def text_of(value: Any) -> Optional[str]:
+        if value is None or not str(value).strip():
+            return None
+        return str(value)[:MAX_LESSON_LOG_TEXT]
+
+    for log_data in lesson_logs:
+        try:
+            course = _resolve_course(db, Course, log_data.get("course_code_ref"))
+            if not course:
+                summary["errors"].append(f"Missing course for lesson log: {log_data.get('course_code_ref')}")
+                continue
+            if not log_data.get("date"):
+                summary["errors"].append(f"Lesson log without a date for course {course.course_code}")
+                continue
+
+            log_date = datetime.fromisoformat(str(log_data["date"])).date()
+            period = int(log_data.get("period_number") or 1)
+            if period < 1:
+                summary["errors"].append(f"Lesson log with an invalid period for course {course.course_code}")
+                continue
+
+            fields = {
+                "material_covered": text_of(log_data.get("material_covered")),
+                "teacher_notes": text_of(log_data.get("teacher_notes")),
+                "updated_by_name": (text_of(log_data.get("updated_by_name")) or "")[:255] or None,
+                # The exporting install's user id means someone else here.
+                "updated_by_id": None,
+            }
+
+            key = (course.id, log_date, period)
+            existing = added.get(key) or (
+                db.query(LessonLog)
+                .filter(
+                    LessonLog.course_id == course.id,
+                    LessonLog.date == log_date,
+                    LessonLog.period_number == period,
+                )
+                .first()
+            )
+
+            if existing:
+                if merge_strategy == "update":
+                    for name, value in fields.items():
+                        setattr(existing, name, value)
+                    db.add(existing)
+                    summary["updated"] += 1
+                else:
+                    summary["skipped"] += 1
+            else:
+                entry = LessonLog(course_id=course.id, date=log_date, period_number=period, **fields)
+                db.add(entry)
+                added[key] = entry
+                summary["created"] += 1
+
+        except Exception as e:
+            logger.error("Lesson log import failed: %s", e, exc_info=True)
+            summary["errors"].append("Lesson log import failed")
