@@ -2,6 +2,7 @@ import React, { Component, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { safeNavigate } from './utils/navigation';
 import { ErrorHandler, ErrorCategory, ErrorContext } from './utils/errorHandling';
+import { isChunkLoadError, recoverFromChunkLoadError } from './utils/chunkLoadRecovery';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -37,6 +38,14 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    // A page file that no longer exists means the server was updated while this tab was open.
+    // React hands a failed lazy import to the boundary, so the window-level handlers in
+    // main.tsx never see it: reload here to pick up the new version (once; the helper
+    // refuses a second reload within its cooldown, and the screen below then offers one).
+    if (recoverFromChunkLoadError(error)) {
+      return;
+    }
+
     // Categorize error for better handling
     const category = ErrorHandler.categorizeError(error);
     const context = ErrorHandler.createContext(`ErrorBoundary-${this.props.boundaryName}`);
@@ -76,6 +85,10 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
     });
   };
 
+  handleReload = (): void => {
+    window.location.reload();
+  };
+
   handleGoHome = (): void => {
     // Navigate to home page
     safeNavigate('/');
@@ -93,6 +106,8 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
       // Get user-friendly message based on error category
       const userMessage = ErrorHandler.getUserMessage(errorCategory);
       const isRecoverable = ErrorHandler.isRecoverable(errorCategory);
+      // The app was updated while this tab was open and the automatic reload did not happen.
+      const isStaleVersion = isChunkLoadError(error);
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
@@ -109,12 +124,14 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
             {/* Error Message */}
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 mb-2">
-                {t('unknown', { ns: 'errors' }) || 'Something went wrong'}
+                {isStaleVersion
+                  ? t('newVersionTitle', { ns: 'errors' })
+                  : t('unknown', { ns: 'errors' }) || 'Something went wrong'}
               </h2>
-              <p className="text-sm text-gray-600">
-                {userMessage}
+              <p className="text-sm text-gray-600" data-testid="error-boundary-message">
+                {isStaleVersion ? t('newVersionMessage', { ns: 'errors' }) : userMessage}
               </p>
-              {isRecoverable && (
+              {isRecoverable && !isStaleVersion && (
                 <p className="text-xs text-sky-600 mt-2">
                   💡 {t('temporaryErrorHint', { ns: 'messages' })}
                 </p>
@@ -156,10 +173,10 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
             {/* Action Buttons */}
             <div className="flex gap-3 justify-center flex-wrap">
               <button
-                onClick={this.handleReset}
+                onClick={isStaleVersion ? this.handleReload : this.handleReset}
                 className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-medium transition-colors shadow-xs hover:bg-sky-700 focus:outline-hidden focus:ring-2 focus:ring-sky-400"
               >
-                {t('reset', { ns: 'common' }) || 'Try Again'}
+                {isStaleVersion ? t('newVersionReload', { ns: 'errors' }) : t('reset', { ns: 'common' }) || 'Try Again'}
               </button>
 
               <button

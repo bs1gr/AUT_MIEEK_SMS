@@ -1416,9 +1416,18 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       PostgreSQL:** the 24 lesson-log API checks (one "degraded" was the dev PC's own memory),
       Greek PDFs and Excel, the browser run as a teacher (autosave, offline queue, history,
       Greek, 412 px) and the teacher Dashboard and Analytics, with no server errors.
-    - **Not done:** the user lookup still costs one round trip per request, pages that send
-      their requests one after another still add up, and the owner has not yet said how the
-      pages feel with the switches on.45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
+    - **Attendance course selector, same day:** it stayed empty until one enrollment request per
+      course had answered, three at a time; it now lists the courses flagged `is_active` at once
+      and only checks those. The owner on the VM: "now works properly".
+    - **A tab left open across an update showed "Unknown error – Invalid input provided"** (found
+      when the VM was rebuilt under the owner's open tab: the old build asked for a page file
+      that no longer existed). `chunkLoadRecovery` already reloads on that error, but only from
+      the window-level handlers, and React gives a failed lazy import to the error boundary
+      instead. Both boundaries now call it, Vite's `vite:preloadError` is handled too, and when
+      the reload is held back by its 30-second cooldown the screen says "A new version is
+      available" with a Reload button (EN/EL). Any install shows this after any update.
+    - **Not done:** the user lookup still costs one round trip per request, and pages that send
+      their requests one after another still add up.45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
     the owner) — a PDF and an Excel of the material covered, by date and teaching period, so it
     can serve as the official record. Today it can only be read on the Attendance page. To decide
     while building: whether the teacher's notes are included (default: no, they are private).
