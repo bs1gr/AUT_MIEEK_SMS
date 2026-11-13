@@ -40,7 +40,9 @@ def test_csv_import_students_with_greek_columns(client: TestClient):
     assert student1.get("email") == "test1@example.com"
     assert student1.get("mobile_phone") == "+30 6912345678"
     assert student1.get("phone") == "210-1234567"
-    assert student1.get("health_issue") == "Διαβήτης"
+    assert "health_issue" not in student1  # not part of the general student response
+    health1 = client.get(f"/api/v1/students/{student1['id']}/health").json()
+    assert health1["health_issue"] == "Διαβήτης"
     assert student1.get("study_year") == 1  # Α' -> 1
 
     # Verify second student
@@ -48,7 +50,8 @@ def test_csv_import_students_with_greek_columns(client: TestClient):
     assert student2 is not None
     assert student2.get("first_name") == "Μαρία"
     assert student2.get("study_year") == 2  # Β' -> 2
-    assert student2.get("health_issue") is None or student2.get("health_issue") == ""
+    health2 = client.get(f"/api/v1/students/{student2['id']}/health").json()
+    assert health2["health_issue"] in (None, "")
 
 
 def test_csv_import_rejects_for_courses(client: TestClient):

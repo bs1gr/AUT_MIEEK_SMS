@@ -6,15 +6,17 @@ import { CloudUpload } from 'lucide-react';
 interface NotesSectionProps {
   value: string;
   onChange: (value: string) => void;
+  /** The latest text could not be saved on the server. */
+  saveFailed?: boolean;
 }
 
-const NotesSection: React.FC<NotesSectionProps> = ({ value, onChange }) => {
+const NotesSection: React.FC<NotesSectionProps> = ({ value, onChange, saveFailed = false }) => {
   const { t } = useLanguage();
 
   // Wrap onChange in useCallback to ensure stable reference for autosave
   const performSave = useCallback(async () => {
-    // The actual save is already handled by onChange which updates localStorage
-    // This just ensures we don't trigger unnecessary re-renders
+    // The save itself is done by onChange (useStudentNotes sends it to the server);
+    // this only drives the "pending / saving" indicator.
     return Promise.resolve();
   }, []);
 
@@ -49,6 +51,15 @@ const NotesSection: React.FC<NotesSectionProps> = ({ value, onChange }) => {
         className="w-full min-h-[100px] border rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         placeholder={t('notePlaceholder') || 'Add notes about this student...'}
       />
+      {saveFailed ? (
+        <p className="mt-1 text-xs text-red-600" role="status" data-testid="note-save-failed">
+          {t('noteSaveFailed') || 'Not saved. It will be retried on your next change.'}
+        </p>
+      ) : (
+        <p className="mt-1 text-xs text-gray-500">
+          {t('notePrivateHint') || 'Your own notes: only your account can see them.'}
+        </p>
+      )}
     </div>
   );
 };

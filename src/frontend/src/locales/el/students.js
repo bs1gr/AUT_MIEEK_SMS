@@ -96,6 +96,8 @@ export default {
   emailPlaceholder: 'Διεύθυνση Email',
   healthIssuesPlaceholder: 'Προβλήματα υγείας ή ειδικές ανάγκες',
   notePlaceholder: 'Πρόσθετες σημειώσεις',
+  noteSaveFailed: 'Δεν αποθηκεύτηκε. Θα επαναληφθεί στην επόμενη αλλαγή σας.',
+  notePrivateHint: 'Οι δικές σας σημειώσεις: τις βλέπει μόνο ο λογαριασμός σας.',
   studyYearPlaceholder: 'Έτος Σπουδών',
   addressPlaceholder: 'Διεύθυνση',
   dateOfBirth: 'Ημερομηνία Γέννησης',

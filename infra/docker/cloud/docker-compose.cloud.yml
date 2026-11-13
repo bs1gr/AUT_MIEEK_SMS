@@ -48,6 +48,11 @@ services:
       - DB_PRE_PING_IDLE_SECONDS=${DB_PRE_PING_IDLE_SECONDS:-20}
       - DB_AUTOCOMMIT_READS=${DB_AUTOCOMMIT_READS:-true}
       - PERMISSION_CACHE_TTL_SECONDS=${PERMISSION_CACHE_TTL_SECONDS:-30}
+      # Shown on the Privacy page (docs/admin/PRIVACY_AND_GDPR.md); empty = "ask the school office".
+      - PRIVACY_CONTROLLER_NAME=${PRIVACY_CONTROLLER_NAME:-}
+      - PRIVACY_CONTACT=${PRIVACY_CONTACT:-}
+      - PRIVACY_DPO_CONTACT=${PRIVACY_DPO_CONTACT:-}
+      - PRIVACY_NOTICE_URL=${PRIVACY_NOTICE_URL:-}
     volumes:
       - sms_cloud_data:/data
     # Loopback only. Nothing listens on the VM's public address; `tailscale serve` on the host

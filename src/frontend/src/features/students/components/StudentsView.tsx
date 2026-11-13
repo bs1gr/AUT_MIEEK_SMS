@@ -9,6 +9,7 @@ import type { Student, Attendance, Grade, Course } from '@/types';
 
 import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
 import StudentCard from './StudentCard';
+import { useStudentNotes } from '../hooks/useStudentNotes';
 import type { StudentStats } from './studentTypes';
 import { eventBus, EVENTS } from '@/utils/events';
 
@@ -72,26 +73,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [statsById, setStatsById] = useState<Record<number, StudentStats>>({});
   const [cascadedSectionExpanded, setCascadedSectionExpanded] = useState({ active: true, inactive: false });
-  // Derive notes from localStorage for the current students list
-  const derivedNotesById = useMemo(() => {
-    const loaded: Record<number, string> = {};
-    (students || []).forEach((s) => {
-      try {
-        const k = `student_notes_${s.id}`;
-        const v = localStorage.getItem(k) || "";
-        loaded[s.id] = v;
-      } catch {
-        loaded[s.id] = "";
-      }
-    });
-    return loaded;
-  }, [students]);
-  // Track session edits so UI reflects changes immediately without re-reading storage
-  const [notesOverrides, setNotesOverrides] = useState<Record<number, string>>({});
-  const notesById = useMemo(
-    () => ({ ...derivedNotesById, ...notesOverrides }),
-    [derivedNotesById, notesOverrides]
-  );
+  // The account's own notes, kept on the server (they used to live in this browser).
+  const { notesById, failedIds: failedNoteIds, updateNote } = useStudentNotes();
   const [coursesMap, setCoursesMap] = useState<Map<number, Course>>(new Map());
 
   // Fetch all courses once for mapping course_id to course info
@@ -208,8 +191,6 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     };
   }, [statsById, expandedId, loadStats]);
 
-  // notesById is derived via useMemo; no effect needed
-
   const [yearFilter, setYearFilter] = useState<string>(ALL);
   const [divisionFilter, setDivisionFilter] = useState<string>(ALL);
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -240,13 +221,6 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     setExpandedId(next);
     if (next && !statsById[next]) loadStats(next);
   }, [expandedId, statsById, loadStats]);
-
-  const updateNote = useCallback((id: number, value: string): void => {
-    setNotesOverrides((prev) => ({ ...prev, [id]: value }));
-    try {
-      localStorage.setItem(`student_notes_${id}`, value);
-    } catch {}
-  }, []);
 
   const handleCourseNavigate = useCallback((studentId: number, courseId: number) => {
     if (typeof window !== 'undefined') {
@@ -327,6 +301,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   isExpanded={expandedId === student.id}
                   noteValue={notesById[student.id] || ''}
                   onNoteChange={(value) => updateNote(student.id, value)}
+                  noteSaveFailed={failedNoteIds.has(student.id)}
                   onToggleExpand={toggleExpand}
                   onEdit={onEdit}
                   onDelete={onDelete}

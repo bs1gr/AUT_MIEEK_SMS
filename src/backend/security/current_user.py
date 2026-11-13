@@ -151,3 +151,35 @@ async def require_auth_even_if_disabled(
     token = auth_header.split(" ", 1)[1].strip()
     # Pass the token explicitly to bypass the relaxed path in get_current_user
     return await get_current_user(request=request, token=token, db=db)
+
+
+async def optional_signed_in_user(request: Request, db: Session = Depends(get_db)) -> Any:
+    """The account behind this request, or None when it carries no bearer token.
+
+    For code that only wants to know *who* is acting (to record an author, to key private data).
+    Access itself is decided by the permission decorators; with authentication switched off
+    there is nobody to name, so this returns None rather than the placeholder admin.
+    """
+    from fastapi import HTTPException
+
+    if not str(request.headers.get("Authorization", "")).startswith("Bearer "):
+        return None
+    try:
+        return await get_current_user(request=request, db=db)
+    except HTTPException:
+        return None
+
+
+async def may_see_health_data(request: Request, db: Session = Depends(get_db)) -> bool:
+    """Whether this request may read or write students' health information.
+
+    Health data is a special category under GDPR Article 9, so it is limited to administrators
+    (the same rule the custom reports already apply to their sensitive fields). An install that
+    runs without authentication has no accounts to tell apart, so it is allowed there.
+    """
+    user = await optional_signed_in_user(request, db)
+    if user is not None:
+        return str(getattr(user, "role", "") or "").lower() == "admin"
+    auth_enabled = bool(getattr(settings, "AUTH_ENABLED", False))
+    auth_mode = str(getattr(settings, "AUTH_MODE", "disabled") or "disabled").lower()
+    return (not auth_enabled) or auth_mode != "strict"

@@ -5310,3 +5310,22 @@ for that.
 
 
 
+
+50. **Privacy hardening after a consent / GDPR review** (owner, 2026-11-13: "make sure that comply
+    by Consent Management Checklist for GDPR Cyprus Compliance" before the cloud VM is updated;
+    then "do all recommended") — no checklist by that name exists in the project, so the app was
+    checked against GDPR Articles 6-9, Law 125(I)/2018 and the cookie rule of Law 112(I)/2004.
+    Passing already: only strictly necessary cookies, no tracking, no third-party scripts.
+    - **Done 2026-11-13 (unreleased):** health information left the general student response
+      and is admin-only (`/students/{id}/health`), is masked in the audit log and is out of the
+      semester export unless an administrator asks (the encrypted archive keeps it); the staff
+      notes moved from the browser's `localStorage` to the server, per account (additive
+      migration `f6c3d8b1a2e4`), with a one-time move of what a browser still holds; a public
+      Privacy page (EN/EL) linked from the footer, with the controller's contacts from four
+      `PRIVACY_*` settings. Described in `docs/admin/PRIVACY_AND_GDPR.md`.
+    - **The owner's / ΜΙΕΕΚ's, not code:** the lawful basis in writing (and the Article 9
+      condition for health data, or clearing that column), retention periods, Oracle's
+      data-processing agreement for Always Free, the wording of the notice and the four contact
+      settings. **The cloud VM stays on `54eab4a67` until the owner says otherwise.**
+    - **Not built:** a consent register (nothing in the system relies on consent today), an
+      admin screen for health information, and a data-subject export / erase function.

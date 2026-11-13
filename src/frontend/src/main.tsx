@@ -33,6 +33,7 @@ import {
   AnalyticsPage,
   DashboardManagerPage,
   SearchPage,
+  PrivacyPage,
   ReportBuilderPage,
   ReportListPage,
   ReportTemplateBrowserPage,
@@ -90,6 +91,7 @@ void (async () => {
             <Route path="/server-setup" element={<ServerSetupPage />} />
             <Route element={<ServerGuard />}>
             <Route path="/" element={<AuthPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             <Route element={<RequireAuth />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/students" element={<StudentsPage />} />

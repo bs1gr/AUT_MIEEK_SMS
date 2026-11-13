@@ -46,7 +46,9 @@ class SemesterExportService:
         """Build the semester's export payload and persist it as an encrypted
         artifact. Returns backup info including `backup_name` (filename stem)
         and `backup_path`. Raises on failure (caller decides how to record it)."""
-        payload = build_semester_export_payload(self.db, semester)
+        # The archive is the encrypted, complete record of the semester, so it keeps the health
+        # information that the plain download leaves out by default.
+        payload = build_semester_export_payload(self.db, semester, include_health=True)
         payload["metadata"]["pass_threshold"] = pass_threshold
         payload["metadata"]["export_purpose"] = "semester_archive"
 

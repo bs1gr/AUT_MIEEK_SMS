@@ -132,7 +132,20 @@ def serialize_course(course) -> Dict[str, Any]:
     }
 
 
-def serialize_student(student) -> Dict[str, Any]:
+def serialize_student(student, include_health: bool = False) -> Dict[str, Any]:
+    """A student for the semester export.
+
+    Health information is special-category data and an export file leaves the system, so it is
+    only written when the caller asks. The key is then absent, not null: the import updates the
+    fields it finds, so an export without it does not wipe what the importing install holds.
+    """
+    data = _serialize_student_fields(student)
+    if include_health:
+        data["health_issue"] = getattr(student, "health_issue", None)
+    return data
+
+
+def _serialize_student_fields(student) -> Dict[str, Any]:
     return {
         "student_id": student.student_id,
         "first_name": student.first_name,
@@ -142,7 +155,6 @@ def serialize_student(student) -> Dict[str, Any]:
         "mobile_phone": getattr(student, "mobile_phone", None),
         "phone": getattr(student, "phone", None),
         "study_year": getattr(student, "study_year", None),
-        "health_issue": getattr(student, "health_issue", None),
         "enrollment_date": str(student.enrollment_date) if student.enrollment_date else None,
         "is_active": student.is_active,
     }
@@ -225,7 +237,7 @@ def serialize_lesson_logs(dataset: Dict[str, List[Any]]) -> List[Dict[str, Any]]
     return [serialize_lesson_log(entry, codes.get(entry.course_id)) for entry in dataset["lesson_logs"]]
 
 
-def build_semester_export_payload(db: Session, semester: str) -> Dict[str, Any]:
+def build_semester_export_payload(db: Session, semester: str, include_health: bool = False) -> Dict[str, Any]:
     """Build the full semester export JSON payload (same shape used by
     GET /api/v1/sessions/export)."""
     dataset = fetch_semester_dataset(db, semester)
@@ -239,7 +251,7 @@ def build_semester_export_payload(db: Session, semester: str) -> Dict[str, Any]:
             "counts": {key: len(rows) for key, rows in dataset.items()},
         },
         "courses": [serialize_course(c) for c in dataset["courses"]],
-        "students": [serialize_student(s) for s in dataset["students"]],
+        "students": [serialize_student(s, include_health) for s in dataset["students"]],
         "enrollments": [serialize_enrollment(e) for e in dataset["enrollments"]],
         "grades": [serialize_grade(g) for g in dataset["grades"]],
         "attendance": [serialize_attendance(a) for a in dataset["attendance"]],

@@ -43,6 +43,8 @@ import feedbackEn from './locales/en/feedback.js';
 import feedbackEl from './locales/el/feedback.js';
 import errorsEn from './locales/en/errors.js';
 import errorsEl from './locales/el/errors.js';
+import privacyEn from './locales/en/privacy.js';
+import privacyEl from './locales/el/privacy.js';
 import searchEn from './locales/en/search.js';
 import searchEl from './locales/el/search.js';
 import analyticsEn from './locales/en/analytics.js';
@@ -96,6 +98,7 @@ export const translationNamespaces = {
     reports: reportsEn,
     feedback: feedbackEn,
     errors: errorsEn,
+    privacy: privacyEn,
     search: searchEn,
     analytics: analyticsEn,
     notifications: notificationsEn,
@@ -124,6 +127,7 @@ export const translationNamespaces = {
     reports: reportsEl,
     feedback: feedbackEl,
     errors: errorsEl,
+    privacy: privacyEl,
     search: searchEl,
     analytics: analyticsEl,
     notifications: notificationsEl,
