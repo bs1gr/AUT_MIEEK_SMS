@@ -506,13 +506,26 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         // localCourses and re-runs this effect, and an empty set made the effect below clear
         // the course the teacher had just picked.
 
-        // Process courses in smaller batches to avoid overwhelming the server.
-        // Use shorter timeout (5 seconds) per batch to avoid long waits on slow enrollments API
-        const BATCH_SIZE = 3; // Fetch 3 courses at a time instead of all at once
+        // A course's is_active is a stored flag that is true exactly while it has an active
+        // enrollment (backend/services/course_activation.py). That answers most of the question
+        // without a request per course:
+        //  - an inactive course has nobody to mark, so it is never asked about;
+        //  - the active ones are offered at once, and the per-course check below then removes
+        //    any whose enrolled students are all deactivated.
+        // Asking about every course before offering any made the selector stay empty for
+        // seconds when the server is far away (one request per course, three at a time).
+        const candidates = localCourses.filter((c) => c.is_active !== false);
+        const knownActive = candidates.filter((c) => c.is_active === true).map((c) => c.id);
+        if (knownActive.length > 0) {
+          setCoursesWithEnrollment((prev) => (prev.size > 0 ? prev : new Set(knownActive)));
+        }
+
+        // Use shorter timeout (5 seconds) per request to avoid long waits on slow enrollments API
+        const BATCH_SIZE = 6;
         const results: Array<{ id: number; count: number }> = [];
 
-        for (let i = 0; i < localCourses.length; i += BATCH_SIZE) {
-          const batch = localCourses.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < candidates.length; i += BATCH_SIZE) {
+          const batch = candidates.slice(i, i + BATCH_SIZE);
           const batchResults = await Promise.all(batch.map(async (c) => {
             try {
               // Add a 5-second timeout to enrollment checks
@@ -557,7 +570,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           results.push(...batchResults);
 
           // Small delay between batches to avoid rate limiting
-          if (i + BATCH_SIZE < localCourses.length) {
+          if (i + BATCH_SIZE < candidates.length) {
             await new Promise(resolve => setTimeout(resolve, 100));
           }
         }
