@@ -1383,7 +1383,42 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     - *Then, on the real VM:* measure VM-to-QNAP latency, decide how to keep the instance from
       being reclaimed as idle, point one phone at it, and write down how to switch a phone back
       to the home address when the VM is unavailable (and the other way round).
-45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
+    - **Deployed 2026-11-13, with the owner at the Oracle console:** account `mieeksms`, home
+      region Frankfurt; VM `sms-cloud` (A1.Flex, 1 OCPU, 6 GB, Ubuntu 24.04 `aarch64`, AD-1 after
+      AD-2 was out of capacity). Docker, Tailscale and the app at `553ece489` were installed over
+      SSH; the image built on the VM; `tailscale serve` publishes
+      `https://sms-cloud.tail85a28b.ts.net` to the tailnet only. The owner chose to connect the
+      **real QNAP database** at once; it was already at `d3a7b9c1e5f2`. Checked from the dev PC:
+      SPA over HTTPS, a wrong login refused (400), data without a token refused (401), version
+      v1.18.67. The owner logged in and used it: "works", but pages took over 3 seconds (todo 49).
+    - **The QNAP is now a tailnet device itself** (`konaki`), and the VM connects to its tailnet
+      address on port 55433. Before that it went through the dev PC `REC`'s subnet route, which
+      only works while that PC is on. The database port is not reachable on the home public
+      address (checked from the VM).
+    - **Still open:** the two confirmations (Oracle's data-processing agreement for Always Free;
+      ΜΙΕΕΚ policy); the phone pointed at the cloud address; idle reclamation; Tailscale key
+      expiry for the VM and the QNAP; the VM still runs files copied by hand for todo 49 and
+      must be moved to the merged commit. The runbook lists the rest.
+49. **Cloud host: pages took over 3 seconds because every request made about nine database round
+    trips at 65 ms each** (found 2026-11-13 on the real VM) — measured there: one query on an open
+    connection 68 ms; pool checkout + one query + return 239 ms (connection test, `BEGIN`, query,
+    `ROLLBACK`); a new connection 900 ms. Counted in-process: 3 statements per request for a
+    teacher's identity and permissions (5 for an admin) before 1 to 6 for the data.
+    - **Done 2026-11-13 (unreleased), three switches that are off unless set** and that
+      `docker-compose.cloud.yml` turns on: `DB_PRE_PING_IDLE_SECONDS` (test a pooled connection
+      only after it sat idle), `DB_AUTOCOMMIT_READS` (no `BEGIN`/`ROLLBACK` on GET/HEAD/OPTIONS;
+      PostgreSQL's READ COMMITTED already gives each statement its own snapshot) and
+      `PERMISSION_CACHE_TTL_SECONDS` (reuse a permission decision; a write to an RBAC table
+      through the same process clears the cache at once, another process sees a change after the
+      TTL at most). Home installs are unchanged.
+    - **Measured on the VM:** a read session with one query 239 → 72 ms, a write session 239 →
+      179 ms, `/health` 0.77 → 0.59 s. **Checked with all three on, against a throwaway
+      PostgreSQL:** the 24 lesson-log API checks (one "degraded" was the dev PC's own memory),
+      Greek PDFs and Excel, the browser run as a teacher (autosave, offline queue, history,
+      Greek, 412 px) and the teacher Dashboard and Analytics, with no server errors.
+    - **Not done:** the user lookup still costs one round trip per request, pages that send
+      their requests one after another still add up, and the owner has not yet said how the
+      pages feel with the switches on.45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
     the owner) — a PDF and an Excel of the material covered, by date and teaching period, so it
     can serve as the official record. Today it can only be read on the Attendance page. To decide
     while building: whether the teacher's notes are included (default: no, they are private).

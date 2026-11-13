@@ -242,7 +242,42 @@ describe('AttendanceView - Special Participation Labels', () => {
     await waitFor(() => {
       expect(screen.getByRole('option', { name: 'MATH101 - Math 101' })).toBeInTheDocument();
     });
-    expect(screen.queryByRole('option', { name: 'OLD101 - No Active Enrollments' })).not.toBeInTheDocument();
+    // OLD101 is flagged active but its enrollment check finds no active student: it may be
+    // listed for the moment the check takes, then it must go.
+    await waitFor(() => {
+      expect(screen.queryByRole('option', { name: 'OLD101 - No Active Enrollments' })).not.toBeInTheDocument();
+    });
+  });
+
+  it('offers active courses before the per-course checks answer, and never asks about inactive ones', async () => {
+    const get = vi.mocked(apiModule.default.get);
+    const base = get.getMockImplementation()!;
+    let releaseChecks: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      releaseChecks = resolve;
+    });
+    get.mockImplementation(async (url: string) => {
+      if (url.includes('/enrollments/course/') && url.includes('/students')) {
+        await gate; // a slow, far-away server
+      }
+      return base(url);
+    });
+    const inactive = { ...mockCourses[1], id: 3, course_code: 'GONE101', course_name: 'Ended', is_active: false };
+
+    render(<AttendanceView courses={[mockCourses[0], inactive]} students={mockStudents} />);
+
+    // Listed while every enrollment check is still waiting.
+    expect(await screen.findByRole('option', { name: 'MATH101 - Math 101' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'GONE101 - Ended' })).not.toBeInTheDocument();
+
+    releaseChecks();
+    await waitFor(() =>
+      expect(get.mock.calls.some(([url]) => String(url).includes('/enrollments/course/1/students'))).toBe(true),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100)); // let the check settle
+    expect(screen.getByRole('option', { name: 'MATH101 - Math 101' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'GONE101 - Ended' })).not.toBeInTheDocument();
+    expect(get.mock.calls.some(([url]) => String(url).includes('/enrollments/course/3/students'))).toBe(false);
   });
 
   it('keeps the selected course while enrollments are re-checked', async () => {
