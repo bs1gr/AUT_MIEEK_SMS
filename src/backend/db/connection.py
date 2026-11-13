@@ -9,6 +9,7 @@ import logging
 from typing import Generator
 
 import sqlalchemy as sa
+from fastapi import Request
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker, with_loader_criteria
 
@@ -30,6 +31,27 @@ except Exception:
     engine = create_engine(settings.DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, expire_on_commit=False, bind=engine)
+
+# Opt-in for a far-away database (backend.remote_db_tuning): a second handle on the same pool
+# whose connections run without a transaction, used for plain read requests.
+_autocommit_engine = None
+try:
+    from backend import remote_db_tuning as _remote_db_tuning
+
+    if engine.dialect.name == "postgresql" and _remote_db_tuning.autocommit_reads_enabled():
+        _autocommit_engine = engine.execution_options(isolation_level="AUTOCOMMIT")
+        logger.info("DB_AUTOCOMMIT_READS is on: GET/HEAD/OPTIONS requests run without a transaction")
+except Exception:
+    logger.warning("Could not set up transaction-less reads; reads keep using transactions", exc_info=True)
+    _autocommit_engine = None
+
+# Opt-in permission cache: a write to an RBAC table through this process clears it.
+try:
+    from backend import permission_cache as _permission_cache
+
+    _permission_cache.install_invalidation(SessionLocal)
+except Exception:
+    logger.warning("Could not install permission-cache invalidation", exc_info=True)
 
 
 # ---------------------------------------------------------------------------
@@ -59,17 +81,24 @@ except Exception:
     pass
 
 
-def get_session(_: object | None = None) -> Generator[Session, None, None]:
+def get_session(request: Request = None) -> Generator[Session, None, None]:  # type: ignore[assignment]
     """
     FastAPI dependency for database session.
     Yields a session and ensures it's closed after use.
+
+    FastAPI passes the request in; code that calls this by hand (``next(get_db())``) gets an
+    ordinary transactional session. With DB_AUTOCOMMIT_READS on, a GET/HEAD/OPTIONS request
+    gets a session whose connection runs without a transaction.
 
     Usage:
         @app.get("/items")
         async def list_items(db: Session = Depends(get_session)):
             return db.query(Item).all()
     """
-    db = SessionLocal()
+    if _autocommit_engine is not None and request is not None:
+        db = SessionLocal(bind=_remote_db_tuning.session_bind_for(request, engine, _autocommit_engine))
+    else:
+        db = SessionLocal()
     try:
         yield db
     finally:

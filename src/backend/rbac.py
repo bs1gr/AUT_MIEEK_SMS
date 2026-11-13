@@ -12,6 +12,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from backend import permission_cache
 from backend.db import get_session as get_db
 from backend.models import Permission, RolePermission, Student, User, UserPermission, UserRole
 from backend.security.current_user import get_current_user
@@ -253,6 +254,19 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
             return True
     except Exception:
         auth_mode = "disabled"
+
+    # Opt-in (PERMISSION_CACHE_TTL_SECONDS): reuse a recent answer instead of asking the
+    # database again. Off by default; see backend.permission_cache for what it trades away.
+    cached = permission_cache.get(user, required_key)
+    if cached is not None:
+        return cached
+    allowed = _compute_permission(user, required_key, db)
+    permission_cache.put(user, required_key, allowed)
+    return allowed
+
+
+def _compute_permission(user: User, required_key: str, db: Session) -> bool:
+    """The uncached permission decision: direct grants, role grants, then the legacy fallbacks."""
 
     # Collect granted permissions
     granted: set[str] = set()

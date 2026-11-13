@@ -1154,6 +1154,7 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
         engine_kwargs: dict[str, Any] = {
             "echo": False,
         }
+        pre_ping_idle = 0.0
 
         if is_postgresql:
             # PostgreSQL-specific pooling configuration
@@ -1172,9 +1173,17 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
                     "connect_args": {"connect_timeout": 5},
                 }
             )
+            # Opt-in for a far-away database: test a pooled connection only after it has sat
+            # idle, not on every checkout (see backend.remote_db_tuning).
+            from backend.remote_db_tuning import pre_ping_idle_seconds
+
+            pre_ping_idle = pre_ping_idle_seconds()
+            if pre_ping_idle > 0:
+                engine_kwargs["pool_pre_ping"] = False
             logger.info(
                 "PostgreSQL connection pooling configured: "
-                "pool_size=20, max_overflow=10, pool_pre_ping=True, pool_recycle=3600s, connect_timeout=5s"
+                "pool_size=20, max_overflow=10, pool_pre_ping=%s, pool_recycle=3600s, connect_timeout=5s",
+                f"after {pre_ping_idle:g}s idle" if pre_ping_idle > 0 else "True",
             )
         elif is_sqlite:
             # SQLite-specific configuration
@@ -1189,6 +1198,11 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
             logger.info("SQLite configured: NullPool + check_same_thread=False")
 
         engine = create_engine(db_url, **engine_kwargs)
+
+        if is_postgresql and pre_ping_idle > 0:
+            from backend.remote_db_tuning import install_idle_pre_ping
+
+            install_idle_pre_ping(engine, pre_ping_idle)
 
         # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
         try:
