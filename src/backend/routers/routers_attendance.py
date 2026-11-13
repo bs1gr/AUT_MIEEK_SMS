@@ -16,15 +16,18 @@ from backend.db_utils import get_by_id_or_404
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.logging_config import safe_log_context
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
-from backend.rbac import require_permission
+from backend.rbac import require_all_permissions, require_permission
 from backend.schemas.absence_limits import AbsenceLimitStatus
 from backend.schemas.attendance import (
     AttendanceCreate,
     AttendanceResponse,
+    AttendanceSheetResult,
+    AttendanceSheetSave,
     AttendanceUpdate,
 )
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.services import AttendanceService, absence_limit_service
+from backend.services.attendance_sheet_service import save_attendance_sheet
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +90,30 @@ async def create_attendance(
         raise
     except Exception:
         logger.exception("Error creating attendance")
+        raise internal_server_error(request=request)
+
+
+@router.post("/sheet", response_model=AttendanceSheetResult)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_all_permissions("attendance:edit", "students:edit")
+async def save_attendance_sheet_endpoint(
+    request: Request,
+    sheet: AttendanceSheetSave,
+    db: Session = Depends(get_db),
+):
+    """
+    Save one course's attendance and daily performance for one date in a single request.
+
+    Rows that exist are updated, missing ones are created; `daily_performance_deletes` removes
+    scores. Needs both permissions the per-record endpoints need (attendance:edit for the
+    attendance rows, students:edit for the performance scores).
+    """
+    try:
+        return save_attendance_sheet(db, sheet, request)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Error saving attendance sheet")
         raise internal_server_error(request=request)
 
 

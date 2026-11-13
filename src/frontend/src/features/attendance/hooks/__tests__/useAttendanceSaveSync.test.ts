@@ -26,7 +26,14 @@ vi.mock('@/features/attendance/utils/offlineAttendanceQueue', () => ({
   removeAttendanceSyncSnapshot: vi.fn(),
 }));
 
+// Unless a test says otherwise the server is an older one without POST /attendance/sheet, so
+// the per-record requests below are what goes out.
+vi.mock('@/api/attendanceSheetAPI', () => ({
+  saveAttendanceSheet: vi.fn(),
+}));
+
 import apiClient from '@/api/api';
+import { saveAttendanceSheet } from '@/api/attendanceSheetAPI';
 import {
   enqueueAttendanceSyncSnapshot,
   getAttendanceSyncQueue,
@@ -40,6 +47,7 @@ const mockDelete = apiClient.delete as unknown as ReturnType<typeof vi.fn>;
 const mockEnqueue = enqueueAttendanceSyncSnapshot as unknown as ReturnType<typeof vi.fn>;
 const mockGetQueue = getAttendanceSyncQueue as unknown as ReturnType<typeof vi.fn>;
 const mockRemoveSnapshot = removeAttendanceSyncSnapshot as unknown as ReturnType<typeof vi.fn>;
+const mockSaveSheet = saveAttendanceSheet as unknown as ReturnType<typeof vi.fn>;
 
 const setOnline = (value: boolean) => {
   Object.defineProperty(navigator, 'onLine', { value, configurable: true });
@@ -91,11 +99,117 @@ describe('useAttendanceSaveSync', () => {
     vi.clearAllMocks();
     mockGet.mockResolvedValue({ data: [] });
     mockGetQueue.mockReturnValue([]);
+    mockSaveSheet.mockResolvedValue('unsupported');
     setOnline(true);
   });
 
   afterEach(() => {
     setOnline(true);
+  });
+
+  describe('whole-sheet save (server has POST /attendance/sheet)', () => {
+    beforeEach(() => {
+      mockSaveSheet.mockResolvedValue('saved');
+    });
+
+    it('performSave sends one request for the whole sheet and no per-record requests', async () => {
+      const params = buildParams({
+        attendanceRecords: { '1|1|2026-09-04': 'Present', '1|2|2026-09-04': 'Late', '2|1|2026-09-04': 'Absent' },
+        attendanceRecordIds: { '1|1|2026-09-04': 55 },
+        dailyPerformance: { '1-Class Participation': 8 },
+        dailyPerformanceIds: { '2-Homework': 77 },
+        pendingPerformanceDeleteKeys: new Set(['2-Homework']),
+      });
+
+      const { result } = renderHook(() => useAttendanceSaveSync(params));
+      await act(async () => {
+        await result.current.performSave();
+      });
+
+      expect(mockSaveSheet).toHaveBeenCalledTimes(1);
+      expect(mockSaveSheet).toHaveBeenCalledWith({
+        course_id: 1,
+        date: '2026-09-04',
+        attendance: [
+          { student_id: 1, period_number: 1, status: 'Present' },
+          { student_id: 1, period_number: 2, status: 'Late' },
+          { student_id: 2, period_number: 1, status: 'Absent' },
+        ],
+        daily_performance: [{ student_id: 1, category: 'Class Participation', score: 8, max_score: 10 }],
+        daily_performance_deletes: [{ student_id: 2, category: 'Homework' }],
+      });
+      expect(mockPut).not.toHaveBeenCalled();
+      expect(mockPost).not.toHaveBeenCalled();
+      expect(mockDelete).not.toHaveBeenCalled();
+      expect(params.setPendingPerformanceDeleteKeys).toHaveBeenCalledWith(new Set());
+      expect(params.showToast).toHaveBeenCalledWith(expect.any(String), 'success');
+    });
+
+    it('queues the sheet when the one request gets no answer', async () => {
+      mockSaveSheet.mockRejectedValue({ code: 'ECONNABORTED', message: 'timeout of 30000ms exceeded', request: {} });
+      const params = buildParams({ attendanceRecords: { '1|1|2026-09-04': 'Present' } });
+
+      const { result } = renderHook(() => useAttendanceSaveSync(params));
+      await act(async () => {
+        await expect(result.current.performSave()).resolves.not.toThrow();
+      });
+
+      expect(mockEnqueue).toHaveBeenCalledWith(expect.objectContaining({ courseId: 1, date: '2026-09-04' }));
+      expect(mockPut).not.toHaveBeenCalled();
+      expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('a queued sheet is sent as one request, without looking up record ids first', async () => {
+      const snapshot = {
+        id: 'a',
+        courseId: 3,
+        date: '2026-09-01',
+        attendanceRecords: { '1|1|2026-09-01': 'Present', '2|1|2026-09-01': 'Absent' },
+        dailyPerformance: { '1-Homework': 6 },
+        dailyPerformanceDeletes: ['2-Homework'],
+        enqueuedAt: '',
+      };
+      const params = buildParams({ selectedCourse: '', selectedDate: null, selectedDateStr: '' });
+      const { result } = renderHook(() => useAttendanceSaveSync(params));
+      mockGetQueue.mockReturnValue([snapshot]);
+
+      await act(async () => {
+        await result.current.flushQueuedSnapshots();
+      });
+
+      expect(mockSaveSheet).toHaveBeenCalledTimes(1);
+      expect(mockSaveSheet).toHaveBeenCalledWith({
+        course_id: 3,
+        date: '2026-09-01',
+        attendance: [
+          { student_id: 1, period_number: 1, status: 'Present' },
+          { student_id: 2, period_number: 1, status: 'Absent' },
+        ],
+        daily_performance: [{ student_id: 1, category: 'Homework', score: 6, max_score: 10 }],
+        daily_performance_deletes: [{ student_id: 2, category: 'Homework' }],
+      });
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(mockPut).not.toHaveBeenCalled();
+      expect(mockPost).not.toHaveBeenCalled();
+      expect(mockRemoveSnapshot).toHaveBeenCalledWith('a');
+    });
+
+    it('keeps a queued sheet when the request fails', async () => {
+      mockSaveSheet.mockRejectedValue({ response: { status: 500 }, message: 'boom' });
+      const snapshot = {
+        id: 'a', courseId: 3, date: '2026-09-01', attendanceRecords: { '1|1|2026-09-01': 'Present' },
+        dailyPerformance: {}, dailyPerformanceDeletes: [], enqueuedAt: '',
+      };
+      const params = buildParams({ selectedCourse: '', selectedDate: null, selectedDateStr: '' });
+      const { result } = renderHook(() => useAttendanceSaveSync(params));
+      mockGetQueue.mockReturnValue([snapshot]);
+
+      await act(async () => {
+        await result.current.flushQueuedSnapshots();
+      });
+
+      expect(mockRemoveSnapshot).not.toHaveBeenCalled();
+    });
   });
 
   describe('performSave', () => {

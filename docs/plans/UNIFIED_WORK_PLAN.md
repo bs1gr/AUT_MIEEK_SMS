@@ -30,6 +30,40 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
+### On `main` since v1.18.68 (unreleased)
+
+**Todo 51: attendance on the cloud host stayed "pending sync" (2026-11-13).** The owner's phone,
+pointed at the cloud VM, showed the attendance sheet as queued for sync on a good connection,
+and text typed in the lesson log was saved a few characters at a time. Read from the VM's own
+`/metrics` (the container keeps no access log): `POST /attendance/` answered 201 after 14 s on
+average, 50 of 60 took more than 10 s, and 501 writes ended in a fast 400. Three causes:
+- **One request per student and period.** A sheet went out as about 50 parallel writes, each
+  with several database round trips at ~65 ms on a one-CPU VM. The app's limit is 10 s per
+  request, a timeout counts as "offline", so the sheet was queued, and every retry sent the
+  same burst. The 400s are FastAPI's "error parsing the body" for requests whose client had
+  already hung up. **Fix:** `POST /api/v1/attendance/sheet` saves one course and date in one
+  request with a fixed number of queries (`services/attendance_sheet_service.py`; needs
+  `attendance:edit` and `students:edit`; a student that no longer exists is skipped and
+  reported, so a queued sheet cannot become unsaveable). The page and the offline queue use it
+  (`api/attendanceSheetAPI.ts`) and fall back to the per-record requests on 404/405/403, because
+  the phone app can be newer than the server it talks to.
+- **Every render of the Attendance page re-sent the queued sheet.** `useQueueFlushTriggers`
+  re-ran its effect whenever the flush function changed, the page's `showToast` is a new
+  function on each render, and nothing stopped two flushes from overlapping. Each lesson-log
+  save re-renders the page. **Fix:** the hook keeps the latest function in a ref, flushes on
+  mount and on its triggers only, and never starts a flush while one is running (all four
+  queues: attendance, grades, students, lesson log).
+- **Lesson-log text typed during a save that failed was not sent.** `saveNow` only made the
+  follow-up attempt after a successful save. **Fix:** a save requested during another always
+  gets its own attempt.
+- **Not reproduced:** the owner also saw typed text disappear when typing fast. The server
+  counted 12 lesson-log saves, all 200 and under a second, and no extra loads, so the editor was
+  not reloading. The request bursts on the phone are the likely cause; to be confirmed on the
+  phone after this release.
+- **Not done:** the endpoints behind `require_permission` are `async` wrappers around blocking
+  database calls, so one uvicorn process handles them one at a time. That is why the burst was
+  so slow; with one request per sheet it no longer matters for attendance.
+
 **v1.18.67 (released 2026-11-13, tag on `ec987afa8`, run by the assistant).**
 
 v1.18.67 ships the attendance lesson log (todo 41, #368), the tooling fixes (todos 42 and 43,

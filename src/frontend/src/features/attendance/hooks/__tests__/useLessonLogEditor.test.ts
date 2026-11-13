@@ -307,6 +307,34 @@ describe('useLessonLogEditor', () => {
       expect(result.current.saveState).toBe('saved');
     });
 
+    it('still sends what was typed during a save that then failed (slow server, request timed out)', async () => {
+      let failFirst: (error: unknown) => void = () => undefined;
+      api.save.mockImplementationOnce(() => new Promise<LessonLog>((_resolve, reject) => (failFirst = reject)));
+      const { result } = await mountReady();
+
+      act(() => result.current.setMaterial('T'));
+      let firstSave: Promise<void> = Promise.resolve();
+      act(() => {
+        firstSave = result.current.saveNow();
+      });
+      await waitFor(() => expect(api.save).toHaveBeenCalledTimes(1));
+
+      act(() => result.current.setMaterial('The whole sentence'));
+      await act(async () => {
+        await result.current.saveNow(); // the quiet period ended while the first request was still out
+      });
+
+      await act(async () => {
+        failFirst({ code: 'ECONNABORTED', message: 'timeout of 10000ms exceeded', request: {} });
+        await firstSave;
+      });
+
+      expect(api.save).toHaveBeenCalledTimes(2);
+      expect(api.save).toHaveBeenLastCalledWith(expect.objectContaining({ material_covered: 'The whole sentence' }));
+      expect(result.current.saveState).toBe('saved');
+      expect(getQueuedLessonLog(key)).toBeUndefined(); // the one-letter copy must not be sent later
+    });
+
     it('removes older queued text for a field before newer text for it is sent', async () => {
       enqueueLessonLog({ ...params, materialCovered: 'older, from an earlier outage' });
       api.save.mockImplementation(async () => {

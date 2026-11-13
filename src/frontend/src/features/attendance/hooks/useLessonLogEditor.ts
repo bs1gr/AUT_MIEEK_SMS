@@ -143,11 +143,13 @@ export function useLessonLogEditor({
     }
     saving.current = true;
     try {
-      let result: 'sent' | 'nothing' | 'failed';
+      // A save asked for while one was running always gets its own attempt afterwards, also when
+      // that one failed. Otherwise the text typed during a slow or failed save stayed pending
+      // with nothing left to send it (only the first few characters were saved or queued).
       do {
         saveAgain.current = false;
-        result = await sendPending();
-      } while (result === 'sent' && saveAgain.current);
+        await sendPending();
+      } while (saveAgain.current);
     } finally {
       saving.current = false;
     }
