@@ -136,11 +136,16 @@ the decision itself is the institution's and is not recorded anywhere in the pro
    the Oracle cloud host: Oracle's Data Processing Agreement for Oracle Services (version 14
    August 2025, read 2026-11-13) applies automatically to the services in the customer's
    Services Agreement, with Oracle as processor, storage in the chosen region (Frankfurt) and
-   breach notice within 24 hours; it has no exclusion for trials. It defines the Services
-   Agreement as the order for services "purchased" from Oracle, so whether an Always Free
-   account (no payment is possible for this installation) is covered depends on the Oracle
-   Cloud Services Agreement accepted at sign-up, which has not been read yet. Confirm that, and
-   that the institution's policy allows the hosting.
+   breach notice within 24 hours; it has no exclusion for trials. The Oracle Cloud Services
+   Agreement for Cyprus (online version of 22 June 2023, with Oracle's Cyprus branch, governed by
+   Cyprus law; read 2026-11-13) incorporates that agreement by reference wherever the content
+   includes personal data (section 5.2) and has no exclusion for free or trial accounts either;
+   section 5.4 repeats that the content may not include regulated health data. Both documents
+   refer to "Your order": the order record of the free account is not visible in the Oracle
+   console and was not read, so a written confirmation from Oracle (one question in the console
+   chat) is the only thing that would add certainty. A free account has no uptime promise and
+   Oracle's liability is capped at the fees paid, which is nothing; the home installation stays
+   as the backup. Confirm that the institution's policy allows the hosting.
 5. **Records and requests.** Keep the record of processing activities, and have a way to answer
    access, correction and deletion requests.
 6. **The notice text.** Review the wording of the Privacy page and supply the contact details.

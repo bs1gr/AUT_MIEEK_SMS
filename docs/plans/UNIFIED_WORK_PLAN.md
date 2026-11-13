@@ -1,8 +1,28 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.67
+**Current Version**: 1.18.68
 **Last Updated**: November 13, 2026
-**Status**: ✅ **v1.18.67 released 2026-11-13** (tag on `ec987afa8`, run by the assistant).
+**Status**: 🟡 **v1.18.68 prepared 2026-11-13** (version commit `ca9331cba`; the tag follows once
+CI and E2E are green on the notes commit). v1.18.67 was released the same morning (tag on
+`ec987afa8`).
+
+v1.18.68 ships the lesson-log follow-ups (todos 45-47, #376), the privacy round (todo 50, #377,
+# 378, #379: health information off by default, staff notes on the server, the Privacy page, the
+access and erasure tools), the cloud-host files and speed switches (todos 44, 48, 49, #373,
+# 374) and the stale-tab reload (#375). Two additive migrations: `e5b2c7a9d4f1` and
+`f6c3d8b1a2e4`; the shared database already has both (the cloud VM applied them).
+**Before the tag:** `RELEASE_READY` (no `-TagRelease`) took 43 minutes and exited 0: every
+gate passed, the backend suite ran 30/30 batches, 1394 passed, 39 gated skips, 0 failed, and
+the local installer (90,449,800 bytes) was built and signed with the frozen-Lite check passing.
+The generated GitHub body again only counted features and fixes and was rewritten by hand.
+**Oracle terms, read the same day:** the Data Processing Agreement (14 August 2025) and the
+Cyprus Cloud Services Agreement (22 June 2023) apply the processor terms automatically and
+exclude neither free nor trial accounts; both rule out regulated health data, which was
+deleted and switched off. The order record of the free account was not visible to read. The
+owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
+the VM and the QNAP.
+
+**v1.18.67 (released 2026-11-13, tag on `ec987afa8`, run by the assistant).**
 
 v1.18.67 ships the attendance lesson log (todo 41, #368), the tooling fixes (todos 42 and 43,
 # 369), the Docker publish workflow fix (#370) and the two bugs the pre-release smoke test found
