@@ -1,9 +1,16 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.68
+**Current Version**: 1.18.69
 **Last Updated**: November 13, 2026
-**Status**: ✅ **v1.18.68 released 2026-11-13** (tag on `1acc6c053`, run by the assistant).
-v1.18.67 was released the same morning (tag on `ec987afa8`).
+**Status**: 🚧 **v1.18.69 prepared 2026-11-13, tag pending** (release commit `5c1783286`). It
+ships todo 51 (#380, #381): attendance saved as one request per sheet, the offline queues no
+longer re-sent on every render, and lesson-log text typed during a failed save. No database
+changes. `RELEASE_READY` (no `-TagRelease`) exited 0: every gate passed, the backend suite ran
+30/30 batches with 1402 passed and 0 failed, and the local installer was built and signed. The
+generated GitHub body again only counted the fixes and was rewritten by hand.
+
+v1.18.68 was released 2026-11-13 (tag on `1acc6c053`, run by the assistant); v1.18.67 the same
+morning (tag on `ec987afa8`).
 
 **Verified on the published assets:** `SMS_Installer_1.18.68.exe` 87,615,104 bytes, SHA-256
 `d03fecf8…2bd101` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
@@ -30,7 +37,7 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.68 (unreleased)
+### In v1.18.69
 
 **Todo 51: attendance on the cloud host stayed "pending sync" (2026-11-13).** The owner's phone,
 pointed at the cloud VM, showed the attendance sheet as queued for sync on a good connection,
