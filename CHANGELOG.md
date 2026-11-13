@@ -44,6 +44,18 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.69] - 2026-11-13
+
+### Bug Fixes
+- **attendance**: save a sheet in one request; stop re-sending the offline queue on every render (todo 51) (#380)
+
+### Documentation
+- **plan**: v1.18.68 released - published assets verified
+
+### Tests
+- **e2e**: attendance autosave must reach the server as one sheet request (todo 51) (#381)
+
 ## [1.18.68] - 2026-11-13
 
 ### Features
@@ -4877,6 +4889,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
