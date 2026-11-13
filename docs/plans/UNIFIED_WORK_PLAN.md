@@ -1,8 +1,37 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.66
-**Last Updated**: November 12, 2026
-**Status**: ✅ **v1.18.66 released 2026-11-12** (tag on `d2cb7eba9`, run by the assistant).
+**Current Version**: 1.18.67
+**Last Updated**: November 13, 2026
+**Status**: ✅ **v1.18.67 released 2026-11-13** (tag on `ec987afa8`, run by the assistant).
+
+v1.18.67 ships the attendance lesson log (todo 41, #368), the tooling fixes (todos 42 and 43,
+# 369), the Docker publish workflow fix (#370) and the two bugs the pre-release smoke test found
+(#371: teacher report permissions with migration `d3a7b9c1e5f2`, and SMS Lite's 404 on API paths
+without a trailing slash). Two additive migrations: `c8e1f4a7d2b9` (`lesson_logs`) and
+`d3a7b9c1e5f2`. The smoke test is described under "On `main` since v1.18.66" below.
+
+**Before the tag:** `RELEASE_READY` (no `-TagRelease`) took 36 minutes and exited 0: every
+`COMMIT_READY -Quick` gate passed, the backend suite ran 1313 passed, 39 gated skips, 0 failed,
+and the local installer was built and signed with the frozen-Lite check passing 11/11. The
+generated GitHub body only counted "1 new feature, 1 bug fix" (the generator lists changes in
+the CHANGELOG, not in the body), so it was rewritten by hand in `ec987afa8`; the tag was pushed
+once CI/CD and E2E were green on that commit.
+
+**Verified on the published assets:** `SMS_Installer_1.18.67.exe` 87,552,824 bytes, SHA-256
+`2db12bdc…71df2` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK (Limassol),
+thumbprint `2693C1B1…075D`, DigiCert timestamp, file and product version v1.18.67;
+`SMS_Android_1.18.67.apk` 4,191,900 bytes, SHA-256 `b8393d5c…22421` = GitHub's digest,
+`versionName 1.18.67` / `versionCode 118067`, min SDK 24, target SDK 36, signed with the same
+certificate as v1.18.66 (SHA-256 `686fb6ed…d2ea`, so phones upgrade in place). The release,
+installer and APK workflows on the tag succeeded. Not checked: the installer was not installed,
+and the APK was not run on a device.
+
+**Release-flow note:** a `COMMIT_READY` run in a clone upgrades packages in the main tree's
+root `.venv`; the owner's dev backend (`uvicorn --reload`, started from the project root) saw
+those files change and restarted three times, which Vite reported as `ECONNRESET`. Starting it
+with `--reload-dir src/backend` would stop that.
+
+### v1.18.66 (2026-11-12; tag on `d2cb7eba9`, run by the assistant)
 
 v1.18.66 is a maintenance release: ten Dependabot merges (#357–#366) and a CI fix (#367). No
 features and no database changes.
@@ -43,7 +72,7 @@ commits ("Found 10 unrecognized commits"), so the generated GitHub release body 
 Included" section and the CHANGELOG entry listed none of the ten updates. The v1.18.66 notes were
 written by hand in `d2cb7eba9`, before the tag (the generator was fixed afterwards, todo 42).
 
-**On `main` since v1.18.66 (unreleased):** the attendance lesson log (todo 41, #368; it adds the
+**On `main` since v1.18.66 (released in v1.18.67):** the attendance lesson log (todo 41, #368; it adds the
 `lesson_logs` table through the additive migration `c8e1f4a7d2b9`), then the release-notes
 `Dependencies` category and three dev-tooling fixes (todos 42 and 43: `COMMIT_READY` in a git
 worktree, the Playwright global setup following `PLAYWRIGHT_API_BASE_URL`, and a per-test restore of
@@ -1215,8 +1244,10 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     stack in the QNAP's Docker environment; the limits of that system made the owner abandon it,
     so the old image is obsolete and will not be refreshed. A proper full-stack image for a cloud
     host is a new effort with that host's requirements (todos 44 and 48); the workflow stays as
-    its vehicle. Still open, for the owner to confirm: deleting the stale public package (its
-    `latest` is 1.18.1). Original text (raised 2026-11-12, plan-review) —
+    its vehicle. **The stale public package was deleted on 2026-11-13 on the owner's
+    instruction** (1306 versions, 7 tagged, newest `1.18.1` from 2026-06-16; nothing in the
+    repository pulled it). A future publish creates it afresh. Original text (raised 2026-11-12,
+    plan-review) —
     `docker-publish.yml` ("Manual Docker Publish and Release", dispatch-only, pushes to `ghcr.io`)
     has no run on record. `docker/build-push-action` v7 and `docker/login-action` v4 were merged in
     the 2026-10-12 Actions-majors round after a check only for removed inputs, so neither has ever
@@ -1338,6 +1369,14 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       built: settle the Python wheels with a build-only run, see todo 48); a short Linux deploy
       for the VM (compose file, environment template, no `DOCKER.ps1`); `CORS_ORIGINS` with
       `https://localhost` and `TRUSTED_HOSTS` for the VM; a runbook under `docs/deployment/`.
+      **Done 2026-11-13, unreleased and not yet run on a VM:** `infra/docker/cloud/`
+      (`docker-compose.cloud.yml`: the full-stack image built on the VM, the QNAP database through
+      `POSTGRES_*`, port 8000 on loopback only, `COOKIE_SECURE`, no default admin, no Redis; and
+      `.env.cloud.example`) and the runbook `docs/deployment/CLOUD_HOST_ORACLE.md` (VM, Tailscale
+      with `--accept-routes`, `tailscale serve` for tailnet-only HTTPS, phones, switching back to
+      the home address, running both hosts on the same release). The backend's settings were
+      loaded with that environment and gave the expected database URL, CORS list and trusted
+      host; nothing else in it has been executed.
     - *Owner side:* open the Oracle account with Frankfurt as home region (card and phone needed),
       create the VM, join it to the tailnet. Before student data flows through it: confirm that
       Oracle's data-processing agreement covers Always Free and that ΜΙΕΕΚ policy allows it.
@@ -1358,6 +1397,12 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
     accepted) — dispatch `docker-publish.yml` with `dry_run` in the release flow, so a broken
     `Dockerfile.fullstack` shows in CI and not on the owner's PC, and add `linux/arm64` to it
     (needed for todo 44's ARM VM; whether every Python wheel exists for arm64 is unknown).
+    - **arm64 half done 2026-11-12:** `docker-publish.yml` has a `platforms` input (amd64, arm64
+      or both; arm64 under QEMU) and the Dockerfile's frontend stage builds on
+      `$BUILDPLATFORM`, so npm never runs emulated. A build-only arm64 run on the branch (run
+      43314118411) succeeded in 5.5 minutes: 42 `aarch64` wheels downloaded, nothing compiled
+      from source. The image was built, not started: its first real run is on the VM.
+    - **Still open:** dispatching the build-only run from the release flow.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and

@@ -1,0 +1,65 @@
+# SMS on a small cloud VM (plan todo 44): the single full-stack image, PostgreSQL stays on the
+# QNAP and is reached over Tailscale. Linux only; DOCKER.ps1 is not used here.
+#
+#   cp .env.cloud.example .env    # then fill it in
+#   docker compose -f docker-compose.cloud.yml up -d --build
+#
+# Runbook: docs/deployment/CLOUD_HOST_ORACLE.md
+#
+# NOT YET RUN ON A REAL VM. The image builds for linux/arm64 in CI (docker-publish.yml,
+# dry_run + platforms=linux/arm64); everything below that touches the VM is still to be proven.
+services:
+  sms:
+    # Built on the VM from this checkout (the VM's own CPU, so no emulation). If an image is
+    # ever published for the release, set SMS_IMAGE and drop --build to pull it instead.
+    image: ${SMS_IMAGE:-sms-fullstack:local}
+    build:
+      context: ../../..
+      dockerfile: infra/docker/compose/Dockerfile.fullstack
+    container_name: sms-cloud
+    restart: unless-stopped
+    environment:
+      - SMS_ENV=production
+      - SMS_EXECUTION_MODE=docker
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env}
+      # The QNAP database, through the VM's Tailscale subnet route.
+      - DATABASE_ENGINE=postgresql
+      - POSTGRES_HOST=${POSTGRES_HOST:?POSTGRES_HOST must be set in .env}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:?POSTGRES_DB must be set in .env}
+      - POSTGRES_USER=${POSTGRES_USER:?POSTGRES_USER must be set in .env}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-prefer}
+      # Auth is always on here; the admin accounts already exist in the shared database, so no
+      # DEFAULT_ADMIN_* is passed (a default admin on a shared database is a known hazard).
+      - AUTH_ENABLED=True
+      - AUTH_MODE=strict
+      # The app is opened as https://<vm>.<tailnet>.ts.net (tailscale serve), so cookies are
+      # HTTPS-only. The Android app's WebView origin is https://localhost.
+      - COOKIE_SECURE=true
+      - TRUSTED_HOSTS=${TRUSTED_HOSTS:?TRUSTED_HOSTS must name the VM, e.g. sms-cloud.example.ts.net}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://localhost}
+      - ENABLE_CONTROL_API=1
+      # One small VM, a few dozen users: no Redis container.
+      - REDIS_ENABLED=false
+    volumes:
+      - sms_cloud_data:/data
+    # Loopback only. Nothing listens on the VM's public address; `tailscale serve` on the host
+    # publishes this port to the tailnet over HTTPS.
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  sms_cloud_data:
+    driver: local
