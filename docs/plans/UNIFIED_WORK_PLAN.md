@@ -2,12 +2,29 @@
 
 **Current Version**: 1.18.69
 **Last Updated**: November 13, 2026
-**Status**: 🚧 **v1.18.69 prepared 2026-11-13, tag pending** (release commit `5c1783286`). It
+**Status**: ✅ **v1.18.69 released 2026-11-13** (tag on `71f9b7d9c`, run by the assistant). It
 ships todo 51 (#380, #381): attendance saved as one request per sheet, the offline queues no
 longer re-sent on every render, and lesson-log text typed during a failed save. No database
 changes. `RELEASE_READY` (no `-TagRelease`) exited 0: every gate passed, the backend suite ran
 30/30 batches with 1402 passed and 0 failed, and the local installer was built and signed. The
 generated GitHub body again only counted the fixes and was rewritten by hand.
+
+**The tag is one commit after the release commit.** Dependabot merged #382 (`pyproject.toml`
+only: the `opentelemetry-api` pin brought in line with `requirements.txt`, which already had
+1.45.2 during the release run) right after the notes commit, which cancelled CI on it. CI/CD and
+E2E were green on `71f9b7d9c`, so the tag went there.
+
+**Verified on the published assets:** `SMS_Installer_1.18.69.exe` 87,636,576 bytes, SHA-256
+`06a8d66a…840e88` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.69; `SMS_Android_1.18.69.apk` 4,201,421
+bytes, SHA-256 `a824d961…fc6674` = GitHub's digest, `versionName 1.18.69` /
+`versionCode 118069`, target SDK 36, signed with the same certificate as v1.18.68 (SHA-256
+`686fb6ed…d2ea`, so phones upgrade in place); its attendance bundle contains the
+`/attendance/sheet` call. The release, installer and APK workflows on the tag succeeded.
+**Cloud VM:** rebuilt on the tag; `/health` reports v1.18.69 with the database connected, and
+`POST /attendance/sheet` answers 401 without a valid token. Not checked: the installer was not
+installed, the APK was not run on a device, and the fix has not yet been seen on the owner's
+phone against the cloud host, which is where the problem was reported.
 
 v1.18.68 was released 2026-11-13 (tag on `1acc6c053`, run by the assistant); v1.18.67 the same
 morning (tag on `ec987afa8`).
