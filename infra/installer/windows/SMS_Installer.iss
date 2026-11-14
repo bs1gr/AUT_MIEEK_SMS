@@ -232,6 +232,7 @@ Source: "SaveLiteEditionQnapCredentials.ps1"; DestDir: "{app}"; Flags: ignorever
 
 ; Development scripts - only for dev environment
 Source: "..\..\..\infra\scripts\dev\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\infra\scripts\dev\STARTUP_STATUS.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
 Source: "..\..\..\infra\scripts\ops\COMMIT_READY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Icon file
