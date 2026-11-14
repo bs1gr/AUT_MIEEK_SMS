@@ -35,6 +35,10 @@
 .PARAMETER Help
     Show this help message
 
+.PARAMETER NoWait
+    With -Start / -Backend: return as soon as the processes are launched. By default the script
+    stays until the services answer and shows the startup stage they are in (STARTUP_STATUS.ps1).
+
 .PARAMETER DevEase
     Optional: set DEV_EASE for services started by this script (relaxes local auth/CSRF/secret checks). Use only for development.
     (Deprecated) Historically NATIVE allowed starting services with a DEV_EASE runtime flag.
@@ -79,7 +83,8 @@ param(
     [switch]$DryRun,
     [switch]$Force,
     [switch]$Help,
-    [switch]$NoReload  # Optional: start backend without --reload (stability workaround)
+    [switch]$NoReload,  # Optional: start backend without --reload (stability workaround)
+    [switch]$NoWait     # Optional: return right after launching, without the startup status display
 
 )
 
@@ -601,12 +606,51 @@ function Get-ProcessFromPidFile {
     }
 
     try {
-        $pid = [int](Get-Content $PidFile -Raw).Trim()
-        $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+        # Not $pid: that is PowerShell's read-only automatic variable. Assigning to it threw, so
+        # this function returned $null for every PID file and -Start restarted a running stack.
+        $processId = [int](Get-Content $PidFile -Raw).Trim()
+        $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+        if (-not $process) {
+            return $null
+        }
+
+        # A PID file left behind by a reboot or a crash can name an unrelated process that got
+        # the same PID later. Ours was already running when the file was written.
+        if ($process.StartTime -gt (Get-Item $PidFile).LastWriteTime.AddSeconds(2)) {
+            return $null
+        }
+
         return $process
     } catch {
         return $null
     }
+}
+
+function Get-ServiceFromPidFile {
+    <#
+    .SYNOPSIS
+        The process a PID file names, if it is serving its port or may still be starting.
+        A process that has been up for minutes with nothing on its port (a console window whose
+        server died, a reloader whose worker crashed) is stopped, so the caller starts a fresh one.
+    #>
+    param(
+        [string]$PidFile,
+        [int]$Port,
+        [string]$Name
+    )
+
+    $process = Get-ProcessFromPidFile -PidFile $PidFile
+    if (-not $process) {
+        return $null
+    }
+
+    if ((Test-PortInUse -Port $Port) -or ((Get-Date) - $process.StartTime).TotalSeconds -lt 300) {
+        return $process
+    }
+
+    Write-Warning "$Name process (PID $($process.Id)) is running but nothing listens on port $Port; restarting it"
+    Stop-ProcessFromPidFile -PidFile $PidFile -Name $Name | Out-Null
+    return $null
 }
 
 function Stop-ProcessFromPidFile {
@@ -879,6 +923,7 @@ COMMANDS:
   -DeepClean      Remove ALL artifacts (requires confirmation)
         -DryRun/WhatIf  When used with -DeepClean, list items that would be removed without deleting
     -Force          Skip confirmation prompts and proceed with deletions
+  -NoWait         With -Start/-Backend: do not stay to show the startup stages until ready
   -Help           Show this help message
 
 EXAMPLES:
@@ -1239,7 +1284,7 @@ function Start-Backend {
     }
 
     # Check if already running
-    $process = Get-ProcessFromPidFile -PidFile $BACKEND_PID_FILE
+    $process = Get-ServiceFromPidFile -PidFile $BACKEND_PID_FILE -Port $BACKEND_PORT -Name "Backend"
     if ($process) {
         Write-Success "Backend is already running (PID $($process.Id))"
         Write-Info "Port: $BACKEND_PORT"
@@ -1425,7 +1470,7 @@ function Start-Frontend {
     }
 
     # Check if already running
-    $process = Get-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE
+    $process = Get-ServiceFromPidFile -PidFile $FRONTEND_PID_FILE -Port $FRONTEND_PORT -Name "Frontend"
     if ($process) {
         Write-Success "Frontend is already running (PID $($process.Id))"
         Write-Info "Port: $FRONTEND_PORT"
@@ -1595,6 +1640,32 @@ function Start-Frontend {
     }
 }
 
+function Show-StartupStatus {
+    <#
+    .SYNOPSIS
+        Stay until the launched services answer, showing the startup stage they are really in.
+    .OUTPUTS
+        0 = ready (or skipped), 1 = the backend stopped during startup, 2 = not ready in time.
+    #>
+    param([switch]$IncludeFrontend)
+
+    $statusScript = Join-Path $SCRIPT_DIR 'STARTUP_STATUS.ps1'
+    if ($NoWait -or -not (Test-Path $statusScript)) {
+        return 0
+    }
+
+    $statusArgs = @{ BackendPort = $BACKEND_PORT }
+    if ($IncludeFrontend) {
+        $statusArgs.FrontendPort = $FRONTEND_PORT
+    }
+
+    Write-Host ""
+    Write-Info "Waiting for the services to answer (skip with -NoWait)..."
+    $global:LASTEXITCODE = 0
+    & $statusScript @statusArgs | Out-Host
+    return $LASTEXITCODE
+}
+
 function Stop-All {
     Write-Header "Stopping Native Development Processes"
 
@@ -1701,16 +1772,16 @@ function Show-Status {
                 }
 
                 $pidText = $parts[-1]
-                $pid = 0
-                if (-not [int]::TryParse($pidText, [ref]$pid)) {
+                $listenerPid = 0
+                if (-not [int]::TryParse($pidText, [ref]$listenerPid)) {
                     continue
                 }
 
-                if ($pid -le 0) {
+                if ($listenerPid -le 0) {
                     continue
                 }
 
-                $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                $process = Get-Process -Id $listenerPid -ErrorAction SilentlyContinue
                 if ($process) {
                     return $process
                 }
@@ -1904,6 +1975,10 @@ if ($Backend) {
     }
 
     $code = Start-Backend
+    if ($code -eq 0 -and (Show-StartupStatus) -eq 1) {
+        Write-Error-Message "Backend stopped during startup"
+        exit 1
+    }
     exit $code
 }
 
@@ -1964,8 +2039,20 @@ if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Front
         exit $frontendCode
     }
 
+    # Both are launched, but the backend needs a while before it accepts connections. Show what
+    # it is doing until then, so the banner below is only printed over services that answer.
+    $startupCode = Show-StartupStatus -IncludeFrontend
+    if ($startupCode -eq 1) {
+        Write-Error-Message "Backend stopped during startup"
+        Write-Info "Fix the error shown in the backend window (hot-reload restarts it), or run .\NATIVE.ps1 -Stop"
+        exit 1
+    }
+
     # Show access info
     Write-Host ""
+    if ($startupCode -eq 2) {
+        Write-Warning "Services were launched but are not answering yet - see the status above"
+    }
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
     Write-Host "║          🎉 Native Development Mode Running! 🎉              ║" -ForegroundColor Green
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Green
