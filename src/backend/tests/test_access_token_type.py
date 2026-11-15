@@ -1,4 +1,4 @@
-"""A refresh token is not a login credential, and a Socket.IO connection must prove who it is.
+"""A refresh token is not a login credential.
 
 Access tokens carried no "type" and nothing that authenticates a request looked at it. A refresh
 token is signed with the same key and names the same account, so it was accepted as a bearer
@@ -6,11 +6,10 @@ token everywhere: a 30-day access token (against 30 minutes) that logging out di
 only /auth/refresh checks the stored copy for revocation. Now every place that takes a bearer
 token reads it through `decode_access_token`.
 
-The Socket.IO server went further and never looked at the token at all: it registered the
-connection under whatever `user_id` the client sent.
+(The Socket.IO server, which never looked at the token at all, got the same check in the same
+change. It carried nothing and has since been removed, and its tests with it.)
 """
 
-import asyncio
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
@@ -181,105 +180,3 @@ def test_the_notification_websocket_does_not_take_a_refresh_token(client):
         with client._inner.websocket_connect(f"/api/v1/notifications/ws?token={refresh}"):
             pass
     assert closed.value.code == 1008
-
-
-# ---------------------------------------------------------------------------
-# Socket.IO
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def socket_db(db, monkeypatch):
-    import backend.websocket_server as websocket_server
-
-    monkeypatch.setattr(websocket_server, "SessionLocal", _session_factory(db))
-    return db
-
-
-def test_socket_connections_are_named_by_their_token_not_by_the_id_they_claim(socket_db, strict_auth):
-    from backend.websocket_server import user_id_for_connection
-
-    victim = _user(socket_db, "victim@example.com")
-    caller = _user(socket_db, "caller@example.com")
-    token = _access_for("caller@example.com")
-
-    # Claiming someone else's id used to be enough, with or without a token.
-    assert user_id_for_connection({"user_id": victim.id}) is None
-    assert user_id_for_connection({"token": token, "user_id": victim.id}) == caller.id
-    assert user_id_for_connection({"token": token}) == caller.id
-
-
-def test_socket_connections_need_a_valid_access_token_of_a_usable_account(socket_db, strict_auth):
-    from backend.routers.routers_auth import create_refresh_token_for_user
-    from backend.websocket_server import user_id_for_connection
-
-    active = _user(socket_db, "active@example.com")
-    _user(socket_db, "gone@example.com", is_active=False)
-    _user(socket_db, "mustchange@example.com", password_change_required=True)
-
-    assert user_id_for_connection({"token": _access_for("active@example.com"), "user_id": active.id}) == active.id
-
-    refresh = create_refresh_token_for_user(socket_db, active)
-    for refused in (
-        None,
-        "not-a-dict",
-        {},
-        {"token": "garbage", "user_id": active.id},
-        {"token": refresh, "user_id": active.id},
-        {"token": _access_for("nobody@example.com"), "user_id": active.id},
-        {"token": _access_for("gone@example.com"), "user_id": active.id},
-        {"token": _access_for("mustchange@example.com"), "user_id": active.id},
-    ):
-        assert user_id_for_connection(refused) is None, refused
-
-
-def test_without_authentication_the_claimed_id_is_accepted_as_before(socket_db):
-    # The suite's default: AUTH_ENABLED off, AUTH_MODE disabled. No accounts to tell apart.
-    from backend.websocket_server import user_id_for_connection
-
-    assert user_id_for_connection({"user_id": 7}) == 7
-    for refused in ({"user_id": 0}, {"user_id": -3}, {"user_id": "7"}, {"user_id": True}, {"token": "x"}, {}):
-        assert user_id_for_connection(refused) is None, refused
-
-
-def test_permissive_mode_checks_a_token_when_one_is_sent(socket_db, monkeypatch):
-    from backend.config import settings
-    from backend.websocket_server import user_id_for_connection
-
-    monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
-    monkeypatch.setattr(settings, "AUTH_MODE", "permissive", raising=False)
-    caller = _user(socket_db, "permissive@example.com")
-
-    assert user_id_for_connection({"user_id": 9}) == 9  # anonymous, like the rest of the API there
-    assert user_id_for_connection({"token": _access_for("permissive@example.com"), "user_id": 9}) == caller.id
-    assert user_id_for_connection({"token": "garbage", "user_id": 9}) is None
-
-
-def test_the_connect_handler_registers_the_tokens_account_or_refuses(socket_db, strict_auth):
-    from backend.websocket_config import connection_manager
-    from backend.websocket_server import connect, disconnect
-
-    victim = _user(socket_db, "victim2@example.com")
-    caller = _user(socket_db, "caller2@example.com")
-
-    async def scenario():
-        refused = await connect("sid-anonymous", {}, {"user_id": victim.id})
-        accepted = await connect("sid-caller", {}, {"token": _access_for("caller2@example.com"), "user_id": victim.id})
-        try:
-            return {
-                "refused": refused,
-                "accepted": accepted,
-                "anonymous_registered": "sid-anonymous" in connection_manager.session_map,
-                "registered_as": connection_manager.session_map["sid-caller"].user_id,
-                "victim_sessions": set(connection_manager.active_connections.get(victim.id, set())),
-            }
-        finally:
-            await disconnect("sid-caller")
-
-    state = asyncio.run(scenario())
-
-    assert state["refused"] is False
-    assert state["anonymous_registered"] is False
-    assert state["accepted"] is True
-    assert state["registered_as"] == caller.id
-    assert state["victim_sessions"] == set()

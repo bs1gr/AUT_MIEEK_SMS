@@ -10,7 +10,6 @@ from backend.environment import startup_tasks_enabled
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.routers.routers_rbac import ensure_defaults_startup
 from backend.scripts.migrate.runner import run_migrations
-from backend.websocket_background_tasks import start_background_tasks, stop_background_tasks
 
 STARTUP_DEBUG = os.environ.get("STARTUP_DEBUG", "0").strip().lower() in {"1", "true", "yes", "debug"}
 
@@ -152,12 +151,6 @@ def get_lifespan():
         except Exception as e:
             logging.getLogger(__name__).warning(f"⚠️  Scheduler startup not available: {e}")
 
-        # Start WebSocket background tasks
-        try:
-            await start_background_tasks()
-            logging.getLogger(__name__).info("✅ WebSocket background tasks started")
-        except Exception as e:
-            logging.getLogger(__name__).error(f"❌ Failed to start WebSocket tasks: {e}", exc_info=True)
         yield
         if STARTUP_DEBUG:
             logging.info("[LIFESPAN DEBUG] Minimal shutdown path executing")
@@ -173,12 +166,5 @@ def get_lifespan():
             logging.getLogger(__name__).info("✅ Export/report/course-activation schedulers stopped")
         except Exception as e:
             logging.getLogger(__name__).warning(f"⚠️  Error stopping schedulers: {e}")
-
-        # Stop WebSocket background tasks on shutdown
-        try:
-            await stop_background_tasks()
-            logging.getLogger(__name__).info("✅ WebSocket background tasks stopped")
-        except Exception as e:
-            logging.getLogger(__name__).error(f"⚠️  Error stopping WebSocket tasks: {e}", exc_info=True)
 
     return lifespan

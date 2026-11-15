@@ -5,6 +5,17 @@
 **Status**: Production Ready
 **Audience**: System Administrators
 
+> **Corrected November 2026.** Notifications reach the page through the REST API: the bell reads
+> the unread count when the page opens, when the connection comes back and when the tab becomes
+> visible again, and the list when the bell is opened. The live channel (Socket.IO) never carried
+> a notification and was removed after v1.18.70, so everything below about WebSocket
+> connections, WebSocket settings and scaling WebSocket servers does not apply.
+> This guide was written in January 2026 for a design. The application has the bell and the
+> notification centre, the per-user preferences and the administrator's broadcast in the API
+> (`/api/v1/notifications/preferences`, `/api/v1/notifications/broadcast`), and no
+> administration panel for notifications: check the application before relying on a menu path
+> given here.
+
 ---
 
 ## Overview

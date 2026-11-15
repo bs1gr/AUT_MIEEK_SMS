@@ -9,17 +9,6 @@ import { useNotifications } from '../useNotifications';
 import authService from '../../services/authService';
 import apiClient from '../../api/api';
 
-// Mock socket.io-client
-const mockSocket = {
-  on: vi.fn(),
-  off: vi.fn(),
-  emit: vi.fn(),
-  disconnect: vi.fn(),
-};
-
-vi.mock('socket.io-client', () => ({
-  io: vi.fn(() => mockSocket),
-}));
 
 let apiGetSpy: ReturnType<typeof vi.spyOn>;
 let apiPostSpy: ReturnType<typeof vi.spyOn>;
@@ -30,16 +19,10 @@ const setAuthToken = () => {
   localStorage.setItem('access_token', 'test-token');
 };
 
-const setUserContext = () => {
-  localStorage.setItem('sms_user_v1', JSON.stringify({ id: 1 }));
-};
 
 describe('useNotifications Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSocket.on.mockClear();
-    mockSocket.off.mockClear();
-    mockSocket.emit.mockClear();
     apiGetSpy = vi.spyOn(apiClient, 'get');
     apiPostSpy = vi.spyOn(apiClient, 'post');
     apiDeleteSpy = vi.spyOn(apiClient, 'delete');
@@ -55,7 +38,6 @@ describe('useNotifications Hook', () => {
 
       expect(result.current.notifications).toEqual([]);
       expect(result.current.unreadCount).toBe(0);
-      expect(result.current.isConnected).toBe(false);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
@@ -68,8 +50,6 @@ describe('useNotifications Hook', () => {
       expect(typeof result.current.markAllAsRead).toBe('function');
       expect(typeof result.current.deleteNotification).toBe('function');
       expect(typeof result.current.refreshUnreadCount).toBe('function');
-      expect(typeof result.current.connect).toBe('function');
-      expect(typeof result.current.disconnect).toBe('function');
     });
   });
 
@@ -434,71 +414,98 @@ describe('useNotifications Hook', () => {
     });
   });
 
-  describe('WebSocket Integration', () => {
-    it('should handle connect event', async () => {
+  describe('No push channel', () => {
+    it('does not offer a connection to open, close or report on', () => {
       const { result } = renderHook(() => useNotifications());
-      setAuthToken();
-      setUserContext();
 
-      await act(async () => {
-        result.current.connect();
-      });
-
-      await waitFor(() => {
-        expect(mockSocket.on).toHaveBeenCalledWith('connect', expect.any(Function));
-      });
-    });
-
-    it('should re-read the access token on every connect instead of capturing it once', async () => {
-      // Regression test: `auth` was previously a plain object built once at
-      // io() call time, so socket.io's automatic reconnection kept replaying
-      // the token captured at first connect - a token refresh never reached
-      // the server on reconnect. `auth` must now be a function so socket.io
-      // calls it fresh on every (re)connection attempt.
-      const { io } = await import('socket.io-client');
-      const { result } = renderHook(() => useNotifications());
-      setAuthToken();
-      setUserContext();
-
-      await act(async () => {
-        result.current.connect();
-      });
-
-      const ioMock = vi.mocked(io);
-      const options = ioMock.mock.calls[0][1] as { auth: (cb: (data: unknown) => void) => void };
-      expect(typeof options.auth).toBe('function');
-
-      let firstCallResult: unknown;
-      options.auth((data) => {
-        firstCallResult = data;
-      });
-      expect(firstCallResult).toEqual({ token: 'test-token', user_id: 1 });
-
-      // Simulate a token refresh happening after the initial connect, then
-      // let socket.io "reconnect" by invoking the same auth function again.
-      authService.setAccessToken('refreshed-token');
-      let secondCallResult: unknown;
-      options.auth((data) => {
-        secondCallResult = data;
-      });
-      expect(secondCallResult).toEqual({ token: 'refreshed-token', user_id: 1 });
-    });
-
-    it('should have proper cleanup on unmount', async () => {
-      const { result, unmount } = renderHook(() => useNotifications());
-      setAuthToken();
-      setUserContext();
-
-      await act(async () => {
-        result.current.connect();
-      });
-
-      unmount();
-
-      expect(mockSocket.off).toHaveBeenCalled();
+      expect(result.current).not.toHaveProperty('isConnected');
+      expect(result.current).not.toHaveProperty('connect');
+      expect(result.current).not.toHaveProperty('disconnect');
     });
   });
 
+  describe('watchUnreadCount', () => {
+    const answerCount = (count: number) =>
+      apiGetSpy.mockResolvedValueOnce({
+        data: { success: true, data: { unread_count: count }, meta: { request_id: 'test-123' } },
+      });
+    const countRequests = () =>
+      apiGetSpy.mock.calls.filter(([url]) => url === '/notifications/unread-count').length;
+
+    it('asks for nothing on its own when it is not switched on', async () => {
+      // Every NotificationItem uses the hook for its actions; none of them may fetch a count.
+      const { unmount } = renderHook(() => useNotifications());
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        window.dispatchEvent(new Event('online'));
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(apiGetSpy).not.toHaveBeenCalled();
+      unmount();
+    });
+
+    it('reads the unread count when the component appears', async () => {
+      answerCount(4);
+      const { result } = renderHook(() => useNotifications({ watchUnreadCount: true }));
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(4);
+      });
+      expect(countRequests()).toBe(1);
+    });
+
+    it('reads it again when the browser comes back online', async () => {
+      answerCount(1);
+      const { result } = renderHook(() => useNotifications({ watchUnreadCount: true }));
+      await waitFor(() => expect(result.current.unreadCount).toBe(1));
+
+      answerCount(6);
+      await act(async () => {
+        window.dispatchEvent(new Event('online'));
+      });
+
+      await waitFor(() => expect(result.current.unreadCount).toBe(6));
+      expect(countRequests()).toBe(2);
+    });
+
+    it('reads it again when the page becomes visible, not when it is hidden', async () => {
+      answerCount(1);
+      const { result } = renderHook(() => useNotifications({ watchUnreadCount: true }));
+      await waitFor(() => expect(result.current.unreadCount).toBe(1));
+
+      const visibility = vi.spyOn(document, 'visibilityState', 'get');
+      visibility.mockReturnValue('hidden');
+      await act(async () => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      expect(countRequests()).toBe(1);
+
+      answerCount(3);
+      visibility.mockReturnValue('visible');
+      await act(async () => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      await waitFor(() => expect(result.current.unreadCount).toBe(3));
+      expect(countRequests()).toBe(2);
+      visibility.mockRestore();
+    });
+
+    it('stops listening when the component goes away', async () => {
+      answerCount(2);
+      const { result, unmount } = renderHook(() => useNotifications({ watchUnreadCount: true }));
+      await waitFor(() => expect(result.current.unreadCount).toBe(2));
+
+      unmount();
+      await act(async () => {
+        window.dispatchEvent(new Event('online'));
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(countRequests()).toBe(1);
+    });
+  });
   describe('Error Handling', () => {
     it('should set error state on API failure', async () => {
       const error = new Error('API Error');

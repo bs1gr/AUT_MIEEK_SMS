@@ -44,7 +44,6 @@ describe('NotificationBell Component', () => {
     vi.clearAllMocks();
     mockUseNotifications.mockReturnValue({
       unreadCount: 0,
-      isConnected: true,
       notifications: [],
       isLoading: false,
       error: null,
@@ -53,8 +52,6 @@ describe('NotificationBell Component', () => {
       deleteNotification: vi.fn(),
       fetchNotifications: vi.fn(),
       refreshUnreadCount: vi.fn(),
-      connect: vi.fn(),
-      disconnect: vi.fn(),
     });
     vi.mocked(useNotificationsModule.useNotifications).mockImplementation(mockUseNotifications);
   });
@@ -83,7 +80,6 @@ describe('NotificationBell Component', () => {
     it('should not show badge when unreadCount is 0', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -92,8 +88,6 @@ describe('NotificationBell Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationBell />);
@@ -104,7 +98,6 @@ describe('NotificationBell Component', () => {
     it('should show badge with unread count', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 5,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -113,8 +106,6 @@ describe('NotificationBell Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationBell />);
@@ -125,7 +116,6 @@ describe('NotificationBell Component', () => {
     it('should show 99+ when unreadCount exceeds maxDisplayCount', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 150,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -134,8 +124,6 @@ describe('NotificationBell Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationBell maxDisplayCount={99} />);
@@ -144,50 +132,21 @@ describe('NotificationBell Component', () => {
     });
   });
 
-  describe('Offline Indicator', () => {
-    it('should show offline indicator when disconnected', () => {
-      mockUseNotifications.mockReturnValue({
-        unreadCount: 0,
-        isConnected: false,
-        notifications: [],
-        isLoading: false,
-        error: null,
-        markAsRead: vi.fn(),
-        markAllAsRead: vi.fn(),
-        deleteNotification: vi.fn(),
-        fetchNotifications: vi.fn(),
-        refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-      });
-
+  describe('Unread count', () => {
+    it('asks the hook to keep the unread count current', () => {
+      // The bell is the one component that shows the count; the items and the dropdown
+      // use the hook for its actions and must not each fetch a count of their own.
       render(<NotificationBell />);
-      const button = screen.getByRole('button');
-      expect(button.querySelector('.notification-bell-offline')).toBeInTheDocument();
+      expect(mockUseNotifications).toHaveBeenCalledWith({ watchUnreadCount: true });
     });
 
-    it('should not show offline indicator when connected', () => {
-      mockUseNotifications.mockReturnValue({
-        unreadCount: 0,
-        isConnected: true,
-        notifications: [],
-        isLoading: false,
-        error: null,
-        markAsRead: vi.fn(),
-        markAllAsRead: vi.fn(),
-        deleteNotification: vi.fn(),
-        fetchNotifications: vi.fn(),
-        refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-      });
-
+    it('shows no connection indicator: there is no connection to report on', () => {
       render(<NotificationBell />);
       const button = screen.getByRole('button');
       expect(button.querySelector('.notification-bell-offline')).not.toBeInTheDocument();
+      expect(button.querySelector('[title="bell.offline"]')).not.toBeInTheDocument();
     });
   });
-
   describe('Dropdown Toggle', () => {
     it('should toggle dropdown on button click', async () => {
       render(<NotificationBell />);
@@ -256,7 +215,6 @@ describe('NotificationBell Component', () => {
     it('should accept custom maxDisplayCount', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 50,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -265,8 +223,6 @@ describe('NotificationBell Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationBell maxDisplayCount={49} />);
@@ -315,7 +271,6 @@ describe('NotificationBell Component', () => {
 
       mockUseNotifications.mockReturnValue({
         unreadCount: 5,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -324,8 +279,6 @@ describe('NotificationBell Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       rerender(<NotificationBell />);

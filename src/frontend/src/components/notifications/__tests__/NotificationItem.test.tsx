@@ -58,7 +58,6 @@ describe('NotificationItem Component', () => {
     vi.clearAllMocks();
     mockUseNotifications.mockReturnValue({
       unreadCount: 1,
-      isConnected: true,
       notifications: [mockNotification],
       isLoading: false,
       error: null,
@@ -67,8 +66,6 @@ describe('NotificationItem Component', () => {
       deleteNotification: vi.fn().mockResolvedValue(undefined),
       fetchNotifications: vi.fn().mockResolvedValue([]),
       refreshUnreadCount: vi.fn().mockResolvedValue(0),
-      connect: vi.fn(),
-      disconnect: vi.fn(),
     });
     vi.mocked(useNotificationsModule.useNotifications).mockImplementation(mockUseNotifications);
   });
@@ -285,7 +282,6 @@ describe('NotificationItem Component', () => {
       const markAsRead = vi.fn().mockResolvedValue(undefined);
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
-        isConnected: true,
         notifications: [mockNotification],
         isLoading: false,
         error: null,
@@ -294,8 +290,6 @@ describe('NotificationItem Component', () => {
         deleteNotification: vi.fn().mockResolvedValue(undefined),
         fetchNotifications: vi.fn().mockResolvedValue([]),
         refreshUnreadCount: vi.fn().mockResolvedValue(0),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationItem notification={mockNotification} />);
@@ -311,7 +305,6 @@ describe('NotificationItem Component', () => {
       const readNotif = { ...mockNotification, is_read: true };
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: [readNotif],
         isLoading: false,
         error: null,
@@ -320,8 +313,6 @@ describe('NotificationItem Component', () => {
         deleteNotification: vi.fn().mockResolvedValue(undefined),
         fetchNotifications: vi.fn().mockResolvedValue([]),
         refreshUnreadCount: vi.fn().mockResolvedValue(0),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationItem notification={readNotif} />);
@@ -338,7 +329,6 @@ describe('NotificationItem Component', () => {
       const deleteNotification = vi.fn().mockResolvedValue(undefined);
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
-        isConnected: true,
         notifications: [mockNotification],
         isLoading: false,
         error: null,
@@ -347,8 +337,6 @@ describe('NotificationItem Component', () => {
         deleteNotification,
         fetchNotifications: vi.fn().mockResolvedValue([]),
         refreshUnreadCount: vi.fn().mockResolvedValue(0),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(<NotificationItem notification={mockNotification} />);
@@ -365,7 +353,6 @@ describe('NotificationItem Component', () => {
       const markAsRead = vi.fn().mockResolvedValue(undefined);
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
-        isConnected: true,
         notifications: [mockNotification],
         isLoading: false,
         error: null,
@@ -374,8 +361,6 @@ describe('NotificationItem Component', () => {
         deleteNotification: vi.fn().mockResolvedValue(undefined),
         fetchNotifications: vi.fn().mockResolvedValue([]),
         refreshUnreadCount: vi.fn().mockResolvedValue(0),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       const { container } = render(<NotificationItem notification={mockNotification} />);

@@ -1,56 +1,34 @@
 /**
  * useNotifications Hook
- * Real-time notifications with WebSocket and API integration
+ * Notifications over the REST API: the list, the unread count and the actions on them.
+ *
+ * There is no push channel. The Socket.IO connection this hook used to open carried no events
+ * (nothing on the server ever emitted one) and was removed in November 2026.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { io, type Socket } from 'socket.io-client';
 import apiClient, { extractAPIResponseData } from '../api/api';
 import authService from '../services/authService';
 import type {
   Notification,
   NotificationListResponse,
+  UseNotificationsOptions,
   UseNotificationsReturn,
-  WebSocketMessage,
 } from '../types/notification';
 
-const WEBSOCKET_URL = (() => {
-  const explicitUrl = import.meta.env.VITE_WS_URL;
-  if (explicitUrl) {
-    return explicitUrl;
-  }
-
-  const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
-
-  if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
-    return apiUrl.replace(/^http/, 'ws').replace(/\/api\/v1$/, '');
-  }
-
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${window.location.host}`;
-  }
-
-  return 'ws://localhost:8000';
-})();
-const RECONNECT_DELAY = 3000;
-const MAX_RECONNECT_ATTEMPTS = 5;
 const MIN_FETCH_INTERVAL_MS = 3000;
 const RATE_LIMIT_COOLDOWN_MS = 60000;
 const IS_TEST_ENV =
   import.meta.env.MODE === 'test' ||
   (typeof process !== 'undefined' && process.env.NODE_ENV === 'test');
 
-export function useNotifications(): UseNotificationsReturn {
+export function useNotifications(options: UseNotificationsOptions = {}): UseNotificationsReturn {
+  const { watchUnreadCount = false } = options;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const socketRef = useRef<Socket | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFetchAtRef = useRef(0);
   const fetchInFlightRef = useRef(false);
   const rateLimitUntilRef = useRef(0);
@@ -60,16 +38,6 @@ export function useNotifications(): UseNotificationsReturn {
   // trusted as a valid session.
   const hasAccessToken = () => Boolean(authService.getAccessToken());
   const getAccessToken = () => authService.getAccessToken();
-  const getUserId = (): number | null => {
-    try {
-      const raw = localStorage.getItem('sms_user_v1');
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as { id?: number };
-      return typeof parsed.id === 'number' ? parsed.id : null;
-    } catch {
-      return null;
-    }
-  };
   const getErrorStatus = (err: unknown): number | null => {
     if (typeof err !== 'object' || err === null || !('response' in err)) {
       return null;
@@ -267,174 +235,40 @@ export function useNotifications(): UseNotificationsReturn {
     }
   }, []);
 
-  /**
-   * Connect to WebSocket server
-   */
-  const connect = useCallback(() => {
-    if (socketRef.current?.connected) {
-      // Already connected, skip reconnection
-      return;
-    }
-
-    try {
-      const token = getAccessToken();
-      const userId = getUserId();
-
-      if (!token || !userId) {
-        setIsConnected(false);
-        return;
-      }
-
-      socketRef.current = io(WEBSOCKET_URL, {
-        path: '/socket.io/',
-        // A function (not a plain object) so socket.io re-evaluates it on
-        // every automatic reconnect, not just the initial connect - a plain
-        // object would keep presenting the token captured at connect time
-        // even after a token refresh, silently breaking reconnects.
-        auth: (cb) => cb({ token: getAccessToken(), user_id: getUserId() }),
-        transports: ['websocket', 'polling'],
-        reconnection: true,
-        reconnectionDelay: RECONNECT_DELAY,
-        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
-      });
-
-      const socket = socketRef.current;
-
-      // Connection events
-      socket.on('connect', () => {
-        setIsConnected(true);
-        setError(null);
-        reconnectAttemptsRef.current = 0;
-        // Refresh unread count on reconnect
-        refreshUnreadCount();
-      });
-
-      socket.on('disconnect', (_reason: string) => {
-        setIsConnected(false);
-      });
-
-      socket.on('connect_error', (err: Error) => {
-        console.error('WebSocket connection error:', err);
-        setError(new Error('WebSocket connection failed'));
-        reconnectAttemptsRef.current++;
-
-        if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-          console.error('Max reconnection attempts reached');
-          socket.disconnect();
-        }
-      });
-
-      // Notification events
-      socket.on('notification', (data: WebSocketMessage) => {
-        // New notification received
-
-        if (data.type === 'notification' && data.data) {
-          const newNotification = data.data as unknown as Notification;
-
-          // Add to notifications list
-          setNotifications(prev => [newNotification, ...prev]);
-
-          // Increment unread count
-          if (!newNotification.is_read) {
-            setUnreadCount(prev => prev + 1);
-          }
-        }
-      });
-
-      socket.on('notification_read', (data: WebSocketMessage) => {
-        if (data.data && typeof data.data === 'object' && 'notification_id' in data.data) {
-          const notificationId = (data.data as { notification_id: number }).notification_id;
-
-          setNotifications(prev =>
-            prev.map(n =>
-              n.id === notificationId
-                ? { ...n, is_read: true, read_at: new Date().toISOString() }
-                : n
-            )
-          );
-
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
-      });
-
-      socket.on('notification_deleted', (data: WebSocketMessage) => {
-        if (data.data && typeof data.data === 'object' && 'notification_id' in data.data) {
-          const notificationId = (data.data as { notification_id: number }).notification_id;
-          let wasUnread = false;
-
-          setNotifications(prev => {
-            const target = prev.find(n => n.id === notificationId);
-            wasUnread = Boolean(target && !target.is_read);
-            return prev.filter(n => n.id !== notificationId);
-          });
-
-          if (wasUnread) {
-            setUnreadCount(prev => Math.max(0, prev - 1));
-          }
-        }
-      });
-
-      socket.on('message', (_data: WebSocketMessage) => {
-        // WebSocket message received
-      });
-
-      socket.on('error', (err: Error) => {
-        console.error('WebSocket error:', err);
-        setError(err);
-      });
-
-    } catch (err) {
-      console.error('Failed to connect to WebSocket:', err);
-      setError(err instanceof Error ? err : new Error('WebSocket connection failed'));
-    }
-  }, [refreshUnreadCount]);
-
-  /**
-   * Disconnect from WebSocket server
-   */
-  const disconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-      setIsConnected(false);
-    }
-  }, []);
-
-  // Auto-connect on mount (deferred) and disconnect on unmount
+  // Keep the unread count current, for the component that shows it (the bell). It is read
+  // when the component appears, and again when the browser comes back online or the page
+  // becomes visible again: the moments at which the removed socket reconnected and did the
+  // same. Off by default, because every NotificationItem uses this hook for its actions and
+  // none of them needs a count of its own.
   useEffect(() => {
-    const shouldAutoConnect = !IS_TEST_ENV;
-    const timeout = shouldAutoConnect
-      ? setTimeout(() => {
-          if (hasAccessToken()) {
-            connect();
-            refreshUnreadCount();
-          }
-        }, 0)
-      : null;
+    if (!watchUnreadCount) {
+      return undefined;
+    }
+
+    const refresh = () => {
+      void refreshUnreadCount();
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refresh();
+      }
+    };
+
+    const timeout = setTimeout(refresh, 0);
+    window.addEventListener('online', refresh);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
 
     return () => {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-
-      if (socketRef.current) {
-        socketRef.current.off?.();
-      }
-
-      disconnect();
+      clearTimeout(timeout);
+      window.removeEventListener('online', refresh);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, [connect, refreshUnreadCount, disconnect]);
+  }, [watchUnreadCount, refreshUnreadCount]);
 
   return {
     // State
     notifications,
     unreadCount,
-    isConnected,
     isLoading,
     error,
 
@@ -444,9 +278,5 @@ export function useNotifications(): UseNotificationsReturn {
     deleteNotification,
     fetchNotifications,
     refreshUnreadCount,
-
-    // WebSocket
-    connect,
-    disconnect,
   };
 }

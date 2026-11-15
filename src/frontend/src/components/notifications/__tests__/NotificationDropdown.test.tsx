@@ -79,7 +79,6 @@ describe('NotificationDropdown Component', () => {
     vi.clearAllMocks();
     mockUseNotifications.mockReturnValue({
       unreadCount: 1,
-      isConnected: true,
       notifications: mockNotifications,
       isLoading: false,
       error: null,
@@ -88,8 +87,6 @@ describe('NotificationDropdown Component', () => {
       deleteNotification: vi.fn(),
       fetchNotifications: vi.fn(),
       refreshUnreadCount: vi.fn(),
-      connect: vi.fn(),
-      disconnect: vi.fn(),
     });
     vi.mocked(useNotificationsModule.useNotifications).mockImplementation(mockUseNotifications);
   });
@@ -137,7 +134,6 @@ describe('NotificationDropdown Component', () => {
     it('should not show "Mark all as read" button when unreadCount is 0', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: mockNotifications,
         isLoading: false,
         error: null,
@@ -146,8 +142,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -161,7 +155,6 @@ describe('NotificationDropdown Component', () => {
       const markAllAsRead = vi.fn();
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
-        isConnected: true,
         notifications: mockNotifications,
         isLoading: false,
         error: null,
@@ -170,8 +163,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -189,7 +180,6 @@ describe('NotificationDropdown Component', () => {
     it('should show loading spinner when loading', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: [],
         isLoading: true,
         error: null,
@@ -198,8 +188,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -212,7 +200,6 @@ describe('NotificationDropdown Component', () => {
     it('should not show loading spinner when not loading', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: mockNotifications,
         isLoading: false,
         error: null,
@@ -221,8 +208,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -237,7 +222,6 @@ describe('NotificationDropdown Component', () => {
     it('should show empty state message when no notifications', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -246,8 +230,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -295,7 +277,6 @@ describe('NotificationDropdown Component', () => {
 
       mockUseNotifications.mockReturnValue({
         unreadCount: 10,
-        isConnected: true,
         notifications: manyNotifications,
         isLoading: false,
         error: null,
@@ -304,8 +285,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -342,7 +321,6 @@ describe('NotificationDropdown Component', () => {
     it('should not show "View all" link when no notifications', () => {
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: [],
         isLoading: false,
         error: null,
@@ -351,8 +329,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -377,7 +353,6 @@ describe('NotificationDropdown Component', () => {
       const fetchNotifications = vi.fn();
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: mockNotifications,
         isLoading: false,
         error: null,
@@ -386,8 +361,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications,
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(
@@ -403,7 +376,6 @@ describe('NotificationDropdown Component', () => {
       const fetchNotifications = vi.fn();
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: mockNotifications,
         isLoading: false,
         error: null,
@@ -412,8 +384,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications,
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       const { rerender } = render(
@@ -451,7 +421,6 @@ describe('NotificationDropdown Component', () => {
 
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
-        isConnected: true,
         notifications: manyNotifications,
         isLoading: false,
         error: null,
@@ -460,8 +429,6 @@ describe('NotificationDropdown Component', () => {
         deleteNotification: vi.fn(),
         fetchNotifications: vi.fn(),
         refreshUnreadCount: vi.fn(),
-        connect: vi.fn(),
-        disconnect: vi.fn(),
       });
 
       render(

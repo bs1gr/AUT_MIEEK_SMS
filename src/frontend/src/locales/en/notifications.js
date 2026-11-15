@@ -33,10 +33,6 @@ export const notificationsEN = {
   saveSettings: 'Save Settings',
   settingsSaved: 'Settings saved successfully',
   settingsFailed: 'Failed to save settings',
-  websocketConnected: 'Connected to notification server',
-  websocketDisconnected: 'Disconnected from notification server',
-  websocketReconnecting: 'Reconnecting to notification server...',
-  websocketError: 'Notification connection error',
   notificationsCount: 'You have {count} notifications',
 
   // Admin broadcast
@@ -137,7 +133,6 @@ export const notificationsEN = {
     ariaLabel: 'Notifications',
     title: 'Notifications',
     unreadCount: '{{count}} unread notification(s)',
-    offline: 'Offline',
   },
 
   // Dropdown component

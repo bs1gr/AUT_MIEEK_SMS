@@ -201,16 +201,11 @@ def lifespan_module(monkeypatch):
     """
     import backend.lifespan as module
 
-    async def _nothing():
-        return None
-
     monkeypatch.setattr(module, "SessionLocal", TestingSessionLocal)
     monkeypatch.setattr(module.profiler, "register", lambda _engine: None)
     monkeypatch.setattr(module, "run_migrations", lambda *_args, **_kwargs: True)
     monkeypatch.setattr(module, "ensure_defaults_startup", lambda _session_factory: False)
     monkeypatch.setattr(module.settings, "DEFAULT_ADMIN_EMAIL", None, raising=False)
-    monkeypatch.setattr(module, "start_background_tasks", _nothing)
-    monkeypatch.setattr(module, "stop_background_tasks", _nothing)
     monkeypatch.setattr("backend.services.smtp_override.load_and_apply", lambda: None)
     monkeypatch.setattr(
         "backend.services.maintenance_scheduler.get_maintenance_scheduler", lambda: _NoSchedulers()
