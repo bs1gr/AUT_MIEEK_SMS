@@ -1,6 +1,5 @@
-# Development dependencies for Student Management System
-# Generated from pyproject.toml [project.optional-dependencies.dev]
-# Last updated: 2026-09-14
+# Development dependencies of the Student Management System (tests, lint, type checks).
+# This file is the one list; pyproject.toml carries no copy.
 
 pytest>=9.2.0  # CVE-2025-71176 (PYSEC-2026-1845) fixed in 9.0.3
 pytest-cov==7.1.0

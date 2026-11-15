@@ -1,8 +1,10 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.69
-**Last Updated**: November 13, 2026
-**Status**: ✅ **v1.18.69 released 2026-11-13** (tag on `71f9b7d9c`, run by the assistant). It
+**Last Updated**: November 15, 2026
+**Status**: ✅ **v1.18.69 released 2026-11-13** (tag on `71f9b7d9c`, run by the assistant). Four
+fixes are on `main` since then and not released (2026-11-15, "On `main` since v1.18.69" below);
+the open work is listed at the start of "Next todos". The release: it
 ships todo 51 (#380, #381): attendance saved as one request per sheet, the offline queues no
 longer re-sent on every render, and lesson-log text typed during a failed save. No database
 changes. `RELEASE_READY` (no `-TagRelease`) exited 0: every gate passed, the backend suite ran
@@ -54,6 +56,61 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
+### On `main` since v1.18.69 (unreleased)
+
+**2026-11-14, #383 (`14c222534`):** `NATIVE.ps1 -Start` stays until the backend answers and
+shows the startup stage it is in (`STARTUP_STATUS.ps1`), and no longer restarts a stack that is
+already running (`Get-ProcessFromPidFile` assigned to PowerShell's read-only `$pid`).
+
+**2026-11-15: a review of the current state, then four fixes the same day** (owner: "begin
+improvements and fixes as suggested"). Looked at: GitHub (no open PR, issue, Dependabot,
+code-scanning or secret-scanning alert; CI green on `main`), the code, the dev PC, and read-only
+aggregate counts on the shared database (nothing was written to it). Each fix went through its
+own PR, `COMMIT_READY -Quick` (31 to 32 backend batches, 0 failed), CI and a dispatched E2E run,
+and was seen working on a real server on a scratch database. What is still open from the review
+is todos 52 to 58 in "Next todos".
+
+- **#384 (`c4fb4032e`): the dev backend ran on packages nobody tests.** `NATIVE.ps1 -Start`
+  only checked that `src/backend/.venv` existed, so the dev PC ran SQLAlchemy 2.0.44, FastAPI
+  0.136.3 and PyJWT 2.13.0 against pins of 2.1.8, 0.162.0 and 2.15.1, on `0.0.0.0`, against the
+  shared database. A successful install now records the SHA-256 of `requirements.txt` in the
+  venv, and a start whose record is missing or different installs first (`-NoDepsSync` skips
+  it). Hot reload watches `src/backend` without its `.venv` (it watched the whole project root,
+  so a pip update or an edited script restarted the backend and re-ran the migrations).
+  `lifespan.py` skipped migrations, RBAC seeding and the admin bootstrap whenever pytest could
+  be *imported*; the question is now "is pytest running". The dev PC's venv was brought to the
+  pins by hand the same day.
+- **#385 (`f99edc163`): a refresh token worked as a login token, and Socket.IO did not
+  authenticate.** Access tokens had no `type`, and nothing checked it, so the 30-day refresh
+  token was accepted as a bearer token everywhere and logging out did not end that. Every place
+  that takes a bearer token now reads it through `decode_access_token`. The Socket.IO `connect`
+  handler believed whatever `user_id` the client sent; it now needs a valid access token when
+  authentication is on. Nothing is emitted on that channel (todo 56), so no data was exposed.
+- **#386: one live row per attendance period and per daily rating, enforced by the
+  database.** Nothing stopped a second row for a slot, and the absence limits and the category
+  averages count rows. Counted on the shared database: 971 attendance rows with no repeat, 208
+  ratings of which three were stored three times each (2026-09-29, identical scores). Migration
+  `a7d4e9c2b5f8` (additive) soft-deletes surplus rows, never removes them, then adds two partial
+  unique indexes (`WHERE deleted_at IS NULL`). `POST /daily-performance/` updates the slot's
+  rating instead of adding one; the upserts and the sheet retry once when another save takes
+  the slot first; the bulk endpoint and the semester import no longer add a slot twice. Proven
+  on PostgreSQL 16 in a throwaway container, including two sheets saved at the same moment from
+  two connections. **The shared database gets the migration the first time a build with it
+  starts against it: six rating copies are soft-deleted, nothing else changes.** `grades` was
+  not touched: one pair of rows there has the same student, course and assignment name, for the
+  owner to look at.
+- **#387: a running server logged nothing.** `migrations/env.py` applied alembic.ini's logging
+  section whenever the application ran its own migrations, which is every start: 185 of 203
+  loggers disabled, the application's log file handler removed, and `logs/app.log` ended at
+  `[run_migrations] ENTER`. No error, traceback or access-log line of a running server was
+  recorded, in any edition. alembic.ini's logging is now applied only on the `alembic` command
+  line, and the runners no longer leave their `migrations.log` handler on the root logger. On a
+  real start, 102 lines now follow the migrations in `app.log`. **Logs come back with this:
+  two lines per request, tracebacks of refused logins, and lines that name accounts by e-mail.**
+
+Not released. Nothing in these four needs a new Android build; #386 has a migration, so the
+order for an update is the usual one (any build that has it applies it at its first start).
+
 ### In v1.18.69
 
 **Todo 51: attendance on the cloud host stayed "pending sync" (2026-11-13).** The owner's phone,
@@ -86,7 +143,7 @@ average, 50 of 60 took more than 10 s, and 501 writes ended in a fast 400. Three
   phone after this release.
 - **Not done:** the endpoints behind `require_permission` are `async` wrappers around blocking
   database calls, so one uvicorn process handles them one at a time. That is why the burst was
-  so slow; with one request per sheet it no longer matters for attendance.
+  so slow; with one request per sheet it no longer matters for attendance. (Now todo 52.)
 
 **v1.18.67 (released 2026-11-13, tag on `ec987afa8`, run by the assistant).**
 
@@ -115,7 +172,7 @@ and the APK was not run on a device.
 **Release-flow note:** a `COMMIT_READY` run in a clone upgrades packages in the main tree's
 root `.venv`; the owner's dev backend (`uvicorn --reload`, started from the project root) saw
 those files change and restarted three times, which Vite reported as `ECONNRESET`. Starting it
-with `--reload-dir src/backend` would stop that.
+with `--reload-dir src/backend` would stop that. (Done 2026-11-15, #384.)
 
 ### v1.18.66 (2026-11-12; tag on `d2cb7eba9`, run by the assistant)
 
@@ -203,6 +260,7 @@ deciding on v1.18.67).** Run from a clone, on throwaway databases only (never th
   `pytest` is importable (so a plain `uvicorn` from the root `.venv` does neither; `NATIVE.ps1`
   uses `src/backend/.venv`, which has no pytest), that venv is behind `requirements.txt`
   (SQLAlchemy 2.0.44 against 2.1.8), and the Absence limits table is cut off at 412 px.
+  (The first two were fixed on 2026-11-15, #384; the table is still open.)
 
 ### v1.18.65 (2026-11-06; tag on `de71fd9cf`, run by the owner)
 
@@ -666,6 +724,72 @@ tree as evidence that GitHub is clear.
 *and GradingView now fetches a student's courses with one `getByStudent` request instead of one per course*
 *(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
 *What is left is below.*
+
+**Open work as of 2026-11-15** (from the review of that day; what it fixed is under "On `main`
+since v1.18.69" at the top). Older entries that are still open, further down: 40 (a real Update
+install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
+reclamation), 48 (dispatching the build-only Docker run from the release flow), 50 (the owner's
+side of the privacy round) and 51 (the attendance fix has not yet been seen on the owner's
+phone). Also still open in their own sections: the contrast design calls of 2026-10-07, `viewer`
+and `guest` getting 403 on the Dashboard overview, and the Absence limits table cut off at
+412 px (2026-11-12 smoke test).
+
+52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
+    code, not measured). About 270 of 350 endpoints are `async def` around blocking database
+    calls, the `require_permission` wrapper is `async` and calls the sync endpoints inline, and
+    every edition starts one uvicorn process. So requests queue behind each other: on the cloud
+    VM (65 ms per round trip) a page's parallel requests are served one after another, and one
+    slow export, or a QNAP outage (5 s connect timeout per attempt), stalls every user and
+    `/health`. In stages: (1) the wrapper does the user lookup and the permission check in the
+    threadpool and runs sync endpoints there; (2) endpoints that never `await` become `def`,
+    router by router (a script can find them); (3) measured on the VM through `/metrics`.
+    #386 was the precondition: that queueing was the only thing keeping two saves of one slot
+    apart inside a process. **A large change: it waits for the owner's go-ahead.**
+53. **36 of 96 E2E tests never run** (CI on `main`, `f99edc163`: 60 passed, 36 skipped). Seven
+    suites are `describe.skip`: notifications (15 tests), advanced search (13), student
+    resilience (2), and one test each in `student-list`, `saved-search`, `performance-benchmark`
+    and the root `student-management.spec.ts`. In `critical-flows` one test is skipped outright
+    and one skips itself because the CI seed has no students. `report-workflows.spec.ts` runs
+    and passes today, but it turns its own setup failures into skips in ten places, so a broken
+    setup would be reported as "skipped", not "failed". The notifications suite waits for
+    Socket.IO events that nothing emits (todo 56), so it cannot pass as written. To do: make
+    setup failures fail, then make each skipped suite run or delete it (deleting needs the
+    owner's OK).
+54. **Nothing watches the cloud VM, and workflows that cannot run.**
+    `scheduled-production-health-check.yml` needs a self-hosted runner
+    (`[self-hosted, windows, production-lan]`); none is registered, its schedule is commented
+    out and it has no run on record. With it, six dispatch-only workflows have no run on record:
+    `reset-workflows.yml`, `archive-legacy-releases.yml`, `fetch-code-scanning-sarif.yml`,
+    `upload-sarif.yml` and `sync-installer-artifact.yml`; four files under
+    `.github/workflows/archive/` are inert (GitHub only runs the top level). Suggested: a cron
+    job on the VM that checks `/health` and mails through the SMTP settings the app already has;
+    delete the workflows that cannot run (owner's OK).
+55. **What backs up the QNAP database?** Neither the repository nor this document records a
+    scheduled dump, or a restore drill since 2026-09-17. The database is 15 MB. The owner to say
+    what exists; if nothing, a nightly `pg_dump` kept off the NAS and one restore test.
+56. **Small things from the same review.**
+    - *The Socket.IO channel carries nothing.* `send_notification_to_user`,
+      `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
+      the frontend connects and never receives an event (notifications reach the page through
+      the REST API). Wire it up or remove it (server, client hook, `socket.io-client`).
+    - *`refresh_tokens`:* 835 rows, 1 live. Revoked and expired rows are never deleted.
+    - *Soft-deleted rows in the shared database:* 55 students (deleted 2026-09-04 to 09-17, the
+      test-data cleanups), 28 courses, 44 enrollments, 14 grades. The "81 students" in todo 50
+      counts them; 26 are live.
+    - *`grades`:* one pair of rows with the same student, course and assignment name (#386).
+    - *A dead tool:* `scripts/utils/validators/import_checker.py` scans `<root>/backend`, which
+      has not existed since the June flatten; nothing runs it or its test. Delete (owner's OK).
+    - *`migrations.log`* is written to `src/logs/`, not `logs/`: the runner takes `src` for the
+      repository root.
+    - *Log noise, now that logging works (#387):* a refused login is logged with a full
+      traceback, and `backend.db.utils.transaction` logs an expected, retried unique-key conflict
+      at ERROR with the SQL and its parameters.
+57. **This document is too big to read in one piece** (390 KB, 5,400 lines; the assistant's file
+    reader stops at 256 KB, so the session checklist's "read the plan" cannot be done in one
+    step). Closed todos and the dated sections older than v1.18.66 belong in the archive file,
+    as "How to Use This Document" already says. Not done on 2026-11-15: it moves about 4,000
+    lines.
+
 
 **Priority 0 — GitHub security/CI findings (2026-10-01):** PyJWT is now `2.15.0` in both
 runtime manifests, and its Dependabot alerts cleared after the dependency graph refreshed.
@@ -1513,7 +1637,8 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       the reload is held back by its 30-second cooldown the screen says "A new version is
       available" with a Reload button (EN/EL). Any install shows this after any update.
     - **Not done:** the user lookup still costs one round trip per request, and pages that send
-      their requests one after another still add up.45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
+      their requests one after another still add up.
+45. **Lesson log: a printable / exportable view per course** (suggested 2026-11-12, accepted by
     the owner) — a PDF and an Excel of the material covered, by date and teaching period, so it
     can serve as the official record. Today it can only be read on the Attendance page. To decide
     while building: whether the teacher's notes are included (default: no, they are private).
@@ -1555,6 +1680,46 @@ database now has only `admin@example.com` (inactive) and the owner's account. If
       43314118411) succeeded in 5.5 minutes: 42 `aarch64` wheels downloaded, nothing compiled
       from source. The image was built, not started: its first real run is on the VM.
     - **Still open:** dispatching the build-only run from the release flow.
+50. **Privacy hardening after a consent / GDPR review** (owner, 2026-11-13: "make sure that comply
+    by Consent Management Checklist for GDPR Cyprus Compliance" before the cloud VM is updated;
+    then "do all recommended") — no checklist by that name exists in the project, so the app was
+    checked against GDPR Articles 6-9, Law 125(I)/2018 and the cookie rule of Law 112(I)/2004.
+    Passing already: only strictly necessary cookies, no tracking, no third-party scripts.
+    - **Done 2026-11-13 (unreleased):** health information left the general student response
+      and is admin-only (`/students/{id}/health`), is masked in the audit log and is out of the
+      semester export unless an administrator asks (the encrypted archive keeps it); the staff
+      notes moved from the browser's `localStorage` to the server, per account (additive
+      migration `f6c3d8b1a2e4`), with a one-time move of what a browser still holds; a public
+      Privacy page (EN/EL) linked from the footer, with the controller's contacts from four
+      `PRIVACY_*` settings. Described in `docs/admin/PRIVACY_AND_GDPR.md`.
+    - **The owner's / ΜΙΕΕΚ's, not code:** the lawful basis in writing (and the Article 9
+      condition for health data, or clearing that column), retention periods, Oracle's
+      data-processing agreement for Always Free, the wording of the notice and the four contact
+      settings. **The cloud VM stays on `54eab4a67` until the owner says otherwise.**
+    - **Second round, same day (owner: "try to satisfy all above at a default state as
+      recommended"), unreleased:** an administrator-only section in the student Edit dialog
+      with the health information, a personal-data file for access requests
+      (`/data-subject/students/{id}/export`, soft-deleted records included) and permanent
+      erasure (`DELETE /data-subject/students/{id}`, registry number typed to confirm; audit
+      entries of that student lose their personal details). The admin document gained a table
+      of recommended defaults (lawful basis, health data, retention, hosting) that the
+      institution confirms or changes; none is enforced automatically.
+    - **Deliberately not done:** a consent register (nothing relies on consent), automatic
+      deletion by retention period (no period has been decided, and deleting real records on a
+      guess is not a default), and switching health recording off (the CSV import carries a
+      health column on purpose; it is now admin-only instead). Oracle's agreement for Always
+      Free could not be confirmed from public documents.
+    - **Health data switched off, 2026-11-13 (owner: "make sure that no health data is passed
+      ... if exist, we have to correct it asap"; no payment is possible, so the host stays on
+      Always Free).** Oracle's Data Processing Agreement (14 August 2025) was read: no trial
+      exclusion, but section 2.6 rules out regulated health data. A count on the real database
+      found health text for 4 of 81 students and copies in 6 audit rows; the owner chose to
+      delete it, and it was removed the same day (verified by count: 0 and 0, 81 students).
+      `HEALTH_DATA_ENABLED` (default false) now keeps the app from storing, importing, showing
+      or exporting it, with a guard on the model itself; the cloud compose file fixes it to
+      false. **Not reached:** database backups, semester archives and export files made before
+      that day may still contain the text. **Still open:** read the Oracle Cloud Services
+      Agreement accepted at sign-up for how it treats a free account.
 30. ~~**Sign SMS Lite with a publicly trusted certificate (Smart App Control)**~~ (raised 2026-10-21) —
     **closed 2026-10-28 by owner decision: no paid code signing, now or later.** The project keeps
     signing every binary with its own self-signed AUT MIEEK certificate (payload, uninstaller and
@@ -5393,47 +5558,3 @@ for that.
 ---
 
 *See the top of this document for current version/status — this footer no longer duplicates it to avoid drifting out of sync (it previously sat unmaintained for 2.5+ months).*
-
-
-
-
-50. **Privacy hardening after a consent / GDPR review** (owner, 2026-11-13: "make sure that comply
-    by Consent Management Checklist for GDPR Cyprus Compliance" before the cloud VM is updated;
-    then "do all recommended") — no checklist by that name exists in the project, so the app was
-    checked against GDPR Articles 6-9, Law 125(I)/2018 and the cookie rule of Law 112(I)/2004.
-    Passing already: only strictly necessary cookies, no tracking, no third-party scripts.
-    - **Done 2026-11-13 (unreleased):** health information left the general student response
-      and is admin-only (`/students/{id}/health`), is masked in the audit log and is out of the
-      semester export unless an administrator asks (the encrypted archive keeps it); the staff
-      notes moved from the browser's `localStorage` to the server, per account (additive
-      migration `f6c3d8b1a2e4`), with a one-time move of what a browser still holds; a public
-      Privacy page (EN/EL) linked from the footer, with the controller's contacts from four
-      `PRIVACY_*` settings. Described in `docs/admin/PRIVACY_AND_GDPR.md`.
-    - **The owner's / ΜΙΕΕΚ's, not code:** the lawful basis in writing (and the Article 9
-      condition for health data, or clearing that column), retention periods, Oracle's
-      data-processing agreement for Always Free, the wording of the notice and the four contact
-      settings. **The cloud VM stays on `54eab4a67` until the owner says otherwise.**
-    - **Second round, same day (owner: "try to satisfy all above at a default state as
-      recommended"), unreleased:** an administrator-only section in the student Edit dialog
-      with the health information, a personal-data file for access requests
-      (`/data-subject/students/{id}/export`, soft-deleted records included) and permanent
-      erasure (`DELETE /data-subject/students/{id}`, registry number typed to confirm; audit
-      entries of that student lose their personal details). The admin document gained a table
-      of recommended defaults (lawful basis, health data, retention, hosting) that the
-      institution confirms or changes; none is enforced automatically.
-    - **Deliberately not done:** a consent register (nothing relies on consent), automatic
-      deletion by retention period (no period has been decided, and deleting real records on a
-      guess is not a default), and switching health recording off (the CSV import carries a
-      health column on purpose; it is now admin-only instead). Oracle's agreement for Always
-      Free could not be confirmed from public documents.
-    - **Health data switched off, 2026-11-13 (owner: "make sure that no health data is passed
-      ... if exist, we have to correct it asap"; no payment is possible, so the host stays on
-      Always Free).** Oracle's Data Processing Agreement (14 August 2025) was read: no trial
-      exclusion, but section 2.6 rules out regulated health data. A count on the real database
-      found health text for 4 of 81 students and copies in 6 audit rows; the owner chose to
-      delete it, and it was removed the same day (verified by count: 0 and 0, 81 students).
-      `HEALTH_DATA_ENABLED` (default false) now keeps the app from storing, importing, showing
-      or exporting it, with a guard on the model itself; the cloud compose file fixes it to
-      false. **Not reached:** database backups, semester archives and export files made before
-      that day may still contain the text. **Still open:** read the Oracle Cloud Services
-      Agreement accepted at sign-up for how it treats a free account.
