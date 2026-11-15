@@ -45,6 +45,26 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.70] - 2026-11-15
+
+### Features
+- **dev**: show the real backend startup stage in NATIVE.ps1; stop restarting a running stack (#383)
+
+### Bug Fixes
+- refusals are not logged as errors, dead refresh tokens are removed, E2E setup failures fail (#390)
+- **logging**: the server keeps logging after its startup migrations (#387)
+- **attendance**: one live row per attendance period and per daily rating, enforced by the database (#386)
+- **security**: a refresh token is not a login credential; Socket.IO connections must present an access token (#385)
+- **dev**: keep the dev backend's packages in step with requirements.txt; run startup tasks unless a test is running (#384)
+
+### Documentation
+- **plan**: the grade pair found on 2026-11-15 is intended (owner); merge commits of #386 to #388 recorded (#389)
+- **plan**: v1.18.69 released - published assets verified
+
+### Chores
+- record the 2026-11-15 review in the plan; one dependency list; stale notes corrected (#388)
+
 ## [1.18.69] - 2026-11-13
 
 ### Bug Fixes
@@ -4889,6 +4909,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
