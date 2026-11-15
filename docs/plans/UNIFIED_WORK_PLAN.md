@@ -58,7 +58,8 @@ to 152; 153, 154 and 155 are the ones kept; 202 live ratings now), changed no at
 (971, no repeats, none without a period) and added the two indexes; the purge removed 834 dead
 refresh tokens and left the one in use. The six rows as they were are in
 `backups/pre_v1.18.70_migration_rows_2026-11-15.json` on the dev PC (git-ignored), with how to
-undo it. Not checked: the app on the owner's phone against the VM.
+undo it. Not checked by the assistant: the app on the owner's phone against the VM (the owner,
+the same evening: attendance works on the phone).
 
 **Every install that uses the shared database should now be updated.** A build older than
 v1.18.70 stores a rating for a slot that already has one as a second row; the database now
@@ -87,7 +88,8 @@ bytes, SHA-256 `a824d961…fc6674` = GitHub's digest, `versionName 1.18.69` /
 **Cloud VM:** rebuilt on the tag; `/health` reports v1.18.69 with the database connected, and
 `POST /attendance/sheet` answers 401 without a valid token. Not checked: the installer was not
 installed, the APK was not run on a device, and the fix has not yet been seen on the owner's
-phone against the cloud host, which is where the problem was reported.
+phone against the cloud host, which is where the problem was reported. **Seen: the owner
+confirmed on 2026-11-15 that the attendance fix works on the phone** (todo 51 closed).
 
 v1.18.68 was released 2026-11-13 (tag on `1acc6c053`, run by the assistant); v1.18.67 the same
 morning (tag on `ec987afa8`).
@@ -306,7 +308,8 @@ average, 50 of 60 took more than 10 s, and 501 writes ended in a fast 400. Three
 - **Not reproduced:** the owner also saw typed text disappear when typing fast. The server
   counted 12 lesson-log saves, all 200 and under a second, and no extra loads, so the editor was
   not reloading. The request bursts on the phone are the likely cause; to be confirmed on the
-  phone after this release.
+  phone after this release. (The owner's confirmation of 2026-11-15 names the attendance fix;
+  the typed text was not mentioned.)
 - **Not done:** the endpoints behind `require_permission` are `async` wrappers around blocking
   database calls, so one uvicorn process handles them one at a time. That is why the burst was
   so slow; with one request per sheet it no longer matters for attendance. (Now todo 52.)
@@ -459,11 +462,14 @@ tree as evidence that GitHub is clear.
 v1.18.70" and "On `main` since v1.18.70" at the top). Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
-reclamation), 48 (dispatching the build-only Docker run from the release flow), 50 (the owner's
-side of the privacy round) and 51 (the attendance fix has not yet been seen on the owner's
-phone). Also still open in their own sections: the contrast design calls of 2026-10-07, `viewer`
-and `guest` getting 403 on the Dashboard overview, and the Absence limits table cut off at
-412 px (2026-11-12 smoke test).
+reclamation), 48 (dispatching the build-only Docker run from the release flow) and 50 (the
+owner's side of the privacy round). Todo 51 is closed: the owner confirmed on 2026-11-15 that
+the attendance fix works on the phone. Also still open in their own sections: the contrast
+design calls of 2026-10-07, `viewer` and `guest` getting 403 on the Dashboard overview, and
+the Absence limits table cut off at 412 px (2026-11-12 smoke test).
+
+**First in line: todo 55.** Nothing backs up the shared database on a schedule, and the owner
+believed the application did.
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -501,9 +507,27 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     `.github/workflows/archive/` are inert (GitHub only runs the top level). Suggested: a cron
     job on the VM that checks `/health` and mails through the SMTP settings the app already has;
     delete the workflows that cannot run (owner's OK).
-55. **What backs up the QNAP database?** Neither the repository nor this document records a
-    scheduled dump, or a restore drill since 2026-09-17. The database is 15 MB. The owner to say
-    what exists; if nothing, a nightly `pg_dump` kept off the NAS and one restore test.
+55. **Nothing backs up the QNAP database on a schedule, and the application says it does.**
+    Asked what backs it up, the owner answered on 2026-11-15: "the back up happens each and
+    everytime a session occurs"; shown that the newest backup file on the dev PC is from
+    6 November: "I thought the app does it".
+    - *What the application tells its users.* The in-app help answers "Automated backups happen
+      daily" (`helpBackupAnswer`) and, under lost data, "See daily automatic backups"
+      (`helpDataLossAnswer`, English; the Greek text says "daily copies" too). The PDF guide
+      lists "Auto-Save & Data Backup" among the features (`routers_help.py`).
+    - *What exists.* No code makes a backup on a schedule. A backup is made when someone asks
+      for one in the application, and automatically only before a session import, before a
+      restore and as part of a semester archive. `DOCKER.ps1 -Update` copies the SQLite file of
+      the Docker volume, which is not where the shared database is.
+    - *What is on the dev PC.* `backups/database` holds 22 encrypted backups, dated from
+      3 September to 6 November; the newest is `backup_20261106_152510.enc`. None from 12 to
+      15 November, the day of the v1.18.70 migration included (the six rows that migration
+      changed were saved separately, see the top of this document). What is on the NAS itself
+      is not known here. No restore drill since 2026-09-17. The database is 15 MB.
+    - *To do, on the owner's word* (2026-11-15: "nothing more now"): a daily backup of the QNAP
+      database that is kept off the NAS, one restore test, and the help made true, or corrected
+      until it is. Until then a backup exists only when someone creates one in the
+      application.
 56. **Small things from the same review.**
     - ~~*The Socket.IO channel carries nothing.* `send_notification_to_user`,
       `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
