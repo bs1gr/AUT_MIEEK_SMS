@@ -60,6 +60,10 @@ def run_migrations(verbose: bool = False) -> bool:
     """
     print("[run_migrations] ENTER", flush=True)
     logger.info("[run_migrations] ENTER")
+    # logs/migrations.log is attached to the root logger for the length of this run only (see
+    # the finally below): left there, it would receive every later log record of the process.
+    migrations_handler: logging.Handler | None = None
+    root_level_before: int | None = None
     try:
         backend_dir = Path(__file__).parent.parent.parent
         cfg = _alembic_config(backend_dir)
@@ -109,10 +113,14 @@ def run_migrations(verbose: bool = False) -> bool:
             if not existing:
                 try:
                     if root_logger.level > logging.INFO:
+                        root_level_before = root_logger.level
                         root_logger.setLevel(logging.INFO)
                 except Exception:
                     pass
                 root_logger.addHandler(fh)
+                migrations_handler = fh
+            else:
+                fh.close()
         except Exception as log_ex:
             print(f"[run_migrations] Logging setup failed: {log_ex}", flush=True)
             logger.warning(f"[run_migrations] Logging setup failed: {log_ex}")
@@ -183,15 +191,7 @@ def run_migrations(verbose: bool = False) -> bool:
         if verbose:
             print("\nOK: Database migrations applied successfully", flush=True)
             print("=" * 60, flush=True)
-        print(
-            "[run_migrations] DEBUG: About to log Alembic migrations applied successfully",
-            flush=True,
-        )
         logger.info("Alembic migrations applied successfully")
-        print(
-            "[run_migrations] DEBUG: Logged Alembic migrations applied successfully",
-            flush=True,
-        )
         print("[run_migrations] EXIT OK", flush=True)
         return True
     except Exception as e:
@@ -205,6 +205,12 @@ def run_migrations(verbose: bool = False) -> bool:
         if verbose:
             print(f"ERROR: Migration error: {e}", file=sys.stderr, flush=True)
         return False
+    finally:
+        if migrations_handler is not None:
+            logging.getLogger().removeHandler(migrations_handler)
+            migrations_handler.close()
+        if root_level_before is not None:
+            logging.getLogger().setLevel(root_level_before)
 
 
 def check_migration_status(verbose: bool = False) -> str:
