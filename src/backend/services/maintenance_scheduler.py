@@ -47,6 +47,12 @@ class MaintenanceScheduler:
         finally:
             db.close()
 
+    def purge_dead_refresh_tokens(self) -> int:
+        """Delete refresh tokens that can never be used again (revoked or expired)."""
+        from backend.services.refresh_token_cleanup import purge_dead_refresh_tokens_in_own_session
+
+        return purge_dead_refresh_tokens_in_own_session(SessionLocal)
+
     def cleanup_and_archive_old_exports(self, days_old: int = 30, archive_path: str = "data/exports/archive"):
         """Archive old export jobs instead of deleting them.
 
@@ -189,7 +195,17 @@ class MaintenanceScheduler:
                     kwargs={"days_old": 30, "delete_files": True},
                 )
 
-                logger.info(f"Scheduled export cleanup ({frequency})")
+                # Same schedule: a server that runs for weeks (the cloud host) is not restarted
+                # often enough for the purge at startup to keep the table small.
+                self.export_scheduler.scheduler.add_job(
+                    self.purge_dead_refresh_tokens,
+                    trigger=trigger,
+                    id=f"purge_refresh_tokens_{frequency}",
+                    name=f"Remove dead refresh tokens ({frequency})",
+                    replace_existing=True,
+                )
+
+                logger.info(f"Scheduled export cleanup and refresh-token purge ({frequency})")
 
         except Exception as e:
             logger.error(f"Failed to schedule cleanup: {e}")

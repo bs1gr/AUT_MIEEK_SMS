@@ -39,6 +39,13 @@ def get_lifespan():
                         logging.getLogger(__name__).info("✅ RBAC defaults seeded on startup")
                 except Exception as e:
                     logging.getLogger(__name__).warning(f"⚠️  RBAC defaults seeding skipped: {e}")
+
+                # Refresh tokens that can never be used again (revoked or expired). Also done
+                # by the daily maintenance job, for a server that stays up for weeks. It logs
+                # what it removed and never raises.
+                from backend.services.refresh_token_cleanup import purge_dead_refresh_tokens_in_own_session
+
+                purge_dead_refresh_tokens_in_own_session(SessionLocal)
             else:
                 logging.getLogger(__name__).warning(
                     "⚠️  Migrations failed during startup; continuing with reduced startup tasks"

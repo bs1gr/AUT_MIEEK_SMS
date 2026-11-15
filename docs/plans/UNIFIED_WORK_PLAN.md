@@ -111,8 +111,29 @@ is todos 52 to 57 in "Next todos".
 - **#388 (`8809ee07e`): housekeeping.** This section and todos 52 to 57; the second copy of the
   dependency pins removed from `pyproject.toml` (the two requirements files are the one list);
   `CLAUDE.md` without a hard-coded version.
+- **#390: quieter logs, dead refresh tokens removed, E2E setup failures fail** (the same day,
+  after the owner's "continue"; the parts of todos 53 and 56 that needed no decision).
+  *Logs:* a refused login (wrong password, lockout, inactive account) is one line, written
+  where it is decided, with no traceback; an attempt during a lockout, which only the traceback
+  recorded, has a warning of its own. `backend.db.utils.transaction` no longer writes a 4xx
+  refusal as an error, and writes a broken unique key as one INFO line that names the
+  constraint, without the statement, its parameters or PostgreSQL's `DETAIL` line (which
+  carries the row's values). Server errors keep their ERROR line and their traceback. As they
+  were: two lines per request, and a few lines that name an account by e-mail.
+  *Refresh tokens:* revoked and expired rows are deleted at startup and by the daily
+  maintenance job (02:00), never inside a request. `POST /auth/refresh` answers 401 for a
+  revoked, an expired and a missing row alike, so no answer changes. **The shared database
+  loses its dead rows (834 of 835 on 2026-11-15) the first time a build with this starts
+  against it.**
+  *E2E:* `report-workflows.spec.ts` turned nine setup failures into skips; they are failures
+  now. `critical-flows` "should open student detail" skipped itself as "no students in the CI
+  seed": the seed has four, and the test counted the cards before the list had loaded. It waits
+  for a card and runs now; "should display students list" asserted a count of zero or more and
+  now needs a card. On a scratch server with the CI seed: 16 passed, 1 skipped, three times
+  over; with the students removed, or the API unreachable, the old files report "skipped" and
+  the new ones "failed".
 
-Not released. Nothing in these four needs a new Android build; #386 has a migration, so the
+Not released. Nothing in these needs a new Android build; #386 has a migration, so the
 order for an update is the usual one (any build that has it applies it at its first start).
 
 ### In v1.18.69
@@ -752,13 +773,14 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
 53. **36 of 96 E2E tests never run** (CI on `main`, `f99edc163`: 60 passed, 36 skipped). Seven
     suites are `describe.skip`: notifications (15 tests), advanced search (13), student
     resilience (2), and one test each in `student-list`, `saved-search`, `performance-benchmark`
-    and the root `student-management.spec.ts`. In `critical-flows` one test is skipped outright
-    and one skips itself because the CI seed has no students. `report-workflows.spec.ts` runs
-    and passes today, but it turns its own setup failures into skips in ten places, so a broken
-    setup would be reported as "skipped", not "failed". The notifications suite waits for
-    Socket.IO events that nothing emits (todo 56), so it cannot pass as written. To do: make
-    setup failures fail, then make each skipped suite run or delete it (deleting needs the
-    owner's OK).
+    and the root `student-management.spec.ts`. In `critical-flows` one test is skipped outright.
+    The notifications suite waits for Socket.IO events that nothing emits (todo 56), so it
+    cannot pass as written. **Done in #390:** setup failures fail (`report-workflows.spec.ts`
+    turned nine of them into skips), and the `critical-flows` test that skipped itself for "no
+    students in the CI seed" runs (the seed has four; it did not wait for the list), which
+    leaves 35 skipped. **Left:** make each skipped suite run or delete it (deleting needs the
+    owner's OK; the owner gave it for the notifications suite on 2026-11-15, with the removal
+    of Socket.IO).
 54. **Nothing watches the cloud VM, and workflows that cannot run.**
     `scheduled-production-health-check.yml` needs a self-hosted runner
     (`[self-hosted, windows, production-lan]`); none is registered, its schedule is commented
@@ -776,7 +798,8 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
       `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
       the frontend connects and never receives an event (notifications reach the page through
       the REST API). Wire it up or remove it (server, client hook, `socket.io-client`).
-    - *`refresh_tokens`:* 835 rows, 1 live. Revoked and expired rows are never deleted.
+    - ~~*`refresh_tokens`:* 835 rows, 1 live. Revoked and expired rows are never deleted.~~
+      **Closed by #390:** deleted at startup and by the daily maintenance job.
     - *Soft-deleted rows in the shared database:* 55 students (deleted 2026-09-04 to 09-17, the
       test-data cleanups), 28 courses, 44 enrollments, 14 grades. The "81 students" in todo 50
       counts them; 26 are live.
@@ -788,9 +811,9 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
       has not existed since the June flatten; nothing runs it or its test. Delete (owner's OK).
     - *`migrations.log`* is written to `src/logs/`, not `logs/`: the runner takes `src` for the
       repository root.
-    - *Log noise, now that logging works (#387):* a refused login is logged with a full
+    - ~~*Log noise, now that logging works (#387):* a refused login is logged with a full
       traceback, and `backend.db.utils.transaction` logs an expected, retried unique-key conflict
-      at ERROR with the SQL and its parameters.
+      at ERROR with the SQL and its parameters.~~ **Closed by #390.**
 57. **This document is too big to read in one piece** (390 KB, 5,400 lines; the assistant's file
     reader stops at 256 KB, so the session checklist's "read the plan" cannot be done in one
     step). Closed todos and the dated sections older than v1.18.66 belong in the archive file,
