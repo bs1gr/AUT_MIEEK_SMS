@@ -178,6 +178,19 @@ removal of Socket.IO, the first stage of todo 52 and the tidying of this documen
   connections at once (21 during the soak; the pool allows 30 per process). The QNAP's own
   `max_connections` was not looked up; with the cloud host and a PC install both busy it is
   the number to know.
+- **#395: the gate no longer makes a heading of a PR number, and names every Markdown file
+  its auto-fix rewrote** (todo 58, last entry; found while tidying this document). The gate
+  runs `markdownlint --fix` over every Markdown file. Rule MD018 took a wrapped line that
+  begins with `#378, …` for a heading written without its space and made it one; the rule is
+  off in `config/.markdownlint.json`. The gate's list of rewritten files compared line counts
+  with `HEAD`, which a rewrite of a line that is already part of the commit does not change;
+  an entry now carries the hash of the file's contents, a rename counts as two files, and a
+  Greek file name is read as it is (it came back quoted or garbled, and its file was never
+  looked at). Nine tests, six of which fail against the old script and configuration; seven
+  deliberate breakages of the change are each caught. Seen with the real `markdownlint` in a
+  scratch repository: old script and rule, the line becomes a heading and nothing is listed;
+  new script and old rule, the file is listed; new script and rule, the line stays as written.
+  Tooling only: nothing in the application changes.
 
 Not released. None of them needs a new Android build for its own sake, but #391 changes the
 frontend bundle (the next APK no longer contains the Socket.IO client).
@@ -561,13 +574,13 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
       life of the process (read by the diagnostics router, emptied only by its reset endpoint).
       On a server that stays up for weeks that is a slow leak; it should keep the last few
       thousand.
-    - *The gate's Markdown auto-fix can turn text into a heading without saying so.* A wrapped
+    - ~~*The gate's Markdown auto-fix can turn text into a heading without saying so.* A wrapped
       line that begins with a PR number (`#378, …`) is "corrected" by `markdownlint --fix`
       (rule MD018, no space after the hash) to `# 378, …`, a level-1 heading. It happened to
       three lines of this document on 2026-11-13. `COMMIT_READY` lists the files its auto-fix
       rewrote by comparing line counts with `HEAD`, so a rewrite of a line that is already part
       of the commit is not listed. The rule should be off (a `#378` at the start of a line is
-      plain text in Markdown) and the list should compare contents.
+      plain text in Markdown) and the list should compare contents.~~ **Closed by #395.**
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

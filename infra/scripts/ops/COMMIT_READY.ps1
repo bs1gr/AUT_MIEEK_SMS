@@ -1303,22 +1303,44 @@ function Invoke-CodeQualityChecks {
             # but a validation gate must not edit the tree silently: snapshot the markdown
             # state so the run can say exactly what it touched.
             function Get-MarkdownState {
+                # One entry per Markdown file that differs from HEAD or is untracked. The
+                # entry of a changed file carries the hash of its contents next to its line
+                # counts: the counts alone stay the same when the fix pass rewrites a line
+                # the commit already changes, and that rewrite then went unreported (three
+                # lines of the work plan that began with a PR number, "#378, ...", became
+                # the headings "# 378, ..." that way; rule MD018, now off in the config).
                 $state = @{}
+                # git prints paths in UTF-8. Read them as UTF-8, or a Greek file name comes
+                # back garbled and its file is not found (it then keeps its counts only).
+                $previousEncoding = $null
+                try {
+                    $previousEncoding = [Console]::OutputEncoding
+                    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+                } catch {}
                 try {
                     # vs HEAD, so staged edits count too: plain `git diff` would go blank
                     # the moment the developer ran `git add`.
-                    foreach ($line in @(git diff HEAD --numstat -- '*.md' 2>$null)) {
+                    foreach ($line in @(git -c core.quotepath=off diff HEAD --no-renames --numstat -- '*.md' 2>$null)) {
                         $parts = $line -split "`t"
-                        if ($parts.Count -ge 3) { $state[$parts[2]] = "$($parts[0])/$($parts[1])" }
+                        if ($parts.Count -lt 3) { continue }
+                        $path = $parts[2]
+                        $entry = "$($parts[0])/$($parts[1])"
+                        if (Test-Path -LiteralPath $path -PathType Leaf) {
+                            $entry += ":" + (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+                        }
+                        $state[$path] = $entry
                     }
                 } catch {}
                 try {
-                    foreach ($path in @(git ls-files --others --exclude-standard -- '*.md' 2>$null)) {
-                        if ($path -and (Test-Path $path)) {
+                    foreach ($path in @(git -c core.quotepath=off ls-files --others --exclude-standard -- '*.md' 2>$null)) {
+                        if ($path -and (Test-Path -LiteralPath $path -PathType Leaf)) {
                             $state[$path] = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
                         }
                     }
                 } catch {}
+                if ($previousEncoding) {
+                    try { [Console]::OutputEncoding = $previousEncoding } catch {}
+                }
                 return $state
             }
             $mdStateBefore = Get-MarkdownState

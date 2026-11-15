@@ -112,7 +112,7 @@ When contributing documentation:
 1. Place files in the appropriate directory
 2. Update relevant INDEX.md files
 3. Update [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
-4. Follow markdown linting rules (see [../.markdownlint.json](../.markdownlint.json))
+4. Follow markdown linting rules (see [../config/.markdownlint.json](../config/.markdownlint.json))
 
 ## 📧 Feedback
 
