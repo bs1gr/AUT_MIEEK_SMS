@@ -68,7 +68,7 @@ code-scanning or secret-scanning alert; CI green on `main`), the code, the dev P
 aggregate counts on the shared database (nothing was written to it). Each fix went through its
 own PR, `COMMIT_READY -Quick` (31 to 32 backend batches, 0 failed), CI and a dispatched E2E run,
 and was seen working on a real server on a scratch database. What is still open from the review
-is todos 52 to 58 in "Next todos".
+is todos 52 to 57 in "Next todos".
 
 - **#384 (`c4fb4032e`): the dev backend ran on packages nobody tests.** `NATIVE.ps1 -Start`
   only checked that `src/backend/.venv` existed, so the dev PC ran SQLAlchemy 2.0.44, FastAPI
@@ -86,8 +86,8 @@ is todos 52 to 58 in "Next todos".
   that takes a bearer token now reads it through `decode_access_token`. The Socket.IO `connect`
   handler believed whatever `user_id` the client sent; it now needs a valid access token when
   authentication is on. Nothing is emitted on that channel (todo 56), so no data was exposed.
-- **#386: one live row per attendance period and per daily rating, enforced by the
-  database.** Nothing stopped a second row for a slot, and the absence limits and the category
+- **#386 (`4dedd346a`): one live row per attendance period and per daily rating, enforced by
+  the database.** Nothing stopped a second row for a slot, and the absence limits and the category
   averages count rows. Counted on the shared database: 971 attendance rows with no repeat, 208
   ratings of which three were stored three times each (2026-09-29, identical scores). Migration
   `a7d4e9c2b5f8` (additive) soft-deletes surplus rows, never removes them, then adds two partial
@@ -97,9 +97,10 @@ is todos 52 to 58 in "Next todos".
   on PostgreSQL 16 in a throwaway container, including two sheets saved at the same moment from
   two connections. **The shared database gets the migration the first time a build with it
   starts against it: six rating copies are soft-deleted, nothing else changes.** `grades` was
-  not touched: one pair of rows there has the same student, course and assignment name, for the
-  owner to look at.
-- **#387: a running server logged nothing.** `migrations/env.py` applied alembic.ini's logging
+  not touched. One pair of rows there has the same student, course and assignment name (ids 141
+  and 146); the owner looked at it the same day: **it is intended** (the same assignment graded
+  in two categories, two weeks apart), so nothing is removed and nothing is to be done.
+- **#387 (`992c185e2`): a running server logged nothing.** `migrations/env.py` applied alembic.ini's logging
   section whenever the application ran its own migrations, which is every start: 185 of 203
   loggers disabled, the application's log file handler removed, and `logs/app.log` ended at
   `[run_migrations] ENTER`. No error, traceback or access-log line of a running server was
@@ -107,6 +108,9 @@ is todos 52 to 58 in "Next todos".
   line, and the runners no longer leave their `migrations.log` handler on the root logger. On a
   real start, 102 lines now follow the migrations in `app.log`. **Logs come back with this:
   two lines per request, tracebacks of refused logins, and lines that name accounts by e-mail.**
+- **#388 (`8809ee07e`): housekeeping.** This section and todos 52 to 57; the second copy of the
+  dependency pins removed from `pyproject.toml` (the two requirements files are the one list);
+  `CLAUDE.md` without a hard-coded version.
 
 Not released. Nothing in these four needs a new Android build; #386 has a migration, so the
 order for an update is the usual one (any build that has it applies it at its first start).
@@ -776,7 +780,10 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     - *Soft-deleted rows in the shared database:* 55 students (deleted 2026-09-04 to 09-17, the
       test-data cleanups), 28 courses, 44 enrollments, 14 grades. The "81 students" in todo 50
       counts them; 26 are live.
-    - *`grades`:* one pair of rows with the same student, course and assignment name (#386).
+    - ~~*`grades`:* one pair of rows with the same student, course and assignment name
+      (#386).~~ **Closed 2026-11-15 by the owner: intended.** The same assignment is graded in
+      two categories (ids 141 and 146); nothing is removed, and grades get no uniqueness rule
+      by assignment name.
     - *A dead tool:* `scripts/utils/validators/import_checker.py` scans `<root>/backend`, which
       has not existed since the June flatten; nothing runs it or its test. Delete (owner's OK).
     - *`migrations.log`* is written to `src/logs/`, not `logs/`: the runner takes `src` for the
