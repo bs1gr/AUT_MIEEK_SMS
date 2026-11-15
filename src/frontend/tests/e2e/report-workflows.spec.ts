@@ -31,59 +31,47 @@ test.describe('Custom Reports Workflows', () => {
     const adminEmail = process.env.E2E_EMAIL || 'admin@example.com';
     const adminPassword = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
 
-    let authenticated = false;
-
+    // A setup that does not work fails the test. It used to skip it, and a skipped test reads
+    // as "nothing to see here": a broken login or a missing permission would have gone unseen.
     try {
       await loginViaAPI(page, adminEmail, adminPassword);
-      authenticated = true;
     } catch {
+      // No seeded admin here (a local database, say): a freshly registered teacher instead.
+      // Whatever goes wrong from here on is thrown, and fails the test.
       const user = generateTeacherUser();
-      try {
-        const registered = await registerUser(page, user);
-        const registeredUser = (registered && (registered.data || registered)) as { id?: number };
-        const userId = registeredUser?.id;
+      const registered = await registerUser(page, user);
+      const registeredUser = (registered && (registered.data || registered)) as { id?: number };
+      expect(typeof registeredUser?.id, 'E2E setup: registration returned no user id').toBe('number');
 
-        if (typeof userId !== 'number') {
-          test.skip(true, 'E2E setup failed: registration did not return a user id');
-        }
+      const ensureReportsViewPermission = await page.request.post(`${apiBase}/api/v1/permissions/`, {
+        data: {
+          key: 'reports:view',
+          resource: 'reports',
+          action: 'view',
+          description: 'View reports',
+        },
+      });
 
-        const ensureReportsViewPermission = await page.request.post(`${apiBase}/api/v1/permissions/`, {
-          data: {
-            key: 'reports:view',
-            resource: 'reports',
-            action: 'view',
-            description: 'View reports',
-          },
-        });
-
-        // 201: created, 400/409: already exists/validation duplicate in some environments.
-        if (![200, 201, 400, 409].includes(ensureReportsViewPermission.status())) {
-          console.warn(
-            `[E2E reports] Could not ensure reports:view permission (${ensureReportsViewPermission.status()})`
-          );
-        }
-
-        const grantReportView = await page.request.post(`${apiBase}/api/v1/permissions/roles/grant`, {
-          data: {
-            role_name: 'teacher',
-            permission_key: 'reports:view',
-          },
-        });
-        if (!grantReportView.ok()) {
-          // Some environments enforce stricter auth/CSRF on permission management endpoints.
-          // Continue with role defaults and let test-level checks decide whether to skip.
-          console.warn(`[E2E reports] Could not grant reports:view (${grantReportView.status()})`);
-        }
-
-        await loginViaAPI(page, user.email, user.password);
-        authenticated = true;
-      } catch {
-        test.skip(true, 'E2E setup failed: could not authenticate admin or fallback user');
+      // 201: created, 400/409: already exists/validation duplicate in some environments.
+      if (![200, 201, 400, 409].includes(ensureReportsViewPermission.status())) {
+        console.warn(
+          `[E2E reports] Could not ensure reports:view permission (${ensureReportsViewPermission.status()})`
+        );
       }
-    }
 
-    if (!authenticated) {
-      test.skip(true, 'E2E setup failed: authentication unavailable');
+      const grantReportView = await page.request.post(`${apiBase}/api/v1/permissions/roles/grant`, {
+        data: {
+          role_name: 'teacher',
+          permission_key: 'reports:view',
+        },
+      });
+      if (!grantReportView.ok()) {
+        // Some environments enforce stricter auth/CSRF on permission management endpoints.
+        // Continue with the role's defaults; a teacher who cannot see reports fails the test.
+        console.warn(`[E2E reports] Could not grant reports:view (${grantReportView.status()})`);
+      }
+
+      await loginViaAPI(page, user.email, user.password);
     }
 
     const importResponse = await page.request.post(`${apiBase}/api/v1/custom-reports/templates/import`);
@@ -121,22 +109,15 @@ test.describe('Custom Reports Workflows', () => {
 
     await page.locator('[data-testid="report-save-btn"]').click();
 
-    const saveResponse = await saveResponsePromise.catch(() => null);
-    if (!saveResponse) {
-      test.skip(true, 'Create report request did not complete in time');
-    }
+    // No answer within the timeout rejects here and fails the test; so does an answer that
+    // is not a success. Both used to be skips.
+    const saveResponse = await saveResponsePromise;
+    expect(saveResponse.ok(), `Create report answered HTTP ${saveResponse.status()}`).toBeTruthy();
 
-    if (saveResponse && !saveResponse.ok()) {
-      test.skip(true, `Create report unavailable (HTTP ${saveResponse.status()})`);
-    }
-
-    let createdReportId: number | null = null;
-    if (saveResponse) {
-      const savePayload = (await saveResponse.json().catch(() => null)) as
-        | { id?: number; data?: { id?: number } }
-        | null;
-      createdReportId = savePayload?.id ?? savePayload?.data?.id ?? null;
-    }
+    const savePayload = (await saveResponse.json().catch(() => null)) as
+      | { id?: number; data?: { id?: number } }
+      | null;
+    const createdReportId: number | null = savePayload?.id ?? savePayload?.data?.id ?? null;
 
     await expect(page).toHaveURL(/\/operations\?tab=reports/, { timeout: 15000 });
 
@@ -164,9 +145,10 @@ test.describe('Custom Reports Workflows', () => {
       return;
     }
 
-    if (!createdReportId) {
-      test.skip(true, 'Created report id unavailable and list row not visible yet');
-    }
+    expect(
+      createdReportId,
+      'the new report is not in the list, and the create response carried no id to look it up by'
+    ).not.toBeNull();
 
     const apiBase = resolveApiBase();
     const verifyByIdResponse = await page.request.get(`${apiBase}/api/v1/custom-reports/${createdReportId}`);
@@ -182,38 +164,25 @@ test.describe('Custom Reports Workflows', () => {
     await page.goto('/#/operations/reports/templates');
     await expect(page).toHaveURL(/\/operations\/reports\/templates/);
 
-    const uiReady = await page
-      .waitForFunction(
-        () =>
-          Boolean(document.querySelector('[data-testid^="template-card-"]')) ||
-          Boolean(document.querySelector('[data-testid="restore-default-templates-btn"]')),
-        { timeout: 15000 }
-      )
-      .then(() => true)
-      .catch(() => false);
-
-    if (!uiReady) {
-      test.skip(true, 'Template UI controls did not render in time');
-    }
+    // Each step below used to skip the test when it did not happen. A templates page that
+    // renders nothing, or defaults that cannot be restored, is a failure.
+    await page.waitForFunction(
+      () =>
+        Boolean(document.querySelector('[data-testid^="template-card-"]')) ||
+        Boolean(document.querySelector('[data-testid="restore-default-templates-btn"]')),
+      { timeout: 15000 }
+    );
 
     const templateCards = page.locator('[data-testid^="template-card-"]');
 
     if ((await templateCards.count()) === 0) {
       const restoreButton = page.locator('[data-testid="restore-default-templates-btn"]');
-      if ((await restoreButton.count()) === 0) {
-        test.skip(true, 'No templates available and restore control not rendered');
-      }
+      await expect(restoreButton, 'no templates, and no control to restore the defaults').toBeVisible();
 
       await restoreButton.click();
-      // waitFor retries; isVisible({ timeout }) would check once and ignore the timeout.
-      const hasTemplateAfterRestore = await templateCards
-        .first()
-        .waitFor({ state: 'visible', timeout: 15000 })
-        .then(() => true)
-        .catch(() => false);
-      if (!hasTemplateAfterRestore) {
-        test.skip(true, 'No templates available for this user after restore');
-      }
+      await expect(templateCards.first(), 'no templates after restoring the defaults').toBeVisible({
+        timeout: 15000,
+      });
     }
 
     const firstUseButton = page.locator('[data-testid^="template-use-"]').first();

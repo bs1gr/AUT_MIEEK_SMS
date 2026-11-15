@@ -134,13 +134,12 @@ test.describe('Students Management', () => {
   });
 
   test('should display students list', async ({ page }) => {
-    await page.waitForFunction(() => {
-      const emptyMsg = Array.from(document.querySelectorAll('p')).some(p => /No students found|Δεν βρέθηκαν/i.test(p.textContent || ''));
-      const hasCards = document.querySelector('ul li') !== null || document.querySelector('li.border') !== null;
-      return emptyMsg || hasCards;
-    }, { timeout: 10000 });
-    const items = await page.locator('li.border').count();
-    expect(items).toBeGreaterThanOrEqual(0);
+    // The E2E seed creates four students, so an empty list is a failure. This test used to
+    // accept "no students found" and then assert a count of zero or more, which cannot fail.
+    await expect(page.locator('li.border').first(), 'no student card appeared (the E2E seed creates four students)').toBeVisible({
+      timeout: 15000,
+    });
+    expect(await page.locator('li.border').count()).toBeGreaterThan(0);
   });
 
   test('should search students', async ({ page }) => {
@@ -156,13 +155,13 @@ test.describe('Students Management', () => {
   });
 
   test('should open student detail', async ({ page }) => {
-    const cards = page.locator('li.border');
-    const count = await cards.count();
-    if (count === 0) {
-      test.skip(true, 'No students present in CI seed; skipping detail open');
-      return;
-    }
-    const firstCard = cards.first();
+    // The E2E seed creates four students. Their cards arrive with the list request, after
+    // the page has loaded; this test counted them straight away, saw none, and skipped itself
+    // as "no students in the CI seed". Wait for a card, and fail when none comes.
+    const firstCard = page.locator('li.border').first();
+    await expect(firstCard, 'no student card appeared (the E2E seed creates four students)').toBeVisible({
+      timeout: 15000,
+    });
     const viewBtn = firstCard.locator('button').filter({ hasText: /View Profile|Full Profile|Προβολή/i }).first();
     await expect(viewBtn).toBeVisible({ timeout: 10000 });
     await viewBtn.click();

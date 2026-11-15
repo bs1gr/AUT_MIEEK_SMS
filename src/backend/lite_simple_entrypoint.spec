@@ -122,6 +122,7 @@ a = Analysis(
         'backend.services.session_data_service',
         'backend.services.backup_service_encrypted',
         'backend.services.release_announcement',
+        'backend.services.refresh_token_cleanup',
         # Control router and all its sub-modules
         'backend.routers.routers_control',
         'backend.routers.control',

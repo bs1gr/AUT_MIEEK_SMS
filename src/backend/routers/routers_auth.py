@@ -194,6 +194,7 @@ def _enforce_throttle_guards(keys: list[Optional[str]], request: Request) -> Non
             continue
         lockout_until = login_throttle.get_lockout_until(key)
         if lockout_until:
+            logger.warning("Login refused: too many failed attempts (login throttle)")
             raise _build_lockout_exception(request, lockout_until)
 
 
@@ -239,6 +240,7 @@ def _enforce_user_lockout(user: Any, request: Request, db: Session) -> None:
 
     now = datetime.now(timezone.utc)
     if lockout_until > now:
+        logger.warning("Login refused: account locked after too many failed attempts")
         raise _build_lockout_exception(request, lockout_until)
 
     # Lockout expired – clear state for future attempts
@@ -804,8 +806,12 @@ async def login(
         issue_csrf_cookie(response, include_header=True)
         # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
         return Token(access_token=access_token)
-    except HTTPException:
-        logger.exception("HTTPException during login")
+    except HTTPException as exc:
+        # A refused login (wrong password, lockout, inactive account) is an answer, not an
+        # error: each refusal writes its own line where it is decided. A traceback for every
+        # mistyped password only buried the real errors, so tracebacks are for 5xx.
+        if exc.status_code >= 500:
+            logger.exception("Login failed with a server error")
         raise
     except OperationalError:
         # Let this propagate to error_handlers.py's dedicated OperationalError handler

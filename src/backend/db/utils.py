@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from typing import Any, Dict, Optional, TypeVar
 
 from fastapi import HTTPException, Request
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Query, Session
 
 from backend.errors import ErrorCode, http_error
@@ -39,11 +39,31 @@ def transaction(db: Session, auto_commit: bool = True):
 
     Raises:
         SQLAlchemyError: On database errors (after rollback)
+
+    What gets logged, and why not everything at ERROR:
+        - A refusal the code decided itself (an ``HTTPException`` below 500: 404, 409, ...)
+          is an answer, not an error. The request log already records its status.
+        - A broken constraint (``IntegrityError``) is expected wherever a caller retries or
+          answers 409, so it is one INFO line naming the constraint. The statement and its
+          parameters are left out: they are long and carry personal data. A caller that does
+          not handle it lets it reach the unhandled-error handler, which logs the traceback.
+        - Anything else is an error and is logged as one.
     """
     try:
         yield db
         if auto_commit:
             db.commit()
+    except HTTPException as e:
+        db.rollback()
+        if e.status_code >= 500:
+            logger.error(f"Transaction rolled back due to unexpected error: {e}")
+        else:
+            logger.debug("Transaction rolled back: request refused with HTTP %s", e.status_code)
+        raise
+    except IntegrityError as e:
+        db.rollback()
+        logger.info("Transaction rolled back: %s", _constraint_summary(e))
+        raise
     except SQLAlchemyError as e:
         db.rollback()
         logger.error(f"Transaction rolled back due to error: {e}")
@@ -52,6 +72,19 @@ def transaction(db: Session, auto_commit: bool = True):
         db.rollback()
         logger.error(f"Transaction rolled back due to unexpected error: {e}")
         raise
+
+
+def _constraint_summary(error: IntegrityError) -> str:
+    """The database's own first line about a broken constraint, without row values.
+
+    SQLite says ``UNIQUE constraint failed: attendances.student_id, ...``. PostgreSQL says
+    ``duplicate key value violates unique constraint "uq_attendance_live_slot"`` and puts the
+    offending values on a ``DETAIL:`` line after it, which is dropped here.
+    """
+    original = getattr(error, "orig", None)
+    lines = str(original if original is not None else "").strip().splitlines()
+    first_line = lines[0].strip() if lines else ""
+    return f"integrity conflict ({first_line})" if first_line else "integrity conflict"
 
 
 # ============================================================================
