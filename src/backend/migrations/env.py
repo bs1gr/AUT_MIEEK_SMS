@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from logging.config import fileConfig
@@ -21,10 +22,28 @@ from backend.models import Base
 # access to the values within the .ini file in use.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+
+def _logging_is_ours_to_configure() -> bool:
+    """Whether alembic.ini's logging section should be applied.
+
+    Yes for the `alembic` command line, which starts with no logging at all. No when a program
+    that has already set up logging runs the migrations itself, as the server does at every
+    start: fileConfig() replaces the root logger's handlers (the application's log file among
+    them) and, by default, disables every logger that already exists. The server then logged
+    nothing for the rest of its life: no errors, no tracebacks, no access log.
+
+    A caller can decide for itself with ``config.attributes["configure_logger"]``.
+    """
+    explicit = config.attributes.get("configure_logger")
+    if explicit is not None:
+        return bool(explicit)
+    return not logging.getLogger().handlers
+
+
+# Interpret the config file for Python logging (the command line only, see above). Loggers
+# that exist are never disabled.
+if config.config_file_name is not None and _logging_is_ours_to_configure():
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
