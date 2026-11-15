@@ -64,7 +64,7 @@ it over anything enumerated here.
 - **[README.md](../README.md)** - Project overview, quick start
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history (source of truth for "what shipped when")
 - **[CLAUDE.md](../CLAUDE.md)** - Agent/AI-assistant working agreement for this repo (architecture, critical rules, release workflow)
-- **[plans/UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Active task list and release state
+- **[plans/UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Active task list and release state (its closed entries and older records are in `plans/UNIFIED_WORK_PLAN_ARCHIVE_2026_H1.md` and `plans/UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`)
 - **[development/ARCHITECTURE.md](development/ARCHITECTURE.md)** - System architecture overview
 - **[ACADEMIC_PRESENTATION.md](ACADEMIC_PRESENTATION.md)** / **[ACADEMIC_PRESENTATION_EL.md](ACADEMIC_PRESENTATION_EL.md)** - Full technical monograph (EN/EL) for an academic/CS audience: architecture, grading engine, predictive analytics, RBAC, CI/CD, test evidence
 - **[operations/INSTALLATION_GUIDE.md](operations/INSTALLATION_GUIDE.md)** - Step-by-step installation
