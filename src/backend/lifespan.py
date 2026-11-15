@@ -2,11 +2,11 @@ import logging
 import os
 import time as _time
 from contextlib import asynccontextmanager
-from importlib.util import find_spec
 
 from backend.config import settings
 from backend.db import SessionLocal, engine
 from backend.db.query_profiler import profiler
+from backend.environment import startup_tasks_enabled
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.routers.routers_rbac import ensure_defaults_startup
 from backend.scripts.migrate.runner import run_migrations
@@ -26,11 +26,10 @@ def get_lifespan():
         profiler.register(engine)
         logging.getLogger(__name__).info("✅ Query profiler registered")
 
-        is_pytest_run = find_spec("pytest") is not None
-        disable_startup = os.environ.get("DISABLE_STARTUP_TASKS", "0").strip().lower() in {"1", "true", "yes"}
-
         migrations_ok = True
-        if not (disable_startup or is_pytest_run):
+        # Skipped in a test run and with DISABLE_STARTUP_TASKS; not merely because pytest is
+        # installed next to the server (see backend.environment.running_under_pytest).
+        if startup_tasks_enabled():
             migrations_ok = run_migrations(False)
 
             if migrations_ok:
