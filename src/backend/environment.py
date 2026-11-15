@@ -135,6 +135,27 @@ def _is_pytest() -> bool:
     return "pytest" in argv
 
 
+def running_under_pytest() -> bool:
+    """True while pytest is running in this process, or started it.
+
+    Deliberately not "pytest is installed". A development virtualenv usually has pytest, and a
+    server started from it is a real server: it must migrate its database and bootstrap its
+    admin account like any other. (The startup tasks used to be skipped whenever pytest could
+    be imported, so such a server silently did neither.)
+    """
+    if "pytest" in sys.modules:
+        return True
+    return any(os.environ.get(flag) for flag in _PYTEST_ENV_FLAGS)
+
+
+def startup_tasks_enabled() -> bool:
+    """Whether this process runs the startup tasks: migrations, RBAC seeding, admin bootstrap.
+
+    Off in a test run and when DISABLE_STARTUP_TASKS is set; on for every real server.
+    """
+    return not (_truthy(os.environ.get("DISABLE_STARTUP_TASKS")) or running_under_pytest())
+
+
 def _normalize_env_value(raw: str) -> Optional[RuntimeEnvironment]:
     value = raw.strip().lower()
     if not value:

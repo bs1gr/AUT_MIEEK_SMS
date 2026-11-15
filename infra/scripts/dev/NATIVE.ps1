@@ -39,6 +39,11 @@
     With -Start / -Backend: return as soon as the processes are launched. By default the script
     stays until the services answer and shows the startup stage they are in (STARTUP_STATUS.ps1).
 
+.PARAMETER NoDepsSync
+    With -Start / -Backend: do not update the backend's Python packages when requirements.txt
+    has changed since they were installed (for example to start without a network connection).
+    By default the packages are brought in step with requirements.txt before the backend starts.
+
 .PARAMETER DevEase
     Optional: set DEV_EASE for services started by this script (relaxes local auth/CSRF/secret checks). Use only for development.
     (Deprecated) Historically NATIVE allowed starting services with a DEV_EASE runtime flag.
@@ -84,7 +89,8 @@ param(
     [switch]$Force,
     [switch]$Help,
     [switch]$NoReload,  # Optional: start backend without --reload (stability workaround)
-    [switch]$NoWait     # Optional: return right after launching, without the startup status display
+    [switch]$NoWait,    # Optional: return right after launching, without the startup status display
+    [switch]$NoDepsSync # Optional: start with the installed Python packages even if requirements.txt changed
 
 )
 
@@ -924,6 +930,7 @@ COMMANDS:
         -DryRun/WhatIf  When used with -DeepClean, list items that would be removed without deleting
     -Force          Skip confirmation prompts and proceed with deletions
   -NoWait         With -Start/-Backend: do not stay to show the startup stages until ready
+  -NoDepsSync     With -Start/-Backend: do not update Python packages when requirements.txt changed
   -Help           Show this help message
 
 EXAMPLES:
@@ -1050,6 +1057,145 @@ function Test-VenvHealth {
     }
 
     return $true
+}
+
+function Test-BackendDependenciesCurrent {
+    <#
+    .SYNOPSIS
+    Whether the venv's packages were installed from the requirements.txt that is on disk now
+    .DESCRIPTION
+    A successful install records the SHA-256 of requirements.txt inside the venv
+    (Set-BackendDependenciesStamp). A missing record (a venv made before this check existed) or
+    a different hash means the packages may be older than the pins. requirements.txt changes
+    with every dependency update, and -Start used to keep running whatever -Setup had installed
+    months earlier: a backend that neither CI nor a release had ever tested.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$VenvPath,
+        [Parameter(Mandatory)][string]$RequirementsPath
+    )
+
+    if (-not (Test-Path -LiteralPath $RequirementsPath)) {
+        return $true  # nothing to install from
+    }
+
+    $stampPath = Join-Path $VenvPath ".sms-requirements.sha256"
+    if (-not (Test-Path -LiteralPath $stampPath)) {
+        return $false
+    }
+
+    $recorded = [string](Get-Content -LiteralPath $stampPath -Raw -ErrorAction SilentlyContinue)
+    if ([string]::IsNullOrWhiteSpace($recorded)) {
+        return $false
+    }
+
+    $current = (Get-FileHash -LiteralPath $RequirementsPath -Algorithm SHA256).Hash
+    return ($recorded.Trim() -eq $current)
+}
+
+function Set-BackendDependenciesStamp {
+    <#
+    .SYNOPSIS
+    Record, inside the venv, which requirements.txt its packages were installed from
+    #>
+    param(
+        [Parameter(Mandatory)][string]$VenvPath,
+        [Parameter(Mandatory)][string]$RequirementsPath
+    )
+
+    $hash = (Get-FileHash -LiteralPath $RequirementsPath -Algorithm SHA256).Hash
+    Set-Content -LiteralPath (Join-Path $VenvPath ".sms-requirements.sha256") -Value $hash -Encoding ascii
+}
+
+function Sync-BackendDependencies {
+    <#
+    .SYNOPSIS
+    Install requirements.txt into the venv when it changed since the last install
+    .OUTPUTS
+    'current' (nothing to do), 'updated', or 'failed' (pip failed; the installed packages stay
+    and nothing is recorded, so the next start tries again).
+    #>
+    param(
+        [Parameter(Mandatory)][string]$VenvPath,
+        [Parameter(Mandatory)][string]$RequirementsPath,
+        # Runs pip and returns its exit code. A parameter so that the decision made here can be
+        # tested without a network.
+        [scriptblock]$Installer = {
+            param($PythonExe, $Requirements)
+            & $PythonExe -m pip install -r $Requirements --quiet --disable-pip-version-check | Out-Host
+            return $LASTEXITCODE
+        }
+    )
+
+    if (Test-BackendDependenciesCurrent -VenvPath $VenvPath -RequirementsPath $RequirementsPath) {
+        return 'current'
+    }
+
+    Write-Info "requirements.txt changed since the Python packages were installed; updating them (this can take a few minutes)..."
+    $pythonExe = Join-Path $VenvPath "Scripts\python.exe"
+    $exitCode = 1
+    try {
+        # Only the last value is the exit code, whatever else the installer wrote to the pipeline.
+        $exitCode = [int](@(& $Installer $pythonExe $RequirementsPath)[-1])
+    }
+    catch {
+        Write-Warning "Updating the Python packages stopped with an error: $_"
+        $exitCode = 1
+    }
+
+    if ($exitCode -ne 0) {
+        return 'failed'
+    }
+
+    Set-BackendDependenciesStamp -VenvPath $VenvPath -RequirementsPath $RequirementsPath
+    Write-Success "Python packages match requirements.txt"
+    return 'updated'
+}
+
+function Get-BackendUvicornArguments {
+    <#
+    .SYNOPSIS
+    The arguments that follow "python -m uvicorn" for the native backend
+    .DESCRIPTION
+    With hot reload, uvicorn watches its working directory, which here is the project root, so
+    a change to any .py file under it restarted the backend: pip updating a package in a
+    virtual environment, a script under scripts/ being edited, a test run writing a file. Every
+    restart runs the startup migrations again. The watch is limited to the backend's own source
+    and leaves out its virtual environment.
+
+    The module stays first: Stop-BackendUvicornBySignature recognises the process by
+    "uvicorn backend.main:app". Start-Process joins the arguments with spaces and does not
+    quote them, so a path with a space in it is quoted here.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Module,
+        [Parameter(Mandatory)][string]$BackendHost,
+        [Parameter(Mandatory)][int]$Port,
+        [Parameter(Mandatory)][string]$BackendDir,
+        [switch]$NoReload
+    )
+
+    $quote = {
+        param([string]$Value)
+        if ($Value -match '\s') { return '"' + $Value + '"' }
+        return $Value
+    }
+
+    $arguments = @($Module)
+    if (-not $NoReload) {
+        $arguments += @("--reload", "--reload-dir", (& $quote $BackendDir))
+
+        # Only when the directory exists, and as an absolute path. uvicorn takes a value that is
+        # not a directory for a pattern relative to its working directory and stops with
+        # "Non-relative patterns are unsupported"; a relative directory is accepted and then
+        # never matches the absolute paths it is compared with.
+        $venvDir = Join-Path $BackendDir ".venv"
+        if (Test-Path -LiteralPath $venvDir -PathType Container) {
+            $arguments += @("--reload-exclude", (& $quote $venvDir))
+        }
+    }
+    $arguments += @("--host", $BackendHost, "--port", "$Port")
+    return $arguments
 }
 
 function Remove-VenvForced {
@@ -1205,6 +1351,9 @@ function Setup-Environment {
             return 1
         }
 
+        # -Start compares this record with requirements.txt and updates the packages when it differs.
+        Set-BackendDependenciesStamp -VenvPath $venvPath -RequirementsPath (Join-Path $BACKEND_DIR "requirements.txt")
+
         Write-Success "Python dependencies installed"
 
         # Check .env
@@ -1329,6 +1478,18 @@ function Start-Backend {
         return 1
     }
 
+    # Bring the packages in step with requirements.txt before the backend starts. Only here,
+    # after the checks above: a backend that is already running is never updated under its feet.
+    if ($NoDepsSync) {
+        Write-Info "Skipping the Python package check (NoDepsSync switch enabled)"
+    } else {
+        $dependencyState = Sync-BackendDependencies -VenvPath $venvPath -RequirementsPath (Join-Path $BACKEND_DIR "requirements.txt")
+        if ($dependencyState -eq 'failed') {
+            Write-Warning "Could not update the Python packages (no network?). Starting with the installed versions, which may be older than requirements.txt."
+            Write-Info "Run .\NATIVE.ps1 -Setup once the cause is fixed; the next start also tries again."
+        }
+    }
+
     if ($NoReload) {
         Write-Info "Starting uvicorn WITHOUT hot-reload (NoReload switch enabled)..."
     } else {
@@ -1358,10 +1519,7 @@ function Start-Backend {
                 if (-not [string]::IsNullOrWhiteSpace($hostVal)) { $backendHost = $hostVal }
             }
         }
-        $args = @($module, "--host", $backendHost, "--port", $targetBackendPort)
-        if (-not $NoReload) {
-            $args = @($module, "--reload", "--host", $backendHost, "--port", $targetBackendPort)
-        }
+        $serverArguments = Get-BackendUvicornArguments -Module $module -BackendHost $backendHost -Port $targetBackendPort -BackendDir $BACKEND_DIR -NoReload:$NoReload
 
         # Set PYTHONPATH and SMS environment variables for the backend process
         $env:PYTHONPATH = (Join-Path $PROJECT_ROOT "src")
@@ -1417,7 +1575,7 @@ function Start-Backend {
         # Use python -m uvicorn directly instead of venv wrapper script to ensure proper module path resolution
         # This allows relative imports like "from .app_factory import create_app" in main.py to work correctly
         $pythonExe = Join-Path $venvPath "Scripts\python.exe"
-        $uvicornArgs = @("-u", "-m", "uvicorn") + $args
+        $uvicornArgs = @("-u", "-m", "uvicorn") + $serverArguments
         $processInfo = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -WorkingDirectory $PROJECT_ROOT -WindowStyle Normal -PassThru
 
         # Save PID
