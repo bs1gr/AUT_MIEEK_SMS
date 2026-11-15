@@ -58,7 +58,18 @@ async def get_current_user(
     token: str | None = None,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Retrieve the current authenticated user (moved from routers_auth to break circular import)."""
+    """Retrieve the current authenticated user (moved from routers_auth to break circular import).
+
+    The work is in ``resolve_current_user``, which is an ordinary blocking function: it reads
+    the account from the database. Awaiting this coroutine therefore blocks the event loop for
+    that read; callers that can should run ``resolve_current_user`` in a worker thread instead
+    (the permission decorators in ``backend.rbac`` do).
+    """
+    return resolve_current_user(request, token, db)
+
+
+def resolve_current_user(request: Request, token: str | None, db: Session) -> Any:
+    """The account behind this request, or an HTTP 401/403. Blocking: one database read."""
     # Respect AUTH feature flags
     try:
         path = str(getattr(request.url, "path", ""))

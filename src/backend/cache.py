@@ -19,6 +19,7 @@ import hashlib
 import json
 import logging
 import os
+import threading
 from datetime import timedelta
 from functools import wraps
 from time import time
@@ -50,7 +51,10 @@ class CacheConfig:
 class TimedLRUCache:
     """
     Time-based LRU cache that expires entries after a specified duration.
-    Thread-safe for simple use cases.
+
+    Safe to share between threads: every operation holds the cache's lock. Endpoints run in
+    worker threads beside the event loop, and without the lock a reader could meet a key
+    another thread had just evicted, or an eviction a dictionary that changed under it.
     """
 
     def __init__(self, maxsize: int = 128, ttl_seconds: int = 300) -> None:
@@ -65,6 +69,7 @@ class TimedLRUCache:
         self.ttl_seconds = ttl_seconds
         self._cache: dict[str, tuple[Any, float]] = {}
         self._access_times: dict[str, float] = {}
+        self._lock = threading.RLock()
 
     def _make_key(self, *args: Any, **kwargs: Any) -> str:
         """Create a unique cache key from function arguments."""
@@ -74,46 +79,49 @@ class TimedLRUCache:
 
     def get(self, key: str) -> Optional[Any]:
         """Retrieve cached value if it exists and hasn't expired."""
-        if key not in self._cache:
-            return None
+        with self._lock:
+            if key not in self._cache:
+                return None
 
-        value, timestamp = self._cache[key]
-        if time() - timestamp > self.ttl_seconds:
-            # Expired, remove it
-            del self._cache[key]
-            if key in self._access_times:
-                del self._access_times[key]
-            return None
+            value, timestamp = self._cache[key]
+            if time() - timestamp > self.ttl_seconds:
+                # Expired, remove it
+                del self._cache[key]
+                self._access_times.pop(key, None)
+                return None
 
-        # Update access time for LRU
-        self._access_times[key] = time()
-        return value
+            # Update access time for LRU
+            self._access_times[key] = time()
+            return value
 
     def set(self, key: str, value: Any) -> None:
         """Store value in cache with current timestamp."""
-        # Evict oldest if at capacity
-        if len(self._cache) >= self.maxsize and key not in self._cache:
-            # Find least recently accessed
-            if self._access_times:
-                oldest_key = min(self._access_times, key=self._access_times.get)  # type: ignore
-                del self._cache[oldest_key]
-                del self._access_times[oldest_key]
+        with self._lock:
+            # Evict oldest if at capacity
+            if len(self._cache) >= self.maxsize and key not in self._cache:
+                # Find least recently accessed
+                if self._access_times:
+                    oldest_key = min(self._access_times, key=self._access_times.get)  # type: ignore
+                    self._cache.pop(oldest_key, None)
+                    self._access_times.pop(oldest_key, None)
 
-        self._cache[key] = (value, time())
-        self._access_times[key] = time()
+            self._cache[key] = (value, time())
+            self._access_times[key] = time()
 
     def clear(self) -> None:
         """Clear all cached entries."""
-        self._cache.clear()
-        self._access_times.clear()
+        with self._lock:
+            self._cache.clear()
+            self._access_times.clear()
 
     def stats(self) -> dict[str, Any]:
         """Return cache statistics."""
-        return {
-            "size": len(self._cache),
-            "maxsize": self.maxsize,
-            "ttl_seconds": self.ttl_seconds,
-        }
+        with self._lock:
+            return {
+                "size": len(self._cache),
+                "maxsize": self.maxsize,
+                "ttl_seconds": self.ttl_seconds,
+            }
 
 
 # Global cache instance (can be replaced with Redis in production)

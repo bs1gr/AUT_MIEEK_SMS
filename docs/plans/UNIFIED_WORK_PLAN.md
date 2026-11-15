@@ -153,8 +153,32 @@ removal of Socket.IO, the first stage of todo 52 and the tidying of this documen
   `DISABLE_STARTUP_TASKS` do not, which is what `ENV_VARS.md` always said the switch is for.
   Three tests; two of them fail against the old lifespan. Every release until now ran its
   gates in the main tree this way; nothing written by it was found.
+- **#393: the permission layer no longer holds the event loop (todo 52, first stage).** The
+  decorators in `rbac.py` wrap an endpoint in a coroutine and did everything inline: the user
+  lookup, the permission checks and, for the 63 plain `def` endpoints behind them, the endpoint
+  itself. Each of those now runs in a worker thread (`run_in_threadpool`); the 160 `async def`
+  endpoints are awaited as before, so their own database calls still hold the loop (stage 2).
+  The answers are unchanged. Measured with a database made 65 ms slow per statement, the cloud
+  host's round trip, the same code otherwise:
 
-Not released. Neither needs a new Android build for its own sake, but #391 changes the
+  | | before | after |
+  |---|---|---|
+  | 20 requests at once to a `def` endpoint | 10.8 s, each one about that long | 0.65 s |
+  | `/health/live` meanwhile (worst) | 10.7 s | 0.05 s |
+  | 20 requests at once to an `async def` endpoint | 8.1 s | 1.8 s |
+  | a page's 8 GETs at once | 2.9 s | 0.8 s |
+
+  Because endpoints now really overlap, the two in-memory caches (`cache.TimedLRUCache`,
+  `cache_service.InMemoryCache`) got locks; without them four stress tests fail every time.
+  Soaked with 20 workers of mixed reads and writes: SQLite 40 s (1,870 requests) and
+  PostgreSQL 14 with the delay 45 s (259 requests), no request failed, no error line, no slot
+  with two rows; two real races were caught by the unique index of #386 and retried as
+  updates. What a server now does that it did not before: it uses several database
+  connections at once (21 during the soak; the pool allows 30 per process). The QNAP's own
+  `max_connections` was not looked up; with the cloud host and a PC install both busy it is
+  the number to know.
+
+Not released. None of them needs a new Android build for its own sake, but #391 changes the
 frontend bundle (the next APK no longer contains the Socket.IO client).
 
 ### In v1.18.70
@@ -873,7 +897,12 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     router by router (a script can find them); (3) measured on the VM through `/metrics`.
     #386 was the precondition: that queueing was the only thing keeping two saves of one slot
     apart inside a process. **The owner's go-ahead of 2026-11-15 covers stage (1) only**, measured
-    before and after; stages (2) and (3) wait for another. Not started when this was written.
+    before and after: **done in #393** (numbers under "On `main` since v1.18.70"). **Left, each
+    waiting for a go-ahead:** stage (2), the 160 `async def` endpoints behind the decorators
+    whose own database calls still hold the loop (20 at once still take 1.8 s instead of 0.65 s,
+    and `/health/live` waits up to 1.4 s meanwhile), plus the dependencies that are awaited
+    directly (`Depends(get_current_user)`, `/health`); stage (3), the same measurement on the
+    VM through `/metrics`.
 53. **20 of 81 E2E tests never run** (CI on `main`, `72f079ae8`: 61 passed, 20 skipped; it was
     60 and 36 of 96 on 2026-11-15 in the morning). Six suites are `describe.skip`: advanced
     search (13 tests), student resilience (2), and one test each in `student-list`,
@@ -950,6 +979,15 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
       `maintenance_scheduler.py`). Only `"daily"` is ever asked for.
     - *Installs older than v1.18.70 on the shared database:* see the note at the top of this
       document. The owner's stopped `sms-app` container is v1.18.63.
+    - *"Slow query" warnings on the cloud host.* `db/query_profiler.py` warns about every
+      statement over 100 ms; the database is 65 ms away, so the health check's own catalogue
+      query warns every 30 seconds (13 of the 15 warnings in the VM's first five minutes on
+      v1.18.70). Now that the log works, that buries real warnings. The threshold should be a
+      setting, raised in `docker-compose.cloud.yml`.
+    - *The query profiler never forgets.* It appends one record per statement to a list for the
+      life of the process (read by the diagnostics router, emptied only by its reset endpoint).
+      On a server that stays up for weeks that is a slow leak; it should keep the last few
+      thousand.
 
 
 **Priority 0 — GitHub security/CI findings (2026-10-01):** PyJWT is now `2.15.0` in both
