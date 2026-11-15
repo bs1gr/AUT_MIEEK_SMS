@@ -178,19 +178,20 @@ removal of Socket.IO, the first stage of todo 52 and the tidying of this documen
   connections at once (21 during the soak; the pool allows 30 per process). The QNAP's own
   `max_connections` was not looked up; with the cloud host and a PC install both busy it is
   the number to know.
-- **#395: the gate no longer makes a heading of a PR number, and names every Markdown file
-  its auto-fix rewrote** (todo 58, last entry; found while tidying this document). The gate
-  runs `markdownlint --fix` over every Markdown file. Rule MD018 took a wrapped line that
-  begins with `#378, …` for a heading written without its space and made it one; the rule is
-  off in `config/.markdownlint.json`. The gate's list of rewritten files compared line counts
-  with `HEAD`, which a rewrite of a line that is already part of the commit does not change;
-  an entry now carries the hash of the file's contents, a rename counts as two files, and a
-  Greek file name is read as it is (it came back quoted or garbled, and its file was never
-  looked at). Nine tests, six of which fail against the old script and configuration; seven
-  deliberate breakages of the change are each caught. Seen with the real `markdownlint` in a
-  scratch repository: old script and rule, the line becomes a heading and nothing is listed;
-  new script and old rule, the file is listed; new script and rule, the line stays as written.
-  Tooling only: nothing in the application changes.
+- **#395 (`d45e69c1d`): the gate no longer makes a heading of a PR number, and names every
+  Markdown file its auto-fix rewrote** (todo 58, last entry; found while tidying this
+  document, #394, `96b347d8b`). The gate runs `markdownlint --fix` over every Markdown file.
+  Rule MD018 took a wrapped line that begins with `#378, …` for a heading written without
+  its space and made it one; the rule is off in `config/.markdownlint.json`. The gate's list
+  of rewritten files compared line counts with `HEAD`, which a rewrite of a line that is
+  already part of the commit does not change; an entry now carries the hash of the file's
+  contents, a rename counts as two files, and a Greek file name is read as it is (it came
+  back quoted or garbled, and its file was never looked at). Nine tests, six of which fail
+  against the old script and configuration; seven deliberate breakages of the change are
+  each caught. Seen with the real `markdownlint` in a scratch repository: old script and
+  rule, the line becomes a heading and nothing is listed; new script and old rule, the file
+  is listed; new script and rule, the line stays as written. Tooling only: nothing in the
+  application changes.
 
 Not released. None of them needs a new Android build for its own sake, but #391 changes the
 frontend bundle (the next APK no longer contains the Socket.IO client).
@@ -574,6 +575,19 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
       life of the process (read by the diagnostics router, emptied only by its reset endpoint).
       On a server that stays up for weeks that is a slow leak; it should keep the last few
       thousand.
+    - *The E2E auto-start cannot start a backend, and leaves a dead process behind.* Outside
+      CI, when nothing answers at the API address, `playwright-global-setup.ts` starts
+      `python -m uvicorn backend.main:app --port <port> --reload` detached, with the frontend
+      folder as its working directory. `backend` cannot be imported from there (it lives under
+      `src`), so uvicorn's reloader waits for ever with the port bound and nothing serving,
+      and nothing stops it: the teardown only deletes the accounts a run created. Two of
+      them, from runs of `report-workflows.spec.ts` against an address nothing listens on
+      (the check for #390), sat on port 8019 for nearly five hours and kept a folder of an
+      isolated copy in use; no database was involved. It should not be repaired as it is:
+      started from the main checkout's `src`, the backend would read `backend/.env`, which on
+      the dev PC points at the shared database, and the E2E suite would create its accounts
+      there. Better to remove the auto-start and fail with a message that says how to start
+      an isolated backend (the owner's call).
     - ~~*The gate's Markdown auto-fix can turn text into a heading without saying so.* A wrapped
       line that begins with a PR number (`#378, …`) is "corrected" by `markdownlint --fix`
       (rule MD018, no space after the hash) to `# 378, …`, a level-1 heading. It happened to
