@@ -90,13 +90,12 @@ def create_daily_performance(
     performance: DailyPerformanceCreate,
     db: Session = Depends(get_db),
 ):
+    """Record a rating. A second one for the same student, course, date and category updates the first."""
     try:
         # Preserve error injection points used by tests
         import_names("models", "DailyPerformance", "Student", "Course")
-        with transaction(db):
-            created = DailyPerformanceService.create(db, performance, request)
-            db.flush()
-        return created
+        # The service commits (and retries a lost race for a new slot), so no transaction here.
+        return DailyPerformanceService.create(db, performance, request)
     except HTTPException:
         raise
     except Exception as exc:

@@ -18,6 +18,7 @@ import logging
 from typing import Optional
 
 from fastapi import Request
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, transaction
@@ -35,8 +36,6 @@ def save_attendance_sheet(
     )
     get_by_id_or_404(db, Course, sheet.course_id, request=request)
 
-    result = AttendanceSheetResult()
-
     # A student deleted since the sheet was filled in (it may have waited in a phone's offline
     # queue) must not make the whole sheet unsaveable: leave those rows out and say so.
     wanted_ids = (
@@ -50,7 +49,45 @@ def save_attendance_sheet(
             row[0]
             for row in db.query(Student.id).filter(Student.id.in_(wanted_ids), Student.deleted_at.is_(None)).all()
         }
-    result.skipped_student_ids = sorted(wanted_ids - known_ids)
+    skipped_student_ids = sorted(wanted_ids - known_ids)
+
+    # The database allows one live row per slot (uq_attendance_live_slot,
+    # uq_daily_performance_live_slot). If another save creates one of this sheet's rows between
+    # the reads below and the commit, the whole sheet is rolled back and applied again: the second
+    # pass finds those rows and updates them.
+    for attempt in (1, 2):
+        try:
+            result = _apply_sheet(db, sheet, known_ids, Attendance, DailyPerformance)
+            break
+        except IntegrityError:
+            if attempt == 2:
+                raise
+            logger.info(
+                "Attendance sheet for course %s on %s raced with another save; applying it again",
+                sheet.course_id,
+                sheet.date,
+            )
+    result.skipped_student_ids = skipped_student_ids
+
+    logger.info(
+        "Saved attendance sheet course=%s date=%s: attendance +%s ~%s, performance +%s ~%s -%s, skipped students %s",
+        sheet.course_id,
+        sheet.date,
+        result.attendance_created,
+        result.attendance_updated,
+        result.performance_created,
+        result.performance_updated,
+        result.performance_deleted,
+        len(result.skipped_student_ids),
+    )
+    return result
+
+
+def _apply_sheet(
+    db: Session, sheet: AttendanceSheetSave, known_ids: set[int], Attendance, DailyPerformance
+) -> AttendanceSheetResult:
+    """One attempt at writing the sheet, in one transaction."""
+    result = AttendanceSheetResult()
 
     with transaction(db):
         if sheet.attendance:
@@ -66,7 +103,8 @@ def save_attendance_sheet(
                 .all()
             )
             for row in rows:
-                # First row wins, as in the per-record upsert (.first()).
+                # One row per slot since uq_attendance_live_slot. Should a database still hold a
+                # repeat (its migration has not run), the first row is the one that is updated.
                 existing_attendance.setdefault((row.student_id, row.period_number or 1), row)
 
             # The last entry for a student and period wins if the request repeats one.
@@ -141,7 +179,8 @@ def save_attendance_sheet(
                     )
                     result.performance_created += 1
                     continue
-                # The page shows (and edits) the newest row when a day has duplicates.
+                # One row per slot since uq_daily_performance_live_slot. Should a database still
+                # hold a repeat, the newest is the one the page shows, so that one is updated.
                 row = matches[-1]
                 if row.score != entry.score or row.max_score != entry.max_score:
                     row.score = entry.score
@@ -152,15 +191,4 @@ def save_attendance_sheet(
 
         db.flush()
 
-    logger.info(
-        "Saved attendance sheet course=%s date=%s: attendance +%s ~%s, performance +%s ~%s -%s, skipped students %s",
-        sheet.course_id,
-        sheet.date,
-        result.attendance_created,
-        result.attendance_updated,
-        result.performance_created,
-        result.performance_updated,
-        result.performance_deleted,
-        len(result.skipped_student_ids),
-    )
     return result

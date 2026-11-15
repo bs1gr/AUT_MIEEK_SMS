@@ -241,7 +241,7 @@ def get_course_attendance(
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("courses:view")
 def get_course_absence_status(request: Request, course_id: int, db: Session = Depends(get_db)):
-    """ΜΙΕΕΚ absence-limit status (10% / 15% with approval) for every student enrolled in a course."""
+    """ΜΙΕΕΚ absence-limit status (fail above 30%, Class Participation lost above 10%) for every student enrolled in a course."""
     try:
         from backend.import_resolver import import_names
 
@@ -441,12 +441,25 @@ async def bulk_create_attendance(
 
         created = []
         errors = []
+        # Slots this request has already created. The lookup below does not see rows that are
+        # still waiting to be written, so a request that repeats a slot would otherwise store it
+        # twice (and now fail as a whole on uq_attendance_live_slot).
+        seen: set[tuple] = set()
 
         with transaction(db):
             for idx, attendance_data in enumerate(records):
                 try:
                     _student = get_by_id_or_404(db, Student, attendance_data.student_id)
                     _course = get_by_id_or_404(db, Course, attendance_data.course_id)
+
+                    slot = (
+                        attendance_data.student_id,
+                        attendance_data.course_id,
+                        attendance_data.date,
+                        attendance_data.period_number,
+                    )
+                    if slot in seen:
+                        raise ValueError("Attendance record repeated in this request")
 
                     existing = (
                         db.query(Attendance)
@@ -464,6 +477,7 @@ async def bulk_create_attendance(
 
                     db_attendance = Attendance(**attendance_data.model_dump())
                     db.add(db_attendance)
+                    seen.add(slot)
                     created.append(idx)
 
                 except HTTPException as e:
