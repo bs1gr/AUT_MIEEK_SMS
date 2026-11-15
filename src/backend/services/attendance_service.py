@@ -7,6 +7,7 @@ from datetime import date, datetime
 from typing import Optional
 
 from fastapi import Request
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
@@ -50,32 +51,36 @@ class AttendanceService:
             request=self.request,
         )
 
-        # Upsert: if a record for same student, course, date, and period exists, update it
-        existing = (
-            self.db.query(self.Attendance)
-            .filter(
-                self.Attendance.student_id == attendance.student_id,
-                self.Attendance.course_id == attendance.course_id,
-                self.Attendance.date == attendance.date,
-                self.Attendance.period_number == attendance.period_number,
-                self.Attendance.deleted_at.is_(None),
-            )
-            .first()
-        )
-
-        with transaction(self.db):
-            if existing:
-                existing.status = attendance.status
-                existing.period_number = attendance.period_number
-                existing.notes = attendance.notes
-                self.db.flush()
-                self.db.refresh(existing)
-                db_attendance = existing
-            else:
-                db_attendance = self.Attendance(**attendance.model_dump())
-                self.db.add(db_attendance)
-                self.db.flush()
-                self.db.refresh(db_attendance)
+        # Upsert: if a record for same student, course, date, and period exists, update it.
+        # The database allows one live row per slot (uq_attendance_live_slot). When another
+        # request records the same slot between the lookup and the insert, the insert is
+        # refused and the second attempt finds that row and updates it.
+        for attempt in (1, 2):
+            try:
+                with transaction(self.db):
+                    existing = self._find_live(
+                        attendance.student_id, attendance.course_id, attendance.date, attendance.period_number
+                    )
+                    if existing:
+                        existing.status = attendance.status
+                        existing.notes = attendance.notes
+                        db_attendance = existing
+                    else:
+                        db_attendance = self.Attendance(**attendance.model_dump())
+                        self.db.add(db_attendance)
+                    self.db.flush()
+                    self.db.refresh(db_attendance)
+                break
+            except IntegrityError:
+                if attempt == 2:
+                    raise
+                logger.info(
+                    "Attendance insert raced for student %s, course %s on %s period %s; retrying as an update",
+                    attendance.student_id,
+                    attendance.course_id,
+                    attendance.date,
+                    attendance.period_number,
+                )
 
         # Metrics
         try:
@@ -144,6 +149,9 @@ class AttendanceService:
         db_attendance = self.get_attendance(attendance_id)
 
         update_dict = attendance_update.model_dump(exclude_unset=True)
+        # An explicit null is "not sent": a row always belongs to a period.
+        if "period_number" in update_dict and update_dict["period_number"] is None:
+            del update_dict["period_number"]
 
         # Validate student if changed
         if "student_id" in update_dict:
@@ -183,11 +191,15 @@ class AttendanceService:
                 exclude_id=attendance_id,
             )
 
-        with transaction(self.db):
-            for field, value in update_dict.items():
-                setattr(db_attendance, field, value)
-            self.db.flush()
-            self.db.refresh(db_attendance)
+        try:
+            with transaction(self.db):
+                for field, value in update_dict.items():
+                    setattr(db_attendance, field, value)
+                self.db.flush()
+                self.db.refresh(db_attendance)
+        except IntegrityError:
+            # The slot was taken between the check above and the write.
+            raise self._slot_taken(new_student_id, new_course_id, new_date)
 
         logger.info("Updated attendance: %s", db_attendance.id)
         return db_attendance
@@ -208,6 +220,28 @@ class AttendanceService:
     # ------------------------------------------------------------------
     # Helper methods
     # ------------------------------------------------------------------
+    def _find_live(self, student_id: int, course_id: int, attendance_date: date, period_number: int):
+        """The live record of one slot (student, course, date, period), if there is one."""
+        return (
+            self.db.query(self.Attendance)
+            .filter(
+                self.Attendance.student_id == student_id,
+                self.Attendance.course_id == course_id,
+                self.Attendance.date == attendance_date,
+                self.Attendance.period_number == period_number,
+                self.Attendance.deleted_at.is_(None),
+            )
+            .first()
+        )
+
+    def _slot_taken(self, student_id: int, course_id: int, attendance_date: date):
+        return http_error(
+            409,
+            ErrorCode.ATTENDANCE_CONFLICT,
+            f"Attendance record already exists for student {student_id}, course {course_id} on {attendance_date}",
+            request=self.request,
+        )
+
     def _assert_unique_attendance(
         self,
         student_id: int,
@@ -231,9 +265,4 @@ class AttendanceService:
 
         existing = query.first()
         if existing:
-            raise http_error(
-                409,
-                ErrorCode.ATTENDANCE_CONFLICT,
-                f"Attendance record already exists for student {student_id}, course {course_id} on {attendance_date}",
-                request=self.request,
-            )
+            raise self._slot_taken(student_id, course_id, attendance_date)

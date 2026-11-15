@@ -984,6 +984,10 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
     """Import attendance records"""
     Attendance, Student, Course = import_names("models", "Attendance", "Student", "Course")
 
+    # Rows this import has added but not yet written. The lookup below cannot see them, so a
+    # file that repeats a slot would add it twice (one live row per slot: uq_attendance_live_slot).
+    added: Dict[tuple, Any] = {}
+
     for att_data in attendance_records:
         try:
             student = _resolve_student(db, Student, att_data.get("student_id_ref"))
@@ -994,15 +998,19 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
                 continue
 
             att_date = datetime.fromisoformat(att_data["date"]).date() if att_data.get("date") else None
+            # A file without a period means the first one, as everywhere else. Looking for a
+            # row "without a period" never found the stored row and imported it a second time.
+            period_number = att_data.get("period_number") or 1
+            slot = (student.id, course.id, att_date, period_number)
 
             # Check if attendance exists (by student, course, date, and period)
-            existing = (
+            existing = added.get(slot) or (
                 db.query(Attendance)
                 .filter(
                     Attendance.student_id == student.id,
                     Attendance.course_id == course.id,
                     Attendance.date == att_date,
-                    Attendance.period_number == att_data.get("period_number"),
+                    Attendance.period_number == period_number,
                     Attendance.deleted_at.is_(None),
                 )
                 .first()
@@ -1022,10 +1030,11 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
                     course_id=course.id,
                     date=att_date,
                     status=att_data.get("status", "Present"),
-                    period_number=att_data.get("period_number"),
+                    period_number=period_number,
                     notes=att_data.get("notes"),
                 )
                 db.add(attendance)
+                added[slot] = attendance
                 results["summary"]["attendance"]["created"] += 1
 
         except Exception as e:
@@ -1036,6 +1045,10 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
 def _import_daily_performance(db: Session, performance_records: List[Dict], merge_strategy: str, results: Dict):
     """Import daily performance records"""
     DailyPerformance, Student, Course = import_names("models", "DailyPerformance", "Student", "Course")
+
+    # As for attendance: one live rating per slot (uq_daily_performance_live_slot), and rows
+    # added by this import are not visible to the lookup until they are written.
+    added: Dict[tuple, Any] = {}
 
     for perf_data in performance_records:
         try:
@@ -1049,9 +1062,10 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
                 continue
 
             perf_date = datetime.fromisoformat(perf_data["date"]).date() if perf_data.get("date") else None
+            slot = (student.id, course.id, perf_date, perf_data.get("category"))
 
             # Check if performance record exists
-            existing = (
+            existing = added.get(slot) or (
                 db.query(DailyPerformance)
                 .filter(
                     DailyPerformance.student_id == student.id,
@@ -1083,6 +1097,7 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
                     notes=perf_data.get("notes"),
                 )
                 db.add(performance)
+                added[slot] = performance
                 results["summary"]["daily_performance"]["created"] += 1
 
         except Exception as e:

@@ -28,7 +28,7 @@ from sqlalchemy import (
     false,
     text,
 )
-from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
+from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker, validates
 
 logger = logging.getLogger(__name__)
 Base: Any = declarative_base()
@@ -212,7 +212,26 @@ class Attendance(SoftDeleteMixin, Base):
         Index("idx_attendance_student_date", "student_id", "date"),
         Index("idx_attendance_course_date", "course_id", "date"),
         Index("idx_attendance_student_course_date", "student_id", "course_id", "date"),
+        # One live row per student, course, date and teaching period. The absence limits count
+        # rows, so a second row for the same period is a second absence. Soft-deleted rows are
+        # left out: a period whose record was deleted can be recorded again.
+        Index(
+            "uq_attendance_live_slot",
+            "student_id",
+            "course_id",
+            "date",
+            "period_number",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+            sqlite_where=text("deleted_at IS NULL"),
+        ),
     )
+
+    @validates("period_number")
+    def _period_or_first(self, _key, value):
+        # NULLs are distinct in a unique index, so a row without a period would escape the key
+        # above. "No period" has always meant the first one.
+        return 1 if value is None else value
 
     def __repr__(self):
         return (
@@ -410,6 +429,18 @@ class DailyPerformance(SoftDeleteMixin, Base):
     __table_args__ = (
         Index("idx_performance_student_course", "student_id", "course_id"),
         Index("idx_performance_student_date", "student_id", "date"),
+        # One live rating per student, course, date and category: every row is one item in the
+        # category's average, so a second copy of a rating counted twice.
+        Index(
+            "uq_daily_performance_live_slot",
+            "student_id",
+            "course_id",
+            "date",
+            "category",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+            sqlite_where=text("deleted_at IS NULL"),
+        ),
     )
 
     @property

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy import event
 
@@ -72,14 +72,22 @@ def _create_grade(
     )
 
 
-def _create_dp(client, student_id: int, course_id: int, category: str, score: float, max_score: float = 10.0):
+def _create_dp(
+    client,
+    student_id: int,
+    course_id: int,
+    category: str,
+    score: float,
+    max_score: float = 10.0,
+    days_ago: int = 0,
+):
     return _post_with_csrf(
         client,
         "/api/v1/daily-performance/",
         {
             "student_id": student_id,
             "course_id": course_id,
-            "date": date.today().isoformat(),
+            "date": (date.today() - timedelta(days=days_ago)).isoformat(),
             "category": category,
             "score": score,
             "max_score": max_score,
@@ -117,8 +125,10 @@ def test_final_grade_with_grades_dailyperf_and_absence_penalty(client):
     assert _create_grade(client, s["id"], c["id"], "Midterm", "Midterm", 70).status_code == 201
     assert _create_grade(client, s["id"], c["id"], "Final", "Final Exam", 85).status_code == 201
 
-    # Daily performance for Homework (included, multiplier=1.0): 9/10 (90%), 7/10 (70%)
-    assert _create_dp(client, s["id"], c["id"], "Homework", 9, 10).status_code == 200
+    # Daily performance for Homework (included, multiplier=1.0): 9/10 (90%), 7/10 (70%).
+    # On two days: a student has one rating per category and day, and a second one for the
+    # same day replaces the first.
+    assert _create_dp(client, s["id"], c["id"], "Homework", 9, 10, days_ago=1).status_code == 200
     assert _create_dp(client, s["id"], c["id"], "Homework", 7, 10).status_code == 200
 
     # Attendance: 4 Present, 1 Absent (absence penalty applies: 1 * 2 = 2 points deduction)
