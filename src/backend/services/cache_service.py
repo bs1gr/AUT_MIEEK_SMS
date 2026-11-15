@@ -15,6 +15,7 @@ Cache invalidation is triggered on data mutations:
 
 import logging
 import os
+import threading
 from functools import wraps
 from typing import Any, Callable, Dict, Optional
 
@@ -26,7 +27,11 @@ logger = logging.getLogger(__name__)
 
 
 class InMemoryCache:
-    """Simple in-memory cache with TTL support."""
+    """Simple in-memory cache with TTL support.
+
+    Safe to share between threads: every operation holds the cache's lock (endpoints run in
+    worker threads beside the event loop).
+    """
 
     def __init__(self, default_ttl: int = 300):  # 5 minutes default
         """Initialize in-memory cache.
@@ -36,6 +41,7 @@ class InMemoryCache:
         """
         self.cache: Dict[str, tuple[Any, float]] = {}
         self.default_ttl = default_ttl
+        self._lock = threading.RLock()
 
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache if not expired.
@@ -46,17 +52,18 @@ class InMemoryCache:
         Returns:
             Cached value if found and not expired, None otherwise
         """
-        if key not in self.cache:
-            return None
-
-        value, expiration = self.cache[key]
         import time
 
-        if time.time() > expiration:
-            del self.cache[key]
-            return None
+        with self._lock:
+            if key not in self.cache:
+                return None
 
-        return value
+            value, expiration = self.cache[key]
+            if time.time() > expiration:
+                del self.cache[key]
+                return None
+
+            return value
 
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """Store value in cache with TTL.
@@ -69,7 +76,8 @@ class InMemoryCache:
         import time
 
         ttl = ttl or self.default_ttl
-        self.cache[key] = (value, time.time() + ttl)
+        with self._lock:
+            self.cache[key] = (value, time.time() + ttl)
 
     def delete(self, key: str) -> None:
         """Delete key from cache.
@@ -77,12 +85,13 @@ class InMemoryCache:
         Args:
             key: Cache key to delete
         """
-        if key in self.cache:
-            del self.cache[key]
+        with self._lock:
+            self.cache.pop(key, None)
 
     def clear(self) -> None:
         """Clear entire cache."""
-        self.cache.clear()
+        with self._lock:
+            self.cache.clear()
 
     def delete_pattern(self, pattern: str) -> None:
         """Delete all keys matching pattern.
@@ -92,9 +101,10 @@ class InMemoryCache:
         """
         import fnmatch
 
-        keys_to_delete = [k for k in self.cache.keys() if fnmatch.fnmatch(k, pattern)]
-        for key in keys_to_delete:
-            del self.cache[key]
+        with self._lock:
+            keys_to_delete = [k for k in self.cache if fnmatch.fnmatch(k, pattern)]
+            for key in keys_to_delete:
+                del self.cache[key]
 
 
 # ==================== Redis Cache ====================

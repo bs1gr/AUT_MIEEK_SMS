@@ -5,17 +5,94 @@ Provides permission checking decorators and helper functions for endpoint protec
 Implements self-access logic for student-scoped permissions.
 """
 
+import asyncio
+import inspect
 from functools import wraps
 from typing import Any, Callable, Optional, Sequence, Union, cast, get_type_hints
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from backend import permission_cache
 from backend.db import get_session as get_db
 from backend.models import Permission, RolePermission, Student, User, UserPermission, UserRole
-from backend.security.current_user import get_current_user
+from backend.security.current_user import get_current_user, resolve_current_user
+
+# The dependency as imported. A test may replace ``backend.rbac.get_current_user``; the
+# decorators below use the blocking core in a worker thread only while it is still this one.
+_get_current_user = get_current_user
+
+
+# ---------------------------------------------------------------------------
+# Keeping the event loop free
+# ---------------------------------------------------------------------------
+# Every edition runs one uvicorn process, and the decorators in this module wrap an endpoint
+# in a coroutine. Whatever that coroutine does without awaiting holds the event loop, and with
+# it every other request (and /health). The user lookup, the permission checks and a plain
+# ``def`` endpoint are all blocking database work, so each of them runs in a worker thread.
+# An ``async def`` endpoint is awaited as before; what it blocks on is its own affair.
+
+
+async def _resolve_user(request: Request, db: Any) -> Any:
+    """The account behind the request's bearer token; the database read runs off the loop."""
+    if get_current_user is _get_current_user:
+        return await run_in_threadpool(resolve_current_user, request, None, db)
+    # Replaced (a test's stand-in): call it the way it was always called.
+    return await get_current_user(request=request, db=db)
+
+
+async def _call_endpoint(func: Callable, args: tuple, call_kwargs: dict) -> Any:
+    """Run the decorated endpoint: a coroutine function on the loop, a plain function off it."""
+    if inspect.iscoroutinefunction(func):
+        return await func(*args, **call_kwargs)
+    result = await run_in_threadpool(func, *args, **call_kwargs)
+    if inspect.isawaitable(result):
+        # A plain function that hands back a coroutine (a decorator around an async endpoint).
+        result = await result
+    return result
+
+
+def _holds_any_permission(
+    user: Any,
+    permission_keys: Sequence[str],
+    db: Session,
+    allow_self_access: bool,
+    request: Optional[Request],
+    student_id: Any,
+) -> bool:
+    """Blocking. True when ``user`` holds one of the permissions, or may reach its own data."""
+    if any(has_permission(user, key, db) for key in permission_keys):
+        return True
+    if allow_self_access and request:
+        return any(_is_self_access(user, key, request, student_id, db) for key in permission_keys)
+    return False
+
+
+def _first_missing_permission(user: Any, permission_keys: Sequence[str], db: Session) -> Optional[str]:
+    """Blocking. The first of ``permission_keys`` that ``user`` does not hold, or None."""
+    for key in permission_keys:
+        if not has_permission(user, key, db):
+            return key
+    return None
+
+
+def _finish_session(db_gen: Any) -> None:
+    """Blocking. Advance a ``get_db()`` generator opened by a decorator, which closes its session."""
+    try:
+        next(db_gen)
+    except StopIteration:
+        pass
+
+
+async def _close_opened_session(db_gen: Any) -> None:
+    """Close a session a decorator opened for itself, off the loop (it can mean a round trip).
+
+    Shielded: this runs in a ``finally``, also when the request was cancelled (the client went
+    away), and the session has to be closed all the same.
+    """
+    await asyncio.shield(run_in_threadpool(_finish_session, db_gen))
 
 
 def _safe_rollback(db: Session) -> None:
@@ -495,12 +572,7 @@ def require_permission(
                         call_kwargs["request"] = request
                     if accepts_db and "db" not in call_kwargs:
                         call_kwargs["db"] = db
-                    result = func(*args, **call_kwargs)
-                    import asyncio as _asyncio
-
-                    if _asyncio.iscoroutine(result):
-                        result = await result
-                    return result
+                    return await _call_endpoint(func, args, call_kwargs)
 
                 # In permissive/strict modes, check for bearer token
                 if request is None:
@@ -516,19 +588,14 @@ def require_permission(
                 current_user = None
                 if has_bearer:
                     # Resolve current user only if a token is present
-                    current_user = await get_current_user(request=request, db=db)
+                    current_user = await _resolve_user(request, db)
 
                 # In permissive mode without token, allow access without checks
                 if auth_mode == "permissive" and not current_user:
                     call_kwargs = {**kwargs, "request": request}
                     if accepts_db:
                         call_kwargs["db"] = db
-                    result = func(*args, **call_kwargs)
-                    import asyncio as _asyncio
-
-                    if _asyncio.iscoroutine(result):
-                        result = await result
-                    return result
+                    return await _call_endpoint(func, args, call_kwargs)
 
                 # Enforce permission for authenticated users (permissive or strict)
                 if not current_user:
@@ -537,16 +604,16 @@ def require_permission(
                 if not db:
                     raise HTTPException(status_code=500, detail="Database session not available")
 
-                has_perm = any(has_permission(current_user, key, db) for key in permission_keys)
-                has_self = False
-
-                if allow_self_access and request:
-                    student_id = kwargs.get("student_id")
-                    has_self = any(
-                        _is_self_access(current_user, key, request, student_id, db) for key in permission_keys
-                    )
-
-                if not has_perm and not has_self:
+                allowed = await run_in_threadpool(
+                    _holds_any_permission,
+                    current_user,
+                    permission_keys,
+                    db,
+                    allow_self_access,
+                    request,
+                    kwargs.get("student_id"),
+                )
+                if not allowed:
                     requirement = _format_permission_requirement(permission_keys)
                     raise HTTPException(status_code=403, detail=f"Permission denied: requires {requirement}")
 
@@ -557,19 +624,10 @@ def require_permission(
                 if accepts_db and "db" not in call_kwargs:
                     call_kwargs["db"] = db
 
-                result = func(*args, **call_kwargs)
-
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    result = await result
-                return result
+                return await _call_endpoint(func, args, call_kwargs)
             finally:
                 if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
+                    await _close_opened_session(db_gen)
 
         try:
             wrapper.__annotations__ = get_type_hints(func, globalns=func.__globals__, localns=None)
@@ -736,12 +794,7 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
                         call_kwargs["request"] = request
                     if "db" in sig.parameters and "db" not in call_kwargs:
                         call_kwargs["db"] = db
-                    result = func(*args, **call_kwargs)
-                    import asyncio as _asyncio
-
-                    if _asyncio.iscoroutine(result):
-                        result = await result
-                    return result
+                    return await _call_endpoint(func, args, call_kwargs)
 
                 # Check for bearer token
                 if request is None:
@@ -756,7 +809,7 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
 
                 current_user = None
                 if has_bearer:
-                    current_user = await get_current_user(request=request, db=db)
+                    current_user = await _resolve_user(request, db)
 
                 # Permissive without token: allow
                 if auth_mode == "permissive" and not current_user:
@@ -765,12 +818,7 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
                         call_kwargs["request"] = request
                     if "db" in sig.parameters and "db" not in call_kwargs:
                         call_kwargs["db"] = db
-                    result = func(*args, **call_kwargs)
-                    import asyncio as _asyncio
-
-                    if _asyncio.iscoroutine(result):
-                        result = await result
-                    return result
+                    return await _call_endpoint(func, args, call_kwargs)
 
                 # Enforce any-of permissions for authenticated users
                 if not current_user:
@@ -778,42 +826,29 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
                 if not db:
                     raise HTTPException(status_code=500, detail="Database session not available")
 
-                for perm_key in permission_keys:
-                    if has_permission(current_user, perm_key, db):
-                        call_kwargs = {**kwargs}
-                        if request is not None:
-                            call_kwargs["request"] = request
-                        if "db" in sig.parameters and "db" not in call_kwargs:
-                            call_kwargs["db"] = db
-                        result = func(*args, **call_kwargs)
-                        import asyncio as _asyncio
+                allowed = await run_in_threadpool(
+                    _holds_any_permission,
+                    current_user,
+                    permission_keys,
+                    db,
+                    allow_self_access,
+                    request,
+                    kwargs.get("student_id"),
+                )
+                if not allowed:
+                    raise HTTPException(
+                        status_code=403, detail=f"Permission denied: requires one of {permission_keys}"
+                    )
 
-                        if _asyncio.iscoroutine(result):
-                            result = await result
-                        return result
-
-                    if allow_self_access and request:
-                        student_id = kwargs.get("student_id")
-                        if _is_self_access(current_user, perm_key, request, student_id, db):
-                            call_kwargs = {**kwargs}
-                            if request is not None:
-                                call_kwargs["request"] = request
-                            if "db" in sig.parameters and "db" not in call_kwargs:
-                                call_kwargs["db"] = db
-                            result = func(*args, **call_kwargs)
-                            import asyncio as _asyncio
-
-                            if _asyncio.iscoroutine(result):
-                                result = await result
-                            return result
-
-                raise HTTPException(status_code=403, detail=f"Permission denied: requires one of {permission_keys}")
+                call_kwargs = {**kwargs}
+                if request is not None:
+                    call_kwargs["request"] = request
+                if "db" in sig.parameters and "db" not in call_kwargs:
+                    call_kwargs["db"] = db
+                return await _call_endpoint(func, args, call_kwargs)
             finally:
                 if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
+                    await _close_opened_session(db_gen)
 
         cast(Any, wrapper).__signature__ = sig
         return wrapper
@@ -872,12 +907,7 @@ def require_all_permissions(*permission_keys: str) -> Callable:
                         call_kwargs["request"] = request
                     if "db" in sig.parameters and "db" not in call_kwargs:
                         call_kwargs["db"] = db
-                    result = func(*args, **call_kwargs)
-                    import asyncio as _asyncio
-
-                    if _asyncio.iscoroutine(result):
-                        result = await result
-                    return result
+                    return await _call_endpoint(func, args, call_kwargs)
 
                 # Check for bearer token
                 if request is None:
@@ -892,7 +922,7 @@ def require_all_permissions(*permission_keys: str) -> Callable:
 
                 current_user = None
                 if has_bearer:
-                    current_user = await get_current_user(request=request, db=db)
+                    current_user = await _resolve_user(request, db)
 
                 # Permissive without token: allow
                 if auth_mode == "permissive" and not current_user:
@@ -901,12 +931,7 @@ def require_all_permissions(*permission_keys: str) -> Callable:
                         call_kwargs["request"] = request
                     if "db" in sig.parameters and "db" not in call_kwargs:
                         call_kwargs["db"] = db
-                    result = func(*args, **call_kwargs)
-                    import asyncio as _asyncio
-
-                    if _asyncio.iscoroutine(result):
-                        result = await result
-                    return result
+                    return await _call_endpoint(func, args, call_kwargs)
 
                 # Enforce all-of permissions for authenticated users
                 if not current_user:
@@ -914,27 +939,19 @@ def require_all_permissions(*permission_keys: str) -> Callable:
                 if not db:
                     raise HTTPException(status_code=500, detail="Database session not available")
 
-                for perm_key in permission_keys:
-                    if not has_permission(current_user, perm_key, db):
-                        raise HTTPException(status_code=403, detail=f"Permission denied: requires '{perm_key}'")
+                missing = await run_in_threadpool(_first_missing_permission, current_user, permission_keys, db)
+                if missing is not None:
+                    raise HTTPException(status_code=403, detail=f"Permission denied: requires '{missing}'")
 
                 call_kwargs = {**kwargs}
                 if request is not None:
                     call_kwargs["request"] = request
                 if "db" in sig.parameters and "db" not in call_kwargs:
                     call_kwargs["db"] = db
-                result = func(*args, **call_kwargs)
-                import asyncio as _asyncio
-
-                if _asyncio.iscoroutine(result):
-                    result = await result
-                return result
+                return await _call_endpoint(func, args, call_kwargs)
             finally:
                 if db_gen is not None:
-                    try:
-                        next(db_gen)
-                    except StopIteration:
-                        pass
+                    await _close_opened_session(db_gen)
 
         cast(Any, wrapper).__signature__ = sig
         return wrapper
