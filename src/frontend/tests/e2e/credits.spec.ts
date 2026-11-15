@@ -30,9 +30,13 @@ test.describe('System > Credits', () => {
     // naturalWidth > 0 proves the image actually loaded. A plain visibility check
     // would still pass if the file went missing from public/ and the browser
     // rendered a broken-image placeholder.
+    // Polled: the <img> is visible as soon as it is laid out, which can be before its file
+    // has arrived, and a single reading at that moment is 0 (seen once in CI, 2026-11-15).
     const logo = panel.locator('img');
     await expect(logo).toBeVisible();
-    expect(await logo.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+    await expect
+      .poll(() => logo.evaluate((el: HTMLImageElement) => el.naturalWidth), { timeout: 10000 })
+      .toBeGreaterThan(0);
 
     const link = panel.getByRole('link', { name: /LinkedIn/i });
     await expect(link).toHaveAttribute('href', LINKEDIN_URL);

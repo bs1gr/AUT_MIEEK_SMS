@@ -4,6 +4,14 @@
 **Last Updated**: January 12, 2026
 **Status**: Production Ready
 
+> **How delivery works (corrected November 2026).** The bell reads the number of unread
+> notifications when the page opens, when the connection comes back and when you return to the
+> tab; the list is read when you open the bell. Nothing is pushed to an open page, so a
+> notification raised while you are looking at the page shows on the bell at the next of those
+> moments. Where this guide says "real-time", "instantly" or "WebSocket", read it this way: the
+> live channel those words refer to never carried a notification, and it was removed after
+> v1.18.70.
+
 ---
 
 ## What are Notifications?

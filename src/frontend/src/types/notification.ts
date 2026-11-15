@@ -1,6 +1,6 @@
 /**
  * Notification Types and Interfaces
- * Real-time notification system types for WebSocket and API integration
+ * Types of the notification list, the unread count and the hook that reads them (REST API)
  */
 
 export type NotificationType =
@@ -77,24 +77,20 @@ export interface NotificationListResponse {
   has_next: boolean;
 }
 
-// WebSocket event types
-export interface NotificationEvent {
-  type: 'notification' | 'notification_read' | 'notification_deleted' | 'bulk_read';
-  data: Notification | { notification_id: number } | { count: number };
+// Hook options and return types
+export interface UseNotificationsOptions {
+  /**
+   * Keep `unreadCount` current: read it when the component appears, when the browser comes
+   * back online and when the page becomes visible again. For the component that shows the
+   * count (the bell); the others only use the actions.
+   */
+  watchUnreadCount?: boolean;
 }
 
-export interface WebSocketMessage {
-  type: string;
-  data: Record<string, unknown>;
-  timestamp?: string;
-}
-
-// Hook return types
 export interface UseNotificationsReturn {
   // State
   notifications: Notification[];
   unreadCount: number;
-  isConnected: boolean;
   isLoading: boolean;
   error: Error | null;
 
@@ -104,10 +100,6 @@ export interface UseNotificationsReturn {
   deleteNotification: (notificationId: number) => Promise<void>;
   fetchNotifications: (params?: { skip?: number; limit?: number; unread_only?: boolean }) => Promise<void>;
   refreshUnreadCount: () => Promise<void>;
-
-  // WebSocket
-  connect: () => void;
-  disconnect: () => void;
 }
 
 export interface NotificationContextValue extends UseNotificationsReturn {

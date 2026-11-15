@@ -33,10 +33,6 @@ export const notificationsEL = {
   saveSettings: 'Αποθήκευση Ρυθμίσεων',
   settingsSaved: 'Οι ρυθμίσεις αποθηκεύθηκαν με επιτυχία',
   settingsFailed: 'Αποτυχία αποθήκευσης ρυθμίσεων',
-  websocketConnected: 'Συνδεδεμένο με το διακομιστή ειδοποιήσεων',
-  websocketDisconnected: 'Αποσυνδεδεμένο από τον διακομιστή ειδοποιήσεων',
-  websocketReconnecting: 'Επανασύνδεση με τον διακομιστή ειδοποιήσεων...',
-  websocketError: 'Σφάλμα σύνδεσης ειδοποιήσεων',
   notificationsCount: 'Έχετε {count} ειδοποιήσεις',
 
   // Admin broadcast
@@ -137,7 +133,6 @@ export const notificationsEL = {
     ariaLabel: 'Ειδοποιήσεις',
     title: 'Ειδοποιήσεις',
     unreadCount: '{{count}} μη αναγνωσμένη(ες) ειδοποίηση(εις)',
-    offline: 'Εκτός σύνδεσης',
   },
 
   // Dropdown component

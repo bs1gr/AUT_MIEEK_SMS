@@ -20,7 +20,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
   maxDisplayCount = 99,
 }) => {
   const { t } = useTranslation('notifications');
-  const { unreadCount, isConnected } = useNotifications();
+  const { unreadCount } = useNotifications({ watchUnreadCount: true });
   const [isOpen, setIsOpen] = useState(false);
   const [showCenter, setShowCenter] = useState(false);
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(
@@ -101,15 +101,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
           <span className="notification-bell-badge" aria-label={t('bell.unreadCount', { count: unreadCount })}>
             {displayCount}
           </span>
-        )}
-
-        {/* Connection Status Indicator */}
-        {!isConnected && (
-          <span
-            className="notification-bell-offline"
-            title={t('bell.offline')}
-            aria-label={t('bell.offline')}
-          />
         )}
       </button>
 
