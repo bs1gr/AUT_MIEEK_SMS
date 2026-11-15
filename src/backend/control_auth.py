@@ -18,8 +18,8 @@ Environment variables:
 - ADMIN_SHUTDOWN_TOKEN=...     # if set, clients must present header X-ADMIN-TOKEN
 - ALLOW_REMOTE_SHUTDOWN=1      # allow non-loopback clients, but only when ADMIN_SHUTDOWN_TOKEN is set
 
-This module intentionally keeps dependencies minimal so it can be
-imported during tests without pulling authentication subsystems.
+This module keeps its dependencies small. An admin bearer token is read with
+the same rule as everywhere else (backend.security.current_user.decode_access_token).
 """
 
 from __future__ import annotations
@@ -29,15 +29,12 @@ import logging
 import os
 from typing import Any
 
-import jwt
-from jwt.exceptions import InvalidTokenError
-
 from fastapi import HTTPException, Request
 from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
 
 import backend.models as models
-from backend.config import settings
 from backend.db import SessionLocal
+from backend.security.current_user import decode_access_token
 
 # No implicit test-mode bypass here. Tests should opt in by setting
 # ENABLE_CONTROL_API during test runs (see backend/tests/conftest.py).
@@ -108,9 +105,9 @@ def _admin_from_bearer(request: Request) -> bool:
     if not token:
         return False
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except InvalidTokenError:
-        return False
+        # An access token only: a refresh token names the same account but must not open the
+        # Control API (see decode_access_token).
+        payload = decode_access_token(token)
     except Exception:
         return False
 

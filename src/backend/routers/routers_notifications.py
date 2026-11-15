@@ -26,7 +26,7 @@ from backend.dependencies import get_notification_service
 from backend.services import release_announcement
 from backend.services.notification_service import NotificationPreferenceService, NotificationService
 from backend.services.websocket_manager import broadcast_notification, manager
-from backend.security.current_user import decode_token
+from backend.security.current_user import decode_access_token
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
             return
 
         try:
-            payload = decode_token(token)
+            payload = decode_access_token(token)
         except Exception:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
             return
