@@ -1,10 +1,71 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.69
+**Current Version**: 1.18.70
 **Last Updated**: November 15, 2026
-**Status**: ✅ **v1.18.69 released 2026-11-13** (tag on `71f9b7d9c`, run by the assistant). Four
-fixes are on `main` since then and not released (2026-11-15, "On `main` since v1.18.69" below);
-the open work is listed at the start of "Next todos". The release: it
+**Status**: ✅ **v1.18.70 released 2026-11-15** (tag on `a8da036c7`, run by the assistant; the
+owner chose "Release v1.18.70" among the next steps offered that day). It ships the fixes of the
+2026-11-15 review, #384 to #390 ("In v1.18.70" below): a refresh token is no longer a login
+credential, one live row per attendance period and per rating, the server log that was empty,
+quieter logs and the purge of dead refresh tokens. One additive migration, `a7d4e9c2b5f8`.
+Two changes are on `main` since the tag and not released ("On `main` since v1.18.70"); the open
+work is listed at the start of "Next todos".
+
+**Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
+`-TagRelease`): 55 minutes, exit 0, every gate passed, the backend suite ran 32/32 batches with
+1489 passed, 39 gated skips and 0 failed, and the local installer (90,519,592 bytes) was built
+and signed with the frozen-Lite check passing 11/11. The generated GitHub body again only
+counted "1 new features, 5 bug fixes" and was rewritten by hand in `a8da036c7`; the tag was
+pushed once CI/CD and E2E were green on that commit.
+
+**Smoke test (2026-11-15, isolated copies under `D:\tmp`, scratch databases only).** Each
+edition was driven as an administrator and as a teacher: about 30 API checks (the token rules,
+one row per slot, the attendance sheet twice, a 409 and a 404 inside a transaction, the lesson
+log, the overview pages), the packaged-edition check (PDF and Excel with Greek text) and a pass
+through the main pages in a browser under strict authentication.
+- *Server from source, SQLite:* 32/32, 11/11, browser 13/13; no ERROR or traceback line in
+  `app.log`.
+- *Packaged SMS Lite, upgraded:* the v1.18.69 build was run in a throwaway Windows profile and
+  given data through its API (it stored the same rating three times, as the shared database
+  has it, and left 8 dead refresh tokens); the new build was then started on that profile.
+  Migration applied, the three surplus ratings soft-deleted with the newest kept, both indexes
+  there, 8 tokens removed, the sessions from before the upgrade still refreshing, 577 log lines
+  where v1.18.69 wrote none. 11/11 after-upgrade checks, 30/30, 11/11, browser 13/13.
+- *Docker image on PostgreSQL 16, upgraded:* a database at the v1.18.69 revision with repeated
+  slots, a period that was never set and 7 dead tokens; the image built from the release tree
+  and run with the cloud host's settings did the upgrade at its first start (2 attendance rows
+  and 3 ratings soft-deleted, the period backfilled, 7 tokens removed) and logged it. 30/30,
+  11/11, browser 13/13, no ERROR line in 839 log lines.
+- *The same database upgrade on PostgreSQL 14* (the shared database runs 14.18; this was
+  noticed after the tag and checked before the cloud host was updated): identical result, and
+  a second migration run is a no-op.
+- Not checked: the installer was not installed, and the Android app was not run on a device
+  (no frontend source changed since v1.18.69; the two frontend files that changed are tests).
+
+**Verified on the published assets:** `SMS_Installer_1.18.70.exe` 87,662,992 bytes, SHA-256
+`e5eea32e…fac6bbd` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.70; `SMS_Android_1.18.70.apk` 4,201,361
+bytes, SHA-256 `388197f7…d84ac7` = GitHub's digest, `versionName 1.18.70` /
+`versionCode 118070`, target SDK 36, signed with the same certificate as v1.18.69 (SHA-256
+`686fb6ed…d2ea`, so phones upgrade in place). The release, installer and APK workflows on the
+tag succeeded.
+
+**Cloud VM and the shared database (the same evening).** The VM was rebuilt on the tag;
+`/health` reports v1.18.70 with the database connected, requests without a valid token get
+401, and its log runs on after the migrations (no traceback in it). Its first start did to the
+shared database (PostgreSQL 14.18) what #386 and #390 announced, checked before and after
+through a read-only session: the migration soft-deleted the six surplus rating copies (ids 147
+to 152; 153, 154 and 155 are the ones kept; 202 live ratings now), changed no attendance row
+(971, no repeats, none without a period) and added the two indexes; the purge removed 834 dead
+refresh tokens and left the one in use. The six rows as they were are in
+`backups/pre_v1.18.70_migration_rows_2026-11-15.json` on the dev PC (git-ignored), with how to
+undo it. Not checked: the app on the owner's phone against the VM.
+
+**Every install that uses the shared database should now be updated.** A build older than
+v1.18.70 stores a rating for a slot that already has one as a second row; the database now
+refuses that, so such a build answers with an error there (v1.18.69's Attendance page saves
+through the sheet endpoint and is not affected; its `POST /daily-performance/` is).
+
+v1.18.69 was released 2026-11-13 (tag on `71f9b7d9c`, run by the assistant). It
 ships todo 51 (#380, #381): attendance saved as one request per sheet, the offline queues no
 longer re-sent on every render, and lesson-log text typed during a failed save. No database
 changes. `RELEASE_READY` (no `-TagRelease`) exited 0: every gate passed, the backend suite ran
@@ -56,7 +117,47 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.69 (unreleased)
+### On `main` since v1.18.70 (unreleased)
+
+**2026-11-15, after the tag** (the owner chose all four next steps offered: the release, the
+removal of Socket.IO, the first stage of todo 52 and the tidying of this document).
+
+- **#391 (`72f079ae8`): the idle Socket.IO channel is removed** (todo 56; the owner's decision).
+  Nothing ever emitted on it, yet every page held connections to it: the notification hook
+  opened one per component that used it (the bell, the open dropdown, every item in the list).
+  Gone: `websocket_server.py`, `websocket_config.py`, `websocket_background_tasks.py`,
+  `routers_websocket.py` (a router no code ever registered), the `/socket.io` mount, its two
+  loops in the lifespan, `python-socketio`, `python-engineio`, the nginx location,
+  `socket.io-client` with its two overrides and the Vite proxy entry. `useNotifications` reads
+  over REST only. The bell keeps the unread count current at the moments the socket used to
+  reconnect (appearing, back online, the page visible again); the dropdown and the items no
+  longer fetch a count each. The bell's "offline" dot reported on that connection and is gone.
+  The 15 skipped E2E tests that waited for Socket.IO events are deleted, with the unit tests of
+  the removed modules; E2E in CI: 61 passed, 20 skipped. The native `/api/v1/notifications/ws`
+  endpoint is untouched. Seen on a real server run from a virtualenv without the two packages
+  (32/32 API checks, browser 17/17: no `/socket.io` request, no WebSocket, the count read once
+  on appearing and once after a reload) and on a packaged SMS Lite built the same way (none of
+  the Socket.IO modules in its module list, where the build before held 50).
+  With it: `credits.spec.ts` read the logo's width once, right after the `<img>` became
+  visible, and was flaky in CI that day (0, then fine on retry); it polls now.
+- **#392 (`ea1edba4b`): a test run starts no scheduler and loads no saved mail settings.** The
+  lifespan started the background schedulers and loaded `data/smtp_override.json` at every
+  start, test runs included. The schedulers open sessions of their own on the *configured*
+  database (they import `SessionLocal` by name, so the test suite's patch never reached them).
+  On the dev PC, where `backend/.env` points at the shared database, every test that started
+  the app read that database's scheduled reports and queued its report, cleanup,
+  course-activation and purge jobs in the test process, and the operator's mail relay was
+  written into the test's settings. Seen as an error line in a clone's test output (`Failed to
+  schedule reports: no such table: reports`); CI and the clones have no `.env`. Both now
+  belong to the startup tasks: a real server does them, a test run and a start with
+  `DISABLE_STARTUP_TASKS` do not, which is what `ENV_VARS.md` always said the switch is for.
+  Three tests; two of them fail against the old lifespan. Every release until now ran its
+  gates in the main tree this way; nothing written by it was found.
+
+Not released. Neither needs a new Android build for its own sake, but #391 changes the
+frontend bundle (the next APK no longer contains the Socket.IO client).
+
+### In v1.18.70
 
 **2026-11-14, #383 (`14c222534`):** `NATIVE.ps1 -Start` stays until the backend answers and
 shows the startup stage it is in (`STARTUP_STATUS.ps1`), and no longer restarts a stack that is
@@ -111,7 +212,7 @@ is todos 52 to 57 in "Next todos".
 - **#388 (`8809ee07e`): housekeeping.** This section and todos 52 to 57; the second copy of the
   dependency pins removed from `pyproject.toml` (the two requirements files are the one list);
   `CLAUDE.md` without a hard-coded version.
-- **#390: quieter logs, dead refresh tokens removed, E2E setup failures fail** (the same day,
+- **#390 (`f526eba95`): quieter logs, dead refresh tokens removed, E2E setup failures fail** (the same day,
   after the owner's "continue"; the parts of todos 53 and 56 that needed no decision).
   *Logs:* a refused login (wrong password, lockout, inactive account) is one line, written
   where it is decided, with no traceback; an attempt during a lockout, which only the traceback
@@ -133,8 +234,9 @@ is todos 52 to 57 in "Next todos".
   over; with the students removed, or the API unreachable, the old files report "skipped" and
   the new ones "failed".
 
-Not released. Nothing in these needs a new Android build; #386 has a migration, so the
-order for an update is the usual one (any build that has it applies it at its first start).
+Released as v1.18.70 on 2026-11-15 (the record is at the top of this document). Nothing in
+these needed a new Android build; #386 has a migration, which any build that has it applies at
+its first start.
 
 ### In v1.18.69
 
@@ -750,8 +852,9 @@ tree as evidence that GitHub is clear.
 *(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
 *What is left is below.*
 
-**Open work as of 2026-11-15** (from the review of that day; what it fixed is under "On `main`
-since v1.18.69" at the top). Older entries that are still open, further down: 40 (a real Update
+**Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
+v1.18.70" and "On `main` since v1.18.70" at the top). Older entries that are still open, further
+down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation), 48 (dispatching the build-only Docker run from the release flow), 50 (the owner's
 side of the privacy round) and 51 (the attendance fix has not yet been seen on the owner's
@@ -769,18 +872,18 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     threadpool and runs sync endpoints there; (2) endpoints that never `await` become `def`,
     router by router (a script can find them); (3) measured on the VM through `/metrics`.
     #386 was the precondition: that queueing was the only thing keeping two saves of one slot
-    apart inside a process. **A large change: it waits for the owner's go-ahead.**
-53. **36 of 96 E2E tests never run** (CI on `main`, `f99edc163`: 60 passed, 36 skipped). Seven
-    suites are `describe.skip`: notifications (15 tests), advanced search (13), student
-    resilience (2), and one test each in `student-list`, `saved-search`, `performance-benchmark`
-    and the root `student-management.spec.ts`. In `critical-flows` one test is skipped outright.
-    The notifications suite waits for Socket.IO events that nothing emits (todo 56), so it
-    cannot pass as written. **Done in #390:** setup failures fail (`report-workflows.spec.ts`
-    turned nine of them into skips), and the `critical-flows` test that skipped itself for "no
-    students in the CI seed" runs (the seed has four; it did not wait for the list), which
-    leaves 35 skipped. **Left:** make each skipped suite run or delete it (deleting needs the
-    owner's OK; the owner gave it for the notifications suite on 2026-11-15, with the removal
-    of Socket.IO).
+    apart inside a process. **The owner's go-ahead of 2026-11-15 covers stage (1) only**, measured
+    before and after; stages (2) and (3) wait for another. Not started when this was written.
+53. **20 of 81 E2E tests never run** (CI on `main`, `72f079ae8`: 61 passed, 20 skipped; it was
+    60 and 36 of 96 on 2026-11-15 in the morning). Six suites are `describe.skip`: advanced
+    search (13 tests), student resilience (2), and one test each in `student-list`,
+    `saved-search`, `performance-benchmark` and the root `student-management.spec.ts`. In
+    `critical-flows` one test is skipped outright. **Done in #390:** setup failures fail
+    (`report-workflows.spec.ts` turned nine of them into skips), and the `critical-flows` test
+    that skipped itself for "no students in the CI seed" runs (the seed has four; it did not
+    wait for the list). **Done in #391:** the notifications suite (15 tests that waited for
+    Socket.IO events) is deleted with the channel. **Left:** make each of the six skipped
+    suites run or delete it (deleting needs the owner's OK).
 54. **Nothing watches the cloud VM, and workflows that cannot run.**
     `scheduled-production-health-check.yml` needs a self-hosted runner
     (`[self-hosted, windows, production-lan]`); none is registered, its schedule is commented
@@ -794,10 +897,11 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     scheduled dump, or a restore drill since 2026-09-17. The database is 15 MB. The owner to say
     what exists; if nothing, a nightly `pg_dump` kept off the NAS and one restore test.
 56. **Small things from the same review.**
-    - *The Socket.IO channel carries nothing.* `send_notification_to_user`,
+    - ~~*The Socket.IO channel carries nothing.* `send_notification_to_user`,
       `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
       the frontend connects and never receives an event (notifications reach the page through
-      the REST API). Wire it up or remove it (server, client hook, `socket.io-client`).
+      the REST API). Wire it up or remove it (server, client hook, `socket.io-client`).~~
+      **Closed by #391:** removed (the owner's decision).
     - ~~*`refresh_tokens`:* 835 rows, 1 live. Revoked and expired rows are never deleted.~~
       **Closed by #390:** deleted at startup and by the daily maintenance job.
     - *Soft-deleted rows in the shared database:* 55 students (deleted 2026-09-04 to 09-17, the
@@ -819,6 +923,33 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     step). Closed todos and the dated sections older than v1.18.66 belong in the archive file,
     as "How to Use This Document" already says. Not done on 2026-11-15: it moves about 4,000
     lines.
+58. **Found on 2026-11-15 while releasing v1.18.70, and not fixed.**
+    - *A test run uses the backups folder of the tree it runs in.* Two tests in
+      `test_control_endpoints.py` (`test_download_database_backup_success`,
+      `test_list_database_backups_includes_sql`) write a file into `backups/database`, and the
+      semester-archive tests use `backups/semester_archives/.staging`. They remove what they
+      create, and no backup was touched (seen on the dev PC: the folder's time changed during
+      the release run, its 26 files did not). The tests should get a temporary `BACKUPS_DIR`;
+      several modules read it once at import (`routers_adminops`, `database_manager`). The
+      same class of problem as the schedulers and the mail settings, fixed in #392.
+    - *The shared database runs PostgreSQL 14.18; CI's PostgreSQL service and the release checks
+      use 16.* The v1.18.70 upgrade was repeated on 14 before the cloud host was updated. CI
+      should test the version in use, or both.
+    - *The notification components do not share state.* The bell, the dropdown and every item
+      call `useNotifications` and each gets its own copy, so marking an item as read does not
+      change the dropdown's list or the bell's count until they next fetch. (The Socket.IO
+      events were meant to keep them in step; nothing ever sent one.) A shared store or context
+      would.
+    - *The native WebSocket endpoint has no client.* `/api/v1/notifications/ws` and
+      `services/websocket_manager.py` work and are tested; `services/notificationWebSocket.ts`
+      in the frontend is used by nothing but its own test. Use it or remove both (owner's call).
+    - *Both notification guides describe things the application does not have* (an
+      administration panel, WebSocket settings, delivery dashboards). #391 corrected the
+      delivery description at the top of each; the rest is as written in January 2026.
+    - *`schedule_cleanup_task("hourly")` would run every minute* (`"*/1"` in the minute field of
+      `maintenance_scheduler.py`). Only `"daily"` is ever asked for.
+    - *Installs older than v1.18.70 on the shared database:* see the note at the top of this
+      document. The owner's stopped `sms-app` container is v1.18.63.
 
 
 **Priority 0 — GitHub security/CI findings (2026-10-01):** PyJWT is now `2.15.0` in both
