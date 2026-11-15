@@ -1,7 +1,7 @@
 # CLAUDE.md — Student Management System
 
-**Version**: v1.18.34 (always verify from `VERSION` file)
-**Date**: June 2026
+**Version**: read it from the `VERSION` file (no number is kept here: it went stale)
+**Last reviewed**: November 2026
 **Project**: Bilingual (EN/EL) student management system for ΜΙΕΕΚ Cyprus technical college
 **Mode**: Solo developer + AI assistant (no external stakeholders — owner decides all)
 
@@ -42,9 +42,11 @@ docs/
 
 ## Session Start Checklist
 
-1. Read `VERSION` — current version is `v1.18.34`
+1. Read `VERSION` — the current version
 2. Run `git status` — verify no uncommitted changes
-3. Read `docs/plans/UNIFIED_WORK_PLAN.md` — active work state
+3. Read `docs/plans/UNIFIED_WORK_PLAN.md` — active work state. The file is larger than one
+   read: take the status block at the top, then the "Open work" list at the start of
+   "Next todos"
 4. Check `docs/DOCUMENTATION_INDEX.md` — navigate to relevant docs
 
 ---
@@ -53,7 +55,7 @@ docs/
 
 ### Testing — NEVER run pytest directly
 
-Running the full suite directly crashes VS Code (490+ test files overload memory/CPU).
+Running the full suite directly crashes VS Code (over 150 test files overload memory/CPU).
 
 ```powershell
 # ❌ FORBIDDEN — crashes VS Code

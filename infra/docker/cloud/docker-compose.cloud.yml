@@ -6,8 +6,7 @@
 #
 # Runbook: docs/deployment/CLOUD_HOST_ORACLE.md
 #
-# NOT YET RUN ON A REAL VM. The image builds for linux/arm64 in CI (docker-publish.yml,
-# dry_run + platforms=linux/arm64); everything below that touches the VM is still to be proven.
+# In use since 2026-11-13 on the Oracle VM `sms-cloud` (arm64), built there from the checkout.
 services:
   sms:
     # Built on the VM from this checkout (the VM's own CPU, so no emulation). If an image is
@@ -22,7 +21,7 @@ services:
       - SMS_ENV=production
       - SMS_EXECUTION_MODE=docker
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env}
-      # The QNAP database, through the VM's Tailscale subnet route.
+      # The QNAP database over Tailscale (the NAS is a tailnet device itself; see the runbook).
       - DATABASE_ENGINE=postgresql
       - POSTGRES_HOST=${POSTGRES_HOST:?POSTGRES_HOST must be set in .env}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
