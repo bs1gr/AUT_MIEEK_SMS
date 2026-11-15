@@ -7,7 +7,7 @@ owner chose "Release v1.18.70" among the next steps offered that day). It ships 
 2026-11-15 review, #384 to #390 ("In v1.18.70" below): a refresh token is no longer a login
 credential, one live row per attendance period and per rating, the server log that was empty,
 quieter logs and the purge of dead refresh tokens. One additive migration, `a7d4e9c2b5f8`.
-Two changes are on `main` since the tag and not released ("On `main` since v1.18.70"); the open
+Three changes are on `main` since the tag and not released ("On `main` since v1.18.70"); the open
 work is listed at the start of "Next todos".
 
 **Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
@@ -153,7 +153,7 @@ removal of Socket.IO, the first stage of todo 52 and the tidying of this documen
   `DISABLE_STARTUP_TASKS` do not, which is what `ENV_VARS.md` always said the switch is for.
   Three tests; two of them fail against the old lifespan. Every release until now ran its
   gates in the main tree this way; nothing written by it was found.
-- **#393: the permission layer no longer holds the event loop (todo 52, first stage).** The
+- **#393 (`5e1b43adc`): the permission layer no longer holds the event loop (todo 52, first stage).** The
   decorators in `rbac.py` wrap an endpoint in a coroutine and did everything inline: the user
   lookup, the permission checks and, for the 63 plain `def` endpoints behind them, the endpoint
   itself. Each of those now runs in a worker thread (`run_in_threadpool`); the 160 `async def`
