@@ -7,8 +7,8 @@ owner chose "Release v1.18.70" among the next steps offered that day). It ships 
 2026-11-15 review, #384 to #390 ("In v1.18.70" below): a refresh token is no longer a login
 credential, one live row per attendance period and per rating, the server log that was empty,
 quieter logs and the purge of dead refresh tokens. One additive migration, `a7d4e9c2b5f8`.
-Three changes are on `main` since the tag and not released ("On `main` since v1.18.70"); the open
-work is listed at the start of "Next todos".
+What is on `main` since the tag is not released ("On `main` since v1.18.70"); the open work is
+listed at the start of "Next todos".
 
 **Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
 `-TagRelease`): 55 minutes, exit 0, every gate passed, the backend suite ran 32/32 batches with
@@ -101,11 +101,12 @@ bytes, SHA-256 `b236e817…871ef7` = GitHub's digest, `versionName 1.18.68` /
 tag succeeded; CI/CD and E2E were green on the tagged commit. Not checked: the installer was
 not installed, and the APK was not run on a device.
 
-v1.18.68 ships the lesson-log follow-ups (todos 45-47, #376), the privacy round (todo 50, #377,
-# 378, #379: health information off by default, staff notes on the server, the Privacy page, the
-access and erasure tools), the cloud-host files and speed switches (todos 44, 48, 49, #373,
-# 374) and the stale-tab reload (#375). Two additive migrations: `e5b2c7a9d4f1` and
-`f6c3d8b1a2e4`; the shared database already has both (the cloud VM applied them).
+v1.18.68 ships the lesson-log follow-ups (todos 45-47, #376), the privacy round
+(todo 50, #377, #378, #379: health information off by default, staff notes on the server, the
+Privacy page, the access and erasure tools), the cloud-host files and speed switches
+(todos 44, 48, 49, #373, #374) and the stale-tab reload (#375). Two additive migrations:
+`e5b2c7a9d4f1` and `f6c3d8b1a2e4`; the shared database already has both (the cloud VM applied
+them).
 **Before the tag:** `RELEASE_READY` (no `-TagRelease`) took 43 minutes and exited 0: every
 gate passed, the backend suite ran 30/30 batches, 1394 passed, 39 gated skips, 0 failed, and
 the local installer (90,449,800 bytes) was built and signed with the frozen-Lite check passing.
@@ -298,11 +299,12 @@ average, 50 of 60 took more than 10 s, and 501 writes ended in a fast 400. Three
 
 **v1.18.67 (released 2026-11-13, tag on `ec987afa8`, run by the assistant).**
 
-v1.18.67 ships the attendance lesson log (todo 41, #368), the tooling fixes (todos 42 and 43,
-# 369), the Docker publish workflow fix (#370) and the two bugs the pre-release smoke test found
-(#371: teacher report permissions with migration `d3a7b9c1e5f2`, and SMS Lite's 404 on API paths
-without a trailing slash). Two additive migrations: `c8e1f4a7d2b9` (`lesson_logs`) and
-`d3a7b9c1e5f2`. The smoke test is described under "On `main` since v1.18.66" below.
+v1.18.67 ships the attendance lesson log (todo 41, #368), the tooling fixes (todos 42
+and 43, #369), the Docker publish workflow fix (#370) and the two bugs the pre-release smoke
+test found (#371: teacher report permissions with migration `d3a7b9c1e5f2`, and SMS Lite's 404
+on API paths without a trailing slash). Two additive migrations: `c8e1f4a7d2b9`
+(`lesson_logs`) and `d3a7b9c1e5f2`. The smoke test is described under "On `main` since
+v1.18.66" below.
 
 **Before the tag:** `RELEASE_READY` (no `-TagRelease`) took 36 minutes and exited 0: every
 `COMMIT_READY -Quick` gate passed, the backend suite ran 1313 passed, 39 gated skips, 0 failed,
@@ -515,12 +517,14 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
     step). Closed todos and the dated sections older than v1.18.66 belong in the archive file,
     as "How to Use This Document" already says. Not done on 2026-11-15: it moves about 4,000
     lines.~~ **Done 2026-11-15 (the owner's go-ahead the same day):** 5,012 lines moved, word
-    for word, to `UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`; this document is 56 KB and under 800
-    lines. A script did the move and checked that every line of the old plan is in one of the
-    two files. What stayed: the releases from v1.18.66 on, todos 52 to 58, the four older
-    entries that are still open (40, 44, 48, 50) and the open contrast design calls. Not moved
-    apart: a closed entry that still has an open part keeps its place here until that part is
-    done.
+    for word, to `UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`; this document went from 415 KB to
+    under 60 KB (5,759 lines to under 800). A script did the move and checked that every line
+    of the old plan is in one of the two files. What stayed: the releases from v1.18.66 on,
+    todos 52 to 58, the four older entries that are still open (40, 44, 48, 50) and the open
+    contrast design calls. Not moved apart: a closed entry that still has an open part keeps
+    its place here until that part is done. With it: three lines in the v1.18.68 and v1.18.67
+    records had become level-1 headings in the middle of a paragraph and are text again (the
+    cause is the last entry of todo 58).
 58. **Found on 2026-11-15 while releasing v1.18.70, and not fixed.**
     - *A test run uses the backups folder of the tree it runs in.* Two tests in
       `test_control_endpoints.py` (`test_download_database_backup_success`,
@@ -557,6 +561,13 @@ and `guest` getting 403 on the Dashboard overview, and the Absence limits table 
       life of the process (read by the diagnostics router, emptied only by its reset endpoint).
       On a server that stays up for weeks that is a slow leak; it should keep the last few
       thousand.
+    - *The gate's Markdown auto-fix can turn text into a heading without saying so.* A wrapped
+      line that begins with a PR number (`#378, …`) is "corrected" by `markdownlint --fix`
+      (rule MD018, no space after the hash) to `# 378, …`, a level-1 heading. It happened to
+      three lines of this document on 2026-11-13. `COMMIT_READY` lists the files its auto-fix
+      rewrote by comparing line counts with `HEAD`, so a rewrite of a line that is already part
+      of the commit is not listed. The rule should be off (a `#378` at the start of a line is
+      plain text in Markdown) and the list should compare contents.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):
