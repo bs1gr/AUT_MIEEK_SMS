@@ -149,7 +149,8 @@ def running_under_pytest() -> bool:
 
 
 def startup_tasks_enabled() -> bool:
-    """Whether this process runs the startup tasks: migrations, RBAC seeding, admin bootstrap.
+    """Whether this process runs the startup tasks: migrations, RBAC seeding, admin bootstrap,
+    the saved SMTP settings and the background schedulers.
 
     Off in a test run and when DISABLE_STARTUP_TASKS is set; on for every real server.
     """

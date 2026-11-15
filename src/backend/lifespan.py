@@ -129,27 +129,35 @@ def get_lifespan():
                 "Use 'require' or 'verify-full' in production."
             )
 
-        # Apply persisted SMTP override so email works without env-var restart
-        try:
-            from backend.services.smtp_override import load_and_apply as _apply_smtp
-            _apply_smtp()
-        except Exception as e:
-            logging.getLogger(__name__).warning(f"⚠️  SMTP override load skipped: {e}")
+        # The rest of the startup belongs to a real server as well, not to a test run (nor to a
+        # start with DISABLE_STARTUP_TASKS): both steps reach for this machine's own setup.
+        # The saved SMTP settings are the operator's real mail relay. The schedulers open
+        # sessions of their own on the configured database, not on the one a test hands to
+        # the app, so on a developer's PC every test that started the app read the scheduled
+        # reports of the real database and queued its report, cleanup and purge jobs in the
+        # test process.
+        if startup_tasks_enabled():
+            # Apply persisted SMTP override so email works without env-var restart
+            try:
+                from backend.services.smtp_override import load_and_apply as _apply_smtp
+                _apply_smtp()
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"⚠️  SMTP override load skipped: {e}")
 
-        # Initialize export/report schedulers and maintenance tasks
-        try:
-            from backend.services.maintenance_scheduler import get_maintenance_scheduler
+            # Initialize export/report schedulers and maintenance tasks
+            try:
+                from backend.services.maintenance_scheduler import get_maintenance_scheduler
 
-            scheduler = get_maintenance_scheduler()
-            scheduler.start_export_scheduler()
-            scheduler.start_report_scheduler()
-            scheduler.start_course_activation_scheduler()
-            scheduler.schedule_cleanup_task(frequency="daily")
-            logging.getLogger(__name__).info(
-                "✅ Export/report/course-activation schedulers and maintenance tasks started"
-            )
-        except Exception as e:
-            logging.getLogger(__name__).warning(f"⚠️  Scheduler startup not available: {e}")
+                scheduler = get_maintenance_scheduler()
+                scheduler.start_export_scheduler()
+                scheduler.start_report_scheduler()
+                scheduler.start_course_activation_scheduler()
+                scheduler.schedule_cleanup_task(frequency="daily")
+                logging.getLogger(__name__).info(
+                    "✅ Export/report/course-activation schedulers and maintenance tasks started"
+                )
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"⚠️  Scheduler startup not available: {e}")
 
         yield
         if STARTUP_DEBUG:

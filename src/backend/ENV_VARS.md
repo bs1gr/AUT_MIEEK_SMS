@@ -6,7 +6,7 @@ DISABLE_STARTUP_TASKS
 
 - Type: boolean ("1"/"0")
 - Default: not set
-- Purpose: When set to `1`, the FastAPI lifespan will skip heavy startup tasks such as running migrations, legacy schema checks and background auto-import threads. Intended for tests and CI to avoid startup side-effects.
+- Purpose: When set to `1`, the FastAPI lifespan skips everything a real server does at startup: the migrations, the RBAC defaults, the admin bootstrap, the purge of dead refresh tokens, loading the saved SMTP settings, and starting the background schedulers (export cleanup, scheduled reports, course activation). Intended for tests and CI to avoid startup side-effects; a test run (pytest) gets the same without setting it. Do not set it on a real server: scheduled reports and saved mail settings would not work.
 
 CONTROL_API_ALLOW_TASKKILL
 

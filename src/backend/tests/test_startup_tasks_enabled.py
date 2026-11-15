@@ -91,3 +91,129 @@ def test_the_lifespan_asks_that_one_question():
 
     assert lifespan_module.startup_tasks_enabled is environment.startup_tasks_enabled
     assert not hasattr(lifespan_module, "find_spec")
+
+
+# --- what else a real server does at startup, and a test run must not --------------------
+#
+# The background schedulers open sessions of their own on the *configured* database, and the
+# saved SMTP settings are the operator's real mail relay. Both used to run at every start,
+# test runs included: on a developer's PC, where the configured database is a real one, every
+# test that started the app read that database's scheduled reports and queued its report,
+# cleanup and purge jobs in the test process.
+
+
+class _RecordingScheduler:
+    def __init__(self, calls: list):
+        self._calls = calls
+
+    def __getattr__(self, name):
+        def method(*args, **kwargs):
+            self._calls.append((name, args, kwargs))
+
+        return method
+
+
+def _run_lifespan(monkeypatch, *, tasks_enabled: bool) -> dict:
+    import asyncio
+
+    import backend.lifespan as lifespan_module
+    from backend.tests.db_setup import TestingSessionLocal
+
+    calls: list = []
+    smtp_loads: list = []
+    configured_db_sessions: list = []
+
+    def configured_database(*_args, **_kwargs):
+        configured_db_sessions.append(1)
+        raise AssertionError("a session was opened on the configured database")
+
+    monkeypatch.setattr(lifespan_module, "startup_tasks_enabled", lambda: tasks_enabled)
+    monkeypatch.setattr(lifespan_module, "SessionLocal", TestingSessionLocal)
+    monkeypatch.setattr(lifespan_module.profiler, "register", lambda _engine: None)
+    monkeypatch.setattr(lifespan_module, "run_migrations", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(lifespan_module, "ensure_defaults_startup", lambda _session_factory: False)
+    monkeypatch.setattr(lifespan_module.settings, "DEFAULT_ADMIN_EMAIL", None, raising=False)
+    monkeypatch.setattr("backend.services.smtp_override.load_and_apply", lambda: smtp_loads.append(1) or True)
+    monkeypatch.setattr(
+        "backend.services.maintenance_scheduler.get_maintenance_scheduler", lambda: _RecordingScheduler(calls)
+    )
+    # The real schedulers' own doors to the configured database: nothing may go through them.
+    monkeypatch.setattr("backend.services.maintenance_scheduler.SessionLocal", configured_database)
+    monkeypatch.setattr("backend.services.report_scheduler.SessionLocal", configured_database)
+
+    class App:
+        class state:
+            pass
+
+    started: list = []
+
+    async def run():
+        async with lifespan_module.get_lifespan()(App()):
+            started.extend(name for name, _args, _kwargs in calls)
+
+    asyncio.run(run())
+    return {
+        "at_startup": started,
+        "all_calls": [name for name, _args, _kwargs in calls],
+        "cleanup_schedule": [kwargs for name, _args, kwargs in calls if name == "schedule_cleanup_task"],
+        "smtp_loads": len(smtp_loads),
+        "configured_db_sessions": len(configured_db_sessions),
+    }
+
+
+def test_a_start_without_startup_tasks_starts_no_scheduler_and_loads_no_mail_settings(monkeypatch):
+    # A test run, or DISABLE_STARTUP_TASKS.
+    seen = _run_lifespan(monkeypatch, tasks_enabled=False)
+
+    assert seen["at_startup"] == []
+    assert seen["smtp_loads"] == 0
+    assert seen["configured_db_sessions"] == 0
+    # Stopping what was never started is harmless, and is all that happens at shutdown.
+    assert set(seen["all_calls"]) <= {
+        "stop_export_scheduler",
+        "stop_report_scheduler",
+        "stop_course_activation_scheduler",
+    }
+
+
+def test_a_real_start_loads_the_mail_settings_and_starts_the_schedulers(monkeypatch):
+    seen = _run_lifespan(monkeypatch, tasks_enabled=True)
+
+    assert seen["smtp_loads"] == 1
+    assert seen["at_startup"] == [
+        "start_export_scheduler",
+        "start_report_scheduler",
+        "start_course_activation_scheduler",
+        "schedule_cleanup_task",
+    ]
+    assert seen["cleanup_schedule"] == [{"frequency": "daily"}]
+
+
+def test_starting_the_app_inside_a_test_leaves_the_configured_database_alone(monkeypatch):
+    """The real application, started the way the `client` fixture starts it."""
+    from fastapi.testclient import TestClient
+
+    from backend.main import app
+
+    opened: list = []
+    scheduled: list = []
+    smtp_loads: list = []
+
+    def configured_database(*_args, **_kwargs):
+        opened.append(1)
+        raise AssertionError("a session was opened on the configured database")
+
+    monkeypatch.setattr("backend.services.maintenance_scheduler.SessionLocal", configured_database)
+    monkeypatch.setattr("backend.services.report_scheduler.SessionLocal", configured_database)
+    monkeypatch.setattr("backend.services.smtp_override.load_and_apply", lambda: smtp_loads.append(1) or True)
+    monkeypatch.setattr(
+        "backend.services.maintenance_scheduler.MaintenanceScheduler.schedule_cleanup_task",
+        lambda self, frequency="daily": scheduled.append(frequency),
+    )
+
+    with TestClient(app) as client:
+        assert client.get("/health/live").status_code in (200, 404)
+
+    assert opened == []
+    assert scheduled == []
+    assert smtp_loads == []
