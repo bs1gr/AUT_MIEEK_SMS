@@ -31,7 +31,13 @@ from backend.schemas import (
 from backend.schemas.auth import PasswordChangeRequest
 from backend.security import login_throttle
 from backend.security.csrf import clear_csrf_cookie, issue_csrf_cookie
-from backend.security.current_user import decode_token, get_current_user
+from backend.security.current_user import (
+    ACCESS_TOKEN_TYPE,
+    REFRESH_TOKEN_TYPE,
+    decode_access_token,
+    decode_token,
+    get_current_user,
+)
 from backend.security.default_passwords import is_published_default_password
 from backend.security.password_hash import (
     get_password_hash,
@@ -327,7 +333,7 @@ async def fetch_csrf_token(request: Request, response: Response):
 
 def create_access_token(subject: str, role: str = None, expires_delta: Optional[timedelta] = None) -> str:
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode = {"sub": subject, "exp": expire}
+    to_encode = {"sub": subject, "type": ACCESS_TOKEN_TYPE, "exp": expire}
     if role:
         to_encode["role"] = role
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -347,7 +353,7 @@ def create_refresh_token_for_user(db: Session, user, expires_delta: Optional[tim
     to_encode = {
         "sub": str(getattr(user, "email", "")),
         "jti": jti,
-        "type": "refresh",
+        "type": REFRESH_TOKEN_TYPE,
         "exp": expire,
     }
     token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -525,7 +531,7 @@ def _active_admin_from_bearer(request: Request, db: Session) -> Optional[User]:
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return None
-        email_val = decode_token(auth_header.split(" ", 1)[1].strip()).get("sub")
+        email_val = decode_access_token(auth_header.split(" ", 1)[1].strip()).get("sub")
         if not email_val:
             return None
         user = db.query(User).filter(User.email == email_val).first()
@@ -857,7 +863,7 @@ async def refresh(
                 request,
             )
         payload_decoded = decode_token(raw)
-        if payload_decoded.get("type") != "refresh":
+        if payload_decoded.get("type") != REFRESH_TOKEN_TYPE:
             raise http_error(
                 status.HTTP_401_UNAUTHORIZED,
                 ErrorCode.UNAUTHORIZED,
@@ -983,7 +989,7 @@ async def logout(
         if rt_payload:
             try:
                 payload_decoded = decode_token(rt_payload)
-                if payload_decoded.get("type") == "refresh":
+                if payload_decoded.get("type") == REFRESH_TOKEN_TYPE:
                     user_email = payload_decoded.get("sub") or None
             except Exception:
                 user_email = None
@@ -993,7 +999,7 @@ async def logout(
             if rt_cookie:
                 try:
                     payload_decoded = decode_token(rt_cookie)
-                    if payload_decoded.get("type") == "refresh":
+                    if payload_decoded.get("type") == REFRESH_TOKEN_TYPE:
                         user_email = payload_decoded.get("sub") or None
                 except Exception:
                     user_email = None

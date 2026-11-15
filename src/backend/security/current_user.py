@@ -13,8 +13,30 @@ from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error
 
 
+ACCESS_TOKEN_TYPE = "access"
+REFRESH_TOKEN_TYPE = "refresh"
+
+
 def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+
+def decode_access_token(token: str) -> dict:
+    """Decode a token presented as a login credential and refuse anything but an access token.
+
+    A refresh token is signed with the same key and names the same account, but it lives for
+    REFRESH_TOKEN_EXPIRE_DAYS and is meant for /auth/refresh alone, where the stored copy is
+    checked for revocation. Accepted as a bearer token it worked as a month-long access token
+    that logging out did not end. Every place that authenticates a request with a bearer token
+    goes through here; only /auth/refresh and /auth/logout read refresh tokens (decode_token).
+
+    A token without a "type" is an access token issued before the claim existed (they expire
+    within ACCESS_TOKEN_EXPIRE_MINUTES); a refresh token has always carried its type.
+    """
+    payload = decode_token(token)
+    if payload.get("type") not in (None, ACCESS_TOKEN_TYPE):
+        raise InvalidTokenError("not an access token")
+    return payload
 
 
 # What a user may still do while password_change_required is set: see who they
@@ -102,7 +124,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = decode_token(token)
+        payload = decode_access_token(token)
         email_val = payload.get("sub")
         email: str = str(email_val) if email_val is not None else ""
         if not email:

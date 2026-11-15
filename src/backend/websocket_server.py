@@ -9,7 +9,8 @@ Provides:
 - Error handling
 """
 
-from typing import Optional
+from typing import Any, Optional
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -18,9 +19,62 @@ try:
 except ImportError:
     raise ImportError("python-socketio not installed. Run: pip install python-socketio")
 
+import backend.models as models
+from backend.config import settings
+from backend.db import SessionLocal
+from backend.security.current_user import decode_access_token
 from backend.websocket_config import connection_manager
 
 logger = logging.getLogger(__name__)
+
+
+def _claimed_user_id(auth: Any) -> Optional[int]:
+    claimed = auth.get("user_id") if isinstance(auth, dict) else None
+    if isinstance(claimed, bool) or not isinstance(claimed, int) or claimed <= 0:
+        return None
+    return claimed
+
+
+def user_id_for_connection(auth: Any) -> Optional[int]:
+    """The account a Socket.IO connection may listen as, or None to refuse it.
+
+    The client sends ``{"token": <access token>, "user_id": <id>}``. The id alone used to be
+    believed and the token was never looked at, so whoever could reach /socket.io could
+    register as any user.
+
+    With authentication on, the token decides: it must be a valid access token of an active
+    account that is not waiting for a password change, and that account's id is used whatever
+    id was claimed. In strict mode a connection without a token is refused. Without
+    authentication (AUTH_ENABLED off or AUTH_MODE=disabled) there are no accounts to tell
+    apart and the claimed id is accepted, as the rest of the API accepts anonymous requests.
+    """
+    if not isinstance(auth, dict):
+        return None
+
+    auth_enabled = bool(getattr(settings, "AUTH_ENABLED", False))
+    auth_mode = str(getattr(settings, "AUTH_MODE", "disabled") or "disabled").lower()
+    if not auth_enabled or auth_mode == "disabled":
+        return _claimed_user_id(auth)
+
+    token = auth.get("token")
+    if not token:
+        return None if auth_mode == "strict" else _claimed_user_id(auth)
+
+    try:
+        email = str(decode_access_token(str(token)).get("sub") or "")
+    except Exception:
+        return None
+    if not email:
+        return None
+
+    with SessionLocal() as db:
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if user is None or not bool(getattr(user, "is_active", False)):
+            return None
+        if bool(getattr(user, "password_change_required", False)):
+            return None
+        return int(user.id)
+
 
 # Configure SocketIO server
 sio = AsyncServer(
@@ -49,17 +103,16 @@ async def connect(sid, environ, auth):
             "token": "jwt_token",
             "user_id": 123
         }
+
+    Who the connection belongs to is decided by user_id_for_connection (the token, when
+    authentication is on), not by the id the client claims.
     """
     try:
-        # Extract user ID from auth
-        if not auth or "user_id" not in auth:
-            logger.warning(f"Connection attempt without user_id from {sid}")
+        # The lookup reads the database, so it runs off the event loop.
+        user_id = await asyncio.to_thread(user_id_for_connection, auth)
+        if user_id is None:
+            logger.warning(f"Refused Socket.IO connection {sid}: no valid access token or user id")
             return False  # Reject connection
-
-        user_id = auth.get("user_id")
-        if not isinstance(user_id, int) or user_id <= 0:
-            logger.warning(f"Invalid user_id from {sid}: {user_id}")
-            return False
 
         # Register connection in connection manager
         await connection_manager.connect(user_id=user_id, session_id=sid)
