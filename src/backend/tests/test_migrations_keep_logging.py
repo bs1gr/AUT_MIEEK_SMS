@@ -99,6 +99,11 @@ print(json.dumps({
 def test_the_alembic_command_line_still_gets_its_logging_and_disables_nothing(scratch_database):
     env = {key: value for key, value in os.environ.items() if key not in {"PYTEST_CURRENT_TEST", "PYTEST_RUNNING"}}
     env["PYTHONPATH"] = str(SRC_DIR)
+    # Two migrations carry Greek letters in their description, and Alembic logs it. The encoding
+    # is pinned on both sides: left alone, the child writes what PYTHONIOENCODING says (UTF-8 on
+    # the dev PC) and this process reads in the ANSI code page, where a byte of "Μ" is no
+    # character at all. The reader thread then dies and `result.stderr` is None.
+    env["PYTHONIOENCODING"] = "utf-8"
     result = subprocess.run(
         [
             sys.executable,
@@ -110,6 +115,8 @@ def test_the_alembic_command_line_still_gets_its_logging_and_disables_nothing(sc
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         env=env,
         cwd=str(BACKEND_DIR),
         timeout=300,
