@@ -233,11 +233,17 @@ bumps and changes, catch up").
   package stays installed in the same version (7.29.13) for its two users, and the lockfile
   loses one line. Without a direct entry Dependabot can only move it within the range those
   two allow.
-- **Seen, left as it is:** `@babel/runtime` is the same case. It is a direct devDependency at
-  8.1.2 (added 2026-10-01); its five users (`react-i18next`, `i18next-browser-languagedetector`,
-  `@testing-library/dom`, `@testing-library/react`, `workbox-build`) all ask for `^7`, and each
-  carries its own 7.29.10. Removing the direct entry would leave one shared 7.x. `react-i18next`
-  ships in the bundle, so it waits for a go-ahead and a comparison of the build.
+- **#406: the direct `@babel/runtime` devDependency is removed** (the same case; the owner
+  answered "next" when it was reported as waiting for a go-ahead). It was added at 8.x on
+  2026-10-01 in `b319e67d5` with no reason given; nothing imports it and no override names it.
+  Its five users (`react-i18next`, `i18next-browser-languagedetector`, `@testing-library/dom`,
+  `@testing-library/react`, `workbox-build`) all ask for `^7`, and each carries its own
+  7.29.10. Those five copies stay where they are: the lockfile only loses the unused top-level
+  8.1.2. This entry first said that one shared 7.x would be left; npm does that only when the
+  whole tree is deduplicated, which was not done. Checked on a real `npm ci` from the new
+  lockfile in a clone: the production build is the same 80 files as the build before, byte for
+  byte (two builds of one tree are identical, so the comparison means something), and `tsc`
+  and the gate pass on that tree.
 
 Not released. None of them needs a new Android build for its own sake, but #391 changes the
 frontend bundle (the next APK no longer contains the Socket.IO client) and #403 moves the
