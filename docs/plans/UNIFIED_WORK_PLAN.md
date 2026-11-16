@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.70
-**Last Updated**: November 15, 2026
+**Last Updated**: November 16, 2026
 **Status**: ✅ **v1.18.70 released 2026-11-15** (tag on `a8da036c7`, run by the assistant; the
 owner chose "Release v1.18.70" among the next steps offered that day). It ships the fixes of the
 2026-11-15 review, #384 to #390 ("In v1.18.70" below): a refresh token is no longer a login
@@ -195,8 +195,53 @@ removal of Socket.IO, the first stage of todo 52 and the tidying of this documen
   is listed; new script and rule, the line stays as written. Tooling only: nothing in the
   application changes.
 
+**2026-11-16: the week's Dependabot batch, and a dependency nothing used** (the owner: "a lot of
+bumps and changes, catch up").
+
+- **Merged.** #399, #401 and #402 merged by themselves (Babel 7 patches; the first auto-merges
+  seen through the merge App). By hand: #396 (`5144e0286`: fastapi 0.162.5, psycopg 3.3.9, ruff
+  0.17.5, pytest-asyncio 1.5.0, virtualenv 21.15.6), #397 (`3183df59b`: `pypdf>=7.0.1`, used by
+  tests and by the packaged-edition check only; the dev PC already ran 7.1.0) and #403
+  (`a0695a69a`: 88 minor and patch updates of the frontend, among them vite 8.3.8, Capacitor
+  8.6.2, TanStack Query 5.107.1, framer-motion 14.13.0 and zustand 5.1.0). CI/CD and E2E passed
+  on `main` after the last one. #403 replaced #398: asked to rebase, Dependabot closed it and
+  opened a new PR, because the contents of the group had changed.
+- **Closed, not merged: #400, `@babel/core` 7 to 8.** Nothing in the project uses the top-level
+  `@babel/core`: there is no Babel configuration, and its only users, `workbox-build` (through
+  `vite-plugin-pwa`) and `eslint-plugin-react-hooks`, ask for `^7.24.4`. The bump would have
+  put an unused Babel 8 at the top and a second copy of Babel 7 under both (915 packages
+  became 950); its CI was green because they kept running on Babel 7. Dependabot was told to
+  ignore the 8.x major by a comment on #400; it keeps that state itself, `dependabot.yml` does
+  not show it.
+- **#404: a test that could not pass on the dev PC reads its child's output as UTF-8.** The
+  gate of the next entry stopped at batch 20 of 33 on a change that touches no Python (852
+  passed, 1 failed). `test_migrations_keep_logging.py` (#387) starts a Python child that runs
+  the migrations and reads its stderr; two migrations have "ΜΙΕΕΚ" in their description and
+  Alembic logs it. The child wrote in what `PYTHONIOENCODING` says, the test read in the ANSI
+  code page. The dev PC has the variable at `utf-8` (user level, last written 2026-11-11) and
+  code page 1253, where the second byte of a UTF-8 "Μ" is no character: the thread reading
+  the pipe died and `result.stderr` was `None`. The test pins UTF-8 on both sides now; it
+  passes with the variable at `utf-8`, removed and at `cp1253`, and the gate ran 33 of 33
+  batches (1506 passed), so no other test has the weakness. **Not explained:** the four runs
+  in the main tree on the evening of 2026-11-15 passed this test; VS Code was restarted on
+  2026-11-16 at 08:47, and that session may be the first to inherit the variable. CI never
+  saw it (no `PYTHONIOENCODING` on its runners). Test code only.
+- **#405: the direct `@babel/core` devDependency is removed, with the guard that added it** (the
+  owner's OK). Before starting Vite, `NATIVE.ps1` looked for `node_modules\@babel\core` and,
+  when it was missing, ran `npm install --save-dev @babel/core`; that is the only reason the
+  package was listed in `package.json`. `@vitejs/plugin-react` 6 does not depend on Babel. The
+  package stays installed in the same version (7.29.13) for its two users, and the lockfile
+  loses one line. Without a direct entry Dependabot can only move it within the range those
+  two allow.
+- **Seen, left as it is:** `@babel/runtime` is the same case. It is a direct devDependency at
+  8.1.2 (added 2026-10-01); its five users (`react-i18next`, `i18next-browser-languagedetector`,
+  `@testing-library/dom`, `@testing-library/react`, `workbox-build`) all ask for `^7`, and each
+  carries its own 7.29.10. Removing the direct entry would leave one shared 7.x. `react-i18next`
+  ships in the bundle, so it waits for a go-ahead and a comparison of the build.
+
 Not released. None of them needs a new Android build for its own sake, but #391 changes the
-frontend bundle (the next APK no longer contains the Socket.IO client).
+frontend bundle (the next APK no longer contains the Socket.IO client) and #403 moves the
+Capacitor packages from 8.6.0 to 8.6.2.
 
 ### In v1.18.70
 

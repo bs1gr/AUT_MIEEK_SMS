@@ -65,7 +65,6 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.13",
     "@babel/runtime": "^8.1.2",
     "@eslint/config-array": "^0.23.5",
     "@eslint/js": "^10.0.1",
