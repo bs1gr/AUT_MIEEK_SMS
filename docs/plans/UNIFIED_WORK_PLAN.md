@@ -48,10 +48,14 @@ healthchecks.io with the assistant's steps and pasted the ping address; it is in
 tag (under 2 minutes); `/health` reports v1.18.72. The backup of the afternoon and its key
 were still on the data volume after the rebuild, and the hourly check left them alone (not
 due). The first signal went out 150 seconds after the start, at 18:41 UTC, with no delivery
-warning; the address is not in the log; no ERROR line, no router skipped. Not seen by the
-assistant: the check's page at the service (whether it is green, its schedule of 1 hour with
-1 hour of grace, and whether an email integration is on for it). Those are the owner's to
-confirm.
+warning; the address is not in the log; no ERROR line, no router skipped. **Confirmed by the
+owner the same evening, in screenshots of the service's pages:** ping #1 received at 18:41:23
+UTC (the second the server logged it), by HTTPS from the VM's address, user agent
+`sms-heartbeat`; the check up; its schedule period 1 hour, grace time 1 hour; and, after the
+owner added an email integration, the service's test notification in the owner's inbox at
+21:09 local time. Not shown: that the integration is switched on for this check (the
+service's page lists it per check), and no real alarm was tried (the server stopped for
+longer than period plus grace).
 
 v1.18.71 was released 2026-11-16 (tag on `9afbbeea1`, run by the assistant; asked
 after #407 was merged, the owner chose "Release v1.18.71" and "Yes, do the drill"). It ships
@@ -778,10 +782,9 @@ the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 **First in line: what only the owner can do, in todos 55 and 54.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
 since v1.18.72 it reports to a monitoring service, and a failed backup puts a notice in the
-administrators' bell. Left for the owner: a copy of the VM's backup key kept somewhere else,
-and a copy of a backup taken off the VM now and then (todo 55); and on the monitoring
-service's page, the schedule of the check, the email integration, and one test that an alert
-really arrives (todo 54).
+administrators' bell; the owner set the service up and its test mail arrived. Left for the
+owner: a copy of the VM's backup key kept somewhere else, and a copy of a backup taken off
+the VM now and then (todo 55).
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -825,10 +828,10 @@ really arrives (todo 54).
       cannot report that the VM is down. The details are under "In v1.18.72".
     - **Done 2026-11-16 with v1.18.72:** the owner created an account at healthchecks.io, the
       address is in the VM's `.env`, and the first signal went out (the top of this document).
-    - **Left:** (a) the owner's, on the service's page, which the assistant cannot see: the
-      check's schedule (period 1 hour, grace 1 hour), an email integration switched on for
-      it, and one test that an alert arrives (the service's own test of the integration, or
-      the server stopped for longer than period plus grace). (b) The five manual-only
+      The owner confirmed in screenshots: the check up, period 1 hour and grace 1 hour, and
+      the service's test mail received (the top of this document).
+    - **Left:** (a) small: one look on the service's page that the email integration is
+      switched on for the check; a real alarm was not tried. (b) The five manual-only
       workflows without a run on record stay, by the owner's choice: `reset-workflows.yml`,
       `archive-legacy-releases.yml`, `fetch-code-scanning-sarif.yml`, `upload-sarif.yml`,
       `sync-installer-artifact.yml`. (c) No mail is configured on the VM: the activation
