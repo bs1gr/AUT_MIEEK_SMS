@@ -1,14 +1,73 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.70
+**Current Version**: 1.18.71
 **Last Updated**: November 16, 2026
-**Status**: ✅ **v1.18.70 released 2026-11-15** (tag on `a8da036c7`, run by the assistant; the
+**Status**: ✅ **v1.18.71 released 2026-11-16** (tag on `9afbbeea1`, run by the assistant; asked
+after #407 was merged, the owner chose "Release v1.18.71" and "Yes, do the drill"). It ships
+what was on `main` since v1.18.70 ("In v1.18.71" below): the automatic daily backup and a
+restore that works (#407), the permission layer that no longer holds the event loop (#393),
+the removal of the idle Socket.IO channel (#391) and the week's dependency updates. No
+database changes. The open work is listed at the start of "Next todos".
+
+**Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
+`-TagRelease`): 45 minutes, exit 0, every gate passed, the backend suite ran 33/33 batches with
+1539 passed, 43 gated skips and 0 failed, and the local installer (90,238,184 bytes) was built
+and signed with the frozen-Lite check passing 11/11. The generated GitHub body again only
+counted ("1 new features, 3 bug fixes, 6 dependency updates") and was rewritten by hand in
+`9afbbeea1`; the tag was pushed once CI/CD and E2E were green on that commit.
+
+**Smoke test (2026-11-16, isolated copies under `D:\tmp`, scratch databases only).** Each
+edition was driven as an administrator and as a teacher: 26 API checks (who is refused what,
+the refresh-token rule, 40 requests with 20 at once, three students with Greek names, a backup
+by hand, a restore after one student had been deleted), the packaged-edition check (PDF and
+Excel with Greek text) and ten pages in a browser with every API answer and every console line
+watched.
+
+- *Server from source, SQLite:* 26/26, 11/11, browser 10/10 for each role; no ERROR line in
+  the log.
+- *Packaged SMS Lite, upgraded:* the released v1.18.70 build was run in a throwaway Windows
+  profile, given three students and made an encrypted backup. The new build was then started
+  on that profile the way an installer leaves things: the backups and the old key in the
+  program folder, and that folder read-only. The key was brought to the profile (the same
+  key), the old build's backup was restored after the data had been changed, and the
+  automatic backup was made. 26/26, 11/11, browser 10/10 for each role, no ERROR line in 1,160
+  log lines.
+- *Docker image on PostgreSQL 14:* 26/26 (here the requests arrive from outside the container,
+  so the refusals of a teacher and of a request without a token are real ones), 11/11, browser
+  10/10 for each role, the automatic backup on the volume, no ERROR line in 1,350 log lines.
+  There was no database upgrade to test: no migration since v1.18.70.
+- Not checked: the installer was not installed, and the Android app was not run on a device.
+
+**Verified on the published assets:** `SMS_Installer_1.18.71.exe` 87,322,304 bytes, SHA-256
+`a74d42bd…b7f333` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.71; `SMS_Android_1.18.71.apk` 4,194,069
+bytes, SHA-256 `fae34b4a…32aea3` = GitHub's digest, `versionName 1.18.71` /
+`versionCode 118071`, target SDK 36, signed with the same certificate as v1.18.70 (SHA-256
+`686fb6ed…d2ea`, so phones upgrade in place); none of its 58 script files mentions Socket.IO.
+The release, installer and APK workflows on the tag succeeded.
+
+**Cloud VM, and the first backup of the shared database (the same afternoon).** The VM was
+rebuilt on the tag (under 3 minutes); `/health` reports v1.18.71. One minute after its start
+it made the first automatic backup of the shared database: `auto_backup_20261116_150613.enc`,
+30 tables, 2,265 rows, 8 seconds, on the data volume with its key, and no ERROR line in its
+log. It makes one a day from now on and keeps 30.
+
+**The restore drill on that backup (the owner's yes).** The backup and its key were copied to
+the dev PC. The backup was decrypted in memory and restored with the application's own restore
+engine into a throwaway PostgreSQL 14 whose tables the application's migrations had built: 30
+tables, 2,265 rows. Compared with the live database through read-only queries that return
+numbers only: the same row count in all 31 tables and the same checksum of the content of all
+31 tables. (A first checksum differed for ten tables. It sorted the rows as text, and the
+Debian-based server of the shared database and the Alpine-based scratch server sort text
+differently under the same collation name; column by column in primary-key order, and with a
+fixed sort order, everything is identical.) The copies on the dev PC and on the VM were deleted
+afterwards.
+
+v1.18.70 was released 2026-11-15 (tag on `a8da036c7`, run by the assistant; the
 owner chose "Release v1.18.70" among the next steps offered that day). It ships the fixes of the
 2026-11-15 review, #384 to #390 ("In v1.18.70" below): a refresh token is no longer a login
 credential, one live row per attendance period and per rating, the server log that was empty,
 quieter logs and the purge of dead refresh tokens. One additive migration, `a7d4e9c2b5f8`.
-What is on `main` since the tag is not released ("On `main` since v1.18.70"); the open work is
-listed at the start of "Next todos".
 
 **Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
 `-TagRelease`): 55 minutes, exit 0, every gate passed, the backend suite ran 32/32 batches with
@@ -120,7 +179,11 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.70 (unreleased)
+### On `main` since v1.18.71 (unreleased)
+
+Only the record of the release in this document.
+
+### In v1.18.71
 
 **2026-11-15, after the tag** (the owner chose all four next steps offered: the release, the
 removal of Socket.IO, the first stage of todo 52 and the tidying of this document).
@@ -309,14 +372,18 @@ bumps and changes, catch up").
   and the backup restored into it. From source on SQLite, and the packaged SMS Lite with a
   read-only program folder: automatic backup, restore, backup by hand. The backup and restore
   round-trip tests ran against PostgreSQL 14 (CI runs them against 16).
-- **Not done, not checked.** Nothing ran against the shared database: no backup of it exists
-  from this work and none was restored. That starts when a server with this code runs there
-  (todo 55). The installer was not installed. The 22 older encrypted backups on the dev PC
-  were not opened.
+- **Found in the release smoke test: an "encrypted" backup of a SQLite database left its
+  readable copy beside it on Windows**, in every build up to v1.18.70. The copy was still open
+  when it was to be deleted, and the failure was only logged. #407 closes it first (seen: the
+  v1.18.70 build leaves `backup_….db` next to `backup_….enc`, the new build leaves the `.enc`
+  alone). Copies left by earlier versions stay until somebody deletes them; the release notes
+  say so. The dev PC's backups folder has none (its backups are PostgreSQL ones).
+- **Not done, not checked** (as of the merge; the release that followed made the first backup
+  of the shared database and restored it in a drill, see the top of this document). The
+  installer was not installed. The 22 older encrypted backups on the dev PC were not opened.
 
-Not released. None of them needs a new Android build for its own sake, but #391 and #407
-change the frontend bundle (the next APK no longer contains the Socket.IO client) and #403
-moves the Capacitor packages from 8.6.0 to 8.6.2.
+Released as v1.18.71 on 2026-11-16. Its APK has the frontend without the Socket.IO client and
+the Capacitor packages at 8.6.2.
 
 ### In v1.18.70
 
@@ -579,7 +646,7 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
-v1.18.70" and "On `main` since v1.18.70" at the top). Older entries that are still open, further
+v1.18.70" and "In v1.18.71" at the top). Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation), 48 (dispatching the build-only Docker run from the release flow) and 50 (the
@@ -588,9 +655,11 @@ the attendance fix works on the phone. Also still open in their own sections: th
 design calls of 2026-10-07, `viewer` and `guest` getting 403 on the Dashboard overview, and
 the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 
-**First in line: what is left of todo 55.** The application now makes its own daily backup
-(#407, unreleased), but no server with that code runs against the shared database yet: until
-the release and the update of the cloud VM, nothing backs it up, as before.
+**First in line: the owner's part of todo 55, then todo 54.** Since v1.18.71 the cloud VM
+backs up the shared database once a day, and a restore of its first backup was proven. What no
+software does: a copy of the VM's backup key kept somewhere else, and a copy of a backup taken
+off the VM now and then. And nothing watches the VM (todo 54): a backup that fails is seen
+only by whoever opens Manage Backups or reads the log.
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -603,7 +672,7 @@ the release and the update of the cloud VM, nothing backs it up, as before.
     router by router (a script can find them); (3) measured on the VM through `/metrics`.
     #386 was the precondition: that queueing was the only thing keeping two saves of one slot
     apart inside a process. **The owner's go-ahead of 2026-11-15 covers stage (1) only**, measured
-    before and after: **done in #393** (numbers under "On `main` since v1.18.70"). **Left, each
+    before and after: **done in #393** (numbers under "In v1.18.71"). **Left, each
     waiting for a go-ahead:** stage (2), the 160 `async def` endpoints behind the decorators
     whose own database calls still hold the loop (20 at once still take 1.8 s instead of 0.65 s,
     and `/health/live` waits up to 1.4 s meanwhile), plus the dependencies that are awaited
@@ -652,15 +721,17 @@ the release and the update of the cloud VM, nothing backs it up, as before.
     - **Done in #407 (2026-11-16, unreleased; the owner: "proceed according to plan"):** the
       automatic backup, the help made true, and what the restore test found (a PostgreSQL
       backup could not be restored through the application; the key was lost at an update).
-      The details are under "On `main` since v1.18.70" and in
+      The details are under "In v1.18.71" and in
       `docs/admin/BACKUP_AND_RESTORE.md`.
-    - **Left, each on the owner's word:** (a) a release and the update of the cloud VM. Until
-      then nothing backs up the shared database; the VM is the server that is always on, so
-      its daily backup is the copy that is not on the NAS. (b) One restore of a real backup
-      into a scratch database, as a drill. (c) A copy of the VM's key kept somewhere else,
-      and now and then a copy of a backup taken off the VM (the runbook has the commands): the
-      application does neither. (d) Whether the key next to the code on the dev PC still opens
-      the 22 older encrypted backups there is not known.
+    - **Done 2026-11-16 with v1.18.71 (the owner chose both):** the release and the update of
+      the cloud VM, which made the first backup of the shared database a minute after its
+      start; and a restore of that backup into a scratch database, identical to the live one
+      table by table (the top of this document).
+    - **Left:** (a) the owner's: a copy of the VM's key kept somewhere else, and now and then a
+      copy of a backup taken off the VM (the runbook has the commands). Until then the backups
+      and their key exist on the VM only. (b) Whether the key next to the code on the dev PC
+      still opens the 22 older encrypted backups there is not known. (c) The drill is one
+      drill: after a release that changes the database, it is worth repeating.
 56. **Small things from the same review.**
     - ~~*The Socket.IO channel carries nothing.* `send_notification_to_user`,
       `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
@@ -770,6 +841,24 @@ the release and the update of the cloud VM, nothing backs it up, as before.
         the v1.18.70 migration changed were saved by hand).
       - *`/admin/restore-encrypted-backup` has no caller any more* (the page restored through
         it until #407). Remove it or keep it (the owner's call).
+      - *The Control API trusts the machine the server runs on* (`control_auth`, rule 3: with
+        no `ADMIN_SHUTDOWN_TOKEN`, a request from the same machine needs no login). That is by
+        design for a PC's own tools, and through Docker and on the cloud VM every request
+        arrives from outside and is checked (a teacher gets 403, seen in the smoke test). But
+        with SMS Lite, or a server run from source, the browser is on the same machine: anyone
+        at that PC can list, make and restore backups, signed in as a teacher or not at all.
+        On a PC that uses the shared database, that includes restoring over it. Such a PC
+        also holds the database password, so this is not a new way in; whether Lite should
+        ask for an administrator there is the owner's call.
+      - *A replacement PostgreSQL should be of the same kind as the lost one.* The shared
+        database runs a Debian-based server, the scratch ones here are Alpine-based: both
+        report the collation `en_US.utf8`, and they sort text differently (seen in the restore
+        drill). The data restores identically; lists sorted by name would come out in another
+        order.
+      - *Readable copies left by older builds.* Nothing removes the `backup_….db` files that
+        builds up to v1.18.70 left next to encrypted SQLite backups on Windows (see "In
+        v1.18.71"). A clean-up at startup would have to be sure a file is such a leftover (it
+        has an `.enc` twin of the same name) before deleting it.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

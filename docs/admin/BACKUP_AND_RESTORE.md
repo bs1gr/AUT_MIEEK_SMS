@@ -1,9 +1,9 @@
 # Backups and restore: what the system does, and what stays the administrator's job
 
-**Applies from**: the release after v1.18.70
+**Applies from**: v1.18.71
 **Audience**: the administrator of an installation
 
-Until that release nothing made a backup on a schedule, although the in-app help said
+Until v1.18.71 nothing made a backup on a schedule, although the in-app help said
 "Automated backups happen daily". A backup existed when somebody asked for one. The same work
 found that a backup of a PostgreSQL database could not be restored through the application at
 all. Both are described under "What was wrong before" at the end.
@@ -88,6 +88,9 @@ either everything is restored or nothing is changed, and the answer says which.
 
 This was run on 2026-11-16 on PostgreSQL 14 (the version of the shared database) with the
 Docker image: database replaced by an empty one, restore, all rows back, new rows accepted.
+The same day the first automatic backup of the shared database (30 tables, 2,265 rows) was
+restored into a throwaway PostgreSQL 14 and compared with the live database: the same row
+count and the same content checksum in every table.
 
 **Limits to know:**
 
@@ -98,6 +101,10 @@ Docker image: database replaced by an empty one, restore, all rows back, new row
 - A `pg_dump` script (the `backup_*.sql` / `.enc` files a Docker install made before this
   release, or one made by hand) creates the tables itself, so it only goes into an **empty**
   database. Into a database that has the tables the application refuses it and changes nothing.
+- Use the same kind of PostgreSQL for a replacement database as the lost one was (the shared
+  database runs a Debian-based server). An Alpine-based one sorts text differently under the
+  same collation name: the data restores identically, but lists sorted by name come out in
+  another order.
 
 ## What the system does not do
 
@@ -131,3 +138,6 @@ Found on 2026-11-16 while the automatic backup was built and its restore was tri
 - **From the page, an encrypted PostgreSQL backup could not be restored at all**: it was
   decrypted into the browser and uploaded again, and the upload accepts SQLite files only.
 - The "Backup Database" button was disabled after any health check, on every edition.
+- **An encrypted backup of a SQLite database left its readable copy beside it on Windows**
+  (builds up to v1.18.70). If the backups folder has a `backup_….db` file with the same name
+  as a `backup_….enc`, delete the `.db` file: nothing removes it for you.
