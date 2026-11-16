@@ -236,8 +236,12 @@ the VM and the QNAP.
 ### On `main` since v1.18.72 (unreleased)
 
 **2026-11-16, night: five small server fixes from todo 58, and a sixth found while checking
-them** (#409; asked what comes next, the owner chose "Small server fixes"). No database
-changes.
+them** (#409, merged as `7e8520f9f`; asked what comes next, the owner chose "Small server
+fixes"). No database changes. On the PR's last commit the backend job passed 1,595 tests with
+55 skipped on PostgreSQL 14.25 (1,561 and 55 on `main` before it: the 34 new tests, the same
+skips), the round trip passed 13 of 13 on 16.16 as well, and E2E was green. **Not on the
+cloud VM yet:** it gets the quieter log, the bounded profiler and the working diagnostics
+with its next update, which waits for the owner's word.
 
 - **One "slow query" line per slow statement, at one limit.** Two monitors watched the same
   engine: `performance_monitor.py` (limit `SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS`, 300 ms) and
