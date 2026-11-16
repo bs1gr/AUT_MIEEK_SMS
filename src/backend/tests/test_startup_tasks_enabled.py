@@ -185,6 +185,7 @@ def test_a_real_start_loads_the_mail_settings_and_starts_the_schedulers(monkeypa
         "start_report_scheduler",
         "start_course_activation_scheduler",
         "schedule_cleanup_task",
+        "schedule_automatic_backup",
     ]
     assert seen["cleanup_schedule"] == [{"frequency": "daily"}]
 

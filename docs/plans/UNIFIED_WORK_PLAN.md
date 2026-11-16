@@ -245,9 +245,78 @@ bumps and changes, catch up").
   byte (two builds of one tree are identical, so the comparison means something), and `tsc`
   and the gate pass on that tree.
 
-Not released. None of them needs a new Android build for its own sake, but #391 changes the
-frontend bundle (the next APK no longer contains the Socket.IO client) and #403 moves the
-Capacitor packages from 8.6.0 to 8.6.2.
+**2026-11-16, afternoon: the application backs itself up, and its backups can be restored**
+(todo 55; the owner: "proceed according to plan").
+
+- **#407: an automatic backup on every server.** A minute after its start and then once an
+  hour a server checks how old its newest automatic backup is, and makes an encrypted one
+  (`auto_backup_<date>_<time>.enc`) when there is none or it is older than 24 hours; the
+  newest 30 are kept, and backups made by hand are never deleted by it. By age and not at a
+  fixed hour, so that SMS Lite and a PC that is off at night get theirs. Not in a test run.
+  The code that makes a backup moved out of the control endpoint into
+  `services/database_backup.py`, which the endpoint and the scheduler share. Settings:
+  `AUTO_BACKUP_ENABLED`, `AUTO_BACKUP_INTERVAL_HOURS`, `AUTO_BACKUP_KEEP`. Manage Backups shows
+  what the server does and when it last did, marks the automatic ones, and gives the reason
+  when the last attempt failed. The help text (EN/EL) and the PDF guide say what happens now.
+  Described in `docs/admin/BACKUP_AND_RESTORE.md`.
+- **The restore test (the "one restore test" of todo 55) found that a backup of a PostgreSQL
+  database could not be restored through the application.** Three separate reasons, each seen
+  on PostgreSQL 14 with the Docker image before it was fixed:
+  - *Where `pg_dump` is installed (the Docker editions, so the cloud host) the backup was a
+    plain `pg_dump` script.* Restoring it into the database it came from ran `psql` without
+    `ON_ERROR_STOP`: every `CREATE TABLE` and `COPY` failed, nothing was restored, the
+    `setval()` lines at the end moved every id counter back, and the answer was "success ...
+    0 rows across 0 tables". The next login then could not store its refresh token (duplicate
+    key). The application now writes its own data-only format on every edition, the one it
+    restores itself in one transaction; `psql` gets `ON_ERROR_STOP` and one transaction, and a
+    script it cannot apply is refused with psql's own first error.
+  - *From the page, an encrypted PostgreSQL backup could not be restored at all.* The page
+    decrypted it into the browser and uploaded it again as `decrypted_backup.db`; the upload
+    takes SQLite files only. The page now sends one request and the server does the rest;
+    plain `.sql` backups get a Restore button too.
+  - *The data-only backup was not one snapshot.* Each table was copied as it was at that
+    moment and the id counters were read first, so a save during the backup could leave a row
+    without the row it points at (such a backup cannot be restored) or a counter below a
+    saved id. It runs in one read-only snapshot now and reads the counters last.
+- **The key that encrypts backups survives an update.** It was kept next to the code. In
+  Docker that is the container's own layer: on the unchanged image, a backup made before the
+  container was replaced answered "Failed to decrypt backup: " (nothing after the colon)
+  afterwards; on the cloud host the backups were inside the container as well. In the
+  installed SMS Lite it is the program folder, which a normal user cannot write to: the
+  released v1.18.70 build, run with that folder read-only, answers 500 to an encrypted backup
+  and logs no reason. The key is now on the data volume in Docker (`/data/.keys`) and in the
+  user's profile in SMS Lite; a key found in the old place is copied over; the cloud compose
+  file puts the backups on the data volume; a file encrypted with another key says so.
+- **Two things on the same card.** "Backup Database" was disabled, with a note that backups
+  exist only for SQLite and PostgreSQL, on every edition as soon as a health check had run
+  (one runs after each restore): the panel read the engine from a field that only says
+  "connected". And the list showed `utils.created:` in English (todo 58). Times in the list
+  carry their UTC offset now: a backup made on a server running on UTC showed two hours early.
+- **With it: a test batch could turn red in a tree without `.env`.** The gate for this change
+  stopped at batch 11 of 33 with 57 errors, none of them in a file the change touches. In a
+  fresh clone the settings get a generated `SECRET_KEY` when they are first loaded under
+  pytest, but not inside a running test, where the placeholder is refused on purpose. A batch
+  whose five files all load the settings late (through the `client` fixture) therefore
+  failed whole, and which files share a batch is alphabetical: one new test file moved the
+  boundaries. `conftest.py` loads the settings while the tests are collected. CI (its own
+  rule) and the main tree (it has a `.env`) never met it.
+- **Seen, on scratch data only** (an isolated copy under `D:\tmp`; nothing touched the shared
+  database). Docker image on PostgreSQL 14: the automatic backup 60 s after the start, on the
+  volume; data changed and restored through the API and through the page in a browser (one
+  request, the three students back, a new row accepted afterwards); a plain `pg_dump` script
+  refused with rows and counters unchanged; the container replaced and the earlier backup
+  restored again; the database replaced by an empty one, the tables built by the application
+  and the backup restored into it. From source on SQLite, and the packaged SMS Lite with a
+  read-only program folder: automatic backup, restore, backup by hand. The backup and restore
+  round-trip tests ran against PostgreSQL 14 (CI runs them against 16).
+- **Not done, not checked.** Nothing ran against the shared database: no backup of it exists
+  from this work and none was restored. That starts when a server with this code runs there
+  (todo 55). The installer was not installed. The 22 older encrypted backups on the dev PC
+  were not opened.
+
+Not released. None of them needs a new Android build for its own sake, but #391 and #407
+change the frontend bundle (the next APK no longer contains the Socket.IO client) and #403
+moves the Capacitor packages from 8.6.0 to 8.6.2.
 
 ### In v1.18.70
 
@@ -519,8 +588,9 @@ the attendance fix works on the phone. Also still open in their own sections: th
 design calls of 2026-10-07, `viewer` and `guest` getting 403 on the Dashboard overview, and
 the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 
-**First in line: todo 55.** Nothing backs up the shared database on a schedule, and the owner
-believed the application did.
+**First in line: what is left of todo 55.** The application now makes its own daily backup
+(#407, unreleased), but no server with that code runs against the shared database yet: until
+the release and the update of the cloud VM, nothing backs it up, as before.
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -579,6 +649,18 @@ believed the application did.
       database that is kept off the NAS, one restore test, and the help made true, or corrected
       until it is. Until then a backup exists only when someone creates one in the
       application.
+    - **Done in #407 (2026-11-16, unreleased; the owner: "proceed according to plan"):** the
+      automatic backup, the help made true, and what the restore test found (a PostgreSQL
+      backup could not be restored through the application; the key was lost at an update).
+      The details are under "On `main` since v1.18.70" and in
+      `docs/admin/BACKUP_AND_RESTORE.md`.
+    - **Left, each on the owner's word:** (a) a release and the update of the cloud VM. Until
+      then nothing backs up the shared database; the VM is the server that is always on, so
+      its daily backup is the copy that is not on the NAS. (b) One restore of a real backup
+      into a scratch database, as a drill. (c) A copy of the VM's key kept somewhere else,
+      and now and then a copy of a backup taken off the VM (the runbook has the commands): the
+      application does neither. (d) Whether the key next to the code on the dev PC still opens
+      the 22 older encrypted backups there is not known.
 56. **Small things from the same review.**
     - ~~*The Socket.IO channel carries nothing.* `send_notification_to_user`,
       `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
@@ -670,6 +752,24 @@ believed the application did.
       rewrote by comparing line counts with `HEAD`, so a rewrite of a line that is already part
       of the commit is not listed. The rule should be off (a `#378` at the start of a line is
       plain text in Markdown) and the list should compare contents.~~ **Closed by #395.**
+    - *Found on 2026-11-16 with the backup work (#407), and not fixed:*
+      - *A translation that reads the same as its key is shown as the key.* `t()` in
+        `LanguageContext.tsx` takes a value equal to the key's last part for "not found", so
+        `utils.created` ("created") showed as `utils.created:` in English. `updated`,
+        `warnings` and `errors` in `en/utils.js` are the same case. The backup list got a key
+        of its own; `t()` should ask i18next whether the key exists.
+      - *`hideLegacyDatabaseTools` shows the tools.* `DevToolsPanel` reads the prop as
+        "visible"; the Control Panel passes it and gets them shown, which is what the page
+        needs. The name is the wrong way round.
+      - *Two backup folders.* The Database panel keeps its own backups in
+        `BACKUPS_DIR/postgres` (`pg_dump --clean` where it is installed), apart from Manage
+        Backups (`BACKUPS_DIR/database`); the automatic backup's retention does not look there.
+      - *No backup before a migration.* An update that changes the database leaves every
+        earlier PostgreSQL backup restorable only with the earlier release. A backup made by
+        the application right before it applies a migration would close that gap (the rows
+        the v1.18.70 migration changed were saved by hand).
+      - *`/admin/restore-encrypted-backup` has no caller any more* (the page restored through
+        it until #407). Remove it or keep it (the owner's call).
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

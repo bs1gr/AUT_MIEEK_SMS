@@ -166,6 +166,19 @@ class Settings(BaseSettings):
     # path — see _DEFAULT_BACKUPS_DIR above.
     BACKUPS_DIR: str = _DEFAULT_BACKUPS_DIR
 
+    # The automatic database backup (services/database_backup.py). Every real server checks
+    # once an hour whether its newest automatic backup is older than the interval and makes an
+    # encrypted one in BACKUPS_DIR/database if so; the newest AUTO_BACKUP_KEEP are kept.
+    # Backups made by hand are never removed by it.
+    AUTO_BACKUP_ENABLED: bool = True
+    AUTO_BACKUP_INTERVAL_HOURS: int = 24
+    AUTO_BACKUP_KEEP: int = 30
+
+    # Where the key that encrypts backups is kept (master.key). It must outlive an update of
+    # the application, or every earlier encrypted backup becomes unreadable. Empty = the
+    # default for the edition, see services/encryption_service.default_key_dir().
+    BACKUP_KEYS_DIR: str = ""
+
     # API Pagination
     DEFAULT_PAGE_SIZE: int = 100
     MAX_PAGE_SIZE: int = 1000

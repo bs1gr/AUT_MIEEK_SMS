@@ -158,6 +158,16 @@ if 'SECRET_KEY' not in os.environ:
             print(f"WARNING: Failed to persist SECRET_KEY ({e}); generating an in-memory one for this run only", file=sys.stderr)
             os.environ['SECRET_KEY'] = secrets.token_urlsafe(48)
 
+# The key that encrypts backups goes with the other per-installation secret, in the user's
+# profile. Its old place was next to the code, which here is the program folder (_internal):
+# an update replaces that folder, and under "Program Files" a normal user cannot write to it.
+# A key already there is copied over at the first use (encryption_service._adopt_legacy_key).
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    os.environ.setdefault(
+        'BACKUP_KEYS_DIR',
+        str(Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets' / 'backup-keys'),
+    )
+
 
 # ---------------------------------------------------------------------------
 # Lite-mode auto-shutdown state

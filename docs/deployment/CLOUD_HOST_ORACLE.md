@@ -155,6 +155,26 @@ and run `up -d` again.
 - Each host runs its own scheduled jobs (export clean-up, course activation). They are safe to
   run twice.
 
+## Backups
+
+The VM makes one encrypted backup of the shared database a day and keeps the newest 30
+([what it does and how to restore](../admin/BACKUP_AND_RESTORE.md)). Backups and their key are on
+the data volume, so they outlive a rebuild of the image. This is the copy of the database that
+is not on the NAS; it is also only on the VM until somebody fetches one.
+
+```bash
+# What is there, and what the server said about it
+sudo docker exec sms-cloud ls -la /data/backups/database
+sudo docker logs sms-cloud 2>&1 | grep "Automatic database backup"
+
+# A copy for another machine: the newest backup, and (once) the key
+sudo docker cp sms-cloud:/data/backups/database ./sms-backups
+sudo docker cp sms-cloud:/data/.keys/master.key ./sms-master.key
+```
+
+Keep the key apart from the backups. `AUTO_BACKUP_ENABLED=false` in `.env` switches the backup
+off (the page then says so).
+
 ## Updating the VM
 
 ```bash

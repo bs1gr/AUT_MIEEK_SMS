@@ -268,3 +268,101 @@ def test_the_backup_file_is_also_valid_input_for_psql(conn, schema, backup_dir):
 
     assert completed.returncode == 0, completed.stderr.decode(errors="replace")
     assert _snapshot(conn) == before
+
+
+# --- a backup taken while the database is in use (2026-11-16) ------------------------------
+#
+# The automatic backup runs while people work. Each COPY used to see the database as it was
+# when that COPY started, and the id counters were read before any row.
+
+
+def test_rows_saved_while_the_backup_runs_do_not_make_it_unrestorable(conn, schema, backup_dir, monkeypatch):
+    before = _snapshot(conn)
+    real_table_columns = database_manager._table_columns
+    saved: list[int] = []
+
+    def table_columns_then_somebody_saves(backup_conn, table):
+        columns = real_table_columns(backup_conn, table)
+        if table == "students" and not saved:
+            # "users" has been copied and "students" is next: a new user and a student of
+            # theirs are saved now. Copied at this moment, the student would be in the backup
+            # without the user it points at, and the foreign key would refuse the restore.
+            conn.execute("INSERT INTO users (email, role) VALUES ('late@example.com', 'teacher')")
+            conn.execute("INSERT INTO students (full_name, user_id) VALUES ('Saved during the backup', 3)")
+            saved.append(1)
+        return columns
+
+    monkeypatch.setattr(database_manager, "_table_columns", table_columns_then_somebody_saves)
+
+    result = _backup(backup_dir)
+
+    assert saved, "the save in the middle of the backup did not happen; the test proves nothing"
+    assert result["rows"] == 5, "the backup is one snapshot: the two rows saved meanwhile are not in it"
+
+    restore = database_manager.restore_sql_content(
+        _instance(), (backup_dir / result["filename"]).read_text(encoding="utf-8")
+    )
+    assert restore["success"] is True, restore.get("error")
+    assert _snapshot(conn) == before
+
+    # The counters are read after the rows, so they are past every id that existed while the
+    # backup ran - the restored database cannot hand out an id twice.
+    new_id = conn.execute("INSERT INTO users (email) VALUES ('after@example.com') RETURNING id").fetchone()[0]
+    assert new_id == 4
+
+
+# --- pg_dump scripts through psql: all of it, or none of it (2026-11-16) -------------------
+#
+# psql ran without ON_ERROR_STOP and outside a transaction. A plain pg_dump script applied to a
+# database that has the tables failed at every CREATE TABLE and COPY, restored nothing, then
+# ran its setval() lines - and the answer was "success" (seen on PostgreSQL 14 with the Docker
+# image: the next new row collided with an existing id).
+
+
+def _needs_psql():
+    import shutil
+
+    if not shutil.which("psql"):
+        pytest.skip("psql is not installed on this machine")
+
+
+def test_a_script_psql_cannot_apply_changes_nothing_and_says_so(conn, schema):
+    _needs_psql()
+    before = _snapshot(conn)
+    counter_before = conn.execute("SELECT last_value FROM users_id_seq").fetchone()[0]
+
+    # The shape of a plain pg_dump script on a database that already has its tables.
+    script = (
+        "CREATE TABLE users (id integer);\n"
+        "DELETE FROM students;\n"
+        "SELECT pg_catalog.setval('users_id_seq', 1, true);\n"
+    )
+
+    result = database_manager._restore_via_psql(_instance(), script)
+
+    assert result["success"] is False
+    assert "nothing was changed" in result["error"]
+    assert "already exists" in result["error"]
+    assert _snapshot(conn) == before
+    assert conn.execute("SELECT last_value FROM users_id_seq").fetchone()[0] == counter_before
+
+
+def test_a_script_that_fails_halfway_is_rolled_back(conn, schema):
+    _needs_psql()
+    before = _snapshot(conn)
+
+    result = database_manager._restore_via_psql(_instance(), "DELETE FROM students;\nSELECT 1/0;\n")
+
+    assert result["success"] is False
+    assert _snapshot(conn) == before, "the DELETE before the error must not survive"
+
+
+def test_a_script_psql_can_apply_is_applied(conn, schema):
+    _needs_psql()
+
+    result = database_manager._restore_via_psql(
+        _instance(), "DELETE FROM students WHERE full_name = 'Nobody';\n"
+    )
+
+    assert result["success"] is True, result.get("stderr")
+    assert conn.execute("SELECT count(*) FROM students").fetchone()[0] == 2

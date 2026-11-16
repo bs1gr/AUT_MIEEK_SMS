@@ -7,6 +7,7 @@ Runs maintenance tasks at regular intervals.
 
 import logging
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 from backend.db import SessionLocal
 from backend.services.import_export_service import ImportExportService
@@ -209,6 +210,56 @@ class MaintenanceScheduler:
 
         except Exception as e:
             logger.error(f"Failed to schedule cleanup: {e}")
+
+    def schedule_automatic_backup(self, first_check_after_seconds: int = 60) -> bool:
+        """Check once an hour whether the automatic database backup is due.
+
+        The check, not the backup, runs hourly: `run_automatic_backup` makes one only when the
+        newest automatic backup is older than AUTO_BACKUP_INTERVAL_HOURS. The first check
+        comes a minute after the start, so an edition that is only up while somebody works
+        with it still gets its backup, and a start is not slowed down by it.
+
+        Returns True when the job was scheduled.
+        """
+        from backend.config import get_settings
+        from backend.services.database_backup import run_automatic_backup
+
+        settings = get_settings()
+        if not getattr(settings, "AUTO_BACKUP_ENABLED", True):
+            logger.warning(
+                "Automatic database backup is switched off (AUTO_BACKUP_ENABLED=false): "
+                "a backup exists only when somebody makes one"
+            )
+            return False
+
+        if not self.export_scheduler.is_available():
+            logger.warning("Cannot schedule the automatic database backup: scheduler not available")
+            return False
+
+        try:
+            from apscheduler.triggers.interval import IntervalTrigger
+
+            self.export_scheduler.scheduler.add_job(
+                run_automatic_backup,
+                trigger=IntervalTrigger(hours=1),
+                next_run_time=datetime.now(timezone.utc) + timedelta(seconds=first_check_after_seconds),
+                id="automatic_database_backup",
+                name="Automatic database backup (hourly check)",
+                replace_existing=True,
+                max_instances=1,
+                coalesce=True,
+                misfire_grace_time=3600,
+            )
+            logger.info(
+                "Automatic database backup scheduled: every %s h, the newest %s kept, in %s",
+                getattr(settings, "AUTO_BACKUP_INTERVAL_HOURS", 24),
+                getattr(settings, "AUTO_BACKUP_KEEP", 30),
+                str(Path(settings.BACKUPS_DIR) / "database"),
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to schedule the automatic database backup: {e}")
+            return False
 
 
 # Global maintenance scheduler instance

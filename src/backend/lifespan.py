@@ -153,6 +153,9 @@ def get_lifespan():
                 scheduler.start_report_scheduler()
                 scheduler.start_course_activation_scheduler()
                 scheduler.schedule_cleanup_task(frequency="daily")
+                # The daily backup of the database. Like the rest of this block it belongs to a
+                # real server: a test run must never dump the database its .env points at.
+                scheduler.schedule_automatic_backup()
                 logging.getLogger(__name__).info(
                     "✅ Export/report/course-activation schedulers and maintenance tasks started"
                 )

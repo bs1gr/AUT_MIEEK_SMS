@@ -154,7 +154,7 @@ async def get_user_guide(language: str = "en"):
                     "✓ Grades &amp; Performance Analysis<br/>"
                     "✓ Custom Reports &amp; Exports<br/>"
                     "✓ Multi-Language Support (EN/EL)<br/>"
-                    "✓ Auto-Save &amp; Data Backup<br/>"
+                    "✓ Auto-Save &amp; Automatic Daily Backup<br/>"
                     "✓ Real-Time Analytics Dashboard",
                     body_style,
                 )
