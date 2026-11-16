@@ -6,7 +6,19 @@ DISABLE_STARTUP_TASKS
 
 - Type: boolean ("1"/"0")
 - Default: not set
-- Purpose: When set to `1`, the FastAPI lifespan skips everything a real server does at startup: the migrations, the RBAC defaults, the admin bootstrap, the purge of dead refresh tokens, loading the saved SMTP settings, and starting the background schedulers (export cleanup, scheduled reports, course activation). Intended for tests and CI to avoid startup side-effects; a test run (pytest) gets the same without setting it. Do not set it on a real server: scheduled reports and saved mail settings would not work.
+- Purpose: When set to `1`, the FastAPI lifespan skips everything a real server does at startup: the migrations, the RBAC defaults, the admin bootstrap, the purge of dead refresh tokens, loading the saved SMTP settings, and starting the background schedulers (export cleanup, scheduled reports, course activation, the automatic database backup). Intended for tests and CI to avoid startup side-effects; a test run (pytest) gets the same without setting it. Do not set it on a real server: scheduled reports and saved mail settings would not work.
+
+AUTO_BACKUP_ENABLED, AUTO_BACKUP_INTERVAL_HOURS, AUTO_BACKUP_KEEP
+
+- Type: boolean / integer / integer
+- Default: `true` / `24` / `30`
+- Purpose: The automatic database backup. Every real server checks one minute after its start and then hourly whether its newest automatic backup (`auto_backup_*.enc` in `BACKUPS_DIR/database`) is older than the interval, and makes an encrypted one if so; the newest `AUTO_BACKUP_KEEP` are kept and backups made by hand are never removed. Not done in a test run or with `DISABLE_STARTUP_TASKS`. See `docs/admin/BACKUP_AND_RESTORE.md`.
+
+BACKUP_KEYS_DIR
+
+- Type: path
+- Default: empty = `/data/.keys` in Docker (the data volume), next to the code (`src/.keys`) from source; SMS Lite sets it to `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\backup-keys`
+- Purpose: The folder that holds `master.key`, the key every encrypted backup of this installation is made with. It must outlive an update of the application: an encrypted backup opens only with the key it was made with. A key found in the old place (next to the code) is copied over at first use.
 
 CONTROL_API_ALLOW_TASKKILL
 

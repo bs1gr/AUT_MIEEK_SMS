@@ -2,24 +2,23 @@ from __future__ import annotations
 
 import logging
 import os
-import shutil
-import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import unquote, urlparse
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.config import get_settings
 from backend.control_auth import require_control_admin
 from backend.errors import ErrorCode, http_error
+from backend.services import database_backup
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
 
 from .common import (
-    _hidden_window_kwargs,
     check_docker_running,
     check_npm_installed,
     create_unique_volume,
@@ -295,7 +294,9 @@ async def create_database_backup(
     """
     Create a new database backup.
 
-    Supports PostgreSQL (`pg_dump`) and SQLite (consistent file snapshot).
+    Supports PostgreSQL (`pg_dump`, or the data-only backup the application restores itself
+    when the client tools are missing) and SQLite (consistent file snapshot). The work is in
+    `backend.services.database_backup`, which the automatic backup uses as well.
 
     Args:
         encrypt: Whether to encrypt the backup with AES-256-GCM (default: True)
@@ -304,318 +305,35 @@ async def create_database_backup(
         OperationResult with backup details including encryption status
 
     Raises:
-        400: If database URL is unsupported
-        500: If pg_dump fails or PostgreSQL client tools not installed
+        400: If the database cannot be backed up this way (unsupported URL, in-memory SQLite)
+        500: If the backup fails
     """
     try:
-        settings = get_settings()
-        db_url = settings.DATABASE_URL
-
-        # Create backups directory
-        project_root = Path(__file__).resolve().parents[3]
-        backup_dir = Path(settings.BACKUPS_DIR) / "database"
-        backup_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        # ============================================================================
-        # POSTGRESQL BACKUP
-        # ============================================================================
-        if db_url.startswith("postgresql"):
-            parsed = urlparse(db_url)
-
-            # Extract connection details
-            pg_host = parsed.hostname or "localhost"
-            pg_port = parsed.port or 5432
-            pg_user = unquote(parsed.username) if parsed.username else None
-            pg_password = unquote(parsed.password) if parsed.password else None
-            pg_database = parsed.path.lstrip("/")
-
-            if not pg_user:
-                raise http_error(
-                    400,
-                    ErrorCode.BAD_REQUEST,
-                    "PostgreSQL username missing in DATABASE_URL",
-                    request,
-                )
-
-            backup_filename = f"backup_{timestamp}.sql"
-            backup_path = backup_dir / backup_filename
-
-            # Build pg_dump command
-            pg_dump_cmd = [
-                "pg_dump",
-                "-h",
-                pg_host,
-                "-p",
-                str(pg_port),
-                "-U",
-                str(pg_user),
-                "-d",
-                pg_database,
-                "-F",
-                "p",  # Plain SQL text (readable when unencrypted)
-                "-f",
-                str(backup_path),
-            ]
-
-            # Set password via environment variable
-            env = os.environ.copy()
-            if pg_password:
-                env["PGPASSWORD"] = pg_password
-
-            try:
-                backup_method = "pg_dump"
-                if shutil.which("pg_dump"):
-                    result = subprocess.run(
-                        pg_dump_cmd,
-                        env=env,
-                        capture_output=True,
-                        text=True,
-                        timeout=300,  # 5 minutes timeout
-                        **_hidden_window_kwargs(),
-                    )
-
-                    if result.returncode != 0:
-                        raise Exception(f"pg_dump failed: {result.stderr}")
-                else:
-                    # Fallback for environments without PostgreSQL client tools.
-                    logger.warning("pg_dump not found. Falling back to psycopg backup export.")
-                    from backend.services.database_manager import (
-                        create_backup as create_postgres_backup,
-                        get_backup_path as get_postgres_backup_path,
-                    )
-
-                    fallback_result = create_postgres_backup(
-                        {
-                            "name": "primary",
-                            "host": pg_host,
-                            "port": pg_port,
-                            "user": pg_user,
-                            "password": pg_password or "",
-                            "dbname": pg_database,
-                            "sslmode": dict(
-                                item.split("=", 1) for item in (parsed.query or "").split("&") if "=" in item
-                            ).get("sslmode", "prefer"),
-                        },
-                        compress=False,
-                    )
-                    fallback_filename = str(fallback_result.get("filename", ""))
-                    fallback_path = get_postgres_backup_path(fallback_filename) if fallback_filename else None
-                    if fallback_path is None or not fallback_path.exists():
-                        raise RuntimeError("PostgreSQL fallback backup did not produce an output file")
-                    shutil.copy2(fallback_path, backup_path)
-                    (fallback_path.parent / f"{fallback_path.name}.meta.json").unlink(missing_ok=True)
-                    fallback_path.unlink(missing_ok=True)
-                    backup_method = str(fallback_result.get("method") or "psycopg_copy")
-
-                file_size = backup_path.stat().st_size
-
-                # Say what was actually produced. This used to report "PostgreSQL backup created
-                # successfully" in every case, when without pg_dump the file was a CSV export
-                # nothing could restore. Both paths are restorable now: the psycopg path writes a
-                # data-only COPY-format backup the app restores itself, and the restore endpoint
-                # below accepts PostgreSQL backups as well as SQLite ones.
-                if backup_method == "psycopg_copy":
-                    pg_kind = "PostgreSQL data-only backup"
-                    pg_warning = (
-                        "It carries table data, not the schema, which Alembic owns: restore it into "
-                        "a database at the same migration revision. Restorable here or with psql."
-                    )
-                    pg_restorable_in_app = True
-                else:
-                    pg_kind = "PostgreSQL backup (pg_dump)"
-                    pg_restorable_in_app = shutil.which("psql") is not None
-                    pg_warning = (
-                        "Restorable here or with psql."
-                        if pg_restorable_in_app
-                        else "Restoring a pg_dump backup needs psql, which is not installed here."
-                    )
-
-                if encrypt:
-                    # Encrypt the SQL dump
-                    backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
-                    backup_name = f"backup_{timestamp}"
-
-                    backup_info = backup_service.create_encrypted_backup(
-                        source_path=backup_path,
-                        backup_name=backup_name,
-                        metadata={
-                            "database_type": "postgresql",
-                            "database_host": pg_host,
-                            "database_name": pg_database,
-                            "backup_method": backup_method,
-                            "encryption_enabled": True,
-                        },
-                    )
-
-                    # Remove unencrypted dump (best effort; do not fail backup on transient lock)
-                    try:
-                        backup_path.unlink()
-                    except PermissionError:
-                        logger.warning("Could not remove temporary PostgreSQL dump due to file lock: %s", backup_path)
-
-                    return OperationResult(
-                        success=True,
-                        message=f"Encrypted {pg_kind} created. {pg_warning}",
-                        details={
-                            "filename": f"{backup_name}.enc",
-                            "path": backup_info["backup_path"],
-                            "original_size": backup_info["original_size"],
-                            "encrypted_size": backup_info["encrypted_size"],
-                            "encryption": "AES-256-GCM",
-                            "timestamp": timestamp,
-                            "compression_ratio": backup_info["compression_ratio"],
-                            "database_type": "postgresql",
-                            "backup_method": backup_method,
-                            "restorable_in_app": pg_restorable_in_app,
-                            "warning": pg_warning,
-                        },
-                    )
-                else:
-                    return OperationResult(
-                        success=True,
-                        message=f"{pg_kind} created. {pg_warning}",
-                        details={
-                            "filename": backup_filename,
-                            "path": str(backup_path),
-                            "size": file_size,
-                            "timestamp": timestamp,
-                            "encryption": None,
-                            "backup_method": backup_method,
-                            "database_type": "postgresql",
-                            "restorable_in_app": pg_restorable_in_app,
-                            "warning": pg_warning,
-                        },
-                    )
-
-            except subprocess.TimeoutExpired:
-                raise http_error(
-                    500,
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "PostgreSQL backup timed out after 5 minutes",
-                    request,
-                )
-            except FileNotFoundError:
-                raise http_error(
-                    500,
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "PostgreSQL backup tooling is unavailable and fallback export failed.",
-                    request,
-                )
-
-        # Handle SQLite backups
-        elif db_url.startswith("sqlite"):
-            import sqlite3
-
-            parsed = urlparse(db_url)
-            if db_url.endswith(":memory:") or parsed.path in (":memory:", "/:memory:"):
-                raise http_error(
-                    400,
-                    ErrorCode.BAD_REQUEST,
-                    "Cannot create file backup from in-memory SQLite database",
-                    request,
-                )
-
-            db_path_str = parsed.path or ""
-            # sqlite:///C:/... may parse as /C:/... on Windows
-            if len(db_path_str) >= 3 and db_path_str[0] == "/" and db_path_str[2] == ":":
-                db_path_str = db_path_str[1:]
-
-            db_path = Path(db_path_str)
-            if not db_path.is_absolute():
-                db_path = (project_root / db_path).resolve()
-
-            if not db_path.exists():
-                raise http_error(
-                    400,
-                    ErrorCode.BAD_REQUEST,
-                    f"SQLite database file not found: {db_path}",
-                    request,
-                )
-
-            backup_filename = f"backup_{timestamp}.db"
-            backup_path = backup_dir / backup_filename
-
-            # Use SQLite online backup API for a consistent snapshot (WAL-safe)
-            with sqlite3.connect(str(db_path)) as source_conn, sqlite3.connect(str(backup_path)) as target_conn:
-                source_conn.backup(target_conn)
-
-            file_size = backup_path.stat().st_size
-
-            if encrypt:
-                backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
-                backup_name = f"backup_{timestamp}"
-
-                backup_info = backup_service.create_encrypted_backup(
-                    source_path=backup_path,
-                    backup_name=backup_name,
-                    metadata={
-                        "database_type": "sqlite",
-                        "database_path": str(db_path),
-                        "backup_method": "sqlite_backup_api",
-                        "encryption_enabled": True,
-                    },
-                )
-
-                # Best effort cleanup on Windows where file handles can linger briefly
-                try:
-                    backup_path.unlink(missing_ok=True)
-                except PermissionError:
-                    logger.warning("Could not remove temporary SQLite dump due to file lock: %s", backup_path)
-
-                return OperationResult(
-                    success=True,
-                    message="Encrypted SQLite backup created successfully",
-                    details={
-                        "filename": f"{backup_name}.enc",
-                        "path": backup_info["backup_path"],
-                        "original_size": backup_info["original_size"],
-                        "encrypted_size": backup_info["encrypted_size"],
-                        "encryption": "AES-256-GCM",
-                        "timestamp": timestamp,
-                        "compression_ratio": backup_info["compression_ratio"],
-                        "database_type": "sqlite",
-                    },
-                )
-
-            return OperationResult(
-                success=True,
-                message="SQLite backup created successfully",
-                details={
-                    "filename": backup_filename,
-                    "path": str(backup_path),
-                    "size": file_size,
-                    "timestamp": timestamp,
-                    "encryption": None,
-                    "database_type": "sqlite",
-                },
-            )
-        else:
-            raise http_error(
-                400,
-                ErrorCode.BAD_REQUEST,
-                f"Unsupported database type: {db_url.split(':')[0]}. Supported types: postgresql, sqlite.",
-                request,
-            )
-
-    except HTTPException:
-        raise
+        # A dump can take a while (pg_dump over the network): not on the event loop.
+        result = await run_in_threadpool(database_backup.create_database_backup, encrypt=encrypt)
+    except database_backup.DatabaseBackupError as exc:
+        code = ErrorCode.BAD_REQUEST if exc.status_code == 400 else ErrorCode.INTERNAL_SERVER_ERROR
+        raise http_error(exc.status_code, code, exc.message, request) from exc
     except Exception as exc:
+        # The reason goes to the log: the answer does not carry it, and until now nothing
+        # did (a backup that failed left "Status: 500" and no cause).
+        logger.exception("Database backup failed")
         raise http_error(
             500,
             ErrorCode.INTERNAL_SERVER_ERROR,
             "Failed to create database backup",
             request,
         ) from exc
+    return OperationResult(success=True, message=result["message"], details=result["details"])
 
 
 @router.get("/operations/database-backups")
 async def list_database_backups(request: Request, _auth=Depends(require_control_admin)):
     backup_dir = Path(get_settings().BACKUPS_DIR) / "database"
+    # What the automatic backup is set to and when it last ran, for the same page.
+    automatic = database_backup.automatic_backup_status(backup_dir)
     if not backup_dir.exists():
-        return {"backups": [], "message": "No backups directory found"}
+        return {"backups": [], "message": "No backups directory found", "automatic": automatic}
     backups = []
     backup_files = _list_backup_files(backup_dir)
     for backup_file in sorted(backup_files, key=lambda f: f.stat().st_mtime, reverse=True):
@@ -625,10 +343,12 @@ async def list_database_backups(request: Request, _auth=Depends(require_control_
                 "filename": backup_file.name,
                 "path": str(backup_file),
                 "size": stat.st_size,
-                "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                # With the UTC offset: a bare time was read by the browser as its own local
+                # time, so a backup made on a server running on UTC showed hours early.
+                "created": database_backup.file_time_iso(backup_file),
             }
         )
-    return {"backups": backups, "total": len(backups)}
+    return {"backups": backups, "total": len(backups), "automatic": automatic}
 
 
 @router.get("/operations/database-backups/{backup_filename:path}/download")
@@ -1033,12 +753,17 @@ def _restore_postgres_backup(request: Request, backup_path: Path, backup_filenam
             context={"filename": backup_filename},
         )
 
+    if result.get("method") == "psql":
+        # psql does not count rows; "0 rows across 0 tables" was what a failed one said too.
+        message = "PostgreSQL backup (a pg_dump script) applied with psql, in one transaction."
+    else:
+        message = (
+            f"PostgreSQL backup restored: {result.get('rows', 0)} rows across {result.get('tables', 0)} tables."
+        )
+
     return OperationResult(
         success=True,
-        message=(
-            f"PostgreSQL backup restored: {result.get('rows', 0)} rows across "
-            f"{result.get('tables', 0)} tables."
-        ),
+        message=message,
         details={
             "filename": backup_filename,
             "database_type": "postgresql",

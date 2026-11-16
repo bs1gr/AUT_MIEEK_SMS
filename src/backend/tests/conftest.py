@@ -65,6 +65,16 @@ from backend.tests.db_setup import TestingSessionLocal, engine
 # Import ORM Base for schema creation
 from backend.models import Base
 
+# Load the settings now, while the tests are being collected. In a tree without backend/.env
+# (a fresh clone) the settings get a generated SECRET_KEY when they are first loaded under
+# pytest - but only outside a running test: with PYTEST_CURRENT_TEST set, the placeholder key
+# is refused on purpose (the tests of that refusal rely on it). When no test module of a run
+# imported backend.config while it was collected, the first import happened inside the
+# `client` fixture and every test that uses it failed with "SECRET_KEY SECURITY ISSUE". Which
+# files share a batch is alphabetical, so adding one test file could turn a whole batch red
+# (batch 11 of 33, 57 errors, on 2026-11-16).
+import backend.config  # noqa: F401,E402
+
 from backend.tests.process_state import restored_process_state
 
 # CRITICAL: Create all database tables at module load time

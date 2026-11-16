@@ -368,6 +368,18 @@ def create_backup(instance: dict[str, Any], *, compress: bool = True) -> dict[st
         return _backup_via_psycopg(instance, backup_dir, timestamp, compress)
 
 
+def create_data_only_backup(instance: dict[str, Any], *, compress: bool = False) -> dict[str, Any]:
+    """Create a backup in this module's own data-only format, whether or not pg_dump is installed.
+
+    This is the format the application restores by itself, in one transaction, with every
+    name checked against the live catalog (`_restore_via_psycopg`). The application's own
+    backups (Operations, and the automatic one) use it on every edition: a pg_dump script can
+    only be applied by psql, and only to a database that does not have the tables yet.
+    """
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    return _backup_via_psycopg(instance, _get_backup_dir(), timestamp, compress)
+
+
 def _backup_via_pg_dump(
     instance: dict[str, Any],
     backup_dir: Path,
@@ -568,9 +580,15 @@ def _backup_via_psycopg(
         open_fn = gzip.open if compress else open
         row_counts: dict[str, int] = {}
         with psycopg.connect(_build_dsn(instance)) as conn:
+            # One snapshot for the whole backup. At the default level every COPY sees the
+            # database as it is when that COPY starts, so a row saved while the backup runs
+            # can land in a child table without its parent - and such a backup cannot be
+            # restored (the foreign key refuses it). Read-only: a backup changes nothing.
+            conn.isolation_level = psycopg.IsolationLevel.REPEATABLE_READ
+            conn.read_only = True
+
             tables = _fk_dependency_order(conn, _public_tables(conn))
             revision = _alembic_revision(conn)
-            sequences = _sequence_states(conn)
 
             with open_fn(filepath, "wb") as f:  # type: ignore[call-overload]
 
@@ -616,6 +634,10 @@ def _backup_via_psycopg(
                     emit("\\.\n")
                     row_counts[table_name] = rows
 
+                # Read after the rows, not before. A sequence is not part of the snapshot:
+                # read last, its value is at least as high as every id in the rows above, so
+                # a restored database never hands out an id that a restored row already has.
+                sequences = _sequence_states(conn)
                 if sequences:
                     emit("\n")
                     for seq_name, last_value, is_called in sequences:
@@ -962,7 +984,17 @@ def _restore_via_psycopg(instance: dict[str, Any], content: str) -> dict[str, An
 
 
 def _restore_via_psql(instance: dict[str, Any], sql: str) -> dict[str, Any]:
-    """Restore using psql subprocess."""
+    """Apply a pg_dump script with psql: all of it, or none of it.
+
+    psql used to run without ON_ERROR_STOP, so it carried on after every error and exited 0.
+    Applied to a database that already has the tables (any running installation), a plain
+    pg_dump script failed at each CREATE TABLE and each COPY, restored nothing, then ran its
+    setval() lines and set every id counter back to the backup's value - under rows that were
+    still there. The answer was "success", and the next new row collided with an existing id.
+    Seen on PostgreSQL 14 with the Docker image, 2026-11-16.
+
+    Now the first error stops the script and the single transaction is rolled back.
+    """
     env = os.environ.copy()
     env["PGPASSWORD"] = instance.get("password", "")
 
@@ -977,6 +1009,14 @@ def _restore_via_psql(instance: dict[str, Any], sql: str) -> dict[str, Any]:
         "-d",
         instance["dbname"],
         "--quiet",
+        "--no-psqlrc",
+        "--set",
+        "ON_ERROR_STOP=1",
+        # --single-transaction only applies to -f/-c input, so the script is read as a file
+        # from standard input ("-f -"), not as plain standard input.
+        "--single-transaction",
+        "-f",
+        "-",
     ]
 
     result = subprocess.run(
@@ -987,12 +1027,23 @@ def _restore_via_psql(instance: dict[str, Any], sql: str) -> dict[str, Any]:
         timeout=600,
     )
 
-    return {
-        "success": result.returncode == 0,
-        "method": "psql",
-        "stdout": result.stdout.decode(errors="replace")[:2000],
-        "stderr": result.stderr.decode(errors="replace")[:2000],
-    }
+    stdout = result.stdout.decode(errors="replace")[:2000]
+    stderr = result.stderr.decode(errors="replace")[:2000]
+    if result.returncode != 0:
+        first_error = next((line.strip() for line in stderr.splitlines() if "ERROR" in line), stderr.strip()[:300])
+        return {
+            "success": False,
+            "method": "psql",
+            "stdout": stdout,
+            "stderr": stderr,
+            "error": (
+                "This is a pg_dump script and psql could not apply it; nothing was changed. "
+                "A script made without --clean creates the tables itself, so it only goes into "
+                f"an empty database. psql said: {first_error}"
+            ),
+        }
+
+    return {"success": True, "method": "psql", "stdout": stdout, "stderr": stderr}
 
 
 # ---------------------------------------------------------------------------

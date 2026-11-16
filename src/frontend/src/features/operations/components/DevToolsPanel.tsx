@@ -16,7 +16,6 @@ import DevToolsOperationsMonitor from './DevToolsOperationsMonitor';
 import DevToolsDatabaseTools from './DevToolsDatabaseTools';
 import DevToolsClearCard from './DevToolsClearCard';
 import DevToolsImportCard from './DevToolsImportCard';
-import { RAW_API_BASE } from './devToolsBackendUrl';
 import { downloadBlob } from '@/utils/downloadFile';
 
 type ToastState = { message: string; type: 'success' | 'error' | 'info' };
@@ -28,6 +27,8 @@ export type HealthStatus = {
   uptime?: number;
   database?: string;
   db?: string;
+  /** `checks.database.dialect` is the engine ("sqlite", "postgresql"); `database` is only "connected". */
+  checks?: { database?: { dialect?: string } };
   statistics?: {
     students?: number;
     courses?: number;
@@ -54,6 +55,16 @@ type ImportType = 'courses' | 'students';
 type ClearScope = 'all' | 'data_only';
 type BackupMode = 'encrypted' | 'unencrypted';
 export type BackupItem = { filename: string; path: string; size: number; created: string };
+/** What the server says about its automatic backup (GET /operations/database-backups). */
+export type AutomaticBackupStatus = {
+  enabled: boolean;
+  interval_hours: number;
+  keep: number;
+  count: number;
+  last_backup: string | null;
+  last_backup_filename: string | null;
+  last_error: string | null;
+};
 
 export interface DevToolsPanelProps {
   variant?: DevToolsVariant;
@@ -93,6 +104,7 @@ const DevToolsPanel = ({
   // Backups management state
   const [backups, setBackups] = useState<BackupItem[] | null>(null);
   const [backupsLoading, setBackupsLoading] = useState(false);
+  const [automaticBackup, setAutomaticBackup] = useState<AutomaticBackupStatus | null>(null);
   // destination path field not currently used in this build
   const [selectedBackups, setSelectedBackups] = useState<Set<string>>(new Set());
   const selectAllBackupsRef = useRef<HTMLInputElement | null>(null);
@@ -118,7 +130,8 @@ const DevToolsPanel = ({
   }, [getBackupType, t]);
   const isRestorableBackupType = useCallback((filename: string) => {
     const type = getBackupType(filename);
-    return type === 'enc' || type === 'db';
+    // .sql too: it is what "Unencrypted" produces on PostgreSQL, and the server restores it.
+    return type === 'enc' || type === 'db' || type === 'sql';
   }, [getBackupType]);
   const allBackupsSelected = backupFilenames.length > 0 && selectedBackups.size === backupFilenames.length;
   const someBackupsSelected = selectedBackups.size > 0 && !allBackupsSelected;
@@ -318,8 +331,10 @@ const DevToolsPanel = ({
         credentials: 'include',
       });
       if (!res.ok) throw new Error(`Failed to load backups: ${res.status} ${res.statusText}`);
-      const data = (await res.json()) as { backups: BackupItem[] };
+      const data = (await res.json()) as { backups: BackupItem[]; automatic?: AutomaticBackupStatus | null };
       setBackups(Array.isArray(data?.backups) ? data.backups : []);
+      // Absent on a server older than the automatic backup: show nothing about it then.
+      setAutomaticBackup(data?.automatic && typeof data.automatic === 'object' ? data.automatic : null);
       // Reset selection when reloading list
       setSelectedBackups(new Set());
     } catch (error) {
@@ -520,98 +535,29 @@ const DevToolsPanel = ({
 
     setOpLoading(`restore-${filename}`);
     try {
-      const isEncrypted = filename.toLowerCase().endsWith('.enc');
+      // One request, for every kind of backup. The server opens an encrypted one itself and
+      // tells SQLite from PostgreSQL by the file's contents. Encrypted backups used to be
+      // decrypted into the browser and uploaded again as a ".db" file: the upload only takes
+      // SQLite files, so an encrypted PostgreSQL backup could not be restored from this page
+      // at all, and the readable copy stayed behind in the backups folder.
+      const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
+        method: 'POST',
+        headers: getControlHeaders({ 'Content-Type': 'application/json' }),
+        credentials: 'include',
+      });
 
-      if (isEncrypted) {
-        // For encrypted backups: decrypt, download decrypted file, then upload and restore
-        const backupName = filename.replace(/\.enc$/i, '');
-        const decryptResponse = await fetch(`${RAW_API_BASE}/admin/restore-encrypted-backup?backup_name=${encodeURIComponent(backupName)}&output_filename=decrypted_backup.db`, {
-          method: 'POST',
-          headers: getControlHeaders(),
-          credentials: 'include',
-        });
-
-        if (!decryptResponse.ok) {
-          const decryptError = await decryptResponse.json().catch(() => null);
-          const decryptMessage =
-            decryptError?.detail?.message ??
-            decryptError?.message ??
-            `Failed to decrypt backup: ${decryptResponse.status} ${decryptResponse.statusText}`;
-          throw new Error(decryptMessage);
-        }
-
-        // Get decrypted file as blob
-        const decryptedBlob = await decryptResponse.blob();
-        const decryptedFile = new File([decryptedBlob], 'decrypted_backup.db', { type: 'application/x-sqlite3' });
-
-        // Upload the decrypted file
-        const formData = new FormData();
-        formData.append('file', decryptedFile);
-
-        const uploadResponse = await fetch(`${CONTROL_API_BASE}/operations/database-upload`, {
-          method: 'POST',
-          headers: getControlHeaders(),
-          body: formData,
-          credentials: 'include',
-        });
-
-        if (!uploadResponse.ok) {
-          const uploadError = await uploadResponse.json().catch(() => null);
-          const uploadMessage =
-            uploadError?.detail?.message ??
-            uploadError?.message ??
-            `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`;
-          throw new Error(uploadMessage);
-        }
-
-        const uploadResult = await uploadResponse.json();
-        const uploadedFilename = uploadResult.details?.filename;
-
-        if (!uploadedFilename) {
-          throw new Error('Failed to get uploaded filename');
-        }
-
-        // Now restore the uploaded decrypted backup
-        const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(uploadedFilename)}`, {
-          method: 'POST',
-          headers: getControlHeaders({ 'Content-Type': 'application/json' }),
-          credentials: 'include',
-        });
-
-        if (!restoreResponse.ok) {
-          const restoreError = await restoreResponse.json().catch(() => null);
-          const restoreMessage =
-            restoreError?.detail?.message ??
-            restoreError?.message ??
-            `Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`;
-          throw new Error(restoreMessage);
-        }
-
-        const data = await restoreResponse.json();
-        setResult(withTimestamp('restore', { data }));
-        onToast({ message: data.message || t('utils.restoreSuccess') || 'Encrypted backup restored successfully', type: 'success' });
-      } else {
-        // For plain SQLite backups: restore directly
-        const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
-          method: 'POST',
-          headers: getControlHeaders({ 'Content-Type': 'application/json' }),
-          credentials: 'include',
-        });
-
-        if (!restoreResponse.ok) {
-          const restoreError = await restoreResponse.json().catch(() => null);
-          const restoreMessage =
-            restoreError?.detail?.message ??
-            restoreError?.message ??
-            `Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`;
-          throw new Error(restoreMessage);
-        }
-
-        const data = await restoreResponse.json();
-        setResult(withTimestamp('restore', { data }));
-        onToast({ message: data.message || t('utils.restoreSuccess') || 'Backup restored successfully', type: 'success' });
+      if (!restoreResponse.ok) {
+        const restoreError = await restoreResponse.json().catch(() => null);
+        const restoreMessage =
+          restoreError?.detail?.message ??
+          restoreError?.message ??
+          `Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`;
+        throw new Error(restoreMessage);
       }
 
+      const data = await restoreResponse.json();
+      setResult(withTimestamp('restore', { data }));
+      onToast({ message: data.message || t('utils.restoreSuccess') || 'Backup restored successfully', type: 'success' });
       await refreshAcademicData();
       void runHealthCheck(); // Refresh health
     } catch (error) {
@@ -773,6 +719,7 @@ const DevToolsPanel = ({
             theme={theme}
             t={t}
             backups={backups}
+            automaticBackup={automaticBackup}
             backupsLoading={backupsLoading}
             opLoading={opLoading}
             selectedBackups={selectedBackups}

@@ -123,7 +123,17 @@ export default {
     backupSqliteLabel: 'SQLite',
     backupSqlLabel: 'SQL',
     backupUnknownLabel: 'Backup',
-    restoreUnsupportedType: 'Restore from server is only supported for SQLite (.db) and encrypted (.enc) backups.',
+    backupAutomaticLabel: 'Automatic',
+    // Not `created` (above): that one's English text is its own key name, which the app's t()
+    // takes for "no translation", so the row showed "utils.created:".
+    backupCreated: 'Created',
+    autoBackupTitle: 'Automatic backup',
+    autoBackupSchedule: 'This server makes an encrypted backup by itself every {{hours}} hours while it is running, and keeps the newest {{keep}}. Backups you make yourself are never removed.',
+    autoBackupLast: 'Last automatic backup: {{date}}',
+    autoBackupNone: 'No automatic backup yet. The first one is made about a minute after the server starts.',
+    autoBackupDisabled: 'The automatic backup is switched off on this server (AUTO_BACKUP_ENABLED=false). A backup exists only when someone makes one.',
+    autoBackupFailed: 'The last automatic backup failed: {{error}}',
+    restoreUnsupportedType: 'Restore from server is supported for SQLite (.db), SQL (.sql) and encrypted (.enc) backups.',
     browse: 'Browse',
     savedSuccessfully: 'File saved successfully'
 };

@@ -26,7 +26,7 @@ def test_create_encrypted_backup_default(client, admin_token, tmp_path):
     engine.dispose()
 
     # Patch DATABASE_URL for this test
-    with patch("backend.routers.control.operations.get_settings") as mock_settings:
+    with patch("backend.services.database_backup.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
         mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
@@ -64,7 +64,7 @@ def test_create_unencrypted_backup(client, admin_token, tmp_path):
     engine.dispose()
 
     # Patch DATABASE_URL for this test
-    with patch("backend.routers.control.operations.get_settings") as mock_settings:
+    with patch("backend.services.database_backup.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
         mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
@@ -97,7 +97,7 @@ def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
     engine.dispose()
 
     # Patch DATABASE_URL for this test
-    with patch("backend.routers.control.operations.get_settings") as mock_settings:
+    with patch("backend.services.database_backup.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
         mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
@@ -129,7 +129,7 @@ def test_backup_encryption_details(client, admin_token, tmp_path):
     engine.dispose()
 
     # Patch DATABASE_URL for this test
-    with patch("backend.routers.control.operations.get_settings") as mock_settings:
+    with patch("backend.services.database_backup.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
         mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
@@ -166,7 +166,7 @@ def test_unencrypted_backup_no_encryption_details(client, admin_token, tmp_path)
     engine.dispose()
 
     # Patch DATABASE_URL for this test
-    with patch("backend.routers.control.operations.get_settings") as mock_settings:
+    with patch("backend.services.database_backup.get_settings") as mock_settings:
         mock_settings.return_value.DATABASE_URL = temp_db_url
         mock_settings.return_value.BACKUPS_DIR = str(tmp_path)
 
@@ -195,8 +195,20 @@ def test_backup_requires_authentication(client):
     assert response.status_code in (200, 400, 401, 404, 500)
 
 
-def test_postgres_backup_fallback_when_pg_dump_missing(client, admin_token, tmp_path, monkeypatch):
-    """Falls back to python/psycopg backup path when pg_dump is unavailable."""
+import pytest
+
+
+@pytest.mark.parametrize("pg_dump_installed", [False, True])
+def test_a_postgres_backup_is_data_only_with_or_without_pg_dump(
+    client, admin_token, tmp_path, monkeypatch, pg_dump_installed
+):
+    """The application's PostgreSQL backups are in the format it restores itself.
+
+    Where pg_dump was installed (the Docker editions, the cloud host) this used to write a
+    pg_dump script, which the application could not restore into the database it came from:
+    psql failed at every CREATE TABLE, restored nothing, and the answer was "success".
+    """
+    import subprocess
 
     class _MockSettings:
         DATABASE_URL = "postgresql://test_user:test%21pass@localhost:5432/test_db"
@@ -206,14 +218,22 @@ def test_postgres_backup_fallback_when_pg_dump_missing(client, admin_token, tmp_
     fallback_sql.write_text("-- fallback postgres backup", encoding="utf-8")
     captured_instance = {}
 
-    monkeypatch.setattr("backend.routers.control.operations.get_settings", lambda: _MockSettings())
-    monkeypatch.setattr("backend.routers.control.operations.shutil.which", lambda _: None)
+    monkeypatch.setattr("backend.services.database_backup.get_settings", lambda: _MockSettings())
+    monkeypatch.setattr(
+        "backend.services.database_backup.shutil.which",
+        lambda name: f"/usr/bin/{name}" if pg_dump_installed else None,
+    )
+
+    def _no_subprocess(*args, **kwargs):
+        raise AssertionError(f"no external program may be run for a backup: {args[0] if args else kwargs}")
+
+    monkeypatch.setattr(subprocess, "run", _no_subprocess)
 
     def _fake_create_backup(instance, compress=False):
         captured_instance.update(instance)
-        return {"filename": "fallback_postgres.sql", "method": "psycopg_copy"}
+        return {"filename": "fallback_postgres.sql", "method": "psycopg_copy", "tables": 3, "rows": 7}
 
-    monkeypatch.setattr("backend.services.database_manager.create_backup", _fake_create_backup)
+    monkeypatch.setattr("backend.services.database_manager.create_data_only_backup", _fake_create_backup)
     monkeypatch.setattr(
         "backend.services.database_manager.get_backup_path",
         lambda filename: fallback_sql if filename == "fallback_postgres.sql" else None,
@@ -239,3 +259,10 @@ def test_postgres_backup_fallback_when_pg_dump_missing(client, admin_token, tmp_
     assert "not the schema" in data["message"]
     assert data["details"]["restorable_in_app"] is True
     assert data["details"]["warning"]
+    assert data["details"]["rows"] == 7 and data["details"]["tables"] == 3
+    # The file is in the folder this page lists, under this page's name for it, and no longer
+    # in the Database panel's folder.
+    assert (tmp_path / "database" / data["details"]["filename"]).read_text(encoding="utf-8") == (
+        "-- fallback postgres backup"
+    )
+    assert not fallback_sql.exists()

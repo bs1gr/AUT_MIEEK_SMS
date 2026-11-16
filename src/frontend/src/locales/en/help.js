@@ -141,7 +141,7 @@ export default {
   // ===========================
   helpSystemManagement: '🏗️ System Management',
   helpHowToBackup: 'How do I back up my data?',
-  helpBackupAnswer: 'Automated backups happen daily. Manual backup:\n1. Go to Operations → Backups\n2. Click "Create Backup Now"\n3. Download the backup file\n4. Store safely (external drive, cloud)\n\n⚠️ Keep at least 2 backups in different locations.',
+  helpBackupAnswer: 'The system backs itself up: while it is running it makes one encrypted backup a day and keeps the newest 30. Each server keeps its own, on the machine it runs on.\n\nTo see them or make one yourself:\n1. Open System → Control Panel → Maintenance → System Operations\n2. "Manage Backups" lists them (the automatic ones are marked) and shows when the last one was made\n3. "Backup Database" makes one now; "Download" saves a copy\n4. Store copies somewhere else too (external drive, another computer)\n\n⚠️ An encrypted backup (.enc) opens only on the installation that made it. Keep at least 2 backups in different places.',
   helpHowToRestore: 'How do I restore from backup?',
   helpRestoreAnswer: '1. Go to Operations → Backups\n2. Click "Restore Backup"\n3. Upload the backup file\n4. Confirm restoration\n5. System reboots with restored data\n\n⚠️ Restoration overwrites current data. Backup first!',
   helpWhatIsSampleData: 'What is sample data?',
@@ -175,7 +175,7 @@ export default {
   helpSlowSystem: 'The system is slow.',
   helpSlowAnswer: 'Try these:\n1. Clear browser cache\n2. Disable browser extensions\n3. Try in Incognito/Private mode\n4. Restart computer\n\n💡 Check your internet speed.',
   helpDataLoss: 'I lost data! Can I recover it?',
-  helpDataLossAnswer: 'Yes, likely!\n1. Go to Operations → Backups\n2. See daily automatic backups\n3. Click "Restore" next to desired date\n4. Confirm restoration\n\n✓ System restores to that date',
+  helpDataLossAnswer: 'Yes, likely!\n1. Open System → Control Panel → Maintenance → System Operations → Manage Backups\n2. Find the automatic backup of the day you need (one a day, the newest 30 are kept)\n3. Click "Restore" next to it\n4. Confirm\n\n⚠️ Restoring replaces all current data with the data of that backup.',
   helpWrongGrades: 'I entered grades but they calculated wrong.',
   helpWrongGradesAnswer: 'Check:\n1. Each grade in correct category?\n2. Category weights add to 100%?\n3. Performance multiplier set?\n4. Absence penalty applied?\n5. Daily performance ratings included?\n\n💡 View Grade Breakdown to see calculation details.',
 

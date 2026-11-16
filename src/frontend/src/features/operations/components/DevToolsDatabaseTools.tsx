@@ -31,16 +31,20 @@ const DevToolsDatabaseTools = ({
   setRestoreFile,
   onRestore,
 }: DevToolsDatabaseToolsProps) => {
-  const rawDatabaseLabel = typeof health?.database === 'string'
-    ? health.database
-    : typeof health?.db === 'string'
-      ? health.db
-      : '';
-  const normalizedDatabaseLabel = rawDatabaseLabel.trim().toLowerCase();
-  const isDatabaseKnown = rawDatabaseLabel.trim().length > 0;
-  const isSqliteDatabase = normalizedDatabaseLabel.includes('sqlite');
-  const isPostgresqlDatabase = normalizedDatabaseLabel.includes('postgres');
-  const canBackup = !isDatabaseKnown || isSqliteDatabase || isPostgresqlDatabase;
+  // The engine is in checks.database.dialect. The top-level "database" only says "connected":
+  // it was read as the engine's name, matched neither SQLite nor PostgreSQL, and so the Backup
+  // button was disabled on every edition as soon as a health check had run (one runs after
+  // every restore).
+  const engine = [health?.checks?.database?.dialect, health?.database, health?.db]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ')
+    .toLowerCase();
+  const isSqliteDatabase = engine.includes('sqlite');
+  const isPostgresqlDatabase = engine.includes('postgres');
+  const isDatabaseKnown = isSqliteDatabase || isPostgresqlDatabase;
+  // Only an engine that is positively another one rules a backup out; "not known" does not.
+  const isAnotherEngine = !isDatabaseKnown && /mysql|mariadb|mssql|sql server|oracle/.test(engine);
+  const canBackup = !isAnotherEngine;
 
   if (!legacyDatabaseToolsVisible) {
     return (

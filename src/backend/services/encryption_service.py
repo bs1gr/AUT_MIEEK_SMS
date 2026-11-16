@@ -17,15 +17,88 @@ Usage:
 """
 
 import json
+import logging
+import os
 import secrets
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
+from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+logger = logging.getLogger(__name__)
+
+# Where the key lives inside a Docker container: the data volume, which every Docker edition
+# mounts and keeps across an update of the image.
+_DOCKER_KEY_DIR = "/data/.keys"
+
+
+class BackupKeyMismatchError(InvalidTag):
+    """The data could not be decrypted with this installation's key.
+
+    Either the file was encrypted somewhere else (another installation, or this one before its
+    key was lost) or it is damaged. A subclass of InvalidTag, which is what this used to raise,
+    with a message: InvalidTag itself has none, so the user saw "Failed to decrypt backup: ".
+    """
+
+
+def legacy_key_dir() -> Path:
+    """Next to the code: where the key was kept in every edition until November 2026."""
+    return Path(__file__).parent.parent.parent / ".keys"
+
+
+def default_key_dir() -> Path:
+    """Where this installation keeps the key that encrypts its backups.
+
+    The key has to outlive an update of the application. Next to the code it did not: in a
+    Docker container that is the container's own layer, which an update throws away (every
+    encrypted backup made before the update could then no longer be opened), and in the
+    packaged Windows edition it is the program folder, which a normal user cannot write to.
+
+    - ``BACKUP_KEYS_DIR`` when set (SMS Lite sets it to a folder in the user's profile);
+    - in Docker, ``/data/.keys`` on the data volume;
+    - otherwise next to the code, which in a source checkout stays where it is.
+    """
+    configured = ""
+    try:
+        from backend.config import get_settings
+
+        configured = str(getattr(get_settings(), "BACKUP_KEYS_DIR", "") or "").strip()
+    except Exception:
+        configured = (os.environ.get("BACKUP_KEYS_DIR") or "").strip()
+    if configured:
+        return Path(configured)
+    if os.environ.get("SMS_EXECUTION_MODE", "native").strip().lower() == "docker":
+        return Path(_DOCKER_KEY_DIR)
+    return legacy_key_dir()
+
+
+def _adopt_legacy_key(key_dir: Path) -> None:
+    """Bring the key from its old place when the new place has none.
+
+    Without this, an installation that already has encrypted backups would start a new key at
+    its first backup after the update and lose the way into the old ones.
+    """
+    try:
+        legacy = legacy_key_dir() / "master.key"
+        target = key_dir / "master.key"
+        if target.exists() or not legacy.is_file():
+            return
+        if legacy.resolve() == target.resolve():
+            return
+        shutil.copy2(legacy, target)
+        try:
+            target.chmod(0o600)
+        except (OSError, NotImplementedError):
+            pass
+        logger.info("Backup key moved to its lasting place: %s (the copy in %s is left as it is)", target, legacy)
+    except OSError as exc:
+        logger.warning("Could not bring the backup key from %s to %s: %s", legacy_key_dir(), key_dir, exc)
 
 
 class EncryptionService:
@@ -43,12 +116,14 @@ class EncryptionService:
         Initialize encryption service.
 
         Args:
-            key_dir: Directory for storing encryption keys. Defaults to project root.
+            key_dir: Directory for storing encryption keys. Defaults to `default_key_dir()`.
         """
-        self.key_dir = key_dir or Path(__file__).parent.parent.parent / ".keys"
+        self.key_dir = key_dir or default_key_dir()
         self.key_dir.mkdir(parents=True, exist_ok=True)
         self.master_key_path = self.key_dir / "master.key"
         self.key_metadata_path = self.key_dir / "keys.json"
+        if key_dir is None:
+            _adopt_legacy_key(self.key_dir)
 
         # Ensure restricted permissions on key directory
         try:
@@ -168,7 +243,15 @@ class EncryptionService:
 
         # Create cipher and decrypt
         cipher = AESGCM(master_key)
-        plaintext = cipher.decrypt(nonce, ciphertext, associated_data)
+        try:
+            plaintext = cipher.decrypt(nonce, ciphertext, associated_data)
+        except InvalidTag as exc:
+            raise BackupKeyMismatchError(
+                "This file cannot be opened with this installation's backup key "
+                f"({self.master_key_path}). It was encrypted with a different key (on another "
+                "installation, or here before the key was replaced), or the file is damaged. "
+                "An encrypted backup can only be restored where its key is."
+            ) from exc
 
         return plaintext
 

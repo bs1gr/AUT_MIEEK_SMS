@@ -1,11 +1,16 @@
 import type { RefObject } from 'react';
 import type { ThemeStyle } from './AppearanceThemeSelector';
-import type { BackupItem } from './DevToolsPanel';
+import type { AutomaticBackupStatus, BackupItem } from './DevToolsPanel';
+
+/** The server names its own daily backups this way (services/database_backup.py). */
+const isAutomaticBackup = (filename: string) => filename.startsWith('auto_backup_');
 
 export interface DevToolsBackupManagerProps {
   theme: ThemeStyle;
   t: (key: string, options?: Record<string, unknown>) => string;
   backups: BackupItem[] | null;
+  /** null: the server did not say (an older server), so nothing is shown about it. */
+  automaticBackup?: AutomaticBackupStatus | null;
   backupsLoading: boolean;
   opLoading: string | null;
   selectedBackups: Set<string>;
@@ -29,6 +34,7 @@ const DevToolsBackupManager = ({
   theme,
   t,
   backups,
+  automaticBackup = null,
   backupsLoading,
   opLoading,
   selectedBackups,
@@ -50,6 +56,41 @@ const DevToolsBackupManager = ({
   return (
     <div className={`${theme.card} md:col-span-2`}>
       <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
+
+      {automaticBackup && (
+        <div
+          data-testid="automatic-backup-status"
+          className={`mb-3 rounded border p-2 text-xs ${
+            automaticBackup.enabled && !automaticBackup.last_error
+              ? `border-slate-200 ${theme.mutedText}`
+              : 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200'
+          }`}
+        >
+          <div className={`font-semibold ${theme.text}`}>{t('utils.autoBackupTitle')}</div>
+          {automaticBackup.enabled ? (
+            <>
+              <div>
+                {t('utils.autoBackupSchedule', {
+                  hours: automaticBackup.interval_hours,
+                  keep: automaticBackup.keep,
+                })}
+              </div>
+              <div>
+                {automaticBackup.last_backup
+                  ? t('utils.autoBackupLast', { date: formatDateTime(automaticBackup.last_backup) })
+                  : t('utils.autoBackupNone')}
+              </div>
+              {automaticBackup.last_error && (
+                <div role="alert" className="font-semibold">
+                  {t('utils.autoBackupFailed', { error: automaticBackup.last_error })}
+                </div>
+              )}
+            </>
+          ) : (
+            <div role="alert">{t('utils.autoBackupDisabled')}</div>
+          )}
+        </div>
+      )}
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <button type="button" onClick={onLoadBackups} className={theme.secondaryButton}>
@@ -107,9 +148,14 @@ const DevToolsBackupManager = ({
                       <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
                         {getBackupTypeLabel(b.filename)}
                       </span>
+                      {isAutomaticBackup(b.filename) && (
+                        <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                          {t('utils.backupAutomaticLabel')}
+                        </span>
+                      )}
                     </div>
                     <div className={`text-xs ${theme.mutedText}`}>
-                      {t('utils.created')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
+                      {t('utils.backupCreated')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
                     </div>
                   </div>
                 </div>
