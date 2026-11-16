@@ -145,23 +145,76 @@ def test_the_own_session_variant_never_raises():
     assert session.closed is True
 
 
-def test_the_daily_maintenance_job_includes_the_purge():
-    class RecordingScheduler:
-        def __init__(self):
-            self.jobs = {}
+class _RecordingScheduler:
+    def __init__(self):
+        self.jobs = {}
 
-        def add_job(self, func, **options):
-            self.jobs[options["id"]] = (func, options)
+    def add_job(self, func, **options):
+        self.jobs[options["id"]] = (func, options)
 
-    class FakeExportScheduler:
-        def __init__(self):
-            self.scheduler = RecordingScheduler()
 
-        def is_available(self):
-            return True
+class _FakeExportScheduler:
+    def __init__(self):
+        self.scheduler = _RecordingScheduler()
 
+    def is_available(self):
+        return True
+
+
+def _maintenance_with_a_recording_scheduler() -> MaintenanceScheduler:
     maintenance = MaintenanceScheduler.__new__(MaintenanceScheduler)
-    maintenance.export_scheduler = FakeExportScheduler()
+    maintenance.export_scheduler = _FakeExportScheduler()
+    return maintenance
+
+
+def _fire_times(trigger, count: int) -> list[datetime]:
+    """The trigger's next fire times from a winter Monday, 00:30 (no clock change near it)."""
+    moment = datetime(2026, 1, 5, 0, 30, tzinfo=timezone.utc).astimezone(trigger.timezone)
+    times: list[datetime] = []
+    previous = None
+    for _ in range(count):
+        previous = trigger.get_next_fire_time(previous, moment)
+        times.append(previous)
+        moment = previous + timedelta(seconds=1)
+    return times
+
+
+def test_the_hourly_cleanup_runs_once_an_hour():
+    """It was "*/1" in the minute field: every minute."""
+    maintenance = _maintenance_with_a_recording_scheduler()
+
+    maintenance.schedule_cleanup_task(frequency="hourly")
+
+    jobs = maintenance.export_scheduler.scheduler.jobs
+    assert set(jobs) == {"cleanup_exports_hourly", "purge_refresh_tokens_hourly"}
+    for _func, options in jobs.values():
+        first, second, third = _fire_times(options["trigger"], 3)
+        assert (first.minute, first.second) == (0, 0)
+        assert second - first == timedelta(hours=1)
+        assert third - second == timedelta(hours=1)
+
+
+@pytest.mark.parametrize(
+    ("frequency", "apart"),
+    [
+        ("hourly", timedelta(hours=1)),
+        ("daily", timedelta(days=1)),
+        ("weekly", timedelta(days=7)),
+        ("monthly", timedelta(days=28)),  # 1 February to 1 March 2026
+    ],
+)
+def test_each_cleanup_frequency_runs_as_often_as_its_name_says(frequency, apart):
+    maintenance = _maintenance_with_a_recording_scheduler()
+
+    maintenance.schedule_cleanup_task(frequency=frequency)
+
+    _func, options = maintenance.export_scheduler.scheduler.jobs[f"cleanup_exports_{frequency}"]
+    first, second = _fire_times(options["trigger"], 2)
+    assert second - first == apart
+
+
+def test_the_daily_maintenance_job_includes_the_purge():
+    maintenance = _maintenance_with_a_recording_scheduler()
 
     maintenance.schedule_cleanup_task(frequency="daily")
 

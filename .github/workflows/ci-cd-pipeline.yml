@@ -393,15 +393,32 @@ jobs:
       contents: read
     timeout-minutes: 40
     services:
-      # Throwaway server for test_database_manager_restore_roundtrip.py, the only tests that
-      # run the backup/restore engine against real PostgreSQL. Skipped without it.
+      # Throwaway servers for test_database_manager_restore_roundtrip.py, the only tests that
+      # run the backup/restore engine against real PostgreSQL. Skipped without one.
+      #
+      # 14 on Debian is what the shared database runs (the QNAP's postgres:14-bullseye image):
+      # the backups that matter are made from it and restored into it, so the whole suite
+      # runs with it. 16-alpine is what the Docker edition's own stack ships
+      # (docker-compose.prod.yml); the round-trip file is run once more against it below.
       postgres:
-        image: postgres:16-alpine
+        image: postgres:14
         env:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: smstest
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      postgres16:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: smstest
+        ports:
+          - 5433:5432
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 5s
@@ -439,6 +456,26 @@ jobs:
         run: |
           cd src/backend
           pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
+
+      # The suite above ran the backup/restore round trip against PostgreSQL 14 (port 5432).
+      # Once more against 16 (port 5433). No coverage and no report files here: those of the
+      # step above stay as they are. The first lines of the step's log name both servers.
+      - name: Backup/restore round trip on PostgreSQL 16 as well
+        env:
+          SMS_TEST_POSTGRES_URL: postgresql://postgres:testpass@127.0.0.1:5433/smstest
+          DISABLE_STARTUP_TASKS: '1'
+          CSRF_ENABLED: '0'
+          AUTH_MODE: 'strict'
+          SMS_ALLOW_DIRECT_PYTEST: '1'
+        run: |
+          cd src/backend
+          python - <<'PY'
+          import psycopg
+          for port in (5432, 5433):
+              with psycopg.connect(f"postgresql://postgres:testpass@127.0.0.1:{port}/smstest") as conn:
+                  print(f"port {port}:", conn.execute("select version()").fetchone()[0])
+          PY
+          pytest tests/test_database_manager_restore_roundtrip.py -v --tb=short -rs -p no:cacheprovider
 
       - name: 🔒 Run path traversal security tests
         env:

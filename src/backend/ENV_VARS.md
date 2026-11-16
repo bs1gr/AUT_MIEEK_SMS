@@ -26,6 +26,12 @@ MONITOR_PING_URL, MONITOR_FAIL_URL, MONITOR_PING_MINUTES
 - Default: empty / empty / `60`
 - Purpose: The "alive and well" signal for a monitoring service outside the server (a dead man's switch such as healthchecks.io). While the server runs, its database answers and its automatic backup is in order, it calls `MONITOR_PING_URL` every `MONITOR_PING_MINUTES` (minimum 5); when the calls stop, the service tells a person. When something is wrong the call is withheld, or, if `MONITOR_FAIL_URL` is set (healthchecks.io: the ping address followed by `/fail`), that address is called with a short fixed phrase, never an error text. Empty = off. The address is a secret of sorts and is not written to the log. See `docs/deployment/CLOUD_HOST_ORACLE.md`, "Watching the server".
 
+SQLALCHEMY_SLOW_QUERY_ENABLED, SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS, SQLALCHEMY_SLOW_QUERY_MAX_ENTRIES
+
+- Type: boolean / integer (milliseconds) / integer
+- Default: `true` / `300` / `200`
+- Purpose: What the server calls a slow database statement. One at or over the threshold is written to the log once (`Slow query detected (… ms)`) and kept among the newest `SQLALCHEMY_SLOW_QUERY_MAX_ENTRIES`; the query profiler behind `/api/v1/diagnostics/queries/*` counts with the same threshold and writes no warning of its own (it used to, at a fixed 100 ms). On a server far from its database every statement includes the round trip, so raise the threshold there: `docker-compose.cloud.yml` sets 500. `SQLALCHEMY_SLOW_QUERY_ENABLED=false` switches the warning off; the profiler still counts.
+
 CONTROL_API_ALLOW_TASKKILL
 - Type: boolean ("1"/"0")
 - Default: `0` (disabled)

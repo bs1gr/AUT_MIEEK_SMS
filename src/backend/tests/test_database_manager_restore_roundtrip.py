@@ -8,11 +8,15 @@ up, destroy the data, restore, and compare.
 Needs a throwaway PostgreSQL and is skipped without one. To run it:
 
     docker run -d --name sms-restore-test -e POSTGRES_PASSWORD=testpass \
-        -e POSTGRES_DB=smstest -p 55433:5432 postgres:16-alpine
+        -e POSTGRES_DB=smstest -p 55433:5432 postgres:14
     $env:SMS_TEST_POSTGRES_URL = "postgresql://postgres:testpass@127.0.0.1:55433/smstest"
     python -m pytest src/backend/tests/test_database_manager_restore_roundtrip.py -v
 
 Point it only at a disposable database: every test here truncates and rewrites its tables.
+
+CI (the test-backend job) runs it twice: with the whole suite against PostgreSQL 14, the
+version of the shared database the backups are made from, and once more against 16-alpine,
+which the Docker edition's own stack ships.
 """
 
 import importlib.util

@@ -47,6 +47,11 @@ services:
       - DB_PRE_PING_IDLE_SECONDS=${DB_PRE_PING_IDLE_SECONDS:-20}
       - DB_AUTOCOMMIT_READS=${DB_AUTOCOMMIT_READS:-true}
       - PERMISSION_CACHE_TTL_SECONDS=${PERMISSION_CACHE_TTL_SECONDS:-30}
+      # What the log calls a slow statement. The stock 300 ms suits a server next to its
+      # database; from here the plainest statements already take 118 to 197 ms (measured), so
+      # the limit sits higher: a "Slow query" warning on this host should mean the statement,
+      # not the distance.
+      - SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS=${SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS:-500}
       # The automatic database backup: one encrypted file a day, the newest 30 kept. Backups
       # and the key that encrypts them are on the data volume, so they outlive a rebuild of
       # the image (inside the container both were lost at every update). This is the copy of

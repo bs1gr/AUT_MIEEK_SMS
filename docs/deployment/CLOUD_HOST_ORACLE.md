@@ -147,6 +147,14 @@ undone as a whole if it fails half-way; and a connection that died within the la
 one request fail before it is replaced. To switch one off, set it to `0` / `false` in `.env`
 and run `up -d` again.
 
+**"Slow query" in the log.** The distance also decides what a slow statement is. The plainest
+statements take 118 to 197 ms from this host (measured over 50 minutes on v1.18.72), so the
+compose file sets `SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS=500` here; everywhere else the limit is
+300 ms. Up to v1.18.72 a second monitor warned at a fixed 100 ms, which on this host was every
+health check: 132 of 133 warnings in those 50 minutes. Now one setting decides and one line
+is written per slow statement (`Slow query detected (… ms)`), so a warning in
+`sudo docker logs sms-cloud` is worth reading again.
+
 ## Running both hosts
 
 - Keep both on the **same release**. Migrations are additive, so an older host keeps working

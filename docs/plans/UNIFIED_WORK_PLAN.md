@@ -235,7 +235,49 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
-Only the record of the release in this document.
+**2026-11-16, night: five small server fixes from todo 58, and a sixth found while checking
+them** (#409; asked what comes next, the owner chose "Small server fixes"). No database
+changes.
+
+- **One "slow query" line per slow statement, at one limit.** Two monitors watched the same
+  engine: `performance_monitor.py` (limit `SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS`, 300 ms) and
+  `db/query_profiler.py` (a fixed 100 ms). Read from the cloud VM's log on v1.18.72: 133
+  warnings in 50 minutes, 132 of them the profiler's, all between 118 and 197 ms, 102 of them
+  the health check's catalogue query; the other monitor wrote none. The profiler now takes
+  the same setting and only counts (its own line is at DEBUG), and `docker-compose.cloud.yml`
+  sets 500 ms for that host. Seen on a scratch server from source: with the limit at 0, 324
+  statements gave 324 `Slow query detected` lines and none from the profiler; at the stock
+  limit, none of either.
+- **The query profiler keeps its newest 2,000 records.** It appended one record per statement
+  for the life of the process. The totals still count every statement, and the diagnostics
+  health rate is computed from them (computed from the kept records it would have passed
+  100 %).
+- **The diagnostics endpoints answer (the sixth).** All five under `/api/v1/diagnostics`
+  answered 500 "Request not available" on every server with authentication on, that is on
+  every real server: their handlers had no `request` argument, which `require_permission`
+  looks up by that name. Their tests ran with authentication off, where the check is skipped.
+  Seen on the scratch server before the fix (five times 500) and after it (200 for an
+  administrator). Tests now cover an administrator (200), a teacher (403) and no login (401)
+  for each, and a scan fails if any of the 216 guarded endpoints lacks the argument (these
+  five were the only ones).
+- **`schedule_cleanup_task("hourly")` runs on the hour.** `"*/1"` in the minute field was every
+  minute. Only `"daily"` is asked for today; a test now checks each frequency against its
+  name.
+- **A test run has a backups folder of its own.** `conftest.py` points `BACKUPS_DIR` at a
+  temporary folder before anything of the backend is imported (three modules read it once at
+  import) and removes it at the end. The tests that go through the backup endpoints wrote
+  next to the developer's real backups and listed them. After a full run of the suite in a
+  clone, its `backups` folder held nothing but the tracked `.gitkeep`.
+- **CI tests the database version in use.** The `test-backend` job runs the suite with a
+  PostgreSQL 14 service (Debian-based, like the server on the NAS) and repeats the
+  backup/restore round-trip file against 16-alpine, which the Docker edition's own stack
+  ships. Run here first on scratch containers: 9 passed on 14.25 and on 16.15 (4 more need
+  `psql`, which this PC lacks and the CI runner has).
+- **Not a code change: the cloud VM's backup key and its newest backup are on the dev PC as
+  well** (the owner: "Yes, copy both"). Fetched over SSH into the owner's confidential folder
+  outside the repository; the checksums equal the VM's, and the key opens the backup (30
+  tables, 2,265 rows; decrypted in memory, nothing readable written). The temporary copy on
+  the VM was removed.
 
 ### In v1.18.72
 
@@ -781,9 +823,12 @@ the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 **First in line: what only the owner can do, in todos 55 and 54.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
 since v1.18.72 it reports to a monitoring service, and a failed backup puts a notice in the
-administrators' bell; the owner set the service up and its test mail arrived. Left for the
-owner: a copy of the VM's backup key kept somewhere else, and a copy of a backup taken off
-the VM now and then (todo 55).
+administrators' bell; the owner set the service up and its test mail arrived. Since the
+night of 2026-11-16 the VM's backup key and one backup are also on the dev PC. Left for the
+owner: a copy of that key somewhere that is neither the VM nor this PC (a USB stick, a
+password manager), and a copy of a backup taken off the VM now and then (todo 55). **New, and
+the owner's call: the shared database's PostgreSQL 14 reached its end of life on 2026-11-12**
+(todo 58).
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -867,9 +912,13 @@ the VM now and then (todo 55).
       the cloud VM, which made the first backup of the shared database a minute after its
       start; and a restore of that backup into a scratch database, identical to the live one
       table by table (the top of this document).
-    - **Left:** (a) the owner's: a copy of the VM's key kept somewhere else, and now and then a
-      copy of a backup taken off the VM (the runbook has the commands). Until then the backups
-      and their key exist on the VM only. (b) Whether the key next to the code on the dev PC
+    - **Done 2026-11-16, night (the owner: "Yes, copy both"):** the VM's key and its newest
+      backup (`auto_backup_20261116_150613.enc`) are on the dev PC, in the owner's confidential
+      folder outside the repository; checksums equal, and the key opens the backup.
+    - **Left:** (a) the owner's: a copy of the key in a third place (a USB stick, a password
+      manager; the VM and the dev PC are both machines that can be lost), and now and then a
+      newer backup taken off the VM (the runbook has the commands; the copy on the dev PC is
+      of 16 November and does not renew itself). (b) Whether the key next to the code on the dev PC
       still opens the 22 older encrypted backups there is not known. (c) The drill is one
       drill: after a release that changes the database, it is worth repeating.
 56. **Small things from the same review.**
@@ -908,17 +957,20 @@ the VM now and then (todo 55).
     records had become level-1 headings in the middle of a paragraph and are text again (the
     cause is the last entry of todo 58).
 58. **Found on 2026-11-15 while releasing v1.18.70, and not fixed.**
-    - *A test run uses the backups folder of the tree it runs in.* Two tests in
+    - ~~*A test run uses the backups folder of the tree it runs in.* Two tests in
       `test_control_endpoints.py` (`test_download_database_backup_success`,
       `test_list_database_backups_includes_sql`) write a file into `backups/database`, and the
       semester-archive tests use `backups/semester_archives/.staging`. They remove what they
       create, and no backup was touched (seen on the dev PC: the folder's time changed during
       the release run, its 26 files did not). The tests should get a temporary `BACKUPS_DIR`;
       several modules read it once at import (`routers_adminops`, `database_manager`). The
-      same class of problem as the schedulers and the mail settings, fixed in #392.
-    - *The shared database runs PostgreSQL 14.18; CI's PostgreSQL service and the release checks
+      same class of problem as the schedulers and the mail settings, fixed in #392.~~
+      **Closed by #409.**
+    - ~~*The shared database runs PostgreSQL 14.18; CI's PostgreSQL service and the release checks
       use 16.* The v1.18.70 upgrade was repeated on 14 before the cloud host was updated. CI
-      should test the version in use, or both.
+      should test the version in use, or both.~~ **Closed by #409** for CI (14 for the
+      suite, the round trip on 16 as well). The release checks on this PC use whichever scratch
+      container the check needs.
     - *The notification components do not share state.* The bell, the dropdown and every item
       call `useNotifications` and each gets its own copy, so marking an item as read does not
       change the dropdown's list or the bell's count until they next fetch. (The Socket.IO
@@ -930,19 +982,20 @@ the VM now and then (todo 55).
     - *Both notification guides describe things the application does not have* (an
       administration panel, WebSocket settings, delivery dashboards). #391 corrected the
       delivery description at the top of each; the rest is as written in January 2026.
-    - *`schedule_cleanup_task("hourly")` would run every minute* (`"*/1"` in the minute field of
-      `maintenance_scheduler.py`). Only `"daily"` is ever asked for.
+    - ~~*`schedule_cleanup_task("hourly")` would run every minute* (`"*/1"` in the minute field of
+      `maintenance_scheduler.py`). Only `"daily"` is ever asked for.~~ **Closed by #409.**
     - *Installs older than v1.18.70 on the shared database:* see the note at the top of this
       document. The owner's stopped `sms-app` container is v1.18.63.
-    - *"Slow query" warnings on the cloud host.* `db/query_profiler.py` warns about every
+    - ~~*"Slow query" warnings on the cloud host.* `db/query_profiler.py` warns about every
       statement over 100 ms; the database is 65 ms away, so the health check's own catalogue
       query warns every 30 seconds (13 of the 15 warnings in the VM's first five minutes on
       v1.18.70). Now that the log works, that buries real warnings. The threshold should be a
-      setting, raised in `docker-compose.cloud.yml`.
-    - *The query profiler never forgets.* It appends one record per statement to a list for the
+      setting, raised in `docker-compose.cloud.yml`.~~ **Closed by #409** (on `main`; the VM
+      gets it with its next update).
+    - ~~*The query profiler never forgets.* It appends one record per statement to a list for the
       life of the process (read by the diagnostics router, emptied only by its reset endpoint).
       On a server that stays up for weeks that is a slow leak; it should keep the last few
-      thousand.
+      thousand.~~ **Closed by #409** (the VM gets it with its next update).
     - *The E2E auto-start cannot start a backend, and leaves a dead process behind.* Outside
       CI, when nothing answers at the API address, `playwright-global-setup.ts` starts
       `python -m uvicorn backend.main:app --port <port> --reload` detached, with the frontend
@@ -999,6 +1052,23 @@ the VM now and then (todo 55).
         builds up to v1.18.70 left next to encrypted SQLite backups on Windows (see "In
         v1.18.71"). A clean-up at startup would have to be sure a file is such a leftover (it
         has an `.enc` twin of the same name) before deleting it.
+    - *Found on 2026-11-16 with #409, and not fixed:*
+      - **The shared database's PostgreSQL is past its end of life (the owner's call).** The
+        PostgreSQL project supports a major version for five years; 14 came out on 2021-09-30
+        and its last release, 14.25, on 2026-11-12. The server on the NAS reports 14.18, seven
+        minor releases behind and now on a branch that gets no more security fixes. It is
+        reachable only inside the home network and the tailnet, which limits who could use a
+        flaw. Two steps, both on the NAS, which only the owner can reach: first the last 14.x
+        image (a minor update: same data folder, a restart), later a move to a supported
+        version (16 or newer: a dump and a restore, for which the daily backups and the
+        restore drill are the rehearsal). The application's side is already tested on both
+        14 and 16.
+      - *The diagnostics summary calls every busy table an "N+1 pattern".* The profiler counts
+        statements per table since the start, and `detect_n_plus_one` warns about any table
+        with more than five. On a server that has run for an hour that is every table, and
+        each call of `/diagnostics/queries/summary` or `/patterns` writes one warning per
+        table (six on a scratch server after a login and two pages). A real detector would
+        count per request.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

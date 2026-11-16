@@ -1,7 +1,10 @@
+import atexit
 import logging
 import os
 from pathlib import Path
+import shutil
 import sys
+import tempfile
 
 
 # ---------------------------------------------------------------------------
@@ -54,6 +57,18 @@ if not _is_test_runner_permitted():
         "Use RUN_TESTS_BATCH.ps1 (see docs/plans/UNIFIED_WORK_PLAN.md and Copilot instructions). "
         "To override intentionally, set SMS_ALLOW_DIRECT_PYTEST=1 for that invocation."
     )
+
+# ---------------------------------------------------------------------------
+# A backups folder of its own for the test run
+# ---------------------------------------------------------------------------
+# Without this the settings point at the installation's real folder (<project>/backups), and
+# the tests that go through the backup endpoints wrote their files next to the developer's real
+# backups and listed those. Set before anything of the backend is imported: three modules read
+# BACKUPS_DIR once, when they are imported. Not an override a developer can undo from outside:
+# a test run must never use a real backups folder.
+TEST_BACKUPS_DIR = os.path.realpath(tempfile.mkdtemp(prefix="sms-test-backups-"))
+os.environ["BACKUPS_DIR"] = TEST_BACKUPS_DIR
+atexit.register(shutil.rmtree, TEST_BACKUPS_DIR, ignore_errors=True)
 
 import pytest
 from fastapi import Depends, Request

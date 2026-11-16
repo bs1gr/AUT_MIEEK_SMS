@@ -173,9 +173,10 @@ class MaintenanceScheduler:
             return
 
         try:
-            # Map frequency to cron expression
+            # Map frequency to cron expression (minute, hour, day, month, day of week)
             cron_map = {
-                "hourly": ("*/1", "*", "*", "*", "*"),  # Every hour
+                # On the hour. It was "*/1" in the minute field, which is every minute.
+                "hourly": ("0", "*", "*", "*", "*"),
                 "daily": ("0", "2", "*", "*", "*"),  # Daily at 2 AM
                 "weekly": ("0", "2", "*", "*", "0"),  # Weekly on Monday at 2 AM
                 "monthly": ("0", "2", "1", "*", "*"),  # Monthly on 1st at 2 AM
