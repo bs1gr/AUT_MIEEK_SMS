@@ -1,7 +1,7 @@
 {
   "name": "student-management-frontend",
   "private": true,
-  "version": "1.18.70",
+  "version": "1.18.71",
   "type": "module",
   "scripts": {
     "dev": "vite",

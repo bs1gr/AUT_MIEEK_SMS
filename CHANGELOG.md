@@ -46,6 +46,39 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.71] - 2026-11-16
+
+### Features
+- **backup**: the app makes a daily backup itself, and a backup can be restored (#407)
+
+### Bug Fixes
+- **tests**: the Alembic command-line test reads its child's output as UTF-8 (#404)
+- **gate**: the Markdown auto-fix no longer turns a PR number into a heading, unannounced (#395)
+- **tests**: a test run starts no scheduler and loads no saved mail settings (#392)
+
+### Performance
+- **rbac**: the permission layer no longer holds the event loop (#393)
+
+### Documentation
+- **plan**: the owner's answers of 2026-11-15 - attendance confirmed on the phone, no scheduled backup exists
+- **plan**: the E2E auto-start that cannot start a backend is recorded (todo 58); #394 and #395 named
+- **plan**: the closed entries and older records move to an archive file (todo 57) (#394)
+- **plan**: v1.18.70 released - assets, cloud host and shared database verified; #391 and #392 recorded
+
+### Dependencies
+- bump the npm-minor-patch group across 1 directory with 88 updates (#403)
+- update pypdf requirement from >=6.21.4 to >=7.0.1 in /src/backend (#397)
+- bump the pip-minor-patch group in /src/backend with 5 updates (#396)
+- bump @babel/traverse from 7.29.13 to 7.29.14 in /src/frontend (#401)
+- bump @babel/parser from 7.29.13 to 7.29.14 in /src/frontend (#399)
+- bump @babel/helper-wrap-function in /src/frontend (#402)
+
+### Chores
+- remove the direct @babel/runtime devDependency (#406)
+- remove the direct @babel/core devDependency and the guard that added it (#405)
+- remove the idle Socket.IO channel (#391)
+
 ## [1.18.70] - 2026-11-15
 
 ### Features
@@ -4909,6 +4942,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
