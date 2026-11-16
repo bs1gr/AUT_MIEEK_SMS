@@ -27,8 +27,9 @@
 .PARAMETER Mode
     Execution mode:
     - 'quick'    : Lint + the full backend batch suite with fast-fail, plus frontend
-                   tests - ~8-9 min on this repo, not the 2-3 min once claimed here.
-                   It is only short when the change touches test files it can scope to.
+                   tests - ~10 min on this repo, not the 2-3 min once claimed here.
+                   It is short only when the change is test files and nothing else:
+                   then those files alone are run (see Get-QuickTestScope).
     - 'standard' : Standard workflow (skip deployment testing) - 5-8 min
     - 'full'     : Comprehensive (includes Native + Docker checks) - 15-20 min
     - 'cleanup'  : Only run cleanup operations
@@ -141,7 +142,7 @@ Options:
     -AutoTagAndPush      Auto-tag and push after checks
     -ReleaseFlow         One-shot release: audit, bump, commit, push, tag
     -NonInteractive      Run non-interactively (for CI)
-    -ScopeToChanges      Prefer running tests only for changed test files
+    -ScopeToChanges      Run only the changed test files when nothing but test files changed
     -Help, -h            Show this help message and exit
 
 Examples:
@@ -298,13 +299,15 @@ function Get-ChangedFiles {
     # Staged AND unstaged, not one or the other: this used to look at unstaged files only
     # when nothing was staged, so a partially staged working tree reported a subset and
     # the quick scope could run tests for the wrong files.
+    # --no-renames: a renamed file is listed under its old name too, as the removed file it
+    # is. Whoever still refers to the old name (a test module that imports it) is affected.
     $files = @()
     try {
-        $files = @(git diff --name-only --cached 2>$null)
+        $files = @(git diff --name-only --no-renames --cached 2>$null)
     } catch {}
 
     try {
-        $files = @($files + @(git diff --name-only 2>$null))
+        $files = @($files + @(git diff --name-only --no-renames 2>$null))
     } catch {}
 
     try {
@@ -315,6 +318,101 @@ function Get-ChangedFiles {
     } catch {}
 
     return @($files | Where-Object { $_ -and $_.Trim() -ne "" } | Sort-Object -Unique)
+}
+
+# Which tests a quick run owes the change: for the backend and for the frontend, either
+# 'changed' with the test files to run, or 'all' with the reason.
+#
+# The changed test files may be run alone only when the change is test files and nothing else.
+# The gate used to do so whenever any changed file looked like a test file, whatever else the
+# commit changed (a router, conftest.py), so the tests that cover the rest never ran. On the
+# backend nobody noticed: its pattern asked for "test_" twice in the path and matched none of
+# the 166 test files, so every quick gate ran the whole suite, until a file was named
+# test_test_run_backups_folder.py (#409, November 2026). That gate ran the one file, in 89
+# seconds, for a commit that changed conftest.py and three source files, and passed. On the
+# frontend the pattern worked, and a component changed together with any test file was checked
+# by that test file alone.
+#
+# Also the whole suite: a test file that was removed or renamed (there is nothing to run for it,
+# and others may import it), a backend test file that another file of the tests names, and
+# more backend test files than one pytest process should take (the batch runner's reason for
+# being). Everything else about the suites stays as it was, including that a change of
+# frontend test files alone still runs the whole backend suite.
+function Get-QuickTestScope {
+    param(
+        [string[]]$ChangedFiles,
+        [string]$ProjectRoot,
+        [int]$MaxBackendFiles = 10
+    )
+
+    $changed = @($ChangedFiles | Where-Object { $_ -and $_.Trim() } | ForEach-Object { $_.Trim().Replace('\', '/') } | Sort-Object -Unique)
+
+    # pytest collects test_*.py (src/backend/pytest.ini); vitest takes *.test.* and *.spec.*
+    # under src/frontend/src, the Playwright specs elsewhere are not its business.
+    $backendTests = @($changed | Where-Object { $_ -cmatch '^src/backend/tests/(?:.+/)?test_[^/]+\.py$' })
+    $frontendTests = @($changed | Where-Object { $_ -cmatch '^src/frontend/src/.+\.(?:test|spec)\.(?:ts|tsx|js|jsx)$' -and $_ -cnotmatch '/__e2e__/' })
+    $tests = @($backendTests + $frontendTests)
+    $others = @($changed | Where-Object { $tests -cnotcontains $_ })
+    $gone = @($tests | Where-Object { -not (Test-Path -LiteralPath (Join-Path $ProjectRoot $_) -PathType Leaf) })
+
+    $whole = $null
+    if ($changed.Count -eq 0) {
+        $whole = 'no changed files were found'
+    }
+    elseif ($others.Count -gt 0) {
+        $whole = "$($others.Count) of the $($changed.Count) changed file(s) are not test files, for example $($others[0])"
+    }
+    elseif ($gone.Count -gt 0) {
+        $whole = "a test file was removed or renamed: $($gone[0])"
+    }
+
+    $backend = [pscustomobject]@{ Scope = 'all'; Files = @(); Reason = $whole }
+    if (-not $whole) {
+        if ($backendTests.Count -eq 0) {
+            $backend.Reason = 'no backend test file changed'
+        }
+        elseif ($backendTests.Count -gt $MaxBackendFiles) {
+            $backend.Reason = "$($backendTests.Count) backend test files changed, more than the $MaxBackendFiles one pytest run takes here"
+        }
+        else {
+            # A test module that another file of the tests names: a change to it can break that
+            # file (three import helpers from a test module today). Any mention counts, not only
+            # an import line: a mention in a comment costs a whole run, a missed import by
+            # another spelling (importlib, a list of plugins) would cost the point of the gate.
+            $testsRoot = (Resolve-Path -LiteralPath (Join-Path $ProjectRoot 'src/backend/tests')).Path
+            $sources = @(Get-ChildItem -LiteralPath $testsRoot -Recurse -File -Filter '*.py' |
+                Where-Object { $_.FullName.Substring($testsRoot.Length) -notmatch '[\\/](__pycache__|\.[^\\/]+)[\\/]' })
+            foreach ($file in $backendTests) {
+                $stem = [System.IO.Path]::GetFileNameWithoutExtension($file)
+                $self = (Resolve-Path -LiteralPath (Join-Path $ProjectRoot $file)).Path
+                $namedBy = $sources |
+                    Where-Object { $_.FullName -ne $self } |
+                    Where-Object { Select-String -LiteralPath $_.FullName -Pattern ('\b' + [regex]::Escape($stem) + '\b') -CaseSensitive -Quiet } |
+                    Select-Object -First 1
+                if ($namedBy) {
+                    $backend.Reason = "$stem.py is named in $($namedBy.Name), which may depend on it"
+                    break
+                }
+            }
+            if (-not $backend.Reason) {
+                $backend.Scope = 'changed'
+                $backend.Files = $backendTests
+            }
+        }
+    }
+
+    $frontend = [pscustomobject]@{ Scope = 'all'; Files = @(); Reason = $whole }
+    if (-not $whole) {
+        if ($frontendTests.Count -eq 0) {
+            $frontend.Reason = 'no frontend test file changed'
+        }
+        else {
+            $frontend.Scope = 'changed'
+            $frontend.Files = $frontendTests
+        }
+    }
+
+    return [pscustomobject]@{ Backend = $backend; Frontend = $frontend }
 }
 
 # Where git looks for this checkout's pre-commit hook. "$PROJECT_ROOT\.git\hooks" is wrong in a
@@ -1531,18 +1629,19 @@ function Invoke-TestSuite {
         $batchRunnerAvailable = Test-Path (Join-Path $PROJECT_ROOT "infra\scripts\testing\RUN_TESTS_BATCH.ps1")
 
         $scopeQuick = ($Mode -eq 'quick') -or $ScopeToChanges
-        $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
-        $changedBackendTests = @()
-        if ($scopeQuick -and $changedFiles.Count -gt 0) {
-            $changedBackendTests = $changedFiles | Where-Object { $_ -match '^src/backend/tests/.+test_.*\.py$' -or $_ -match '^src/backend/tests/.+/test_.*\.py$' }
+        $backendScope = $null
+        if ($scopeQuick -and -not $Target) {
+            $backendScope = (Get-QuickTestScope -ChangedFiles @(Get-ChangedFiles) -ProjectRoot $PROJECT_ROOT).Backend
         }
 
-        if ($scopeQuick -and $changedBackendTests.Count -gt 0 -and -not $Target) {
-            Write-Info "Quick scope enabled: running changed backend tests only"
-            $testPaths = $changedBackendTests | ForEach-Object { Join-Path $PROJECT_ROOT $_ }
+        if ($backendScope -and $backendScope.Scope -eq 'changed') {
+            Write-Info "Quick scope: nothing but test files changed - running the $($backendScope.Files.Count) changed backend test file(s) alone"
+            $backendScope.Files | ForEach-Object { Write-Info "   $_" }
+            $testPaths = $backendScope.Files | ForEach-Object { Join-Path $PROJECT_ROOT $_ }
             $output = python -m pytest $testPaths -x -m "not slow" -q --tb=short 2>&1
         }
         elseif ($batchRunnerAvailable -and -not $Target) {
+            if ($backendScope) { Write-Info "Whole backend suite: $($backendScope.Reason)" }
             Write-Info "Using batch test runner (prevents system freeze)..."
             if ($Mode -eq 'quick') {
                 # Quick mode: smaller batches, fast-fail
@@ -1587,22 +1686,20 @@ function Invoke-TestSuite {
         $frontendExitCode = 0
 
         $scopeQuick = ($Mode -eq 'quick') -or $ScopeToChanges
-        $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
-        $changedFrontendTests = @()
-        if ($scopeQuick -and $changedFiles.Count -gt 0) {
-            # git reports paths from the repo root, so these must be src/frontend/src/...
-            # The pre-flatten 'frontend/src/...' prefix left here since June 2026 matched
-            # nothing, which is why quick mode always ran the whole frontend suite.
-            $changedFrontendTests = $changedFiles | Where-Object { $_ -match '^src/frontend/src/.+\.(test|spec)\.(ts|tsx|js|jsx)$' -or $_ -match '^src/frontend/src/.+/__tests__/.+\.(ts|tsx|js|jsx)$' }
+        $frontendScope = $null
+        if ($scopeQuick) {
+            $frontendScope = (Get-QuickTestScope -ChangedFiles @(Get-ChangedFiles) -ProjectRoot $PROJECT_ROOT).Frontend
         }
 
-        if ($scopeQuick -and $changedFrontendTests.Count -gt 0) {
-            Write-Info "Quick scope enabled: running changed frontend tests only"
-            $testPaths = $changedFrontendTests | ForEach-Object { Join-Path $PROJECT_ROOT $_ }
+        if ($frontendScope -and $frontendScope.Scope -eq 'changed') {
+            Write-Info "Quick scope: nothing but test files changed - running the $($frontendScope.Files.Count) changed frontend test file(s) alone"
+            $frontendScope.Files | ForEach-Object { Write-Info "   $_" }
+            $testPaths = $frontendScope.Files | ForEach-Object { Join-Path $PROJECT_ROOT $_ }
             $output = npm run test -- $testPaths --reporter=dot --bail 1 2>&1
             $frontendExitCode = $LASTEXITCODE
         }
         elseif ($Mode -eq 'quick') {
+            if ($frontendScope) { Write-Info "Whole frontend suite: $($frontendScope.Reason)" }
             Write-Info "Running fast frontend tests only..."
             $output = npm run test -- --reporter=dot --bail 1 2>&1
             $frontendExitCode = $LASTEXITCODE
