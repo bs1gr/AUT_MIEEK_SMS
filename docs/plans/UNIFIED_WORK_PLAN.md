@@ -235,6 +235,32 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-16, late: the commit gate runs the changed tests alone only when nothing but test
+files changed** (#410; the owner, to the last finding of #409: "fix it"). No application code
+changes.
+
+- **What it did.** In quick mode `COMMIT_READY` ran "the changed tests only" whenever any
+  changed file looked like a test file, whatever else the commit changed. On the backend the
+  pattern asked for `test_` twice in the path and matched none of the 166 test files, so every
+  quick gate ran the whole suite, until #409 named a file `test_test_run_…`: that gate ran the
+  one file, in 89 seconds, for a commit that changed `conftest.py` and three source files. On
+  the frontend the pattern worked, so the rule was live there: a component changed together
+  with any test file was checked by that test file alone.
+- **The rule now** (`Get-QuickTestScope`, one decision for both sides): the changed test
+  files alone when every changed file is a test file; otherwise the whole suite, and the log
+  says which and why. Also the whole suite: a test file that was removed or renamed (a rename
+  now counts as a removed file and a new one), a backend test file that another file of the
+  tests names (three import helpers from a test module), and more than ten changed backend
+  test files (they go to the batch runner). Unchanged: a change of frontend test files alone
+  still runs the whole backend suite.
+- **Checked.** 14 tests drive the function, taken from the script itself, on scratch folders
+  and scratch repositories; with each part of the rule switched off in turn (the "not a test
+  file" rule, the rename, the old pattern, the named-by check) the tests for it fail. Live,
+  in a throwaway copy: with one backend and one frontend test file changed and nothing else,
+  the gate ran those two files and named them (87 seconds); with a failing test added to
+  each, it failed on both. The gate for this change itself ran the whole suite and said why
+  (the script is not a test file).
+
 **2026-11-16, night: five small server fixes from todo 58, and a sixth found while checking
 them** (#409, merged as `7e8520f9f`; asked what comes next, the owner chose "Small server
 fixes"). No database changes. On the PR's last commit the backend job passed 1,595 tests with
@@ -1073,7 +1099,7 @@ the owner's call: the shared database's PostgreSQL 14 reached its end of life on
         each call of `/diagnostics/queries/summary` or `/patterns` writes one warning per
         table (six on a scratch server after a login and two pages). A real detector would
         count per request.
-      - *The gate's "changed tests only" rule can pass a commit on one test file.* In `-Quick`
+      - ~~*The gate's "changed tests only" rule can pass a commit on one test file.* In `-Quick`
         mode `COMMIT_READY` (`Invoke-TestSuite`) runs only the changed backend test files when
         its pattern finds any, whatever else the commit changes (source files, `conftest.py`).
         The pattern asks for `test_` twice in the path, so it matched none of the 166 test
@@ -1081,7 +1107,8 @@ the owner's call: the shared database's PostgreSQL 14 reached its end of life on
         named `test_test_run_…`: that gate ran the one file, in 89 seconds, and passed. The
         suite was then run in full by hand (56 batches, 1,607 passed), the file renamed, and
         the gate run again. To fix: the changed tests alone only when every changed backend
-        file is a test file, otherwise the whole suite; and a pattern that means what it says.
+        file is a test file, otherwise the whole suite; and a pattern that means what it says.~~
+        **Closed by #410**, for the frontend as well, where the same rule was live.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):
