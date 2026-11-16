@@ -8,6 +8,7 @@ Supports multiple export formats: Excel (XLSX), CSV, and PDF.
 
 import logging
 import os
+import tempfile
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, cast
 from enum import Enum
@@ -44,6 +45,46 @@ class ExportStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+def _can_write_in(folder: str) -> bool:
+    """Make the folder if it is missing and try to put a file in it. Never raises.
+
+    A real write, not os.access(): on Windows that only looks at the read-only attribute and
+    says yes for a folder the user may not write to.
+    """
+    try:
+        os.makedirs(folder, exist_ok=True)
+        with tempfile.TemporaryFile(dir=folder):
+            pass
+        return True
+    except OSError:
+        return False
+
+
+def exports_folder() -> str:
+    """Where generated export files are written: the first of these that can be written to.
+
+    1. Next to the code (``backend/exports``), where it always was.
+    2. ``data/exports`` under the working directory, where the other export files already go.
+
+    The service used to create the first one when the module was imported, and nothing else.
+    In an installed SMS Lite that is the program folder, which a normal user cannot write to:
+    creating it raised, the whole Import/Export router failed to load, and its endpoints
+    (the mail settings among them) answered 404. That showed on an installation whose very
+    first start was not an elevated one; after an elevated first start the folder existed
+    and only the exports themselves failed. Seen 2026-11-16 with a fresh build and a read-only
+    program folder.
+
+    When neither can be written to, the first is returned: an export then fails and says why,
+    and the rest of the API still loads.
+    """
+    next_to_the_code = os.path.join(os.path.dirname(__file__), "..", "exports")
+    for folder in (next_to_the_code, os.path.join("data", "exports")):
+        if _can_write_in(folder):
+            return folder
+    logger.warning("No folder for export files can be written to; exports will fail until one can")
+    return next_to_the_code
+
+
 class AsyncExportService:
     """Service for managing async export tasks.
 
@@ -52,8 +93,7 @@ class AsyncExportService:
     """
 
     def __init__(self):
-        self.exports_dir = os.path.join(os.path.dirname(__file__), "..", "exports")
-        os.makedirs(self.exports_dir, exist_ok=True)
+        self.exports_dir = exports_folder()
 
     @staticmethod
     def _set_job_fields(export_job: ExportJob, **fields: Any) -> None:

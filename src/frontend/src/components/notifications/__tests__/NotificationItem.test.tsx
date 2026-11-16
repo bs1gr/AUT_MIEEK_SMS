@@ -104,6 +104,23 @@ describe('NotificationItem Component', () => {
     expect(screen.queryByText('stored english text')).not.toBeInTheDocument();
   });
 
+  it('renders a failed-backup notice in the UI language, with the backup icon', () => {
+    // The server stores English text; the notice is shown from its type and its data.
+    const failed: Notification = {
+      ...mockNotification,
+      notification_type: 'backup_failed',
+      title: 'Automatic backup failed',
+      message: 'stored english text',
+      data: { error: 'connection refused', url: '#/power?showControl=1&tab=maintenance' },
+    };
+    render(<NotificationItem notification={failed} />);
+
+    expect(screen.getByText('backupFailed.title')).toBeInTheDocument();
+    expect(screen.getByText('backupFailed.message')).toBeInTheDocument();
+    expect(screen.queryByText('stored english text')).not.toBeInTheDocument();
+    expect(screen.getByText('💾')).toBeInTheDocument();
+  });
+
   describe('Rendering', () => {
     it('should render notification title', () => {
       render(<NotificationItem notification={mockNotification} />);

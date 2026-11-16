@@ -36,6 +36,19 @@ server log the lines start with `Automatic database backup` (`created`, `skipped
 | `BACKUPS_DIR` | per edition, below | the folder that holds `database/` |
 | `BACKUP_KEYS_DIR` | per edition, below | the folder that holds the key, `master.key` |
 
+## When a backup fails
+
+- Every active administrator gets a notice in the application's bell ("The automatic backup
+  failed", with the reason), at most one a day while it keeps failing. The server tries again
+  every hour by itself.
+- Manage Backups shows the reason of the last failed attempt.
+- A server that is set up to report to a monitoring service
+  ([the cloud runbook, "Watching the server"](../deployment/CLOUD_HOST_ORACLE.md#watching-the-server))
+  stops sending its "all is well" signal, and the service tells you by email. That is also
+  the only way to hear that the server itself has stopped: a dead server cannot send a notice.
+- The notice is stored in the database that could not be backed up. If the database itself is
+  unreachable, only the monitoring service can tell you.
+
 ## Where the files are
 
 Each server keeps its backups on the machine it runs on. Two servers on one shared database

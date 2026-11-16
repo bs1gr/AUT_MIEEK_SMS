@@ -181,7 +181,70 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.71 (unreleased)
 
-Only the record of the release in this document.
+**2026-11-16, evening: somebody is told when the backup fails or the server stops** (todo 54;
+the owner answered "continue" to "that is the next item I would take", then chose "Free
+monitoring service" and, of the ten workflow files that never ran, "The five that cannot
+run").
+
+- **#408: a notice in the bell when the automatic backup fails.** Every active administrator
+  gets it, at most once a day while the backup keeps failing (the server tries again every
+  hour). It is shown in the user's language, names the reason and opens the Maintenance tab.
+  A failed backup used to leave an ERROR line in the log and one line on a page.
+- **A heartbeat for a monitoring service outside** (`services/monitor_heartbeat.py`,
+  `MONITOR_PING_URL`; off unless set). While the server runs, its database answers and its
+  backup is in order (made, and not more than 27 hours old), it calls the service's address
+  once an hour. When one of them does not hold, the call is withheld, or the service's
+  failure address is called (`MONITOR_FAIL_URL`) with a short fixed phrase; an error text
+  never leaves the server, and the address is not written to the log. A dead man's switch is
+  the one way to hear that the VM itself is down without a key to the tailnet being stored
+  somewhere. The runbook says how to set it up ("Watching the server").
+- **Mail settings saved in the application survive an update.** They were kept next to the
+  code: in a Docker container that is the container's own layer, as it was for the backup
+  key. On the cloud VM no mail is configured at all (seen: no `SMTP_*` variable, no saved
+  file), so nothing can be mailed from there; had the settings been entered in the
+  application, the next rebuild would have removed them. Now `/data/smtp_override.json` in
+  Docker and the user's profile in SMS Lite. Nothing is copied into a path that is set
+  explicitly: a throwaway backend pointed at its own folder must not inherit the developer's
+  relay.
+- **Found on the way: on a freshly installed SMS Lite the Import/Export part of the API did
+  not load.** The export service created `backend/exports` next to the code when it was
+  imported. In an installed copy that is the program folder, which a normal user cannot
+  write to: the import raised, the router was skipped ("Some routers failed to load", a
+  WARNING), and every endpoint in it answered 404, the mail settings among them. Once the
+  folder exists the router loads and only the exports themselves fail: that is the case after
+  a first start with the installer's rights (its "launch" at the end runs that way; read from
+  the installer script, not tried) and in the release check, which runs the build once with
+  a writable folder. Seen with a fresh
+  build and a read-only program folder: 404 and 405 before, the settings saved and an export
+  downloaded after. Exports now go to the first folder that can really be written to (next
+  to the code, else `data/exports`), and loading the module cannot fail on it. On the
+  released v1.18.71 an installed Lite cannot save mail settings either ("Access is denied").
+- **Found on the way: an image built from a used working tree carried its local files.** The
+  Dockerfile copies `src/backend` whole, and `.dockerignore` named neither the data folder
+  nor databases, export files or keys (and its `__pycache__/` and `*.pyc` lines only ever
+  applied at the root). In the main tree on the dev PC that is 177 generated export files, a
+  backup key and the saved mail settings. The cloud VM builds from a clean checkout and no
+  image was ever published, so nothing left this PC. The ignore file now names them (seen:
+  planted files stay out of the image, and the image passes the same checks).
+- **The five workflow files that could not run are deleted** (the owner's choice):
+  `scheduled-production-health-check.yml` (it needs a self-hosted runner; none was ever
+  registered) and the four under `.github/workflows/archive/` (GitHub runs the top level
+  only). With them the `health-check` task of `orchestrated-maintenance.yml`, which only
+  dispatched the first; the two validation scripts that expected the archived files now
+  expect them gone. The five manual-only workflows that were never used stay.
+- **With it:** the Backups list answered 500 when the backups folder could not be used, which
+  is exactly when the notice sends the administrator there.
+- **Seen, on scratch data only.** A server from source with a stand-in for the monitoring
+  service: the backup after one minute, the signal after two and a half, the address absent
+  from the log; with the backups made to fail, the notice in the administrator's bell in
+  English and in Greek (a click opens Maintenance) and the failure address called with "the
+  last automatic backup failed" and nothing else. Docker image on PostgreSQL 14: the signal
+  leaves the container, the mail settings are on the data volume and still applied after the
+  container is replaced. Packaged SMS Lite, fresh build, program folder read-only: no router
+  skipped, mail settings saved into the profile (password encrypted) and there after a
+  restart, an export made and downloaded.
+- **Not done:** no monitoring service exists yet and the VM has neither this code nor an
+  address (todo 54). Not released.
 
 ### In v1.18.71
 
@@ -655,11 +718,12 @@ the attendance fix works on the phone. Also still open in their own sections: th
 design calls of 2026-10-07, `viewer` and `guest` getting 403 on the Dashboard overview, and
 the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 
-**First in line: the owner's part of todo 55, then todo 54.** Since v1.18.71 the cloud VM
-backs up the shared database once a day, and a restore of its first backup was proven. What no
-software does: a copy of the VM's backup key kept somewhere else, and a copy of a backup taken
-off the VM now and then. And nothing watches the VM (todo 54): a backup that fails is seen
-only by whoever opens Manage Backups or reads the log.
+**First in line: the owner's parts of todos 55 and 54.** Since v1.18.71 the cloud VM backs up
+the shared database once a day, and a restore of its first backup was proven. What no software
+does: a copy of the VM's backup key kept somewhere else, and a copy of a backup taken off the
+VM now and then (todo 55). The code that tells somebody when a backup fails or the server
+stops is on `main` (#408, unreleased); it needs an account at a monitoring service, the
+release that carries it and the address in the VM's `.env` (todo 54).
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -697,6 +761,19 @@ only by whoever opens Manage Backups or reads the log.
     `.github/workflows/archive/` are inert (GitHub only runs the top level). Suggested: a cron
     job on the VM that checks `/health` and mails through the SMTP settings the app already has;
     delete the workflows that cannot run (owner's OK).
+    - **Done in #408 (2026-11-16, unreleased):** the bell notice for a failed backup, the
+      heartbeat for a monitoring service outside, and the five files that could not run
+      deleted. Not the cron job with mail: the VM has no mail settings, and a job on the VM
+      cannot report that the VM is down. The details are under "On `main` since v1.18.71".
+    - **Left:** (a) the owner's: an account at a monitoring service (healthchecks.io or the
+      like), and its address in the VM's `.env`; the runbook has the steps ("Watching the
+      server"). It works from the release that carries #408. (b) The five manual-only
+      workflows without a run on record stay, by the owner's choice: `reset-workflows.yml`,
+      `archive-legacy-releases.yml`, `fetch-code-scanning-sarif.yml`, `upload-sarif.yml`,
+      `sync-installer-artifact.yml`. (c) No mail is configured on the VM: the activation
+      email of an approved account cannot be sent from there (the administrator gets the
+      notice "Activation email not sent"). Entering the settings under Control Panel > Email
+      on the VM works, and from #408 on they last.
 55. **Nothing backs up the QNAP database on a schedule, and the application says it does.**
     Asked what backs it up, the owner answered on 2026-11-15: "the back up happens each and
     everytime a session occurs"; shown that the newest backup file on the dev PC is from

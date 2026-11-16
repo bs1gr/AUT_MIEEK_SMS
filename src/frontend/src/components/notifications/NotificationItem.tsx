@@ -85,6 +85,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         return '👤';
       case 'activation_email_failed':
         return '✉️';
+      case 'backup_failed':
+        return '💾';
       default:
         return '🔔';
     }

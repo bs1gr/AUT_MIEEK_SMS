@@ -156,6 +156,8 @@ def get_lifespan():
                 # The daily backup of the database. Like the rest of this block it belongs to a
                 # real server: a test run must never dump the database its .env points at.
                 scheduler.schedule_automatic_backup()
+                # The "alive and well" signal to a monitoring service outside, when one is set.
+                scheduler.schedule_monitor_heartbeat()
                 logging.getLogger(__name__).info(
                     "✅ Export/report/course-activation schedulers and maintenance tasks started"
                 )

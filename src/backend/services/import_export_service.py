@@ -17,9 +17,14 @@ logger = logging.getLogger(__name__)
 UPLOAD_DIR = Path("data/imports")
 EXPORT_DIR = Path("data/exports")
 
-# Ensure directories exist
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+# Ensure directories exist. Loading this module must not fail when they cannot be made (a
+# working directory that cannot be written to): the router that imports it would not load,
+# and every endpoint in it would answer 404. An import or export then fails and says why.
+for _folder in (UPLOAD_DIR, EXPORT_DIR):
+    try:
+        _folder.mkdir(parents=True, exist_ok=True)
+    except OSError as _exc:
+        logger.warning("Could not create %s: %s", _folder, _exc)
 
 
 class ImportExportService:

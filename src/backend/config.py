@@ -179,6 +179,16 @@ class Settings(BaseSettings):
     # default for the edition, see services/encryption_service.default_key_dir().
     BACKUP_KEYS_DIR: str = ""
 
+    # The "alive and well" signal for a monitoring service outside the server
+    # (services/monitor_heartbeat.py): the address the service gives for it. While the server
+    # runs, its database answers and its automatic backup is in order, it calls that address
+    # every MONITOR_PING_MINUTES; when the calls stop, the service tells a person. Empty = off.
+    # MONITOR_FAIL_URL, if the service has one, is called instead when something is wrong
+    # (healthchecks.io: the ping address followed by /fail).
+    MONITOR_PING_URL: str = ""
+    MONITOR_FAIL_URL: str = ""
+    MONITOR_PING_MINUTES: int = 60
+
     # API Pagination
     DEFAULT_PAGE_SIZE: int = 100
     MAX_PAGE_SIZE: int = 1000

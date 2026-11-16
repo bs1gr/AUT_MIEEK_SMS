@@ -15,7 +15,6 @@ on:
           - all
           - workflow-cleanup
           - artifact-cleanup
-          - health-check
           - deps-check
           - docs-validate
       cleanup_level:
@@ -53,7 +52,6 @@ jobs:
     outputs:
       run_workflow_cleanup: ${{ steps.tasks.outputs.run_workflow_cleanup }}
       run_artifact_cleanup: ${{ steps.tasks.outputs.run_artifact_cleanup }}
-      run_health_check: ${{ steps.tasks.outputs.run_health_check }}
       run_deps_check: ${{ steps.tasks.outputs.run_deps_check }}
       run_docs_validate: ${{ steps.tasks.outputs.run_docs_validate }}
     steps:
@@ -66,7 +64,6 @@ jobs:
           if [ "$TASK" = "all" ] || [ -z "$TASK" ]; then
             echo "run_workflow_cleanup=true" >> $GITHUB_OUTPUT
             echo "run_artifact_cleanup=true" >> $GITHUB_OUTPUT
-            echo "run_health_check=false" >> $GITHUB_OUTPUT  # Health check is manual-only
             echo "run_deps_check=true" >> $GITHUB_OUTPUT
             echo "run_docs_validate=true" >> $GITHUB_OUTPUT
             echo "🎯 Running all maintenance tasks"
@@ -74,7 +71,6 @@ jobs:
             # Run only specified task
             echo "run_workflow_cleanup=$([ "$TASK" = "workflow-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_artifact_cleanup=$([ "$TASK" = "artifact-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
-            echo "run_health_check=$([ "$TASK" = "health-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_deps_check=$([ "$TASK" = "deps-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "run_docs_validate=$([ "$TASK" = "docs-validate" ] && echo true || echo false)" >> $GITHUB_OUTPUT
             echo "🎯 Running task: $TASK"
@@ -183,22 +179,11 @@ jobs:
   # Rulesets), not something this workflow re-applies. The old nightly
   # classic-protection job 403'd every run while reporting success.
 
-  health-check:
-    name: 🏥 Production Health Check
-    runs-on: ubuntu-latest
-    needs: determine-tasks
-    if: needs.determine-tasks.outputs.run_health_check == 'true'
-    permissions:
-      actions: write
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Trigger production health check
-        run: |
-          echo "🏥 Triggering production health check (self-hosted runner, real pass/fail assertions)..."
-          gh workflow run scheduled-production-health-check.yml --ref main 2>&1 || echo "Health check workflow triggered or already running"
+  # There is no health-check task here any more. It only dispatched
+  # scheduled-production-health-check.yml, which needed a self-hosted runner
+  # that was never registered and had no run on record; both were removed on
+  # 2026-11-16. The cloud host reports on itself instead (MONITOR_PING_URL,
+  # docs/deployment/CLOUD_HOST_ORACLE.md, "Watching the server").
 
   # ============================================================================
   # VERSION & DEPENDENCY CHECKS
@@ -292,7 +277,6 @@ jobs:
     needs:
       - cleanup-workflow-runs
       - cleanup-artifacts
-      - health-check
       - check-outdated-deps
       - validate-docs
     if: always()

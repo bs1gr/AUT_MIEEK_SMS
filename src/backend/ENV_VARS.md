@@ -6,7 +6,7 @@ DISABLE_STARTUP_TASKS
 
 - Type: boolean ("1"/"0")
 - Default: not set
-- Purpose: When set to `1`, the FastAPI lifespan skips everything a real server does at startup: the migrations, the RBAC defaults, the admin bootstrap, the purge of dead refresh tokens, loading the saved SMTP settings, and starting the background schedulers (export cleanup, scheduled reports, course activation, the automatic database backup). Intended for tests and CI to avoid startup side-effects; a test run (pytest) gets the same without setting it. Do not set it on a real server: scheduled reports and saved mail settings would not work.
+- Purpose: When set to `1`, the FastAPI lifespan skips everything a real server does at startup: the migrations, the RBAC defaults, the admin bootstrap, the purge of dead refresh tokens, loading the saved SMTP settings, and starting the background schedulers (export cleanup, scheduled reports, course activation, the automatic database backup, the heartbeat to a monitoring service). Intended for tests and CI to avoid startup side-effects; a test run (pytest) gets the same without setting it. Do not set it on a real server: scheduled reports and saved mail settings would not work.
 
 AUTO_BACKUP_ENABLED, AUTO_BACKUP_INTERVAL_HOURS, AUTO_BACKUP_KEEP
 
@@ -20,8 +20,13 @@ BACKUP_KEYS_DIR
 - Default: empty = `/data/.keys` in Docker (the data volume), next to the code (`src/.keys`) from source; SMS Lite sets it to `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\backup-keys`
 - Purpose: The folder that holds `master.key`, the key every encrypted backup of this installation is made with. It must outlive an update of the application: an encrypted backup opens only with the key it was made with. A key found in the old place (next to the code) is copied over at first use.
 
-CONTROL_API_ALLOW_TASKKILL
+MONITOR_PING_URL, MONITOR_FAIL_URL, MONITOR_PING_MINUTES
 
+- Type: URL / URL / integer
+- Default: empty / empty / `60`
+- Purpose: The "alive and well" signal for a monitoring service outside the server (a dead man's switch such as healthchecks.io). While the server runs, its database answers and its automatic backup is in order, it calls `MONITOR_PING_URL` every `MONITOR_PING_MINUTES` (minimum 5); when the calls stop, the service tells a person. When something is wrong the call is withheld, or, if `MONITOR_FAIL_URL` is set (healthchecks.io: the ping address followed by `/fail`), that address is called with a short fixed phrase, never an error text. Empty = off. The address is a secret of sorts and is not written to the log. See `docs/deployment/CLOUD_HOST_ORACLE.md`, "Watching the server".
+
+CONTROL_API_ALLOW_TASKKILL
 - Type: boolean ("1"/"0")
 - Default: `0` (disabled)
 - Purpose: When set to `1` allows control endpoints to execute system-level taskkill commands. Default disabled to avoid accidental termination of host processes in development/CI.
@@ -145,8 +150,8 @@ SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
 SMTP_OVERRIDE_PATH
 
 - Type: string (file path)
-- Default: `src/backend/data/smtp_override.json`
-- Purpose: Where the SMTP settings saved from Control Panel > Email are read from and written to; they override the `SMTP_*` variables at startup. `RUN_E2E_ISOLATED.ps1` points it into its throwaway run directory, so an E2E run neither sends real mail through the developer's configured relay nor overwrites its saved settings.
+- Default: `src/backend/data/smtp_override.json` from source; `/data/smtp_override.json` (the data volume) in Docker; SMS Lite sets it to `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\smtp_override.json`
+- Purpose: Where the SMTP settings saved from Control Panel > Email are read from and written to; they override the `SMTP_*` variables at startup. In Docker the old place (next to the code) was the container's own layer, so settings entered in the application were gone after every update. Nothing is copied into a path set here: a throwaway backend pointed at its own folder starts without mail settings. `RUN_E2E_ISOLATED.ps1` points it into its throwaway run directory, so an E2E run neither sends real mail through the developer's configured relay nor overwrites its saved settings.
 
 SMTP_USE_TLS
 

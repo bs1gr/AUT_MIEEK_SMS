@@ -332,7 +332,10 @@ async def list_database_backups(request: Request, _auth=Depends(require_control_
     backup_dir = Path(get_settings().BACKUPS_DIR) / "database"
     # What the automatic backup is set to and when it last ran, for the same page.
     automatic = database_backup.automatic_backup_status(backup_dir)
-    if not backup_dir.exists():
+    # is_dir, not exists: when the folder cannot be used (a file stands in its place, or the
+    # path is broken) the backups fail, and this page is where the administrator comes to see
+    # why. It answered 500 then.
+    if not backup_dir.is_dir():
         return {"backups": [], "message": "No backups directory found", "automatic": automatic}
     backups = []
     backup_files = _list_backup_files(backup_dir)

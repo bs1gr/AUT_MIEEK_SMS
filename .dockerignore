@@ -22,6 +22,31 @@ src/backend/htmlcov/
 **/.env
 **/.env.local
 
+# Local data, secrets and generated files. None of them is in the repository, all of them can
+# be in a working tree, and the Dockerfile copies src/backend whole: an image built from a
+# tree that had been used carried its local databases, its generated export files (student
+# data), its saved mail settings and a backup key. A pattern here applies at the root of the
+# build context only unless it starts with **/ - which is why "__pycache__/" and "*.pyc"
+# above never matched anything under src/, and "src/backend/venv/" missed ".venv".
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/venv/
+**/.keys/
+**/local-secrets/
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.sqlite
+**/*.sqlite3
+src/backend/data/
+src/backend/exports/
+src/backend/imports/
+src/backend/logs/
+src/backend/backups/
+src/backend/test-results/
+src/backend/.ruff_cache/
+
 # Node
 src/frontend/node_modules/
 src/frontend/.vite/

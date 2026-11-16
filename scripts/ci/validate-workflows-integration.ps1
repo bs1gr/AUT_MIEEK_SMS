@@ -312,22 +312,17 @@ if ($mainWorkflow -match 'security-scan-backend:[\s\S]*?needs:.*version-verifica
         "Could not verify security job parallelization"
 }
 
-# Test 5.3: Archived workflows are in archive directory
-$archived = @()
-$archived += (Test-Path ".github/workflows/archive/deprecation-audit.yml")
-$archived += (Test-Path ".github/workflows/archive/doc-audit.yml")
-$archived += (Test-Path ".github/workflows/archive/markdown-lint.yml")
-$archived += (Test-Path ".github/workflows/archive/version-consistency.yml")
+# Test 5.3: The four low-value workflows are gone. They were first moved to
+# .github/workflows/archive (GitHub runs only the top level, so they were inert there)
+# and deleted on 2026-11-16; they remain in the git history.
+$leftInArchive = @(Get-ChildItem ".github/workflows/archive" -Filter "*.yml" -ErrorAction SilentlyContinue).Count
 
-$archivedCount = ($archived | Where-Object { $_ }).Count
-
-if ($archivedCount -eq 4) {
+if ($leftInArchive -eq 0) {
     Add-TestResult "5.3: Archived Workflows" "PASS" `
-        "All 4 low-value workflows moved to archive" `
-        "Reduced from 41 to 36 active workflows (-10%)"
+        "The 4 low-value workflows are removed (no workflow file under .github/workflows/archive)"
 } else {
     Add-TestResult "5.3: Archived Workflows" "WARN" `
-        "Only $archivedCount of 4 workflows archived"
+        "$leftInArchive workflow file(s) still under .github/workflows/archive: GitHub never runs them"
 }
 
 # ============================================================================

@@ -167,6 +167,7 @@ export const notificationsEN = {
     enrollment: 'Enrollment',
     registration: 'Account request',
     activation_email_failed: 'Action needed',
+    backup_failed: 'Backup',
     general: 'General',
   },
 
@@ -179,6 +180,10 @@ export const notificationsEN = {
     title: 'Activation email not sent — tell the user yourself',
     message: 'The account of {{name}} ({{email}}) is now active, but the email could not be sent. Please let them know yourself that they can sign in.',
     messageNotConfigured: 'The account of {{name}} ({{email}}) is now active, but email (SMTP) is not configured. Please let them know yourself that they can sign in.',
+  },
+  backupFailed: {
+    title: 'The automatic backup failed',
+    message: 'This server could not make its daily backup of the database: {{error}}. Until it works again there is no new backup. Open Manage Backups (System → Control Panel → Maintenance → System Operations) to see the state and to make a backup yourself.',
   },
 
   // Time formats

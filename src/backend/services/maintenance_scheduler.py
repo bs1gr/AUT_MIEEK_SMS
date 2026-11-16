@@ -261,6 +261,50 @@ class MaintenanceScheduler:
             logger.error(f"Failed to schedule the automatic database backup: {e}")
             return False
 
+    def schedule_monitor_heartbeat(self, first_after_seconds: int = 150) -> bool:
+        """Tell a monitoring service outside, at a fixed pace, that this server is alive and well.
+
+        Off unless MONITOR_PING_URL is set (services/monitor_heartbeat.py). The first signal
+        comes after the first backup check has had time to finish, so that a server which
+        starts with a failing backup does not first report that all is well.
+
+        Returns True when the job was scheduled.
+        """
+        from backend.services.monitor_heartbeat import heartbeat_settings, send_heartbeat
+
+        ping_url, _fail_url, minutes = heartbeat_settings()
+        if not ping_url:
+            logger.info("No monitoring service is set (MONITOR_PING_URL): nobody is told when this server stops")
+            return False
+        if not ping_url.lower().startswith(("https://", "http://")):
+            logger.warning("MONITOR_PING_URL is not a web address; the heartbeat is off")
+            return False
+
+        if not self.export_scheduler.is_available():
+            logger.warning("Cannot schedule the heartbeat: scheduler not available")
+            return False
+
+        try:
+            from apscheduler.triggers.interval import IntervalTrigger
+
+            self.export_scheduler.scheduler.add_job(
+                send_heartbeat,
+                trigger=IntervalTrigger(minutes=minutes),
+                next_run_time=datetime.now(timezone.utc) + timedelta(seconds=first_after_seconds),
+                id="monitor_heartbeat",
+                name="Heartbeat to the monitoring service",
+                replace_existing=True,
+                max_instances=1,
+                coalesce=True,
+                misfire_grace_time=600,
+            )
+            # The address is a secret of sorts (whoever has it can send the signal): not logged.
+            logger.info("Heartbeat to the monitoring service scheduled: every %s minutes", minutes)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to schedule the heartbeat: {e}")
+            return False
+
 
 # Global maintenance scheduler instance
 _maintenance_scheduler = None

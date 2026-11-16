@@ -16,8 +16,17 @@ export function getNotificationText(
   notification: NotificationTextSource,
   t: TFunction,
 ): { title: string; message: string } {
-  const data = (notification.data ?? {}) as { email?: string; full_name?: string | null; reason?: string };
+  const data = (notification.data ?? {}) as {
+    email?: string;
+    full_name?: string | null;
+    reason?: string;
+    error?: string;
+  };
   const vars = { name: data.full_name || data.email || '', email: data.email || '' };
+  if (notification.notification_type === 'backup_failed') {
+    // The server's reason is shown as it is: it is a technical message, the same in any language.
+    return { title: t('backupFailed.title'), message: t('backupFailed.message', { error: data.error || '' }) };
+  }
   if (notification.notification_type === 'registration') {
     return { title: t('registration.title'), message: t('registration.message', vars) };
   }

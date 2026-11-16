@@ -247,8 +247,11 @@ foreach ($workflow in $archivedWorkflows) {
     $archivedPath = "$archiveDir/$workflow"
     $activePath = "$workflowDir/$workflow"
 
-    if ((Test-Path $archivedPath) -and -not (Test-Path $activePath)) {
-        Log-Test "PASS" "Workflow archived: $workflow" "Found in archive, removed from active"
+    # The four were moved to the archive folder first (GitHub runs only the top level, so
+    # they were inert there) and deleted on 2026-11-16. Either way they must not be active.
+    if (-not (Test-Path $activePath)) {
+        $where = if (Test-Path $archivedPath) { "Found in archive, removed from active" } else { "Removed (was archived before)" }
+        Log-Test "PASS" "Workflow retired: $workflow" $where
         $archivedCount++
         $results.passed++
     } elseif (Test-Path $activePath) {

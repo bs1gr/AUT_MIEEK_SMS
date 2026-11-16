@@ -25,20 +25,40 @@ from backend.config import settings
 logger = logging.getLogger(__name__)
 
 
-def _default_override_path() -> Path:
-    """``SMTP_OVERRIDE_PATH`` if set, else ``src/backend/data/smtp_override.json``.
+# Inside a Docker container: the data volume, which every Docker edition mounts and keeps
+# across an update of the image.
+_DOCKER_OVERRIDE_PATH = "/data/smtp_override.json"
 
-    Every backend started from a checkout reads the same file, so a throwaway backend
-    (RUN_E2E_ISOLATED.ps1) would otherwise send real mail through the developer's
-    configured relay and could overwrite its saved settings. It points this into its
-    own run directory instead.
+
+def _legacy_override_path() -> Path:
+    """Next to the code: where the file was kept in every edition until November 2026."""
+    return Path(__file__).resolve().parents[1] / "data" / "smtp_override.json"
+
+
+def _default_override_path() -> Path:
+    """Where the mail settings saved through the application are kept.
+
+    - ``SMTP_OVERRIDE_PATH`` when set. Every backend started from a checkout reads the same
+      file, so a throwaway backend (RUN_E2E_ISOLATED.ps1) would otherwise send real mail
+      through the developer's configured relay and could overwrite its saved settings; it
+      points this into its own run directory. SMS Lite sets it to the user's profile.
+    - In Docker, the data volume. Next to the code is the container's own layer there, which
+      an update throws away: mail settings entered in the application were gone after every
+      update (the same fault the backup key had).
+    - Otherwise next to the code (``src/backend/data/smtp_override.json``).
     """
     configured = os.environ.get("SMTP_OVERRIDE_PATH", "").strip()
     if configured:
         return Path(configured)
-    return Path(__file__).resolve().parents[1] / "data" / "smtp_override.json"
+    if os.environ.get("SMS_EXECUTION_MODE", "native").strip().lower() == "docker":
+        return Path(_DOCKER_OVERRIDE_PATH)
+    return _legacy_override_path()
 
 
+# Nothing is copied over from the old place here, on purpose. A throwaway backend that is
+# pointed at its own folder must start without mail settings: copying the developer's saved
+# ones into it would hand it the real relay. (In a new container the old place is empty
+# anyway; SMS Lite brings its own file along in its entrypoint.)
 _SMTP_OVERRIDE_PATH: Path = _default_override_path()
 _PASSWORD_ENCRYPTION_PREFIX = "fernet:v1:"
 # HKDF "info" label: keeps this key distinct from anything else derived from SECRET_KEY.
