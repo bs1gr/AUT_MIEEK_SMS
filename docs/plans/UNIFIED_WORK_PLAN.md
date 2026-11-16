@@ -866,11 +866,11 @@ the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 VM backs up the shared database once a day, and a restore of its first backup was proven;
 since v1.18.72 it reports to a monitoring service, and a failed backup puts a notice in the
 administrators' bell; the owner set the service up and its test mail arrived. Since the
-night of 2026-11-16 the VM's backup key and one backup are also on the dev PC. Left for the
-owner: a copy of that key somewhere that is neither the VM nor this PC (a USB stick, a
-password manager; asked for help with it on 2026-11-17 and given the steps, with a note
-beside the key that says how to check a copy and how to restore), and a copy of a backup
-taken off the VM now and then (todo 55). **The shared database's PostgreSQL 14 reached its
+night of 2026-11-16 the VM's backup key and one backup are also on the dev PC, and since
+2026-11-17 the key is in a third place: the owner put it, with a note on how to check a copy
+and how to restore, into the vault of their own cloud storage, which opens only after a
+second identity check. Left for the owner: a copy of a newer backup taken off the VM now and
+then (todo 55). **The shared database's PostgreSQL 14 reached its
 end of life on 2026-11-12, and no newer image runs on the NAS; the owner stays on 14.18 for
 now** (todo 58).
 
@@ -959,10 +959,16 @@ now** (todo 58).
     - **Done 2026-11-16, night (the owner: "Yes, copy both"):** the VM's key and its newest
       backup (`auto_backup_20261116_150613.enc`) are on the dev PC, in the owner's confidential
       folder outside the repository; checksums equal, and the key opens the backup.
-    - **Left:** (a) the owner's: a copy of the key in a third place (a USB stick, a password
-      manager; the VM and the dev PC are both machines that can be lost), and now and then a
-      newer backup taken off the VM (the runbook has the commands; the copy on the dev PC is
-      of 16 November and does not renew itself). (b) Whether the key next to the code on the dev PC
+    - **Done 2026-11-17 by the owner: the key is in a third place.** The steps first given
+      (a USB stick, or a password manager by way of PowerShell commands) were too complicated;
+      the owner asked for something "like the Two-factor authentication". The vault of their
+      own cloud storage is that: it opens only after a second identity check. The owner
+      confirmed that the key and the note are in it. The key now exists on the VM, on the dev
+      PC and there; the note beside it holds its checksum and the way to restore, and no
+      secret.
+    - **Left:** (a) the owner's: now and then a newer backup taken off the VM (the runbook has
+      the commands; the copy on the dev PC is of 16 November and does not renew itself).
+      (b) Whether the key next to the code on the dev PC
       still opens the 22 older encrypted backups there is not known. (c) The drill is one
       drill: after a release that changes the database, it is worth repeating.
 56. **Small things from the same review.**
