@@ -1069,6 +1069,15 @@ the owner's call: the shared database's PostgreSQL 14 reached its end of life on
         each call of `/diagnostics/queries/summary` or `/patterns` writes one warning per
         table (six on a scratch server after a login and two pages). A real detector would
         count per request.
+      - *The gate's "changed tests only" rule can pass a commit on one test file.* In `-Quick`
+        mode `COMMIT_READY` (`Invoke-TestSuite`) runs only the changed backend test files when
+        its pattern finds any, whatever else the commit changes (source files, `conftest.py`).
+        The pattern asks for `test_` twice in the path, so it matched none of the 166 test
+        files and every Quick gate ran the whole suite, until a new file of #409 was first
+        named `test_test_run_…`: that gate ran the one file, in 89 seconds, and passed. The
+        suite was then run in full by hand (56 batches, 1,607 passed), the file renamed, and
+        the gate run again. To fix: the changed tests alone only when every changed backend
+        file is a test file, otherwise the whole suite; and a pattern that means what it says.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):
