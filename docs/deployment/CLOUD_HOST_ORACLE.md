@@ -175,6 +175,51 @@ sudo docker cp sms-cloud:/data/.keys/master.key ./sms-master.key
 Keep the key apart from the backups. `AUTO_BACKUP_ENABLED=false` in `.env` switches the backup
 off (the page then says so).
 
+## Watching the server
+
+Nothing on the VM can report that the VM has stopped, so something outside has to notice. The
+server sends a signal to a monitoring service at a fixed pace, for as long as three things
+hold: it runs, the database answers, and the daily backup is in order. When the signal stops,
+the service tells you. Only the signal leaves the VM; nothing can reach in.
+
+Any "dead man's switch" service works. With [healthchecks.io](https://healthchecks.io) (free
+for this use):
+
+1. Create an account and a check, for example "SMS cloud server". Schedule: **period 1 hour,
+   grace time 1 hour**. Under Integrations, make sure your email is on.
+2. Copy the check's ping address (`https://hc-ping.com/<id>`).
+3. On the VM, add two lines to `~/sms/infra/docker/cloud/.env`:
+
+   ```bash
+   MONITOR_PING_URL=https://hc-ping.com/<id>
+   MONITOR_FAIL_URL=https://hc-ping.com/<id>/fail
+   ```
+
+4. `sudo docker compose -f docker-compose.cloud.yml up -d`, then, about three minutes later:
+
+   ```bash
+   sudo docker logs sms-cloud 2>&1 | grep -i heartbeat
+   ```
+
+   The log says `Heartbeat to the monitoring service scheduled: every 60 minutes`, and the
+   check on the service's page turns green.
+
+What you are told, and when:
+
+| What happens | What the service sees | You hear |
+|---|---|---|
+| The VM, the container or the application stops | the signals stop | after the period and the grace time (up to 2 hours) |
+| The database does not answer (the NAS or the tailnet is down) | a failure report | at once, at the next signal |
+| The daily backup failed, or the newest one is more than 27 hours old | a failure report | at once, at the next signal |
+
+The administrators also get a notice in the application's bell when a backup fails (at most
+one a day). The address is a secret of sorts: whoever has it can send the signal. It is in
+`.env` only, never in the repository, and the application does not write it to its log.
+`MONITOR_PING_MINUTES` changes the pace (default 60, minimum 5); set the period of the check
+to match.
+
+To try the alarm: `sudo docker stop sms-cloud`, wait for the email, `sudo docker start sms-cloud`.
+
 ## Updating the VM
 
 ```bash

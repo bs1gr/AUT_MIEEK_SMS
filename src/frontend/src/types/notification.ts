@@ -12,6 +12,7 @@ export type NotificationType =
   | 'enrollment'
   | 'registration'
   | 'activation_email_failed'
+  | 'backup_failed'
   | 'general';
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent';

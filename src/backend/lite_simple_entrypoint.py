@@ -167,6 +167,19 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         'BACKUP_KEYS_DIR',
         str(Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets' / 'backup-keys'),
     )
+    # The mail settings saved in the application, for the same two reasons. A file saved by an
+    # earlier build in the program folder (possible where that folder was writable) is brought
+    # along once; only when this is the installed app's own setting, not a check's override.
+    if 'SMTP_OVERRIDE_PATH' not in os.environ:
+        _smtp_settings = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets' / 'smtp_override.json'
+        _smtp_settings_old = Path(sys._MEIPASS) / 'backend' / 'data' / 'smtp_override.json'
+        try:
+            if _smtp_settings_old.is_file() and not _smtp_settings.exists():
+                _smtp_settings.parent.mkdir(parents=True, exist_ok=True)
+                _smtp_settings.write_bytes(_smtp_settings_old.read_bytes())
+        except OSError as e:
+            print(f"WARNING: could not bring the saved mail settings along ({e})", file=sys.stderr)
+        os.environ['SMTP_OVERRIDE_PATH'] = str(_smtp_settings)
 
 
 # ---------------------------------------------------------------------------

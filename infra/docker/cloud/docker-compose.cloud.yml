@@ -56,6 +56,14 @@ services:
       - AUTO_BACKUP_ENABLED=${AUTO_BACKUP_ENABLED:-true}
       - AUTO_BACKUP_INTERVAL_HOURS=${AUTO_BACKUP_INTERVAL_HOURS:-24}
       - AUTO_BACKUP_KEEP=${AUTO_BACKUP_KEEP:-30}
+      # The "alive and well" signal to a monitoring service outside (healthchecks.io or the
+      # like): while the server runs, its database answers and its backup is in order, it
+      # calls MONITOR_PING_URL at this pace; when the calls stop, the service tells you. Set
+      # the address in .env (it is not in this file: whoever has it can send the signal).
+      # See "Watching the server" in the runbook.
+      - MONITOR_PING_URL=${MONITOR_PING_URL:-}
+      - MONITOR_FAIL_URL=${MONITOR_FAIL_URL:-}
+      - MONITOR_PING_MINUTES=${MONITOR_PING_MINUTES:-60}
       # Shown on the Privacy page (docs/admin/PRIVACY_AND_GDPR.md); empty = "ask the school office".
       # Fixed, not read from .env: Oracle's terms do not allow health data on this host.
       - HEALTH_DATA_ENABLED=false

@@ -146,6 +146,8 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
         return '👤';
       case 'activation_email_failed':
         return '✉️';
+      case 'backup_failed':
+        return '💾';
       default:
         return '🔔';
     }

@@ -26,9 +26,10 @@ from __future__ import annotations
 import logging
 import shutil
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import unquote, urlparse
 
 from backend.config import get_settings
@@ -423,10 +424,12 @@ def run_automatic_backup(*, force: bool = False) -> dict[str, Any]:
                 return {"status": "skipped", "reason": exc.message}
             logger.error("Automatic database backup FAILED: %s", exc.message)
             _last_attempt.update(status="failed", error=exc.message)
+            notify_administrators_of_failure(exc.message)
             return {"status": "failed", "error": exc.message}
         except Exception as exc:
             logger.error("Automatic database backup FAILED: %s", exc, exc_info=True)
             _last_attempt.update(status="failed", error=str(exc))
+            notify_administrators_of_failure(str(exc))
             return {"status": "failed", "error": str(exc)}
 
         removed = prune_automatic_backups(backup_dir, keep)
@@ -443,6 +446,129 @@ def run_automatic_backup(*, force: bool = False) -> dict[str, Any]:
         return {"status": "created", "filename": details.get("filename"), "removed": removed}
     finally:
         _run_lock.release()
+
+
+# ---------------------------------------------------------------------------
+# When the automatic backup fails: somebody has to be told
+# ---------------------------------------------------------------------------
+#
+# A failed backup wrote an ERROR line into a log nobody reads and showed on a page nobody opens
+# unless they already suspect something. The administrators now get a notice in the bell, and
+# the heartbeat (services/monitor_heartbeat.py) stops telling the outside world that all is well.
+
+BACKUP_FAILED_NOTIFICATION_TYPE = "backup_failed"
+# Where the notice takes the administrator: System > Control Panel > Maintenance.
+BACKUP_NOTICE_URL = "#/power?showControl=1&tab=maintenance"
+# A backup that keeps failing is tried again every hour; one notice a day is enough.
+_NOTICE_EVERY = timedelta(hours=24)
+_last_failure_notice_at: datetime | None = None
+# For "no backup yet": a server that has just started has not had its first check.
+_PROCESS_STARTED = time.monotonic()
+_FIRST_BACKUP_GRACE_SECONDS = 15 * 60
+# How far past the interval the newest backup may be before it counts as missing: the check
+# is hourly, and a backup may take a while.
+_OVERDUE_GRACE = timedelta(hours=3)
+
+
+def configured_session_factory() -> Callable[[], Any] | None:
+    """The sessions of the database this server uses, or None in a test run.
+
+    A test run (and a start with DISABLE_STARTUP_TASKS) must never reach for the configured
+    database: on a developer's PC that is a real one. The same rule the lifespan follows.
+    """
+    from backend.environment import startup_tasks_enabled
+
+    if not startup_tasks_enabled():
+        return None
+    from backend.db import SessionLocal
+
+    return SessionLocal
+
+
+def notify_administrators_of_failure(error: str, session_factory: Callable[[], Any] | None = None) -> int:
+    """Put a notice in the bell of every active administrator; at most one a day each.
+
+    Never raises: telling somebody must not be able to break the thing it reports on. Returns
+    how many notices were created. The notice lives in the database that could not be backed
+    up, so when the database itself is gone it cannot be written; the heartbeat covers that.
+    """
+    global _last_failure_notice_at
+    now = datetime.now(timezone.utc)
+    if _last_failure_notice_at is not None and now - _last_failure_notice_at < _NOTICE_EVERY:
+        return 0
+
+    factory = session_factory or configured_session_factory()
+    if factory is None:
+        return 0
+
+    created = 0
+    try:
+        from backend.models import Notification, User
+        from backend.services.notification_service import NotificationService
+
+        since = (now - _NOTICE_EVERY).replace(tzinfo=None)
+        short_error = (error or "").strip()[:300]
+        with factory() as db:
+            admin_ids = [
+                row.id for row in db.query(User.id).filter(User.role == "admin", User.is_active.is_(True)).all()
+            ]
+            service = NotificationService(db)
+            for admin_id in admin_ids:
+                already = (
+                    db.query(Notification.id)
+                    .filter(
+                        Notification.user_id == admin_id,
+                        Notification.notification_type == BACKUP_FAILED_NOTIFICATION_TYPE,
+                        Notification.created_at >= since,
+                    )
+                    .first()
+                )
+                if already:
+                    continue
+                service.create_notification(
+                    user_id=admin_id,
+                    notification_type=BACKUP_FAILED_NOTIFICATION_TYPE,
+                    title="Automatic backup failed",
+                    message=(
+                        f"The automatic database backup failed: {short_error}. Until it works again there "
+                        "is no new backup. See System > Control Panel > Maintenance > System Operations > "
+                        "Manage Backups."
+                    ),
+                    data={"error": short_error, "url": BACKUP_NOTICE_URL},
+                )
+                created += 1
+        _last_failure_notice_at = now
+    except Exception:
+        logger.exception("Could not tell the administrators that the automatic backup failed")
+    return created
+
+
+def backup_health(backup_dir: Path | None = None) -> dict[str, Any]:
+    """Is the automatic backup in order? For the heartbeat. Never raises.
+
+    ``{"status": "ok" | "disabled" | "problem", "reason": <short, no details>}``. The reason is
+    a fixed phrase on purpose: it is sent to a monitoring service outside, and an error text
+    can carry host names or more.
+    """
+    enabled, interval_hours, _keep = _automatic_settings()
+    if not enabled:
+        return {"status": "disabled", "reason": ""}
+    if _last_attempt.get("status") == "failed":
+        return {"status": "problem", "reason": "the last automatic backup failed"}
+    if _last_attempt.get("status") == "skipped":
+        return {"status": "ok", "reason": ""}  # nothing to back up this way (an in-memory database)
+    try:
+        backups = list_automatic_backups(backup_dir)
+    except OSError:
+        return {"status": "problem", "reason": "the backups folder cannot be read"}
+    if not backups:
+        if time.monotonic() - _PROCESS_STARTED < _FIRST_BACKUP_GRACE_SECONDS:
+            return {"status": "ok", "reason": ""}  # the first check has not run yet
+        return {"status": "problem", "reason": "there is no automatic backup"}
+    age = datetime.now() - datetime.fromtimestamp(backups[0].stat().st_mtime)
+    if age > timedelta(hours=interval_hours) + _OVERDUE_GRACE:
+        return {"status": "problem", "reason": f"the newest automatic backup is {int(age.total_seconds() // 3600)} hours old"}
+    return {"status": "ok", "reason": ""}
 
 
 def automatic_backup_status(backup_dir: Path | None = None) -> dict[str, Any]:
