@@ -236,8 +236,10 @@ the VM and the QNAP.
 ### On `main` since v1.18.72 (unreleased)
 
 **2026-11-16, late: the commit gate runs the changed tests alone only when nothing but test
-files changed** (#410; the owner, to the last finding of #409: "fix it"). No application code
-changes.
+files changed** (#410, merged as `625df78a8`; the owner, to the last finding of #409:
+"fix it"). No application code changes. On the PR's last commit the backend job passed
+1,609 tests with 55 skipped (the 14 new ones ran on the Linux runner too), CI's own quick
+run of the gate passed, and E2E was green.
 
 - **What it did.** In quick mode `COMMIT_READY` ran "the changed tests only" whenever any
   changed file looked like a test file, whatever else the commit changed. On the backend the
@@ -1088,11 +1090,32 @@ the owner's call: the shared database's PostgreSQL 14 reached its end of life on
         and its last release, 14.25, on 2026-11-12. The server on the NAS reports 14.18, seven
         minor releases behind and now on a branch that gets no more security fixes. It is
         reachable only inside the home network and the tailnet, which limits who could use a
-        flaw. Two steps, both on the NAS, which only the owner can reach: first the last 14.x
-        image (a minor update: same data folder, a restart), later a move to a supported
-        version (16 or newer: a dump and a restore, for which the daily backups and the
-        restore drill are the rehearsal). The application's side is already tested on both
-        14 and 16.
+        flaw. The application's side is already tested on both 14 and 16.
+        **Corrected the same night, after the owner showed the container in Container
+        Station:** it is not "a minor update: same data folder, a restart", as first written
+        here. (1) The image is `arm32v7/postgres:14-bullseye`, and that tag was last pushed on
+        2025-07-22 and stays at 14.18: pulling it again changes nothing. 14.25 exists only on
+        the newer Debian bases (`14-bookworm`, `14-trixie`), as do 16 and 17. (2) The NAS uses
+        32K memory pages, on which most images do not start (exit 139; `postgres:16-alpine`
+        and every Python image in November 2025, `postgres:16` on Debian never tried).
+        `docs/deployment/qnap/TS-431P3-DEPLOYMENT-ATTEMPT-SUMMARY.md` still says PostgreSQL
+        cannot run on it at all; one has since March 2026. (3) The running container's data
+        path (`/var/lib/postgresql/data`) is not the one in
+        `docker-compose.qnap.postgres-only.yml` (`…/data/pgdata`), so the file in the
+        repository is not what it was made from.
+        **Tried by the owner the same night, without touching the database** (two throwaway
+        containers, no port, no volume): `arm32v7/postgres:14-bookworm` and
+        `arm32v7/postgres:17-bookworm` both stop at once with `libc.so.6: ELF load command
+        address/offset not page-aligned`. So on this NAS the official images end with what
+        the bullseye base had in July 2025, and no pull will ever bring 14.25 or a supported
+        version. What is left, all the owner's call: (a) stay on 14.18, which is what was
+        recommended for now: the server answers only inside the home network and the
+        tailnet, to clients that hold its password, it is backed up daily off the NAS and a
+        restore was proven; (b) an image built by us on the bullseye base (14.25, or 17 from
+        source), which is untried, has to be rebuilt for every later fix, and sits on a
+        Debian release that is itself out of support; (c) the database on other hardware
+        (the cloud VM, or a small always-on machine with ordinary 4K pages), which is the
+        real answer whenever the NAS's role is reconsidered.
       - *The diagnostics summary calls every busy table an "N+1 pattern".* The profiler counts
         statements per table since the start, and `detect_n_plus_one` warns about any table
         with more than five. On a server that has run for an hour that is every table, and
