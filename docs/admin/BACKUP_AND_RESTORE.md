@@ -38,6 +38,8 @@ server log the lines start with `Automatic database backup` (`created`, `skipped
 
 ## When a backup fails
 
+From v1.18.72.
+
 - Every active administrator gets a notice in the application's bell ("The automatic backup
   failed", with the reason), at most one a day while it keeps failing. The server tries again
   every hour by itself.

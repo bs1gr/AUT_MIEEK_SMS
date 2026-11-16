@@ -1,13 +1,64 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.71
+**Current Version**: 1.18.72
 **Last Updated**: November 16, 2026
-**Status**: ✅ **v1.18.71 released 2026-11-16** (tag on `9afbbeea1`, run by the assistant; asked
+**Status**: ✅ **v1.18.72 released 2026-11-16** (tag on `4ffa6afa2`, run by the assistant; the
+second release of the day. Asked after #408 was merged, the owner chose "Release v1.18.72").
+It ships #408 ("In v1.18.72" below): a notice to the administrators when the daily backup
+fails, a signal to a monitoring service outside, mail settings that last, and the Import/Export
+part of the API that could be missing on a freshly installed SMS Lite. No database changes.
+The open work is listed at the start of "Next todos".
+
+**Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
+`-TagRelease`): 46 minutes, exit 0, every gate passed, the backend suite ran 33/33 batches with
+1573 passed, 43 gated skips and 0 failed, and the local installer (90,236,480 bytes) was built
+and signed with the frozen-Lite check passing 11/11. The generated GitHub body only said
+"1 new features" and was rewritten by hand in `4ffa6afa2`; the tag was pushed once CI/CD and
+E2E were green on that commit.
+
+**Smoke test (2026-11-16, evening; isolated copies under `D:\tmp`, scratch databases only).**
+As for v1.18.71, each edition as an administrator and as a teacher: 26 API checks, the
+packaged-edition check, an export job made and downloaded, made-up mail settings saved, and
+ten pages in a browser with every API answer and every console line watched.
+
+- *Server from source, SQLite:* 26/26, 11/11, browser 10/10 for each role, no ERROR line.
+- *Docker image on PostgreSQL 14:* 26/26 with the real refusals, 11/11, browser 10/10 for each
+  role; after the container was replaced, the backups, the key and the mail settings were
+  still there. No ERROR line.
+- *Packaged SMS Lite, upgraded:* the released v1.18.71 build was run in a throwaway profile
+  with a writable folder (as after a first start with the installer's rights): three
+  students, an encrypted backup, mail settings saved next to the code. The new build was
+  then started on that profile with those files left in the program folder and the folder
+  read-only. No router was skipped, the mail settings had been brought into the profile, the
+  old backup restored after the data had been changed. 26/26, 11/11, browser 10/10 for each
+  role, no ERROR line in 1,037 log lines.
+- Not checked: the installer was not installed, and the Android app was not run on a device.
+
+**Verified on the published assets:** `SMS_Installer_1.18.72.exe` 87,321,024 bytes, SHA-256
+`78df3014…540119` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.72; `SMS_Android_1.18.72.apk` 4,194,409
+bytes, SHA-256 `24d86a14…ad230e` = GitHub's digest, `versionName 1.18.72` /
+`versionCode 118072`, target SDK 36, signed with the same certificate as v1.18.71 (SHA-256
+`686fb6ed…d2ea`, so phones upgrade in place); the new notice text is in its bundle. The
+release, installer and APK workflows on the tag succeeded.
+
+**Cloud VM, and the monitoring service (the same evening).** The owner created an account at
+healthchecks.io with the assistant's steps and pasted the ping address; it is in the VM's
+`.env` only (mode 600, ignored by git), with the failure address. The VM was rebuilt on the
+tag (under 2 minutes); `/health` reports v1.18.72. The backup of the afternoon and its key
+were still on the data volume after the rebuild, and the hourly check left them alone (not
+due). The first signal went out 150 seconds after the start, at 18:41 UTC, with no delivery
+warning; the address is not in the log; no ERROR line, no router skipped. Not seen by the
+assistant: the check's page at the service (whether it is green, its schedule of 1 hour with
+1 hour of grace, and whether an email integration is on for it). Those are the owner's to
+confirm.
+
+v1.18.71 was released 2026-11-16 (tag on `9afbbeea1`, run by the assistant; asked
 after #407 was merged, the owner chose "Release v1.18.71" and "Yes, do the drill"). It ships
 what was on `main` since v1.18.70 ("In v1.18.71" below): the automatic daily backup and a
 restore that works (#407), the permission layer that no longer holds the event loop (#393),
 the removal of the idle Socket.IO channel (#391) and the week's dependency updates. No
-database changes. The open work is listed at the start of "Next todos".
+database changes.
 
 **Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
 `-TagRelease`): 45 minutes, exit 0, every gate passed, the backend suite ran 33/33 batches with
@@ -179,7 +230,11 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.71 (unreleased)
+### On `main` since v1.18.72 (unreleased)
+
+Only the record of the release in this document.
+
+### In v1.18.72
 
 **2026-11-16, evening: somebody is told when the backup fails or the server stops** (todo 54;
 the owner answered "continue" to "that is the next item I would take", then chose "Free
@@ -243,8 +298,10 @@ run").
   container is replaced. Packaged SMS Lite, fresh build, program folder read-only: no router
   skipped, mail settings saved into the profile (password encrypted) and there after a
   restart, an export made and downloaded.
-- **Not done:** no monitoring service exists yet and the VM has neither this code nor an
-  address (todo 54). Not released.
+- **Not done** (as of the merge): no monitoring service existed yet and the VM had neither
+  this code nor an address. With v1.18.72 it has both: see the top of this document.
+
+Released as v1.18.72 on 2026-11-16.
 
 ### In v1.18.71
 
@@ -718,12 +775,13 @@ the attendance fix works on the phone. Also still open in their own sections: th
 design calls of 2026-10-07, `viewer` and `guest` getting 403 on the Dashboard overview, and
 the Absence limits table cut off at 412 px (2026-11-12 smoke test).
 
-**First in line: the owner's parts of todos 55 and 54.** Since v1.18.71 the cloud VM backs up
-the shared database once a day, and a restore of its first backup was proven. What no software
-does: a copy of the VM's backup key kept somewhere else, and a copy of a backup taken off the
-VM now and then (todo 55). The code that tells somebody when a backup fails or the server
-stops is on `main` (#408, unreleased); it needs an account at a monitoring service, the
-release that carries it and the address in the VM's `.env` (todo 54).
+**First in line: what only the owner can do, in todos 55 and 54.** Since v1.18.71 the cloud
+VM backs up the shared database once a day, and a restore of its first backup was proven;
+since v1.18.72 it reports to a monitoring service, and a failed backup puts a notice in the
+administrators' bell. Left for the owner: a copy of the VM's backup key kept somewhere else,
+and a copy of a backup taken off the VM now and then (todo 55); and on the monitoring
+service's page, the schedule of the check, the email integration, and one test that an alert
+really arrives (todo 54).
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -764,10 +822,13 @@ release that carries it and the address in the VM's `.env` (todo 54).
     - **Done in #408 (2026-11-16, unreleased):** the bell notice for a failed backup, the
       heartbeat for a monitoring service outside, and the five files that could not run
       deleted. Not the cron job with mail: the VM has no mail settings, and a job on the VM
-      cannot report that the VM is down. The details are under "On `main` since v1.18.71".
-    - **Left:** (a) the owner's: an account at a monitoring service (healthchecks.io or the
-      like), and its address in the VM's `.env`; the runbook has the steps ("Watching the
-      server"). It works from the release that carries #408. (b) The five manual-only
+      cannot report that the VM is down. The details are under "In v1.18.72".
+    - **Done 2026-11-16 with v1.18.72:** the owner created an account at healthchecks.io, the
+      address is in the VM's `.env`, and the first signal went out (the top of this document).
+    - **Left:** (a) the owner's, on the service's page, which the assistant cannot see: the
+      check's schedule (period 1 hour, grace 1 hour), an email integration switched on for
+      it, and one test that an alert arrives (the service's own test of the integration, or
+      the server stopped for longer than period plus grace). (b) The five manual-only
       workflows without a run on record stay, by the owner's choice: `reset-workflows.yml`,
       `archive-legacy-releases.yml`, `fetch-code-scanning-sarif.yml`, `upload-sarif.yml`,
       `sync-installer-artifact.yml`. (c) No mail is configured on the VM: the activation
