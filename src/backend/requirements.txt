@@ -2,11 +2,11 @@
 # This file is the one list: CI, the Docker image, the installers and Dependabot read it, and
 # pyproject.toml carries no copy. Development tools are in requirements-dev.txt.
 
-fastapi==0.162.0
+fastapi==0.162.5
 starlette==1.10.0
 uvicorn[standard]==0.54.0
 sqlalchemy==2.1.8
-psycopg[binary]==3.3.8
+psycopg[binary]==3.3.9
 cryptography==50.0.2  # CVE-2026-69247 fixed in 50.0.0
 pydantic==2.14.3
 email-validator==2.3.0
@@ -37,6 +37,6 @@ apscheduler==3.11.3
 
 # Security constraints for transitive dependencies
 filelock==4.2.4  # GHSA ReadWriteLock/SoftFileLock side-file + oplock fixes (3.20.4–4.2.0 affected)
-virtualenv==21.15.5  # Fixes PYSEC-2026-4013 activation-script injection
+virtualenv==21.15.6  # Fixes PYSEC-2026-4013 activation-script injection
 wheel==0.48.0
 werkzeug==3.1.9
