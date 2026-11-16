@@ -1669,23 +1669,6 @@ function Start-Frontend {
         }
     }
 
-    # Validate essential packages that Vite plugins expect (catch missing peer deps)
-    $babelCorePath = Join-Path $FRONTEND_DIR 'node_modules\@babel\core'
-    if (-not (Test-Path $babelCorePath)) {
-        Write-Warning "@babel/core not found in node_modules — attempting to install @babel/core as devDependency"
-        Push-Location $FRONTEND_DIR
-        try {
-            npm install --no-audit --save-dev @babel/core --silent
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error-Message "Failed to install @babel/core. Please run: npm install in $FRONTEND_DIR"
-                return 1
-            }
-            Write-Success "@babel/core installed"
-        } finally {
-            Pop-Location
-        }
-    }
-
     Write-Info "Starting Vite dev server with HMR..."
 
     Push-Location $FRONTEND_DIR
