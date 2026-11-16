@@ -267,9 +267,19 @@ run of the gate passed, and E2E was green.
 them** (#409, merged as `7e8520f9f`; asked what comes next, the owner chose "Small server
 fixes"). No database changes. On the PR's last commit the backend job passed 1,595 tests with
 55 skipped on PostgreSQL 14.25 (1,561 and 55 on `main` before it: the 34 new tests, the same
-skips), the round trip passed 13 of 13 on 16.16 as well, and E2E was green. **Not on the
-cloud VM yet:** it gets the quieter log, the bounded profiler and the working diagnostics
-with its next update, which waits for the owner's word.
+skips), the round trip passed 13 of 13 on 16.16 as well, and E2E was green.
+
+**On the cloud VM since 2026-11-16, 22:18 UTC** (the owner: "do Cloud server update"): the VM
+was moved from the v1.18.72 tag to `main` at `38d1111b3` (no release, so it still reports
+v1.18.72; no database changes) and rebuilt in 8 seconds from the layer cache. Before and
+after, on the VM: `/api/v1/diagnostics/health/queries` without a login answered 500, now 401;
+the log of the 3.5 hours before held 466 warnings, 465 of them "Slow query" lines, and in
+the first three minutes after the restart there was one warning (the CSRF notice at startup)
+and no slow-query line; the limit inside the container is 500 ms. The backup of the afternoon
+and its key were still on the volume (same checksum), the hourly backup check ran (not due),
+the first signal to the monitoring service went out at 22:20:36 UTC with no delivery
+warning, and the address is not in the log. The home installs stay on v1.18.72 until the
+next release.
 
 - **One "slow query" line per slow statement, at one limit.** Two monitors watched the same
   engine: `performance_monitor.py` (limit `SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS`, 300 ms) and
@@ -858,9 +868,11 @@ since v1.18.72 it reports to a monitoring service, and a failed backup puts a no
 administrators' bell; the owner set the service up and its test mail arrived. Since the
 night of 2026-11-16 the VM's backup key and one backup are also on the dev PC. Left for the
 owner: a copy of that key somewhere that is neither the VM nor this PC (a USB stick, a
-password manager), and a copy of a backup taken off the VM now and then (todo 55). **New, and
-the owner's call: the shared database's PostgreSQL 14 reached its end of life on 2026-11-12**
-(todo 58).
+password manager; asked for help with it on 2026-11-17 and given the steps, with a note
+beside the key that says how to check a copy and how to restore), and a copy of a backup
+taken off the VM now and then (todo 55). **The shared database's PostgreSQL 14 reached its
+end of life on 2026-11-12, and no newer image runs on the NAS; the owner stays on 14.18 for
+now** (todo 58).
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -1116,6 +1128,8 @@ the owner's call: the shared database's PostgreSQL 14 reached its end of life on
         Debian release that is itself out of support; (c) the database on other hardware
         (the cloud VM, or a small always-on machine with ordinary 4K pages), which is the
         real answer whenever the NAS's role is reconsidered.
+        **Decided by the owner, 2026-11-17: "staying on 14.18 for now".** The two test
+        containers are deleted.
       - *The diagnostics summary calls every busy table an "N+1 pattern".* The profiler counts
         statements per table since the start, and `detect_n_plus_one` warns about any table
         with more than five. On a server that has run for an hour that is every table, and
