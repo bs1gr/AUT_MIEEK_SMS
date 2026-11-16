@@ -53,9 +53,8 @@ owner the same evening, in screenshots of the service's pages:** ping #1 receive
 UTC (the second the server logged it), by HTTPS from the VM's address, user agent
 `sms-heartbeat`; the check up; its schedule period 1 hour, grace time 1 hour; and, after the
 owner added an email integration, the service's test notification in the owner's inbox at
-21:09 local time. Not shown: that the integration is switched on for this check (the
-service's page lists it per check), and no real alarm was tried (the server stopped for
-longer than period plus grace).
+21:09 local time; the integration is listed as assigned to "1 of 1" checks, ready to
+deliver. No real alarm was tried (the server stopped for longer than period plus grace).
 
 v1.18.71 was released 2026-11-16 (tag on `9afbbeea1`, run by the assistant; asked
 after #407 was merged, the owner chose "Release v1.18.71" and "Yes, do the drill"). It ships
@@ -830,8 +829,8 @@ the VM now and then (todo 55).
       address is in the VM's `.env`, and the first signal went out (the top of this document).
       The owner confirmed in screenshots: the check up, period 1 hour and grace 1 hour, and
       the service's test mail received (the top of this document).
-    - **Left:** (a) small: one look on the service's page that the email integration is
-      switched on for the check; a real alarm was not tried. (b) The five manual-only
+      The integration is assigned to the check ("1 of 1").
+    - **Left:** (a) nothing to set up; a real alarm was not tried. (b) The five manual-only
       workflows without a run on record stay, by the owner's choice: `reset-workflows.yml`,
       `archive-legacy-releases.yml`, `fetch-code-scanning-sarif.yml`, `upload-sarif.yml`,
       `sync-installer-artifact.yml`. (c) No mail is configured on the VM: the activation
