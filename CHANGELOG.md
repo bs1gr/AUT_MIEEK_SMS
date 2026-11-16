@@ -47,6 +47,15 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.72] - 2026-11-16
+
+### Features
+- **monitoring**: somebody is told when the backup fails or the server stops (#408)
+
+### Documentation
+- **plan**: v1.18.71 released - assets, cloud host and the first backup of the shared database verified; a real backup restored in a drill
+
 ## [1.18.71] - 2026-11-16
 
 ### Features
@@ -4942,6 +4951,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
