@@ -235,6 +235,89 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: the Search page sorts, pages and filters, and finds a Greek name; the Students
+page says when its list could not be loaded** (PR 416; the owner: "Repair the Search page and
+the Students error state (todo 60)"). No database changes. It closes todo 60 but for the
+unused components, and the four tests of todo 53 that waited for it.
+
+- **Paging and the total.** `POST /search/advanced` reads `page` and `page_size` from the
+  body of the request, where the page always sent them (the `limit` and `offset` of the
+  address still work). `total` is the number of records that match, not the length of the
+  answer, and `has_more` follows from it: twelve matching students at ten per page are ten
+  and two. Paging that cannot be (a size of 0 or over 100, a negative page) is refused.
+- **Sorting.** The server orders by the `sort` of the body, with the record's own number as
+  the last word, so that two pages never share a record. Each kind of record has the orders
+  it can have: students by relevance, name or e-mail; courses by relevance or name; grades
+  by relevance, name or date. The page offered "Created" and "Updated" for all three; no
+  record has such a date. They are gone, and an order that does not exist is refused, not
+  ignored. "Relevance" means something now: a name that starts with the typed text, then a
+  name that contains it, then a record found by another field (the e-mail address, the
+  student number). By name is by the name as the list shows it, the first name first.
+- **The filter panel.** Three faults kept it empty or wrong. The page read the groups as a
+  map, and from the HTTP response instead of its body. The panel kept its own ticks and
+  reported only the box that was clicked, so a cleared box kept filtering, a second tick
+  replaced the first and "Clear all" cleared nothing. And the server counted all students,
+  whatever was typed. Now the groups show (status, study year, enrolment year; for courses
+  semester and credits, where the page had shown the students' groups), in the language of
+  the page; the counts are of what the search finds; several ticks in a group mean any of
+  them and ticks in different groups must all hold; every count is what a search with that
+  filter returns. The counts are asked for once per search, when the typing has stopped,
+  not once per letter. Changing the kind of record drops the filters.
+- **Found on the first look at a running copy, and fixed.**
+  - *The two endpoints with the counts answered anyone.* `GET /search/students/facets` and
+    `/search/courses/facets` had no dependency on the caller: on a server that requires a
+    sign-in, a request without a token was told how many students are active, how many in
+    each study year and how many enrolled in each year. 401 now, as for the search itself.
+  - *On SQLite a Greek name was not found at all.* SQLite lowers the letters A to Z only;
+    the search lowers what is typed and compares it with what is stored, so "Γιάννης" was
+    found neither by "γιάννης" nor by "Γιάννης". Every SQLite connection of the application
+    now gets a `lower()` for all letters (`backend/sqlite_unicode.py`), whichever part of
+    the application or of its tests opens it. That reaches every
+    case-insensitive comparison of the application on SQLite (`lower()` and `ilike`, 48
+    places in 8 files), not only the search. PostgreSQL never had this fault.
+  - *On PostgreSQL a surname stored in capitals was not found when typed in full.*
+    PostgreSQL lowers the last letter of "ΠΑΠΑΔΟΠΟΥΛΟΣ" to "σ"; Python lowers the typed
+    text to "…ς". The search now compares text in lower case, without the Greek accents and
+    with one form of sigma, on both databases: "Παπαδόπουλος", "παπαδοπουλος" and
+    "ΠΑΠΑΔΟΠΟΥΛΟΣ" find each other, and in a list by name "Όλγα" stands between "Νίκος"
+    and "Πέτρος".
+  - *A typed `%` or `_` was a wildcard:* "%" found every student.
+  - *A search that failed was "No results found".* The endpoint answers a failure with HTTP
+    200 and `success: false`, and the page read that as an empty list; a filter with two
+    values made the server fail in just that way. The page now says "The search could not
+    be done. Try again." with a button, in its language; it used to show the HTTP client's
+    English text ("Network Error").
+  - *A grade in the list said neither whose it was nor the mark:* ten students' "Midterm"
+    were ten identical lines. It shows the student, the course, the mark out of its maximum
+    and the day.
+- **Smaller.** The page no longer asks for the saved searches at every opening.
+- **The Students page.** When its list cannot be loaded it says "The list of students could
+  not be loaded." with a "Try again" button, in both languages; students of an earlier load
+  stay on the screen under the message. It said "No students found".
+- **Tests.** Backend: `test_search_page_contract.py`, 46 tests of what the page asks of the
+  server (paging, order, filters, typed text, the counts, the two SQLite functions); with the
+  server's sources as they were, 41 of them fail. One existing test asked for one record per
+  page and expected `limit == 20`, which is what the endpoint answered whatever was asked;
+  corrected. Frontend: `SearchIntegration.test.tsx` had replaced the search hook with a fake
+  and looked for buttons "if they exist"; it is rewritten with the real view, hooks and
+  panel over a small server that answers as the real one does. The tests of the panel and
+  of its hook had given them a shape the server never sent; rewritten too. With the page's
+  sources as they were, 46 of the 110 frontend tests in the changed files fail. E2E: the
+  three tests of the Search page that waited run as they were written, with more asked of
+  each, and a fourth is new (a student who has left, so that a filter has something to take
+  away); the test of the Students page runs after one change (it opened the address the
+  page was already on, which loads nothing again: it reloads).
+- **Checked in running copies** (scratch servers from the branch, throwaway databases).
+  The same requests to a server from `main` and to one from the branch: the counts without
+  a token 200 and then 401; four spellings of a Greek name 0 results each and then 1 each;
+  the counts for "John" 5 (every student) and then 2. A script of 31 claims through the API
+  (paging, order, Greek text, filters and their counts, courses, grades): all 31 hold on
+  SQLite and on PostgreSQL 14.25. The pages in a browser, in English and in Greek, at 1280
+  and at 390 pixels, with no error on the console but the refused requests of the two
+  failure checks. The whole E2E suite against a server set up as CI's: 76 passed
+  and 6 skipped, where `main` has 71 and 10.
+- **Found and not changed:** todo 61.
+
 **2026-11-17: ten of the twenty E2E tests that never ran now run, and the other ten say why
 they do not** (PR 415, merged as `7c1b89a26`; the owner: "continue"; the part of todo 53
 that needed no decision of the owner's). One line of the application changes; the rest is
@@ -1103,9 +1186,10 @@ install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to 
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (a teacher can send a message to every account through the API, and
-four smaller things about notifications), todo 60 (the Search page's sorting, paging and
-filters do nothing; the Students page calls a failed load an empty list) and, in todo 53,
-six E2E tests that describe things the application does not have. Todo 51 is closed: the owner confirmed on
+four smaller things about notifications), in todo 53 six E2E tests that describe things the
+application does not have, in todo 60 four components that no page uses, and todo 61 (found
+while the Search page was repaired). Todo 60 itself is done in PR 416: the Search page sorts,
+pages and filters, and the Students page says when its list could not be loaded. Todo 51 is closed: the owner confirmed on
 2026-11-15 that the attendance fix works on the phone. Also still open in their own sections: the contrast
 design calls of 2026-10-07, and `viewer` and `guest` getting 403 on the Dashboard overview
 (2026-11-12 smoke test; the owner's call). The Absence limits table that was cut off at
@@ -1158,9 +1242,11 @@ now** (todo 58).
       (no page for saved searches; the rule itself is tested in the backend);
       `student-list.spec.ts` (no table, no virtual scrolling; what the page has is tested
       elsewhere). Or build what they describe.
-    - *Four wait for the repairs of todo 60* and should pass after them: sorting, paging and
+    - ~~*Four wait for the repairs of todo 60* and should pass after them: sorting, paging and
       filters on the Search page (`test.fixme` in `search_advanced.spec.ts`) and the error
-      state of the Students page (`student-resilience.spec.ts`).
+      state of the Students page (`student-resilience.spec.ts`).~~ **Done in PR 416:** all
+      four run, and a fifth is new; a local run of the whole suite gives 76 passed and 6
+      skipped. The six that are left are the six above.
 54. **Nothing watches the cloud VM, and workflows that cannot run.**
     `scheduled-production-health-check.yml` needs a self-hosted runner
     (`[self-hosted, windows, production-lan]`); none is registered, its schedule is commented
@@ -1486,10 +1572,36 @@ now** (todo 58).
     - *Components that no page uses:* `VirtualStudentList`, `CascadedStudentView`,
       `StudentForm` and the hook `useRateLimit`. Delete (the owner's OK).
     - **Fixed in PR 415:** a course was listed as "Unknown".
-    - Each repair is small; together they are "make the Search page work". Suggested order:
+    - ~~Each repair is small; together they are "make the Search page work". Suggested order:
       paging with a real total and sorting (server), the filters (page), the error state of
       the Students page. Four E2E tests are written and wait for them (todo 53). Needs the
-      owner's go-ahead.
+      owner's go-ahead.~~ **Done in PR 416 (2026-11-17; the owner: "Repair the Search page
+      and the Students error state"):** every entry above but the unused components, with
+      what the first look at a running copy added (a Greek name was not found; the counts
+      answered without a sign-in). The details are under "On `main` since v1.18.72".
+61. **Found on 2026-11-17 while the Search page was repaired, and not changed.**
+    - *Two search endpoints that cannot answer.* `POST /search/students/full-text` calls a
+      method the search service does not have, and `POST /search/students/advanced` filters
+      and orders by a status and two dates that a student record does not have. Both answer
+      every request with `SEARCH_ERROR` (seen on a scratch server). No page calls them.
+      Remove or repair (the owner's call).
+    - *An older copy of the search code that nothing uses:* `src/frontend/src/hooks/useSearch.ts`
+      (512 lines), `hooks/useSearchFacets.ts` and the test of the first; the page uses the
+      files of the same names under `features/search`. And in that hook four functions for
+      saved searches that no page calls. Delete (the owner's OK).
+    - *SQLite does not enforce foreign keys.* `init_db` switches them on for one connection
+      at start, and the engine opens a new connection for every use: on the connections the
+      application works with, `PRAGMA foreign_keys` answers 0 (seen with the application's
+      own engine). PostgreSQL enforces them. Switching it on for SQLite is a decision: an
+      installation that already holds a row without its parent would refuse later changes
+      to it, so each such database has to be looked at first.
+    - *Failures answered with HTTP 200.* Four routers (search, custom reports, import and
+      export, dashboards; 83 places) answer a request they could not serve with status 200
+      and `success: false` in the body. A page that reads only the status takes a failure
+      for an answer, as the Search page did until PR 416.
+    - *The search does not know a letter typed as two characters* (a vowel followed by a
+      separate accent mark, as some keyboards and pasted texts give it). Names typed in the
+      application on a Greek keyboard are not written that way.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

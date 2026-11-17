@@ -18,6 +18,8 @@ export default {
   active_other: 'ενεργοί',
   inactive: 'Ανενεργός',
   noStudentsFound: 'Δεν βρέθηκαν σπουδαστές',
+  studentsLoadFailed: 'Η λίστα των σπουδαστών δεν φορτώθηκε.',
+  studentsLoadRetry: 'Δοκιμάστε ξανά',
   areYouSure: 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον σπουδαστή;',
   studentAddedSuccessfully: 'Ο σπουδαστής προστέθηκε επιτυχώς!',
   studentDeletedSuccessfully: 'Ο σπουδαστής διαγράφηκε επιτυχώς!',

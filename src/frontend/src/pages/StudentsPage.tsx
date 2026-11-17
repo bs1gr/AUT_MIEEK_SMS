@@ -13,7 +13,7 @@ import { coursesAPI, enrollmentsAPI } from '@/api/api';
 
 export default function StudentsPage() {
   const { t } = useLanguage();
-  const { isLoading } = useStudents();
+  const { isLoading, isError, isFetching, refetch } = useStudents();
   const students = useStudentsStore((state) => state.students);
   const selectedStudent = useStudentsStore((state) => state.selectedStudent);
   const selectStudent = useStudentsStore((state) => state.selectStudent);
@@ -74,7 +74,9 @@ export default function StudentsPage() {
 
       <StudentsView
         students={students}
-        loading={isLoading}
+        loading={isLoading || (isError && isFetching)}
+        loadFailed={isError}
+        onRetry={() => { void refetch(); }}
         setShowAddModal={studentModals.addModal.open}
         onEdit={handleEditStudent}
         onDelete={handleDeleteStudent}

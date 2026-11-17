@@ -48,6 +48,9 @@ interface StudentsViewProps {
   onDelete: (id: number) => void;
   onViewProfile: (id: number) => void;
   loading: boolean;
+  /** The list could not be loaded (what is shown, if anything, is from an earlier load). */
+  loadFailed?: boolean;
+  onRetry?: () => void;
   setShowAddModal: (show: boolean) => void;
 }
 
@@ -59,6 +62,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   onDelete,
   onViewProfile,
   loading,
+  loadFailed = false,
+  onRetry,
   setShowAddModal,
 }) => {
   // Performance monitoring for component renders
@@ -405,8 +410,30 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       {/* Loading State with Skeleton */}
       {loading && <ListSkeleton count={5} itemComponent={StudentCardSkeleton} />}
 
+      {/* The list could not be loaded: say so, with a way to try again. Until November 2026
+          the page said "No students found", as if the college had none. */}
+      {!loading && loadFailed && (
+        <div
+          role="alert"
+          data-testid="students-load-error"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          <span>{t('studentsLoadFailed')}</span>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="rounded border border-red-300 bg-white px-3 py-1.5 font-medium text-red-800 hover:bg-red-100"
+              data-testid="students-load-retry"
+            >
+              {t('studentsLoadRetry')}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Student List */}
-      {!loading && (filtered.length === 0) && (
+      {!loading && !loadFailed && (filtered.length === 0) && (
         <p className="text-indigo-700 text-center py-8 font-semibold drop-shadow-xs">{t('noStudentsFound')}</p>
       )}
 

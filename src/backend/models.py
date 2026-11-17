@@ -30,6 +30,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker, validates
 
+# Every SQLite connection of the process gets a lower() for all letters and a translate():
+# without them a search does not find a Greek name on SQLite.
+import backend.sqlite_unicode  # noqa: F401
+
 logger = logging.getLogger(__name__)
 Base: Any = declarative_base()
 

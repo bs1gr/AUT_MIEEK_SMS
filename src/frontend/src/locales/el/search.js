@@ -123,10 +123,11 @@ export default {
     relevance: 'Σχετικότητα',
     name: 'Όνομα',
     email: 'Email',
-    created: 'Ημ/νία δημιουργίας',
-    updated: 'Ημ/νία ενημέρωσης',
+    date: 'Ημερομηνία',
     asc: 'Αύξουσα',
-    desc: 'Φθίνουσα'
+    desc: 'Φθίνουσα',
+    bestFirst: 'Καλύτερη αντιστοιχία πρώτα',
+    worstFirst: 'Καλύτερη αντιστοιχία τελευταία'
   },
   pagination: {
     range: '{{start}}-{{end}} από {{total}} αποτελέσματα'
@@ -140,15 +141,26 @@ export default {
   resultsTitle: 'Αποτελέσματα',
   resultsSummary: '{{count}} συνολικά αποτελέσματα',
   noResults: 'Δεν βρέθηκαν αποτελέσματα',
+  searchFailed: 'Η αναζήτηση δεν ολοκληρώθηκε. Δοκιμάστε ξανά.',
   viewDetails: 'Προβολή λεπτομερειών',
   facets: {
-    title: 'Βελτίωση αποτελεσμάτων',
-    subtitle: 'Χρησιμοποιήστε τα facets για περιορισμό',
+    title: 'Φίλτρα',
+    subtitle: 'Επιλέξτε τιμές για να περιορίσετε την αναζήτηση',
     total: '{{total}} αντιστοιχίες',
     status: 'Κατάσταση',
     enrollment_type: 'Τύπος φοίτησης',
     months: 'Μήνες',
-    loading: 'Φόρτωση facets...',
+    // Οι ομάδες του πίνακα φίλτρων, με το όνομα που δίνει ο διακομιστής σε καθεμία
+    fields: {
+      status: 'Κατάσταση',
+      enrollment_type: 'Έτος σπουδών',
+      enrollment_year: 'Έτος εγγραφής',
+      semester: 'Εξάμηνο',
+      credits: 'Μονάδες'
+    },
+    studyYear: 'Έτος {{year}}',
+    selected: 'Επιλεγμένα: {{count}}',
+    loading: 'Φόρτωση φίλτρων...',
     empty: 'Δεν υπάρχουν διαθέσιμα φίλτρα',
     search: 'Αναζήτηση τιμών...',
     showLess: 'Λιγότερα',

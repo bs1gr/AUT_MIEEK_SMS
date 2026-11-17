@@ -9,15 +9,51 @@ Date: January 17, 2026
 Version: 1.0.0
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Callable, Dict, List, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func
+from sqlalchemy import case, extract, func, or_
 import logging
 
 from backend.models import Student, Course, Grade
 
 logger = logging.getLogger(__name__)
+
+
+def _escape_like(text: str) -> str:
+    """`%` and `_` typed by the user are text to look for, not wildcards."""
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+# What a search compares: text in lower case, Greek vowels without their accent, and one form
+# of sigma. So "Παπαδόπουλος", "παπαδοπουλος" and "ΠΑΠΑΔΟΠΟΥΛΟΣ" are the same name, whichever
+# of them was typed and whichever is stored. The sigma is not a nicety: PostgreSQL lowers the
+# last letter of "ΠΑΠΑΔΟΠΟΥΛΟΣ" to "σ" and Python lowers it to "ς", so a surname stored in
+# capitals was not found when it was typed in full.
+_FOLD_FROM = "άέήίόύώϊϋΐΰς"
+_FOLD_TO = "αεηιουωιυιυσ"
+_FOLD_TABLE = str.maketrans(_FOLD_FROM, _FOLD_TO)
+
+
+def fold_text(text: str) -> str:
+    """`text` as a search compares it (see above)."""
+    return text.lower().translate(_FOLD_TABLE)
+
+
+def folded(column):
+    """`column` as a search compares it: `fold_text` in SQL. SQLite gets its `lower()` for
+    all letters and its `translate()` from `backend.sqlite_unicode`."""
+    return func.translate(func.lower(column), _FOLD_FROM, _FOLD_TO)
+
+
+def contains_text(column, text: str):
+    """`column` contains `text`, whatever the case, the accents and the sigma of either."""
+    return folded(column).like(f"%{_escape_like(fold_text(text))}%", escape="\\")
+
+
+def starts_with_text(column, text: str):
+    """`column` starts with `text`, whatever the case, the accents and the sigma of either."""
+    return folded(column).like(f"{_escape_like(fold_text(text))}%", escape="\\")
 
 
 class SearchService:
@@ -270,6 +306,15 @@ class SearchService:
     # ADVANCED FILTERING
     # ============================================================================
 
+    # What each kind of record can be ordered by. "relevance" puts a record whose name starts
+    # with the typed text before one that only contains it, and that before one found by
+    # another field (an e-mail address, a student number).
+    SORT_FIELDS: Dict[str, tuple] = {
+        "students": ("relevance", "name", "email"),
+        "courses": ("relevance", "name"),
+        "grades": ("relevance", "name", "date"),
+    }
+
     def advanced_filter(
         self, filters: Dict[str, Any], search_type: str = "students", limit: int = 20, offset: int = 0
     ) -> List[Dict[str, Any]]:
@@ -300,7 +345,8 @@ class SearchService:
             offset: Pagination offset
 
         Returns:
-            List of matching records as dictionaries
+            List of matching records as dictionaries; an empty list when the search fails.
+            `advanced_search_page` is the same search with the total, an order, and its errors.
 
         Example:
             >>> results = search_service.advanced_filter(
@@ -309,117 +355,224 @@ class SearchService:
             ... )
         """
         try:
-            if search_type == "students":
-                return self._filter_students(filters, limit, offset)
-            elif search_type == "courses":
-                return self._filter_courses(filters, limit, offset)
-            elif search_type == "grades":
-                return self._filter_grades(filters, limit, offset)
-            else:
-                logger.warning(f"Unknown search_type: {search_type}")
-                return []
+            results, _total = self.advanced_search_page(search_type, filters, limit=limit, offset=offset)
+            return results
         except Exception as e:
             logger.error(f"Error in advanced filter: {str(e)}")
             return []
 
-    def _filter_students(self, filters: Dict[str, Any], limit: int, offset: int) -> List[Dict[str, Any]]:
-        """Filter students with advanced criteria."""
+    def advanced_search_page(
+        self,
+        search_type: str,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_field: str = "relevance",
+        sort_direction: str = "desc",
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[List[Dict[str, Any]], int]:
+        """
+        One page of a search, in a stated order, with the number of records that match.
+
+        Args:
+            search_type: "students", "courses" or "grades"
+            filters: filter criteria; `_query_text` holds the typed text. A value may be a list:
+                a record matches when it has any of the values.
+            sort_field: one of `SORT_FIELDS[search_type]`
+            sort_direction: "asc" or "desc". For "relevance", "desc" is the best match first.
+            limit: page size
+            offset: records to skip
+
+        Returns:
+            (the page as dictionaries, the number of matching records)
+
+        Raises:
+            ValueError: unknown search type, sort field, sort direction or filter value.
+        """
+        if search_type not in self.SORT_FIELDS:
+            raise ValueError(f"Unknown search type: {search_type}")
+        if sort_field not in self.SORT_FIELDS[search_type]:
+            raise ValueError(f"Cannot sort {search_type} by: {sort_field}")
+        direction = str(sort_direction).lower()
+        if direction not in ("asc", "desc"):
+            raise ValueError(f"Unknown sort direction: {sort_direction}")
+        descending = direction == "desc"
+
+        filters = dict(filters or {})
+        raw_text = filters.pop("_query_text", None)
+        query_text = str(raw_text).strip() if raw_text else ""
+
+        to_row: Callable[[Any], Dict[str, Any]]
+        if search_type == "students":
+            query = self._student_query(filters, query_text)
+            order = self._student_order(query_text, sort_field, descending)
+            to_row = self._student_row
+        elif search_type == "courses":
+            query = self._course_query(filters, query_text)
+            order = self._course_order(query_text, sort_field, descending)
+            to_row = self._course_row
+        else:
+            query = self._grade_query(filters, query_text)
+            order = self._grade_order(query_text, sort_field, descending)
+            to_row = self._grade_row
+
+        total = query.order_by(None).count()
+        records = query.order_by(*order).limit(limit).offset(offset).all()
+        return [to_row(record) for record in records], total
+
+    # -- helpers for the three searches -------------------------------------------------------
+
+    _contains = staticmethod(contains_text)
+    _starts_with = staticmethod(starts_with_text)
+
+    @staticmethod
+    def _values(raw: Any) -> List[Any]:
+        """A filter value as a list: one value, or several (any of them matches)."""
+        if raw is None or raw == "":
+            return []
+        if isinstance(raw, (list, tuple, set)):
+            return [value for value in raw if value is not None and value != ""]
+        return [raw]
+
+    @staticmethod
+    def _integers(values: List[Any], name: str) -> List[int]:
+        try:
+            return [int(value) for value in values]
+        except (TypeError, ValueError):
+            raise ValueError(f"Filter '{name}' needs whole numbers")
+
+    @classmethod
+    def _relevance_rank(cls, query_text: str, name_columns: list):
+        """0: a name starts with the text; 1: a name contains it; 2: found by another field."""
+        return case(
+            (or_(*[cls._starts_with(column, query_text) for column in name_columns]), 0),
+            (or_(*[cls._contains(column, query_text) for column in name_columns]), 1),
+            else_=2,
+        )
+
+    @staticmethod
+    def _in_direction(expression, descending: bool):
+        return expression.desc() if descending else expression.asc()
+
+    # -- students -----------------------------------------------------------------------------
+
+    def _student_query(self, filters: Dict[str, Any], query_text: str):
         query = self.db.query(Student).filter(Student.deleted_at.is_(None))
 
-        # Handle query text search across name and email fields
-        query_text = filters.pop("_query_text", None)
         if query_text:
-            query_lower = f"%{query_text.lower()}%"
             query = query.filter(
                 or_(
-                    func.lower(Student.first_name).ilike(query_lower),
-                    func.lower(Student.last_name).ilike(query_lower),
-                    func.lower(Student.email).ilike(query_lower),
-                    func.lower(Student.student_id).ilike(query_lower),
+                    self._contains(Student.first_name, query_text),
+                    self._contains(Student.last_name, query_text),
+                    self._contains(Student.email, query_text),
+                    self._contains(Student.student_id, query_text),
                 )
             )
 
-        # Apply text filters
         for field in ["first_name", "last_name", "email", "student_id"]:
-            if field in filters and filters[field]:
-                value = f"%{filters[field].lower()}%"
-                query = query.filter(getattr(Student, field).ilike(value))
+            if filters.get(field):
+                query = query.filter(self._contains(getattr(Student, field), str(filters[field])))
 
-        # Apply status filter
-        if "status" in filters and filters["status"]:
-            status_value = filters["status"].lower() == "active"
-            query = query.filter(Student.is_active == status_value)
+        statuses = {str(value).lower() for value in self._values(filters.get("status"))}
+        unknown = statuses - {"active", "inactive"}
+        if unknown:
+            raise ValueError(f"Unknown student status: {', '.join(sorted(unknown))}")
+        if len(statuses) == 1:
+            query = query.filter(Student.is_active == ("active" in statuses))
 
-        # Apply study year filter
-        if "study_year" in filters and filters["study_year"]:
-            query = query.filter(Student.study_year == filters["study_year"])
+        # The "study year" filter of the Search page sends `enrollment_type: year_2`.
+        study_years = self._integers(self._values(filters.get("study_year")), "study_year")
+        for value in self._values(filters.get("enrollment_type")):
+            text = str(value)
+            study_years += self._integers([text[5:] if text.startswith("year_") else text], "enrollment_type")
+        if study_years:
+            query = query.filter(Student.study_year.in_(study_years))
 
-        students = query.limit(limit).offset(offset).all()
+        enrollment_years = self._integers(self._values(filters.get("enrollment_year")), "enrollment_year")
+        if enrollment_years:
+            query = query.filter(extract("year", Student.enrollment_date).in_(enrollment_years))
 
-        return [
-            {
-                "id": s.id,
-                "first_name": s.first_name,
-                "last_name": s.last_name,
-                "email": s.email,
-                "student_id": s.student_id,
-                "study_year": s.study_year,
-                "type": "student",
-            }
-            for s in students
-        ]
+        return query
 
-    def _filter_courses(self, filters: Dict[str, Any], limit: int, offset: int) -> List[Dict[str, Any]]:
-        """Filter courses with advanced criteria."""
+    def _student_order(self, query_text: str, sort_field: str, descending: bool) -> list:
+        # By name means by the name as the list shows it: first name, then last name.
+        by_name = [folded(Student.first_name), folded(Student.last_name)]
+        if sort_field == "name":
+            return [self._in_direction(column, descending) for column in by_name] + [Student.id]
+        if sort_field == "email":
+            return [self._in_direction(func.lower(Student.email), descending), Student.id]
+        if query_text:
+            rank = self._relevance_rank(query_text, [Student.first_name, Student.last_name])
+            return [self._in_direction(rank, not descending), *by_name, Student.id]
+        return [*by_name, Student.id]
+
+    @staticmethod
+    def _student_row(s: Student) -> Dict[str, Any]:
+        return {
+            "id": s.id,
+            "first_name": s.first_name,
+            "last_name": s.last_name,
+            "email": s.email,
+            "student_id": s.student_id,
+            "study_year": s.study_year,
+            "type": "student",
+        }
+
+    # -- courses ------------------------------------------------------------------------------
+
+    def _course_query(self, filters: Dict[str, Any], query_text: str):
         query = self.db.query(Course).filter(Course.deleted_at.is_(None))
 
-        # Handle query text search across course_name and course_code fields
-        query_text = filters.pop("_query_text", None)
         if query_text:
-            query_lower = f"%{query_text.lower()}%"
             query = query.filter(
                 or_(
-                    func.lower(Course.course_name).ilike(query_lower),
-                    func.lower(Course.course_code).ilike(query_lower),
+                    self._contains(Course.course_name, query_text),
+                    self._contains(Course.course_code, query_text),
                 )
             )
 
-        # Apply text filters
         for field in ["course_name", "course_code"]:
-            if field in filters and filters[field]:
-                value = f"%{filters[field].lower()}%"
-                query = query.filter(getattr(Course, field).ilike(value))
+            if filters.get(field):
+                query = query.filter(self._contains(getattr(Course, field), str(filters[field])))
 
-        # Apply credits filter (exact or range)
-        if "credits" in filters and filters["credits"]:
-            query = query.filter(Course.credits == filters["credits"])
+        credits = self._integers(self._values(filters.get("credits")), "credits")
+        if credits:
+            query = query.filter(Course.credits.in_(credits))
 
-        if "credits_min" in filters and filters["credits_min"]:
+        if filters.get("credits_min"):
             query = query.filter(Course.credits >= filters["credits_min"])
 
-        if "credits_max" in filters and filters["credits_max"]:
+        if filters.get("credits_max"):
             query = query.filter(Course.credits <= filters["credits_max"])
 
-        # Apply semester filter
-        if "semester" in filters and filters["semester"]:
-            query = query.filter(Course.semester == filters["semester"])
+        semesters = [str(value) for value in self._values(filters.get("semester"))]
+        if semesters:
+            query = query.filter(Course.semester.in_(semesters))
 
-        courses = query.limit(limit).offset(offset).all()
+        return query
 
-        return [
-            {
-                "id": c.id,
-                "course_name": c.course_name,
-                "course_code": c.course_code,
-                "credits": c.credits,
-                "semester": c.semester,
-                "type": "course",
-            }
-            for c in courses
-        ]
+    def _course_order(self, query_text: str, sort_field: str, descending: bool) -> list:
+        by_name = folded(Course.course_name)
+        if sort_field == "name":
+            return [self._in_direction(by_name, descending), Course.id]
+        if query_text:
+            rank = self._relevance_rank(query_text, [Course.course_name, Course.course_code])
+            return [self._in_direction(rank, not descending), by_name, Course.id]
+        return [by_name, Course.id]
 
-    def _filter_grades(self, filters: Dict[str, Any], limit: int, offset: int) -> List[Dict[str, Any]]:
-        """Filter grades with advanced criteria."""
+    @staticmethod
+    def _course_row(c: Course) -> Dict[str, Any]:
+        return {
+            "id": c.id,
+            "course_name": c.course_name,
+            "course_code": c.course_code,
+            "credits": c.credits,
+            "semester": c.semester,
+            "type": "course",
+        }
+
+    # -- grades -------------------------------------------------------------------------------
+
+    def _grade_query(self, filters: Dict[str, Any], query_text: str):
         query = (
             self.db.query(Grade)
             .join(Student, Grade.student_id == Student.id)
@@ -427,16 +580,13 @@ class SearchService:
             .filter(Grade.deleted_at.is_(None), Student.deleted_at.is_(None), Course.deleted_at.is_(None))
         )
 
-        # Handle query text search across student and course names
-        query_text = filters.pop("_query_text", None)
         if query_text:
-            query_lower = f"%{query_text.lower()}%"
             query = query.filter(
                 or_(
-                    func.lower(Student.first_name).ilike(query_lower),
-                    func.lower(Student.last_name).ilike(query_lower),
-                    func.lower(Course.course_name).ilike(query_lower),
-                    func.lower(Grade.assignment_name).ilike(query_lower),
+                    self._contains(Student.first_name, query_text),
+                    self._contains(Student.last_name, query_text),
+                    self._contains(Course.course_name, query_text),
+                    self._contains(Grade.assignment_name, query_text),
                 )
             )
 
@@ -466,7 +616,7 @@ class SearchService:
         if date_from_value:
             try:
                 date_from = datetime.strptime(str(date_from_value), "%Y-%m-%d").date()
-                query = query.filter(func.coalesce(Grade.date_assigned, Grade.date_submitted) >= date_from)
+                query = query.filter(self._grade_date() >= date_from)
             except (ValueError, TypeError):
                 pass
 
@@ -474,26 +624,44 @@ class SearchService:
         if date_to_value:
             try:
                 date_to = datetime.strptime(str(date_to_value), "%Y-%m-%d").date()
-                query = query.filter(func.coalesce(Grade.date_assigned, Grade.date_submitted) <= date_to)
+                query = query.filter(self._grade_date() <= date_to)
             except (ValueError, TypeError):
                 pass
 
-        grades = query.limit(limit).offset(offset).all()
+        return query
 
-        return [
-            {
-                "id": g.id,
-                "student_id": g.student_id,
-                "student_name": f"{g.student.first_name} {g.student.last_name}",
-                "course_id": g.course_id,
-                "course_name": g.course.course_name,
-                "assignment_name": g.assignment_name,
-                "grade": float(g.grade) if g.grade else None,
-                "passed": g.grade >= 50 if g.grade else False,
-                "type": "grade",
-            }
-            for g in grades
-        ]
+    @staticmethod
+    def _grade_date():
+        return func.coalesce(Grade.date_assigned, Grade.date_submitted)
+
+    def _grade_order(self, query_text: str, sort_field: str, descending: bool) -> list:
+        by_name = [folded(Grade.assignment_name), folded(Student.first_name), folded(Student.last_name)]
+        if sort_field == "name":
+            return [self._in_direction(column, descending) for column in by_name] + [Grade.id]
+        if sort_field == "date":
+            # A grade without a date comes last, whichever way the dates run.
+            return [self._grade_date().is_(None), self._in_direction(self._grade_date(), descending), Grade.id]
+        if query_text:
+            rank = self._relevance_rank(query_text, [Grade.assignment_name, Student.first_name, Student.last_name])
+            return [self._in_direction(rank, not descending), *by_name, Grade.id]
+        return [*by_name, Grade.id]
+
+    @classmethod
+    def _grade_row(cls, g: Grade) -> Dict[str, Any]:
+        graded_on = g.date_assigned or g.date_submitted
+        return {
+            "id": g.id,
+            "student_id": g.student_id,
+            "student_name": f"{g.student.first_name} {g.student.last_name}",
+            "course_id": g.course_id,
+            "course_name": g.course.course_name,
+            "assignment_name": g.assignment_name,
+            "grade": float(g.grade) if g.grade else None,
+            "max_grade": float(g.max_grade) if g.max_grade else None,
+            "date": graded_on.isoformat() if graded_on else None,
+            "passed": g.grade >= 50 if g.grade else False,
+            "type": "grade",
+        }
 
     # ============================================================================
     # RESULT RANKING & OPTIMIZATION

@@ -253,6 +253,15 @@ def test_rbac_blocks_anonymous_on_search(rbac_client: TestClient):
     r = client.post("/api/v1/search/advanced", json={"entity": "students", "query": "John"})
     assert r.status_code in (401, 403), r.text
 
+    # The counts for the filter panel of the Search page: how many students are active, in
+    # which study year, enrolled in which year; how many courses per semester. Until November
+    # 2026 both endpoints had no dependency on the caller and answered anyone.
+    r = client.get("/api/v1/search/students/facets", params={"q": "o"})
+    assert r.status_code in (401, 403), r.text
+
+    r = client.get("/api/v1/search/courses/facets")
+    assert r.status_code in (401, 403), r.text
+
 
 def test_rbac_allows_permitted_role_on_search(rbac_client: TestClient):
     """A role holding the view permission (teacher) can use search once authenticated."""
@@ -272,3 +281,6 @@ def test_rbac_allows_permitted_role_on_search(rbac_client: TestClient):
         headers=headers,
     )
     assert r.status_code not in (401, 403), r.text
+    # And the search itself was done: the endpoint answers a search it could not do with 200
+    # and `success: false`, which the line above would take for a pass.
+    assert r.json()["success"] is True, r.text

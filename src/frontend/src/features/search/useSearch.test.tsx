@@ -4,7 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import testI18n from '@/test-utils/i18n-test-wrapper';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
-import { useSearch } from './useSearch';
+import { filtersToBody, useSearch } from './useSearch';
 import * as apiModule from '@/api/api';
 
 // Mock the API
@@ -14,6 +14,7 @@ vi.mock('@/api/api', () => {
   return {
     default: {
       post: mockPost,
+      get: vi.fn(),
     },
     extractAPIResponseData: vi.fn((response) => response.data),
   };
@@ -305,10 +306,101 @@ describe('useSearch Hook', () => {
     expect(result.current.page).toBe(3);
   });
 
-  it('initializes with empty saved searches list', () => {
+  it('does not ask for the saved searches: no page shows them', async () => {
+    mockApiClient.post.mockResolvedValue({ data: { results: [], total: 0 } });
     const { result } = renderHook(() => useSearch(), { wrapper });
 
-    expect(result.current.savedSearches).toEqual([]);
-    expect(result.current.loadingSavedSearches).toBe(false);
+    act(() => {
+      result.current.setSearchQuery('John');
+    });
+    await waitFor(() => expect(mockApiClient.post).toHaveBeenCalled());
+
+    expect(mockApiClient.get).not.toHaveBeenCalled();
+  });
+
+  it('sends the page, its size and the order in the body of the request', async () => {
+    mockApiClient.post.mockResolvedValue({
+      data: { success: true, data: { results: [{ id: 7, type: 'student' }], total: 31, has_more: true, limit: 10, offset: 20 } },
+    });
+    vi.mocked(apiModule.extractAPIResponseData).mockImplementation(
+      (response) => (response as { data: unknown }).data
+    );
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setSearchQuery('Zz');
+    });
+    act(() => {
+      result.current.setLimit(10);
+      result.current.setSort({ field: 'name', direction: 'asc' });
+      result.current.setPage(2);
+    });
+
+    await waitFor(() =>
+      expect(mockApiClient.post).toHaveBeenCalledWith('/search/advanced', {
+        entity: 'students',
+        query: 'Zz',
+        filters: undefined,
+        page: 2,
+        page_size: 10,
+        sort: { field: 'name', direction: 'asc' },
+      })
+    );
+    // The total is the server's, not the length of the page.
+    await waitFor(() => expect(result.current.totalResults).toBe(31));
+    expect(result.current.searchResults).toHaveLength(1);
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it('reports a search the server says it could not do, instead of an empty result', async () => {
+    mockApiClient.post.mockResolvedValue({
+      data: { success: false, data: null, error: { code: 'SEARCH_ERROR', message: 'Failed to perform advanced search' } },
+    });
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setSearchQuery('John');
+    });
+
+    await waitFor(() => expect(result.current.error).toBeInstanceOf(Error));
+    expect((result.current.error as Error).message).toBe('Failed to perform advanced search');
+    expect(result.current.searchResults).toEqual([]);
+  });
+
+  it('goes back to the default order when the new kind of record does not have the current one', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setSort({ field: 'email', direction: 'asc' });
+      result.current.setPage(3);
+    });
+    act(() => {
+      result.current.setSearchType('courses');
+    });
+
+    expect(result.current.sort).toEqual({ field: 'relevance', direction: 'desc' });
+    expect(result.current.page).toBe(0);
+
+    // An order both kinds have is kept.
+    act(() => {
+      result.current.setSort({ field: 'name', direction: 'asc' });
+    });
+    act(() => {
+      result.current.setSearchType('grades');
+    });
+    expect(result.current.sort).toEqual({ field: 'name', direction: 'asc' });
+  });
+
+  it('gives the server one entry per filtered field, a list when a field has several values', () => {
+    expect(filtersToBody([])).toBeUndefined();
+    expect(
+      filtersToBody([
+        { field: 'status', operator: 'equals', value: 'active' },
+        { field: 'enrollment_type', operator: 'equals', value: 'year_1' },
+        { field: 'status', operator: 'equals', value: 'inactive' },
+        { field: 'enrollment_type', operator: 'equals', value: 'year_2' },
+        { field: 'enrollment_type', operator: 'equals', value: 'year_3' },
+      ])
+    ).toEqual({ status: ['active', 'inactive'], enrollment_type: ['year_1', 'year_2', 'year_3'] });
   });
 });

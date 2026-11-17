@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { loginViaAPI, generateRandomString, createStudentViaAPI, TestDataTracker } from './helpers';
+import { loginViaAPI, generateRandomString, createStudentViaAPI, getApiBase, TestDataTracker } from './helpers';
 
 const E2E_EMAIL = process.env.E2E_EMAIL || 'admin@example.com';
 const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
@@ -13,8 +13,8 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
  *
  * They are now in three groups:
  *  - what the page does: these run;
- *  - what the page offers and does not do (sorting, paging, filters): `test.fixme`, each with
- *    what was seen in a running copy; they should pass once the page is repaired;
+ *  - sorting, paging and filters: offered by the page and doing nothing until they were
+ *    repaired in November 2026 (work plan, todo 60); they run since;
  *  - what the page does not have at all (saved searches, a "clear" control, keyboard
  *    navigation): `test.skip`, kept as they were until someone decides about them.
  * The seed has four students (John Doe, Jane Smith, Alice Johnson, Bob Williams) and two
@@ -140,7 +140,7 @@ test.describe('Search page', () => {
   });
 });
 
-test.describe('Search page: offered, and not working', () => {
+test.describe('Search page: sorting, paging and filters', () => {
   let tracker: TestDataTracker;
 
   test.beforeEach(async ({ page }) => {
@@ -152,25 +152,34 @@ test.describe('Search page: offered, and not working', () => {
     await tracker.cleanup();
   });
 
-  // Seen in a running copy (2026-11-17): the list is the same for "relevance", "name" descending
-  // and "name" ascending. The page sends `sort` in the request's body; the server does not
-  // read it.
-  test.fixme('sort results by different fields', async ({ page }) => {
+  // Until the repair the list was the same for "relevance", "name" descending and "name"
+  // ascending: the page sent `sort` in the request's body and the server did not read it.
+  test('sort results by different fields', async ({ page }) => {
     await page.getByLabel('Query').fill('o');
     await expect(results(page)).toHaveCount(4);
+
+    // Best match first: an "o" in a name before an "o" only in the ".com" of the address.
+    await expect(results(page).last()).toContainText('Jane Smith');
 
     await page.getByLabel('Sort by').selectOption('name');
     await page.getByLabel('Sort direction').selectOption('asc');
     await expect(results(page).first()).toContainText('Alice Johnson');
+    await expect(results(page).last()).toContainText('John Doe');
 
     await page.getByLabel('Sort direction').selectOption('desc');
     await expect(results(page).first()).toContainText('John Doe');
+    await expect(results(page).last()).toContainText('Alice Johnson');
+
+    await page.getByLabel('Sort by').selectOption('email');
+    await expect(results(page).first()).toContainText('john.doe@example.com');
+    await page.getByLabel('Sort direction').selectOption('asc');
+    await expect(results(page).first()).toContainText('alice.j@example.com');
   });
 
-  // Seen in a running copy (2026-11-17): "Results per page" and Previous/Next change nothing.
-  // The page sends `page` and `page_size` in the body; the server takes `limit` and `offset`
-  // from the address, so it always answers with the first 20, and calls that number the total.
-  test.fixme('pagination through large result sets', async ({ page }) => {
+  // Until the repair "Results per page" and Previous/Next changed nothing: the page sent `page`
+  // and `page_size` in the body, the server took `limit` and `offset` from the address, so it
+  // always answered with the first 20, and called that number the total.
+  test('pagination through large result sets', async ({ page }) => {
     const family = `Zz${generateRandomString()}`;
     for (let i = 1; i <= 12; i++) {
       const created = await createStudentViaAPI(page, {
@@ -185,19 +194,31 @@ test.describe('Search page: offered, and not working', () => {
     await page.getByLabel('Results per page').selectOption('10');
     await page.getByLabel('Query').fill(family);
     await expect(results(page)).toHaveCount(10);
+    await expect(page.getByText('12 total results')).toBeVisible();
+    await expect(page.getByText('1-10 of 12 results')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Previous' })).toBeDisabled();
 
     await page.getByRole('button', { name: 'Next' }).click();
     await expect(results(page)).toHaveCount(2);
     await expect(page.getByText('Page 2')).toBeVisible();
+    await expect(page.getByText('11-12 of 12 results')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
 
     await page.getByRole('button', { name: 'Previous' }).click();
     await expect(results(page)).toHaveCount(10);
+    await expect(page.getByText('Page 1')).toBeVisible();
+
+    // All twelve on one page of twenty, each once.
+    await page.getByLabel('Results per page').selectOption('20');
+    await expect(results(page)).toHaveCount(12);
+    const listed = await results(page).locator('p.font-semibold').allTextContents();
+    expect(new Set(listed).size).toBe(12);
   });
 
-  // Seen in a running copy (2026-11-17): the panel says "No filters available" for every
-  // query, although the server answers with the status filter ("active", 4). The page reads
-  // the answer in another shape than the server sends.
-  test.fixme('filter search results with advanced filters', async ({ page }) => {
+  // Until the repair the panel said "No filters available" for every query, although the
+  // server answered with the status filter ("active", 4): the page read the answer in another
+  // shape than the server sends.
+  test('filter search results with advanced filters', async ({ page }) => {
     await page.getByLabel('Query').fill('o');
     await expect(results(page)).toHaveCount(4);
 
@@ -206,6 +227,52 @@ test.describe('Search page: offered, and not working', () => {
     await expect(active).toBeVisible();
     await active.check();
     await expect(results(page)).toHaveCount(4);
+  });
+
+  // The same with a student who has left, so that a filter has something to take away.
+  test('a ticked filter narrows the list, a cleared one stops narrowing', async ({ page }) => {
+    const family = `Ff${generateRandomString()}`;
+    const ids: number[] = [];
+    for (const first of ['Stays', 'Left']) {
+      const created = await createStudentViaAPI(page, {
+        firstName: first,
+        lastName: family,
+        email: `${first.toLowerCase()}-${family.toLowerCase()}@test.edu`,
+        studentId: `FF${generateRandomString().toUpperCase()}${first[0]}`,
+      });
+      tracker.track('students', created?.id);
+      ids.push(created.id);
+    }
+    const deactivated = await page.request.put(`${getApiBase()}/api/v1/students/${ids[1]}`, {
+      data: { is_active: false },
+    });
+    expect(deactivated.ok()).toBeTruthy();
+
+    await page.getByLabel('Query').fill(family);
+    await expect(results(page)).toHaveCount(2);
+
+    const status = page.getByRole('group', { name: 'Status' });
+    const active = status.getByRole('checkbox', { name: 'Active (1)', exact: true });
+    const inactive = status.getByRole('checkbox', { name: 'Inactive (1)', exact: true });
+    await expect(active).toBeVisible();
+
+    await inactive.check();
+    await expect(results(page)).toHaveCount(1);
+    await expect(results(page).first()).toContainText(`Left ${family}`);
+    await expect(page.getByText('1 total results')).toBeVisible();
+
+    // Both boxes: either of the two.
+    await active.check();
+    await expect(results(page)).toHaveCount(2);
+
+    await inactive.uncheck();
+    await expect(results(page)).toHaveCount(1);
+    await expect(results(page).first()).toContainText(`Stays ${family}`);
+
+    await page.getByRole('button', { name: 'Clear all' }).click();
+    await expect(results(page)).toHaveCount(2);
+    await expect(active).not.toBeChecked();
+    await expect(inactive).not.toBeChecked();
   });
 });
 
