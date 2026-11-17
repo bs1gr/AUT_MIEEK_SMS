@@ -7,7 +7,13 @@ export type BroadcastTarget = 'all' | 'role' | 'users';
 
 export interface OperationsBroadcastPanelProps {
   t: (key: string, options?: Record<string, unknown>) => string;
-  isAdmin: boolean;
+  /** The account may send: an administrator or a teacher (the roles the server lets send). */
+  canSend: boolean;
+  /**
+   * The account can find the numbers "Specific users" asks for: an administrator, in User
+   * Management. A teacher has no page that shows them, so the target is not offered.
+   */
+  canPickUsers: boolean;
   broadcastType: string;
   setBroadcastType: (value: string) => void;
   notificationTypeOptions: NotificationTypeOption[];
@@ -27,7 +33,8 @@ export interface OperationsBroadcastPanelProps {
 
 const OperationsBroadcastPanel = ({
   t,
-  isAdmin,
+  canSend,
+  canPickUsers,
   broadcastType,
   setBroadcastType,
   notificationTypeOptions,
@@ -50,10 +57,12 @@ const OperationsBroadcastPanel = ({
         <h2 className="text-lg font-semibold text-slate-900">
           {t('admin.title', { ns: 'notifications' })}
         </h2>
-        <p className="text-sm text-slate-600">{t('admin.description', { ns: 'notifications' })}</p>
+        <p className="text-sm text-slate-600">
+          {t(canPickUsers ? 'admin.description' : 'admin.descriptionNoUsers', { ns: 'notifications' })}
+        </p>
       </div>
 
-      {!isAdmin ? (
+      {!canSend ? (
         <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           {t('admin.notAuthorized', { ns: 'notifications' })}
         </div>
@@ -84,7 +93,7 @@ const OperationsBroadcastPanel = ({
               >
                 <option value="all">{t('admin.targetAll', { ns: 'notifications' })}</option>
                 <option value="role">{t('admin.targetRole', { ns: 'notifications' })}</option>
-                <option value="users">{t('admin.targetUsers', { ns: 'notifications' })}</option>
+                {canPickUsers && <option value="users">{t('admin.targetUsers', { ns: 'notifications' })}</option>}
               </select>
             </label>
           </div>
@@ -105,7 +114,7 @@ const OperationsBroadcastPanel = ({
             </label>
           )}
 
-          {broadcastTarget === 'users' && (
+          {canPickUsers && broadcastTarget === 'users' && (
             <label className="space-y-2 text-sm font-medium text-slate-700">
               <span>{t('admin.userIdsLabel', { ns: 'notifications' })}</span>
               <input

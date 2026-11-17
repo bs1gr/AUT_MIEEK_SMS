@@ -235,6 +235,42 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: a teacher is offered the form that sends a message** (PR 417; the owner:
+"Teachers and broadcast (todo 59): allow it on the page"). The server is not changed, and
+neither is the database.
+
+- **What was.** The server lets an account that holds `notifications:manage` send a message
+  to other accounts, and the teacher role holds that permission, by default and in the
+  grants made at start. Utils > Notifications showed the form to administrators only: a
+  teacher could send through the API and not through the page.
+- **Now.** The form is shown to administrators and to teachers. A teacher is offered "All
+  users" and "Role"; "Specific users" asks for account numbers, which no page shows to a
+  teacher, so that target stays with administrators. Any other account is told "Your
+  account is not allowed to send notifications." (it said "Only admins with broadcast
+  permission can send notifications."). A refusal of the server, on an installation that
+  took the permission from a role, is said in the same words and not as "Failed to send
+  notification."
+- **On the same tab.** The feedback inbox under the form said "# entries": its two texts
+  had a "#" where the number goes, in both languages. It says "3 entries".
+- **Tests.** `test_notifications_broadcast_roles.py` (8 tests, on a server that checks
+  accounts): a teacher sends to everyone and to one role, and the messages arrive; an
+  administrator sends; a student, a viewer and a guest are refused with 403 and nothing is
+  sent; nobody sends without an account where a sign-in is required. The one test there was
+  of this ("requires admin") sent no token to a server that asks for none and accepted four
+  status codes; it is gone. `OperationsView.broadcast.test.tsx` (10 tests): who is offered
+  the form, what a teacher's form sends, the two failure texts, the count of the inbox,
+  Greek.
+- **The guides.** Both notification guides say who may send; the user guide has the steps
+  for a teacher. One row of `PERMISSION_MATRIX.md` said "Limited" for teachers.
+- **Checked in a running copy** (a scratch server from the branch that requires a sign-in;
+  an administrator created a teacher and a student). In a browser: the teacher is offered
+  the form with two targets, sends to all users, and is told that it was sent; the server
+  made four copies (two administrators, the teacher, the student); the administrator finds
+  the message under the bell and is offered three targets; the student has the message and
+  is refused with 403 when sending through the API; the form is in Greek on a Greek page.
+  All 16 claims hold, with no error on the console.
+- **Found and not changed** (added to todo 59): a message does not say who sent it.
+
 **2026-11-17: the Search page sorts, pages and filters, and finds a Greek name; the Students
 page says when its list could not be loaded** (PR 416; the owner: "Repair the Search page and
 the Students error state (todo 60)"). No database changes. It closes todo 60 but for the
@@ -1189,8 +1225,8 @@ down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
-owner's word:** todo 59 (a teacher can send a message to every account through the API, and
-four smaller things about notifications), in todo 53 six E2E tests that describe things the
+owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
+a message is settled in PR 417: the page offers it), in todo 53 six E2E tests that describe things the
 application does not have, in todo 60 four components that no page uses, and todo 61 (found
 while the Search page was repaired). Todo 60 itself is done in PR 416: the Search page sorts,
 pages and filters, and the Students page says when its list could not be loaded. Todo 51 is closed: the owner confirmed on
@@ -1531,14 +1567,20 @@ now** (todo 58).
         file is a test file, otherwise the whole suite; and a pattern that means what it says.~~
         **Closed by #410**, for the frontend as well, where the same rule was live.
 59. **Found on 2026-11-17 while checking the notification guides, and not changed.**
-    - *A teacher can send a message to every account, through the API only.* The broadcast
+    - ~~*A teacher can send a message to every account, through the API only.* The broadcast
       endpoint asks for the permission `notifications:manage`; the teacher role has it, in
       the role defaults (`rbac.py`) and in the grants made at start (`routers_rbac.py`). The
       page shows the form to administrators only. On the scratch server a teacher's request
       was accepted and reached all three accounts. Either teachers may send (then the page
       should offer them the form) or they may not (then the permission goes from the role,
       in the databases that already have the grant as well). The owner's call. The test
-      `test_broadcast_notification_requires_admin` accepts any answer and proves neither.
+      `test_broadcast_notification_requires_admin` accepts any answer and proves neither.~~
+      **Closed by PR 417 (the owner, 2026-11-17: "allow it on the page"):** the page offers
+      the form to teachers, and tests say who the server lets send.
+    - *A message does not say who sent it.* Nothing of the sender is stored with a
+      notification or shown with it: a teacher's message to all users looks like an
+      administrator's. With two roles sending, a reader cannot tell, and neither can the
+      log. Storing the sender and showing the name is a small change (the owner's call).
     - *"Specific users" asks for account numbers that no page shows.* User Management lists
       name, e-mail, role and status. A choice of names would make that target usable.
     - *The notification preferences are stored and never read.* `GET` and
@@ -1552,7 +1594,10 @@ now** (todo 58).
     - *`docs/user/USER_GUIDE_COMPLETE.md` has not been checked against the application.* The
       one sentence corrected in PR 414 stood next to others of the same kind (a "System
       Settings" list with "Email Notifications: Enable/disable", attendance thresholds of
-      70 and 80 per cent). It needs the same reading as the two guides.
+      70 and 80 per cent). It needs the same reading as the two guides. So do
+      `docs/admin/PERMISSION_REFERENCE.md` and `RBAC_ADMIN_GUIDE.md`: both name a permission
+      `notifications:broadcast` for administrators only; the code has `notifications:manage`,
+      for administrators and teachers.
 60. **The Search page offers three things that do nothing, and the Students page calls a
     failed load an empty list** (found 2026-11-17 while making their E2E tests run; each seen
     in a running copy with the four students of the seed).
