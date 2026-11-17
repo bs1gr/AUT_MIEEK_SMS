@@ -92,7 +92,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.18.72
+Version: 1.18.73
     Created: 2025-12-04
     Updated: 2026-06-18
 
