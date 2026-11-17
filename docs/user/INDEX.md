@@ -1,81 +1,52 @@
-# User Documentation
+# User documentation
 
-Documentation for end-users of the Student Management System.
+Documentation for the people who use the Student Management System.
 
-## 📚 Guides
+## Checked against the application
 
-### Getting Started
+These were read against a running copy, page by page, and say what the application does.
 
-- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Fast track to using the system
-  - Installation steps
-  - First login
-  - Basic operations
+- **[USER_GUIDE_COMPLETE.md](USER_GUIDE_COMPLETE.md)** - the user guide: signing in, every
+  page, the absence rules and the final grade, what each kind of account may do, and what
+  the application does not have (checked 17 November 2026).
+- **[NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md)** - the bell, the list of
+  notifications, messages to all users (checked 16 November 2026).
 
-### Customization
+For administrators, under [../admin/](../admin/):
 
-- **[THEMES_SUMMARY.md](THEMES_SUMMARY.md)** - Theme system overview
-  - Available themes
-  - Switching themes
-  - Dark/light mode
+- **[RBAC_ADMIN_GUIDE.md](../admin/RBAC_ADMIN_GUIDE.md)** - accounts, roles and permissions,
+  step by step.
+- **[PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md)** and
+  **[PERMISSION_REFERENCE.md](../admin/PERMISSION_REFERENCE.md)** - who can do what.
+- **[BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md)** - the automatic backup and
+  restoring.
+- **[NOTIFICATIONS_ADMIN_GUIDE.md](../admin/NOTIFICATIONS_ADMIN_GUIDE.md)** and
+  **[PRIVACY_AND_GDPR.md](../admin/PRIVACY_AND_GDPR.md)**.
 
-- **[THEME_GUIDE.md](THEME_GUIDE.md)** - Detailed theme customization
-  - Custom theme creation
-  - CSS variables
-  - Theme configuration
+## Not checked against the application
 
-### Internationalization
+Older documents. Some describe the application as it was planned, some as it was in an
+earlier version. Where one of them disagrees with the user guide, the user guide is right.
 
-- **[LOCALIZATION.md](LOCALIZATION.md)** - Multi-language support
-  - Supported languages (English, Greek)
-  - Language switching
-  - Adding translations
+- [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md), [ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)
+- [SMS_USER_GUIDE_EN.md](SMS_USER_GUIDE_EN.md), [SMS_USER_GUIDE_EL.md](SMS_USER_GUIDE_EL.md),
+  [ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)
+- [THEMES_SUMMARY.md](THEMES_SUMMARY.md), [THEME_GUIDE.md](THEME_GUIDE.md),
+  [LOCALIZATION.md](LOCALIZATION.md)
+- [IMPORT_EXPORT_USER_GUIDE.md](IMPORT_EXPORT_USER_GUIDE.md),
+  [SESSION_EXPORT_IMPORT_GUIDE.md](SESSION_EXPORT_IMPORT_GUIDE.md)
+- [RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md),
+  [RATE_LIMITING_QUICK_REFERENCE.md](RATE_LIMITING_QUICK_REFERENCE.md)
+- [RBAC_GUIDE.md](RBAC_GUIDE.md), [RBAC_GUIDE_EL.md](RBAC_GUIDE_EL.md): for roles and
+  permissions read [../admin/RBAC_ADMIN_GUIDE.md](../admin/RBAC_ADMIN_GUIDE.md) instead.
+- [README_PDF_CONVERSION.md](README_PDF_CONVERSION.md)
 
-## 🌐 Language-Specific Guides
+The checked user guide exists in English only. The pages themselves are in English and
+Greek.
 
-### Greek (Ελληνικά)
+## Need help?
 
-- **[ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Οδηγός γρήγορης εκκίνησης
-- **[ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Εγχειρίδιο χρήστη
-
-## 🎯 Common Tasks
-
-### Student Management
-
-1. Creating students → [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md#creating-students)
-2. Editing student info
-3. Managing enrollment
-
-### Course Management
-
-1. Creating courses
-2. Setting evaluation rules
-3. Managing course schedules
-
-### Grading
-
-1. Recording grades
-2. Grade calculations
-3. Exporting reports
-
-### Attendance
-
-1. Marking attendance
-2. Viewing attendance reports
-3. Absence tracking
-
-## 💡 Tips & Best Practices
-
-- Use keyboard shortcuts for faster navigation
-- Bookmark frequently used pages
-- Enable dark mode for reduced eye strain
-- Regular data backups (admin feature)
-- For multi-PC deployments and offline operation, see [Multi-PC Deployment Guide](../deployment/MULTI_PC_DEPLOYMENT_GUIDE.md)
-
-## 🆘 Need Help?
-
-- Check troubleshooting guides in [../../docs/deployment/](../deployment/)
-- Contact system administrator
-- Report bugs via GitHub Issues
-- RBAC (Roles & Permissions):
-  - English: [RBAC_GUIDE.md](RBAC_GUIDE.md)
-  - Ελληνικά: [RBAC_GUIDE_EL.md](RBAC_GUIDE_EL.md)
+- **Send Feedback**, at the right edge of every page of the application.
+- The administrator of your installation.
+- For installing and running the application: [../deployment/](../deployment/) and
+  [../operations/INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md).
