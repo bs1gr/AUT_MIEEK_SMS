@@ -12,11 +12,13 @@ which exercises the same code path without depending on engine wiring.
 
 import logging
 from collections import deque
+from contextlib import contextmanager
 
 import pytest
 
 from backend.config import settings
 from backend.db.query_profiler import QueryProfiler, profiler
+from backend.request_id_middleware import request_id_context
 
 
 @pytest.fixture(autouse=True)
@@ -65,23 +67,234 @@ class TestSlowQueries:
         assert len(response.json()["data"]) == 2
 
 
+@contextmanager
+def in_request(request_id: str):
+    """Statements recorded inside belong to this request, as the middleware would mark them."""
+    token = request_id_context.set(request_id)
+    try:
+        yield
+    finally:
+        request_id_context.reset(token)
+
+
 class TestQueryPatterns:
+    """An N+1 pattern is one table read many times within ONE request. Until November 2026 the
+    detector compared the statements per table since the start of the server with five, which
+    after an hour was every table, and wrote one warning per table at every call."""
+
     def test_patterns_detects_n_plus_one(self, client):
-        for _ in range(6):
-            profiler._record_query('SELECT * FROM "grades"', 0.01)
+        with in_request("req-list-of-grades"):
+            for _ in range(6):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
 
         response = client.get("/api/v1/diagnostics/queries/patterns")
         body = response.json()
         assert body["table_patterns"]["grades"] == 6
-        assert {"table": "grades", "count": 6} in body["potential_n_plus_one"]
+        assert {"table": "grades", "count": 6, "request_id": "req-list-of-grades"} in body["potential_n_plus_one"]
         assert body["warning"] is not None
+        assert "selectinload" in body["warning"]
 
     def test_patterns_no_warning_below_threshold(self, client):
-        profiler._record_query('SELECT * FROM "grades"', 0.01)
+        with in_request("req-one"):
+            for _ in range(5):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
 
         response = client.get("/api/v1/diagnostics/queries/patterns")
         assert response.json()["warning"] is None
         assert response.json()["potential_n_plus_one"] == []
+
+    def test_a_busy_table_is_not_a_pattern(self, client):
+        """Fifty requests that each read a table once: what every table looks like after an
+        hour. Until the fix this was reported, with the total as its count."""
+        for i in range(50):
+            with in_request(f"req-{i}"):
+                profiler._record_query('SELECT * FROM "students" WHERE id = 1', 0.01)
+
+        body = client.get("/api/v1/diagnostics/queries/patterns").json()
+
+        assert body["table_patterns"]["students"] == 50
+        assert [p for p in body["potential_n_plus_one"] if p["table"] == "students"] == []
+
+    def test_statements_outside_a_request_are_not_counted(self):
+        """The startup tasks and the schedulers read the same tables over and over."""
+        for _ in range(20):
+            profiler._record_query('SELECT * FROM "notifications"', 0.01)
+
+        assert profiler.detect_n_plus_one() == []
+        assert profiler.query_patterns["notifications"] == 20
+
+    def test_only_reads_are_counted(self):
+        """An import that inserts 200 rows in one request is not an N+1 pattern."""
+        with in_request("req-import"):
+            for _ in range(200):
+                profiler._record_query('INSERT INTO "students" (id) VALUES (1)', 0.01)
+                profiler._record_query('UPDATE "students" SET id = 1', 0.01)
+            profiler._record_query("SELECT 1", 0.01)
+
+        assert profiler.detect_n_plus_one() == []
+
+    def test_statements_that_read_from_a_sub_query_are_not_one_table(self):
+        """Seen on a scratch server: the dashboard's six aggregate queries, each over a
+        sub-query, were reported as six reads of the table "(SELECT"."""
+        with in_request("req-dashboard"):
+            for i in range(6):
+                profiler._record_query(
+                    f"SELECT count(*) AS count_{i} FROM (SELECT grades.id FROM grades) AS anon_1", 0.01
+                )
+
+        assert profiler.query_patterns["(SELECT"] == 6
+        assert profiler.detect_n_plus_one() == []
+
+    def test_the_worst_request_is_reported_for_each_table(self):
+        with in_request("req-a"):
+            for _ in range(7):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
+        with in_request("req-b"):
+            for _ in range(12):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
+            for _ in range(6):
+                profiler._record_query('SELECT * FROM "courses"', 0.01)
+        with in_request("req-c"):
+            for _ in range(9):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
+
+        assert profiler.n_plus_one_requests() == [
+            {"table": "grades", "count": 12, "request_id": "req-b"},
+            {"table": "courses", "count": 6, "request_id": "req-b"},
+        ]
+        assert profiler.detect_n_plus_one() == [("grades", 12), ("courses", 6)]
+        assert profiler.detect_n_plus_one(threshold=11) == [("grades", 12)]
+
+    def test_only_the_newest_requests_are_tracked(self):
+        own = QueryProfiler(max_tracked_requests=3)
+        for name in ("old", "b", "c", "d"):
+            with in_request(f"req-{name}"):
+                for _ in range(6):
+                    own._record_query(f'SELECT * FROM "{name}"', 0.01)
+
+        assert [entry["table"] for entry in own.n_plus_one_requests()] == ["b", "c", "d"]
+        assert own.get_summary()["tracked_requests"] == 3
+        # Every statement is still in the totals.
+        assert own.query_patterns["old"] == 6
+
+    def test_a_request_that_reads_again_stays_among_the_newest(self):
+        own = QueryProfiler(max_tracked_requests=2)
+        with in_request("req-long"):
+            for _ in range(6):
+                own._record_query('SELECT * FROM "grades"', 0.01)
+        with in_request("req-b"):
+            own._record_query('SELECT * FROM "courses"', 0.01)
+        with in_request("req-long"):
+            own._record_query('SELECT * FROM "grades"', 0.01)
+        with in_request("req-c"):
+            own._record_query('SELECT * FROM "courses"', 0.01)
+
+        assert own.n_plus_one_requests() == [{"table": "grades", "count": 7, "request_id": "req-long"}]
+
+    def test_the_summary_and_the_patterns_write_no_warning(self, client, caplog):
+        """Both wrote one warning per reported table at every call."""
+        with in_request("req-1"):
+            for _ in range(6):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
+
+        with caplog.at_level(logging.DEBUG, logger="backend.db.query_profiler"):
+            summary = client.get("/api/v1/diagnostics/queries/summary").json()["data"]
+            patterns = client.get("/api/v1/diagnostics/queries/patterns").json()
+
+        assert summary["n_plus_one_patterns"] == [["grades", 6]]
+        assert summary["n_plus_one_threshold"] == 5
+        assert summary["tracked_requests"] >= 1
+        assert patterns["potential_n_plus_one"][0]["table"] == "grades"
+        assert [
+            r for r in caplog.records if r.name == "backend.db.query_profiler" and r.levelno >= logging.WARNING
+        ] == []
+
+    def test_reset_forgets_the_requests(self):
+        with in_request("req-1"):
+            for _ in range(6):
+                profiler._record_query('SELECT * FROM "grades"', 0.01)
+        assert profiler.detect_n_plus_one() == [("grades", 6)]
+
+        profiler.reset()
+
+        assert profiler.detect_n_plus_one() == []
+        assert profiler.get_summary()["tracked_requests"] == 0
+
+
+class TestRequestsThroughTheMiddleware:
+    """The whole path: the request-id middleware marks the request, the statements run on the
+    engine (in the endpoint itself or on a worker thread), and the engine's hook finds the
+    request they belong to."""
+
+    @pytest.fixture()
+    def served(self):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        from sqlalchemy import create_engine, text
+        from sqlalchemy.pool import StaticPool
+
+        from backend.request_id_middleware import RequestIDMiddleware
+
+        engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        with engine.begin() as connection:
+            connection.execute(text("CREATE TABLE lessons (id INTEGER PRIMARY KEY)"))
+            connection.execute(text("CREATE TABLE rooms (id INTEGER PRIMARY KEY)"))
+        own = QueryProfiler()
+        own.register(engine)
+        own.reset()
+
+        def read(table: str, times: int) -> None:
+            with engine.connect() as connection:
+                for i in range(times):
+                    connection.execute(text(f"SELECT id FROM {table} WHERE id = {i}"))
+
+        app = FastAPI()
+        app.add_middleware(RequestIDMiddleware)
+
+        @app.get("/async-list")
+        async def async_list():
+            read("lessons", 8)
+            return {"ok": True}
+
+        @app.get("/sync-list")
+        def sync_list():
+            read("rooms", 7)
+            return {"ok": True}
+
+        @app.get("/one")
+        async def one():
+            read("lessons", 1)
+            return {"ok": True}
+
+        with TestClient(app) as test_client:
+            yield test_client, own
+        engine.dispose()
+
+    def test_an_async_endpoint_is_found_with_its_request_id(self, served):
+        test_client, own = served
+
+        response = test_client.get("/async-list")
+
+        request_id = response.headers["X-Request-ID"]
+        assert own.n_plus_one_requests() == [{"table": "lessons", "count": 8, "request_id": request_id}]
+
+    def test_a_sync_endpoint_on_a_worker_thread_is_found_too(self, served):
+        test_client, own = served
+
+        response = test_client.get("/sync-list", headers={"X-Request-ID": "from-the-client"})
+
+        assert response.headers["X-Request-ID"] == "from-the-client"
+        assert own.n_plus_one_requests() == [{"table": "rooms", "count": 7, "request_id": "from-the-client"}]
+
+    def test_many_requests_reading_once_are_not_reported(self, served):
+        test_client, own = served
+
+        for _ in range(30):
+            assert test_client.get("/one").status_code == 200
+
+        assert own.query_patterns["lessons"] == 30
+        assert own.n_plus_one_requests() == []
+        assert own.get_summary()["tracked_requests"] == 30
 
 
 class TestResetProfiler:

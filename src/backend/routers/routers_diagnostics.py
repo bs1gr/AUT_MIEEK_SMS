@@ -40,7 +40,9 @@ async def get_query_summary(request: Request, db: Session = Depends(get_session)
         - recorded_queries: How many of the newest queries are kept in detail
         - slow_query_threshold_ms: The limit in use
         - table_patterns: Query count per table
-        - n_plus_one_patterns: Potential N+1 query patterns detected
+        - tracked_requests: For how many of the newest requests the reads per table are kept
+        - n_plus_one_threshold: More reads of one table than this within one request count
+        - n_plus_one_patterns: Tables read that often within one request, with the count
     """
     summary = profiler.get_summary()
     return {
@@ -79,17 +81,24 @@ async def get_query_patterns(request: Request, db: Session = Depends(get_session
     Get analysis of query patterns per table.
 
     Returns:
-        - table_patterns: Count of queries per table
-        - potential_n_plus_one: Tables with excessive query counts
+        - table_patterns: Count of queries per table, since the start or the last reset
+        - potential_n_plus_one: Tables read more than five times within one request, among
+          the newest 200 requests: the highest count per table and the id of the request that
+          reached it (the log has its path under that id)
     """
     summary = profiler.get_summary()
-    n_plus_one = summary.get("n_plus_one_patterns", [])
+    n_plus_one = profiler.n_plus_one_requests()
 
     return {
         "status": "ok",
         "table_patterns": summary.get("table_patterns", {}),
-        "potential_n_plus_one": [{"table": table, "count": count} for table, count in n_plus_one],
-        "warning": "Check N+1 patterns and optimize with select_related/prefetch_related" if n_plus_one else None,
+        "potential_n_plus_one": n_plus_one,
+        "warning": (
+            "A table was read many times within one request: load the related rows with one "
+            "query (selectinload / joinedload, or one IN query) instead of one per row"
+            if n_plus_one
+            else None
+        ),
     }
 
 

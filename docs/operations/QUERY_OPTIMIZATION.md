@@ -405,20 +405,29 @@ Response:
       "attendances": 42,
       "courses": 31
     },
+    "tracked_requests": 23,
+    "n_plus_one_threshold": 5,
     "n_plus_one_patterns": [
-      ["enrollments", 5]
+      ["grades", 12]
     ]
   }
 }
 
 ```text
+`table_patterns` counts every statement since the server started (or since the last reset).
+`n_plus_one_patterns` is about single requests: a table that one request read more than five
+times, with the highest such count among the newest 200 requests. A table that is merely busy
+(read once by each of many requests) is not listed. Asking for the summary writes nothing to
+the log.
+
 #### 2. Get Slow Queries
 
 ```bash
 GET /api/v1/diagnostics/queries/slow?limit=20
 
 ```text
-Response shows queries exceeding 100ms threshold with execution time.
+Response shows the queries over the slow-query limit (`SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS`,
+300 ms unless set) among the newest 2,000 the profiler keeps, with their execution time.
 
 #### 3. Get Query Patterns
 
@@ -428,7 +437,11 @@ GET /api/v1/diagnostics/queries/patterns
 ```text
 Response shows:
 - Query count per table
-- Potential N+1 patterns detected
+- Potential N+1 patterns: for each table read more than five times within one request, the
+  highest count and the id of the request that reached it. The log has that request's path
+  under the same id (`Request started: GET /...`), which says which endpoint to look at.
+  Only `SELECT` statements inside a request count: an import that inserts 200 rows, the
+  startup tasks and the schedulers are not reported.
 
 #### 4. Reset Profiler
 

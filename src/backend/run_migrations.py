@@ -19,6 +19,7 @@ from alembic import command
 from alembic.config import Config
 
 from backend.config import Settings
+from backend.scripts.migrate.runner import migrations_log_dir
 
 logger = logging.getLogger(__name__)
 try:
@@ -106,16 +107,8 @@ def run_migrations(verbose: bool = False) -> bool:
             print(f"Using DATABASE_URL: {url}", flush=True)
 
         try:
-
-            def _find_repo_root(start: Path) -> Path:
-                for p in (start, *start.parents):
-                    if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
-                        return p
-                fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
-                return fallback
-
-            repo_root = _find_repo_root(Path(__file__).resolve().parent)
-            logs_dir = repo_root / "logs"
+            # The same folder as the application's own runner (backend.scripts.migrate.runner).
+            logs_dir = migrations_log_dir()
             logs_dir.mkdir(parents=True, exist_ok=True)
             fh = logging.FileHandler(logs_dir / "migrations.log", mode="a")
             fh.setLevel(logging.INFO)

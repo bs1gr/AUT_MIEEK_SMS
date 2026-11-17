@@ -271,6 +271,31 @@ def _debug_log(msg: str) -> None:
             pass
 
 
+def _stop_whatever_listens_on(port: int) -> list[int]:
+    """Stop the processes that hold `port` on this machine; returns their PIDs.
+
+    The last resort at startup, when the port Lite needs is held by something that does not
+    answer Lite's own shutdown request (a hung older instance, for one). psutil 7 named the
+    attribute `net_connections` and refuses the older `connections`: with that name the loop
+    raised before its first step, the error was swallowed, and nothing was ever stopped.
+    """
+    import psutil
+
+    stopped: list[int] = []
+    for proc in psutil.process_iter(['pid', 'name', 'net_connections']):
+        info = getattr(proc, 'info', None) or {}
+        if proc.pid == os.getpid():
+            continue
+        for conn in info.get('net_connections') or []:
+            laddr = getattr(conn, 'laddr', None)
+            if laddr and getattr(laddr, 'port', None) == port:
+                _debug_log(f'[lite_simple_entrypoint] Killing PID {proc.pid} ({info.get("name")})')
+                proc.kill()
+                stopped.append(proc.pid)
+                break
+    return stopped
+
+
 def _admin_account_exists(email: str) -> bool:
     try:
         from backend.db import SessionLocal
@@ -586,16 +611,10 @@ def main() -> None:
             _debug_log(f'[lite_simple_entrypoint] Could not signal old instance: {_pe}')
             # Fallback: try to kill via psutil if available
             try:
-                import psutil as _psutil
-                for _proc in _psutil.process_iter(['pid', 'name', 'connections']):
-                    _process_info = getattr(_proc, 'info', {})
-                    for _conn in _process_info.get('connections') or []:
-                        if getattr(_conn, 'laddr', None) and _conn.laddr.port == 8000:
-                            _debug_log(f'[lite_simple_entrypoint] Killing PID {_proc.pid} ({_process_info.get("name")})')
-                            _proc.kill()
-                            break
-            except Exception:
-                pass
+                _stop_whatever_listens_on(8000)
+            except Exception as _ke:
+                # Said in the log: swallowed in silence, a failure here went unnoticed for months.
+                _debug_log(f'[lite_simple_entrypoint] Could not stop the process on port 8000: {_ke}')
 
         # Wait up to 8 seconds for the port to free
         for _i in range(16):
