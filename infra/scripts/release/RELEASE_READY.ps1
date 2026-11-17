@@ -36,6 +36,11 @@
 .PARAMETER AutoFix
     Automatically fix version inconsistencies
 
+.PARAMETER SkipDockerCheck
+    Do not ask GitHub Actions for a build-only run of the Docker image (DOCKER_BUILD_CHECK.ps1).
+    Without this flag the run is started once the release commit is pushed, and with
+    -TagRelease the tag is made only after it succeeded (amd64 and arm64, nothing is published).
+
 .EXAMPLE
     .\RELEASE_READY.ps1 -ReleaseVersion "1.17.7" -TagRelease
     # Complete release with validation, installer build, and tagging
@@ -56,7 +61,8 @@ param(
     [switch]$SkipTests,
     [switch]$SkipInstaller,
     [switch]$SkipLiteBuild,
-    [switch]$AutoFix
+    [switch]$AutoFix,
+    [switch]$SkipDockerCheck
 )
 
 $ErrorActionPreference = 'Stop'
@@ -391,6 +397,104 @@ function Invoke-InstallerBuild {
     }
 }
 
+function Invoke-DockerBuildCheck {
+    # Plan todo 48: a build-only run of docker-publish.yml for HEAD (amd64 and arm64, nothing is
+    # published). CI builds the image for amd64 only, and the cloud host builds its arm64 image
+    # after the tag, so an image that does not build there used to show with the release out.
+    # Without -Wait the run is started and its result is left for later. Returns $true when the
+    # check passed (without -Wait: when a run is under way).
+    param(
+        [string]$Version,
+        [switch]$Wait
+    )
+
+    $checkScript = Join-Path $PROJECT_ROOT "infra/scripts/release/DOCKER_BUILD_CHECK.ps1"
+    if (-not (Test-Path $checkScript)) {
+        Write-Host "❌ DOCKER_BUILD_CHECK.ps1 not found" -ForegroundColor Red
+        return $false
+    }
+    # Out-Host: whatever the check prints must not become part of this function's return value
+    # (an array would read as success, see Update-VersionReferences).
+    if ($Wait) {
+        & $checkScript -Version $Version | Out-Host
+    } else {
+        & $checkScript -Version $Version -NoWait | Out-Host
+    }
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Publish-ReleaseTag {
+    # Guards, the Docker image build check, then the tag. A function so that it can be run on a
+    # scratch repository (src/backend/tests/test_release_docker_build_check.py).
+    param(
+        [string]$Version,
+        [switch]$SkipDockerCheck
+    )
+
+    $tag = "v$Version"
+
+    # Refuse to tag anything but the finished, pushed release commit - checked against what
+    # is committed, not the working tree. Any one of these would have stopped the bad
+    # v1.18.43 tag on its own.
+    $committedVersion = (git show HEAD:VERSION 2>$null | Out-String).Trim()
+    if ($committedVersion -ne $tag) {
+        Write-Host "❌ HEAD's committed VERSION is '$committedVersion', expected '$tag' - refusing to tag." -ForegroundColor Red
+        exit 1
+    }
+    if (git status --porcelain) {
+        Write-Host "❌ Uncommitted changes remain - refusing to tag:" -ForegroundColor Red
+        git status --short
+        exit 1
+    }
+    git fetch origin main --quiet
+    if ((git rev-parse HEAD) -ne (git rev-parse origin/main)) {
+        Write-Host "❌ HEAD is not what origin/main points at - refusing to tag an unpushed commit." -ForegroundColor Red
+        exit 1
+    }
+
+    # Never move an existing tag. This used to delete it locally, force-delete it on the
+    # remote and re-push with --force, which would silently rewrite a published release
+    # if run with an old version number - against CLAUDE.md's "release tags are immutable".
+    # If a tag really is wrong, deleting it is a deliberate act done by hand, not a side
+    # effect of re-running this script.
+    if ((git tag -l $tag) -or (git ls-remote --tags origin "refs/tags/$tag")) {
+        Write-Host "❌ Tag $tag already exists (locally or on origin) - refusing to move it." -ForegroundColor Red
+        Write-Host "   If it is genuinely wrong and unpublished, delete it deliberately first:" -ForegroundColor Yellow
+        Write-Host "   git tag -d $tag; git push origin :refs/tags/$tag" -ForegroundColor Yellow
+        exit 1
+    }
+
+    # The image has to build from exactly this commit, for the home PC (amd64) and the cloud
+    # host (arm64), before the tag makes it a release. Last of the checks: it is the slow one.
+    if ($SkipDockerCheck) {
+        Write-Host "⚠️  Docker image build check skipped (-SkipDockerCheck)" -ForegroundColor Yellow
+    } else {
+        Write-Host "Checking that the Docker image builds from this commit (build-only run, nothing is published)..."
+        if (-not (Invoke-DockerBuildCheck -Version $Version -Wait)) {
+            Write-Host "❌ The Docker image build check did not pass - refusing to tag." -ForegroundColor Red
+            Write-Host "   Fix the build, or tag by hand once this passes:" -ForegroundColor Yellow
+            Write-Host "   .\infra\scripts\release\DOCKER_BUILD_CHECK.ps1 -Version $Version" -ForegroundColor Yellow
+            Write-Host "   -SkipDockerCheck is the deliberate override." -ForegroundColor Yellow
+            exit 1
+        }
+    }
+
+    Write-Host "Creating and pushing tag: $tag (on $((git log --oneline -1) -join ''))"
+    git tag $tag
+    git push origin $tag
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Tag $tag pushed successfully!"
+        Write-Host "The release workflow should now trigger automatically."
+        Write-Host ""
+        Write-Host "You can monitor the workflow at:"
+        Write-Host "  https://github.com/$env:GITHUB_REPOSITORY/actions"
+    } else {
+        Write-Error "Failed to push tag."
+        exit 1
+    }
+}
+
 if (-not $ReleaseVersion) {
     $ReleaseVersion = Read-Host "Enter new release version (e.g., 1.17.7)"
 }
@@ -584,7 +688,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ============================================================================
-# STEP 8: CREATE AND PUSH TAG (if requested)
+# STEP 8: DOCKER IMAGE BUILD CHECK, CREATE AND PUSH TAG (if requested)
 # ============================================================================
 
 # Ensure release documentation is committed and pushed before tagging
@@ -607,6 +711,7 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
+$dockerCheckStarted = $false
 if ($TagRelease) {
     Write-Host ""
     Write-Host "╔════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -614,52 +719,19 @@ if ($TagRelease) {
     Write-Host "╚════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
 
-    $tag = "v$ReleaseVersion"
-
-    # Refuse to tag anything but the finished, pushed release commit - checked against what
-    # is committed, not the working tree. Any one of these would have stopped the bad
-    # v1.18.43 tag on its own.
-    $committedVersion = (git show HEAD:VERSION 2>$null | Out-String).Trim()
-    if ($committedVersion -ne $tag) {
-        Write-Host "❌ HEAD's committed VERSION is '$committedVersion', expected '$tag' - refusing to tag." -ForegroundColor Red
-        exit 1
-    }
-    if (git status --porcelain) {
-        Write-Host "❌ Uncommitted changes remain - refusing to tag:" -ForegroundColor Red
-        git status --short
-        exit 1
-    }
-    git fetch origin main --quiet
-    if ((git rev-parse HEAD) -ne (git rev-parse origin/main)) {
-        Write-Host "❌ HEAD is not what origin/main points at - refusing to tag an unpushed commit." -ForegroundColor Red
-        exit 1
-    }
-
-    # Never move an existing tag. This used to delete it locally, force-delete it on the
-    # remote and re-push with --force, which would silently rewrite a published release
-    # if run with an old version number - against CLAUDE.md's "release tags are immutable".
-    # If a tag really is wrong, deleting it is a deliberate act done by hand, not a side
-    # effect of re-running this script.
-    if ((git tag -l $tag) -or (git ls-remote --tags origin "refs/tags/$tag")) {
-        Write-Host "❌ Tag $tag already exists (locally or on origin) - refusing to move it." -ForegroundColor Red
-        Write-Host "   If it is genuinely wrong and unpublished, delete it deliberately first:" -ForegroundColor Yellow
-        Write-Host "   git tag -d $tag; git push origin :refs/tags/$tag" -ForegroundColor Yellow
-        exit 1
-    }
-
-    Write-Host "Creating and pushing tag: $tag (on $((git log --oneline -1) -join ''))"
-    git tag $tag
-    git push origin $tag
-
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ Tag $tag pushed successfully!"
-        Write-Host "The release workflow should now trigger automatically."
-        Write-Host ""
-        Write-Host "You can monitor the workflow at:"
-        Write-Host "  https://github.com/$env:GITHUB_REPOSITORY/actions"
-    } else {
-        Write-Error "Failed to push tag."
-        exit 1
+    Publish-ReleaseTag -Version $ReleaseVersion -SkipDockerCheck:$SkipDockerCheck
+} elseif ($SkipDockerCheck) {
+    Write-Host ""
+    Write-Host "⚠️  Docker image build check skipped (-SkipDockerCheck)" -ForegroundColor Yellow
+} else {
+    # No tag now: start the build-only run on the pushed release commit, so that its result is
+    # there by the time the tag is made. Not being able to start it does not undo a release
+    # commit that is already pushed; the check is run again before the tag (see "Next steps").
+    Write-Host ""
+    Write-Host "Starting the Docker image build check for the pushed commit (build-only run, nothing is published)..."
+    $dockerCheckStarted = Invoke-DockerBuildCheck -Version $ReleaseVersion
+    if (-not $dockerCheckStarted) {
+        Write-Warning "The Docker image build check could not be started. Run it before tagging."
     }
 }
 
@@ -682,7 +754,12 @@ if (-not $SkipInstaller) {
 Write-Host "  ✓ Documentation generated" -ForegroundColor Green
 Write-Host "  ✓ Changes committed and pushed" -ForegroundColor Green
 if ($TagRelease) {
+    if (-not $SkipDockerCheck) {
+        Write-Host "  ✓ Docker image builds from the tagged commit (build-only run, amd64 + arm64)" -ForegroundColor Green
+    }
     Write-Host "  ✓ Git tag created and pushed" -ForegroundColor Green
+} elseif ($dockerCheckStarted) {
+    Write-Host "  • Docker image build check started (its result is not in yet)" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -700,7 +777,10 @@ if ($TagRelease) {
     Write-Host "  4. Install the Android APK (sideload):" -ForegroundColor Cyan
     Write-Host "     Download SMS_Android_$ReleaseVersion.apk — enable 'Install unknown apps' on device" -ForegroundColor Gray
 } else {
-    Write-Host "  1. Create and push tag to trigger release:" -ForegroundColor Cyan
+    Write-Host "  1. Before a tag made by hand, on the commit that gets it (a later commit needs its own run):" -ForegroundColor Cyan
+    Write-Host "     .\infra\scripts\release\DOCKER_BUILD_CHECK.ps1 -Version $ReleaseVersion" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  2. Create and push tag to trigger release:" -ForegroundColor Cyan
     Write-Host "     .\RELEASE_READY.ps1 -ReleaseVersion $ReleaseVersion -TagRelease" -ForegroundColor Gray
 }
 

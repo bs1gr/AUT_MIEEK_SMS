@@ -178,12 +178,19 @@ Phase 2: Artifact build + verification
 Phase 3: Docs + publish
   .\infra\scripts\release\GENERATE_RELEASE_DOCS.ps1 -Version "X.X.X"
   git commit + push
+  .\infra\scripts\release\DOCKER_BUILD_CHECK.ps1 -Version "X.X.X" (must exit 0)
   git tag vX.X.X + push (triggers GitHub Actions)
   Wait for Actions to pass
   gh release upload vX.X.X SMS_Installer_X.X.X.exe
 ```
 
 Primary automated script: `.\infra\scripts\release\RELEASE_READY.ps1 -ReleaseVersion "X.X.X" -TagRelease`
+
+`DOCKER_BUILD_CHECK.ps1` asks GitHub Actions for a build-only run of the Docker image from the
+pushed commit (amd64 and arm64, nothing is published) and waits for it. `RELEASE_READY.ps1`
+starts it once the release commit is pushed and, with `-TagRelease`, tags only after it
+passed. Before a tag made by hand, run it on the commit that gets the tag: a commit added
+after the release commit needs a run of its own.
 
 Release assets are installer-only (`SMS_Installer_<version>.exe`). Never upload generic CI artifacts.
 Historical release tags are immutable — never re-dispatch old tag workflows.
@@ -204,6 +211,7 @@ Historical release tags are immutable — never re-dispatch old tag workflows.
 | `infra/scripts/dev/NATIVE.ps1` | Start development mode |
 | `infra/scripts/dev/DOCKER.ps1` | Start production mode |
 | `infra/scripts/release/RELEASE_READY.ps1` | Automated release script |
+| `infra/scripts/release/DOCKER_BUILD_CHECK.ps1` | Build-only Docker run of HEAD, before a tag |
 | `.github/copilot-instructions.md` | Legacy VS Code Copilot guide (pre-flatten paths) |
 | `src/backend/tests/conftest.py` | Test batch enforcement |
 | `src/backend/lifespan.py` | FastAPI lifespan (use this, not on_event) |
