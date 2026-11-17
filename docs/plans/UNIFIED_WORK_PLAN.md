@@ -301,6 +301,40 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-17: the three permission documents say what the application does, and a test
+keeps them to it** (PR 420; the owner's "continue", which takes up the last entry of todo
+59). `docs/admin/PERMISSION_REFERENCE.md`, `RBAC_ADMIN_GUIDE.md` and `PERMISSION_MATRIX.md`
+are written anew. Nothing of the application changes.
+
+- **What they were.** Texts of the design of January 2026, kept as if they described the
+  product: "26 permissions" with three the code never had ("notifications:broadcast",
+  "imports:manage", "metrics:view"), a working Student role, tasks done with `curl` and SQL,
+  a "migration guide" from v1.18.3 to v1.18.3, and a matrix in which a teacher could not add
+  a student.
+- **How they were checked.** What each endpoint asks for was read from the application's own
+  route table (344 endpoints of the API and the Control API), not from the source by eye.
+  Then a scratch copy (SQLite, `AUTH_MODE=strict`) was used as an administrator, a teacher, a
+  viewer, a guest, a student account and without a sign-in: 52 requests for each, and every
+  step of the administrator's guide in a browser, with what each click sends.
+- **What they say now.** The matrix: the five kinds of account, 22 tasks with who may do
+  them, what the pages show to whom, the rules of the Control API, and the table of all 344
+  endpoints. The reference: how a request is decided, what the four roles hold, the 39
+  permissions with what each opens, the eight that open nothing, the thirteen the code asks
+  for that are not in the database, the checks that are not permissions, the three auth
+  modes. The guide: accounts, roles, a read-only account step by step, how to take access
+  away, what the Permissions Catalog can and cannot do, what to do when locked out, and what
+  the application does not have.
+- **The table is written by a program and the documents are tested.**
+  `python -m backend.scripts.endpoint_requirements --write` writes the table of endpoints
+  into the matrix. `test_permission_documents.py` (13 tests) fails when a document names a
+  permission the code does not have, when the reference leaves one out or sorts it under the
+  wrong heading, when what it says a role holds is not what a new database gets, and when
+  the table is behind the route table. Against the old documents ten of the thirteen fail.
+- **The index** (`DOCUMENTATION_INDEX.md`) sends an administrator to these three. The row
+  named `PERMISSION_MANAGEMENT_GUIDE.md`, which has not been read (todo 63).
+- **Found on the way:** two ways an account kept access it should not have had, repaired in
+  PR 419 (below), and the entries of todo 63, none of them changed.
+
 **2026-11-17: an account changed to "Student" no longer keeps its old access, and a deleted
 account leaves nothing for the next one** (PR 419; not asked for: both were found while the
 permission documents were being checked against a running copy, on the owner's "continue",
@@ -1741,7 +1775,9 @@ now** (todo 58).
       70 and 80 per cent). It needs the same reading as the two guides. So do
       `docs/admin/PERMISSION_REFERENCE.md` and `RBAC_ADMIN_GUIDE.md`: both name a permission
       `notifications:broadcast` for administrators only; the code has `notifications:manage`,
-      for administrators and teachers.
+      for administrators and teachers. **The two permission documents, and the matrix beside
+      them, were written anew in PR 420 (2026-11-17); what the reading found is todo 63. The
+      user guide is still to do.**
 60. **The Search page offers three things that do nothing, and the Students page calls a
     failed load an empty list** (found 2026-11-17 while making their E2E tests run; each seen
     in a running copy with the four students of the seed).
@@ -1835,6 +1871,79 @@ now** (todo 58).
       another part of the application and work.
     - To do, on the owner's word: repair it as the Search page was repaired, or take the
       dialog off the page.
+
+63. **Found on 2026-11-17 while the permission documents were checked against a running
+    copy, and not changed** (each seen on a scratch server; the documents of PR 420 say what
+    the application does today, these entries included).
+    - *Revoking an account's only role takes nothing away.* Control Panel > Maintenance > RBAC
+      Configuration > Assign Role to User > Revoke removes the row, answers "revoked", and
+      the account goes on as before: the word in its Role column stays, and an account
+      without role rows gets the built-in permissions of that word (`_default_role_permissions`).
+      A teacher whose Teacher role was revoked still read, added and exported students. What
+      should such an account become: a Student, or nothing at all? The owner's call; it is a
+      few lines either way. Until then the guide says how access is taken away (Edit: role
+      Student, or untick Active).
+    - *The Permissions Catalog cannot grant to a role, or revoke from one.* The box that
+      should list the roles is empty: the page asks `GET /rbac/roles`, which does not exist
+      (the address is `/admin/rbac/roles`). Granting to one account by its number works.
+    - *The same catalog's request can lock every administrator out.*
+      `POST /permissions/roles/revoke` accepts `*:*` for the role `admin`
+      (`POST /admin/rbac/revoke-permission` refuses it). After it no administrator can open
+      the account or role panels. A restart puts the grant back. The page cannot send it
+      today, because of the entry above.
+    - *The Overview tab shows no permission names* (it reads `name`; the server sends `key`):
+      39 blank rows, and "Role-Permission Mappings" with the role and nothing after the
+      arrow. *The Users tab shows invented names:* "User 3", "user_3@system", "Legacy role:
+      user" for every account. And `rbacAPI.grantPermission` in `api.ts` posts to
+      `/admin/rbac/grant-permission`, which does not exist; nothing calls it.
+    - *An account with the role Viewer or Guest cannot be saved from Edit in User Accounts.*
+      The role box offers Administrator, Teacher and Student, shows "Administrator" for such
+      an account and sends "viewer", which the server refuses (422, "Could not update user").
+      Nor can such an account be created there. To repair: offer the two roles in both
+      places, or take them out of Assign Role to User.
+    - *A teacher has no page for changing the own password.* The form is in User Accounts,
+      which answers "Access Denied" to everybody but an administrator. A teacher asks an
+      administrator for a reset.
+    - *The audit log does not say who made a role or permission change:* `user_id` and
+      `user_email` are empty in those entries. And no page shows the audit log; only the API
+      answers.
+    - *Thirteen permissions the code asks for are not in the database, and eight in the
+      database open nothing.* Not in the database, so that only an administrator passes:
+      `imports:create` and `imports:view` (a teacher cannot import, although the role holds
+      `system:import`), `sessions:manage` (session export and import), `exports:view` (todo
+      62), the four `jobs:` ones, the two `diagnostics:` ones, `admin:manage`,
+      `reports:create`, `analytics:export`. In the database and asked for by no endpoint:
+      `analytics:view`, `enrollments:view`, `enrollments:manage`, `system:import`,
+      `system:export` and the three `.self:read`. And the built-in list for `viewer` lacks
+      the two `exports:` permissions that the role's rows have. To decide: who should import,
+      and whether the list is tidied.
+    - *A student account can do nothing.* The code lets it read the student record that
+      belongs to its account; nothing in the application ever ties a student record to an
+      account (`students.user_id` is never set). Build that, or take "Student" off the role
+      choices; today its one use is as the role without access.
+    - *A viewer exports everything and sees no figures.* The viewer and guest roles hold
+      `exports:generate` and `exports:download` (every list, and the ZIP of all data) and not
+      `reports:generate`, so the Dashboard and the Analytics page open empty with refused
+      requests. And every page shows a viewer its "Add" and "Save" buttons, which the server
+      refuses. Whether read-only accounts are wanted at all is the owner's call.
+    - *Two addresses answer without a sign-in that probably should not:*
+      `GET /api/v1/analytics/reports/templates` (an empty list on the scratch copy) and
+      `GET /control/api/restart` (whether a restart is possible here).
+    - *The "User Guide" of Utils > Help & Documentation ("Complete reference guide", "Download
+      English PDF") is a leaflet of one page* that the server composes itself
+      (`routers_help.py`). `USER_GUIDE_COMPLETE.md` is not in the application.
+    - *Older documents and tools of the same kind, not read:* `docs/admin/`
+      `PERMISSION_MANAGEMENT_GUIDE.md` (930 lines), `RBAC_OPERATIONS_GUIDE.md` (1,184),
+      `RBAC_CODEBASE_REVIEW.md`, `RBAC_ENDPOINT_AUDIT.md`, `RBAC_DATABASE_SCHEMA.md`,
+      `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`; `docs/user/RBAC_GUIDE.md` and its Greek twin;
+      `src/backend/API_PERMISSIONS_REFERENCE.md`. Most are from the design months and likely
+      wrong in the same ways. And tools nothing runs: `src/backend/scripts/seed_permissions.py`
+      ("53 permissions", a second seed beside the one the application uses), and
+      `scripts/audit_router_permissions.py`, `validate_rbac_decorators.py` and
+      `rbac_monitor.py`, which look for `backend/routers` where it was before the folders
+      were moved. Delete, or read and correct (the owner's OK).
+    - *Seen once and not explained:* a scratch server on port 8013 stopped, without a line in
+      its log, while the commit gate ran its first backend batches in the same clone.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

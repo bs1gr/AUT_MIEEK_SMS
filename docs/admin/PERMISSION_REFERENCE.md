@@ -1,667 +1,220 @@
-# Permission Reference - Complete Matrix
+# Permission reference
 
-**Version**: 1.15.1
-**Date**: January 11, 2026
-**Purpose**: Comprehensive reference of all system permissions in SMS
+**Checked against the application:** 17 November 2026, `main` after v1.18.73. Every
+permission named here is one the code has: `src/backend/tests/test_permission_documents.py`
+fails when this file names another, or leaves one out.
 
----
+**Related:** [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md) (who can do what, and every endpoint
+with what it asks for) and [RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md) (the administrator's
+steps).
 
-## Overview
-
-All permissions in SMS follow the format: **`resource:action`**
-
-- **Resource**: What you're accessing (students, courses, grades, etc.)
-- **Action**: What you're doing (view, create, edit, delete, manage)
-
-**Special Values**:
-- `*:*` = All permissions (admin only)
-- `resource:*` = All actions on a resource
+This file replaces a reference that described 26 permissions, a Student role and a Viewer role
+as they were planned. Three of those permissions were never in the code under that name
+("imports:manage", "metrics:view" and "notifications:broadcast": the code has
+`notifications:manage` for sending a message), and what it said the roles hold was not what
+the application gives them.
 
 ---
 
-## Complete Permission List
-
-### 1. Student Management Permissions
-
-#### `students:view`
-
-- **Resource**: Students
-- **Action**: View
-- **Description**: Read student data including profiles, contact info, enrollment status
-- **Applies to Endpoints**:
-  - GET /api/v1/students
-  - GET /api/v1/students/{id}
-  - GET /api/v1/students/search
-- **Assigned By Default To**: admin, teacher, viewer
-- **Required For**: Viewing student lists, accessing student details
-- **Scope**: All students (teachers see only their class students)
-
-#### `students:create`
-
-- **Resource**: Students
-- **Action**: Create
-- **Description**: Create new student records
-- **Applies to Endpoints**:
-  - POST /api/v1/students
-- **Assigned By Default To**: admin
-- **Required For**: Registering new students
-- **Scope**: Can create for any course/class
-
-#### `students:edit`
-
-- **Resource**: Students
-- **Action**: Edit
-- **Description**: Modify existing student data
-- **Applies to Endpoints**:
-  - PUT /api/v1/students/{id}
-  - PATCH /api/v1/students/{id}
-- **Assigned By Default To**: admin, teacher
-- **Required For**: Updating student info, changing enrollments
-- **Scope**: Varies (teachers may be limited to their class)
-
-#### `students:delete`
-
-- **Resource**: Students
-- **Action**: Delete
-- **Description**: Remove student records (soft delete, kept in audit)
-- **Applies to Endpoints**:
-  - DELETE /api/v1/students/{id}
-- **Assigned By Default To**: admin
-- **Required For**: Removing students from system
-- **Scope**: Can delete any student
-
----
-
-### 2. Course Management Permissions
-
-#### `courses:view`
-
-- **Resource**: Courses
-- **Action**: View
-- **Description**: Read course information including curriculum, schedule, enrollment
-- **Applies to Endpoints**:
-  - GET /api/v1/courses
-  - GET /api/v1/courses/{id}
-  - GET /api/v1/courses/{id}/students
-- **Assigned By Default To**: admin, teacher, viewer
-- **Required For**: Viewing course list, accessing course details
-
-#### `courses:create`
-
-- **Resource**: Courses
-- **Action**: Create
-- **Description**: Create new courses
-- **Applies to Endpoints**:
-  - POST /api/v1/courses
-- **Assigned By Default To**: admin
-- **Required For**: Setting up new courses/classes
-
-#### `courses:edit`
-
-- **Resource**: Courses
-- **Action**: Edit
-- **Description**: Modify course details (name, description, schedule)
-- **Applies to Endpoints**:
-  - PUT /api/v1/courses/{id}
-  - PATCH /api/v1/courses/{id}
-- **Assigned By Default To**: admin
-- **Required For**: Updating course information
-
-#### `courses:delete`
-
-- **Resource**: Courses
-- **Action**: Delete
-- **Description**: Remove courses from system
-- **Applies to Endpoints**:
-  - DELETE /api/v1/courses/{id}
-- **Assigned By Default To**: admin
-- **Required For**: Discontinuing courses
-
----
-
-### 3. Grade Management Permissions
-
-#### `grades:view`
-
-- **Resource**: Grades
-- **Action**: View
-- **Description**: Read grade data (student grades, grade books)
-- **Applies to Endpoints**:
-  - GET /api/v1/grades
-  - GET /api/v1/grades/{id}
-  - GET /api/v1/students/{id}/grades
-  - GET /api/v1/courses/{id}/grades
-- **Assigned By Default To**: admin, teacher, viewer
-- **Scope**:
-  - Admin: All students' grades
-  - Teacher: Only their class' grades
-  - Student: Own grades (enforced at endpoint)
-  - Viewer: All grades (read-only)
-
-#### `grades:edit`
-
-- **Resource**: Grades
-- **Action**: Edit
-- **Description**: Submit and modify grades
-- **Applies to Endpoints**:
-  - POST /api/v1/grades
-  - PUT /api/v1/grades/{id}
-  - PATCH /api/v1/grades/{id}
-  - DELETE /api/v1/grades/{id}
-- **Assigned By Default To**: admin, teacher
-- **Scope**:
-  - Admin: All grades
-  - Teacher: Only their class' grades
-- **Required For**: Grade entry, grade corrections
-
----
-
-### 4. Attendance Management Permissions
-
-#### `attendance:view`
-
-- **Resource**: Attendance
-- **Action**: View
-- **Description**: Read attendance records
-- **Applies to Endpoints**:
-  - GET /api/v1/attendance
-  - GET /api/v1/attendance/{id}
-  - GET /api/v1/students/{id}/attendance
-  - GET /api/v1/courses/{id}/attendance
-- **Assigned By Default To**: admin, teacher, viewer
-- **Scope**:
-  - Admin: All attendance
-  - Teacher: Their class attendance
-  - Viewer: Read-only all attendance
-
-#### `attendance:edit`
-
-- **Resource**: Attendance
-- **Action**: Edit
-- **Description**: Create and modify attendance records
-- **Applies to Endpoints**:
-  - POST /api/v1/attendance
-  - PUT /api/v1/attendance/{id}
-  - PATCH /api/v1/attendance/{id}
-- **Assigned By Default To**: admin, teacher
-- **Scope**:
-  - Admin: All classes
-  - Teacher: Their own classes
-- **Required For**: Logging attendance, corrections
-
----
-
-### 5. Report & Analytics Permissions
-
-#### `reports:view`
-
-- **Resource**: Reports
-- **Action**: View
-- **Description**: Read generated reports
-- **Applies to Endpoints**:
-  - GET /api/v1/reports
-  - GET /api/v1/reports/{id}
-  - GET /api/v1/reports/download/{id}
-- **Assigned By Default To**: admin, teacher, viewer
-
-#### `reports:generate`
-
-- **Resource**: Reports
-- **Action**: Generate
-- **Description**: Create new reports (grades summary, attendance, performance)
-- **Applies to Endpoints**:
-  - POST /api/v1/reports
-  - POST /api/v1/reports/academic-summary
-  - POST /api/v1/reports/attendance-summary
-- **Assigned By Default To**: admin, teacher
-- **Required For**: Running report generation jobs
-
-#### `reports:export`
-
-- **Resource**: Reports
-- **Action**: Export
-- **Description**: Export reports as PDF/Excel files
-- **Applies to Endpoints**:
-  - POST /api/v1/analytics/export/excel (accepted as a compatibility permission)
-  - POST /api/v1/analytics/export/pdf (accepted as a compatibility permission)
-- **Assigned By Default To**: admin, staff, teacher
-- **Required For**: Downloadable report and dashboard export flows
-
-#### `analytics:view`
-
-- **Resource**: Analytics
-- **Action**: View
-- **Description**: Read analytics dashboards and statistics
-- **Applies to Endpoints**:
-  - GET /api/v1/analytics/dashboard
-  - GET /api/v1/analytics/trends
-  - GET /api/v1/analytics/student-performance
-- **Assigned By Default To**: admin, teacher, viewer
-- **Scope**: Teachers see only their class analytics
-
-#### `analytics:export`
-
-- **Resource**: Analytics
-- **Action**: Export
-- **Description**: Export analytics dashboard data as PDF/Excel files
-- **Applies to Endpoints**:
-  - POST /api/v1/analytics/export/excel
-  - POST /api/v1/analytics/export/pdf
-- **Assigned By Default To**: admin, staff
-- **Required For**: Analytics-specific dashboard export access
-
-#### `metrics:view`
-
-- **Resource**: Metrics
-- **Action**: View
-- **Description**: Access system metrics and performance data
-- **Applies to Endpoints**:
-  - GET /api/v1/metrics/system
-  - GET /api/v1/metrics/api-performance
-  - GET /api/v1/metrics/database-health
-- **Assigned By Default To**: admin, teacher, viewer
-- **Scope**: Admin sees all metrics, others see filtered
-
----
-
-### 6. System Administration Permissions
-
-#### `audit:view`
-
-- **Resource**: Audit Log
-- **Action**: View
-- **Description**: Read audit logs of system actions
-- **Applies to Endpoints**:
-  - GET /api/v1/audit/logs
-  - GET /api/v1/audit/logs/{id}
-- **Assigned By Default To**: admin
-- **Scope**: Read-only access to all audit entries
-- **Note**: Critical for compliance and security auditing
-
-#### `permissions:view`
-
-- **Resource**: Permissions
-- **Action**: View
-- **Description**: View permission definitions and role mappings
-- **Applies to Endpoints**:
-  - GET /api/v1/permissions
-  - GET /api/v1/permissions/by-resource
-  - GET /api/v1/permissions/{id}
-  - GET /api/v1/rbac/roles
-  - GET /api/v1/rbac/users/{id}/permissions
-- **Assigned By Default To**: admin
-- **Required For**: Permission auditing
-
-#### `permissions:manage`
-
-- **Resource**: Permissions
-- **Action**: Manage
-- **Description**: Grant and revoke permissions, create custom roles
-- **Applies to Endpoints**:
-  - POST /api/v1/permissions
-  - PUT /api/v1/permissions/{id}
-  - DELETE /api/v1/permissions/{id}
-  - POST /api/v1/permissions/users/grant
-  - POST /api/v1/permissions/users/revoke
-  - POST /api/v1/permissions/roles/grant
-  - POST /api/v1/permissions/roles/revoke
-  - POST /api/v1/rbac/roles
-  - PUT /api/v1/rbac/roles/{id}
-- **Assigned By Default To**: admin
-- **Scope**: Full permission administration
-- **⚠️ CRITICAL**: Only grant to trusted administrators
-
-#### `jobs:manage`
-
-- **Resource**: Background Jobs
-- **Action**: Manage
-- **Description**: Control background jobs (start, stop, monitor)
-- **Applies to Endpoints**:
-  - GET /api/v1/jobs
-  - GET /api/v1/jobs/{id}
-  - POST /api/v1/jobs/{id}/start
-  - POST /api/v1/jobs/{id}/stop
-  - DELETE /api/v1/jobs/{id}
-- **Assigned By Default To**: admin
-- **Scope**: Full job management
-- **Examples**: Report generation, data exports, batch processing
-
-#### `imports:manage`
-
-- **Resource**: Imports
-- **Action**: Manage
-- **Description**: Import data (students, courses, grades)
-- **Applies to Endpoints**:
-  - POST /api/v1/imports/students
-  - POST /api/v1/imports/courses
-  - POST /api/v1/imports/grades
-  - POST /api/v1/imports/{id}/preview
-  - POST /api/v1/imports/{id}/execute
-- **Assigned By Default To**: admin
-- **Scope**: Full import capability
-- **Warning**: Can modify large datasets
-
-#### `exports:generate`
-
-- **Resource**: Exports
-- **Action**: Generate
-- **Description**: Export data to external formats
-- **Applies to Endpoints**:
-  - POST /api/v1/exports/students
-  - POST /api/v1/exports/courses
-  - POST /api/v1/exports/grades
-  - POST /api/v1/exports/attendance
-  - GET /api/v1/exports/{id}/download
-- **Assigned By Default To**: admin
-- **Scope**: Can export all data
-- **Note**: Data sensitivity - consider scoping to admin only
-
----
-
-### 7. Advanced Feature Permissions
-
-#### `notifications:broadcast`
-
-- **Resource**: Notifications
-- **Action**: Broadcast
-- **Description**: Send system-wide notifications to users
-- **Applies to Endpoints**:
-  - POST /api/v1/notifications/broadcast
-  - POST /api/v1/notifications/class
-  - POST /api/v1/notifications/user
-- **Assigned By Default To**: admin
-- **Scope**: Can send to any user/class
-- **Examples**: System alerts, announcements, maintenance notices
-
-#### `diagnostics:view`
-
-- **Resource**: Diagnostics
-- **Action**: View
-- **Description**: Check system health and diagnostics
-- **Applies to Endpoints**:
-  - GET /api/v1/admin/diagnostics
-  - GET /api/v1/admin/health
-  - GET /api/v1/admin/performance
-- **Assigned By Default To**: admin
-- **Scope**: Full system diagnostics
-- **Examples**: Database health, API performance, error rates
-
-#### `diagnostics:manage`
-
-- **Resource**: Diagnostics
-- **Action**: Manage
-- **Description**: Reset and manage diagnostics
-- **Applies to Endpoints**:
-  - POST /api/v1/admin/diagnostics/reset
-  - POST /api/v1/admin/cache/clear
-  - POST /api/v1/admin/logs/cleanup
-- **Assigned By Default To**: admin
-- **Scope**: Full diagnostic management
-- **Warning**: Can affect system state
-
-#### `sessions:manage`
-
-- **Resource**: Sessions
-- **Action**: Manage
-- **Description**: View and manage user sessions
-- **Applies to Endpoints**:
-  - GET /api/v1/admin/sessions
-  - GET /api/v1/admin/sessions/{id}
-  - POST /api/v1/admin/sessions/{id}/logout
-  - DELETE /api/v1/admin/sessions/{id}
-- **Assigned By Default To**: admin
-- **Scope**: Full session management
-- **Examples**: Force logout, session monitoring
-
-#### `users:view`
-
-- **Resource**: Users
-- **Action**: View
-- **Description**: View user accounts and details
-- **Applies to Endpoints**:
-  - GET /api/v1/admin/users
-  - GET /api/v1/admin/users/{id}
-- **Assigned By Default To**: admin
-- **Scope**: Can view all user accounts
-
-#### `users:manage`
-
-- **Resource**: Users
-- **Action**: Manage
-- **Description**: Create, modify, and delete user accounts
-- **Applies to Endpoints**:
-  - POST /api/v1/admin/users
-  - PUT /api/v1/admin/users/{id}
-  - DELETE /api/v1/admin/users/{id}
-  - POST /api/v1/admin/users/{id}/reset-password
-- **Assigned By Default To**: admin
-- **Scope**: Full user account management
-- **⚠️ CRITICAL**: Only grant to trusted administrators
-
----
-
-## Permission Combinations
-
-### Common Role-Permission Mappings
-
-#### Admin Role (`*:*` = all permissions)
-
-```text
-students:view, students:create, students:edit, students:delete,
-courses:view, courses:create, courses:edit, courses:delete,
-grades:view, grades:edit,
-attendance:view, attendance:edit,
-reports:view, reports:generate,
-reports:export,
-analytics:view, metrics:view,
-analytics:export,
-audit:view,
-permissions:view, permissions:manage,
-jobs:manage, imports:manage, exports:generate,
-notifications:broadcast,
-diagnostics:view, diagnostics:manage,
-sessions:manage,
-users:view, users:manage
-
-```text
-#### Teacher Role
-
-```text
-students:view, students:edit,
-courses:view,
-grades:view, grades:edit,
-attendance:view, attendance:edit,
-reports:view, reports:generate,
-reports:export,
-analytics:view, metrics:view
-
-```text
-#### Student Role
-
-```text
-grades:view,
-reports:view
-
-```text
-#### Viewer Role (Read-Only)
-
-```text
-students:view,
-courses:view,
-grades:view,
-attendance:view,
-reports:view,
-analytics:view,
-metrics:view
-
-```text
----
-
-## Permission Hierarchy & Dependencies
-
-### Resource Dependencies
-
-```text
-students → courses (students enroll in courses)
-          → grades (grades linked to students)
-          → attendance (attendance linked to students)
-
-courses → grades (grades linked to courses)
-        → attendance (attendance linked to courses)
-
-reports → depends on: students, courses, grades, attendance
-analytics → depends on: students, courses, grades, attendance
-
-```text
-**Implication**: If user can view `grades:view`, they implicitly need `students:view` and `courses:view` to understand the data context.
-
-### Action Hierarchy
-
-```text
-view < edit < create/delete < manage
-
-Where:
-- view = read-only
-- edit = modify existing
-- create/delete = add new / remove
-- manage = full control (combined view+edit+create+delete+special)
-
-```text
----
-
-## Special Cases
-
-### Scoped Permissions
-
-Some permissions are scoped - meaning access is filtered based on user role/context:
-
-| Permission | Scoped? | Scope Definition |
-|-----------|---------|------------------|
-| `students:view` | YES | Admin: all; Teacher: own class; Student: self |
-| `grades:view` | YES | Admin: all; Teacher: own class; Student: self |
-| `attendance:view` | YES | Admin: all; Teacher: own class; Student: self |
-| `analytics:view` | YES | Admin: all; Teacher: own class only |
-| `reports:view` | NO | Same report available to all |
-| `exports:generate` | NO | Can export all data (admin only recommended) |
-
-### Permissions That Depend on Endpoint
-
-Same endpoint may require different permissions based on operation:
-
-**Example: /api/v1/grades**
-
-```text
-GET /api/v1/grades                    → requires grades:view
-POST /api/v1/grades                   → requires grades:edit
-PUT /api/v1/grades/{id}               → requires grades:edit
-GET /api/v1/grades/statistics         → requires grades:view + analytics:view
-
-```text
----
-
-## Testing Permissions
-
-### Test Scenarios
-
-```bash
-# Test 1: User with students:view can read students
-
-GET /api/v1/students
-Authorization: Bearer {student_viewer_token}
-Expected: 200 OK
-
-# Test 2: User without students:create cannot create students
-
-POST /api/v1/students
-Authorization: Bearer {student_viewer_token}
-Expected: 403 Forbidden
-
-# Test 3: User with students:create can create students
-
-POST /api/v1/students
-Authorization: Bearer {admin_token}
-Expected: 201 Created
-
-# Test 4: User can access only their own student record
-
-GET /api/v1/students/{another_students_id}
-Authorization: Bearer {student_token}
-Expected: 403 Forbidden (scoped access)
-
-# Test 5: User with multiple roles has combined permissions
-
-Authorization: Bearer {department_head_token}  # Has both teacher + student:create
-Expected: Can access both grades:edit AND students:create
-
-```text
----
-
-## Permission Audit Queries
-
-### Find all users with specific permission
-
-```sql
-SELECT DISTINCT u.id, u.username
-FROM user u
-LEFT JOIN user_role ur ON u.id = ur.user_id
-LEFT JOIN role_permission rp ON ur.role_id = rp.role_id
-LEFT JOIN permission p ON rp.permission_id = p.id
-WHERE p.name = 'students:create'
-   OR EXISTS (
-     SELECT 1 FROM user_permission up
-     WHERE up.user_id = u.id AND up.permission_id = p.id
-   );
-
-```text
-### Find all permissions for specific user
-
-```sql
-SELECT DISTINCT p.name, p.resource, p.action
-FROM user u
-LEFT JOIN user_role ur ON u.id = ur.user_id
-LEFT JOIN role_permission rp ON ur.role_id = rp.role_id
-LEFT JOIN permission p ON rp.permission_id = p.id
-WHERE u.id = {user_id}
-ORDER BY p.resource, p.action;
-
-```text
-### Find unused permissions
-
-```sql
-SELECT p.id, p.name
-FROM permission p
-LEFT JOIN role_permission rp ON p.id = rp.permission_id
-LEFT JOIN user_permission up ON p.id = up.permission_id
-WHERE rp.permission_id IS NULL AND up.permission_id IS NULL;
-
-```text
----
-
-## Migration Guide (v1.18.3 → v1.18.3)
-
-### What Changed
-
-- New @require_permission decorator replaces manual role checking
-- All 65 endpoints refactored to use decorator pattern
-- Permission matrix expanded to 26 permissions
-- 17 previously unprotected endpoints now require authentication
-
-### No Action Required
-
-- Existing users maintain their roles and permissions
-- Existing API clients continue to work
-- Database schema backward compatible
-
-### What to Verify
-
-1. Users with admin role still have full access
-2. Teachers can still grade and take attendance
-3. Students can still view their own grades
-4. Reports still generate correctly
-5. Exports still work with appropriate permissions
-
----
-
-**Version**: 1.15.1
-**Last Updated**: January 11, 2026
-**Status**: Production Ready ✅
+## How a request is decided
+
+A request carries the account's sign-in. The server then asks, for most endpoints, "does this
+account hold permission X?". The answer is yes when any of these holds:
+
+1. **A role of the account holds X.** An account has rows in `user_roles`; each role has rows
+   in `role_permissions`.
+2. **X was granted to the account itself** (a row in `user_permissions`, optionally with an
+   end date after which it no longer counts).
+3. **A wider permission covers X.** `*:*` covers everything. A permission written as an area
+   followed by `:*` would cover that area; none is in use.
+4. **The account has no role row that matches its role, and no grant of its own.** Then the
+   built-in list for its role is used (see "Accounts without role rows" below).
+
+A permission that is switched off (`is_active` false) counts for nobody.
+
+The answer is worked out from the database on every request. A change takes effect with the
+next request, without a new sign-in. (`PERMISSION_CACHE_TTL_SECONDS` can make the server keep
+an answer for some seconds; it is off unless set.)
+
+Some endpoints do not ask for a permission at all. They check the account's **role** (the word
+in the account's Role column), or only that somebody is signed in, or nothing. Those are listed
+under "Checks that are not permissions".
+
+## The roles and what they hold
+
+A new database gets four roles. This is what the application gives them at its first start.
+
+| Role | Permissions |
+|---|---|
+| `admin` | `*:*`, and each of the teacher's 25 once more by name |
+| `teacher` | `students:view`, `students:create`, `students:edit`, `students:delete`, `courses:view`, `courses:create`, `courses:edit`, `courses:delete`, `grades:view`, `grades:edit`, `grades:delete`, `attendance:view`, `attendance:edit`, `attendance:delete`, `enrollments:view`, `enrollments:manage`, `reports:view`, `reports:generate`, `reports:export`, `analytics:view`, `system:import`, `system:export`, `notifications:manage`, `exports:generate`, `exports:download` |
+| `viewer` | `students:view`, `courses:view`, `grades:view`, `attendance:view`, `enrollments:view`, `reports:view`, `analytics:view`, `exports:generate`, `exports:download` |
+| `guest` | the same nine as `viewer` |
+
+There is no `student` role. An account whose Role is "Student" has no role row.
+
+**Giving a role brings the lower ones with it.** Assigning `admin` under **Assign Role to
+User** also gives `teacher`, `viewer` and `guest`; assigning `teacher` also gives `viewer` and
+`guest`. Creating an account in **User Accounts** gives the one role only. Both end in the
+same permissions.
+
+## The permissions in the list
+
+These 39 are in the database of a new installation and are the ones the **Permissions
+Catalog** shows. The first is `*:*`, which covers every permission and is held by `admin`
+alone; the other 38 follow.
+
+### Records
+
+| Permission | Opens | Held by |
+|---|---|---|
+| `students:view` | The list of students and a student's record; the search for students; a student's attendance, grades, enrolments, highlights and daily performance; the account's own private notes about a student, to read and to write | admin, teacher, viewer, guest |
+| `students:create` | Add a student, add several at once | admin, teacher |
+| `students:edit` | Change a student, make one active or inactive, fill in the academic year for many; add and change highlights; add, change and delete daily performance; together with `attendance:edit`, save an attendance sheet | admin, teacher |
+| `students:delete` | Delete a student, delete a highlight | admin, teacher |
+| `courses:view` | The list of courses and a course; its evaluation rules; who is enrolled; the attendance, grades and daily performance of a course; the search for courses | admin, teacher, viewer, guest |
+| `courses:create` | Add a course | admin, teacher |
+| `courses:edit` | Change a course, end it, reactivate it, change its evaluation rules; enrol students, remove an enrolment, change its status | admin, teacher |
+| `courses:delete` | Delete a course | admin, teacher |
+| `grades:view` | The list of grades and one grade; the search for grades | admin, teacher, viewer, guest |
+| `grades:edit` | Add and change a grade | admin, teacher |
+| `grades:delete` | Delete a grade | admin, teacher |
+| `attendance:view` | The list of attendance records, one record, the records of a course on a date | admin, teacher, viewer, guest |
+| `attendance:edit` | Record and change attendance; together with `students:edit`, save an attendance sheet; the lesson log, to read, to write and to export | admin, teacher |
+| `attendance:delete` | Delete an attendance record | admin, teacher |
+
+Enrolments have no permission of their own in use: reading them asks for `courses:view` or
+`students:view`, changing them for `courses:edit`.
+
+### Reports and exports
+
+| Permission | Opens | Held by |
+|---|---|---|
+| `reports:view` | The account's custom reports: list, create, change, delete, the list of generated files; the report templates, to read; a student's outlook on the profile page | admin, teacher, viewer, guest |
+| `reports:generate` | Nearly all of `/analytics` and all of `/metrics` and `/reports`: the Dashboard's figures, the Analytics page, student performance reports; generating a custom report and downloading the file | admin, teacher |
+| `reports:export` | The PDF and Excel buttons of the Analytics page (which `reports:generate` opens as well) | admin, teacher |
+| `exports:generate` | Every file of Utils > Export (CSV, Excel and PDF of students, courses, grades, attendance, enrolments, highlights and daily performance, a student's report, a course's analytics, everything as a ZIP); starting an export job | admin, teacher, viewer, guest |
+| `exports:download` | Downloading the file of a finished export job | admin, teacher, viewer, guest |
+| `notifications:manage` | Sending a message to all users, to a role or to named accounts | admin, teacher |
+
+### Administration
+
+No role but `admin` holds these.
+
+| Permission | Opens |
+|---|---|
+| `users:view` | The list of accounts; another account's permissions in the lookup |
+| `users:manage` | Create, change and delete an account, reset its password, unlock it |
+| `permissions:view` | The roles, the permissions and who holds what |
+| `permissions:manage` | Assign and remove a role; grant and revoke a permission; create, change and delete roles and permissions; "Initialize RBAC Defaults" |
+| `audit:view` | The audit log, the history of role and permission changes, the history of imports and exports |
+| `adminops:backup` | `POST /api/v1/adminops/backup` |
+| `adminops:restore` | `POST /api/v1/adminops/restore` |
+| `adminops:clear` | `POST /api/v1/adminops/clear` |
+| `imports:preview` | `POST /api/v1/imports/preview` |
+| `imports:execute` | `POST /api/v1/imports/execute` |
+
+### In the list, opening nothing
+
+No endpoint asks for these eight. Granting or revoking one changes nothing.
+
+| Permission | What it was meant for |
+|---|---|
+| `analytics:view` | The analytics pages. They ask for `reports:generate`. |
+| `enrollments:view`, `enrollments:manage` | Enrolments. They ask for `courses:view`, `students:view` and `courses:edit`. |
+| `system:import`, `system:export` | Imports and exports. They ask for the `imports:` and `exports:` permissions. |
+| `students.self:read`, `grades.self:read`, `attendance.self:read` | A student account reading its own data. See "Student accounts". |
+
+## Asked for by an endpoint, not in the list
+
+The code asks for these permissions, and the database of a new installation does not have
+them. An account passes only by the wildcard `*:*`, so in practice only an administrator. They
+cannot be granted from the **Permissions Catalog**, because it offers the 39 above.
+
+| Permission | Asked for by |
+|---|---|
+| `imports:create` | Uploading a file to import (`/api/v1/imports/upload`, `/api/v1/imports/students`, `/api/v1/import-export/imports/...`) |
+| `imports:view` | The list of import jobs and one job |
+| `exports:view` | The list of export jobs and one job. A teacher can start a job and download its file, and cannot look at it (plan todo 62). |
+| `sessions:manage` | Session export and import (Utils > Export > Session Export/Import) |
+| `jobs:create`, `jobs:view`, `jobs:manage`, `jobs:delete` | The background jobs under `/api/v1/jobs` |
+| `diagnostics:view`, `diagnostics:manage` | The query diagnostics under `/api/v1/diagnostics` |
+| `admin:manage` | Clearing the analytics cache |
+| `reports:create` | `POST /api/v1/analytics/reports/custom` |
+| `analytics:export` | The Analytics page's PDF and Excel, as an alternative to `reports:export` and `reports:generate` |
+
+One exception is written into the code: an account whose Role is `admin` passes every
+permission that begins with `imports:`, whatever its role rows say.
+
+## Checks that are not permissions
+
+| Check | Where |
+|---|---|
+| **Role `admin`** | Rate limits; creating, changing, deleting and importing report templates; the e-mail settings of Import/Export; the semester archive; a student's data export and erasure and the health field (together with `students:view`, `students:delete` or `students:edit`) |
+| **Role `admin` or `teacher`** | The feedback inbox |
+| **Signed in** | Own notifications and their settings; saved searches; own dashboards; `/auth/me` and the change of the own password; the account's own permissions in the lookup |
+| **Nothing** | Sign-in, sign-out, token refresh, registration and its mode; the CSRF token; sending feedback; the privacy notice; the user guide; the list of analytics report templates |
+| **Control API rules** | Everything under `/control/api` and eight addresses under `/api/v1/admin`: see [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md#the-control-api) |
+
+A role check reads the word in the account's Role column. A permission grant does not open it:
+a teacher who is granted every permission in the list still cannot open the semester archive.
+
+An account that must change its password first (a new default administrator, for one) is
+refused everywhere except `/auth/me`, the password change, the token refresh and the sign-out.
+
+## Student accounts
+
+The code lets an account with the Role "Student" pass the check for `students:view` on the
+nine endpoints marked "(or the student's own record)" in the matrix, when the student record
+asked for belongs to that account. A student record belongs to an account through its
+`user_id` column.
+
+Nothing in the application fills that column: not the student form, not the import, not the
+account form. So a student account passes none of these checks and every page of records
+answers "forbidden" for it. The three `.self:read` permissions the built-in list gives a
+student are not asked for by any endpoint.
+
+## Accounts without role rows
+
+When an account has no role row matching its Role, and no permission granted to itself, the
+server falls back on a built-in list for that Role (in `backend/rbac.py`). For `admin`,
+`teacher` and `guest` the list equals the table above; for `viewer` it is the table's nine
+without the two `exports:` permissions; for `student` it is the three `.self:read`
+permissions.
+
+This matters in two cases:
+
+- An old database from before the role tables: its accounts keep working.
+- An account granted a permission of its own **and** left without a matching role row gets
+  only what its rows say. The built-in list is then not used.
+
+## The three auth modes
+
+`AUTH_MODE` is a setting of the server (environment or `.env`), not something a page changes.
+
+| Mode | What it does |
+|---|---|
+| `strict` (the default) | Every request must be signed in, and the checks above apply. |
+| `permissive` | A request **without** a sign-in passes the permission checks. Anyone who can reach the server reads and changes the data. A signed-in request is checked as in `strict`. |
+| `disabled` | No check is made. |
+
+The server writes a warning to its log at every start when the mode is not `strict`. SMS Lite
+sets `strict` itself. Use nothing else on a server that other machines can reach.
+
+## Known gaps
+
+Recorded in `docs/plans/UNIFIED_WORK_PLAN.md` (todo 63), not repaired:
+
+- Revoking the only role of an account under **Assign Role to User** takes nothing away: the
+  account keeps the word in its Role column and gets the built-in list for it ("Accounts
+  without role rows" above).
+- The **Permissions Catalog** cannot grant to or revoke from a role: its list of roles is
+  empty. Its request for a role, which the API accepts, can take `*:*` away from `admin`.
+  Restarting the application puts it back.
+- An account with the Role Viewer or Guest cannot be saved from **Edit** in User Accounts.
+- The **Overview** tab shows no permission names, and the **Users** tab invented ones.
+- The audit log does not record who made a role or permission change.
+
+Repaired on 17 November 2026 (PR 419), and still so in v1.18.73 and earlier: a change of the
+Role to "Student" left the account's roles in place, and on SQLite a deleted account's roles
+passed to the next account created.

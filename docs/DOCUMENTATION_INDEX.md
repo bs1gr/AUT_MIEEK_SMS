@@ -53,7 +53,7 @@ docs/
 | End user | [user/INDEX.md](user/INDEX.md) |
 | Developer | [development/INDEX.md](development/INDEX.md) |
 | Operator / DevOps | [deployment/INDEX.md](deployment/INDEX.md) |
-| Admin (RBAC/permissions) | [admin/RBAC_ADMIN_GUIDE.md](admin/RBAC_ADMIN_GUIDE.md), [admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md) |
+| Admin (accounts, roles, permissions; checked against the application 2026-11-17) | [admin/RBAC_ADMIN_GUIDE.md](admin/RBAC_ADMIN_GUIDE.md) (the steps), [admin/PERMISSION_MATRIX.md](admin/PERMISSION_MATRIX.md) (who can do what, every endpoint), [admin/PERMISSION_REFERENCE.md](admin/PERMISSION_REFERENCE.md) (every permission) |
 | Privacy / GDPR (health data, notes, privacy notice, what the institution must decide) | [admin/PRIVACY_AND_GDPR.md](admin/PRIVACY_AND_GDPR.md) |
 | Backups (the automatic daily backup, where the files and the key are, restoring, after a lost database) | [admin/BACKUP_AND_RESTORE.md](admin/BACKUP_AND_RESTORE.md) |
 
