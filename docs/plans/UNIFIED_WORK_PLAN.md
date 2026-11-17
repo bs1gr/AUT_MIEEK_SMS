@@ -235,6 +235,29 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: six E2E tests for things the application does not have are deleted, and four
+components that no page uses** (PR 418; the owner: "Delete the six E2E tests for things
+that do not exist, and the four unused components"). Nothing of the application changes.
+
+- **The six tests.** In `search_advanced.spec.ts` the group "not there at all" (saving and
+  loading a search, in two tests; a "clear" control for the query; keyboard navigation in
+  the list); `saved-search.spec.ts` (a page of saved searches: there is none, and the rule
+  the test was about is tested in the backend); `student-list.spec.ts` (a Students table
+  with virtual scrolling: the page is a list of cards). All six were switched off and none
+  could pass. The E2E suite is 76 tests in 16 files and none of them is switched off (82 in
+  18, six switched off, before).
+- **The four components.** `VirtualStudentList`, `CascadedStudentView`, `StudentForm` and the
+  hook `useRateLimit`: 438 lines that nothing imported. The frontend builds to the same 82 files, byte for byte, with them and without.
+- **With them.** `run-saved-search-test.ps1` did nothing but start the deleted spec file; two
+  other runner scripts in that folder started the two deleted files among others and no
+  longer do; the hooks reference loses its entry for `useRateLimit`.
+- **Checked.** The type check and the lint of the frontend; the whole frontend suite; the
+  whole E2E suite against a server set up as CI's: 76 passed and none
+  skipped.
+- **Left without a user by this, and not deleted** (added to todo 61): the hook
+  `useVirtualScroll` and `features/students/StudentRow.tsx`, which only `VirtualStudentList`
+  used.
+
 **2026-11-17: a teacher is offered the form that sends a message** (PR 417; the owner:
 "Teachers and broadcast (todo 59): allow it on the page"). The server is not changed, and
 neither is the database.
@@ -1226,9 +1249,9 @@ install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to 
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
-a message is settled in PR 417: the page offers it), in todo 53 six E2E tests that describe things the
-application does not have, in todo 60 four components that no page uses, and todo 61 (found
-while the Search page was repaired). Todo 60 itself is done in PR 416: the Search page sorts,
+a message is settled in PR 417: the page offers it) and todo 61 (found while the Search page
+was repaired). The six E2E tests of todo 53 that described things the application does not
+have, and the four unused components of todo 60, are deleted in PR 418: todo 53 is closed. Todo 60 itself is done in PR 416: the Search page sorts,
 pages and filters, and the Students page says when its list could not be loaded. Todo 51 is closed: the owner confirmed on
 2026-11-15 that the attendance fix works on the phone. Also still open in their own sections: the contrast
 design calls of 2026-10-07, and `viewer` and `guest` getting 403 on the Dashboard overview
@@ -1276,12 +1299,13 @@ now** (todo 58).
     suites run or delete it (deleting needs the owner's OK).~~ **Done in PR 415
     (2026-11-17):** ten of the twenty run (under "On `main` since v1.18.72"); a local run of
     the whole suite gives 71 passed and 10 skipped. **Left:**
-    - *The owner's OK to delete six tests that describe things the application does not
+    - ~~*The owner's OK to delete six tests that describe things the application does not
       have:* in `search_advanced.spec.ts` the group "Search page: not there at all" (save and
       load a search, clear all, keyboard navigation, search history); `saved-search.spec.ts`
       (no page for saved searches; the rule itself is tested in the backend);
       `student-list.spec.ts` (no table, no virtual scrolling; what the page has is tested
-      elsewhere). Or build what they describe.
+      elsewhere). Or build what they describe.~~ **Deleted in PR 418 (the owner's word of
+      2026-11-17).** All 76 tests of the suite run. **Todo 53 is closed.**
     - ~~*Four wait for the repairs of todo 60* and should pass after them: sorting, paging and
       filters on the Search page (`test.fixme` in `search_advanced.spec.ts`) and the error
       state of the Students page (`student-resilience.spec.ts`).~~ **Done in PR 416:** all
@@ -1618,8 +1642,9 @@ now** (todo 58).
       Error", "Request failed with status code 500"), whatever the language of the page.
     - *The Students page says "No students found" when its list could not be loaded:* no
       message, nothing to try again with.
-    - *Components that no page uses:* `VirtualStudentList`, `CascadedStudentView`,
-      `StudentForm` and the hook `useRateLimit`. Delete (the owner's OK).
+    - ~~*Components that no page uses:* `VirtualStudentList`, `CascadedStudentView`,
+      `StudentForm` and the hook `useRateLimit`. Delete (the owner's OK).~~ **Deleted in
+      PR 418 (the owner's word of 2026-11-17). Todo 60 is closed.**
     - **Fixed in PR 415:** a course was listed as "Unknown".
     - ~~Each repair is small; together they are "make the Search page work". Suggested order:
       paging with a real total and sorting (server), the filters (page), the error state of
@@ -1638,6 +1663,14 @@ now** (todo 58).
       (512 lines), `hooks/useSearchFacets.ts` and the test of the first; the page uses the
       files of the same names under `features/search`. And in that hook four functions for
       saved searches that no page calls. Delete (the owner's OK).
+    - *Left without a user when the four components of todo 60 were deleted (PR 418):* the
+      hook `useVirtualScroll` with its test, and `features/students/StudentRow.tsx`; only
+      `VirtualStudentList` used them. A second `StudentRow.tsx` lies among the E2E tests
+      (`tests/e2e/StudentRow.tsx`) and nothing imports it. And three runner scripts of early
+      2026 in that folder (`run-batch-8-tests.ps1`, `run-batch-9-tests.ps1`,
+      `run-full-regression.ps1`) start one or two spec files each, and the third calls the
+      result "ready for release"; nothing uses them but a deployment checklist of v1.17.3.
+      Delete (the owner's OK).
     - *SQLite does not enforce foreign keys.* `init_db` switches them on for one connection
       at start, and the engine opens a new connection for every use: on the connections the
       application works with, `PRAGMA foreign_keys` answers 0 (seen with the application's

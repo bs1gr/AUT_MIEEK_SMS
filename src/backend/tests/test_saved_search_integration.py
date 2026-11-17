@@ -393,7 +393,7 @@ class TestSavedSearchAuthorization:
         assert self._as_owner(client, admin_headers, search_id)["name"] == "Admin Owned Search"
 
     # The three tests below are what the skipped E2E test "users should not see searches created
-    # by others" (saved-search.spec.ts) meant to check. There is no page for saved searches, so
+    # by others" (saved-search.spec.ts, deleted in November 2026) meant to check. There is no page for saved searches, so
     # the rule is checked where it lives. Until November 2026 reading, deleting and marking as
     # favourite were tested with the owner's own account only.
 
