@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.72
-**Last Updated**: November 16, 2026
+**Last Updated**: November 17, 2026
 **Status**: ✅ **v1.18.72 released 2026-11-16** (tag on `4ffa6afa2`, run by the assistant; the
 second release of the day. Asked after #408 was merged, the owner chose "Release v1.18.72").
 It ships #408 ("In v1.18.72" below): a notice to the administrators when the daily backup
@@ -234,6 +234,55 @@ owner's phone runs the app against the cloud address; Tailscale key expiry is di
 the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
+
+**2026-11-17: four small fixes in the pages** (PR 411; the owner: "continue"; these are the
+open entries of todo 58 and of the 2026-11-12 smoke test that needed no decision of the
+owner's). No server code and no database changes. Each was checked in a browser on a scratch
+server (a throwaway SQLite file; five students, one course, an administrator with three
+unread notices, a teacher), with no console error and no failed request.
+
+- **A notification marked as read is read everywhere at once.** The bell, the dropdown and
+  every item in it call `useNotifications`, and each got a copy of the state of its own. An
+  item marked as read stayed unread in the list, a deleted one stayed in it, and the bell
+  kept its count until the page next became visible. The "View all" window kept a fourth
+  copy, and on a second opening showed the list it had fetched up to five minutes before.
+  The component tests could not see it: each of them replaces the hook by a mock.
+  Now the list and the count live in one place (`hooks/useNotifications.ts`) and every user
+  of the hook reads it; the window's three actions go through it, and the window asks for
+  its list at every opening; signing out, or a session that expires, empties it, so the
+  next account on the same page is not shown the previous one's list.
+  *In the browser:* the bell showed 3; marking one item made it 2 with one request (the
+  `POST`), deleting an unread one made it 1 and took it out of the list (the `DELETE`
+  alone), "Mark all as read" in the window removed the badge, the dropdown opened right
+  after showed both remaining items as read without asking the server, and the window's
+  second opening asked again. After the administrator signed out, a teacher who signed in
+  on the same page saw the loading state and then an empty list.
+- **A text that reads the same as its key is shown as the text.** `t()` of
+  `LanguageContext.tsx` took an answer equal to the key for "missing", so `utils.created`
+  (English "created") came back as `utils.created`. It now asks i18next whether the key
+  exists. A scan in the test found 27 such English texts in 11 namespaces (`common.of`,
+  `common.hours`, `calendar.class`, `courses.period`, the four in `utils`, ...) and one
+  Greek one; no source file asks for any of them with its namespace in front today (the
+  backup list, which did, got a key of its own in PR 407), so no screen changes: the trap
+  is closed for the next caller.
+- **The Absence limits table fits a phone.** At 412 px, in Greek, the table was 501 px wide
+  in a 340 px panel: the last two columns were out of sight, the status of every student
+  among them (161 px hidden; 213 px at 360 px; 96 px and 148 px in English). Below 640 px
+  each student is now a block: the name with the status beside it, then one line per column
+  with the column's name in front. Measured after the change at 412 px and 360 px, in both
+  languages: nothing hidden, every status in view; at 768 px and 1366 px it is the table
+  it was.
+- **`hideLegacyDatabaseTools` is `showLegacyDatabaseTools`.** `DevToolsPanel` read the prop
+  as "visible" and the Control Panel passed it to have the tools shown. The name only.
+- **Tests.** 22 new ones. The bell, the dropdown, its items and the window are rendered
+  together for the first time, with only the HTTP client replaced by a small server that
+  remembers what it was told (7 tests); 7 on the shared state itself; 5 on `t()` against the
+  application's own translations (the test setup's i18n instance has seven namespaces, and
+  `utils` is not one of them); 2 on sign-out and session expiry; 1 on what the phone layout
+  is made of (jsdom has no layout: the widths are the browser's). Run against the old code,
+  19 of them fail; the other three are the guard rails (a key that does not exist still
+  comes back whole, an ordinary key is still translated, the bell shows the server's
+  count).
 
 **2026-11-16, late: the commit gate runs the changed tests alone only when nothing but test
 files changed** (#410, merged as `625df78a8`; the owner, to the last finding of #409:
@@ -824,7 +873,7 @@ deciding on v1.18.67).** Run from a clone, on throwaway databases only (never th
   `pytest` is importable (so a plain `uvicorn` from the root `.venv` does neither; `NATIVE.ps1`
   uses `src/backend/.venv`, which has no pytest), that venv is behind `requirements.txt`
   (SQLAlchemy 2.0.44 against 2.1.8), and the Absence limits table is cut off at 412 px.
-  (The first two were fixed on 2026-11-15, #384; the table is still open.)
+  (The first two were fixed on 2026-11-15, #384; the table on 2026-11-17, PR 411.)
 
 ### v1.18.65 and older
 
@@ -859,8 +908,9 @@ install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to 
 reclamation), 48 (dispatching the build-only Docker run from the release flow) and 50 (the
 owner's side of the privacy round). Todo 51 is closed: the owner confirmed on 2026-11-15 that
 the attendance fix works on the phone. Also still open in their own sections: the contrast
-design calls of 2026-10-07, `viewer` and `guest` getting 403 on the Dashboard overview, and
-the Absence limits table cut off at 412 px (2026-11-12 smoke test).
+design calls of 2026-10-07, and `viewer` and `guest` getting 403 on the Dashboard overview
+(2026-11-12 smoke test; the owner's call). The Absence limits table that was cut off at
+412 px in that smoke test fits a phone since PR 411.
 
 **First in line: what only the owner can do, in todos 55 and 54.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -1021,11 +1071,12 @@ now** (todo 58).
       should test the version in use, or both.~~ **Closed by #409** for CI (14 for the
       suite, the round trip on 16 as well). The release checks on this PC use whichever scratch
       container the check needs.
-    - *The notification components do not share state.* The bell, the dropdown and every item
+    - ~~*The notification components do not share state.* The bell, the dropdown and every item
       call `useNotifications` and each gets its own copy, so marking an item as read does not
       change the dropdown's list or the bell's count until they next fetch. (The Socket.IO
       events were meant to keep them in step; nothing ever sent one.) A shared store or context
-      would.
+      would.~~ **Closed by PR 411** (one state in the hook's module; the "View all" window
+      included).
     - *The native WebSocket endpoint has no client.* `/api/v1/notifications/ws` and
       `services/websocket_manager.py` work and are tested; `services/notificationWebSocket.ts`
       in the frontend is used by nothing but its own test. Use it or remove both (owner's call).
@@ -1067,14 +1118,16 @@ now** (todo 58).
       of the commit is not listed. The rule should be off (a `#378` at the start of a line is
       plain text in Markdown) and the list should compare contents.~~ **Closed by #395.**
     - *Found on 2026-11-16 with the backup work (#407), and not fixed:*
-      - *A translation that reads the same as its key is shown as the key.* `t()` in
+      - ~~*A translation that reads the same as its key is shown as the key.* `t()` in
         `LanguageContext.tsx` takes a value equal to the key's last part for "not found", so
         `utils.created` ("created") showed as `utils.created:` in English. `updated`,
         `warnings` and `errors` in `en/utils.js` are the same case. The backup list got a key
-        of its own; `t()` should ask i18next whether the key exists.
-      - *`hideLegacyDatabaseTools` shows the tools.* `DevToolsPanel` reads the prop as
+        of its own; `t()` should ask i18next whether the key exists.~~ **Closed by PR 411**
+        (it asks; the scan found 27 such English texts, not four).
+      - ~~*`hideLegacyDatabaseTools` shows the tools.* `DevToolsPanel` reads the prop as
         "visible"; the Control Panel passes it and gets them shown, which is what the page
-        needs. The name is the wrong way round.
+        needs. The name is the wrong way round.~~ **Closed by PR 411**
+        (`showLegacyDatabaseTools`).
       - *Two backup folders.* The Database panel keeps its own backups in
         `BACKUPS_DIR/postgres` (`pg_dump --clean` where it is installed), apart from Manage
         Backups (`BACKUPS_DIR/database`); the automatic backup's retention does not look there.

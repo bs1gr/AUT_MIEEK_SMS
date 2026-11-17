@@ -73,6 +73,37 @@ describe('AbsenceLimitsPanel', () => {
     expect(mockedAttendance.getCourseAbsenceStatus).toHaveBeenCalledWith(7);
   });
 
+  it('names every value for the phone layout, where the header row is not shown', async () => {
+    // jsdom has no layout, so this checks what the layout is made of; the widths themselves
+    // were measured in a browser (412 px: nothing cut off, every status in view).
+    mockedAttendance.getCourseAbsenceStatus.mockResolvedValue([
+      row({ student_id: 1 }),
+      row({ student_id: 2, absences: 13, status: 'insufficient', attendance_insufficient: true }),
+    ]);
+
+    render(<AbsenceLimitsPanel t={t} courseId={7} students={students} />);
+
+    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(3));
+    const [header, first] = screen.getAllByRole('row');
+
+    // The header row is for the table only, the labels inside the cells for the phone only.
+    expect(header.closest('thead')).toHaveClass('hidden', 'sm:table-header-group');
+    const labels = within(first).getAllByTestId('absence-limit-phone-label');
+    expect(labels.map((label) => label.textContent)).toEqual([
+      'absenceLimitColumnAbsences:',
+      'absenceLimitColumnParticipation:',
+      'absenceLimitColumnAllowed:',
+    ]);
+    labels.forEach((label) => expect(label).toHaveClass('sm:hidden'));
+
+    // A student is a two-column block on a phone and a table row from 640 px up, with the
+    // status in the first line, beside the name.
+    expect(first).toHaveClass('grid', 'sm:table-row');
+    const status = within(first).getByText('absenceLimitStatusInsufficient').closest('td');
+    expect(status).toHaveClass('row-start-1', 'col-start-2');
+    within(first).getAllByRole('cell').forEach((cell) => expect(cell).toHaveClass('block', 'sm:table-cell'));
+  });
+
   it('has no Directorate approval control any more', async () => {
     mockedAttendance.getCourseAbsenceStatus.mockResolvedValue([row({})]);
     render(<AbsenceLimitsPanel t={t} courseId={7} students={students} />);

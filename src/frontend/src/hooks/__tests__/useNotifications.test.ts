@@ -5,7 +5,7 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useNotifications } from '../useNotifications';
+import { publishUnreadCount, resetNotifications, useNotifications } from '../useNotifications';
 import authService from '../../services/authService';
 import apiClient from '../../api/api';
 
@@ -23,6 +23,8 @@ const setAuthToken = () => {
 describe('useNotifications Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // The state is shared by every user of the hook, so by every test as well.
+    resetNotifications();
     apiGetSpy = vi.spyOn(apiClient, 'get');
     apiPostSpy = vi.spyOn(apiClient, 'post');
     apiDeleteSpy = vi.spyOn(apiClient, 'delete');
@@ -506,6 +508,172 @@ describe('useNotifications Hook', () => {
       expect(countRequests()).toBe(1);
     });
   });
+  describe('One state for every component', () => {
+    const unread = (id: number) => ({
+      id,
+      user_id: 1,
+      notification_type: 'system',
+      title: `Notice ${id}`,
+      message: `Message ${id}`,
+      is_read: false,
+      priority: 'normal',
+      created_at: new Date().toISOString(),
+    });
+    const answerList = (items: ReturnType<typeof unread>[], unreadCount: number) =>
+      apiGetSpy.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { items, unread_count: unreadCount },
+          meta: { request_id: 'test-123' },
+        },
+      });
+
+    it('shows a second user of the hook what the first one fetched', async () => {
+      answerList([unread(1), unread(2)], 2);
+      const dropdown = renderHook(() => useNotifications());
+      const bell = renderHook(() => useNotifications());
+
+      await act(async () => {
+        await dropdown.result.current.fetchNotifications({ limit: 10 });
+      });
+
+      expect(bell.result.current.notifications).toHaveLength(2);
+      expect(bell.result.current.unreadCount).toBe(2);
+    });
+
+    it('changes the list and the count everywhere when one user marks an item as read', async () => {
+      answerList([unread(1), unread(2)], 2);
+      apiPostSpy.mockResolvedValue({ data: { success: true, data: null } });
+      const dropdown = renderHook(() => useNotifications());
+      const bell = renderHook(() => useNotifications());
+      const item = renderHook(() => useNotifications());
+      await act(async () => {
+        await dropdown.result.current.fetchNotifications({ limit: 10 });
+      });
+
+      await act(async () => {
+        await item.result.current.markAsRead(1);
+      });
+
+      expect(dropdown.result.current.notifications.map((n) => n.is_read)).toEqual([true, false]);
+      expect(bell.result.current.unreadCount).toBe(1);
+      expect(apiGetSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('counts an item once when it is marked as read twice', async () => {
+      // The item's own button, then a click on the item: two requests for one item.
+      answerList([unread(1), unread(2)], 2);
+      apiPostSpy.mockResolvedValue({ data: { success: true, data: null } });
+      const { result } = renderHook(() => useNotifications());
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      await act(async () => {
+        await result.current.markAsRead(1);
+        await result.current.markAsRead(1);
+      });
+
+      expect(result.current.unreadCount).toBe(1);
+    });
+
+    it('removes a deleted item everywhere and takes it off the count', async () => {
+      answerList([unread(1), unread(2)], 2);
+      apiDeleteSpy.mockResolvedValue({ data: { success: true, data: null } });
+      const dropdown = renderHook(() => useNotifications());
+      const bell = renderHook(() => useNotifications());
+      const item = renderHook(() => useNotifications());
+      await act(async () => {
+        await dropdown.result.current.fetchNotifications();
+      });
+
+      await act(async () => {
+        await item.result.current.deleteNotification(2);
+      });
+
+      expect(dropdown.result.current.notifications.map((n) => n.id)).toEqual([1]);
+      expect(bell.result.current.unreadCount).toBe(1);
+    });
+
+    it('clears the count everywhere when one user marks all as read', async () => {
+      answerList([unread(1), unread(2)], 2);
+      apiPostSpy.mockResolvedValue({ data: { success: true, data: null } });
+      const dropdown = renderHook(() => useNotifications());
+      const bell = renderHook(() => useNotifications());
+      await act(async () => {
+        await dropdown.result.current.fetchNotifications();
+      });
+      expect(bell.result.current.unreadCount).toBe(2);
+
+      await act(async () => {
+        await dropdown.result.current.markAllAsRead();
+      });
+
+      expect(bell.result.current.unreadCount).toBe(0);
+      expect(bell.result.current.notifications).toHaveLength(2);
+      expect(bell.result.current.notifications.every((n) => n.is_read)).toBe(true);
+    });
+
+    it('takes a count that another reader of the API was given', () => {
+      const bell = renderHook(() => useNotifications());
+
+      act(() => publishUnreadCount(7));
+      expect(bell.result.current.unreadCount).toBe(7);
+
+      // Not a count: left alone.
+      act(() => publishUnreadCount(undefined));
+      act(() => publishUnreadCount(Number.NaN));
+      expect(bell.result.current.unreadCount).toBe(7);
+
+      act(() => publishUnreadCount(-3));
+      expect(bell.result.current.unreadCount).toBe(0);
+    });
+
+    it('is emptied by a reset, and drops an answer that was asked for before it', async () => {
+      answerList([unread(1)], 1);
+      const { result } = renderHook(() => useNotifications());
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+      expect(result.current.notifications).toHaveLength(1);
+
+      // A list still on its way when the account signs out...
+      let deliver: (value: unknown) => void = () => undefined;
+      apiGetSpy.mockReturnValueOnce(
+        new Promise((resolve) => {
+          deliver = resolve;
+        }) as never
+      );
+      let pending: Promise<void> = Promise.resolve();
+      act(() => {
+        pending = result.current.fetchNotifications();
+      });
+      expect(result.current.isLoading).toBe(true);
+
+      act(() => resetNotifications());
+      expect(result.current.notifications).toEqual([]);
+      expect(result.current.unreadCount).toBe(0);
+      expect(result.current.isLoading).toBe(false);
+
+      // ...arrives after it, and is not shown to whoever signs in next.
+      await act(async () => {
+        deliver({
+          data: { success: true, data: { items: [unread(9)], unread_count: 1 }, meta: {} },
+        });
+        await pending;
+      });
+      expect(result.current.notifications).toEqual([]);
+      expect(result.current.unreadCount).toBe(0);
+
+      // The next account's own list is fetched and shown.
+      answerList([unread(5)], 1);
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+      expect(result.current.notifications.map((n) => n.id)).toEqual([5]);
+    });
+  });
+
   describe('Error Handling', () => {
     it('should set error state on API failure', async () => {
       const error = new Error('API Error');

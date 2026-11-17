@@ -70,7 +70,7 @@ export interface DevToolsPanelProps {
   variant?: DevToolsVariant;
   onToast: (toast: ToastState) => void;
   showOperationsMonitorSummary?: boolean;
-  hideLegacyDatabaseTools?: boolean;
+  showLegacyDatabaseTools?: boolean;
 }
 
 
@@ -80,7 +80,7 @@ const DevToolsPanel = ({
   variant = 'standalone',
   onToast,
   showOperationsMonitorSummary = true,
-  hideLegacyDatabaseTools,
+  showLegacyDatabaseTools,
 }: DevToolsPanelProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -651,7 +651,7 @@ const DevToolsPanel = ({
     }
   };
 
-  const legacyDatabaseToolsVisible = hideLegacyDatabaseTools ?? variant === 'standalone';
+  const legacyDatabaseToolsVisible = showLegacyDatabaseTools ?? variant === 'standalone';
 
   return (
     <section className="space-y-6">

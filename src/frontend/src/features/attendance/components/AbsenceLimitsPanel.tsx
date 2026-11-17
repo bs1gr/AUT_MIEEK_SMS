@@ -4,7 +4,7 @@
  * counts as 0; over the fail limit (30%) attendance is insufficient and the course is failed.
  * Shown as flags only: nothing is blocked.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { attendanceAPI } from '@/api/api';
 import type { AbsenceLimitStatus, Student } from '@/types';
@@ -32,6 +32,16 @@ const STATUS_LABEL_KEY: Record<AbsenceLimitStatus['status'], string> = {
   ok: 'absenceLimitStatusOk',
   unknown: 'absenceLimitStatusUnknown',
 };
+
+// A cell is a block of the student's card on a phone and a table cell from 640 px up.
+const CELL = 'block p-0 sm:table-cell sm:py-2';
+
+// The column's name in front of its value, on a phone only (the header row is hidden there).
+const PhoneLabel = ({ children }: { children: ReactNode }) => (
+  <span className="mr-1 text-xs font-semibold text-gray-600 sm:hidden" data-testid="absence-limit-phone-label">
+    {children}:
+  </span>
+);
 
 const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimitsPanelProps) => {
   const [rows, setRows] = useState<AbsenceLimitStatus[]>([]);
@@ -104,8 +114,12 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimits
         <p className="text-sm text-gray-600">{t('absenceLimitNoStudents')}</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
+          {/* Below 640 px the five columns do not fit (in Greek the table is 501 px wide in a
+              340 px panel, and the status was out of sight). There each student is a block:
+              the name with the status beside it, then one line per column with the column's
+              name in front, since the header row is hidden. From 640 px up it is a table. */}
+          <table className="block min-w-full text-sm sm:table">
+            <thead className="hidden sm:table-header-group">
               <tr className="text-left text-xs text-gray-600 border-b">
                 <th className="py-2 pr-3">{t('absenceLimitColumnStudent')}</th>
                 <th className="py-2 pr-3">{t('absenceLimitColumnAbsences')}</th>
@@ -114,11 +128,16 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimits
                 <th className="py-2">{t('absenceLimitColumnStatus')}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="block sm:table-row-group">
               {sortedRows.map((row) => (
-                <tr key={row.student_id} className="border-b last:border-0 align-top" data-testid={`absence-limit-row-${row.student_id}`}>
-                  <td className="py-2 pr-3 font-medium text-gray-800">{nameById.get(row.student_id) || `#${row.student_id}`}</td>
-                  <td className="py-2 pr-3">
+                <tr
+                  key={row.student_id}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 border-b py-3 align-top last:border-0 sm:table-row sm:py-0"
+                  data-testid={`absence-limit-row-${row.student_id}`}
+                >
+                  <td className={`${CELL} font-medium text-gray-800 sm:pr-3`}>{nameById.get(row.student_id) || `#${row.student_id}`}</td>
+                  <td className={`${CELL} col-span-2 sm:pr-3`}>
+                    <PhoneLabel>{t('absenceLimitColumnAbsences')}</PhoneLabel>
                     {row.status === 'unknown' ? (
                       <span>{row.absences}</span>
                     ) : (
@@ -134,7 +153,8 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimits
                       {t('absenceLimitExcusedBreakdown', { unexcused: row.unexcused_absences, excused: row.excused_absences })}
                     </div>
                   </td>
-                  <td className="py-2 pr-3">
+                  <td className={`${CELL} col-span-2 sm:pr-3`}>
+                    <PhoneLabel>{t('absenceLimitColumnParticipation')}</PhoneLabel>
                     {row.participation_allowed_absences === null ? (
                       <span className="text-xs text-gray-600">—</span>
                     ) : row.participation_forfeited ? (
@@ -147,7 +167,8 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimits
                       </span>
                     )}
                   </td>
-                  <td className="py-2 pr-3">
+                  <td className={`${CELL} col-span-2 sm:pr-3`}>
+                    <PhoneLabel>{t('absenceLimitColumnAllowed')}</PhoneLabel>
                     {row.allowed_absences === null ? (
                       <span className="text-xs text-gray-600">{t('absenceLimitUnknownHelp')}</span>
                     ) : (
@@ -157,7 +178,7 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimits
                       </>
                     )}
                   </td>
-                  <td className="py-2">
+                  <td className={`${CELL} col-start-2 row-start-1 justify-self-end`}>
                     <span className={`inline-block text-xs font-semibold px-2 py-1 rounded border ${STATUS_BADGE[row.status]}`}>
                       {t(STATUS_LABEL_KEY[row.status])}
                     </span>

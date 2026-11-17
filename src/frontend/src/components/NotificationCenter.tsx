@@ -10,6 +10,7 @@ import api, { extractAPIResponseData } from '../api/api';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { safeNavigate } from '../utils/navigation';
 import { getNotificationText } from './notifications/notificationText';
+import { notificationActions, publishUnreadCount } from '../hooks/useNotifications';
 
 interface Notification {
   id: number;
@@ -44,24 +45,29 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const limit = 20;
 
-  // Fetch notifications
+  // Fetch notifications. The list is asked for again at every opening (`staleTime: 0`; the
+  // application's default would show a list up to five minutes old, without what the
+  // dropdown has marked or deleted since), and each answer's unread count goes to the bell.
   const { data, isLoading, refetch } = useQuery<NotificationListResponse>({
     queryKey: ['notifications', skip],
     queryFn: async () => {
       const response = await api.get('/notifications/', {
         params: { skip, limit },
       });
-      return extractAPIResponseData<NotificationListResponse>(response.data);
+      const list = extractAPIResponseData<NotificationListResponse>(response.data);
+      publishUnreadCount(list?.unread_count);
+      return list;
     },
     enabled: isOpen,
+    staleTime: 0,
   });
+
+  // The three actions go through the shared notification state (the same requests as before),
+  // so the dropdown's list and the bell's count change with this window's own list.
 
   // Mark notification as read
   const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      const response = await api.post(`/notifications/${notificationId}/read`);
-      return response.data;
-    },
+    mutationFn: (notificationId: number) => notificationActions.markAsRead(notificationId),
     onSuccess: () => {
       refetch();
     },
@@ -69,10 +75,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
   // Mark all as read
   const markAllAsReadMutation = useMutation({
-    mutationFn: async () => {
-      const response = await api.post('/notifications/read-all');
-      return response.data;
-    },
+    mutationFn: () => notificationActions.markAllAsRead(),
     onSuccess: () => {
       refetch();
     },
@@ -80,10 +83,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
   // Delete notification
   const deleteNotificationMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      const response = await api.delete(`/notifications/${notificationId}`);
-      return response.data;
-    },
+    mutationFn: (notificationId: number) => notificationActions.deleteNotification(notificationId),
     onSuccess: () => {
       refetch();
     },
