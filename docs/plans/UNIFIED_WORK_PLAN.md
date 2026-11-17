@@ -236,8 +236,11 @@ the VM and the QNAP.
 ### On `main` since v1.18.72 (unreleased)
 
 **2026-11-17: ten of the twenty E2E tests that never ran now run, and the other ten say why
-they do not** (PR 415; the owner: "continue"; the part of todo 53 that needed no decision of
-the owner's). One line of the application changes; the rest is tests.
+they do not** (PR 415, merged as `7c1b89a26`; the owner: "continue"; the part of todo 53
+that needed no decision of the owner's). One line of the application changes; the rest is
+tests. On the merge commit the backend job passed 1,674 tests with 55 skipped on PostgreSQL
+14 (1,671 and 55 before it: the three new tests), the frontend job 1,995 (1,994 before: the
+new one), and E2E 71 with 10 skipped (61 and 20 before).
 
 - **What was wrong with them.** The six suites and the one test that were switched off were
   written for pages the application does not have. They signed in on "/login" as
@@ -273,13 +276,15 @@ the owner's). One line of the application changes; the rest is tests.
 - **Checked.** The whole E2E suite against a scratch server set up as CI's E2E job (SQLite,
   the seed, the same switches): 71 passed and 10 skipped, where `main` has 61 and 20. The
   three tests marked as known defects were run once as ordinary tests and failed where
-  their comments say.
+  their comments say. CI's E2E job on the PR gave the same 71 and 10, with no test retried;
+  the Students list showed its first student after 0.9 seconds there.
 
 **2026-11-17: the two notification guides say what the application does, and a refusal that
 was a server error** (PR 414, merged as `25d505322`; the owner: "continue"; an open entry of
 todo 58 that needed no decision of the owner's). No database changes. On the PR's commit the
 backend job passed 1,671 tests with 55 skipped on PostgreSQL 14 (1,669 and 55 on `main`
-before it: the two new tests) and the frontend job 1,994 as before.
+before it: the two new tests) and the frontend job 1,994 as before; after the merge E2E on
+`main` was 61 with 20 skipped, as before.
 
 - **The guides.** `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` and
   `docs/user/NOTIFICATIONS_USER_GUIDE.md` were written in January 2026 for a design: an
@@ -1096,7 +1101,11 @@ v1.18.70" and "In v1.18.71" at the top). Older entries that are still open, furt
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
-run in the release flow) is closed by PR 413. Todo 51 is closed: the owner confirmed on
+run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
+owner's word:** todo 59 (a teacher can send a message to every account through the API, and
+four smaller things about notifications), todo 60 (the Search page's sorting, paging and
+filters do nothing; the Students page calls a failed load an empty list) and, in todo 53,
+six E2E tests that describe things the application does not have. Todo 51 is closed: the owner confirmed on
 2026-11-15 that the attendance fix works on the phone. Also still open in their own sections: the contrast
 design calls of 2026-10-07, and `viewer` and `guest` getting 403 on the Dashboard overview
 (2026-11-12 smoke test; the owner's call). The Absence limits table that was cut off at
