@@ -86,8 +86,15 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
 
     # Apply overrides for both central and direct session providers
     from backend.db import get_session as db_get_session
+    from backend.dependencies import get_db as dependencies_get_db
 
     app.dependency_overrides[db_get_session] = override_get_db
+    # The search router takes its sessions from backend.dependencies.get_db. Without this
+    # override its requests went to the database the whole test run shares, not to this app's
+    # own; where that database had no tables (CI, by the time these tests run) every search
+    # failed with "no such table", and the tests below took the answer for a pass because they
+    # only looked for 401 and 403.
+    app.dependency_overrides[dependencies_get_db] = override_get_db
 
     client = TestClient(app)
     return app, client

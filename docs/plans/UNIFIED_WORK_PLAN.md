@@ -298,7 +298,11 @@ unused components, and the four tests of todo 53 that waited for it.
   server (paging, order, filters, typed text, the counts, the two SQLite functions); with the
   server's sources as they were, 41 of them fail. One existing test asked for one record per
   page and expected `limit == 20`, which is what the endpoint answered whatever was asked;
-  corrected. Frontend: `SearchIntegration.test.tsx` had replaced the search hook with a fake
+  corrected. And the two search tests of `test_rbac_enforcement.py` could not fail: their
+  application took the search router's sessions from the database the whole test run shares,
+  not from its own, and where that one has no tables (CI, by the time they run) every search
+  failed with "no such table" while the tests looked only for 401 and 403. The application
+  is wired to its own database, and a teacher's search has to succeed. Frontend: `SearchIntegration.test.tsx` had replaced the search hook with a fake
   and looked for buttons "if they exist"; it is rewritten with the real view, hooks and
   panel over a small server that answers as the real one does. The tests of the panel and
   of its hook had given them a shape the server never sent; rewritten too. With the page's
