@@ -54,6 +54,15 @@ def _get_user_role(current_user) -> str | None:
     return getattr(current_user, "role", None)
 
 
+def _not_yours(exc: PermissionError) -> HTTPException:
+    """The service refuses another account's notification with PermissionError: that is a 403.
+
+    Unhandled, it reached the client as a 500 with a traceback in the log (seen in November
+    2026 with two real accounts; the tests gave the notification to the requesting account).
+    """
+    return HTTPException(status_code=403, detail=str(exc))
+
+
 # ==================== Notification WebSocket ====================
 
 
@@ -310,7 +319,10 @@ async def update_notification(
     user_id = _get_user_id(current_user)
 
     if update.is_read:
-        notification = service.mark_as_read(notification_id, user_id)
+        try:
+            notification = service.mark_as_read(notification_id, user_id)
+        except PermissionError as exc:
+            raise _not_yours(exc) from exc
     else:
         # For now, we only support marking as read
         from backend.models import Notification
@@ -347,7 +359,10 @@ async def mark_as_read(
 
     user_id = _get_user_id(current_user)
 
-    notification = service.mark_as_read(notification_id, user_id)
+    try:
+        notification = service.mark_as_read(notification_id, user_id)
+    except PermissionError as exc:
+        raise _not_yours(exc) from exc
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
@@ -375,7 +390,10 @@ async def delete_notification(
 
     user_id = _get_user_id(current_user)
 
-    success = service.delete_notification(notification_id, user_id)
+    try:
+        success = service.delete_notification(notification_id, user_id)
+    except PermissionError as exc:
+        raise _not_yours(exc) from exc
     if not success:
         raise HTTPException(status_code=404, detail="Notification not found")
 

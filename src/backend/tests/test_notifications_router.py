@@ -244,25 +244,35 @@ def test_mark_notification_as_read_not_found(client, admin_token):
     assert "not found" in msg.lower()
 
 
-def test_mark_notification_as_read_wrong_user(client, admin_token, db: Session, test_user_id: int):
-    """Test user cannot mark other user's notification as read.
+def other_account(db: Session) -> User:
+    """The teacher: an account other than the administrator who makes the request.
 
-    Note: In test mode with AUTH disabled, all requests get the same user ID,
-    so the ownership check doesn't create cross-user scenarios.
+    Until November 2026 the three "wrong user" tests gave the notification to the account that
+    made the request and accepted 200, so they could not fail. A real attempt on another
+    account's notification was refused with a 500: nothing handled the service's
+    PermissionError. They now use two accounts.
     """
-    # Create notification for user 1
-    notification = make_notification_in_db(db, user_id=1, is_read=False)
+    teacher = db.query(User).filter(User.email == "teacher@example.com").first()
+    admin = db.query(User).filter(User.email == "admin@example.com").first()
+    assert teacher is not None and admin is not None
+    assert teacher.id != admin.id
+    return teacher
 
-    # Try to mark as read
-    headers = {"Authorization": f"Bearer {admin_token}"} if admin_token else {}
+
+def test_mark_notification_as_read_wrong_user(client, admin_token, teacher_token, db: Session):
+    """Another account's notification cannot be marked as read: 403, and it stays unread."""
+    notification = make_notification_in_db(db, user_id=other_account(db).id, is_read=False)
+
     r = client.post(
         f"/api/v1/notifications/{notification.id}/read",
-        headers=headers,
+        headers={"Authorization": f"Bearer {admin_token}"},
     )
 
-    # In test mode, both are same user (id=1), so this succeeds
-    # In production, this would be 403/404 for cross-user access
-    assert r.status_code in (200, 403, 404)
+    assert r.status_code == 403, r.text
+    assert "another user" in get_error_message(r.json()).lower()
+    db.refresh(notification)
+    assert notification.is_read is False
+    assert notification.read_at is None
 
 
 def test_mark_all_notifications_as_read_success(client, admin_token, db: Session, test_user_id: int):
@@ -328,25 +338,21 @@ def test_update_notification_not_found(client, admin_token):
     assert r.status_code == 404
 
 
-def test_update_notification_wrong_user(client, admin_token, db: Session):
-    """Test user cannot update other user's notification.
+@pytest.mark.parametrize("is_read", [True, False])
+def test_update_notification_wrong_user(client, admin_token, teacher_token, db: Session, is_read: bool):
+    """Another account's notification cannot be updated: 403 either way, and it stays unread."""
+    notification = make_notification_in_db(db, user_id=other_account(db).id, is_read=False)
 
-    Note: In test mode with AUTH disabled, all requests get the same user ID,
-    so this test verifies that the endpoint properly validates ownership.
-    In production with AUTH enabled, this would test cross-user access denial.
-    """
-    notification = make_notification_in_db(db, user_id=1, is_read=False)
-
-    headers = {"Authorization": f"Bearer {admin_token}"} if admin_token else {}
     r = client.put(
         f"/api/v1/notifications/{notification.id}",
-        json={"is_read": True},
-        headers=headers,
+        json={"is_read": is_read},
+        headers={"Authorization": f"Bearer {admin_token}"},
     )
 
-    # In test mode, both are same user, so this succeeds
-    # In production with proper auth, this would be 403/404
-    assert r.status_code in (200, 403, 404)
+    assert r.status_code == 403, r.text
+    assert "another user" in get_error_message(r.json()).lower()
+    db.refresh(notification)
+    assert notification.is_read is False
 
 
 # ==================== Delete Notification Tests ====================
@@ -387,22 +393,36 @@ def test_delete_notification_not_found(client, admin_token):
     assert "not found" in msg.lower()
 
 
-def test_delete_notification_wrong_user(client, admin_token, db: Session):
-    """Test user cannot delete other user's notification.
+def test_delete_notification_wrong_user(client, admin_token, teacher_token, db: Session):
+    """Another account's notification cannot be deleted: 403, and its owner still has it."""
+    notification = make_notification_in_db(db, user_id=other_account(db).id)
 
-    Note: In test mode with AUTH disabled, all requests get the same user ID,
-    so this test verifies that the endpoint properly validates ownership.
-    """
-    notification = make_notification_in_db(db, user_id=1)
-
-    headers = {"Authorization": f"Bearer {admin_token}"} if admin_token else {}
     r = client.delete(
         f"/api/v1/notifications/{notification.id}",
-        headers=headers,
+        headers={"Authorization": f"Bearer {admin_token}"},
     )
 
-    # In test mode, both are same user, so delete succeeds
-    assert r.status_code in (200, 403, 404)
+    assert r.status_code == 403, r.text
+    assert "another user" in get_error_message(r.json()).lower()
+    db.refresh(notification)
+    assert notification.deleted_at is None
+
+    mine = client.get("/api/v1/notifications/", headers={"Authorization": f"Bearer {teacher_token}"})
+    assert mine.status_code == 200
+    assert [item["id"] for item in mine.json()["items"]] == [notification.id]
+
+
+def test_list_shows_only_the_account_s_own_notifications(client, admin_token, teacher_token, db: Session):
+    """The list and the unread count of one account never include another account's."""
+    theirs = make_notification_in_db(db, user_id=other_account(db).id, title="For the teacher")
+
+    as_admin = {"Authorization": f"Bearer {admin_token}"}
+    listed = client.get("/api/v1/notifications/", headers=as_admin)
+    count = client.get("/api/v1/notifications/unread-count", headers=as_admin)
+
+    assert listed.status_code == 200 and count.status_code == 200
+    assert theirs.id not in [item["id"] for item in listed.json()["items"]]
+    assert count.json()["unread_count"] == 0
 
 
 # ==================== Notification Preferences Tests ====================

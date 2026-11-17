@@ -1,321 +1,93 @@
-# Real-Time Notifications User Guide
+# Notifications User Guide
 
-**Version**: 1.0 (1.17.1)
-**Last Updated**: January 12, 2026
-**Status**: Production Ready
+**Applies to**: v1.18.72 and later
+**Last checked against the application**: November 2026
 
-> **How delivery works (corrected November 2026).** The bell reads the number of unread
-> notifications when the page opens, when the connection comes back and when you return to the
-> tab; the list is read when you open the bell. Nothing is pushed to an open page, so a
-> notification raised while you are looking at the page shows on the bell at the next of those
-> moments. Where this guide says "real-time", "instantly" or "WebSocket", read it this way: the
-> live channel those words refer to never carried a notification, and it was removed after
-> v1.18.70.
+This guide describes what the application does today. Its first version (January 2026)
+described a design with e-mail notifications, personal settings, quiet hours and instant
+delivery; those were not built, and they are listed at the end so that nobody looks for
+them.
 
 ---
 
-## What are Notifications?
+## What a notification is
 
-Notifications are real-time alerts that keep you informed about important events in the Student Management System. They appear instantly when events occur and are delivered through multiple channels:
+A short message for your account, shown under the bell at the top of the page. You get one
+in two cases:
 
-- **On-Screen Notifications** (Bell icon, dropdown menu)
-- **Email Notifications** (Optional, configurable)
-- **Real-Time Updates** (WebSocket-based, no page refresh needed)
+- **An administrator sent a message** to everyone, to your role, or to you.
+- **You are an administrator** and something needs you: a new account is waiting for
+  approval, an activation e-mail could not be sent, or the automatic backup failed. The
+  [Administration Guide](../admin/NOTIFICATIONS_ADMIN_GUIDE.md) says what to do about each.
 
----
+The application does not create a notification when a grade or an attendance record is
+entered, when you are enrolled in a course, or when a course changes.
 
-## 📍 Finding Notifications
+## The bell
 
-### Notification Bell (Top Right)
+- The bell is at the top of every page once you are signed in.
+- A number on it is the count of notifications you have not read (above 99 it shows "99+").
+- Select the bell to open the list. Select anywhere else to close it.
 
-1. Look for the **bell icon** (🔔) in the top-right corner of the navigation bar
-2. **Number badge** shows count of unread notifications
-3. **Click the bell** to open the notification dropdown
+The number is read from the server when you open the application, when you return to its
+tab, and when your connection comes back. **Nothing arrives while the page just stays
+open.** If you are waiting for a message, switch to another tab and back, or reload.
 
-### Notification Dropdown Menu
+## The list under the bell
 
-When you click the bell icon:
+It shows your ten newest notifications. For each one:
 
-- **List of recent notifications** (up to 20 shown)
-- **Mark as read** button (individual or all)
-- **Delete** option (individual or all)
-- **Notification center link** (see all notifications)
+- A blue dot marks it as unread.
+- **Select it** to mark it as read. If it leads somewhere (the administrator notices do),
+  the application opens that page; otherwise the full text opens in place.
+- The **eye** button marks it as read without opening it.
+- The **bin** button deletes it from your list.
 
----
+Above the list, **Mark all as read** clears the number on the bell. Below it,
+**View all notifications** opens the full list.
 
-## 🔔 Types of Notifications
+## The full list
 
-### Student-Related
+**View all notifications** opens a panel with everything, twenty at a time:
 
-- ✏️ **Grade Posted**: When a grade is entered for your course
-- 📝 **Assignment Due**: When an assignment deadline approaches
-- 🎓 **Enrollment Update**: When you're added/removed from a course
-- 📊 **Attendance Flagged**: When attendance falls below threshold
+- **Previous** and **Next** at the bottom move through older notifications.
+- **View details** shows the whole text of one; **Hide details** closes it again.
+- **Delete** removes it from your list.
+- **Mark all as read**, at the top, does the same as under the bell.
 
-### Course-Related
+What you mark or delete here changes the bell and the short list at once.
 
-- 📢 **Course Announcement**: When instructor posts announcement
-- 📅 **Schedule Change**: When course schedule is modified
-- 👥 **Enrollment Change**: When student joins/leaves course
-- 📋 **Assessment Created**: When new assessment is added
+## "Update Available"
 
-### System-Related
+When a newer release of the application is published, the list shows **Update Available**
+with the version, and the bell counts it as one. It is a reminder kept in your browser, not
+a message from a person. The **×** on it hides it until the next release. Updating is done
+by an administrator.
 
-- ⚙️ **Maintenance Notice**: System maintenance scheduled
-- 🔐 **Security Alert**: Security-related event
-- 💾 **Backup Complete**: Backup operation finished
-- 🆘 **System Alert**: Important system event
+## Privacy
 
-### Admin-Only
+- You see only your own notifications, and nobody else sees yours in the application.
+- Deleting a notification removes it from your lists. The record stays in the application's
+  database.
+- A message from an administrator is a copy made for you: deleting yours does not delete
+  anyone else's.
 
-- 👤 **User Account Change**: New user created or account modified
-- 🔑 **Permission Grant**: Admin permission assigned
-- 📤 **Import Complete**: Data import process finished
-- 📥 **Export Ready**: Export file ready for download
+## If something looks wrong
 
----
+| What you see | What to do |
+|---|---|
+| No bell | You are not signed in |
+| A colleague got a message and you did not | Switch to another tab and back, or reload. If it is still missing, the message may have been sent to another role |
+| The number does not go down after reading | Reload the page; if it stays, tell your administrator |
+| A notification will not open a page | Only the administrator notices lead somewhere; the others open their text in place |
 
-## 🎛️ Managing Your Preferences
+## What the application does not have
 
-### Accessing Notification Preferences
+- **E-mail or SMS for notifications.** Nothing is sent to your mailbox or phone when a
+  notification is created.
+- **Personal notification settings.** There is no page for choosing which notifications you
+  get, no quiet hours and no daily or weekly digest.
+- **Filtering or sorting** of the list by type or date. The newest is always first.
+- **Instant delivery.** See [The bell](#the-bell) for when new notifications show up.
 
-1. Click your **profile menu** (top-right)
-2. Select **Settings**
-3. Choose **Notifications** tab
-
-### What You Can Configure
-
-#### Notification Types
-
-- ☑️ **Receive notifications** for specific event types
-- ☑️ **Email notifications** (on/off per type)
-- ☑️ **Real-time notifications** (on/off)
-
-#### Frequency Settings
-
-- **Immediate**: Get notifications as they happen
-- **Daily Digest**: Receive one summary email per day
-- **Weekly Digest**: Receive one summary per week
-- **Disable**: Turn off notifications for specific types
-
-#### Quiet Hours
-
-- **Start Time**: When to stop real-time notifications
-- **End Time**: When to resume notifications
-- **Email Still Arrives**: Email notifications during quiet hours
-
-#### Priority Levels
-
-- **High**: Critical events (always notify)
-- **Medium**: Important events (use your settings)
-- **Low**: Information events (optional)
-
----
-
-## 💻 Using Notifications
-
-### Reading a Notification
-
-1. **Click the notification** to see full details
-2. **View context**: Where the event occurred
-3. **Take action**: Click through to relevant page
-4. **Mark as read**: Icon changes when acknowledged
-
-### Quick Actions
-
-**From Notification Dropdown**:
-- 👁️ **Mark as Read**: Removes unread indicator
-- ❌ **Delete**: Remove from notification list
-- 🔗 **View Detail**: Go to full notification page
-
-**From Notification Center**:
-- 📋 **Filter by type**: Show specific notification types
-- 🔄 **Sort**: By date (newest/oldest)
-- 📑 **Pagination**: View older notifications (20 per page)
-
-### Real-Time Updates
-
-Notifications appear instantly when:
-- ✅ Grades are posted
-- ✅ Attendance is recorded
-- ✅ Assignments are created
-- ✅ You're enrolled in a course
-- ✅ Course information is updated
-
-**No need to refresh** - notifications appear automatically!
-
----
-
-## 📧 Email Notifications
-
-### When You Receive Email Notifications
-
-Emails are sent when:
-1. ✉️ Event occurs that you've subscribed to
-2. 📬 Email address is verified in your profile
-3. ⚙️ Email notifications enabled in preferences
-
-### Controlling Email Delivery
-
-**Turn off emails**:
-1. Go to **Settings > Notifications**
-2. Disable **"Send email notifications"**
-3. Click **Save**
-
-**Manage per notification type**:
-1. Go to **Settings > Notifications**
-2. Toggle individual email checkboxes
-3. Click **Save**
-
-### Email Format
-
-Notification emails include:
-- 📌 **Event summary**: What happened
-- 🔗 **Direct link**: Click to view in system
-- 📅 **Timestamp**: When the event occurred
-- ⚙️ **Preference link**: Manage your settings
-
----
-
-## 🔐 Privacy & Security
-
-### What Data is Shared
-
-Notifications contain **only information you have access to**:
-- ✅ Your grades (not classmates')
-- ✅ Your enrollments
-- ✅ Your course updates
-- ✅ Your attendance
-
-### Email Privacy
-
-Your email address is:
-- ✅ **Encrypted** in transit
-- ✅ **Protected** on servers
-- ✅ **Never shared** with external services
-- ✅ **Only used** for notifications
-
-### Unsubscribe
-
-At any time:
-1. Go to **Settings > Notifications**
-2. Disable notification types or email
-3. Changes apply immediately
-
----
-
-## 🆘 Troubleshooting
-
-### Not Seeing Notifications
-
-**Check**:
-1. 🔔 Is notification icon visible? (top-right)
-2. ☑️ Are notifications enabled in preferences?
-3. 🔌 Is internet connection active?
-4. 🔄 Try refreshing the page
-
-**Try**:
-1. Close dropdown and reopen
-2. Check browser console (F12) for errors
-3. Clear browser cache and reload
-4. Try different browser
-
-### Not Receiving Emails
-
-**Check**:
-1. ✉️ Is email address correct in profile?
-2. ☑️ Is email enabled in preferences?
-3. 📬 Check spam/junk folder
-4. ✅ Is email address verified?
-
-**Try**:
-1. Update email address in profile
-2. Re-enable email notifications
-3. Check email provider filters
-4. Contact administrator if problem persists
-
-### Notification Bell Not Working
-
-**Try**:
-1. 🔄 Refresh the page (F5)
-2. 🔐 Log out and log back in
-3. 🧹 Clear browser cache
-4. 🌐 Try different browser
-5. 📞 Contact support
-
----
-
-## 📞 Getting Help
-
-### For Questions
-
-1. Check this guide (search above)
-2. Visit **Help Center** in application
-3. Contact your instructor or administrator
-
-### Reporting Issues
-
-If you encounter problems:
-1. Note the **time and date**
-2. Describe **what happened**
-3. Include **browser/device info**
-4. Contact **administrator** with details
-
----
-
-## ✨ Tips & Best Practices
-
-### Best Use of Notifications
-
-- ✅ **Enable important types**: Grades, assignments, deadlines
-- ✅ **Set quiet hours**: Avoid notifications during sleep
-- ✅ **Check notification center**: See all notifications
-- ✅ **Read promptly**: Don't let unread stack up
-
-### Email Management
-
-- ✅ **Use daily digest**: Reduces email volume
-- ✅ **Verify address**: So emails arrive correctly
-- ✅ **Check spam folder**: Important emails may be filtered
-- ✅ **Whitelist sender**: Add SMS to trusted senders
-
-### Staying Informed
-
-- ✅ **Check regularly**: Even if you disable notifications
-- ✅ **Enable critical types**: Never miss important updates
-- ✅ **Update preferences**: As your needs change
-- ✅ **Ask for help**: If something seems wrong
-
----
-
-## 🆕 What's New in 1.17.1
-
-**Real-Time Notifications**:
-- 🚀 WebSocket-based instant delivery
-- 🔔 Bell icon with unread count
-- 📋 Notification dropdown menu
-- 📧 Email integration available
-- ⚙️ Fully customizable preferences
-- 🎯 Real-time without page refresh
-
-**Coming Soon** (1.17.1+):
-- 📱 Mobile push notifications
-- 🌐 Webhook integrations
-- 📊 Notification analytics
-- 🤖 Smart notification grouping
-
----
-
-## 📚 Related Documentation
-
-- [Admin Configuration Guide](../admin/NOTIFICATIONS_ADMIN_GUIDE.md) - For administrators
-- [Release Notes 1.17.1](../releases/RELEASE_NOTES_1.17.1.md) - What's new
-- [Settings Reference](./SETTINGS_REFERENCE.md) - All settings explained
-
----
-
-**Questions?** Contact your system administrator or visit the Help Center in the application.
-
-**Version**: 1.0 (1.17.1)
-**Status**: Production Ready
-**Last Updated**: January 12, 2026
+Questions go to your system administrator.
