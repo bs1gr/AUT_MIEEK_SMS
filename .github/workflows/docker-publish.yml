@@ -1,5 +1,9 @@
 name: Manual Docker Publish and Release
 
+# The title tells a build-only run from a publish. DOCKER_BUILD_CHECK.ps1 finds the build-only
+# run of a commit by this exact text: change both together.
+run-name: "${{ inputs.dry_run && 'Docker build check' || 'Docker publish' }} ${{ inputs.tag }} (${{ inputs.platforms }})"
+
 on:
   workflow_dispatch:
     inputs:

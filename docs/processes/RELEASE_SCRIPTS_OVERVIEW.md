@@ -127,6 +127,32 @@ This script is no longer part of the active release surface.
 ```text
 ---
 
+### 6. DOCKER_BUILD_CHECK.ps1
+
+**Purpose**: Make sure the Docker image builds from the commit that is about to be tagged
+**Current Status**: Active (added November 2026); called by `RELEASE_READY.ps1`
+**Scope**: One build-only run of `docker-publish.yml` on GitHub Actions; nothing is published
+
+**What it does**:
+
+- Refuses a commit that is not pushed (the run builds the branch as it is on GitHub)
+- Dispatches `docker-publish.yml` with `dry_run=true` for `linux/amd64` and `linux/arm64`,
+  unless a build-only run of that commit already succeeded or is still running
+- Waits for the run and exits 0 only when it succeeded (`-NoWait`: starts it and returns)
+
+**Use when**: Before a release tag made by hand. `RELEASE_READY.ps1` starts the run once the
+release commit is pushed and, with `-TagRelease`, tags only after it passed
+(`-SkipDockerCheck` is the override). A commit added after the release commit needs a run
+of its own.
+
+**Command**:
+
+```powershell
+.\DOCKER_BUILD_CHECK.ps1 -Version "1.18.73"
+```
+
+---
+
 ## 🎯 Complete Release Workflows
 
 ### Workflow A: Primary policy-aligned release workflow (Recommended)

@@ -20,6 +20,7 @@ Phase 2 — Artifact build + verification:
 Phase 3 — Docs + publish:
 - `.\infra\scripts\release\GENERATE_RELEASE_DOCS.ps1 -Version "X.X.X"`
 - Commit + push.
+- `.\infra\scripts\release\DOCKER_BUILD_CHECK.ps1 -Version "X.X.X"` — must exit 0: a build-only run of the Docker image from the pushed commit (amd64 + arm64, nothing is published). Run it on the commit that gets the tag; a commit added later needs a run of its own. `RELEASE_READY.ps1 -TagRelease` does this itself.
 - `git tag vX.X.X` + push (triggers GitHub Actions) — never re-dispatch or re-tag an existing historical release tag.
 - Wait for GitHub Actions to go green.
 - `gh release upload vX.X.X SMS_Installer_X.X.X.exe` — installer only, never generic CI artifacts.
