@@ -469,7 +469,13 @@ class TestAdvancedSearchEndpoint:
         assert isinstance(data["data"], dict)
         assert "results" in data["data"]
         assert isinstance(data["data"]["results"], list)
-        assert data["data"]["limit"] == 20  # default limit or from query_string
+        # One record per page, the second page: until November 2026 this test asked for that
+        # and expected `limit == 20`, which is what the endpoint answered whatever was asked.
+        assert data["data"]["limit"] == 1
+        assert data["data"]["offset"] == 1
+        assert len(data["data"]["results"]) == 1
+        assert data["data"]["total"] == 3
+        assert data["data"]["has_more"] is True
 
 
 class TestSuggestionsEndpoint:

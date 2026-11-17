@@ -21,6 +21,10 @@ export interface SearchResult {
   credits?: number;
   grade_value?: number;
   assignment_name?: string;
+  // A grade: the mark, what it is out of, and its day (YYYY-MM-DD)
+  grade?: number | null;
+  max_grade?: number | null;
+  date?: string | null;
 }
 
 /**
@@ -51,7 +55,7 @@ export interface FilterCriteria {
  * Advanced search request payload
  */
 export interface AdvancedSearchRequest {
-  search_type: 'students' | 'courses' | 'grades';
+  search_type: SearchType;
   query?: string;
   filters?: FilterCriteria[];
   page?: number;
@@ -59,10 +63,41 @@ export interface AdvancedSearchRequest {
   sort?: SearchSortState;
 }
 
+export type SearchType = 'students' | 'courses' | 'grades';
+
 export interface SearchSortState {
-  field: 'relevance' | 'name' | 'email' | 'created_at' | 'updated_at';
+  field: 'relevance' | 'name' | 'email' | 'date';
   direction: 'asc' | 'desc';
 }
+
+/**
+ * What each kind of record can be ordered by; the server refuses anything else. "Created" and
+ * "Updated" were offered until November 2026: no record has such a date.
+ */
+export const SORT_FIELDS: Record<SearchType, SearchSortState['field'][]> = {
+  students: ['relevance', 'name', 'email'],
+  courses: ['relevance', 'name'],
+  grades: ['relevance', 'name', 'date'],
+};
+
+const DEFAULT_SORT: SearchSortState = { field: 'relevance', direction: 'desc' };
+
+/**
+ * The filters as the server reads them: one entry per field, a list when a field has several
+ * values (any of them matches).
+ */
+export const filtersToBody = (filters: FilterCriteria[]): Record<string, unknown> | undefined => {
+  if (filters.length === 0) return undefined;
+  return filters.reduce<Record<string, unknown>>((acc, curr) => {
+    if (curr.field in acc) {
+      const existing = acc[curr.field];
+      acc[curr.field] = Array.isArray(existing) ? [...existing, curr.value] : [existing, curr.value];
+    } else {
+      acc[curr.field] = curr.value;
+    }
+    return acc;
+  }, {});
+};
 
 type SearchResultsPayload = {
   results: SearchResult[];
@@ -77,12 +112,12 @@ type SearchResultsPayload = {
  */
 export const useSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchType, setSearchType] = useState<'students' | 'courses' | 'grades'>('students');
+  const [searchType, setSearchType] = useState<SearchType>('students');
   const [filters, setFilters] = useState<FilterCriteria[]>([]);
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [page, setPage] = useState(() => 0);
   const [limit, setLimit] = useState(20);
-  const [sort, setSort] = useState<SearchSortState>({ field: 'relevance', direction: 'desc' });
+  const [sort, setSort] = useState<SearchSortState>(DEFAULT_SORT);
 
   // Debounce search query - 300ms delay
   useEffect(() => {
@@ -97,7 +132,7 @@ export const useSearch = () => {
   /**
    * Fetch search results based on current query and filters
    */
-  const { data: searchResults, isLoading, error } = useQuery({
+  const { data: searchResults, isLoading, error, refetch } = useQuery({
     queryKey: ['search', searchType, debouncedQuery, filters, page, limit, sort],
     queryFn: async () => {
       if (!debouncedQuery && filters.length === 0) {
@@ -108,20 +143,18 @@ export const useSearch = () => {
         const response = await apiClient.post('/search/advanced', {
           entity: searchType,
           query: debouncedQuery || undefined,
-          filters: filters.length > 0 ? filters.reduce<Record<string, unknown>>((acc, curr) => {
-            // If multiple filters on same field, convert to array
-            if (acc[curr.field]) {
-              const existing = acc[curr.field];
-              acc[curr.field] = Array.isArray(existing) ? [...existing, curr.value] : [existing, curr.value];
-            } else {
-              acc[curr.field] = curr.value;
-            }
-            return acc;
-          }, {}) : undefined,
+          filters: filtersToBody(filters),
           page,
           page_size: limit,
           sort,
         });
+
+        // The server answers a search it could not do with HTTP 200 and `success: false`.
+        // Read as data that was an empty list: the page said "No results found".
+        const envelope = response.data as { success?: boolean; error?: { message?: string } } | null;
+        if (envelope && typeof envelope === 'object' && envelope.success === false) {
+          throw new Error(envelope.error?.message || 'Search failed');
+        }
 
         const data = extractAPIResponseData<{
           results: SearchResult[];
@@ -148,32 +181,8 @@ export const useSearch = () => {
     placeholderData: (previousData) => previousData,
   });
 
-  /**
-   * Fetch saved searches for current user
-   */
-  const { data: savedSearches, isLoading: loadingSavedSearches } = useQuery({
-    queryKey: ['saved-searches'],
-    queryFn: async () => {
-      try {
-        const response = await apiClient.get('/search/saved');
-        const extracted = extractAPIResponseData<SavedSearch[]>(response);
-        if (Array.isArray(extracted)) {
-          return extracted;
-        }
-        const responseData = (response as { data?: unknown }).data;
-        if (Array.isArray(responseData)) {
-          return responseData as SavedSearch[];
-        }
-        return [];
-      } catch (err) {
-        console.error('Failed to fetch saved searches:', err);
-        return [];
-      }
-    },
-    initialData: [],
-    staleTime: 0,
-    refetchOnMount: true,
-  });
+  // The saved searches are not asked for here. The page did, at every opening, and showed
+  // them nowhere. The four functions below remain for a page that would.
 
   /**
    * Create a new saved search
@@ -268,9 +277,12 @@ export const useSearch = () => {
     setPage(0);
   }, []);
 
-  const setSearchTypeWithReset = useCallback((value: 'students' | 'courses' | 'grades') => {
+  const setSearchTypeWithReset = useCallback((value: SearchType) => {
     setSearchType(value);
     setPage(0);
+    // An order the new kind of record does not have (students by e-mail, grades by date)
+    // goes back to the default: the server would refuse it.
+    setSort((prev) => (SORT_FIELDS[value].includes(prev.field) ? prev : DEFAULT_SORT));
   }, []);
 
   const setFiltersWithReset = useCallback((next: FilterCriteria[] | ((prev: FilterCriteria[]) => FilterCriteria[])) => {
@@ -300,12 +312,9 @@ export const useSearch = () => {
     hasMore: (searchResults as SearchResultsPayload | undefined)?.has_more ?? false,
     isLoading,
     error,
+    retrySearch: refetch,
 
     // Saved searches
-    savedSearches: savedSearches || [],
-    loadingSavedSearches,
-
-    // Mutations
     createSavedSearch,
     deleteSavedSearch,
     toggleFavoriteSavedSearch,

@@ -3,6 +3,7 @@ import { renderWithI18n } from '../../test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import SearchSortControls from './SearchSortControls';
+import type { SearchSortState } from './useSearch';
 
 describe('SearchSortControls Component', () => {
   const mockOnChange = vi.fn();
@@ -11,12 +12,12 @@ describe('SearchSortControls Component', () => {
     mockOnChange.mockClear();
   });
 
-  const defaultSort = {
-    field: 'relevance' as const,
-    direction: 'desc' as const,
+  const defaultSort: SearchSortState = {
+    field: 'relevance',
+    direction: 'desc',
   };
 
-  const renderComponent = (sort = defaultSort) => {
+  const renderComponent = (sort: SearchSortState = defaultSort) => {
     return renderWithI18n(<SearchSortControls sort={sort} onChange={mockOnChange} />);
   };
 
@@ -40,11 +41,27 @@ describe('SearchSortControls Component', () => {
     const fieldSelect = screen.getByLabelText(/sort by/i) as HTMLSelectElement;
     const options = Array.from(fieldSelect.options).map((o) => o.value);
 
-    expect(options).toContain('relevance');
-    expect(options).toContain('name');
-    expect(options).toContain('email');
-    expect(options).toContain('created_at');
-    expect(options).toContain('updated_at');
+    // "Created" and "Updated" were offered until November 2026: no record has such a date.
+    expect(options).toEqual(['relevance', 'name', 'email', 'date']);
+  });
+
+  it('offers only the orders it is given', () => {
+    renderWithI18n(<SearchSortControls sort={defaultSort} fields={['relevance', 'name']} onChange={mockOnChange} />);
+
+    const fieldSelect = screen.getByLabelText(/sort by/i) as HTMLSelectElement;
+    expect(Array.from(fieldSelect.options).map((o) => o.textContent)).toEqual(['Relevance', 'Name']);
+  });
+
+  it('names the two directions for what they order', () => {
+    const labels = () =>
+      Array.from((screen.getByLabelText(/sort direction/i) as HTMLSelectElement).options).map((o) => o.textContent);
+
+    const { unmount } = renderComponent();
+    expect(labels()).toEqual(['Best match last', 'Best match first']);
+    unmount();
+
+    renderComponent({ field: 'name', direction: 'asc' });
+    expect(labels()).toEqual(['Ascending', 'Descending']);
   });
 
   it('displays both sort directions', () => {
@@ -117,12 +134,12 @@ describe('SearchSortControls Component', () => {
 
   it('reflects current sort state in UI', () => {
     renderComponent({
-      field: 'created_at',
+      field: 'date',
       direction: 'asc',
     });
 
     const fieldSelect = screen.getByLabelText(/sort by/i);
-    expect(fieldSelect).toHaveValue('created_at');
+    expect(fieldSelect).toHaveValue('date');
     const directionSelect = screen.getByLabelText(/sort direction/i);
     expect(directionSelect).toHaveValue('asc');
   });
@@ -141,11 +158,11 @@ describe('SearchSortControls Component', () => {
 
     await user.selectOptions(fieldSelect, 'name');
     await user.selectOptions(fieldSelect, 'email');
-    await user.selectOptions(fieldSelect, 'created_at');
+    await user.selectOptions(fieldSelect, 'date');
 
     expect(mockOnChange).toHaveBeenCalledTimes(3);
     expect(mockOnChange).toHaveBeenLastCalledWith({
-      field: 'created_at',
+      field: 'date',
       direction: 'desc',
     });
   });

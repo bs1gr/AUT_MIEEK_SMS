@@ -2,6 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+# lower() for all letters and translate() on every SQLite connection of the run, as in the
+# application (backend.models imports it too; here it does not depend on the order of imports).
+import backend.sqlite_unicode  # noqa: F401
+
 # --- Database Setup for Tests ---
 # Use an in-memory SQLite database for testing.
 # StaticPool is used to ensure the same connection is used across the test session for in-memory DB.

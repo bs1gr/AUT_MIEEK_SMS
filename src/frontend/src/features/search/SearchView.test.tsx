@@ -7,11 +7,13 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import SearchView from './SearchView';
 import * as searchHooks from './useSearch';
 
-import { SortConfig } from './useSearch';
+import type { SearchSortState as SortConfig } from './useSearch';
 
-// Mock the hooks
-vi.mock('./useSearch');
-vi.mock('./useSearchFacets');
+// Mock the hook, and keep what else the module exports (the orders each kind of record has)
+vi.mock('./useSearch', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./useSearch')>()),
+  useSearch: vi.fn(),
+}));
 vi.mock('./SearchSortControls', () => ({
   default: ({ _sort, onChange }: { _sort: SortConfig; onChange: (_sort: SortConfig) => void }) => (
     <div data-testid="sort-controls">
@@ -20,13 +22,24 @@ vi.mock('./SearchSortControls', () => ({
   ),
 }));
 vi.mock('./SearchFacets', () => ({
-  default: ({ facets, onSelect }: { facets?: Array<{ field: string; label: string; type: string }>; onSelect: (field: string, value: string) => void }) => (
-    <div data-testid="facets">
+  default: ({
+    facets,
+    selected,
+    onToggle,
+    onClear,
+  }: {
+    facets?: Array<{ field: string; label: string }>;
+    selected?: Record<string, string[]>;
+    onToggle: (field: string, value: string) => void;
+    onClear: () => void;
+  }) => (
+    <div data-testid="facets" data-selected={JSON.stringify(selected)}>
       {facets?.map((f) => (
-        <button key={f.field} onClick={() => onSelect(f.field, 'test')}>
+        <button key={f.field} onClick={() => onToggle(f.field, 'active')}>
           {f.label}
         </button>
       ))}
+      <button onClick={() => onClear()}>Clear</button>
     </div>
   ),
 }));
@@ -41,8 +54,8 @@ vi.mock('./useSearchFacets', () => ({
   useSearchFacets: () => ({
     data: {
       facets: [
-        { field: 'status', label: 'Status', type: 'checkbox' },
-        { field: 'enrollment_type', label: 'Enrollment Type', type: 'select' },
+        { field: 'status', label: 'Status', values: [{ value: 'active', count: 1 }] },
+        { field: 'enrollment_type', label: 'Study Year', values: [{ value: 'year_1', count: 1 }] },
       ],
     },
     isLoading: false,
@@ -65,12 +78,15 @@ describe('SearchView Component', () => {
     const defaultMock = {
       searchQuery: '',
       setSearchQuery: vi.fn(),
+      debouncedQuery: '',
       searchType: 'students' as const,
       setSearchType: vi.fn(),
       searchResults: [],
       totalResults: 0,
       isLoading: false,
       error: null,
+      retrySearch: vi.fn(),
+      filters: [],
       page: 0,
       setPage: vi.fn(),
       limit: 20,
@@ -81,7 +97,7 @@ describe('SearchView Component', () => {
       setFilters: vi.fn(),
       ...overrides,
     };
-    vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock);
+    vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock as unknown as ReturnType<typeof searchHooks.useSearch>);
   };
 
   const renderComponent = (props: Record<string, unknown> = {}) => {
@@ -184,13 +200,20 @@ describe('SearchView Component', () => {
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
-  it('shows error message on search failure', () => {
-    const errorMessage = 'Search service unavailable';
-    mockUseSearch({ error: new Error(errorMessage) });
+  it('says that the search failed in its own words, not in those of the HTTP client', async () => {
+    const retrySearch = vi.fn();
+    mockUseSearch({ error: new Error('Request failed with status code 500'), retrySearch });
+    const user = userEvent.setup();
 
     renderComponent();
 
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent('The search could not be done. Try again.');
+    expect(alert).not.toHaveTextContent('status code 500');
+    expect(screen.queryByText(/no results/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Try Again' }));
+    expect(retrySearch).toHaveBeenCalledTimes(1);
   });
 
   it('shows no results message when search returns empty', () => {
@@ -260,16 +283,86 @@ describe('SearchView Component', () => {
     expect(screen.getByTestId('pagination')).toBeInTheDocument();
   });
 
-  it('handles facet selection', async () => {
+  it('adds a filter for a box that is ticked and removes it when the box is cleared', () => {
     const setFilters = vi.fn();
     mockUseSearch({ setFilters });
 
     renderComponent();
+    fireEvent.click(screen.getByRole('button', { name: /Status/i }));
 
-    const facetButton = screen.getByRole('button', { name: /Status/i });
-    fireEvent.click(facetButton);
+    // The page hands the hook a function of the filters there are.
+    const update = setFilters.mock.calls[0][0] as (previous: unknown[]) => unknown[];
+    const ticked = [{ field: 'status', operator: 'equals', value: 'active' }];
+    expect(update([])).toEqual(ticked);
+    expect(update(ticked)).toEqual([]);
+    const other = { field: 'status', operator: 'equals', value: 'inactive' };
+    expect(update([other])).toEqual([other, ...ticked]);
+  });
 
-    expect(setFilters).toHaveBeenCalled();
+  it('tells the panel what is ticked from the filters of the search', () => {
+    mockUseSearch({
+      filters: [
+        { field: 'status', operator: 'equals', value: 'active' },
+        { field: 'status', operator: 'equals', value: 'inactive' },
+        { field: 'enrollment_type', operator: 'equals', value: 'year_1' },
+      ],
+    });
+
+    renderComponent();
+
+    expect(JSON.parse(screen.getByTestId('facets').getAttribute('data-selected') || '{}')).toEqual({
+      status: ['active', 'inactive'],
+      enrollment_type: ['year_1'],
+    });
+  });
+
+  it('clears every ticked filter with "Clear all"', () => {
+    const setFilters = vi.fn();
+    mockUseSearch({ setFilters });
+
+    renderComponent();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+
+    const update = setFilters.mock.calls[0][0] as (previous: unknown[]) => unknown[];
+    expect(update([{ field: 'status', operator: 'equals', value: 'active' }])).toEqual([]);
+  });
+
+  it('drops the filters when the kind of record changes', async () => {
+    const setFilters = vi.fn();
+    const setSearchType = vi.fn();
+    mockUseSearch({ setFilters, setSearchType });
+    const user = userEvent.setup();
+
+    renderComponent();
+    await user.selectOptions(document.getElementById('search-type') as HTMLSelectElement, 'courses');
+
+    expect(setSearchType).toHaveBeenCalledWith('courses');
+    expect(setFilters).toHaveBeenCalledWith([]);
+  });
+
+  it('says of a grade whose it is, in which course, the mark and the day', () => {
+    mockUseSearch({
+      searchType: 'grades' as const,
+      searchResults: [
+        {
+          id: 9,
+          type: 'grade' as const,
+          student_id: 1,
+          student_name: 'John Doe',
+          course_name: 'Calculus II',
+          assignment_name: 'Midterm',
+          grade: 17,
+          max_grade: 20,
+          date: '2026-03-05',
+        },
+      ],
+      totalResults: 1,
+    });
+
+    renderComponent();
+
+    expect(screen.getByText('Midterm')).toBeInTheDocument();
+    expect(screen.getByText('John Doe · Calculus II · 17 / 20 · 2026-03-05')).toBeInTheDocument();
   });
 
   it('renders result type badges', () => {

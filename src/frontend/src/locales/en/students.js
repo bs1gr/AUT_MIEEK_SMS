@@ -18,6 +18,8 @@ export default {
   active_other: 'active',
   inactive: 'Inactive',
   noStudentsFound: 'No students found',
+  studentsLoadFailed: 'The list of students could not be loaded.',
+  studentsLoadRetry: 'Try again',
   areYouSure: 'Are you sure you want to delete this student?',
   studentAddedSuccessfully: 'Student added successfully!',
   studentDeletedSuccessfully: 'Student deleted successfully!',

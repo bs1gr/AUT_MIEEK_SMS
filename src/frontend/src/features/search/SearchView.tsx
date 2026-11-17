@@ -1,11 +1,14 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useSearch, type SearchResult, type FilterCriteria } from './useSearch';
+import { useSearch, SORT_FIELDS, type SearchResult, type SearchType } from './useSearch';
 import { useSearchFacets } from './useSearchFacets';
 import SearchSortControls from './SearchSortControls';
 import SearchPagination from './SearchPagination';
-import SearchFacets from './SearchFacets';
+import SearchFacets, { type FacetSelections } from './SearchFacets';
+
+// The two dates that narrow a search for grades; every other filter is a tick in the panel.
+const GRADE_DATE_FIELDS = ['date_from', 'date_to', 'date_assigned_from', 'date_assigned_to'];
 
 export const SearchView: React.FC = () => {
   const { t } = useTranslation('search');
@@ -13,12 +16,14 @@ export const SearchView: React.FC = () => {
   const {
     searchQuery,
     setSearchQuery,
+    debouncedQuery,
     searchType,
     setSearchType,
     searchResults,
     totalResults,
     isLoading,
     error,
+    retrySearch,
     page,
     setPage,
     limit,
@@ -26,47 +31,31 @@ export const SearchView: React.FC = () => {
     sort,
     setSort,
     hasMore,
+    filters,
     setFilters,
   } = useSearch();
 
   const [gradeDateFrom, setGradeDateFrom] = useState('');
   const [gradeDateTo, setGradeDateTo] = useState('');
 
-  type FacetSelection =
-    | string
-    | { min?: number; max?: number }
-    | { start?: string; end?: string }
-    | null;
-
-  const applyGradeDateFilters = useCallback(
-    (
-      currentFilters: FilterCriteria[],
-      nextType: 'students' | 'courses' | 'grades',
-      nextDateFrom: string,
-      nextDateTo: string
-    ): FilterCriteria[] => {
-      const filtered = currentFilters.filter(
-        (filter) => !['date_from', 'date_to', 'date_assigned_from', 'date_assigned_to'].includes(filter.field)
-      );
-
-      if (nextType !== 'grades') {
-        return filtered;
-      }
-
-      if (nextDateFrom) {
-        filtered.push({ field: 'date_from', operator: 'equals' as const, value: nextDateFrom });
-      }
-
-      if (nextDateTo) {
-        filtered.push({ field: 'date_to', operator: 'equals' as const, value: nextDateTo });
-      }
-
-      return filtered;
-    },
-    []
+  // The filter panel asks for its counts when the search itself is sent: for the text after
+  // the typing has stopped (it used to ask at every letter), and also when only a filter is
+  // left, so that a ticked box stays on the screen after the text is cleared.
+  const { data: facetsData, isLoading: loadingFacets } = useSearchFacets(
+    searchType,
+    debouncedQuery,
+    Boolean(debouncedQuery) || filters.length > 0
   );
 
-  const { data: facetsData, isLoading: loadingFacets } = useSearchFacets(searchQuery);
+  // What is ticked in the panel is what the search is filtered by: one filter per tick.
+  const facetSelections = useMemo(() => {
+    const selections: FacetSelections = {};
+    filters.forEach((filter) => {
+      if (GRADE_DATE_FIELDS.includes(filter.field)) return;
+      (selections[filter.field] ||= []).push(String(filter.value));
+    });
+    return selections;
+  }, [filters]);
 
   const typeOptions = useMemo(
     () => [
@@ -77,45 +66,44 @@ export const SearchView: React.FC = () => {
     [t]
   );
 
-  const handleFacetSelect = (facet: string, value: FacetSelection) => {
+  const handleFacetToggle = (field: string, value: string) => {
     setFilters((prev) => {
-      const filtered = prev.filter((filter) => filter.field !== facet);
-      if (value === null) {
-        return applyGradeDateFilters(filtered, searchType, gradeDateFrom, gradeDateTo);
-      }
-      if (typeof value === 'string') {
-        return applyGradeDateFilters([
-          ...filtered,
-          { field: facet, operator: 'equals' as const, value },
-        ], searchType, gradeDateFrom, gradeDateTo);
-      }
-
-      return applyGradeDateFilters([
-        ...filtered,
-        { field: facet, operator: 'between' as const, value },
-      ], searchType, gradeDateFrom, gradeDateTo);
+      const ticked = prev.some((filter) => filter.field === field && String(filter.value) === value);
+      return ticked
+        ? prev.filter((filter) => !(filter.field === field && String(filter.value) === value))
+        : [...prev, { field, operator: 'equals' as const, value }];
     });
-    setPage(0);
   };
 
-  const handleSearchTypeChange = (nextType: 'students' | 'courses' | 'grades') => {
+  const handleFacetClear = () => {
+    setFilters((prev) => prev.filter((filter) => GRADE_DATE_FIELDS.includes(filter.field)));
+  };
+
+  const setGradeDates = (nextDateFrom: string, nextDateTo: string) => {
+    setFilters((prev) => {
+      const others = prev.filter((filter) => !GRADE_DATE_FIELDS.includes(filter.field));
+      if (nextDateFrom) others.push({ field: 'date_from', operator: 'equals' as const, value: nextDateFrom });
+      if (nextDateTo) others.push({ field: 'date_to', operator: 'equals' as const, value: nextDateTo });
+      return others;
+    });
+  };
+
+  const handleSearchTypeChange = (nextType: SearchType) => {
     setSearchType(nextType);
-    if (nextType !== 'grades') {
-      setGradeDateFrom('');
-      setGradeDateTo('');
-    }
-    setFilters((prev) => applyGradeDateFilters(prev, nextType, nextType === 'grades' ? gradeDateFrom : '', nextType === 'grades' ? gradeDateTo : ''));
-    setPage(0);
+    // A filter belongs to one kind of record: a student's status says nothing about a course.
+    setGradeDateFrom('');
+    setGradeDateTo('');
+    setFilters([]);
   };
 
   const handleGradeDateFromChange = (value: string) => {
     setGradeDateFrom(value);
-    setFilters((prev) => applyGradeDateFilters(prev, searchType, value, gradeDateTo));
+    setGradeDates(value, gradeDateTo);
   };
 
   const handleGradeDateToChange = (value: string) => {
     setGradeDateTo(value);
-    setFilters((prev) => applyGradeDateFilters(prev, searchType, gradeDateFrom, value));
+    setGradeDates(gradeDateFrom, value);
   };
 
   const handlePageChange = (nextPage: number) => {
@@ -147,7 +135,6 @@ export const SearchView: React.FC = () => {
         console.warn('Unknown result type:', result.type);
     }
   };
-
   const placeholder = useMemo(() => {
     const key = `placeholder.${searchType}`;
     return t(key, {
@@ -170,6 +157,18 @@ export const SearchView: React.FC = () => {
   };
 
   const renderResultSecondary = (result: SearchResult) => {
+    // A grade: whose it is, in which course, the mark and its day. It used to show the course
+    // alone, so ten students' "Midterm" were ten identical lines.
+    if (result.type === 'grade') {
+      const mark =
+        typeof result.grade === 'number'
+          ? typeof result.max_grade === 'number'
+            ? `${result.grade} / ${result.max_grade}`
+            : String(result.grade)
+          : null;
+      const parts = [result.student_name, result.course_name, mark, result.date].filter(Boolean);
+      if (parts.length > 0) return parts.join(' · ');
+    }
     if ('email' in result && result.email) return result.email;
     if ('course_code' in result && result.course_code) return result.course_code;
     if ('course_name' in result && result.course_name) return result.course_name;
@@ -187,7 +186,7 @@ export const SearchView: React.FC = () => {
             <select
               id="search-type"
               value={searchType}
-              onChange={(e) => handleSearchTypeChange(e.target.value as 'students' | 'courses' | 'grades')}
+              onChange={(e) => handleSearchTypeChange(e.target.value as SearchType)}
               className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               {typeOptions.map((option) => (
@@ -263,7 +262,11 @@ export const SearchView: React.FC = () => {
           </div>
         </div>
 
-        <SearchSortControls sort={sort} onChange={(next) => { setSort(next); setPage(0); }} />
+        <SearchSortControls
+          sort={sort}
+          fields={SORT_FIELDS[searchType]}
+          onChange={(next) => { setSort(next); setPage(0); }}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -273,7 +276,13 @@ export const SearchView: React.FC = () => {
               {t('filters.gradeDateHint', { defaultValue: 'Use the date range above to filter historical grades.' })}
             </div>
           ) : (
-            <SearchFacets facets={facetsData?.facets} loading={loadingFacets} onSelect={handleFacetSelect} />
+            <SearchFacets
+              facets={facetsData?.facets}
+              selected={facetSelections}
+              loading={loadingFacets}
+              onToggle={handleFacetToggle}
+              onClear={handleFacetClear}
+            />
           )}
         </div>
         <div className="lg:col-span-2 space-y-3">
@@ -306,9 +315,21 @@ export const SearchView: React.FC = () => {
               )}
             </div>
 
+            {/* The page's own words, in its language: it used to show the HTTP client's
+                English text ("Network Error", "Request failed with status code 500"). */}
             {error && (
-              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md" role="alert">
-                {error instanceof Error ? error.message : String(error)}
+              <div
+                className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md"
+                role="alert"
+              >
+                <span>{t('searchFailed', { defaultValue: 'The search could not be done. Try again.' })}</span>
+                <button
+                  type="button"
+                  className="px-2 py-1 text-xs font-medium border border-red-300 rounded-md bg-white hover:bg-red-100"
+                  onClick={() => retrySearch()}
+                >
+                  {t('results.retry', { defaultValue: 'Try Again' })}
+                </button>
               </div>
             )}
 
@@ -318,7 +339,7 @@ export const SearchView: React.FC = () => {
               </div>
             )}
 
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100" data-testid="search-results">
               {searchResults.map((result: SearchResult, index: number) => (
                 <li key={`${result.type}-${result.id}-${index}`} className="py-3">
                   <div className="flex items-start justify-between">

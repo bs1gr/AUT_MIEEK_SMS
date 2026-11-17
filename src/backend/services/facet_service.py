@@ -16,9 +16,10 @@ Version: 1.0.0
 import logging
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from backend.models import Student, Course
+from backend.services.search_service import contains_text
 from backend.schemas.search import (
     FacetValue,
     FacetCategory,
@@ -59,6 +60,20 @@ class FacetService:
         """
         try:
             base_query = self.db.query(Student).filter(Student.deleted_at.is_(None))
+
+            # The counts are of the students the search itself finds for this text. Until
+            # November 2026 the text was not read: every search was shown the counts of all
+            # students.
+            text = (query or "").strip()
+            if text:
+                base_query = base_query.filter(
+                    or_(
+                        contains_text(Student.first_name, text),
+                        contains_text(Student.last_name, text),
+                        contains_text(Student.email, text),
+                        contains_text(Student.student_id, text),
+                    )
+                )
 
             # Apply filters if provided
             if filters:
@@ -120,6 +135,16 @@ class FacetService:
         """
         try:
             base_query = self.db.query(Course).filter(Course.deleted_at.is_(None))
+
+            # As for students: the counts are of the courses the search finds for this text.
+            text = (query or "").strip()
+            if text:
+                base_query = base_query.filter(
+                    or_(
+                        contains_text(Course.course_name, text),
+                        contains_text(Course.course_code, text),
+                    )
+                )
 
             # Apply filters if provided
             if filters:

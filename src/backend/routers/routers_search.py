@@ -14,7 +14,7 @@ Version: 1.0.0
 """
 
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 import logging
 
@@ -237,15 +237,21 @@ async def advanced_search(
         "entity": "students|courses|grades",
         "query": "optional search text",
         "filters": {
-            "field": "value"
+            "field": "value, or a list of values (any of them matches)"
         },
-        "page": optional,
-        "page_size": optional
+        "page": 0,
+        "page_size": 20,
+        "sort": {"field": "relevance", "direction": "desc"}
     }
     ```
 
+    `page` counts from 0 and `page_size` is 1 to 100. Without them the `limit` and `offset`
+    of the address apply. `sort.field` is `relevance` or `name` for every entity, `email` for
+    students and `date` for grades; with `relevance`, `desc` puts the best match first.
+
     **Response:**
-    Returns list of matching records with all applicable fields.
+    `results` (the page), `total` (the number of records that match, on all pages),
+    `has_more`, `limit`, `offset`, `page`, `page_size` and `sort`.
 
     **Permissions:**
     - Public if AUTH_MODE=disabled
@@ -313,19 +319,66 @@ async def advanced_search(
         else:
             filters_to_use = user_filters
 
-        # Use entity as search_type for backward compatibility
-        results = search_service.advanced_filter(filters=filters_to_use, search_type=entity, limit=limit, offset=offset)
+        # The page sends its paging and its order in the body. Until November 2026 the body's
+        # `page`, `page_size` and `sort` were not read: every request was answered with the
+        # first 20 records in no stated order, and `total` was the length of that answer.
+        paging_error = None
+        if body.get("page_size") is not None:
+            page_size = body["page_size"]
+            if isinstance(page_size, bool) or not isinstance(page_size, int) or not 1 <= page_size <= 100:
+                paging_error = "page_size must be a whole number from 1 to 100"
+            else:
+                limit = page_size
+        if body.get("page") is not None:
+            page_number = body["page"]
+            if isinstance(page_number, bool) or not isinstance(page_number, int) or page_number < 0:
+                paging_error = "page must be a whole number, 0 for the first page"
+            else:
+                offset = page_number * limit
+        if paging_error:
+            return error_response(
+                code="INVALID_PAGINATION",
+                message=paging_error,
+                request_id=request.state.request_id,
+            )
 
-        # Format response to match frontend expectations
+        raw_sort = body.get("sort")
+        sort: Dict[str, Any] = raw_sort if isinstance(raw_sort, dict) else {}
+        sort_field = sort.get("field") or "relevance"
+        sort_direction = sort.get("direction") or "desc"
+        if sort_field not in SearchService.SORT_FIELDS[entity] or sort_direction not in ("asc", "desc"):
+            return error_response(
+                code="INVALID_SORT",
+                message=(
+                    f"Cannot sort {entity} by '{sort_field}' ({sort_direction}). "
+                    f"Fields: {', '.join(SearchService.SORT_FIELDS[entity])}; directions: asc, desc"
+                ),
+                request_id=request.state.request_id,
+            )
+
+        results, total = search_service.advanced_search_page(
+            entity,
+            filters_to_use,
+            sort_field=sort_field,
+            sort_direction=sort_direction,
+            limit=limit,
+            offset=offset,
+        )
+
         response_data = {
             "results": results,
-            "total": len(results),  # Note: This is count of returned results, not total available
-            "has_more": len(results) >= limit,  # Heuristic: if we got exactly limit results, there might be more
+            "total": total,
+            "has_more": offset + len(results) < total,
             "limit": limit,
             "offset": offset,
+            "page": offset // limit,
+            "page_size": limit,
+            "sort": {"field": sort_field, "direction": sort_direction},
         }
 
         return success_response(response_data, request_id=request.state.request_id)
+    except HTTPException:
+        raise
     except ValueError as ve:
         logger.warning(f"Invalid filter value: {str(ve)}")
         return error_response(
@@ -997,6 +1050,7 @@ async def get_student_facets(
     request: Request,
     q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Get faceted navigation data for student search.
@@ -1007,7 +1061,7 @@ async def get_student_facets(
     - Enrollment Year
 
     **Query Parameters:**
-    - `q`: Optional search query to filter facets
+    - `q`: Optional search text; the counts are of the students a search for it finds
 
     **Response:**
     Returns facet categories with values and counts.
@@ -1046,6 +1100,7 @@ async def get_course_facets(
     request: Request,
     q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_permission("courses:view")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Get faceted navigation data for course search.
@@ -1053,10 +1108,9 @@ async def get_course_facets(
     Returns facet categories with value counts for:
     - Semester
     - Credits
-    - Course Status
 
     **Query Parameters:**
-    - `q`: Optional search query to filter facets
+    - `q`: Optional search text; the counts are of the courses a search for it finds
 
     **Response:**
     Returns facet categories with values and counts.

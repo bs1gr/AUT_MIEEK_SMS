@@ -1,320 +1,174 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { I18nextProvider } from 'react-i18next';
-import testI18n from '@/test-utils/i18n-test-wrapper';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
-import { useSearchFacets } from './useSearchFacets';
-import * as apiModule from '@/api/api';
+import { facetsFromServer, useSearchFacets } from './useSearchFacets';
+import apiClient from '@/api/api';
 
-// Mock the API with a default client that has a get method
-vi.mock('@/api/api', () => {
-  const mockGet = vi.fn();
-  return {
-    default: {
-      get: mockGet,
-    },
-    extractAPIResponseData: vi.fn((response) => response.data),
-  };
+vi.mock('@/api/api', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/api/api')>();
+  const client = { get: vi.fn() };
+  return { ...original, default: client, apiClient: client };
 });
 
-describe('useSearchFacets Hook', () => {
+// What GET /search/students/facets?q=o answers, as the HTTP client hands it over.
+// Until November 2026 the tests of this file gave the hook a map (`{ status: { active: 45 } }`)
+// that the server never sent, and the hook read that map from the response instead of from
+// its body: the tests passed and the panel was empty for every search.
+const studentsAnswer = {
+  status: 200,
+  data: {
+    success: true,
+    data: {
+      facets: [
+        {
+          name: 'status',
+          label: 'Student Status',
+          values: [
+            { value: 'active', count: 3, is_selected: false },
+            { value: 'inactive', count: 1, is_selected: false },
+          ],
+          is_expanded: false,
+        },
+        {
+          name: 'enrollment_type',
+          label: 'Study Year',
+          values: [{ value: 'year_2', count: 4, is_selected: false }],
+          is_expanded: false,
+        },
+      ],
+      total_results: 4,
+      query: 'o',
+    },
+    error: null,
+  },
+};
+
+const get = vi.mocked(apiClient.get);
+
+describe('facetsFromServer', () => {
+  it('reads the list the server sends', () => {
+    expect(facetsFromServer(studentsAnswer.data.data.facets)).toEqual([
+      {
+        field: 'status',
+        label: 'Student Status',
+        values: [
+          { value: 'active', count: 3 },
+          { value: 'inactive', count: 1 },
+        ],
+      },
+      { field: 'enrollment_type', label: 'Study Year', values: [{ value: 'year_2', count: 4 }] },
+    ]);
+  });
+
+  it('gives every value as text, the number of credits too', () => {
+    const facets = facetsFromServer([{ name: 'credits', label: 'Course Credits', values: [{ value: 3, count: 2 }] }]);
+
+    expect(facets[0].values).toEqual([{ value: '3', count: 2 }]);
+  });
+
+  it('leaves out a group without values and a value without a name', () => {
+    const facets = facetsFromServer([
+      { name: 'semester', label: 'Semester', values: [] },
+      { name: 'credits', values: [{ value: null, count: 5 }, { value: '4' }] },
+      { label: 'No name', values: [{ value: 'x', count: 1 }] },
+    ]);
+
+    expect(facets).toEqual([{ field: 'credits', label: 'credits', values: [{ value: '4', count: 0 }] }]);
+  });
+
+  it('answers with nothing for anything that is not a list', () => {
+    expect(facetsFromServer({ status: { active: 45 } })).toEqual([]);
+    expect(facetsFromServer(undefined)).toEqual([]);
+    expect(facetsFromServer(null)).toEqual([]);
+  });
+});
+
+describe('useSearchFacets', () => {
   let queryClient: QueryClient;
-  let mockApiClient: typeof apiModule.default;
 
   beforeEach(() => {
-    // Get the mocked module
-    mockApiClient = vi.mocked(apiModule.default);
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    });
+    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     vi.clearAllMocks();
+    get.mockResolvedValue(studentsAnswer);
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <I18nextProvider i18n={testI18n}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </I18nextProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  const mockFacetsResponse = {
-    facets: {
-      status: {
-        active: 45,
-        inactive: 12,
-      },
-      enrollment_type: {
-        'full-time': 38,
-        'part-time': 15,
-      },
-    },
-    query: 'test',
-  };
+  it('asks for the counts of the students a text finds, and reads them from the body', async () => {
+    const { result } = renderHook(() => useSearchFacets('students', 'o'), { wrapper });
 
-  const expectedTransformedFacets = {
-    facets: [
-      {
-        field: 'status',
-        label: 'Status',
-        type: 'checkbox' as const,
-        values: [
-          { label: 'Active', count: 45, value: 'active' },
-          { label: 'Inactive', count: 12, value: 'inactive' },
-        ],
-      },
-      {
-        field: 'enrollment_type',
-        label: 'Enrollment Type',
-        type: 'checkbox' as const,
-        values: [
-          { label: 'Full-time', count: 38, value: 'full-time' },
-          { label: 'Part-time', count: 15, value: 'part-time' },
-        ],
-      },
-    ],
-  };
+    await waitFor(() => expect(result.current.data).toBeDefined());
 
-  it('initializes with loading state', () => {
-    mockApiClient.get.mockResolvedValue({
-      data: mockFacetsResponse,
-    });
-
-    const { result } = renderHook(() => useSearchFacets(''), { wrapper });
-
-    // Query is disabled when empty, so it should not be loading
-    expect(result.current.isLoading).toBe(false);
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(get).toHaveBeenCalledWith('/search/students/facets', { params: { q: 'o' } });
+    expect(result.current.data?.facets.map((facet) => facet.field)).toEqual(['status', 'enrollment_type']);
+    expect(result.current.data?.facets[0].values).toEqual([
+      { value: 'active', count: 3 },
+      { value: 'inactive', count: 1 },
+    ]);
   });
 
-  it('fetches facets successfully', async () => {
-    // Mock the API to return the SearchFacetsResult format
-    mockApiClient.get.mockResolvedValue(mockFacetsResponse);
-    vi.mocked(apiModule.extractAPIResponseData).mockReturnValue(mockFacetsResponse);
+  it('asks the courses endpoint for courses', async () => {
+    const { result } = renderHook(() => useSearchFacets('courses', 'calc'), { wrapper });
 
-    const { result } = renderHook(() => useSearchFacets('test'), { wrapper });
+    await waitFor(() => expect(result.current.data).toBeDefined());
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    // The hook transforms the API response, so check the transformed structure
-    expect(result.current.data).toMatchObject(expectedTransformedFacets);
+    expect(get).toHaveBeenCalledWith('/search/courses/facets', { params: { q: 'calc' } });
   });
 
-  it('handles API errors gracefully', async () => {
-    const error = new Error('Network error');
-    mockApiClient.get.mockRejectedValue(error);
+  it('asks nothing for grades, and nothing while there is no search', async () => {
+    const grades = renderHook(() => useSearchFacets('grades', 'midterm'), { wrapper });
+    const idle = renderHook(() => useSearchFacets('students', ''), { wrapper });
 
-    const { result } = renderHook(() => useSearchFacets('test'), { wrapper });
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.error).toBeDefined();
+    expect(get).not.toHaveBeenCalled();
+    expect(grades.result.current.isLoading).toBe(false);
+    expect(idle.result.current.isLoading).toBe(false);
   });
 
-  it('includes search query in request', async () => {
-    mockApiClient.get.mockResolvedValue({
-      data: mockFacetsResponse,
-    });
+  it('asks without a text when only a filter is left of the search', async () => {
+    const { result } = renderHook(() => useSearchFacets('students', '', true), { wrapper });
 
-    renderHook(() => useSearchFacets('john'), { wrapper });
+    await waitFor(() => expect(result.current.data).toBeDefined());
 
-    await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledWith(
-        '/search/students/facets',
-        { params: { q: 'john' } }
-      );
-    });
+    expect(get).toHaveBeenCalledWith('/search/students/facets', { params: {} });
   });
 
-  it('refetches when search query changes', async () => {
-    mockApiClient.get.mockResolvedValue({
-      data: mockFacetsResponse,
+  it('asks again when the text changes, and not again for a text it has the answer to', async () => {
+    const { result, rerender } = renderHook(({ query }) => useSearchFacets('students', query), {
+      wrapper,
+      initialProps: { query: 'john' },
     });
-
-    const { rerender } = renderHook(
-      ({ query }) => useSearchFacets(query),
-      {
-        wrapper,
-        initialProps: { query: 'john' },
-      }
-    );
-
-    await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalled();
-    });
-
-    const callCountAfterFirstRender = mockApiClient.get.mock.calls.length;
+    await waitFor(() => expect(result.current.data).toBeDefined());
 
     rerender({ query: 'jane' });
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
+    expect(get).toHaveBeenLastCalledWith('/search/students/facets', { params: { q: 'jane' } });
 
-    await waitFor(() => {
-      expect(mockApiClient.get.mock.calls.length).toBeGreaterThan(
-        callCountAfterFirstRender
-      );
-    });
+    rerender({ query: 'john' });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(get).toHaveBeenCalledTimes(2);
   });
 
-  it('caches facet results', async () => {
-    mockApiClient.get.mockResolvedValue({
-      data: mockFacetsResponse,
-    });
+  it('reports a request that failed', async () => {
+    get.mockRejectedValue(new Error('Network Error'));
 
-    const { rerender } = renderHook(
-      ({ query }) => useSearchFacets(query),
-      {
-        wrapper,
-        initialProps: { query: 'test' },
-      }
-    );
+    const { result } = renderHook(() => useSearchFacets('students', 'o'), { wrapper });
 
-    await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-    });
-
-    // Rerender with same query
-    rerender({ query: 'test' });
-
-    // Should not trigger another fetch (cached)
-    expect(mockApiClient.get).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.data).toBeUndefined();
   });
 
-  it('returns empty facets when no data', async () => {
-    mockApiClient.get.mockResolvedValue({
-      data: { facets: [] },
-    });
+  it('has no groups for an answer that says the request failed', async () => {
+    get.mockResolvedValue({ data: { success: false, data: null, error: { code: 'FACET_ERROR' } } });
 
-    const { result } = renderHook(() => useSearchFacets(''), { wrapper });
+    const { result } = renderHook(() => useSearchFacets('students', 'o'), { wrapper });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.data?.facets || []).toEqual([]);
-  });
-
-  it('handles different facet types', async () => {
-    // The hook only transforms status and enrollment_type from API response
-    const complexFacetsResponse = {
-      facets: {
-        status: {
-          active: 45,
-          inactive: 12,
-          graduated: 8,
-        },
-        enrollment_type: {
-          'full-time': 38,
-          'part-time': 15,
-          audit: 5,
-        },
-      },
-      query: 'test',
-    };
-
-    mockApiClient.get.mockResolvedValue(complexFacetsResponse);
-    vi.mocked(apiModule.extractAPIResponseData).mockReturnValue(complexFacetsResponse);
-
-    const { result } = renderHook(() => useSearchFacets('test'), { wrapper });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    // Should transform into 2 facet definitions (both checkbox type)
-    expect(result.current.data?.facets).toHaveLength(2);
-    expect(result.current.data?.facets[0].type).toBe('checkbox');
-    expect(result.current.data?.facets[0].field).toBe('status');
-    expect(result.current.data?.facets[0].values).toHaveLength(3);
-    expect(result.current.data?.facets[1].type).toBe('checkbox');
-    expect(result.current.data?.facets[1].field).toBe('enrollment_type');
-    expect(result.current.data?.facets[1].values).toHaveLength(3);
-  });
-
-  it('handles empty search query', async () => {
-    mockApiClient.get.mockResolvedValue({
-      data: mockFacetsResponse,
-    });
-
-    const { result } = renderHook(() => useSearchFacets(''), { wrapper });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    // Query is disabled when empty, so the request should not fire
-    expect(mockApiClient.get).not.toHaveBeenCalled();
-  });
-
-  it('provides loading state during fetch', async () => {
-    let resolveGet: (value: unknown) => void;
-    const getPromise = new Promise((resolve) => {
-      resolveGet = resolve;
-    });
-
-    mockApiClient.get.mockReturnValue(getPromise);
-
-    const { result } = renderHook(() => useSearchFacets('test'), { wrapper });
-
-    expect(result.current.isLoading).toBe(true);
-
-    resolveGet({ data: mockFacetsResponse });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-  });
-
-  it('updates facet counts based on search context', async () => {
-    const initialResponse = {
-      facets: [
-        {
-          field: 'status',
-          label: 'Status',
-          type: 'checkbox' as const,
-          values: [
-            { label: 'Active', count: 45, value: 'active' },
-          ],
-        },
-      ],
-    };
-
-    const updatedResponse = {
-      facets: [
-        {
-          field: 'status',
-          label: 'Status',
-          type: 'checkbox' as const,
-          values: [
-            { label: 'Active', count: 12, value: 'active' }, // Count changed
-          ],
-        },
-      ],
-    };
-
-    mockApiClient.get.mockResolvedValueOnce({ data: initialResponse });
-    mockApiClient.get.mockResolvedValueOnce({ data: updatedResponse });
-
-    const { rerender } = renderHook(
-      ({ query }) => useSearchFacets(query),
-      {
-        wrapper,
-        initialProps: { query: 'john' },
-      }
-    );
-
-    await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-    });
-
-    rerender({ query: 'jane' });
-
-    await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledTimes(2);
-    });
+    await waitFor(() => expect(result.current.data).toBeDefined());
+    expect(result.current.data?.facets).toEqual([]);
   });
 });

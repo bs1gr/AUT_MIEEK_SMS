@@ -115,10 +115,11 @@ export default {
     relevance: 'Relevance',
     name: 'Name',
     email: 'Email',
-    created: 'Created',
-    updated: 'Updated',
+    date: 'Date',
     asc: 'Ascending',
-    desc: 'Descending'
+    desc: 'Descending',
+    bestFirst: 'Best match first',
+    worstFirst: 'Best match last'
   },
   pagination: {
     range: '{{start}}-{{end}} of {{total}} results'
@@ -132,15 +133,26 @@ export default {
   resultsTitle: 'Results',
   resultsSummary: '{{count}} total results',
   noResults: 'No results found',
+  searchFailed: 'The search could not be done. Try again.',
   viewDetails: 'View details',
   facets: {
-    title: 'Refine results',
-    subtitle: 'Use facets to narrow the search',
+    title: 'Filters',
+    subtitle: 'Tick values to narrow the search',
     total: '{{total}} matches',
     status: 'Status',
     enrollment_type: 'Enrollment type',
     months: 'Months',
-    loading: 'Loading facets...',
+    // The groups of the filter panel, by the name the server gives each
+    fields: {
+      status: 'Status',
+      enrollment_type: 'Study year',
+      enrollment_year: 'Enrollment year',
+      semester: 'Semester',
+      credits: 'Credits'
+    },
+    studyYear: 'Year {{year}}',
+    selected: 'Selected: {{count}}',
+    loading: 'Loading filters...',
     empty: 'No filters available',
     search: 'Search values...',
     showLess: 'Show less',
