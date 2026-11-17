@@ -146,7 +146,12 @@ const OperationsView = (_props: OperationsViewProps) => {
     { key: 'help', label: t('helpTitle', { ns: 'help' }) || 'Help' },
   ];
 
-  const isAdmin = user?.role === 'admin';
+  const role = String(user?.role ?? '').toLowerCase();
+  const isAdmin = role === 'admin';
+  // The server lets an account with `notifications:manage` send, and the teacher role has that
+  // permission as the administrator has. Until November 2026 the page showed the form to
+  // administrators only, so a teacher could send through the API and not through the page.
+  const canBroadcast = isAdmin || role === 'teacher';
 
   const notificationTypeOptions = useMemo(
     () => [
@@ -228,7 +233,7 @@ const OperationsView = (_props: OperationsViewProps) => {
 
     if (broadcastTarget === 'role') {
       roleFilter = broadcastRole;
-    } else if (broadcastTarget === 'users') {
+    } else if (broadcastTarget === 'users' && isAdmin) {
       const parsed = broadcastUserIds
         .split(',')
         .map((value) => value.trim())
@@ -259,7 +264,13 @@ const OperationsView = (_props: OperationsViewProps) => {
       setBroadcastUserIds('');
     } catch (error) {
       console.error('Failed to broadcast notification:', error);
-      setToast({ message: t('admin.error', { ns: 'notifications' }), type: 'error' });
+      // An installation can take the permission from a role: the server's refusal is said as
+      // what it is, not as a failure to send.
+      const refused = (error as { response?: { status?: number } })?.response?.status === 403;
+      setToast({
+        message: t(refused ? 'admin.notAuthorized' : 'admin.error', { ns: 'notifications' }),
+        type: 'error',
+      });
     } finally {
       setBroadcastSending(false);
     }
@@ -448,7 +459,8 @@ const OperationsView = (_props: OperationsViewProps) => {
           <div className="space-y-6">
             <OperationsBroadcastPanel
               t={t}
-              isAdmin={isAdmin}
+              canSend={canBroadcast}
+              canPickUsers={isAdmin}
               broadcastType={broadcastType}
               setBroadcastType={setBroadcastType}
               notificationTypeOptions={notificationTypeOptions}

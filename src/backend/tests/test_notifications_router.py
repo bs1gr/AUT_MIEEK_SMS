@@ -660,25 +660,9 @@ def test_broadcast_notification_by_role_filter(client, admin_token, db: Session)
     assert data["total_users"] >= 1
 
 
-def test_broadcast_notification_requires_admin(client, db: Session):
-    """Test broadcast endpoint requires admin role."""
-    headers: dict[str, str] = {}  # No token or regular user token
-    broadcast_data = {
-        "notification_type": "system_message",
-        "title": "Announcement",
-        "message": "Test message",
-    }
-
-    r = client.post(
-        "/api/v1/notifications/broadcast",
-        json=broadcast_data,
-        headers=headers,
-    )
-
-    # In test mode with AUTH disabled, all requests get dummy admin user,
-    # so this will succeed (200). In production with AUTH enabled, this would be 403.
-    # For test purposes, just verify it executes
-    assert r.status_code in (200, 401, 403, 400)
+# Who may send is tested in test_notifications_broadcast_roles.py, with accounts of each role
+# on a server that checks them. The test that stood here ("requires admin") sent no token to
+# a server that asks for none and accepted 200, 400, 401 and 403 alike.
 
 
 def test_broadcast_notification_validation(client, admin_token):

@@ -148,7 +148,7 @@ This document defines all permissions for the Student Management System's Role-B
 
 | Permission | Description | Endpoints Affected | Admin | Teacher | Viewer |
 |------------|-------------|-------------------|-------|---------|--------|
-| `notifications:manage` | Send broadcast notifications | `POST /notifications/broadcast` | ✅ | ⚠️ Limited | ❌ |
+| `notifications:manage` | Send a message to all users, to a role or (administrators, on the page) to named accounts | `POST /notifications/broadcast` | ✅ | ✅ | ❌ |
 
 **Endpoints**: 9 total (routers_notifications.py)
 
@@ -187,7 +187,7 @@ teacher_permissions = [
     "enrollments:view", "enrollments:manage",  # Can enroll students
     "reports:view", "analytics:view",  # Can generate reports
     "system:export",  # Can export for grading
-    "notifications:manage",  # Can send class announcements (limited)
+    "notifications:manage",  # Can send a message to all users or to one role
 ]
 
 ```text

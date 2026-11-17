@@ -1,6 +1,6 @@
 # Notifications Administration Guide
 
-**Applies to**: v1.18.72 and later
+**Applies to**: v1.18.73 and later
 **Last checked against the code**: November 2026
 **Audience**: administrators
 
@@ -23,7 +23,7 @@ Four things, and nothing else:
 | **New account awaiting approval** | Every active administrator | Someone registers and the account needs approval (`SELF_REGISTRATION_MODE=approval`, the default) | System > Control Panel > User Management |
 | **Activation email not sent** | The administrator who approved the account; every active administrator if that cannot be told | An account was activated, but the e-mail to its owner failed or mail is not configured | System > Control Panel > User Management |
 | **The automatic backup failed** | Every active administrator | The server could not make its automatic backup. At most one per administrator in 24 hours | System > Control Panel > Maintenance |
-| **A message sent by hand** | All active accounts, one role, or the accounts you name | You send it (see below) | Nowhere: the text opens in place |
+| **A message sent by hand** | All active accounts, one role, or the accounts an administrator names | An administrator or a teacher sends it (see below) | Nowhere: the text opens in place |
 
 The first three are shown in the language of the reader, whatever language the server wrote
 them in. A message sent by hand is shown as it was typed.
@@ -55,7 +55,8 @@ hidden with its **×** until the next release.
    - **Notification type**: System, Announcement, Course, Grade, Attendance, Enrollment or
      General. It only sets the label and the icon of the message.
    - **Target audience**: **All users**, a **Role** (Admin, Teacher, Student or Viewer), or
-     **Specific users** (their numeric account IDs, separated by commas).
+     **Specific users** (their numeric account IDs, separated by commas). "Specific users"
+     is offered to administrators only.
    - **Title** and **Message**: both are required.
 3. Select **Send notification**. The page answers "Notification broadcast sent."
 
@@ -70,10 +71,18 @@ What to know before sending:
 - User Management does not show account IDs, so "Specific users" is only practical when you
   already know them.
 
-**Who may send.** The form is shown to administrators only. The server itself accepts a
-message from any account that holds the permission `notifications:manage`, and the teacher
-role holds it by default. So a teacher cannot send from the page, but can through the API.
-Whether teachers are meant to send messages is an open question in the project's work plan.
+**Who may send.** Administrators and teachers: the form is shown to both (until v1.18.72
+it was shown to administrators only, while the server already accepted a teacher's message).
+A teacher is offered "All users" and "Role"; "Specific users" asks for account numbers,
+which no page shows to a teacher. Other accounts (student, viewer, guest) are told "Your
+account is not allowed to send notifications."
+
+The server decides by the permission `notifications:manage`, which the administrator and
+the teacher role hold by default. If an installation has taken it from a role, an account
+of that role still sees the form and is told the same sentence when it sends.
+
+A message does not say who sent it: a teacher's message to all users looks like an
+administrator's.
 
 ## How notifications are kept
 

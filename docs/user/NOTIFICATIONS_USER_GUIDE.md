@@ -1,6 +1,6 @@
 # Notifications User Guide
 
-**Applies to**: v1.18.72 and later
+**Applies to**: v1.18.73 and later
 **Last checked against the application**: November 2026
 
 This guide describes what the application does today. Its first version (January 2026)
@@ -15,7 +15,8 @@ them.
 A short message for your account, shown under the bell at the top of the page. You get one
 in two cases:
 
-- **An administrator sent a message** to everyone, to your role, or to you.
+- **An administrator or a teacher sent a message** to everyone or to your role (an
+  administrator can also write to you alone).
 - **You are an administrator** and something needs you: a new account is waiting for
   approval, an activation e-mail could not be sent, or the automatic backup failed. The
   [Administration Guide](../admin/NOTIFICATIONS_ADMIN_GUIDE.md) says what to do about each.
@@ -57,6 +58,25 @@ Above the list, **Mark all as read** clears the number on the bell. Below it,
 
 What you mark or delete here changes the bell and the short list at once.
 
+## Sending a message (teachers and administrators)
+
+1. Open **Utils** in the navigation, then the **Notifications** tab.
+2. Under **Send Notification** choose the **Notification type** (it only sets the label and
+   the icon), the **Target audience** (**All users** or a **Role**), and write a **Title**
+   and a **Message**.
+3. Select **Send notification**. The page answers "Notification broadcast sent."
+
+Before you send:
+
+- Everyone you chose gets a copy, and sees it the next time their bell asks the server
+  (see [The bell](#the-bell)). Nothing is pushed to a page that is already open.
+- A sent message cannot be changed or taken back.
+- The message does not say who sent it. Sign it in the text if that matters.
+- No e-mail is sent.
+
+With another kind of account the tab says "Your account is not allowed to send
+notifications."
+
 ## "Update Available"
 
 When a newer release of the application is published, the list shows **Update Available**
@@ -69,7 +89,7 @@ by an administrator.
 - You see only your own notifications, and nobody else sees yours in the application.
 - Deleting a notification removes it from your lists. The record stays in the application's
   database.
-- A message from an administrator is a copy made for you: deleting yours does not delete
+- A message that was sent to you is a copy made for you: deleting yours does not delete
   anyone else's.
 
 ## If something looks wrong
