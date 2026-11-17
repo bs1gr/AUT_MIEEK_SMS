@@ -235,9 +235,12 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
-**2026-11-17: the tag waits for a build-only Docker run of its commit** (PR 413; the owner:
-"continue" for todo 48, which it closes). Nothing in the application changes: a release
-script, a title in one workflow, tests and three documents.
+**2026-11-17: the tag waits for a build-only Docker run of its commit** (PR 413, merged as
+`dc7cd2796`; the owner: "continue" for todo 48, which it closes). Nothing in the application
+changes: a release script, a title in one workflow, tests and three documents. On the merge
+commit the backend job passed 1,669 tests with 55 skipped on PostgreSQL 14 (1,633 and 55 on
+`main` before it: the 36 new tests), the frontend job 1,994 as before, and E2E 61 with 20
+skipped as before.
 
 - **Why.** CI builds `Dockerfile.fullstack` on every push, for amd64 only. The cloud VM is
   arm64 and builds its image itself, after the tag. An image that does not build there would
@@ -274,7 +277,9 @@ script, a title in one workflow, tests and three documents.
   (amd64 only, run 44058916467) it returned in 10 seconds, and a waiting call then picked up
   that same run and passed after a minute. That showed one mistake, fixed in the PR: after
   `-NoWait` with one platform, the command it named for reading the result left the
-  platform out.
+  platform out. On the PR's last commit (`37a6d0f4f`, the same tree as the merge commit)
+  the script was run once more: run 44061282670, both platforms, passed after six and a
+  half minutes.
 - **Not checked:** `RELEASE_READY.ps1` was not run end to end; its first real use is the
   next release. No image that fails to build was produced: that path is covered by the
   tests only.
