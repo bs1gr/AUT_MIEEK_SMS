@@ -235,10 +235,14 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
-**2026-11-17: two small server fixes, and a third found while checking them** (PR 412; the
-owner, a second time: "continue"; two more open entries that needed no decision of the
-owner's). No database changes. Checked on two scratch servers started side by side on
-throwaway SQLite files, one from `main` and one from the branch.
+**2026-11-17: two small server fixes, and a third found while checking them** (PR 412,
+merged as `263cdca44`; the owner, a second time: "continue"; two more open entries that
+needed no decision of the owner's). No database changes. Checked on two scratch servers
+started side by side on throwaway SQLite files, one from `main` and one from the branch.
+On the PR's commit the backend job passed 1,633 tests with 55 skipped on PostgreSQL 14
+(1,609 and 55 on `main` before it: the 24 new tests), the frontend job 1,994 as before, and
+E2E 61 with 20 skipped as before. Not on the cloud VM (it runs `38d1111b3`) and not in the
+home installs until their next update.
 
 - **`migrations.log` is written to `logs/`.** Both migration runners (the server's,
   `scripts/migrate/runner.py`, and `run_migrations.py` of the Docker entrypoint and the
