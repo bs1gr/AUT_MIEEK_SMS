@@ -4,19 +4,6 @@ This document provides a reference for the custom hooks available in the Student
 
 ## Core Hooks
 
-### `useRateLimit`
-
-**Location:** `src/hooks/useRateLimit.ts`
-
-Prevents rapid-fire execution of functions (e.g., double form submissions).
-
-```typescript
-const { isRateLimited, call } = useRateLimit(delayMs);
-
-// Usage
-call(() => saveData());
-
-```text
 ### `useErrorRecovery`
 
 **Location:** `src/hooks/useErrorRecovery.ts`

@@ -11,12 +11,13 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
  * implemented". The page exists; the tests could not reach it: they signed in on "/login",
  * opened "/search" without the hash, and waited for an input that is on the Students page.
  *
- * They are now in three groups:
+ * They are now in two groups:
  *  - what the page does: these run;
  *  - sorting, paging and filters: offered by the page and doing nothing until they were
- *    repaired in November 2026 (work plan, todo 60); they run since;
- *  - what the page does not have at all (saved searches, a "clear" control, keyboard
- *    navigation): `test.skip`, kept as they were until someone decides about them.
+ *    repaired in November 2026 (work plan, todo 60); they run since.
+ * Four more described what the page does not have (saving and loading a search, a "clear"
+ * control for the query, keyboard navigation in the list); they were deleted in November 2026
+ * (the owner's decision).
  * The seed has four students (John Doe, Jane Smith, Alice Johnson, Bob Williams) and two
  * courses (CS101, MATH201 "Calculus II").
  */
@@ -273,92 +274,5 @@ test.describe('Search page: sorting, paging and filters', () => {
     await expect(results(page)).toHaveCount(2);
     await expect(active).not.toBeChecked();
     await expect(inactive).not.toBeChecked();
-  });
-});
-
-// The page has none of this: no way to save or load a search, no "clear" control, no keyboard
-// handling in the list. The tests are as they were written in January 2026 for a design.
-test.describe.skip('Search page: not there at all', () => {
-  test('save and load search', async ({ page }) => {
-    // Step 1: Perform a search
-    await page.fill('[data-testid="student-search-input"]', 'John');
-    await page.waitForSelector('li[role="listitem"]', { timeout: 3000 });
-
-    // Step 2: Open save dialog
-    const saveButton = page.locator('button').filter({ hasText: /save|new search/i }).first();
-    if (await saveButton.isVisible()) {
-      await saveButton.click();
-
-      // Step 3: Fill save form
-      await page.fill('input[placeholder*="search name"]', 'My John Search');
-      const confirmButton = page.locator('button').filter({ hasText: /save/i }).nth(1);
-      if (await confirmButton.isVisible()) {
-        await confirmButton.click();
-
-        // Step 4: Verify save confirmation
-        await page.waitForTimeout(500);
-        expect(page.locator('text=saved successfully').isVisible).toBeDefined();
-      }
-    }
-  });
-
-  test('clear all filters and search', async ({ page }) => {
-    // Step 1: Set up filters
-    await page.fill('[data-testid="student-search-input"]', 'test');
-
-    // Step 2: Add a filter
-    const filterCheckbox = page.locator('input[type="checkbox"]').first();
-    if (await filterCheckbox.isVisible()) {
-      await filterCheckbox.check();
-    }
-
-    // Step 3: Clear all
-    const clearButton = page.locator('button').filter({ hasText: /clear/i }).first();
-    if (await clearButton.isVisible()) {
-      await clearButton.click();
-
-      // Step 4: Verify cleared
-      const searchInput = page.locator('[data-testid="student-search-input"]');
-      expect(await searchInput.inputValue()).toBe('');
-    }
-  });
-
-  test('keyboard navigation in search results', async ({ page }) => {
-    // Step 1: Search
-    await page.fill('[data-testid="student-search-input"]', 'test');
-    await page.waitForSelector('li[role="listitem"]', { timeout: 3000 });
-
-    // Step 2: Tab through results
-    const firstResult = page.locator('li[role="listitem"]').first();
-    await firstResult.focus();
-    await expect(firstResult).toBeFocused();
-
-    // Step 3: Navigate down
-    await page.keyboard.press('ArrowDown');
-    const secondResult = page.locator('li[role="listitem"]').nth(1);
-    // Result should be reachable via keyboard
-    expect(secondResult).toBeDefined();
-  });
-
-  test('search history persists in saved searches', async ({ page }) => {
-    // Step 1: Perform multiple searches
-    await page.fill('[data-testid="student-search-input"]', 'John');
-    await page.waitForSelector('li[role="listitem"]', { timeout: 3000 });
-
-    // Step 2: Save search
-    const saveButton = page.locator('button').filter({ hasText: /save|new search/i }).first();
-    if (await saveButton.isVisible()) {
-      await saveButton.click();
-      await page.fill('input[placeholder*="search name"]', 'Saved Search 1');
-      await page.click('button:has-text("Save")');
-
-      // Step 3: Navigate away and back
-      await page.goto('/dashboard');
-      await page.goto('/search');
-
-      // Step 4: Verify saved search still available
-      const savedSearchButton = page.locator('button:has-text("Saved Search 1")');
-      expect(await savedSearchButton.isVisible() || await page.locator('text=Saved Search 1').isVisible()).toBeDefined();
-    }
   });
 });
