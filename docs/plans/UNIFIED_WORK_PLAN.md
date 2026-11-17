@@ -235,9 +235,51 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: ten of the twenty E2E tests that never ran now run, and the other ten say why
+they do not** (PR 415; the owner: "continue"; the part of todo 53 that needed no decision of
+the owner's). One line of the application changes; the rest is tests.
+
+- **What was wrong with them.** The six suites and the one test that were switched off were
+  written for pages the application does not have. They signed in on "/login" as
+  `teacher1@example.com`, opened "/students" and "/search" without the `#` that every address
+  of the application has, and looked for a table with column headers, a virtual-scroll
+  container, a "Save" button and a "/saved-searches" page. None of them could ever pass.
+- **Running now (10).** The sign-in form sent empty says what is missing (the test waited for
+  an element the form does not have). A new student is announced and is found by its Student
+  ID alone: the two things the existing creation test does not check. A second click on the
+  submit button cannot create a second student: the form closes with the first, and one
+  request is sent. The Students list shows its first student within five seconds (0.8 on
+  the development PC). And six on the Search page: a search by name, the three kinds of
+  record, a phone-sized screen, a failed request (the page says so, and recovers), one
+  request for a typed word, and the badge that leads to the record.
+- **Not running, each with its reason in the file (10).** Three describe controls of the
+  Search page that do nothing (sorting, paging, filters) and one an error state the Students
+  page does not have: they are marked as known defects and should pass once the pages are
+  repaired (todo 60). Six describe things that do not exist at all: on the Search page,
+  saving and loading a search (two tests), a "clear" control and keyboard navigation in the
+  list; a page of saved searches; a Students table with virtual scrolling. Deleting those
+  six is the owner's call (todo 53).
+- **The saved-search rule is now tested where it exists.** There is no page for saved
+  searches, only the API. That one account cannot read, delete or mark as favourite another
+  account's saved search was tested with the owner's own account only; three new backend
+  tests use two accounts, and the existing "cannot update" test also checks that nothing
+  changed. With the owner rule switched off in the service, all five fail.
+- **One fix in the application.** The Search page listed every course as "Unknown" with its
+  code underneath: the name is in a field the page did not look at. It shows the name. A
+  unit test fails on the page as it was.
+- **Removed.** Eight helper functions in `tests/helpers.ts` that only the switched-off root
+  test used and that could not work (the sign-in wrote a key the application deletes at
+  start; the rest looked for a table).
+- **Checked.** The whole E2E suite against a scratch server set up as CI's E2E job (SQLite,
+  the seed, the same switches): 71 passed and 10 skipped, where `main` has 61 and 20. The
+  three tests marked as known defects were run once as ordinary tests and failed where
+  their comments say.
+
 **2026-11-17: the two notification guides say what the application does, and a refusal that
-was a server error** (PR 414; the owner: "continue"; an open entry of todo 58 that needed no
-decision of the owner's). No database changes.
+was a server error** (PR 414, merged as `25d505322`; the owner: "continue"; an open entry of
+todo 58 that needed no decision of the owner's). No database changes. On the PR's commit the
+backend job passed 1,671 tests with 55 skipped on PostgreSQL 14 (1,669 and 55 on `main`
+before it: the two new tests) and the frontend job 1,994 as before.
 
 - **The guides.** `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` and
   `docs/user/NOTIFICATIONS_USER_GUIDE.md` were written in January 2026 for a design: an
@@ -1097,8 +1139,19 @@ now** (todo 58).
     (`report-workflows.spec.ts` turned nine of them into skips), and the `critical-flows` test
     that skipped itself for "no students in the CI seed" runs (the seed has four; it did not
     wait for the list). **Done in #391:** the notifications suite (15 tests that waited for
-    Socket.IO events) is deleted with the channel. **Left:** make each of the six skipped
-    suites run or delete it (deleting needs the owner's OK).
+    Socket.IO events) is deleted with the channel. ~~**Left:** make each of the six skipped
+    suites run or delete it (deleting needs the owner's OK).~~ **Done in PR 415
+    (2026-11-17):** ten of the twenty run (under "On `main` since v1.18.72"); a local run of
+    the whole suite gives 71 passed and 10 skipped. **Left:**
+    - *The owner's OK to delete six tests that describe things the application does not
+      have:* in `search_advanced.spec.ts` the group "Search page: not there at all" (save and
+      load a search, clear all, keyboard navigation, search history); `saved-search.spec.ts`
+      (no page for saved searches; the rule itself is tested in the backend);
+      `student-list.spec.ts` (no table, no virtual scrolling; what the page has is tested
+      elsewhere). Or build what they describe.
+    - *Four wait for the repairs of todo 60* and should pass after them: sorting, paging and
+      filters on the Search page (`test.fixme` in `search_advanced.spec.ts`) and the error
+      state of the Students page (`student-resilience.spec.ts`).
 54. **Nothing watches the cloud VM, and workflows that cannot run.**
     `scheduled-production-health-check.yml` needs a self-hosted runner
     (`[self-hosted, windows, production-lan]`); none is registered, its schedule is commented
@@ -1401,6 +1454,33 @@ now** (todo 58).
       one sentence corrected in PR 414 stood next to others of the same kind (a "System
       Settings" list with "Email Notifications: Enable/disable", attendance thresholds of
       70 and 80 per cent). It needs the same reading as the two guides.
+60. **The Search page offers three things that do nothing, and the Students page calls a
+    failed load an empty list** (found 2026-11-17 while making their E2E tests run; each seen
+    in a running copy with the four students of the seed).
+    - *"Sort by" and its direction change nothing.* The list for "o" is in the same order for
+      relevance, name descending and name ascending. The page sends `sort` in the body of
+      `POST /search/advanced`; the endpoint does not read it.
+    - *"Results per page", Previous and Next change nothing.* The page sends `page` and
+      `page_size` in the body; the endpoint takes `limit` and `offset` from the address and
+      so always answers with the first 20. Its `total` is the number of results it returned,
+      not the number there are. With twelve matching students and "10 per page" the page
+      lists all twelve.
+    - *The filters never show.* The panel says "No filters available" for every query. The
+      server answers with the filters as a list (status: active, 4); the page reads them as
+      a map (`useSearchFacets.ts`). The same request is sent once for every typed letter
+      (four for "John"), where the search itself waits for the typing to stop.
+    - *Smaller, on the same page:* it asks for the saved searches at every opening although
+      nothing shows them; and a failed search shows the HTTP client's English text ("Network
+      Error", "Request failed with status code 500"), whatever the language of the page.
+    - *The Students page says "No students found" when its list could not be loaded:* no
+      message, nothing to try again with.
+    - *Components that no page uses:* `VirtualStudentList`, `CascadedStudentView`,
+      `StudentForm` and the hook `useRateLimit`. Delete (the owner's OK).
+    - **Fixed in PR 415:** a course was listed as "Unknown".
+    - Each repair is small; together they are "make the Search page work". Suggested order:
+      paging with a real total and sorting (server), the filters (page), the error state of
+      the Students page. Four E2E tests are written and wait for them (todo 53). Needs the
+      owner's go-ahead.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// Saved searches feature not yet fully implemented - skip until ready
+// Not runnable: the application has no page for saved searches. Nothing on the Students page
+// opens an "advanced search", and there is no "/saved-searches". Only the API exists
+// (/api/v1/search/saved), and the rule this test is about - one account never sees, changes or
+// deletes another account's saved search - is tested there:
+// src/backend/tests/test_saved_search_integration.py, TestSavedSearchAuthorization.
+// Kept as it was written, until the page is built or the test is deleted (work plan, todo 53).
 test.describe.skip('Saved Search Authorization', () => {
   // Unique search name to avoid collisions
   const searchName = `Private Search ${Date.now()}`;

@@ -160,6 +160,23 @@ describe('SearchView Component', () => {
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
   });
 
+  it('lists a course by its name, with its code underneath', () => {
+    // What the server returns for a course (POST /search/advanced, entity "courses").
+    mockUseSearch({
+      searchType: 'courses' as const,
+      searchResults: [
+        { id: 2, course_name: 'Calculus II', course_code: 'MATH201', credits: 3, type: 'course' as const },
+      ],
+      totalResults: 1,
+    });
+
+    renderComponent();
+
+    expect(screen.getByText('Calculus II')).toBeInTheDocument();
+    expect(screen.getByText('MATH201')).toBeInTheDocument();
+    expect(screen.queryByText(/unknown/i)).not.toBeInTheDocument();
+  });
+
   it('shows loading state', () => {
     mockUseSearch({ isLoading: true });
     renderComponent();

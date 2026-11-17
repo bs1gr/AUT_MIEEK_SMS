@@ -1,32 +1,30 @@
 import { test, expect } from '@playwright/test';
+import { loginViaAPI } from './helpers';
 
-// Performance benchmarks require stable environment - skip for CI until performance baseline is established
-test.describe.skip('Performance Benchmark', () => {
-  test('measure student list render time', async ({ page }) => {
-    // Login
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('teacher1@example.com');
-    await page.getByLabel('Password').fill('password123');
-    await page.getByRole('button', { name: 'Login' }).click();
-    await page.waitForURL('/dashboard');
+const E2E_EMAIL = process.env.E2E_EMAIL || 'admin@example.com';
+const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
 
-    // Measure navigation to students list
-    const startTime = Date.now();
-    await page.goto('/students');
+// From asking for the Students page to the first student on it. The page asks the server for
+// the whole list and draws one card per student (it is not a virtual list), so a list that got
+// slow shows here. Five seconds is the budget the dashboard specs use for a page with its data
+// (custom-dashboards.spec.ts). With the four students of the seed it took under one second
+// on the development PC; the test prints what it measured.
+const BUDGET_MS = 5000;
 
-    // Wait for the virtual list container to appear
-    await page.waitForSelector('div.overflow-y-auto.relative');
+// Skipped until November 2026: it signed in on a page that does not exist ("/login"), with an
+// account that does not exist, and waited for a table inside a virtual-scroll container that
+// the Students page never had.
+test.describe('Performance Benchmark', () => {
+  test('the students list shows its first student within the budget', async ({ page }) => {
+    await loginViaAPI(page, E2E_EMAIL, E2E_PASSWORD);
 
-    // Wait for first row to ensure content is painted
-    await page.waitForSelector('tbody tr');
+    const startedAt = Date.now();
+    await page.goto('/#/students');
+    await expect(page.locator('[data-testid^="student-view-profile-btn-"]').first()).toBeVisible({ timeout: 15000 });
+    const elapsed = Date.now() - startedAt;
 
-    const endTime = Date.now();
-    const renderTime = endTime - startTime;
-
-    console.log(`Student List Render Time: ${renderTime}ms`);
-
-    // Performance budget: Should render under 1.5 seconds even with data load
-    // (Virtual scrolling should make this constant time regardless of list size)
-    expect(renderTime).toBeLessThan(1500);
+    // eslint-disable-next-line no-console
+    console.log(`Students list: first student visible after ${elapsed} ms`);
+    expect(elapsed).toBeLessThan(BUDGET_MS);
   });
 });

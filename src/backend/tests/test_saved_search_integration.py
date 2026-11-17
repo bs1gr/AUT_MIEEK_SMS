@@ -389,6 +389,72 @@ class TestSavedSearchAuthorization:
         # Should fail with authorization error
         assert response.status_code in [403, 404] or not response.json().get("success", True)
 
+        # And nothing changed for its owner.
+        assert self._as_owner(client, admin_headers, search_id)["name"] == "Admin Owned Search"
+
+    # The three tests below are what the skipped E2E test "users should not see searches created
+    # by others" (saved-search.spec.ts) meant to check. There is no page for saved searches, so
+    # the rule is checked where it lives. Until November 2026 reading, deleting and marking as
+    # favourite were tested with the owner's own account only.
+
+    @staticmethod
+    def _owned_by_admin(client: TestClient, admin_headers: dict, name: str) -> int:
+        created = client.post(
+            "/api/v1/search/saved",
+            json={"name": name, "search_type": "students", "query": "confidential"},
+            headers=admin_headers,
+        )
+        assert created.status_code in (200, 201), created.text
+        return created.json().get("data", created.json())["id"]
+
+    @staticmethod
+    def _as_owner(client: TestClient, admin_headers: dict, search_id: int) -> dict:
+        response = client.get(f"/api/v1/search/saved/{search_id}", headers=admin_headers)
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body.get("success", True) is True, body
+        return body.get("data", body)
+
+    @staticmethod
+    def _refused(response) -> bool:
+        """Refused by status, or by the envelope (these endpoints answer errors with 200)."""
+        if response.status_code in (403, 404):
+            return True
+        return response.status_code == 200 and response.json().get("success") is False
+
+    def test_user_cannot_read_other_users_search(
+        self, client: TestClient, admin_headers: dict, test_user_headers: dict
+    ):
+        search_id = self._owned_by_admin(client, admin_headers, "Admin Private Search")
+
+        response = client.get(f"/api/v1/search/saved/{search_id}", headers=test_user_headers)
+
+        assert self._refused(response), response.text
+        # Not a word of it in the refusal.
+        assert "Admin Private Search" not in response.text
+        assert "confidential" not in response.text
+
+    def test_user_cannot_delete_other_users_search(
+        self, client: TestClient, admin_headers: dict, test_user_headers: dict
+    ):
+        search_id = self._owned_by_admin(client, admin_headers, "Admin Search To Keep")
+
+        response = client.delete(f"/api/v1/search/saved/{search_id}", headers=test_user_headers)
+
+        assert self._refused(response), response.text
+        assert self._as_owner(client, admin_headers, search_id)["name"] == "Admin Search To Keep"
+
+    def test_user_cannot_mark_other_users_search_as_favorite(
+        self, client: TestClient, admin_headers: dict, test_user_headers: dict
+    ):
+        search_id = self._owned_by_admin(client, admin_headers, "Admin Plain Search")
+        assert self._as_owner(client, admin_headers, search_id)["is_favorite"] is False
+
+        response = client.post(f"/api/v1/search/saved/{search_id}/favorite", headers=test_user_headers)
+
+        assert self._refused(response), response.text
+        assert self._as_owner(client, admin_headers, search_id)["is_favorite"] is False
+
 
 class TestSavedSearchStatistics:
     """Test statistics functionality for saved searches."""
