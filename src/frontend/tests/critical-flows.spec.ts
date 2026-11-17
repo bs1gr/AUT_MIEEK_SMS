@@ -75,10 +75,20 @@ test.describe('Authentication Flow', () => {
     expect(url.endsWith('/') || url.includes('?')).toBeTruthy();
   });
 
-  test.skip('should show validation errors for empty form', async ({ page }) => {
+  // Skipped until November 2026 because it waited for an element with role="alert". The sign-in
+  // form has none: it is not blocked by the browser either (no `required`), the widget itself
+  // says what is missing, in Greek and English at once, and the page stays where it is.
+  test('should show validation errors for empty form', async ({ page }) => {
     await page.goto('/');
     await page.click('button[type="submit"]');
-    await expect(page.locator('[role="alert"]').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/please enter your email/i)).toBeVisible({ timeout: 5000 });
+
+    await page.fill('input[name="email"]', 'test@example.com');
+    await page.click('button[type="submit"]');
+    await expect(page.getByText(/please enter your password/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/please enter your email/i)).toHaveCount(0);
+
+    expect(page.url()).not.toContain('dashboard');
   });
 });
 

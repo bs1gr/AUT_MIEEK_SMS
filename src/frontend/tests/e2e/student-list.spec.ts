@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-// Virtual scroll component tests depend on specific CSS classes that may differ from implementation
-// Skip until selectors are verified to match actual component structure
+// Not runnable: the Students page is a list of cards. It has no table, no column headers and no
+// virtual-scroll container (the component with one, VirtualStudentList, is used by no page).
+// What the page does have is tested elsewhere: the list and a student's page in
+// critical-flows.spec.ts, editing and deleting in student-management.spec.ts.
+// Kept as it was written, until it is deleted (work plan, todo 53).
 test.describe.skip('Student List Component (Virtual Scroll)', () => {
   test.beforeEach(async ({ page }) => {
     // Login as teacher

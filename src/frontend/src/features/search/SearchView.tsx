@@ -163,6 +163,9 @@ export const SearchView: React.FC = () => {
       return `${result.first_name || ''} ${result.last_name || ''}`.trim();
     }
     if ('name' in result && result.name) return result.name;
+    // A course result has its name in `course_name` and nothing else above: it was listed as
+    // "Unknown" with its code underneath.
+    if ('course_name' in result && result.course_name) return result.course_name;
     return t('unknown');
   };
 

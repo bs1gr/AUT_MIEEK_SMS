@@ -1,74 +1,78 @@
 import { test, expect } from '@playwright/test';
+import { loginViaAPI, generateStudentData, TestDataTracker } from './helpers';
 
-// Error recovery and rate limiting tests depend on specific component selectors and timing
-// Skip until component implementation details are verified
-test.describe.skip('Student Resilience & Security', () => {
+const E2E_EMAIL = process.env.E2E_EMAIL || 'admin@example.com';
+const E2E_PASSWORD = process.env.E2E_PASSWORD || 'E2eAdmin#Pass2026';
+
+const isStudentCreation = (method: string, url: string) =>
+  method === 'POST' && /\/api\/v1\/students\/?$/.test(new URL(url).pathname);
+
+// Both tests were skipped until November 2026: they signed in on a page that does not exist
+// ("/login") with an account that does not exist, and looked for a "Save" button, a disabled
+// state and a "Try again" button that the Students page does not have.
+test.describe('Student Resilience & Security', () => {
+  let tracker: TestDataTracker;
+
   test.beforeEach(async ({ page }) => {
-    // Login as teacher
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('teacher1@example.com');
-    await page.getByLabel('Password').fill('password123');
-    await page.getByRole('button', { name: 'Login' }).click();
-    await page.waitForURL('/dashboard');
+    tracker = new TestDataTracker(page);
+    await loginViaAPI(page, E2E_EMAIL, E2E_PASSWORD);
+    await page.goto('/#/students');
+    await expect(page.getByTestId('add-student-btn')).toBeVisible({ timeout: 15000 });
   });
 
-  test('should prevent double submission (Rate Limiting)', async ({ page }) => {
-    await page.goto('/students');
-    await page.getByRole('button', { name: /add student/i }).click();
+  test.afterEach(async () => {
+    await tracker.cleanup();
+  });
 
-    // Fill form with dummy data
-    await page.getByLabel(/first name/i).fill('Rate');
-    await page.getByLabel(/last name/i).fill('Limit');
-    await page.getByLabel(/email/i).fill(`ratelimit-${Date.now()}@test.com`);
-
-    // Intercept the create request to delay it
-    // This allows us to verify the button state while "submitting"
-    await page.route('**/api/v1/students', async route => {
-      await new Promise(f => setTimeout(f, 1000)); // 1s delay
-      await route.fulfill({ status: 201, body: JSON.stringify({ id: 999 }) });
+  // What keeps a second click from creating a second student is not a disabled button: the
+  // form closes with the first click, so there is nothing left to press.
+  test('a second click on the submit button cannot create a second student', async ({ page }) => {
+    const student = generateStudentData();
+    const creations: number[] = [];
+    page.on('response', async (response) => {
+      if (!isStudentCreation(response.request().method(), response.url())) return;
+      creations.push(response.status());
+      const created = await response.json().catch(() => null);
+      tracker.track('students', created?.id ?? created?.data?.id);
     });
 
-    const saveButton = page.getByRole('button', { name: /save/i });
+    await page.getByTestId('add-student-btn').click();
+    await page.getByTestId('student-id-input').fill(student.studentId);
+    await page.getByTestId('first-name-input').fill(student.firstName);
+    await page.getByTestId('last-name-input').fill(student.lastName);
+    await page.getByTestId('email-input').fill(student.email);
 
-    // Click once
-    await saveButton.click();
+    const submit = page.getByTestId('submit-student');
+    await submit.click();
+    await expect(submit).toHaveCount(0);
+    await expect(page.getByText('Student added successfully!')).toBeVisible({ timeout: 15000 });
 
-    // Verify button is disabled immediately (preventing double submit)
-    // It might change text to "Saving...", so we check disabled state primarily
-    await expect(saveButton).toBeDisabled();
+    // Time for a second request to show up, if one had been sent.
+    await page.waitForTimeout(1500);
+    expect(creations).toHaveLength(1);
+    expect([200, 201]).toContain(creations[0]);
 
-    // Wait for the modal to close (indicating success)
-    await expect(page.locator('text=Add Student')).not.toBeVisible();
+    await page.getByTestId('student-search-input').fill(student.studentId);
+    await expect(page.locator('[data-testid^="student-view-profile-btn-"]')).toHaveCount(1);
   });
 
-  test('should show error recovery UI when API fails', async ({ page }) => {
-    // 1. Mock API failure (500 Error)
-    await page.route('**/api/v1/students*', route => route.fulfill({
-      status: 500,
-      body: JSON.stringify({ message: 'Simulated Backend Failure' })
-    }));
+  // Not runnable: the Students page has no error state. When the list cannot be loaded it shows
+  // "No students found", with no message and nothing to try again with. The test stays as the
+  // description of what is missing (work plan, todo 60).
+  test.skip('should show error recovery UI when API fails', async ({ page }) => {
+    await page.route('**/api/v1/students/**', (route) =>
+      route.fulfill({ status: 500, body: JSON.stringify({ message: 'Simulated Backend Failure' }) })
+    );
 
-    await page.goto('/students');
+    await page.goto('/#/students');
 
-    // 2. Verify ErrorRetry component appears
-    await expect(page.getByText(/simulated backend failure/i)).toBeVisible();
     const retryButton = page.getByRole('button', { name: /try again/i });
     await expect(retryButton).toBeVisible();
 
-    // 3. Remove failure mock to allow recovery
-    await page.unroute('**/api/v1/students*');
-
-    // 4. Click Retry
+    await page.unroute('**/api/v1/students/**');
     await retryButton.click();
 
-    // 5. Verify "Retrying..." state (optional, happens fast)
-    // await expect(page.getByText(/retrying/i)).toBeVisible();
-
-    // 6. Verify success (List should load)
-    // We expect the table or "No students found" message, but definitely not the error
     await expect(retryButton).not.toBeVisible();
-    // Check for common list elements
-    const listContainer = page.locator('div.overflow-y-auto.relative');
-    await expect(listContainer).toBeVisible();
+    await expect(page.locator('[data-testid^="student-view-profile-btn-"]').first()).toBeVisible();
   });
 });

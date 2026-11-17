@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 import axios from 'axios';
 
 // --- Setup Helpers ---
@@ -29,60 +29,10 @@ export async function ensureTestUserExists() {
 
 // --- Auth Helpers ---
 
-/**
- * Logs in via API and injects the session token into the browser context.
- *
- * This is the recommended approach for E2E tests because it's:
- * - **Faster**: Bypasses the UI login flow (typing, clicking, waiting for navigation).
- * - **More Reliable**: Not affected by UI changes to the login form.
- * - **Isolated**: Test state is cleanly set up before the test begins.
- *
- * It works by calling the API to get a token and then using `page.context().addInitScript()`
- * to set that token in `localStorage` before any page loads.
- *
- * @param page The Playwright Page object.
- * @param email The user's email.
- * @param password The user's password.
- */
-export async function loginViaAPI(page: Page, email: string, password: string) {
-  // 1. Request the access token from the backend API.
-  const response = await page.request.post('/api/v1/auth/login', {
-    data: {
-      email: email,
-      password: password,
-    },
-  });
-  expect(response.ok(), `Login via API failed for user ${email}`).toBeTruthy();
-  const data = await response.json();
-  const access_token = data.access_token || (data.data && data.data.access_token);
-  expect(access_token, `No access token in login response for ${email}`).toBeTruthy();
-
-  // 2. Inject a script to set the token in localStorage on all new pages.
-  // This is more robust than navigating to a page just to set the token.
-  await page.context().addInitScript((token) => {
-    window.localStorage.setItem('sms_access_token', token);
-  }, access_token);
-}
-
-/**
- * Logs in as the default administrator using environment variables or fallback credentials.
- *
- * This is a convenience wrapper around `loginViaAPI` for tests that require admin privileges.
- * For better security and flexibility, it reads credentials from `ADMIN_EMAIL` and `ADMIN_PASSWORD`
- * environment variables, falling back to hardcoded defaults if they are not set.
- *
- * @param page The Playwright Page object.
- */
-export async function loginAsAdmin(page: Page) {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'E2eAdmin#Pass2026';
-
-  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
-    console.warn('WARNING: Using default admin credentials. For better security, set ADMIN_EMAIL and ADMIN_PASSWORD environment variables.');
-  }
-
-  await loginViaAPI(page, adminEmail, adminPassword);
-}
+// The helpers that stood here until November 2026 (loginViaAPI, loginAsAdmin, navigateTo,
+// createStudent, waitForTable, getTableRowCount, searchTable, waitForNotification) were used by
+// one skipped spec only and could not work: the sign-in wrote a key the application deletes at
+// start, and the rest looked for a table the Students page does not have. Use e2e/helpers.ts.
 
 /**
  * Logs in via the UI form.
@@ -135,62 +85,4 @@ export async function logout(page: Page) {
   await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
   await logoutButton.click();
   await page.waitForURL(/^https?:\/\/[^/]+\/?#?\/?(\?.*)?$/, { timeout: 10000 });
-}
-
-// --- Navigation & Interaction Helpers ---
-
-export async function navigateTo(page: Page, path: string) {
-  await page.click(`a[href="${path}"]`);
-  await page.waitForLoadState('networkidle');
-}
-
-export async function createStudent(
-  page: Page,
-  data: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    studentId: string;
-  }
-) {
-  const addStudentButton = page.locator('[data-testid="add-student-btn"], button:has-text("Add Student")');
-  await addStudentButton.waitFor({ state: 'visible', timeout: 15_000 });
-  await addStudentButton.first().click();
-
-  await page.waitForSelector('[data-testid="student-id-input"]', { timeout: 15_000 });
-
-  await page.fill('[data-testid="first-name-input"], input[name="firstName"]', data.firstName);
-  await page.fill('[data-testid="last-name-input"], input[name="lastName"]', data.lastName);
-  await page.fill('[data-testid="email-input"], input[name="email"]', data.email);
-  await page.fill('[data-testid="student-id-input"], input[name="studentId"]', data.studentId);
-
-  const submitButton = page.locator('[data-testid="submit-student"], button:has-text("Add Student"), button:has-text("Save")');
-  await submitButton.first().click();
-
-  await page.waitForSelector('text=successfully', { timeout: 10_000 });
-}
-
-export async function waitForTable(page: Page, timeout = 5000) {
-  await page.waitForSelector('table tbody tr', { timeout });
-}
-
-export async function getTableRowCount(page: Page): Promise<number> {
-  return page.locator('table tbody tr').count();
-}
-
-export async function searchTable(page: Page, searchTerm: string) {
-  const searchInput = page.locator('input[placeholder*="Search"]');
-  if (await searchInput.isVisible()) {
-    await searchInput.fill(searchTerm);
-    await page.waitForLoadState('networkidle');
-  }
-}
-
-export async function waitForNotification(
-  page: Page,
-  type: 'success' | 'error' | 'warning' = 'success',
-  timeout = 5000
-) {
-  const selector = type === 'success' ? 'text=successfully' : type === 'error' ? 'text=error' : 'text=warning';
-  await page.waitForSelector(selector, { timeout });
 }
