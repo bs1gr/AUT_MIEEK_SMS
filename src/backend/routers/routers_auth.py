@@ -149,6 +149,14 @@ LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
 
 
 def _sync_rbac_legacy_role(db: Session, user: User, role_name: Optional[str]) -> None:
+    """Make the account's role rows say what its role now is.
+
+    The rows of the four built-in roles are removed and the row of the new role is added. A
+    role without a row of its own ("student": it is not a role in the tables) leaves the
+    account without any, which is what a student account has. This used to return early for
+    such a role, so an account changed to "student" kept the rows, and with them the
+    permissions, of the teacher or administrator it had been.
+    """
     if not user or not role_name:
         return
     role_key = str(role_name).strip().lower()
@@ -156,8 +164,6 @@ def _sync_rbac_legacy_role(db: Session, user: User, role_name: Optional[str]) ->
         return
 
     role = db.query(models.Role).filter(models.Role.name == role_key).first()
-    if not role:
-        return
 
     try:
         legacy_roles = db.query(models.Role.id).filter(models.Role.name.in_(LEGACY_ROLE_PRIORITY)).all()
@@ -168,13 +174,14 @@ def _sync_rbac_legacy_role(db: Session, user: User, role_name: Optional[str]) ->
                 models.UserRole.role_id.in_(legacy_role_ids),
             ).delete(synchronize_session=False)
 
-        exists = (
-            db.query(models.UserRole)
-            .filter(models.UserRole.user_id == user.id, models.UserRole.role_id == role.id)
-            .first()
-        )
-        if not exists:
-            db.add(models.UserRole(user_id=user.id, role_id=role.id))
+        if role is not None:
+            exists = (
+                db.query(models.UserRole)
+                .filter(models.UserRole.user_id == user.id, models.UserRole.role_id == role.id)
+                .first()
+            )
+            if not exists:
+                db.add(models.UserRole(user_id=user.id, role_id=role.id))
         db.commit()
     except Exception:
         db.rollback()
@@ -609,6 +616,44 @@ def _notify_admins_activation_email_failed(db: Session, activated: User, reason:
         logger.exception("Failed to notify admins that the activation email was not sent")
 
 
+def _remove_what_points_at_account(db: Session, user_id: int) -> None:
+    """Do for a deleted account what the foreign keys ask for, on a database that does not.
+
+    Every table that points at an account says what becomes of its rows when the account
+    goes: removed with it (``ON DELETE CASCADE``: its roles, its own permissions, its
+    notifications, saved searches, reports and dashboards) or kept without it (``SET NULL``).
+    PostgreSQL does that itself. SQLite does it only with foreign-key enforcement on, and this
+    application runs it without, so the rows stayed. SQLite also gives the next account the
+    number of the last one deleted: that account then held the deleted account's roles and
+    read its notifications.
+
+    Called when an account is deleted, and when one is created: nothing can belong to an
+    account that did not exist a moment ago, and a database may still hold what an account
+    deleted by an earlier version left under that number.
+
+    Each statement runs in a savepoint: on a database older than one of the tables the
+    failure must not stop the caller. The caller commits.
+    """
+    users_id = models.User.__table__.c.id
+    for table in models.Base.metadata.sorted_tables:
+        for foreign_key in table.foreign_keys:
+            if foreign_key.column is not users_id:
+                continue
+            rule = (foreign_key.ondelete or "").upper()
+            column = foreign_key.parent
+            if rule == "CASCADE":
+                statement: Any = table.delete().where(column == user_id)
+            elif rule == "SET NULL":
+                statement = table.update().where(column == user_id).values({column.name: None})
+            else:
+                continue  # refresh tokens and the audit log: handled by the caller
+            try:
+                with db.begin_nested():
+                    db.execute(statement)
+            except Exception as exc:
+                logger.warning("Could not clear %s.%s for user %s: %r", table.name, column.name, user_id, exc)
+
+
 def _registration_mode() -> str:
     mode = str(getattr(settings, "SELF_REGISTRATION_MODE", "approval") or "approval").lower()
     return mode if mode in {"approval", "open", "disabled"} else "approval"
@@ -667,6 +712,8 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
         db.add(user)
         db.commit()
         db.refresh(user)
+        _remove_what_points_at_account(db, int(user.id))
+        db.commit()
         _ensure_rbac_role_assignment(db, user, assigned_role)
         if requires_approval:
             logger.info("Registration pending admin approval", extra={"user_id": user.id})
@@ -1105,6 +1152,8 @@ async def admin_create_user(
         db.add(user)
         db.commit()
         db.refresh(user)
+        _remove_what_points_at_account(db, int(user.id))
+        db.commit()
         _ensure_rbac_role_assignment(db, user, role_name)
         # Explicit schema: returning the ORM object leaked hashed_password and lockout state.
         return UserResponse.model_validate(user).model_dump()
@@ -1247,6 +1296,7 @@ async def admin_delete_user(
                 )
         except Exception as notes_exc:
             logger.warning("Could not remove the private notes of user %s: %r", user_id, notes_exc)
+        _remove_what_points_at_account(db, int(user.id))
         # Use query-based delete to avoid ORM cascade against
         # tables that may not exist in older database schemas.
         db.query(models.User).filter(models.User.id == user.id).delete(synchronize_session=False)

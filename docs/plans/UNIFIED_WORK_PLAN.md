@@ -301,7 +301,49 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-Only the record of the release in this document.
+**2026-11-17: an account changed to "Student" no longer keeps its old access, and a deleted
+account leaves nothing for the next one** (PR 419; not asked for: both were found while the
+permission documents were being checked against a running copy, on the owner's "continue",
+and repaired at once because each let an account do what the list of accounts said it could
+not). The server only; no database change, no page change.
+
+- **The role "Student" took nothing away.** Changing an account's role to Student in Control
+  Panel > Maintenance > User Accounts changed the word in the Role column and left the
+  account's role rows as they were: "student" is not a role in the tables, and the code
+  returned early for a role without a row. Seen on a scratch server: a teacher changed to
+  Student went on reading, adding and exporting students and sending messages to all users;
+  an administrator changed to Student still listed the accounts and gave itself a role. On
+  every database, PostgreSQL included. Now the rows of the four built-in roles are removed
+  whatever the new role is. A change between Administrator and Teacher worked before and is
+  unchanged; a role made through the API, and a permission granted to the account itself,
+  stay.
+- **A deleted account's roles passed to the next account** (SQLite only). Deleting an
+  account left its rows in `user_roles`, `user_permissions`, `notifications`,
+  `notification_preferences`, `saved_searches`, `reports`, `generated_reports` and
+  `custom_dashboards`. PostgreSQL removes them through the foreign keys; SQLite does not,
+  because the application runs it without foreign-key enforcement (todo 61), and SQLite gives
+  the next account the number of the last one deleted. Seen on a scratch server: an account
+  created as a teacher straight after an administrator was deleted held the administrator's
+  role. Now deleting an account does what its foreign keys say (the rows marked `CASCADE` go,
+  the columns marked `SET NULL` are emptied), read from the models, so a table added later is
+  covered. And because a database may still hold what an earlier deletion left, the same
+  rows are cleared under a new account's number when the account is created, by an
+  administrator or by registration.
+- **Tests.** `test_account_role_leftovers.py`, ten tests through the API with the roles and
+  permissions of a new installation: a teacher and an administrator changed to Student, back
+  to Teacher, between Administrator and Teacher, a role outside the four; what a deletion
+  leaves, what the next account gets, what stays for another account (`granted_by` emptied);
+  rows planted under the next number before an account is created by an administrator and
+  before one registers. On the old code nine of the ten fail; the tenth guards what already
+  worked.
+- **Checked on a running copy** (scratch SQLite, the fixed code, a database that still held
+  an administrator's role row under the number of an account deleted before the fix): the
+  next Student account got that number and no role, and was refused the students, the
+  accounts and the audit log; a teacher changed to Student was refused at once with the
+  sign-in it already had; after a deletion no table held a row of the account.
+- **Not done.** The foreign keys of SQLite stay off (todo 61): this repairs the one place
+  where it gave access away, not the setting. Nothing looks for rows that earlier deletions
+  left under numbers no account will get again; they do no harm there.
 
 ### In v1.18.73
 
@@ -1754,7 +1796,12 @@ now** (todo 58).
       application works with, `PRAGMA foreign_keys` answers 0 (seen with the application's
       own engine). PostgreSQL enforces them. Switching it on for SQLite is a decision: an
       installation that already holds a row without its parent would refuse later changes
-      to it, so each such database has to be looked at first.
+      to it, so each such database has to be looked at first. **What it led to (found
+      2026-11-17, repaired in PR 419):** a deleted account's roles, permissions and
+      notifications stayed, and the next account, which SQLite gives the same number, had
+      them. Deleting and creating an account now clear those rows themselves. The setting is
+      as it was, and other deletions (a student, a course) were not looked at for the same
+      effect.
     - *Failures answered with HTTP 200.* Four routers (search, custom reports, import and
       export, dashboards; 83 places) answer a request they could not serve with status 200
       and `success: false` in the body. A page that reads only the status takes a failure
