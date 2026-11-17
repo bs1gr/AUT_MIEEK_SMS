@@ -85,10 +85,17 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   );
 
   const t = useCallback((key: string, options?: Record<string, unknown>): string => {
-    const tryNamespace = (ns: string, k: string) => {
-      const value = i18nT(k, { ...(options || {}), ns });
-      return typeof value === 'string' && value !== k ? value : null;
+    // i18next answers a missing key with the key itself, so an answer that differs from the
+    // key is a translation. An answer equal to it is either a missing key or a translation
+    // that reads the same as its key ("created", in English), and i18next is asked which.
+    // Until November 2026 both counted as missing, and `utils.created` was shown as written.
+    const lookup = (k: string, lookupOptions?: Record<string, unknown>): string | null => {
+      const value = i18nT(k, lookupOptions);
+      if (typeof value !== 'string') return null;
+      if (value !== k) return value;
+      return i18n.exists(k, lookupOptions) ? value : null;
     };
+    const tryNamespace = (ns: string, k: string) => lookup(k, { ...(options || {}), ns });
 
     // Support prefixed keys like "auth.loginTitle"
     if (key.includes('.')) {
@@ -99,8 +106,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
 
     // Try default namespace
-    const direct = i18nT(key, options);
-    if (typeof direct === 'string' && direct !== key) return direct;
+    const direct = lookup(key, options);
+    if (direct !== null) return direct;
 
     // Fallback across known namespaces
     for (const ns of namespaceFallbacks) {
@@ -109,7 +116,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
 
     return key;
-  }, [i18nT, namespaceFallbacks]);
+  }, [i18nT, i18n, namespaceFallbacks]);
 
   const contextValue = useMemo(
     () => ({ t, language, setLanguage }),

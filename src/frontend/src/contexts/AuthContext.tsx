@@ -3,6 +3,7 @@ import authService from '@/services/authService';
 import apiClient, { controlApiClient } from '@/api/api';
 import { getItem, setItem, removeItem } from '@/utils/appStorage';
 import { useLiteHeartbeat } from '@/hooks/useLiteHeartbeat';
+import { resetNotifications } from '@/hooks/useNotifications';
 import { isLiteLocalPage } from '@/utils/serverUrl';
 
 // Clean up legacy localStorage token keys from older versions.
@@ -100,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (typeof window === 'undefined') return undefined;
     const handleAuthExpired = () => {
       authService.clearAccessToken();
+      resetNotifications();
       setAccessTokenState(null);
       setUser(null);
       try { removeItem(LOCAL_USER_KEY); } catch {}
@@ -278,6 +280,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // ignore errors
     }
     authService.clearAccessToken();
+    // The notification list is one state for the page: the next account must not see it.
+    resetNotifications();
     setAccessTokenState(null);
     setUser(null);
     try { removeItem(LOCAL_USER_KEY); } catch {}

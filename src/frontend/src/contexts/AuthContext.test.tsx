@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthContext';
 import authService from '@/services/authService';
 import apiClient from '@/api/api';
+import { publishUnreadCount, useNotifications } from '@/hooks/useNotifications';
 import type { ReactNode } from 'react';
 
 // Mock dependencies
@@ -227,6 +228,38 @@ describe('AuthContext', () => {
       });
 
       expect(localStorage.getItem('sms_user_v1')).toBeNull();
+    });
+
+    // The notification list and count are one state for the whole page (the bell, the
+    // dropdown and its items read the same copy), so the end of a session has to empty it:
+    // the next account to sign in on this page must not be shown the previous one's.
+    it('empties the shared notification state', async () => {
+      mockApiClient.post.mockResolvedValue({ data: {} });
+      const notifications = renderHook(() => useNotifications());
+      act(() => publishUnreadCount(4));
+      expect(notifications.result.current.unreadCount).toBe(4);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await act(async () => {
+        await result.current.logout();
+      });
+
+      expect(notifications.result.current.unreadCount).toBe(0);
+      expect(notifications.result.current.notifications).toEqual([]);
+    });
+
+    it('empties it as well when the session expires', async () => {
+      const notifications = renderHook(() => useNotifications());
+      renderHook(() => useAuth(), { wrapper });
+      act(() => publishUnreadCount(2));
+      expect(notifications.result.current.unreadCount).toBe(2);
+
+      act(() => {
+        window.dispatchEvent(new Event('sms-auth-expired'));
+      });
+
+      expect(mockAuthService.clearAccessToken).toHaveBeenCalled();
+      expect(notifications.result.current.unreadCount).toBe(0);
     });
   });
 

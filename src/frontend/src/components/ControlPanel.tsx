@@ -944,7 +944,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                   <DevToolsPanel
                     variant="embedded"
                     showOperationsMonitorSummary={false}
-                    hideLegacyDatabaseTools
+                    showLegacyDatabaseTools
                     onToast={handleToast}
                   />
                   {user?.role === 'admin' && (
