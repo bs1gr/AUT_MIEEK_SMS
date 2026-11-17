@@ -235,11 +235,15 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
-**2026-11-17: four small fixes in the pages** (PR 411; the owner: "continue"; these are the
-open entries of todo 58 and of the 2026-11-12 smoke test that needed no decision of the
-owner's). No server code and no database changes. Each was checked in a browser on a scratch
-server (a throwaway SQLite file; five students, one course, an administrator with three
-unread notices, a teacher), with no console error and no failed request.
+**2026-11-17: four small fixes in the pages** (PR 411, merged as `08a2503d3`; the owner:
+"continue"; these are the open entries of todo 58 and of the 2026-11-12 smoke test that
+needed no decision of the owner's). No server code and no database changes. Each was checked
+in a browser on a scratch server (a throwaway SQLite file; five students, one course, an
+administrator with three unread notices, a teacher), with no console error and no failed
+request. On the PR's commit the frontend job passed 1,994 tests in 138 files (1,972 in 136
+on `main` before it: the 22 new tests), the backend job 1,609 with 55 skipped as before, and
+E2E 61 with 20 skipped as before. Not on the cloud VM (it runs `38d1111b3`) and not in the
+home installs until their next update.
 
 - **A notification marked as read is read everywhere at once.** The bell, the dropdown and
   every item in it call `useNotifications`, and each got a copy of the state of its own. An
