@@ -235,6 +235,41 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: the two notification guides say what the application does, and a refusal that
+was a server error** (PR 414; the owner: "continue"; an open entry of todo 58 that needed no
+decision of the owner's). No database changes.
+
+- **The guides.** `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` and
+  `docs/user/NOTIFICATIONS_USER_GUIDE.md` were written in January 2026 for a design: an
+  administration panel with dashboards, reports and alert thresholds, e-mail and SMS
+  delivery, personal settings with quiet hours and digests, fifteen kinds of notification.
+  None of it exists. Both are rewritten from the code (513 and 321 lines became 128 and 93):
+  the four things that create a notification (a registration that waits for approval, an
+  activation e-mail that could not be sent, a failed automatic backup, a message an
+  administrator sends), when the bell reads its number, the list under the bell and the full
+  list, how to send a message (Utils > Notifications), how notifications are kept, and a
+  list of what the application does not have, so that nobody looks for it. One sentence in
+  `USER_GUIDE_COMPLETE.md` promised e-mails for low attendance; it now says there are none.
+- **Checked in a running copy, not only read.** A scratch server from the branch (a
+  throwaway SQLite file, the normal sign-in rules, no mail), the two seeded administrators
+  and a teacher who registered and was approved during the check. 49 checks through the API
+  and in a browser, among them: a registration notifies every administrator and its owner
+  cannot sign in until approved; an approval without mail notifies the approving
+  administrator only; the number on the bell does not change while the page stays open and
+  does on return to the tab; ten entries under the bell, twenty at a time in the full list;
+  the eye, the bin and "Mark all as read" change the bell at once; the registration notice
+  opens User Management; the form's seven types, three targets and four roles; a deleted
+  notification stays in the database, marked. All 49 hold.
+- **Found by that check and fixed: a refusal answered as a server error.** An attempt to
+  mark as read, update or delete another account's notification was refused, but with a 500
+  and a traceback in the log: nothing handled the service's `PermissionError`. It is a 403
+  now. The three tests named "wrong user" could not fail: they gave the notification to the
+  account that made the request and accepted 200. They use two accounts now, and on the
+  router as it was three of them fail. A fourth checks that one account's list and count
+  never include another's.
+- **Found and not changed:** todo 59 (a teacher can send a message to every account through
+  the API; four smaller things).
+
 **2026-11-17: the tag waits for a build-only Docker run of its commit** (PR 413, merged as
 `dc7cd2796`; the owner: "continue" for todo 48, which it closes). Nothing in the application
 changes: a release script, a title in one workflow, tests and three documents. On the merge
@@ -1193,9 +1228,10 @@ now** (todo 58).
     - *The native WebSocket endpoint has no client.* `/api/v1/notifications/ws` and
       `services/websocket_manager.py` work and are tested; `services/notificationWebSocket.ts`
       in the frontend is used by nothing but its own test. Use it or remove both (owner's call).
-    - *Both notification guides describe things the application does not have* (an
+    - ~~*Both notification guides describe things the application does not have* (an
       administration panel, WebSocket settings, delivery dashboards). #391 corrected the
-      delivery description at the top of each; the rest is as written in January 2026.
+      delivery description at the top of each; the rest is as written in January 2026.~~
+      **Closed by PR 414:** both rewritten from the code and checked in a running copy.
     - ~~*`schedule_cleanup_task("hourly")` would run every minute* (`"*/1"` in the minute field of
       `maintenance_scheduler.py`). Only `"daily"` is ever asked for.~~ **Closed by #409.**
     - *Installs older than v1.18.70 on the shared database:* see the note at the top of this
@@ -1342,6 +1378,29 @@ now** (todo 58).
         the gate run again. To fix: the changed tests alone only when every changed backend
         file is a test file, otherwise the whole suite; and a pattern that means what it says.~~
         **Closed by #410**, for the frontend as well, where the same rule was live.
+59. **Found on 2026-11-17 while checking the notification guides, and not changed.**
+    - *A teacher can send a message to every account, through the API only.* The broadcast
+      endpoint asks for the permission `notifications:manage`; the teacher role has it, in
+      the role defaults (`rbac.py`) and in the grants made at start (`routers_rbac.py`). The
+      page shows the form to administrators only. On the scratch server a teacher's request
+      was accepted and reached all three accounts. Either teachers may send (then the page
+      should offer them the form) or they may not (then the permission goes from the role,
+      in the databases that already have the grant as well). The owner's call. The test
+      `test_broadcast_notification_requires_admin` accepts any answer and proves neither.
+    - *"Specific users" asks for account numbers that no page shows.* User Management lists
+      name, e-mail, role and status. A choice of names would make that target usable.
+    - *The notification preferences are stored and never read.* `GET` and
+      `PUT /notifications/preferences`, the table behind them and seventeen settings (per
+      type, e-mail, SMS, quiet hours): no page uses them, and nothing consults them when a
+      notification is created (`should_notify` has no caller). A teacher who switched the
+      in-app notifications off still got the next message. Build or remove, with the
+      WebSocket endpoint of todo 58 (the owner's call).
+    - *Notifications are never removed.* "Delete" marks the row; no job deletes old or
+      marked rows. The table is small today.
+    - *`docs/user/USER_GUIDE_COMPLETE.md` has not been checked against the application.* The
+      one sentence corrected in PR 414 stood next to others of the same kind (a "System
+      Settings" list with "Email Notifications: Enable/disable", attendance thresholds of
+      70 and 80 per cent). It needs the same reading as the two guides.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

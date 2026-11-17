@@ -35,7 +35,7 @@ This is the main entry point for navigating all project documentation. For detai
   - [Permission Matrix Endpoint Mapping](admin/PERMISSION_MATRIX_ENDPOINT_MAPPING.md) - Endpoint-to-permission mappings
   - [RBAC Database Schema](admin/RBAC_DATABASE_SCHEMA.md) - Database schema documentation
   - [RBAC Endpoint Audit](admin/RBAC_ENDPOINT_AUDIT.md) - Endpoint security audit
-  - [Notifications Admin Guide](admin/NOTIFICATIONS_ADMIN_GUIDE.md) - Notification system configuration
+  - [Notifications Admin Guide](admin/NOTIFICATIONS_ADMIN_GUIDE.md) - What creates a notification, sending a message to users, what does not exist
   - [Import/Export Guide](admin/IMPORT_EXPORT_GUIDE.md) - Bulk data import/export operations
 
 ### API Documentation

@@ -720,7 +720,7 @@ The system automatically flags:
 - ⚠️ **At Risk**: 70-80% (yellow warning)
 - ✅ **Good Standing**: > 80% (green)
 
-Administrators receive email notifications for students with low attendance.
+No e-mail and no notification is sent for low attendance: the flags show on the pages.
 
 ---
 
