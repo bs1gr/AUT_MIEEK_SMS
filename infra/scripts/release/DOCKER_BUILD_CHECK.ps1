@@ -160,7 +160,10 @@ function Invoke-BuildCheck {
     }
 
     if ($NoWait) {
-        Write-Step "Not waiting (-NoWait). For the result, before the tag: DOCKER_BUILD_CHECK.ps1 -Version $core" 'Yellow'
+        # The command that reads this run's result: the same platforms, or it asks for another run.
+        $again = "DOCKER_BUILD_CHECK.ps1 -Version $core"
+        if ($platformText -ne ($KnownPlatforms -join ',')) { $again += " -Platforms '$platformText'" }
+        Write-Step "Not waiting (-NoWait). For the result, before the tag: $again" 'Yellow'
         return
     }
 

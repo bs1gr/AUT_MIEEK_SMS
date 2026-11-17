@@ -235,6 +235,50 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: the tag waits for a build-only Docker run of its commit** (PR 413; the owner:
+"continue" for todo 48, which it closes). Nothing in the application changes: a release
+script, a title in one workflow, tests and three documents.
+
+- **Why.** CI builds `Dockerfile.fullstack` on every push, for amd64 only. The cloud VM is
+  arm64 and builds its image itself, after the tag. An image that does not build there would
+  have shown on the VM with the release already published.
+- **`infra/scripts/release/DOCKER_BUILD_CHECK.ps1` (new).** It dispatches
+  `docker-publish.yml` with `dry_run` for the commit that is checked out (amd64 and arm64;
+  nothing is pushed to a registry) and exits 0 only when that run succeeded. It refuses a
+  commit that is not pushed, because a dispatch builds the branch as it is on GitHub. A
+  build-only run of the same commit that already succeeded is the answer and nothing is
+  dispatched; one that is under way is waited for; after one that failed another is started.
+  `-NoWait` starts the run and returns. The workflow now titles its runs
+  ("Docker build check v1.18.73 (linux/amd64,linux/arm64)", or "Docker publish ..."), and the
+  script finds its run by that title and by the commit.
+- **`RELEASE_READY.ps1`.** Without `-TagRelease` it starts the run once the release commit
+  is pushed. With `-TagRelease` the tag is made only after the run passed: it is the last of
+  the tag guards, which moved into one function as they were. `-SkipDockerCheck` is the
+  override. `CLAUDE.md`, the release-manager agent and `RELEASE_SCRIPTS_OVERVIEW.md` name
+  the step.
+- **For a tag made by hand** (every release so far: `RELEASE_READY` without `-TagRelease`,
+  the GitHub body rewritten in a further commit, then the tag): run
+  `DOCKER_BUILD_CHECK.ps1 -Version X.X.X` on the commit that gets the tag. The run that
+  `RELEASE_READY` started was of the release commit; a commit added after it needs a run of
+  its own (about six minutes, at the same time as CI).
+- **Checked with tests:** 36 in `test_release_docker_build_check.py`. The real script runs
+  on scratch repositories with a scratch origin and a stand-in for `gh` whose run titles are
+  read from the workflow file, so a title changed in the workflow alone fails them; the tag
+  function and the function that calls the check are taken from `RELEASE_READY.ps1` itself
+  (check failed: no tag, locally or on the origin). Eight deliberate breakages of the three
+  files were each caught by at least one test.
+- **Checked for real, on the PR's branch** (commit `ef79dd87b`): the script dispatched run
+  44057856806, GitHub gave it the expected title, and it passed for both platforms in six
+  minutes; the two publish-only steps were skipped and the account still has no container
+  package. A second call found that run in 2 seconds and dispatched nothing. With `-NoWait`
+  (amd64 only, run 44058916467) it returned in 10 seconds, and a waiting call then picked up
+  that same run and passed after a minute. That showed one mistake, fixed in the PR: after
+  `-NoWait` with one platform, the command it named for reading the result left the
+  platform out.
+- **Not checked:** `RELEASE_READY.ps1` was not run end to end; its first real use is the
+  next release. No image that fails to build was produced: that path is covered by the
+  tests only.
+
 **2026-11-17: two small server fixes, and a third found while checking them** (PR 412,
 merged as `263cdca44`; the owner, a second time: "continue"; two more open entries that
 needed no decision of the owner's). No database changes. Checked on two scratch servers
@@ -969,9 +1013,9 @@ tree as evidence that GitHub is clear.
 v1.18.70" and "In v1.18.71" at the top). Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
-reclamation), 48 (dispatching the build-only Docker run from the release flow) and 50 (the
-owner's side of the privacy round). Todo 51 is closed: the owner confirmed on 2026-11-15 that
-the attendance fix works on the phone. Also still open in their own sections: the contrast
+reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
+run in the release flow) is closed by PR 413. Todo 51 is closed: the owner confirmed on
+2026-11-15 that the attendance fix works on the phone. Also still open in their own sections: the contrast
 design calls of 2026-10-07, and `viewer` and `guest` getting 403 on the Dashboard overview
 (2026-11-12 smoke test; the owner's call). The Absence limits table that was cut off at
 412 px in that smoke test fits a phone since PR 411.
@@ -1357,7 +1401,11 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
       `$BUILDPLATFORM`, so npm never runs emulated. A build-only arm64 run on the branch (run
       43314118411) succeeded in 5.5 minutes: 42 `aarch64` wheels downloaded, nothing compiled
       from source. The image was built, not started: its first real run is on the VM.
-    - **Still open:** dispatching the build-only run from the release flow.
+    - ~~**Still open:** dispatching the build-only run from the release flow.~~ **Closed by
+      PR 413 (2026-11-17):** `DOCKER_BUILD_CHECK.ps1` dispatches the build-only run for both
+      platforms and `RELEASE_READY.ps1` tags only after it passed; before a tag made by hand
+      it is run on the commit that gets the tag (under "On `main` since v1.18.72"). Its first
+      use in a real release is the next one.
 
 <!-- -->
 

@@ -413,6 +413,15 @@ def test_nowait_starts_the_run_and_returns(tmp_path, repo):
     assert state["looks"] == 0
     assert "Started: https://github.invalid/runs/500" in output
     assert "Not waiting (-NoWait)" in output and f"-Version {VERSION}" in output
+    assert "-Platforms" not in output
+
+
+def test_nowait_names_the_command_that_reads_the_result_of_this_run(tmp_path, repo):
+    # Without the platform, the command it names would ask for a run of both platforms.
+    exit_code, output, _ = _check(tmp_path, repo, NoWait=True, Platforms="linux/arm64")
+
+    assert exit_code == 0, output
+    assert f"before the tag: DOCKER_BUILD_CHECK.ps1 -Version {VERSION} -Platforms 'linux/arm64'" in output
 
 
 def test_a_run_that_does_not_finish_in_time_fails_the_check(tmp_path, repo):
