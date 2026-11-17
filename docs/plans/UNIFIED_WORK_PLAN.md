@@ -237,7 +237,9 @@ the VM and the QNAP.
 
 **2026-11-17: six E2E tests for things the application does not have are deleted, and four
 components that no page uses** (PR 418; the owner: "Delete the six E2E tests for things
-that do not exist, and the four unused components"). Nothing of the application changes.
+that do not exist, and the four unused components"; merged as `ace62bcdf`). Nothing of the
+application changes. On the PR's commit CI's backend job passed 1,727 tests with 55 skipped
+and the frontend job 2,012, both as before, and E2E 76 with none skipped (76 and 6 before).
 
 - **The six tests.** In `search_advanced.spec.ts` the group "not there at all" (saving and
   loading a search, in two tests; a "clear" control for the query; keyboard navigation in
@@ -259,8 +261,10 @@ that do not exist, and the four unused components"). Nothing of the application 
   used.
 
 **2026-11-17: a teacher is offered the form that sends a message** (PR 417; the owner:
-"Teachers and broadcast (todo 59): allow it on the page"). The server is not changed, and
-neither is the database.
+"Teachers and broadcast (todo 59): allow it on the page"; merged as `05d59a094`). The
+server is not changed, and neither is the database. On the PR's commit CI's backend job
+passed 1,727 tests with 55 skipped (1,720 and 55 on `main` before it), the frontend job
+2,012 (2,002 before) and E2E 76 with 6 skipped, as before.
 
 - **What was.** The server lets an account that holds `notifications:manage` send a message
   to other accounts, and the teacher role holds that permission, by default and in the
@@ -296,8 +300,10 @@ neither is the database.
 
 **2026-11-17: the Search page sorts, pages and filters, and finds a Greek name; the Students
 page says when its list could not be loaded** (PR 416; the owner: "Repair the Search page and
-the Students error state (todo 60)"). No database changes. It closes todo 60 but for the
-unused components, and the four tests of todo 53 that waited for it.
+the Students error state (todo 60)"; merged as `597d0149f`). No database changes. It closes
+todo 60 but for the unused components, and the four tests of todo 53 that waited for it. On
+the merge commit CI's backend job passed 1,720 tests with 55 skipped (1,674 and 55 before
+it), the frontend job 2,002 (1,995 before) and E2E 76 with 6 skipped (71 and 10 before).
 
 - **Paging and the total.** `POST /search/advanced` reads `page` and `page_size` from the
   body of the request, where the page always sent them (the `limit` and `offset` of the
@@ -1249,8 +1255,9 @@ install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to 
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
-a message is settled in PR 417: the page offers it) and todo 61 (found while the Search page
-was repaired). The six E2E tests of todo 53 that described things the application does not
+a message is settled in PR 417: the page offers it), todo 61 (found while the Search page
+was repaired) and todo 62 (the export jobs of the Import/Export page work in one case of
+many; found by the smoke test before v1.18.73). The six E2E tests of todo 53 that described things the application does not
 have, and the four unused components of todo 60, are deleted in PR 418: todo 53 is closed. Todo 60 itself is done in PR 416: the Search page sorts,
 pages and filters, and the Students page says when its list could not be loaded. Todo 51 is closed: the owner confirmed on
 2026-11-15 that the attendance fix works on the phone. Also still open in their own sections: the contrast
@@ -1684,6 +1691,32 @@ now** (todo 58).
     - *The search does not know a letter typed as two characters* (a vowel followed by a
       separate accent mark, as some keyboards and pasted texts give it). Names typed in the
       application on a Greek keyboard are not written that way.
+62. **The export jobs of the Import/Export page work in one case of many** (found on
+    2026-11-17 by the smoke test before v1.18.73; each seen on a scratch server; none of it
+    is new in that release).
+    - *Whatever format is chosen, the file is an Excel file.* The page sends the format in
+      the body of the request (`file_format`); the endpoint starts the work with
+      `export_format` from the address, which is "excel" when nothing is given. A job asked
+      for as CSV or as PDF is stored as such, its download is named `.csv` or `.pdf`, and
+      what is in it is an Excel file. The same fault as the Search page had (todo 60).
+    - *With the format in the address, CSV and PDF fail:* "'Student' object has no attribute
+      'status'".
+    - *Two kinds of export that the endpoint accepts never end:* a job for `attendance` or
+      for `dashboard` stays "processing". Nothing writes them, and the job is not marked as
+      failed.
+    - *A teacher can start a job and download its file, and may not look at it:* the role has
+      `exports:generate` and `exports:download` and not `exports:view`, so the state of its
+      own job and the list of jobs answer 403.
+    - *The page itself (Control Panel > Import/Export) does not reach the server where a
+      sign-in is required:* its requests carry no token. Seen in a browser as an
+      administrator: the list of earlier imports and exports is refused with 401. The export
+      dialog asks in the same way, and its value for Excel, "excel", is one the endpoint
+      refuses (422; it knows "xlsx").
+    - *What works:* an Excel export asked for with a token, which is what the smoke tests of
+      this release and of the earlier ones check. The exports under Utils > Export are
+      another part of the application and work.
+    - To do, on the owner's word: repair it as the Search page was repaired, or take the
+      dialog off the page.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):
