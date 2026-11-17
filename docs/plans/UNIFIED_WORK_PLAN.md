@@ -235,6 +235,62 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.72 (unreleased)
 
+**2026-11-17: two small server fixes, and a third found while checking them** (PR 412; the
+owner, a second time: "continue"; two more open entries that needed no decision of the
+owner's). No database changes. Checked on two scratch servers started side by side on
+throwaway SQLite files, one from `main` and one from the branch.
+
+- **`migrations.log` is written to `logs/`.** Both migration runners (the server's,
+  `scripts/migrate/runner.py`, and `run_migrations.py` of the Docker entrypoint and the
+  command-line tools) took "the first folder, going up, with a `backend` folder in it" for
+  the project's root. In a checkout that is `src`, since the code moved under `src` in June
+  2026, so the file went to `src/logs/`. The root is now the first folder with the `VERSION`
+  file: the checkout's root, and `/app` in the Docker image, where nothing changes. One
+  function, used by both runners. *Side by side:* the server from `main` wrote
+  `src\logs\migrations.log`, the one from the branch `logs\migrations.log`. The packaged SMS
+  Lite keeps writing it to the user's profile. One existing test had the same mistake in it
+  and so passed on the bug (`test_run_migrations_repo_root.py` took `src` for the
+  repository root and looked for the file there); the first gate of this change failed on
+  it. It also deleted that folder's `migrations.log` before each run. It now checks the
+  right folder and lets the run write into a temporary one.
+- **The N+1 detector counts per request.** `detect_n_plus_one` compared the statements per
+  table since the start of the server with five, and every call of the summary or of the
+  patterns endpoint wrote one warning per table. The profiler now keeps, for the newest 200
+  requests, how often each of them read each table (the middleware's request id reaches the
+  engine's hook, on the worker threads too), and reports a table that one request read more
+  than five times, with the highest count and that request's id; the log has the request's
+  path under the same id. Only `SELECT`s inside a request count, and nothing is written to
+  the log.
+  *Side by side, the same 30 requests (what the Dashboard and the Attendance page ask for,
+  three times; 221 statements on 12 tables):* the server from `main` reported 10 of the 12
+  tables and wrote 50 warnings in five calls; the one from the branch reported none and
+  wrote none.
+  *Then every `GET` endpoint of the API once on the branch* (102 endpoints, 617 statements,
+  15 students in one course): one entry, `grades` read 15 times by
+  `GET /analytics/course/1/students-comparison`, which is a real one (below). The first run
+  also listed a table called `(SELECT`: six aggregate queries over sub-queries in the
+  dashboard's request. Those are no longer counted as reads of one table.
+- **psutil is asked for names it knows (the third).** That sweep left one ERROR in the log:
+  `GET /admin/debug-processes` failed with "invalid attr name 'connections'". psutil 6 renamed
+  the attribute to `net_connections` and psutil 7 (the pinned version since at least June
+  2026) refuses the old name. The endpoint caught it and answered "Process diagnostics unavailable". The
+  same name was in SMS Lite's last resort at startup, when port 8000 is held by something
+  that does not answer its shutdown request: the loop raised before its first step, the
+  error was swallowed without a word, nothing was stopped, and Lite went on to start on a
+  busy port. Both use the new name, and Lite now writes to its debug log if that step
+  fails. **Not run in the packaged SMS Lite**: the function it calls was run against a real
+  process (below).
+- **Tests.** 24 new ones. 12 on the detector: a busy table, statements outside a request,
+  writes and sub-queries are not reported, the worst request is, only the newest requests
+  are kept, and three through a real application with the middleware, an engine and both an
+  `async` and a worker-thread endpoint. 7 on the log folder (a checkout, the image's layout,
+  a copy unpacked inside another repository, and both runners writing where the function
+  says). 5 on psutil: a scan of every attribute name the backend gives to psutil against
+  the installed version, the endpoint, and Lite's function stopping a process the test
+  starts on a free port (found by the port, and never the test itself). On the code from
+  `main`: the five psutil tests fail, as do the detector's tests of a busy table, of
+  statements outside a request and of writes; the rest ask for functions that are new.
+
 **2026-11-17: four small fixes in the pages** (PR 411, merged as `08a2503d3`; the owner:
 "continue"; these are the open entries of todo 58 and of the 2026-11-12 smoke test that
 needed no decision of the owner's). No server code and no database changes. Each was checked
@@ -1042,8 +1098,8 @@ now** (todo 58).
       by assignment name.
     - *A dead tool:* `scripts/utils/validators/import_checker.py` scans `<root>/backend`, which
       has not existed since the June flatten; nothing runs it or its test. Delete (owner's OK).
-    - *`migrations.log`* is written to `src/logs/`, not `logs/`: the runner takes `src` for the
-      repository root.
+    - ~~*`migrations.log`* is written to `src/logs/`, not `logs/`: the runner takes `src` for the
+      repository root.~~ **Closed by PR 412** (the folder that holds `VERSION`).
     - ~~*Log noise, now that logging works (#387):* a refused login is logged with a full
       traceback, and `backend.db.utils.transaction` logs an expected, retried unique-key conflict
       at ERROR with the SQL and its parameters.~~ **Closed by #390.**
@@ -1193,12 +1249,36 @@ now** (todo 58).
         real answer whenever the NAS's role is reconsidered.
         **Decided by the owner, 2026-11-17: "staying on 14.18 for now".** The two test
         containers are deleted.
-      - *The diagnostics summary calls every busy table an "N+1 pattern".* The profiler counts
+      - ~~*The diagnostics summary calls every busy table an "N+1 pattern".* The profiler counts
         statements per table since the start, and `detect_n_plus_one` warns about any table
         with more than five. On a server that has run for an hour that is every table, and
         each call of `/diagnostics/queries/summary` or `/patterns` writes one warning per
         table (six on a scratch server after a login and two pages). A real detector would
-        count per request.
+        count per request.~~ **Closed by PR 412** (it counts per request, and writes no
+        warning).
+    - *Found on 2026-11-17 with PR 412, and not fixed:*
+      - *One real N+1, in an endpoint no page calls.*
+        `GET /analytics/course/{id}/students-comparison` reads `grades` once per enrolled
+        student, and `students` once per student who has grades (15 and 0 on the scratch
+        server; a class of 25 on the cloud VM would be 25 to 50 round trips of 65 ms). The
+        frontend has no caller. One query for each would do, or the endpoint goes (the
+        owner's call). It is the only entry the new detector gave over all 102 `GET`
+        endpoints, with 15 students.
+      - *`GET /admin/debug-processes` has no caller either.* It lists what the old
+        "stop the dev server" control would kill. It answers again since PR 412; whether it
+        stays is the owner's call.
+      - *Two migration runners that are near copies.* `backend/run_migrations.py` (the Docker
+        entrypoint, the command-line tools) and `backend/scripts/migrate/runner.py` (the
+        server, SMS Lite) differ in a few lines. PR 412 gave them one function for the log
+        folder; the rest is still twice.
+      - *A test run writes into the `logs/` of the tree it runs in.* The tests that run the
+        migrations append to `logs/migrations.log` (104 KB in a clone after five test
+        files). The same class as the backups folder that PR 409 moved to a temporary one.
+      - *SMS Lite's last resort was never seen working in a packaged build.* Since PR 412 it
+        stops whatever holds port 8000 again when that does not answer Lite's shutdown
+        request, which is what the code was written to do; on the dev PC that includes a
+        development server on port 8000. Worth one look in the next smoke test of the
+        packaged Lite.
       - ~~*The gate's "changed tests only" rule can pass a commit on one test file.* In `-Quick`
         mode `COMMIT_READY` (`Invoke-TestSuite`) runs only the changed backend test files when
         its pattern finds any, whatever else the commit changes (source files, `conftest.py`).

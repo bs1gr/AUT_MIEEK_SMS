@@ -428,10 +428,12 @@ async def debug_processes(_auth=Depends(require_control_admin)):
     }
 
     try:
-        # Check port 5173
-        for proc in psutil.process_iter(["pid", "name", "cmdline", "connections"]):
+        # Check port 5173. The attribute is `net_connections` since psutil 6, and psutil 7
+        # refuses the older `connections`: with it every call ended in the `except` at the
+        # bottom ("Process diagnostics unavailable", and an ERROR with a traceback in the log).
+        for proc in psutil.process_iter(["pid", "name", "cmdline", "net_connections"]):
             try:
-                connections = proc.connections()
+                connections = proc.net_connections()
                 for conn in connections:
                     if hasattr(conn, "laddr") and conn.laddr.port == 5173:
                         processes_info["frontend_on_port_5173"].append(

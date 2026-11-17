@@ -3,8 +3,8 @@ from pathlib import Path
 
 
 def test_run_migrations_writes_log(tmp_path, monkeypatch):
-    """Run the migration runner with a temporary sqlite DB and assert the
-    repository `logs/migrations.log` file is created and non-empty.
+    """Run the migration runner with a temporary sqlite DB and assert that migrations.log is
+    created in the folder the runner names, and that this folder is the repository's `logs/`.
     """
     # Ensure a secure SECRET_KEY for pydantic Settings validation
     monkeypatch.setenv("SECRET_KEY", secrets.token_urlsafe(32))
@@ -21,20 +21,22 @@ def test_run_migrations_writes_log(tmp_path, monkeypatch):
 
     rm = importlib.import_module("backend.run_migrations")
 
-    # Ensure logs file is removed before test
-    repo_root = Path(__file__).resolve().parents[2]
-    logs_file = repo_root / "logs" / "migrations.log"
-    try:
-        if logs_file.exists():
-            logs_file.unlink()
-    except Exception:
-        pass
+    # The repository root is the folder with the VERSION file: tests -> backend -> src -> root.
+    # Until November 2026 this test took `parents[2]` for it, which is `src` since the code
+    # moved under `src`, and so passed on the very bug it was written against: the runner
+    # wrote src/logs/migrations.log, and the test looked for it there.
+    repo_root = Path(__file__).resolve().parents[3]
+    assert (repo_root / "VERSION").is_file()
+    assert rm.migrations_log_dir() == repo_root / "logs"
+
+    # The run itself writes into a temporary folder. This test used to delete the tree's own
+    # migrations.log before it ran, and then wrote a new one in its place.
+    logs_dir = tmp_path / "logs"
+    monkeypatch.setattr(rm, "migrations_log_dir", lambda: logs_dir)
 
     success = rm.run_migrations(verbose=True)
 
     assert success is True
-    # The runner should create the migrations.log file in the repository logs/
-    # directory. Depending on logging configuration in the test runner the file
-    # may be zero-length (stdout captured elsewhere) — existence is the strong
-    # signal we rely on for repo-root resolution.
-    assert logs_file.exists()
+    # Depending on logging configuration in the test runner the file may be zero-length
+    # (stdout captured elsewhere) — existence is the signal that the runner used the folder.
+    assert (logs_dir / "migrations.log").exists()

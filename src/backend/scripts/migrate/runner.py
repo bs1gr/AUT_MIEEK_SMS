@@ -53,6 +53,35 @@ def _alembic_config(backend_dir: Path) -> Config:
     return cfg
 
 
+def project_root(start: Path) -> Path:
+    """The folder that holds `logs/`, found by going up from `start`.
+
+    It is the first folder with a `VERSION` file in it: the root of a checkout, and `/app` in
+    the Docker image. Until November 2026 it was the first folder with a `backend` folder in
+    it, which in a checkout is `src` (the code moved under `src` in June 2026), so
+    migrations.log was written to `src/logs/` while every other log is in `logs/`. That rule
+    is kept for a layout that has neither the file nor a `.git`.
+    """
+    candidates = (start, *start.parents)
+    for marker in ("VERSION", ".git"):
+        for folder in candidates:
+            if (folder / marker).exists():
+                return folder
+    for folder in candidates:
+        if (folder / "backend").is_dir():
+            return folder
+    return start.parents[2] if len(start.parents) >= 3 else Path.cwd()
+
+
+def migrations_log_dir() -> Path:
+    """Where migrations.log is written: the project's `logs/`; for the packaged SMS Lite,
+    the user's profile (the program folder may be read-only)."""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        return Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'logs'
+    backend_dir = Path(__file__).resolve().parent.parent.parent
+    return project_root(backend_dir) / "logs"
+
+
 def run_migrations(verbose: bool = False) -> bool:
     """Run Alembic migrations (upgrade head) using the Alembic API.
 
@@ -79,21 +108,7 @@ def run_migrations(verbose: bool = False) -> bool:
             print(f"Using DATABASE_URL: {url}", flush=True)
 
         try:
-
-            def _find_repo_root(start: Path) -> Path:
-                for p in (start, *start.parents):
-                    if (p / ".git").exists() or ((p / "backend").exists() and (p / "backend").is_dir()):
-                        return p
-                fallback = start.parents[2] if len(start.parents) >= 3 else Path.cwd()
-                return fallback
-
-            repo_root = _find_repo_root(backend_dir)
-
-            # For bundled PyInstaller apps, use AppData instead of repo root
-            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-                logs_dir = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'logs'
-            else:
-                logs_dir = repo_root / "logs"
+            logs_dir = migrations_log_dir()
             logs_dir.mkdir(parents=True, exist_ok=True)
             fh = logging.FileHandler(logs_dir / "migrations.log", mode="a")
             fh.setLevel(logging.INFO)
