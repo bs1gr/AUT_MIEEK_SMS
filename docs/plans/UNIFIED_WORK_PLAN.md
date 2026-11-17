@@ -1,8 +1,74 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.72
+**Current Version**: 1.18.73
 **Last Updated**: November 17, 2026
-**Status**: ✅ **v1.18.72 released 2026-11-16** (tag on `4ffa6afa2`, run by the assistant; the
+**Status**: ✅ **v1.18.73 released 2026-11-17** (tag on `50e4b57fc`, run by the assistant; the
+owner: "Release v1.18.73 with what has been merged since v1.18.72 (#409 to #415)", the last of
+four things asked for in one message, after the other three were done: so it carries PRs 409
+to 418). It ships what is under "In v1.18.73" below: the Search page that sorts, pages and
+filters and finds a Greek name, the form that sends a message offered to teachers, the
+Students page's message for a list that could not be loaded, the page and server fixes of 16
+and 17 November (#409, #411, #412), and the release step that builds the Docker image before
+a tag (#413). No database changes. The open work is listed at the start of "Next todos".
+
+**The Docker build check, in real use for the first time.** `RELEASE_READY` started a
+build-only run for the release commit `8e0164423` once it was pushed (run 44142091454: amd64
+and arm64, passed in under five minutes, nothing published). The tag was to go on a later
+commit, the one with the hand-written notes, so `DOCKER_BUILD_CHECK.ps1 -Version 1.18.73` was
+run on that commit, `50e4b57fc`: it dispatched run 44144703408, waited 6.5 minutes and ended
+with exit code 0. The tag was made after that, and after CI/CD and E2E were green on the
+same commit.
+
+**Before the tag:** a smoke test of three editions (below), then `RELEASE_READY` (no
+`-TagRelease`): 55 minutes, exit 0, every gate passed, the backend suite ran 58/58 batches with
+1,739 passed, 43 gated skips and 0 failed, and the local installer (90,266,856 bytes) was built
+and signed with the frozen-Lite check passing 11/11. The generated GitHub body only said
+"1 new features" and "5 bug fixes" and was rewritten by hand in `50e4b57fc`.
+
+**Smoke test (2026-11-17, evening; isolated copies under `D:\tmp`, scratch databases only;
+built from the tree of PRs 416 to 418, which is the code of the release before its version
+number).** Each edition as an administrator and as a teacher: 32 to 35 checks through the
+API (a first sign-in, a teacher's day with Greek names, the search, a message sent by a
+teacher, another account's notification, an Excel export job, a PDF), the packaged-edition
+check, and ten pages in a browser with every API answer and every console line watched.
+
+- *Server from source, a first start on SQLite:* every check held, two of them only on a
+  second pass, after the check itself was corrected (one had asked the export job for a CSV
+  file, which is todo 62 and not this release; one tripped over the first pass's students);
+  11/11; in the browser all claims for the teacher, and for the administrator all but the
+  comparison of the order of names, which the check had wrong on that pass (the list it
+  printed was in the right order; the corrected check held for both roles on the other two
+  editions). The six ERROR lines of the server's log all came from the probes of the export
+  jobs (todo 62).
+- *Docker image on PostgreSQL 14.25:* 32/32, 11/11, in the browser all claims for each role;
+  the automatic backup was made a minute after the start. After the container was replaced
+  on the same database and the same data volume: 35/35, the students, the grades and the
+  teacher's message of before among them, and the backups still there. No ERROR line in
+  either log (1,366 and 285 lines), no router skipped.
+- *Packaged SMS Lite, upgraded:* the released v1.18.72 build was run in a throwaway profile
+  and the same checks run against it: 25 of 32, the seven failures being what v1.18.73
+  repairs (the counts without a token, the search's pages and total, a Greek name that was
+  not found at all, a filter with two values, the grade row, an order that does not exist,
+  and a server error for another account's notification). The new build was then started on
+  that profile: 35/35, among them the student the old build had stored, found by the surname
+  in small letters without accents; 11/11; in the browser all claims for each role; no
+  ERROR line in 1,063 log lines, no router skipped.
+- Not checked: the installer was not installed, and the Android app was not run on a device.
+
+**Verified on the published assets:** `SMS_Installer_1.18.73.exe` 87,360,944 bytes, SHA-256
+`e967bb36…432d29` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.73; `SMS_Android_1.18.73.apk` 4,196,606
+bytes, SHA-256 `8678ceef…ac3482` = GitHub's digest, `versionName 1.18.73` /
+`versionCode 118073`, target SDK 36, signed with the same certificate as v1.18.72 (SHA-256
+`686fb6ed…d2ea`, so phones upgrade in place); the new texts are in its bundle. The release
+on GitHub carries the hand-written text. The release, installer and APK workflows on the tag
+succeeded.
+
+**The cloud VM was not updated.** It runs `main` at `38d1111b3` (v1.18.72 with #409) and
+stays there until the owner says so: it is a change to the server in use. No database change
+comes with v1.18.73.
+
+v1.18.72 was released 2026-11-16 (tag on `4ffa6afa2`, run by the assistant; the
 second release of the day. Asked after #408 was merged, the owner chose "Release v1.18.72").
 It ships #408 ("In v1.18.72" below): a notice to the administrators when the daily backup
 fails, a signal to a monitoring service outside, mail settings that last, and the Import/Export
@@ -233,7 +299,11 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.72 (unreleased)
+### On `main` since v1.18.73 (unreleased)
+
+Only the record of the release in this document.
+
+### In v1.18.73
 
 **2026-11-17: six E2E tests for things the application does not have are deleted, and four
 components that no page uses** (PR 418; the owner: "Delete the six E2E tests for things
@@ -1249,7 +1319,8 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
-v1.18.70" and "In v1.18.71" at the top). Older entries that are still open, further
+v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
+the cloud VM has not been updated to it and waits for the owner's word.** Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
@@ -1304,7 +1375,7 @@ now** (todo 58).
     wait for the list). **Done in #391:** the notifications suite (15 tests that waited for
     Socket.IO events) is deleted with the channel. ~~**Left:** make each of the six skipped
     suites run or delete it (deleting needs the owner's OK).~~ **Done in PR 415
-    (2026-11-17):** ten of the twenty run (under "On `main` since v1.18.72"); a local run of
+    (2026-11-17):** ten of the twenty run (under "In v1.18.73"); a local run of
     the whole suite gives 71 passed and 10 skipped. **Left:**
     - ~~*The owner's OK to delete six tests that describe things the application does not
       have:* in `search_advanced.spec.ts` the group "Search page: not there at all" (save and
@@ -1659,7 +1730,7 @@ now** (todo 58).
       owner's go-ahead.~~ **Done in PR 416 (2026-11-17; the owner: "Repair the Search page
       and the Students error state"):** every entry above but the unused components, with
       what the first look at a running copy added (a Greek name was not found; the counts
-      answered without a sign-in). The details are under "On `main` since v1.18.72".
+      answered without a sign-in). The details are under "In v1.18.73".
 61. **Found on 2026-11-17 while the Search page was repaired, and not changed.**
     - *Two search endpoints that cannot answer.* `POST /search/students/full-text` calls a
       method the search service does not have, and `POST /search/students/advanced` filters
@@ -1784,8 +1855,10 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
     - ~~**Still open:** dispatching the build-only run from the release flow.~~ **Closed by
       PR 413 (2026-11-17):** `DOCKER_BUILD_CHECK.ps1` dispatches the build-only run for both
       platforms and `RELEASE_READY.ps1` tags only after it passed; before a tag made by hand
-      it is run on the commit that gets the tag (under "On `main` since v1.18.72"). Its first
-      use in a real release is the next one.
+      it is run on the commit that gets the tag (under "In v1.18.73"). **Used for the first
+      time in the release of v1.18.73 (2026-11-17):** started by `RELEASE_READY` for the
+      release commit, then run by hand on the commit that got the tag; both runs passed for
+      both platforms (the top of this document).
 
 <!-- -->
 
