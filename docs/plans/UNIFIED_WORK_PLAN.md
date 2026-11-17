@@ -301,9 +301,37 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-17: the user guide says what the application does** (PR 421; the owner's
+"continue": the rest of the last entry of todo 59). `docs/user/USER_GUIDE_COMPLETE.md` is
+written anew, 430 lines for 1,560. Nothing of the application changes.
+
+- **What it was.** A text of 2025 about the application as planned: an installer
+  "SMS_Installer_1.8.6.3", a default administrator "admin@example.com", navigation entries
+  "Reports" and "Control Panel", a "System Settings" page (semester weeks, e-mail
+  notifications, caching), keyboard shortcuts, attendance alerts at 70 and 80 per cent,
+  `AUTH_MODE=permissive` as the recommended setting, and the advice to set
+  `AUTH_MODE=disabled` when a sign-in fails. Its one checked part was the lesson log.
+- **How it was checked.** A scratch copy with a course set up as a teacher would (rules, a
+  schedule, a week of attendance, a lesson log, grades). Every page was opened as a teacher
+  and as an administrator, and as a viewer and a student account for what they are refused;
+  every window, tab and form was opened and its text and fields written down by a script
+  (several thousand lines of page text), with every refused request.
+- **What it says now.** Signing in and asking for an account; the frame of every page; the
+  Dashboard; Students; Courses with rules, schedule and enrolment; Attendance with the day's
+  rating, the lesson log and the absence table; Grades; how absences and the final grade are
+  worked out; Calendar; Search; the six tabs of Utils; Analytics; System; what each kind of
+  account may do; what the application does not have; what to do when something goes wrong.
+- **The index of the user documents** (`docs/user/INDEX.md`) named neither this guide nor
+  the notification guide and recommended keyboard shortcuts. It now lists what was checked
+  and, apart, the fifteen older documents that were not.
+- **A pointer** in `docs/deployment/QNAP_POSTGRES_SINGLE_SOURCE.md` led to a section of the
+  old guide; it leads to the new one's.
+- **Found on the way:** seven more entries of todo 63.
+
 **2026-11-17: the three permission documents say what the application does, and a test
-keeps them to it** (PR 420; the owner's "continue", which takes up the last entry of todo
-59). `docs/admin/PERMISSION_REFERENCE.md`, `RBAC_ADMIN_GUIDE.md` and `PERMISSION_MATRIX.md`
+keeps them to it** (PR 420, merged as `a192ace59`; the owner's "continue", which takes up
+the last entry of todo 59; on the PR's commit CI's backend job passed 1,750 tests with 55
+skipped, the frontend job 2,012 and E2E 76). `docs/admin/PERMISSION_REFERENCE.md`, `RBAC_ADMIN_GUIDE.md` and `PERMISSION_MATRIX.md`
 are written anew. Nothing of the application changes.
 
 - **What they were.** Texts of the design of January 2026, kept as if they described the
@@ -336,10 +364,11 @@ are written anew. Nothing of the application changes.
   PR 419 (below), and the entries of todo 63, none of them changed.
 
 **2026-11-17: an account changed to "Student" no longer keeps its old access, and a deleted
-account leaves nothing for the next one** (PR 419; not asked for: both were found while the
-permission documents were being checked against a running copy, on the owner's "continue",
-and repaired at once because each let an account do what the list of accounts said it could
-not). The server only; no database change, no page change.
+account leaves nothing for the next one** (PR 419, merged as `31dd259f0`; not asked for:
+both were found while the permission documents were being checked against a running copy, on
+the owner's "continue", and repaired at once because each let an account do what the list of
+accounts said it could not; on the PR's commit CI's backend job passed 1,737 tests with 55
+skipped, the frontend job 2,012 and E2E 76). The server only; no database change, no page change.
 
 - **The role "Student" took nothing away.** Changing an account's role to Student in Control
   Panel > Maintenance > User Accounts changed the word in the Role column and left the
@@ -1776,8 +1805,8 @@ now** (todo 58).
       `docs/admin/PERMISSION_REFERENCE.md` and `RBAC_ADMIN_GUIDE.md`: both name a permission
       `notifications:broadcast` for administrators only; the code has `notifications:manage`,
       for administrators and teachers. **The two permission documents, and the matrix beside
-      them, were written anew in PR 420 (2026-11-17); what the reading found is todo 63. The
-      user guide is still to do.**
+      them, were written anew in PR 420 (2026-11-17), and the user guide in PR 421; what the
+      two readings found is todo 63. This entry is closed.**
 60. **The Search page offers three things that do nothing, and the Students page calls a
     failed load an empty list** (found 2026-11-17 while making their E2E tests run; each seen
     in a running copy with the four students of the seed).
@@ -1943,7 +1972,37 @@ now** (todo 58).
       `rbac_monitor.py`, which look for `backend/routers` where it was before the folders
       were moved. Delete, or read and correct (the owner's OK).
     - *Seen once and not explained:* a scratch server on port 8013 stopped, without a line in
-      its log, while the commit gate ran its first backend batches in the same clone.
+      its log, while the commit gate ran its first backend batches in the same clone. It did
+      not happen during the next two gates.
+    - **Added by the reading for the user guide (PR 421), none of it changed:**
+    - *Two pages show the name of a text where the text should be:* "currentRules:" above
+      the rules of a course (Courses > Evaluation Rules), and "failedToLoadSemesters" in
+      Utils > Export > Session Export/Import for a teacher, whose request for the semesters
+      is refused. The panel is offered to accounts that cannot use it.
+    - *The help of Utils > Help & Documentation is older than the pages in places.* "Click
+      Save Attendance" (there is no such button); "Only unexcused absences affect grades"
+      (excused periods count towards both absence limits, as the Attendance page itself
+      says); "What is absence penalty?" describes a deduction per absence without the limits.
+      Eighteen groups, ninety-one answers: they need the reading the guide got.
+    - *The privacy notice of the application says "A student account sees its own records
+      only".* It sees none (the entry on student accounts above).
+    - *On a student's page* the dates of "Recent Grades" read "N/A" for grades that have a
+      date, and the line under each enrolled course reads "Courses: 17/11/2026".
+    - *The registration form answers an empty address in two languages at once:* "Παρακαλώ
+      εισάγετε τη διεύθυνση email σας. / Please enter your email."
+    - *A teacher is shown System > Control Panel > Maintenance > System Operations* with
+      Backup Database, Restore DB and Clear DB. Clear is refused by the server. Backup and
+      restore go through the Control API, which passes any request from the computer the
+      application runs on (seen: its status answers a teacher, and a request without a
+      sign-in, there). So on a shared PC with SMS Lite a teacher could restore another
+      database; that was not tried. It is the Control API's rule as designed
+      (`PERMISSION_MATRIX.md`); whether the panel should be shown to a teacher is the
+      owner's call.
+    - *Fifteen older user documents were not read* (listed in `docs/user/INDEX.md`): two
+      quick-start guides, three older user guides (one of v1.9.7), the theme, localization,
+      import/export and rate-limiting guides, the two RBAC guides and a note on PDF
+      conversion. There is no Greek version of the checked guide. Delete, or read and
+      correct (the owner's OK).
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

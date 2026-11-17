@@ -1,1560 +1,430 @@
-# Complete User Guide - Student Management System
+# User Guide - Student Management System
 
 **Version:** 1.18.73
-**Last Updated:** June 11, 2026
-**Status:** ✅ Active
+**Checked against the application:** 17 November 2026. Every page named here was opened in
+a running copy as a teacher and as an administrator, and each window and form was opened and
+read. Where something does not work, the guide says so.
+
+This guide is for the people who use the pages: teachers first, administrators second. It
+replaces a text of 1,560 lines that described the application as it was planned in 2025,
+with pages, settings and shortcuts that were never built.
+
+**Other guides**
+
+| For | Read |
+|---|---|
+| Notifications and messages | [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md) |
+| Accounts, roles, permissions (administrators) | [../admin/RBAC_ADMIN_GUIDE.md](../admin/RBAC_ADMIN_GUIDE.md), [../admin/PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md) |
+| Backups and restoring (administrators) | [../admin/BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md) |
+| Personal data | [../admin/PRIVACY_AND_GDPR.md](../admin/PRIVACY_AND_GDPR.md) |
+| Installing the application | [../operations/INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md) (not checked in this reading) |
 
 ---
 
-## 📋 Table of Contents
+## Contents
 
-1. [Introduction](#introduction)
-
-2. [Getting Started](#getting-started)
-
-3. [Installation & Access](#installation--access)
-
-4. [User Interface Overview](#user-interface-overview)
-
-5. [Student Management](#student-management)
-
-6. [Course Management](#course-management)
-
-7. [Grade Management](#grade-management)
-
-8. [Attendance Tracking](#attendance-tracking)
-
-9. [Reports & Analytics](#reports--analytics)
-
-10. [Import/Export Data](#importexport-data)
-
-11. [System Settings](#system-settings)
-
-12. [Troubleshooting](#troubleshooting)
-
-13. [Frequently Asked Questions](#frequently-asked-questions)
-
-14. [RBAC & Permissions](#rbac--permissions)
-
-15. [API Explorer](#api-explorer)
+1. [Signing in](#1-signing-in)
+2. [The page](#2-the-page)
+3. [Dashboard](#3-dashboard)
+4. [Students](#4-students)
+5. [Courses](#5-courses)
+6. [Attendance](#6-attendance)
+7. [Grades](#7-grades)
+8. [Absences and the final grade](#8-absences-and-the-final-grade)
+9. [Calendar](#9-calendar)
+10. [Search](#10-search)
+11. [Utils](#11-utils)
+12. [Analytics](#12-analytics)
+13. [System](#13-system)
+14. [What an account may do](#14-what-an-account-may-do)
+15. [What the application does not have](#15-what-the-application-does-not-have)
+16. [When something goes wrong](#16-when-something-goes-wrong)
 
 ---
 
-## Introduction
+## 1. Signing in
+
+The first page asks for **Email** and **Password**, then **Login**. A wrong address or
+password answers "Invalid email or password". After several wrong tries the account is locked
+for a while; an administrator's password reset unlocks it.
+
+**Asking for an account.** Under "Need an account to access the system?", **Request access**
+opens a form: Email, Password, Full name (optional), **Register**. The password needs at
+least 8 characters, with an uppercase and a lowercase letter, a number and a symbol, and no
+spaces. The account is a teacher's account and cannot sign in until an administrator approves
+it. (An installation can switch registration off, or let new accounts in at once.)
+
+**A new administrator** of a fresh installation has to change the password before anything
+else opens.
+
+**Signing out** is the button with the power sign at the top right.
+
+**Changing your password.** An administrator does it under System > Control Panel >
+Maintenance > User Accounts ("Change Your Password"). A teacher has no page for it: ask an
+administrator for a reset.
+
+## 2. The page
+
+Every page has the same frame.
+
+- **Top right:** the bell with the number of unread notifications, and the language switch
+  (**EN** / **ΕΛ**). Every page exists in English and in Greek; the choice is remembered on
+  the device.
+- **The navigation:** Dashboard, Search, Attendance, Grades, Students, Courses, Calendar,
+  Utils, System. Every account sees all nine.
+- **Send Feedback**, at the right edge: a box for a suggestion or a problem. What is sent
+  reaches the feedback inbox of the administrators and teachers (Utils > Notifications).
+- **The foot of the page:** the version, and **Privacy notice**, which says what personal
+  data the application holds.
+
+The bell and what arrives there are described in
+[NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md).
+
+## 3. Dashboard
+
+The Dashboard has two views, **Overview** and **Analytics** (the second is the page of
+section 12).
+
+The Overview shows, from top to bottom:
+
+- **Four counts:** Total Students (and how many are active), Active Courses (those with
+  enrolments), Avg Class Size, Enrollment Rate.
+- **Three figures:** the average final grade with the pass rate, attendance (Present and Late
+  count as attended), and grading progress (enrolments with something graded, of all).
+- **Top Performing Students:** active students with something graded, in order of final
+  grade, of attendance or of exams.
+- **Active Courses**, each with its evaluation rules.
+- **Export Grades** and **Export Courses**, on those two cards, download files.
+- **Students Needing Attention:** a student who is failing a course (final grade under 50%),
+  has lost Class Participation (absences over 10%), or is near or over the 30% absence limit.
+  Each line says which. **Open Analytics** leads to the details.
+- **Attendance Not Recorded:** teaching days of the last week, by the courses' schedules,
+  with no attendance entered. The application does not know holidays, so a day off can
+  appear here. Courses without a teaching schedule cannot be checked, and the card says how
+  many there are.
+- **Year of Study Analytics** and **System Information** (counts of students, courses,
+  configured courses, enrolments).
 
-### What is the Student Management System?
+## 4. Students
 
-The Student Management System (SMS) is a comprehensive web-based application designed to help educational institutions manage:
+The page lists the active students as cards, with their number: "Active Students (14)".
+
+**Finding a student.** The search box narrows the list as you type. Two boxes filter by
+**Academic Year** and **Class Division**; **Sort by** orders by name, class division or
+academic year.
 
-- Student records and enrollment
-- Course information and scheduling
-- Grade tracking and calculations
-- Attendance monitoring
-- Performance analytics and reporting
+**Add Student** opens a window:
 
-### Key Features
+| Field | |
+|---|---|
+| Student ID | required, and unique |
+| First Name, Last Name | required |
+| Email Address | required |
+| Phone Number, Address, Date of Birth, Enrollment Date | optional |
+| Academic Year | Class A or Class B |
+| Class Division | free text |
+
+An empty form answers with what is missing ("Student ID is required", ...).
 
-- ✅ **Bilingual Interface**: Full support for English and Greek
-- ✅ **Modern UI**: Clean, responsive design with dark/light themes
-- ✅ **Comprehensive**: Complete student lifecycle management
-- ✅ **Automated Grading**: Weighted component calculations with absence penalties
-- ✅ **Data Import/Export**: Excel and JSON support
-- ✅ **Real-time Analytics**: Dashboard with charts and statistics
-- ✅ **Backup & Restore**: Built-in data protection
+**On each card:**
+
+- **View Profile** opens the student's page (below).
+- **View Performance** opens a report in a window: the average grade as a percentage, on
+  the Greek scale of 0 to 20 and as a letter; absences; a breakdown by course and by
+  category with every graded assignment; attendance figures; the past grades and attendance
+  by date; and **Notes**. The notes are your own: only your account sees them.
+- **Edit** opens the same fields without the Student ID, which cannot be changed, and a
+  box **Active**; **Save Changes** stores them.
+- **Delete** asks "Are you sure you want to delete this student?".
 
-### System Requirements
+**The student's page** (View Profile) shows the overall GPA, the average, attendance and the
+number of highlights; the distribution of grades; **Recent Highlights** with **Add
+Highlight** (a category, a rating from 0 to 10, a text; some ready-made texts); the
+**Outlook**; the enrolled courses, each with **View Breakdown** (the final grade so far and
+what each category contributes); the recent grades; and attendance, for all courses or one.
 
-**To Use the Application:**
+The Outlook is an estimate from the grades and attendance recorded so far: a risk level, the
+trend, a forecast and a projection of the final grade. It needs at least three dated grades
+and three attendance records, and it says itself that it should be checked against the real
+assessments.
 
-- Modern web browser (Chrome, Firefox, Edge, Safari)
-- Internet connection (for initial setup)
-- Screen resolution: 1280x720 or higher recommended
+If the list cannot be loaded, the page says so and offers to try again.
 
-**To Install/Host:**
+## 5. Courses
 
-- See [Installation & Access](#installation--access) section
+**Add Course** opens a window: Course Code, Course Name, Description, Semester (Spring
+Semester, Winter Semester, Academic Year, School Year or Custom, with the year), Credits,
+Instructor, and "Absence penalty (points per absence)".
 
----
+**A new course is inactive.** It becomes active when students are enrolled in it. An
+inactive course is not offered on the Attendance and Grades pages. When a course is over,
+mark it as ended on the Calendar page.
 
-## Getting Started
+**Setting a course up.** Choose it under "Select Course to Configure". **Edit Course** and
+**Delete** appear, and three tabs.
 
-### First-Time Access
+### Evaluation Rules
 
-1. **Open your web browser**
+The rules say what the final grade is made of. Each rule is a **Category Name**, a
+**Weight** in per cent and an optional description; **Add Rule** adds a line. The page adds
+up the **Total Weight**: make it 100%. **Save Changes** stores the rules.
 
-2. **Navigate to:** `http://localhost:8080` (Docker mode) or `http://localhost:5173` (Native mode)
+The categories the Grades page knows are Midterm Exam, Final Exam, Quizzes, Lab Work,
+Homework, Project, Class Participation and Continuous Assessment.
 
-3. **Default Admin Credentials:**
+Two more things are set here:
 
-- **Email:** `admin@example.com`
-- **Password:** `YourSecurePassword123!`
+- **Absence limits (ΜΙΕΕΚ):** the fail limit and the Class Participation limit, each as a
+  percentage of the semester's periods. See section 8.
+- **Participation observations:** how much of a day's Class Participation each observation
+  takes when a teacher ticks it in Attendance. As delivered: "No participation" takes 60% of
+  the day, "Minor participation (mobile usage)" 40%, "Minor participation" 20%. 0 means no
+  deduction.
 
-⚠️ **Important:** Change the default admin password immediately after first login!
+### Teaching Schedule
 
-### Changing Your Password
+For each weekday from Monday to Friday: the number of periods, the start time and the length
+of a period (45, 50, 60, 90 or 120 minutes). The page adds up the hours, the teaching days
+and the periods per week. **Export Schedule** downloads it.
 
-1. Click **Control Panel** in the navigation menu
+The schedule matters in three places: the Attendance page marks the course's teaching days,
+the Calendar shows them, and the absence limits are counted from the periods per week.
 
-2. Select **Maintenance** tab
+### Enrollment
 
-3. Click **Change Password**
+"All Students" on the left, with a search box and a tick box for each; **Enroll Selected**
+enrols the ticked ones. "Enrolled Students" lists who is in the course, each with
+**Unenroll**.
 
-4. Enter current password and new password
+## 6. Attendance
 
-5. Click **Update Password**
+1. Choose the **Course** at the top right.
+2. Click a day in the calendar. The days on which the course is taught stand out; a day with
+   attendance recorded is green. A day in the past is announced above the calendar ("Viewing
+   past date").
+3. Mark the students under **Mark Attendance**.
 
-### Language Selection
+**Marking.** Each student has four buttons: Present, Absent, Late, Excused. **Quick
+Actions** above the list sets one status for everybody, and **Clear** takes all of them
+away. For a day with several periods, **Show per-period attendance** under a student opens
+the periods one by one ("Mark all periods absent" is there too).
 
-The system automatically detects your browser language (English or Greek). To change:
+**Saving.** There is no Save button. The page saves by itself a moment after the last click
+and says "Changes pending..." until it has.
 
-1. Look for the language selector (🇬🇧/🇬🇷) in the top-right corner
+**Attendance insights** counts the day's Present, Absent, Late and Excused, and says how
+many of the records it expects are there ("Coverage: 100%, 8/8 records tracked").
 
-2. Click to toggle between English and Greek
+**Rate**, next to a student (not offered for one marked Absent), opens **Daily
+Performance**: a score for each category of the course that is rated by the day (Homework and
+Class Participation, in the course this was checked with), and under it the **participation
+observations**. Tick only the observations that apply. A category is counted for the day
+only when "Include in today's assessment" is ticked; otherwise no score is recorded.
 
-3. The interface updates immediately
+**Lesson log.** Under the list, for the selected course and day: **Material covered** and
+**Teacher's notes**, for each period of the day (Period 1, Period 2, ...). Both save
+automatically. The notes are visible to teachers and administrators only.
 
----
+**Absence limits.** A table for the course: for each student the absences so far out of the
+semester's periods, how many of them were excused, whether Class Participation still counts,
+how many absences are allowed and how many are left, and the status. See section 8.
 
-## Installation & Access
+**Lesson log history**, at the bottom: **Show** lists the entries, newest first, each with
+**Edit** and with who edited it last. **PDF** and **Excel** download the material covered by
+date and period; the teacher's notes are left out unless "Include the teacher's notes" is
+ticked.
 
-### Option 1: Quick Start (Windows)
+No e-mail and no notification is sent for low attendance.
 
-**Automated Installation:**
+## 7. Grades
 
-```powershell
-## Download from GitHub Releases
+Choose a **student** and a **course**. Only then does the page show the grades.
 
-## Extract SMS_Distribution_1.8.6.3.zip
-## Run as Administrator:
+**Adding a grade.** Under "Grade Entry": the assignment's name, its category, a weight
+(a multiplier: 1, unless an assignment should count more), the points earned and the points
+possible. **Save Grade** stores it. A form with something missing answers "Please fill in
+all required fields".
 
-.\SMS_Installer_1.8.6.3.exe
+**The summary** on the right shows the final grade so far: as a percentage, as a GPA, as a
+letter and on the Greek scale of 0 to 20 with its word (for example "15.5/20, Καλώς"). Under
+it stand the average of each graded category with its weight, and the course's evaluation
+rules. **Refresh Final Grade** works it out again.
 
-```text
-**GUI Installer Features:**
+**Grade History** lists every grade of the student in the course: assignment, category,
+score, percentage, weight, letter, date. **Edit** puts a grade back into the form;
+**Delete** removes it.
 
-- ✅ Visual step-by-step wizard
-- ✅ Automatic Docker Desktop installation
-- ✅ System requirements validation
-- ✅ Real-time installation logs
-- ✅ No PowerShell knowledge required
+**Print/Export Report** leads to the report templates of Utils > Reports, where the
+breakdown can be exported.
 
-See: [Installer Documentation](../../installer/README.md)
+## 8. Absences and the final grade
 
-### Option 2: Docker Deployment (All Platforms)
+**The final grade** is the weighted average of the categories, by the course's evaluation
+rules. While a category has no grade yet it is left out, so the figure is "the final grade
+so far": with a midterm of 75% (weight 30) and homework of 85% (weight 10) it is 77.5%. A
+final grade under 50% fails the course.
 
-**Prerequisites:**
+**Absences** are counted in periods:
 
-- Docker Desktop installed and running
-- PowerShell 5.1+ (Windows) or bash (Linux/Mac)
+- Absent and Excused periods count. Late does not.
+- The semester's total is the periods per week (from the Teaching Schedule) times the
+  semester's weeks (14, a setting of the server). A course of 3 periods a week has 42.
+- **Over the Class Participation limit** (10% as delivered), the Class Participation share
+  of the final grade counts as 0.
+- **Over the fail limit** (30% as delivered), attendance is insufficient and the course is
+  failed.
 
-**Installation:**
+Both limits are set per course under Evaluation Rules. The application only shows this: on
+the Attendance page, on the Dashboard under Students Needing Attention, and in Analytics.
+Nothing is blocked, and nobody is told by e-mail.
 
-```powershell
-## Windows
+**Class Participation.** Each attended day is worth an equal part of the Class Participation
+share. An observation ticked for a day takes its percentage of that day's part (the most
+severe one, if several are ticked); the rest stays for the student's presence.
 
-.\DOCKER.ps1 -Install
+## 9. Calendar
 
-## Linux/Mac
+The week from Monday to Friday, with the active courses on the days of their teaching
+schedules: the course, its start time, and the periods ("08:00 · 2 × 45m").
 
-docker-compose up -d
+- **Print Calendar** prints the week.
+- **Mark course as ended**, next to a course, ends it. An ended course is inactive.
+- **Inactive courses**, at the bottom, lists the courses that are not active, each with
+  **Reactivate**.
 
-```text
-**Access:** <http://localhost:8080>
+## 10. Search
 
-### Option 3: Native Development Mode
+Choose the **Type** (Students, Courses or Grades) and type in **Query**.
 
-**Prerequisites:**
+- A name is found whether it is typed in capitals or small letters, and a Greek name is
+  found with or without its accents.
+- **Filters** appear at the left for what was found, each value with its count (for students:
+  Active and Inactive). Tick values to narrow the list. Grades can also be limited by
+  **Date from** and **Date to**.
+- **Sort by** offers what the type can be ordered by (students: relevance, name, e-mail),
+  in either direction. **Results per page** is 10, 20 or 50; **Previous** and **Next** turn
+  the pages, and the page says how many results there are.
 
-- Python 3.11+
-- Node.js 18+
-- npm or yarn
+A student account has no search: the server refuses it.
 
-**Installation:**
+## 11. Utils
 
-```powershell
-## Windows
+Six tabs.
 
-.\NATIVE.ps1 -Setup
-.\NATIVE.ps1 -Start
+**Export.**
 
-## Linux/Mac
+- *Export Center:* Students List, Courses List, Attendance Records, All Grades and Course
+  Enrollments, each with **Choose format**; and **Print Calendar**. The file's name carries
+  the date and time.
+- *Session Export/Import:* everything of one semester in a file, and reading such a file
+  back. For administrators only. To a teacher the panel shows the word
+  "failedToLoadSemesters" and an empty list.
+- *Reports & Templates:* ways into the Reports tab.
 
-cd src/backend && python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-cd ../frontend && npm install
-npm run dev
+**Imports.** Checking a CSV or JSON file of students or courses before importing it, and
+importing it. For administrators only: the server refuses a teacher.
 
-```text
-**Access:**
+**Settings.** The **theme** of the pages, with a preview; the **timezone**; and the **date
+format** (DD/MM/YYYY, DD/MM/YY or MM/DD/YYYY). They are remembered on the device, not in the
+account.
 
-- Frontend: <http://localhost:5173>
-- Backend API: <http://localhost:8000>
+**Reports.** Your own reports: choose a data source (students, courses, grades, attendance,
+daily performance), the fields, filters and an order, and the format (PDF, Excel or CSV).
+**My Reports** lists them; **Report Templates** offers ready-made ones. Creating, changing
+and deleting templates is for administrators.
 
-### Daily Operations
+**Notifications.** For administrators and teachers: the form that sends a message to all
+users or to the users of one role, and the **Feedback Inbox** with what was sent through
+Send Feedback. See [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md).
 
-**Start Application:**
+**Help & Documentation.** Questions and answers in eighteen groups, with a search box. Two
+warnings about it:
 
-```powershell
-.\DOCKER.ps1 -Start    # Docker mode
-.\NATIVE.ps1 -Start    # Native mode
+- Some answers are older than the pages. "Click Save Attendance" is one: there is no such
+  button, the page saves by itself. "Only unexcused absences affect grades" is another:
+  excused periods count towards the absence limits (section 8).
+- "User Guide, Complete reference guide, Download English PDF" gives a leaflet of one page,
+  not this guide.
 
-```text
-**Stop Application:**
+## 12. Analytics
 
-```powershell
-.\DOCKER.ps1 -Stop     # Docker mode
-.\NATIVE.ps1 -Stop     # Native mode
+Reached from the Dashboard (**Analytics**, or **Open Analytics** on a card).
 
-```text
-**Check Status:**
+**View** switches between **Student Analytics** and **Class Analytics**. Choose a student,
+or an academic year and a class division, and optionally one course. The page shows the
+enrolled courses and how many are graded, the average final grade with the numbers passing
+and failing, attendance, and the state of the absence limit. **PDF** and **Excel** download
+what is shown; **Refresh** reads it again.
 
-```powershell
-.\DOCKER.ps1 -Status   # Docker mode
-.\NATIVE.ps1 -Status   # Native mode
+**Select Dashboard** and **Manage** are for arrangements of this page that you save under a
+name ("Dashboard Manager").
 
-```
+A viewer or guest account gets no figures here or on the Dashboard: the server refuses them.
 
-### Database Configuration
+## 13. System
 
-**One Database Rule:** All installations connect to a single shared QNAP PostgreSQL database. This ensures data consistency across multiple computers and prevents synchronization issues.
+Three cards, each with a **Show** button.
 
-**Default Behavior:**
-- **Fresh Installs:** Automatically configured for QNAP PostgreSQL (remote-first)
-- **Upgrades:** Preserve existing database choice (no forced migration)
-- **Fallback:** Local SQLite available when QNAP is unreachable
+- **System Health:** whether the application is running, since when, which database it
+  uses, how many students and courses it holds, and the addresses it can be reached at.
+- **Control Panel:** tools for the person who looks after the installation. Its tabs are
+  Operations, Updates, Diagnostics, Ports, Logs, Environment, Rate Limits (administrators)
+  and Maintenance. Under **Maintenance** an administrator finds User Accounts, RBAC
+  Configuration, Email Configuration, Import/Export, System Operations (backup, restore,
+  clearing the database, the semester archive) and Database Management.
+- **Credits:** the author, the licence and the software the application is built on.
 
-**Manual Data Synchronization:**
+Most of the Control Panel works only on the computer that runs the application, or for an
+administrator. A teacher who opens Maintenance > User Accounts reads "Access Denied".
 
-If you need to manually sync data between installations:
+**Updates** checks whether a newer version is published. **System Operations** says whether
+the automatic daily backup is switched on; [BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md)
+has the rest.
 
-1. **Export Data** from source installation:
-   - Go to **Control Panel** → **Maintenance** → **Data Export**
-   - Select all data types (students, courses, grades, attendance)
-   - Export to Excel format
+The export dialog of Maintenance > Import/Export does not work in most of its choices; use
+Utils > Export instead.
 
-2. **Import Data** to target installation:
-   - Go to **Control Panel** → **Maintenance** → **Data Import**
-   - Upload the exported Excel file
-   - Review and confirm import
+## 14. What an account may do
 
-**Migration Tools:**
+| Account | In short |
+|---|---|
+| Administrator | Everything |
+| Teacher | Students, courses, enrolments, attendance, the lesson log, grades, reports, exports, messages to all users. Not accounts, imports, backups. |
+| Viewer, Guest | Read the records and export them; change nothing; no Dashboard figures |
+| Student | Sign in. No page of records opens. |
 
-For special cases (QNAP unreachable, data recovery):
+Every account sees the same pages and buttons. What it may do is decided by the server at
+each request, so an account that may not do something sees the button and gets a failure
+message. A teacher sees and changes every student and every course: there are no permissions
+per course or per class.
 
-```powershell
-## Run manual migration script
+The full table is in [PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md).
 
-cd src/backend
-python scripts/migrate_sqlite_to_postgres.py
+## 15. What the application does not have
 
-```
+The earlier guide described these. They do not exist.
 
-**Note:** Manual migration is for proactive data transfer when automatic sync is not possible. Contact administrator for assistance.
+- A "Reports" entry in the navigation. Reports are under Utils.
+- E-mails or notifications for low attendance, and attendance thresholds of 70 and 80 per
+  cent. The limits are the two of section 8.
+- A "System Settings" page. Theme, timezone and date format are under Utils > Settings; the
+  rest is set on the server by whoever looks after the installation.
+- Keyboard shortcuts.
+- A page for a student to see the own grades.
+- A page where a teacher changes the own password.
+- A page for the audit log.
 
----
+## 16. When something goes wrong
 
-## User Interface Overview
+| What you see | What it means |
+|---|---|
+| "Invalid email or password" | The address or the password is wrong. After several tries the account is locked for a while. |
+| You registered and cannot sign in | The account waits for an administrator's approval. |
+| A page opens and its lists are empty, with a failure message | Your account may not read that. Section 14. |
+| A button answers with a failure message | Your account may not do that, or the server could not be reached. Try once more; then ask the administrator. |
+| "Changes pending..." does not go away on the Attendance page | The page could not reach the server. Do not close it; check the connection. |
+| The Students page says its list could not be loaded | The server did not answer. Use the button to try again. |
+| "Access Denied" in the Control Panel | That panel is for administrators. |
+| A word such as "failedToLoadSemesters" where a sentence should be | A text is missing in the page. Tell the administrator what you were doing. |
 
-### Navigation Menu
-
-The main navigation bar provides access to all major features:
-
-| Menu Item | Description |
-|-----------|-------------|
-| **Dashboard** | Overview statistics and quick links |
-| **Students** | Student management and profiles |
-| **Courses** | Course information and enrollment |
-| **Grades** | Grade entry and calculations |
-| **Attendance** | Attendance tracking and reports |
-| **Reports** | Analytics and data exports |
-| **Control Panel** | System settings and maintenance |
-
-### Dashboard Overview
-
-The dashboard displays:
-
-- **Total Statistics**: Student count, course count, average grades
-- **Recent Activity**: Latest grade entries, attendance records
-- **Quick Actions**: Shortcut buttons for common tasks
-- **Alerts**: Important notifications (low attendance, missing grades)
-
-### Theme Customization
-
-**Available Themes:**
-
-- **Light Mode**: Default bright theme
-- **Dark Mode**: Easy on the eyes
-- **High Contrast**: Accessibility mode
-- **Custom**: Create your own
-
-**To Switch Themes:**
-
-1. Click the theme icon (🎨) in the top-right corner
-
-2. Select from available themes
-
-3. Changes apply immediately
-
-4. Preference saved in browser
-
-See: [Theme Guide](THEME_GUIDE.md) for custom theme creation
-
----
-
-## Student Management
-
-### Viewing Students
-
-1. Click **Students** in navigation menu
-
-2. Student list displays with:
-
-- Student ID
-- Full Name
-- Email
-- Enrollment Status
-- Quick Actions (Edit/Delete)
-
-### Adding a Student
-
-1. Click **Students** → **Add Student** button
-
-2. Fill in required fields:
-
-- **First Name** (required)
-- **Last Name** (required)
-- **Email** (required, must be unique)
-- **Student ID** (optional, auto-generated if empty)
-- **Date of Birth** (optional)
-- **Phone** (optional)
-- **Address** (optional)
-
-3. Click **Save Student**
-
-**Validation Rules:**
-
-- Email must be valid format (name\@domain.com)
-- Student ID must be unique if provided
-- All fields are sanitized for security
-
-### Editing a Student
-
-1. Click **Students** in navigation
-
-2. Find the student (use search if needed)
-
-3. Click **Edit** button (✏️) next to student name
-
-4. Modify fields as needed
-
-5. Click **Update Student**
-
-### Deleting a Student
-
-⚠️ **Warning:** Deleting a student removes all associated data (grades, attendance, enrollments)!
-
-1. Click **Students** in navigation
-
-2. Find the student
-
-3. Click **Delete** button (🗑️)
-
-4. Confirm deletion in popup dialog
-
-5. Student and all related data are removed
-
-**Best Practice:** Consider marking students as "inactive" instead of deleting for data retention.
-
-### Searching and Filtering
-
-**Search Bar:**
-
-- Type any part of: name, email, or student ID
-- Results filter in real-time
-
-**Filter Options:**
-
-- **Status**: Active, Inactive, Graduated
-- **Enrollment Date**: Date range picker
-- **Course**: Filter by enrolled course
-
-### Bulk Operations
-
-**Import Students:**
-
-1. Click **Students** → **Import** button
-
-2. Download Excel template
-
-3. Fill in student data
-
-4. Upload completed template
-
-5. Review import preview
-
-6. Confirm import
-
-**Export Students:**
-
-1. Click **Students** → **Export** button
-
-2. Choose format: Excel (.xlsx) or JSON
-
-3. Select fields to include
-
-4. Click **Download**
-
----
-
-## Course Management
-
-### Viewing Courses
-
-1. Click **Courses** in navigation menu
-
-2. Course list displays with:
-
-- Course Code
-- Course Name
-- Instructor
-- Enrolled Students
-- Quick Actions
-
-### Creating a Course
-
-1. Click **Courses** → **Add Course** button
-
-2. Fill in course details:
-
-- **Course Code** (required, unique)
-- **Course Name** (required)
-- **Description** (optional)
-- **Credits** (optional)
-- **Instructor** (optional)
-- **Semester** (optional)
-- **Year** (optional)
-
-3. Click **Save Course**
-
-### Grading Configuration
-
-Each course can have custom grading rules:
-
-**Component-Based Grading:**
-
-1. Edit course → **Grading Rules** section
-
-2. Add grade components:
-
-- **Midterm Exam**: 30% weight
-- **Final Exam**: 40% weight
-- **Assignments**: 20% weight
-- **Participation**: 10% weight
-
-3. Total weights must equal 100%
-
-**Absence Penalty:**
-
-- Set penalty points deducted from final grade
-- Example: `-0.5` points per absence
-- Applied automatically during grade calculation
-
-**Grade Scale:**
-
-- Default: 0-20 (Greek system)
-- Configurable: Can set to 0-100 (percentage)
-- Pass threshold: Default 10/20 (50%)
-
-### Enrolling Students
-
-**Manual Enrollment:**
-
-1. Click **Courses** → Select course
-
-2. Click **Enroll Students** button
-
-3. Search and select students
-
-4. Click **Enroll Selected**
-
-**Bulk Enrollment:**
-
-1. Click **Courses** → Select course
-
-2. Click **Import Enrollments**
-
-3. Upload Excel file with student IDs
-
-4. Review and confirm
-
-### Course Schedule
-
-1. Edit course → **Schedule** section
-
-2. Add time slots:
-
-- Day of week
-- Start time
-- End time
-- Room/Location
-
-3. Save schedule
-
----
-
-## Grade Management
-
-### Recording Grades
-
-**Individual Grade Entry:**
-
-1. Click **Grades** in navigation
-
-2. Select **Course** and **Component Type** (Midterm, Final, etc.)
-
-3. Student list appears with grade input fields
-
-4. Enter grade for each student
-
-5. Click **Save Grades**
-
-**Quick Entry Mode:**
-
-1. Use Tab key to move between fields
-
-2. Press Enter to save and move to next student
-
-3. Validation happens in real-time
-
-**Bulk Grade Import:**
-
-1. Click **Grades** → **Import Grades**
-
-2. Download Excel template
-
-3. Fill in: Student ID, Course Code, Component, Grade, Max Grade
-
-4. Upload completed file
-
-5. Review import preview
-
-6. Confirm import
-
-### Grade Components
-
-Each course can have multiple grade components:
-
-| Component Type | Typical Weight | Notes |
-|---------------|---------------|-------|
-| **Assignments** | 10-30% | Homework, projects |
-| **Quizzes** | 10-20% | Short assessments |
-| **Midterm** | 20-35% | Mid-semester exam |
-| **Final** | 30-50% | Final examination |
-| **Participation** | 5-15% | Class engagement |
-| **Lab Work** | 10-25% | Practical exercises |
-
-### Automatic Grade Calculation
-
-The system calculates final grades automatically:
-
-**Formula:**
-
-```text
-Final Grade = Σ(Component Grade × Weight) - (Absences × Penalty)
-
-```text
-**Example:**
-
-- Midterm: 15/20 × 30% = 4.5
-- Final: 18/20 × 40% = 7.2
-- Assignments: 16/20 × 20% = 3.2
-- Participation: 17/20 × 10% = 1.7
-- **Subtotal:** 16.6/20
-- Absences: 3 × 0.5 penalty = -1.5
-- **Final Grade:** 15.1/20
-
-### Viewing Student Grades
-
-**Individual Student:**
-
-1. Click **Students** → Select student
-
-2. Click **Grades** tab
-
-3. View all courses and components
-
-4. See weighted averages and final grades
-
-**Course Grades:**
-
-1. Click **Courses** → Select course
-
-2. Click **Grades** tab
-
-3. View all enrolled students
-
-4. Export grade sheet to Excel
-
-### Grade Statistics
-
-For each course, view:
-
-- **Average Grade**: Mean of all student final grades
-- **Median Grade**: Middle value
-- **Standard Deviation**: Grade distribution
-- **Pass Rate**: Percentage of students passing
-- **Grade Distribution**: Histogram chart
-
----
-
-## Attendance Tracking
-
-### Recording Attendance
-
-**Daily Attendance:**
-
-1. Click **Attendance** in navigation
-
-2. Select **Course** and **Date**
-
-3. Student list appears with attendance toggles
-
-4. Mark each student as:
-
-- ✅ **Present**
-- ❌ **Absent**
-- 🏥 **Excused Absence**
-- 🕐 **Late**
-
-5. Add notes if needed (optional)
-
-6. Click **Save Attendance**
-
-**Bulk Attendance:**
-
-- Click **Mark All Present** to pre-fill
-- Uncheck absences individually
-- Saves time for large classes
-
-**Lesson Log (Material Covered and Teacher's Notes):**
-
-Under the student list, once a course and a date are selected, the **Lesson log** card lets you record what was taught:
-
-1. Write the **Material covered** (the syllabus content of the lesson)
-
-2. Write your own **Teacher's notes** in the second box (visible to teachers and administrators only)
-
-3. If the course has several periods that day, pick the period with the buttons at the top of the card (**Period 1**, **Period 2**, ...); each period has its own entry
-
-4. There is nothing to click: both boxes **save automatically** about 2 seconds after you stop typing, and immediately when you leave a box. A line under the boxes shows *Saving…*, *Saved*, or — if the connection is down — that the text is kept on this device and will be sent when it returns
-
-**Reviewing and editing earlier entries:**
-
-- At the bottom of the Attendance page, open **Lesson log history** for the selected course
-- Entries are listed newest first; click **Edit** on an entry to change it (it saves automatically too) and **Close** when finished
-- The title shows how many entries the course has; use **Load more** for older ones
-- Each entry shows who edited it last (entries saved before v1.18.68 show no name)
-
-**Downloading the material covered (PDF / Excel):**
-
-- In **Lesson log history**, the **PDF** and **Excel** buttons download the course's material covered, by date and teaching period, oldest first
-- The teacher's notes are private and are **not** in the file unless you tick **Include the teacher's notes**; a period that only has a note is then left out completely
-- The headings follow the language of the page (English or Greek)
-
-The semester export and import (Operations) also carry the lesson log, so it moves with the semester to another installation.
-
-### Viewing Attendance
-
-**Individual Student:**
-
-1. Click **Students** → Select student
-
-2. Click **Attendance** tab
-
-3. View calendar with attendance markers
-
-4. See statistics:
-
-- Total days present
-- Total days absent
-- Attendance percentage
-- Excused vs unexcused
-
-**Course Attendance:**
-
-1. Click **Courses** → Select course
-
-2. Click **Attendance** tab
-
-3. View attendance grid (students × dates)
-
-4. Filter by date range
-
-5. Export to Excel
-
-### Attendance Reports
-
-**Generate Report:**
-
-1. Click **Attendance** → **Reports**
-
-2. Select filters:
-
-- Course
-- Date range
-- Student (optional)
-
-3. View report with:
-
-- Attendance summary
-- Students at risk (< 80% attendance)
-- Daily attendance trends
-
-4. Export as PDF or Excel
-
-### Attendance Alerts
-
-The system automatically flags:
-
-- 🚨 **Low Attendance**: < 70% (red alert)
-- ⚠️ **At Risk**: 70-80% (yellow warning)
-- ✅ **Good Standing**: > 80% (green)
-
-No e-mail and no notification is sent for low attendance: the flags show on the pages.
-
----
-
-## Reports & Analytics
-
-### Dashboard Reports
-
-**Quick Statistics:**
-
-- Total students enrolled
-- Total active courses
-- Average attendance rate
-- Average final grades
-- Students at risk
-
-**Visual Charts:**
-
-- Enrollment trends over time
-- Grade distribution by course
-- Attendance rate comparison
-- Performance by instructor
-
-### Student Reports
-
-**Individual Performance Report:**
-
-1. Click **Reports** → **Student Reports**
-
-2. Select student
-
-3. Choose report type:
-
-- **Transcript**: All courses and grades
-- **Attendance Summary**: Attendance across all courses
-- **Performance Trend**: Grade progression over time
-
-4. Select date range
-
-5. Click **Generate Report**
-
-6. Export as PDF
-
-**Cohort Analysis:**
-
-1. Select group of students (by enrollment year, course, etc.)
-
-2. Compare:
-
-- Average grades
-- Attendance rates
-- Pass/fail rates
-
-3. Visualize with charts
-
-### Course Reports
-
-**Course Performance:**
-
-1. Click **Reports** → **Course Reports**
-
-2. Select course
-
-3. View:
-
-- Grade distribution histogram
-- Pass/fail statistics
-- Component performance breakdown
-- Attendance correlation with grades
-
-**Instructor Report:**
-
-1. Select instructor
-
-2. View all courses taught
-
-3. Compare performance across courses
-
-4. Export summary
-
-### Custom Reports
-
-**Report Builder:**
-
-1. Click **Reports** → **Custom Report**
-
-2. Select data sources:
-
-- Students
-- Courses
-- Grades
-- Attendance
-
-3. Choose fields to include
-
-4. Apply filters
-
-5. Select grouping and sorting
-
-6. Preview report
-
-7. Export in desired format
-
-### Export Formats
-
-Available export formats:
-
-- **Excel (.xlsx)**: Best for data analysis
-- **PDF**: Best for printing and sharing
-- **CSV**: Best for importing to other systems
-- **JSON**: Best for API integration
-
----
-
-## Import/Export Data
-
-### Importing Students
-
-**Excel Import:**
-
-1. Download template: **Students** → **Import** → **Download Template**
-
-2. Fill in required columns:
-
-- `student_id` (optional, auto-generated if blank)
-- `first_name` (required)
-- `last_name` (required)
-- `email` (required, unique)
-- `date_of_birth` (optional, format: YYYY-MM-DD)
-- `phone` (optional)
-- `address` (optional)
-
-3. Upload file: Click **Choose File** → **Upload**
-
-4. Review preview with validation results
-
-5. Click **Confirm Import**
-
-**Validation Rules:**
-
-- Duplicate emails are rejected
-- Invalid email formats are rejected
-- Missing required fields are rejected
-- Rows with errors are shown in red
-
-**JSON Import:**
-
-```json
-[
-  {
-    "first_name": "John",
-    "last_name": "Doe",
-    "email": "john.doe@example.com",
-    "student_id": "STU001",
-    "date_of_birth": "2000-01-15"
-  }
-]
-
-```text
-### Importing Courses
-
-**Excel Template Columns:**
-
-- `course_code` (required, unique)
-- `course_name` (required)
-- `description` (optional)
-- `credits` (optional, numeric)
-- `instructor` (optional)
-- `semester` (optional: Fall, Spring, Summer)
-- `year` (optional, numeric)
-
-**Grading Configuration Import:**
-Include these columns for automatic grading setup:
-
-- `midterm_weight` (numeric, 0-100)
-- `final_weight` (numeric, 0-100)
-- `assignment_weight` (numeric, 0-100)
-- `participation_weight` (numeric, 0-100)
-- `absence_penalty` (numeric, points per absence)
-
-### Importing Grades
-
-**Excel Template Columns:**
-
-- `student_id` (required, must exist)
-- `course_code` (required, must exist)
-- `component_type` (required: midterm, final, assignment, etc.)
-- `grade` (required, numeric)
-- `max_grade` (required, numeric)
-- `date_assigned` (optional, format: YYYY-MM-DD)
-- `date_submitted` (optional, format: YYYY-MM-DD)
-- `notes` (optional)
-
-**Bulk Grade Update:**
-
-- Import can update existing grades by matching student_id + course_code + component_type
-- Use `update_mode: overwrite` or `update_mode: skip_existing`
-
-### Exporting Data
-
-**Student Export:**
-
-1. Click **Students** → **Export**
-
-2. Select fields:
-
-- ☑️ Basic Info (name, email, student ID)
-- ☑️ Contact Info (phone, address)
-- ☑️ Enrollment Data (courses, status)
-- ☑️ Performance Data (GPA, attendance)
-
-3. Choose format: Excel, CSV, JSON, PDF
-
-4. Click **Export**
-
-**Grade Export:**
-
-1. Click **Grades** → **Export**
-
-2. Filters:
-
-- Course (all or specific)
-- Date range
-- Student group
-
-3. Include:
-
-- Individual component grades
-- Calculated final grades
-- Grade statistics
-
-4. Export to Excel with multiple sheets:
-
-- **Summary**: Final grades by student
-- **Components**: Detailed breakdown
-- **Statistics**: Course statistics
-
-**Attendance Export:**
-
-1. Click **Attendance** → **Export**
-
-2. Select course and date range
-
-3. Format options:
-
-- **Grid**: Students × Dates matrix
-- **List**: One row per attendance record
-- **Summary**: Attendance statistics only
-
-4. Export to Excel or PDF
-
-### Backup & Restore
-
-**Create Backup:**
-
-1. Click **Control Panel** → **Operations**
-
-2. Scroll to **Backups** section
-
-3. Click **Create Backup Now**
-
-4. Backup file saved to `backups/` directory
-
-5. Filename: `backup_YYYYMMDD_HHMMSS.db`
-
-**Automatic Backups:**
-
-- System creates automatic backups daily
-- Keeps last 10 backups by default
-- Oldest backups auto-deleted
-
-**Restore from Backup:**
-
-1. Click **Control Panel** → **Operations**
-
-2. Click **Restore from Backup**
-
-3. Select backup file from list
-
-4. Confirm restoration (⚠️ Warning: Current data will be replaced!)
-
-5. System restarts with restored data
-
-**Download Backup:**
-
-1. Click **Download** next to backup file
-
-2. Save to safe location
-
-3. Store offsite for disaster recovery
-
----
-
-## System Settings
-
-### Admin Panel Access
-
-**Location:** Control Panel → Maintenance
-
-**Admin Functions:**
-
-- User management
-- System configuration
-- Database operations
-- Log viewing
-- Performance monitoring
-
-### User Management
-
-**Create New User:**
-
-1. Control Panel → Maintenance → **User Management**
-
-2. Click **Add User**
-
-3. Fill in:
-
-- Email (unique)
-- Password (strong password required)
-- Full Name
-- Role (admin, teacher, viewer)
-
-4. Click **Create User**
-
-**User Roles:**
-
-- **Admin**: Full system access, can manage users
-- **Teacher**: Can manage courses, grades, attendance
-- **Viewer**: Read-only access to reports
-
-**Edit User:**
-
-- Change email, name, or role
-- Reset password
-- Activate/deactivate account
-- Unlock account (if locked due to failed logins)
-
-### Authentication Settings
-
-**AUTH_MODE Configuration:**
-
-- **Disabled**: No authentication required (emergency access only)
-- **Permissive**: Authentication optional (recommended for production)
-- **Strict**: Full authentication required (maximum security)
-
-⚠️ **Security Warning:** Never leave AUTH_MODE=disabled in production!
-
-**Change AUTH_MODE:**
-
-1. Edit `backend/.env` file
-
-2. Set `AUTH_MODE=permissive` (or strict)
-
-3. Restart backend: `docker restart <container_name>`
-
-### System Configuration
-
-**Edit Configuration:**
-
-1. Control Panel → Maintenance → **System Settings**
-
-2. Available settings:
-
-- **Semester Weeks**: Default semester length (12-16 weeks)
-- **Pass Threshold**: Minimum grade to pass (default: 10/20)
-- **Grade Scale**: 0-20 or 0-100
-- **Attendance Threshold**: Minimum attendance % (default: 80%)
-- **Email Notifications**: Enable/disable
-
-3. Click **Save Settings**
-
-**Environment Variables:**
-Advanced users can edit `.env` file directly:
-
-```env
-## Authentication
-
-AUTH_ENABLED=true
-AUTH_MODE=permissive
-
-## Admin Bootstrap
-
-DEFAULT_ADMIN_EMAIL=admin@example.com
-DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
-
-Note about automated admin password rotation:
-
-- DEFAULT_ADMIN_AUTO_RESET (default: false): enables safe automatic rotation of the default
-
-   administrator password at application startup. When set to true and a
-   DIFFERENT DEFAULT_ADMIN_PASSWORD is present in the environment, the
-   application will update the stored admin password to match the configured
-   value and revoke any existing refresh tokens for that user. This is useful
-   for CI/CD or secret-manager-driven credential rotation, but remains disabled
-   by default to avoid unexpected resets in production.
-
-   Recommended safe rotation workflow (CI/CD / secret manager)
-
-   1. Store the new admin password in your secret manager (e.g. Vault, AWS Secrets Manager)
-      and make it available to your deployment pipeline as `DEFAULT_ADMIN_PASSWORD`.
-
-   2. Update the environment with the new password and enable auto-reset for the deployment
-      by setting `DEFAULT_ADMIN_AUTO_RESET=true` (only for the moment of the rotation).
-      Example (Docker Compose):
-
-   ```powershell
-#   # Update `.env` in the deployment or set the container env via your orchestration tool
-
-   Set-Content -Path ./backend/.env -Value (Get-Content ./backend/.env) -Force
-#   # Then restart the backend so the bootstrap runs at startup
-
-   docker compose restart sms-backend
-   ```
-
-   3. After verification (login works with the new password), remove the auto-reset flag
-      or revert it to `false` to avoid future automatic password changes:
-
-   ```powershell
-#   # Reset flag in your orchestration or .env and restart
-
-   docker compose exec sms-backend pwsh -c "(Get-Content /app/backend/.env) -replace 'DEFAULT_ADMIN_AUTO_RESET=true','DEFAULT_ADMIN_AUTO_RESET=false' | Set-Content /app/backend/.env"
-   docker compose restart sms-backend
-   ```
-
-   Notes:
-
-- Only the configured default admin (DEFAULT_ADMIN_EMAIL) will be affected.
-- The flag defaults to false to avoid unexpected changes in production.
-- When password rotation is in your CI/CD, prefer to perform a single atomic rollout
-
-     so the new credential takes effect across all app instances consistently.
-
-## Database
-
-DATABASE_ENGINE=sqlite
-DATABASE_URL=sqlite:///./data/student_management.db
-
-## Performance
-
-ENABLE_CACHING=true
-CACHE_TTL=300
-
-```text
-### Performance Settings
-
-**Enable Caching:**
-
-- Improves response times by 70%
-- Cache TTL: 5 minutes (300 seconds)
-- Automatically clears on data updates
-
-**Database Optimization:**
-
-- WAL mode enabled by default (40% faster)
-- Auto-vacuum scheduled daily
-- Indexes on frequently queried fields
-
-### Monitoring
-
-**System Health:**
-
-1. Control Panel → Operations → **Health Check**
-
-2. View:
-
-- ✅ Database connection status
-- ✅ Disk space available
-- ✅ Response times
-- ✅ Active users
-- ✅ Uptime
-
-**View Logs:**
-
-1. Control Panel → Operations → **View Logs**
-
-2. Filter by:
-
-- Date/time range
-- Log level (ERROR, WARNING, INFO)
-- Component (backend, frontend, database)
-
-3. Search for specific errors
-
-4. Download logs for troubleshooting
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-### Cannot Access Application
-
-**Symptom:** Browser shows "Cannot connect" or timeout error
-
-**Solution:**
-
-1. Check if application is running:
-   ```powershell
-   .\DOCKER.ps1 -Status
-   ```
-
-2. If not running, start it:
-
-   ```powershell
-   .\DOCKER.ps1 -Start
-   ```
-
-3. Check if Docker Desktop is running (Docker mode)
-
-4. Verify correct URL:
-
-- Docker: <http://localhost:8080>
-- Native: <http://localhost:5173>
-
-### Login Failed
-
-**Symptom:** "Invalid credentials" or "Access denied" error
-
-**Solution:**
-
-1. Verify credentials:
-
-- Email: `admin@example.com`
-- Password: `YourSecurePassword123!`
-
-2. Check if AUTH_MODE is causing issues:
-
-   ```powershell
-
-# Temporary: Set AUTH_MODE=disabled for emergency access
-
-# Edit backend/.env, restart
-
-   ```
-
-3. Reset password using admin unlock endpoint
-
-4. Check caps lock and keyboard layout
-
-#### Slow Performance
-
-**Symptom:** Pages load slowly, timeouts
-
-**Solution:**
-
-1. Check system resources (CPU, memory, disk)
-
-2. Enable caching in .env:
-   ```env
-   ENABLE_CACHING=true
-   ```
-
-3. Restart application:
-
-   ```powershell
-   .\DOCKER.ps1 -Stop
-   .\DOCKER.ps1 -Start
-   ```
-
-4. Clear browser cache
-
-5. Check database size (optimize if > 1GB)
-
-#### Data Import Failed
-
-**Symptom:** "Validation error" or "Import failed" message
-
-**Solution:**
-
-1. Download fresh template from application
-
-2. Check required fields are filled
-
-3. Verify data formats:
-
-- Dates: YYYY-MM-DD
-- Emails: name\@domain.com
-- Numbers: No text characters
-
-4. Check for duplicate IDs or emails
-
-5. Import in smaller batches (< 1000 rows)
-
-#### Grades Not Calculating
-
-**Symptom:** Final grade shows as 0 or incorrect value
-
-**Solution:**
-
-1. Check course grading configuration:
-
-- Component weights must total 100%
-- All components must have grades
-
-2. Verify grade data:
-
-- `max_grade` must be > 0
-- `grade` must be ≤ `max_grade`
-
-3. Check absence penalty is set correctly
-
-4. Recalculate grades: Grades → **Recalculate All**
-
-#### Backup Failed
-
-**Symptom:** "Backup creation failed" error
-
-**Solution:**
-
-1. Check disk space (need at least 2x database size)
-
-2. Verify permissions on `backups/` directory
-
-3. Check database is not locked:
-
-   ```powershell
-   .\DOCKER.ps1 -Stop
-   .\DOCKER.ps1 -Start
-   ```
-
-4. Try manual backup:
-
-   ```powershell
-
-# Docker mode
-
-   docker exec <container> sqlite3 /data/student_management.db ".backup /data/manual_backup.db"
-
-   ```
-
-### Getting Help
-
-**Documentation:**
-
-- [Quick Start Guide](QUICK_START_GUIDE.md)
-- [Installation Guide](../../INSTALLATION_GUIDE.md)
-- [Deployment Guide](../deployment/DEPLOYMENT_GUIDE_COMPLETE.md)
-- [Developer Guide](../development/DEVELOPER_GUIDE_COMPLETE.md)
-
-**Support:**
-
-- GitHub Issues: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
-- Check logs: `.\DOCKER.ps1 -Logs`
-- Health check: <http://localhost:8080/health>
-
-**Before Reporting Issues:**
-
-1. Check this troubleshooting section
-
-2. Review application logs
-
-3. Try restarting the application
-
-4. Include in your report:
-
-- Version number (type `VERSION` or check http://localhost:8080/health)
-- Operating system
-- Deployment mode (Docker/Native)
-- Exact error message
-- Steps to reproduce
-
----
-
-## Frequently Asked Questions
-
-### General Questions
-
-**Q: Can I use a different database than SQLite?**
-A: Yes! The system supports PostgreSQL. Edit `backend/.env`:
-
-```env
-DATABASE_ENGINE=postgresql
-DATABASE_URL=postgresql://user:password@localhost:5432/sms_db
-
-```text
-**Q: How do I backup data automatically?**
-A: Backups are automatic (daily). Configure in Control Panel → Operations → Backup Settings.
-
-**Q: Is the system mobile-friendly?**
-A: Yes! The responsive design works on tablets and phones, though desktop is recommended for data entry.
-
-**Q: Can I customize the grading scale?**
-A: Yes! Edit course settings to use 0-100 instead of 0-20, or define custom scales.
-
-**Q: How many students can the system handle?**
-A: Tested with 10,000+ students. Performance depends on hardware. Use PostgreSQL for very large deployments.
-
-### Security Questions
-
-**Q: How secure is the system?**
-A: Very secure! Features include:
-
-- JWT token authentication
-- CSRF protection
-- Rate limiting
-- SQL injection prevention
-- XSS protection
-- Secure password hashing (bcrypt)
-
-**Q: Should I use AUTH_MODE=disabled?**
-A: No, only for emergency access. Use `permissive` (recommended) or `strict` in production.
-
-**Q: How often should I change the admin password?**
-A: Every 90 days minimum, or immediately if compromised.
-
-**Q: Can I enable two-factor authentication?**
-A: Not currently supported. Planned for future release.
-
-### Data Questions
-
-**Q: Can I import data from another system?**
-A: Yes! Export data to Excel/CSV from your old system, then use our import feature. May need data transformation.
-
-**Q: What happens if I delete a student?**
-A: All related data (grades, attendance, enrollments) is permanently deleted. Consider marking inactive instead.
-
-**Q: Can I recover deleted data?**
-A: Only from backups. Restore the most recent backup before the deletion.
-
-**Q: How do I handle grade disputes?**
-A: View grade history (shows who entered/modified grades and when). Export audit log for documentation.
-
-### Performance Questions
-
-**Q: Why is the application slow?**
-A: Common causes:
-
-- Caching disabled (enable in .env)
-- Large database (> 1GB, consider PostgreSQL)
-- Many concurrent users (upgrade hardware)
-- Browser cache full (clear cache)
-
-**Q: How can I speed up imports?**
-A: Import in batches of 500-1000 rows. Use native mode for very large imports (faster than Docker).
-
-**Q: Does the system require internet?**
-A: No! Works completely offline after installation. Internet only needed for initial setup.
-
----
-
-## Appendix
-
-### Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl + K` | Open search |
-| `Ctrl + S` | Save current form |
-| `Esc` | Close dialog/modal |
-| `Tab` | Next field in forms |
-| `Shift + Tab` | Previous field |
-| `Ctrl + /` | Show keyboard shortcuts |
-
-### Grade Scales
-
-**Greek Scale (0-20):**
-
-- 18-20: Excellent (A)
-- 16-17: Very Good (B)
-- 14-15: Good (C)
-- 10-13: Pass (D)
-- 0-9: Fail (F)
-
-**Percentage Scale (0-100):**
-
-- 90-100: A
-- 80-89: B
-- 70-79: C
-- 60-69: D
-- 0-59: F
-
-### Date/Time Formats
-
-All dates use ISO 8601 format:
-
-- **Date**: YYYY-MM-DD (e.g., 2025-11-22)
-- **Time**: HH:MM:SS (e.g., 14:30:00)
-- **DateTime**: YYYY-MM-DD HH:MM:SS
-
-### File Size Limits
-
-- **Excel Import**: 10 MB maximum
-- **Image Upload**: 5 MB maximum
-- **Backup Download**: No limit
-- **PDF Export**: 50 MB maximum
-
----
-
-**Document Version:** 1.0
-**Last Updated:** November 22, 2025
-**Maintained By:** SMS Development Team
-**Feedback:** Create an issue on GitHub with label `documentation`
-
----
-
-## RBAC & Permissions
-
-The Student Management System now supports fine-grained Role-Based Access Control (RBAC).
-
-- **Roles**: Define what groups of users can do (e.g., admin, teacher).
-- **Permissions**: Fine-grained actions (e.g., create student, export data).
-
-### Managing Roles & Permissions
-
-- Admins can create, update, and delete roles and permissions via the Admin → RBAC section or API endpoints.
-- Assign roles to users and grant/revoke permissions to roles using the RBAC management UI or API.
-- See the [RBAC Permission Matrix](../api/RBAC_API_MATRIX.md) for a full list of actions and required permissions.
-
-### Who Can Manage RBAC?
-
-- Only users with the `*` (wildcard) permission (typically admins) can assign/revoke roles and permissions.
-- All RBAC changes are logged and rate-limited for security.
-
-### API Reference
-
-- See the API documentation for endpoint details: [API Contract](../api/API_CONTRACT.md)
-
----
-
-## API Explorer
-
-You can view and test all API endpoints, including RBAC, using the built-in OpenAPI/Swagger UI:
-- [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)
-- [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc)
-
-These pages are available in both development and Docker modes.
-
----
-
-## RBAC in the User Interface
-
-- The Admin → RBAC section allows you to manage roles, permissions, and assignments visually.
-- If you lack permission for an action, the UI will show a clear error message (e.g., "You do not have permission to perform this action").
-- Only users with the appropriate permissions will see RBAC management options.
-- All changes are reflected in real time and are subject to audit logging and rate limiting.
-
----
+For anything else: **Send Feedback** at the right edge of every page.

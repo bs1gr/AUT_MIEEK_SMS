@@ -173,7 +173,7 @@ Related files & references
 -------------------------
 - Installer script: `installer/SMS_Installer.iss`
 - Migration helper: `backend/scripts/migrate_sqlite_to_postgres.py` (documentation in docstring)
-- Application import/export endpoints: see `docs/user/USER_GUIDE_COMPLETE.md` → "Data import/export"
+- Application import and export: see `docs/user/USER_GUIDE_COMPLETE.md`, section 11 (Utils), and `docs/admin/BACKUP_AND_RESTORE.md`
 - Snapshot recommendations: `COMMIT_READY.ps1 -Snapshot` and `scripts/VERIFY_AND_RECORD_STATE.ps1` (where available)
 
 Change log
