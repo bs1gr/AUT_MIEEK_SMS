@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.73
-**Last Updated**: November 17, 2026
+**Last Updated**: November 18, 2026
 **Status**: ✅ **v1.18.73 released 2026-11-17** (tag on `50e4b57fc`, run by the assistant; the
 owner: "Release v1.18.73 with what has been merged since v1.18.72 (#409 to #415)", the last of
 four things asked for in one message, after the other three were done: so it carries PRs 409
@@ -301,8 +301,10 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-**2026-11-17: the user guide says what the application does** (PR 421; the owner's
-"continue": the rest of the last entry of todo 59). `docs/user/USER_GUIDE_COMPLETE.md` is
+**2026-11-17: the user guide says what the application does** (PR 421, merged as
+`8eb82f9e9`; the owner's "continue": the rest of the last entry of todo 59; on the PR's
+commit CI's backend job passed 1,750 tests with 55 skipped and the frontend job 2,012; E2E
+does not run on a PR that changes documents only). `docs/user/USER_GUIDE_COMPLETE.md` is
 written anew, 430 lines for 1,560. Nothing of the application changes.
 
 - **What it was.** A text of 2025 about the application as planned: an installer
@@ -1425,7 +1427,11 @@ tree as evidence that GitHub is clear.
 
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
-the cloud VM has not been updated to it and waits for the owner's word.** Older entries that are still open, further
+the cloud VM has not been updated to it and waits for the owner's word.** **Since then
+`main` carries PRs 419 to 421, unreleased: a repair of two ways an account kept access it
+should not have had (419), and the permission documents and the user guide checked against
+the application (420, 421). The VM has neither; on it an account changed to "Student" still
+keeps its old access. What the two readings found and did not change is todo 63.** Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
