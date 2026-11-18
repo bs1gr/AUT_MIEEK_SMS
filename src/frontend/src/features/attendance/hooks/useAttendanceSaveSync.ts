@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useMemo, useState, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+} from 'react';
 import { formatLocalDate } from '@/utils/date';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
@@ -32,6 +42,34 @@ const shallowEqualNumberMap = (a: Record<string, number>, b: Record<string, numb
   if (aKeys.length !== Object.keys(b).length) return false;
   return aKeys.every((key) => a[key] === b[key]);
 };
+
+/**
+ * What the page shows once the server has answered: the server's records, with every change
+ * the user made since the page last agreed with the server laid over them.
+ *
+ * An answer used to replace the page's records as they were. A mark made while the answer
+ * travelled (after a day was chosen and before its records arrived, or while the autosave of
+ * an earlier mark was on its way) was dropped by it, and never saved, because the page then
+ * agreed with the server again. `agreed` is what the page and the server last had in common:
+ * a key whose value differs from it was touched by the user, and stays as the user left it
+ * (a key the user removed stays removed).
+ */
+export const keepLocalChanges = <T,>(
+  server: Record<string, T>,
+  local: Record<string, T>,
+  agreed: Record<string, T>
+): Record<string, T> => {
+  const merged: Record<string, T> = { ...server };
+  for (const key of new Set([...Object.keys(local), ...Object.keys(agreed)])) {
+    if (local[key] === agreed[key]) continue;
+    if (key in local) merged[key] = local[key];
+    else delete merged[key];
+  }
+  return merged;
+};
+
+// How often a sheet is asked for again when a save crossed the answer (see refreshAttendancePrefill).
+const MAX_SHEET_READS = 5;
 
 // Narrow unknown thrown values to objects with optional response.status
 const isResponseLike = (e: unknown): e is { response?: { status?: number } } => (
@@ -297,6 +335,34 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
 
   const [, setLoading] = useState(false);
 
+  // What the page holds at this moment, for the code that runs after an answer has travelled
+  // or when the sheet is left: by then the values this hook was called with can be several
+  // clicks old. Written after every render, before anything else can run.
+  const latestRef = useRef({
+    attendanceRecords,
+    dailyPerformance,
+    persistedAttendanceRecords,
+    persistedDailyPerformance,
+    pendingPerformanceDeleteKeys,
+    showToast,
+    t,
+  });
+  useLayoutEffect(() => {
+    latestRef.current = {
+      attendanceRecords,
+      dailyPerformance,
+      persistedAttendanceRecords,
+      persistedDailyPerformance,
+      pendingPerformanceDeleteKeys,
+      showToast,
+      t,
+    };
+  });
+
+  // Counts every save that goes out and every one that comes back. A sheet that was read
+  // while the count moved may show the records as they were before that save.
+  const saveActivityRef = useRef(0);
+
   const updatePendingSyncCount = useCallback(() => {
     setPendingSyncCount(getPendingAttendanceSyncCount());
   }, [setPendingSyncCount]);
@@ -322,64 +388,13 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
     return true;
   }, [selectedCourse, attendanceRecords, dailyPerformance, pendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance, updatePendingSyncCount]);
 
-  const syncSnapshotToServer = useCallback(async (snapshot: AttendanceSyncSnapshot) => {
-    // One request for the whole sheet; the server matches existing rows itself, so the two
-    // look-ups below are only needed for a server that still wants one request per record.
-    const outcome = await saveAttendanceAsSheet({
-      courseId: snapshot.courseId,
-      fallbackDate: snapshot.date,
-      attendanceRecords: snapshot.attendanceRecords,
-      dailyPerformance: snapshot.dailyPerformance,
-      performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
-    });
-    if (outcome === 'saved') return;
-
-    const attendanceIdMap: Record<string, number> = {};
-    const performanceIdMap: Record<string, number> = {};
-
-    const attendanceResponse = await apiClient.get(`/attendance/date/${snapshot.date}/course/${snapshot.courseId}`);
-    const attendanceData = Array.isArray(attendanceResponse)
-      ? attendanceResponse
-      : attendanceResponse.data
-        ? (Array.isArray(attendanceResponse.data) ? attendanceResponse.data : [])
-        : [];
-
-    (attendanceData as (RawAttendanceRecord & { id?: number })[]).forEach((record) => {
-      if (!record?.student_id) return;
-      const periodNumber = Number(record.period_number ?? 1);
-      const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
-      const recordDate = formatLocalDate(record.date || snapshot.date);
-      const key = `${record.student_id}|${safePeriod}|${recordDate}`;
-      if (record.id) attendanceIdMap[key] = record.id;
-    });
-
+  const syncSnapshotToServer = useCallback(async (snapshot: Omit<AttendanceSyncSnapshot, 'id' | 'enqueuedAt'>) => {
+    saveActivityRef.current += 1;
     try {
-      const performanceResponse = await apiClient.get(`/daily-performance/date/${snapshot.date}/course/${snapshot.courseId}`);
-      const performanceData = Array.isArray(performanceResponse)
-        ? performanceResponse
-        : performanceResponse.data
-          ? (Array.isArray(performanceResponse.data) ? performanceResponse.data : [])
-          : [];
-
-      (performanceData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((record) => {
-        const key = `${record.student_id}-${record.category}`;
-        if (record.id) performanceIdMap[key] = record.id;
-      });
-    } catch (error) {
-      if (!(isResponseLike(error) && error.response?.status === 404)) {
-        throw error;
-      }
+      await sendSnapshot(snapshot);
+    } finally {
+      saveActivityRef.current += 1;
     }
-
-    await syncAttendanceAndPerformanceRequests({
-      courseId: snapshot.courseId,
-      fallbackDate: snapshot.date,
-      attendanceRecords: snapshot.attendanceRecords,
-      attendanceIdMap,
-      dailyPerformance: snapshot.dailyPerformance,
-      performanceIdMap,
-      performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
-    });
   }, []);
 
   const refreshAttendancePrefill = useCallback(async () => {
@@ -398,63 +413,78 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
     activeRequestsRef.current.add(requestKey);
 
     try {
-      const attRes = await apiClient.get(`/attendance/date/${dateStr}/course/${selectedCourse}`);
-      const attData = Array.isArray(attRes) ? attRes : (attRes.data ? (Array.isArray(attRes.data) ? attRes.data : []) : []);
-      const next: Record<string, string> = {};
-      const ids: Record<string, number> = {};
-      if (Array.isArray(attData)) {
-        (attData as (RawAttendanceRecord & { id?: number })[]).forEach((a) => {
-          if (!a?.student_id) return;
-          const periodNumber = Number(a.period_number ?? 1);
-          const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
-          const recordDate = formatLocalDate(a.date || dateStr);
-          const key = getAttendanceKey(a.student_id, safePeriod, recordDate);
-          next[key] = a.status;
-          if (a.id) {
-            ids[key] = a.id;
-          }
-        });
-      }
-      setAttendanceRecords(next);
-      setAttendanceRecordIds(ids);
-      setPersistedAttendanceRecords(next);
+      // An answer is used only if no save went out or came back while it travelled. One that
+      // crossed a save can show the sheet as it was before the save: applied, it would take
+      // a mark off the page that the server holds. It is asked for again instead; a call that
+      // was skipped above because this one was on its way is covered by that too.
+      for (let read = 0; read < MAX_SHEET_READS; read += 1) {
+        const saveActivity = saveActivityRef.current;
 
-      let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
-      try {
-        const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
-        dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
-      } catch (error) {
-        // If 404, treat as no data
-        if (isResponseLike(error) && error.response?.status === 404) {
-          dpData = [];
-        } else {
-          console.error('[AttendanceView] Error fetching daily performance:', error);
+        const attRes = await apiClient.get(`/attendance/date/${dateStr}/course/${selectedCourse}`);
+        const attData = Array.isArray(attRes) ? attRes : (attRes.data ? (Array.isArray(attRes.data) ? attRes.data : []) : []);
+        const next: Record<string, string> = {};
+        const ids: Record<string, number> = {};
+        if (Array.isArray(attData)) {
+          (attData as (RawAttendanceRecord & { id?: number })[]).forEach((a) => {
+            if (!a?.student_id) return;
+            const periodNumber = Number(a.period_number ?? 1);
+            const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+            const recordDate = formatLocalDate(a.date || dateStr);
+            const key = getAttendanceKey(a.student_id, safePeriod, recordDate);
+            next[key] = a.status;
+            if (a.id) {
+              ids[key] = a.id;
+            }
+          });
         }
-      }
-      const dp: Record<string, number> = {};
-      const dpIds: Record<string, number> = {};
-      if (Array.isArray(dpData)) {
-        (dpData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((r) => {
-          const key = `${r.student_id}-${r.category}`;
-          dp[key] = r.score;
-          if (r.id) {
-            dpIds[key] = r.id;
+
+        let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
+        try {
+          const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
+          dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
+        } catch (error) {
+          // If 404, treat as no data
+          if (isResponseLike(error) && error.response?.status === 404) {
+            dpData = [];
+          } else {
+            console.error('[AttendanceView] Error fetching daily performance:', error);
           }
-        });
+        }
+        const dp: Record<string, number> = {};
+        const dpIds: Record<string, number> = {};
+        if (Array.isArray(dpData)) {
+          (dpData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((r) => {
+            const key = `${r.student_id}-${r.category}`;
+            dp[key] = r.score;
+            if (r.id) {
+              dpIds[key] = r.id;
+            }
+          });
+        }
+
+        if (saveActivityRef.current !== saveActivity) continue;
+
+        // The server's records, with what the user changed while the answer travelled kept
+        // on the page (see keepLocalChanges). Whatever is kept differs from what the server
+        // holds, so the autosave sends it.
+        const page = latestRef.current;
+        const performance = keepLocalChanges(dp, page.dailyPerformance, page.persistedDailyPerformance);
+        setAttendanceRecords(keepLocalChanges(next, page.attendanceRecords, page.persistedAttendanceRecords));
+        setAttendanceRecordIds(ids);
+        setPersistedAttendanceRecords(next);
+        setDailyPerformance(performance);
+        setDailyPerformanceIds(dpIds);
+        // A score the user removed meanwhile is still to be removed on the server.
+        setPendingPerformanceDeleteKeys(
+          new Set([...page.pendingPerformanceDeleteKeys].filter((key) => key in dpIds && !(key in performance)))
+        );
+        setPersistedDailyPerformance(dp);
+        break;
       }
-      setDailyPerformance(dp);
-      setDailyPerformanceIds(dpIds);
-      setPendingPerformanceDeleteKeys(new Set());
-      setPersistedDailyPerformance(dp);
     } catch (error) {
+      // The page keeps what it shows. It used to be emptied here: a refresh that failed after
+      // a save took every mark off the page, saved or not.
       console.error('[AttendanceView] Error fetching attendance:', error);
-      setAttendanceRecords({});
-      setAttendanceRecordIds({});
-      setDailyPerformance({});
-      setDailyPerformanceIds({});
-      setPendingPerformanceDeleteKeys(new Set());
-      setPersistedAttendanceRecords({});
-      setPersistedDailyPerformance({});
     } finally {
       activeRequestsRef.current.delete(requestKey);
     }
@@ -476,6 +506,50 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       refreshAttendancePrefill();
     }
   }, [selectedCourse, selectedDate, refreshAttendancePrefill, setAttendanceRecords, setAttendanceRecordIds, setDailyPerformance, setDailyPerformanceIds, setPendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance]);
+
+  // A mark is saved two seconds after the last one. Choosing another day or another course,
+  // or leaving the page, inside those two seconds dropped it: the timer was cancelled and
+  // the sheet cleared. What is unsaved is sent on the way out of a sheet (and queued when
+  // there is no connection). The cleanup of an effect runs before the effect above clears
+  // the records, so it still sees the sheet that is being left.
+  useEffect(() => {
+    const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
+    const dateStr = selectedDateStr;
+    if (!courseId || !dateStr) return undefined;
+
+    return () => {
+      const page = latestRef.current;
+      const unsaved =
+        !shallowEqualStringMap(page.attendanceRecords, page.persistedAttendanceRecords) ||
+        !shallowEqualNumberMap(page.dailyPerformance, page.persistedDailyPerformance);
+      if (!unsaved) return;
+
+      const snapshot = {
+        courseId,
+        date: dateStr,
+        attendanceRecords: { ...page.attendanceRecords },
+        dailyPerformance: { ...page.dailyPerformance },
+        dailyPerformanceDeletes: Array.from(page.pendingPerformanceDeleteKeys),
+      };
+      const queue = () => {
+        enqueueAttendanceSyncSnapshot(snapshot);
+        updatePendingSyncCount();
+      };
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        queue();
+        return;
+      }
+      syncSnapshotToServer(snapshot).catch((error) => {
+        if (isOfflineError(error)) {
+          queue();
+          return;
+        }
+        console.error('[Attendance] The sheet that was left could not be saved:', error);
+        const { showToast: toast, t: translate } = latestRef.current;
+        toast(translate('saveFailed') || 'Save failed', 'error');
+      });
+    };
+  }, [selectedCourse, selectedDateStr, syncSnapshotToServer, updatePendingSyncCount]);
 
   const flushQueuedSnapshots = useCallback(async () => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
@@ -526,24 +600,29 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
 
       const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
       const performanceDeleteKeys = Array.from(pendingPerformanceDeleteKeys);
-      const outcome = await saveAttendanceAsSheet({
-        courseId,
-        fallbackDate: dateStr,
-        attendanceRecords,
-        dailyPerformance,
-        performanceDeleteKeys,
-      });
-      if (outcome === 'unsupported') {
-        await syncAttendanceAndPerformanceRequests({
+      saveActivityRef.current += 1;
+      try {
+        const outcome = await saveAttendanceAsSheet({
           courseId,
           fallbackDate: dateStr,
           attendanceRecords,
-          attendanceIdMap: attendanceRecordIds,
           dailyPerformance,
-          performanceIdMap: dailyPerformanceIds,
           performanceDeleteKeys,
-          onPerformanceIdAssigned: (key, id) => setDailyPerformanceIds(prev => ({ ...prev, [key]: id })),
         });
+        if (outcome === 'unsupported') {
+          await syncAttendanceAndPerformanceRequests({
+            courseId,
+            fallbackDate: dateStr,
+            attendanceRecords,
+            attendanceIdMap: attendanceRecordIds,
+            dailyPerformance,
+            performanceIdMap: dailyPerformanceIds,
+            performanceDeleteKeys,
+            onPerformanceIdAssigned: (key, id) => setDailyPerformanceIds(prev => ({ ...prev, [key]: id })),
+          });
+        }
+      } finally {
+        saveActivityRef.current += 1;
       }
 
       // Emit events to notify other components that attendance/performance changed
@@ -636,3 +715,67 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
 }
 
 export default useAttendanceSaveSync;
+
+/**
+ * Sends one sheet (a course on a day) to the server: the whole sheet in one request, or, for
+ * a server that has no sheet endpoint, record by record after looking up which exist.
+ */
+async function sendSnapshot(snapshot: Omit<AttendanceSyncSnapshot, 'id' | 'enqueuedAt'>): Promise<void> {
+  // One request for the whole sheet; the server matches existing rows itself, so the two
+  // look-ups below are only needed for a server that still wants one request per record.
+  const outcome = await saveAttendanceAsSheet({
+    courseId: snapshot.courseId,
+    fallbackDate: snapshot.date,
+    attendanceRecords: snapshot.attendanceRecords,
+    dailyPerformance: snapshot.dailyPerformance,
+    performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
+  });
+  if (outcome === 'saved') return;
+
+  const attendanceIdMap: Record<string, number> = {};
+  const performanceIdMap: Record<string, number> = {};
+
+  const attendanceResponse = await apiClient.get(`/attendance/date/${snapshot.date}/course/${snapshot.courseId}`);
+  const attendanceData = Array.isArray(attendanceResponse)
+    ? attendanceResponse
+    : attendanceResponse.data
+      ? (Array.isArray(attendanceResponse.data) ? attendanceResponse.data : [])
+      : [];
+
+  (attendanceData as (RawAttendanceRecord & { id?: number })[]).forEach((record) => {
+    if (!record?.student_id) return;
+    const periodNumber = Number(record.period_number ?? 1);
+    const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+    const recordDate = formatLocalDate(record.date || snapshot.date);
+    const key = `${record.student_id}|${safePeriod}|${recordDate}`;
+    if (record.id) attendanceIdMap[key] = record.id;
+  });
+
+  try {
+    const performanceResponse = await apiClient.get(`/daily-performance/date/${snapshot.date}/course/${snapshot.courseId}`);
+    const performanceData = Array.isArray(performanceResponse)
+      ? performanceResponse
+      : performanceResponse.data
+        ? (Array.isArray(performanceResponse.data) ? performanceResponse.data : [])
+        : [];
+
+    (performanceData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((record) => {
+      const key = `${record.student_id}-${record.category}`;
+      if (record.id) performanceIdMap[key] = record.id;
+    });
+  } catch (error) {
+    if (!(isResponseLike(error) && error.response?.status === 404)) {
+      throw error;
+    }
+  }
+
+  await syncAttendanceAndPerformanceRequests({
+    courseId: snapshot.courseId,
+    fallbackDate: snapshot.date,
+    attendanceRecords: snapshot.attendanceRecords,
+    attendanceIdMap,
+    dailyPerformance: snapshot.dailyPerformance,
+    performanceIdMap,
+    performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
+  });
+}

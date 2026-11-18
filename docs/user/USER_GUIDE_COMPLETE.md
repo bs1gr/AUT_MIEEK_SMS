@@ -209,12 +209,18 @@ enrols the ticked ones. "Enrolled Students" lists who is in the course, each wit
 3. Mark the students under **Mark Attendance**.
 
 **Marking.** Each student has four buttons: Present, Absent, Late, Excused. **Quick
-Actions** above the list sets one status for everybody, and **Clear** takes all of them
-away. For a day with several periods, **Show per-period attendance** under a student opens
-the periods one by one ("Mark all periods absent" is there too).
+Actions** above the list sets one status for everybody, and **Clear** takes the marks off
+that are not saved yet. A mark that is already saved comes back a moment after **Clear**:
+the page cannot remove a saved mark, so change it to the right status instead. For a day
+with several periods, **Show per-period attendance** under a student opens the periods one
+by one ("Mark all periods absent" is there too).
 
-**Saving.** There is no Save button. The page saves by itself a moment after the last click
-and says "Changes pending..." until it has.
+**Saving.** There is no Save button. The page saves by itself two seconds after the last
+click and says "Changes pending..." until it has. A mark that is still waiting is also sent
+when you choose another day or another course, or open another page. (Until November 2026
+such a mark was dropped, and so was one made while an earlier save was still on its way.)
+Closing the browser or reloading the page inside those two seconds still loses it: wait for
+"Changes pending..." to go.
 
 **Attendance insights** counts the day's Present, Absent, Late and Excused, and says how
 many of the records it expects are there ("Coverage: 100%, 8/8 records tracked").

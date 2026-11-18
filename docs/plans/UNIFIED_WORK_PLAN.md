@@ -301,6 +301,53 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-18: a mark on the Attendance page is no longer lost** (PR 430; taken up from the
+E2E test that needed a second try on the CI of PR 429, "should mark student attendance").
+
+- **What happened.** The page replaced its marks with the server's answer whenever one
+  arrived: the records of a day that was just chosen, and the refresh that follows every
+  save. A mark made while such an answer travelled was dropped by it, and never saved,
+  because the page then agreed with the server again. Seen in a browser on a scratch copy,
+  with the server's answers held back as a far-away server holds them (the cloud VM, a
+  phone on mobile data):
+  - *A mark made before the chosen day's records had arrived:* the button went green and
+    back to unmarked when the records came. If the save went out first, the page showed the
+    student unmarked while the server held "Present". This is what the E2E test ran into on
+    a slow runner.
+  - *A mark made while the autosave of an earlier mark was on its way:* gone when the
+    refresh after that save arrived. One sheet with one mark was sent; the second mark never
+    reached the server. A teacher who marks a class with a pause of two seconds in it could
+    lose the first mark after the pause, on any server that takes a moment to answer.
+  - *A mark followed, inside the two seconds before the autosave, by another day, another
+    course or another page:* dropped with the sheet. No request went out.
+  - A refresh that failed after a save emptied the page of every mark, saved or not.
+- **What changes** (`useAttendanceSaveSync.ts`). When an answer arrives the page keeps what
+  the user changed since it last agreed with the server (`keepLocalChanges`: marks, ratings
+  and observations), and what is kept is unsaved, so the autosave sends it. An answer that
+  crossed a save is not used: the day is asked for again. What is unsaved when a sheet is
+  left (another day, another course, another page) is sent on the way out, and queued when
+  there is no connection. A refresh that fails leaves the page as it is.
+- **Tests.** `useAttendanceSaveSync.marksKept.test.ts` (16): the hook with real state
+  around it, for each of the cases above, the queue without a connection, and a sheet the
+  server refuses. An E2E test, "keeps the marks made while the server is slow to answer":
+  two students marked while the day's records and then a save are held back; on the old
+  code it fails (no save ever goes out), on the new one both are stored.
+- **Tried in a browser on a scratch copy, before and after:** the four cases, each with the
+  server asked afterwards what it holds. Before: the mark lost in all four. After: kept and
+  stored in all four.
+- **Found and not changed:**
+  - ***Clear* does nothing lasting to saved marks.** It empties the page; two seconds later
+    the marks are back, and the server never heard of it: a sheet only creates and updates
+    attendance rows (`attendance_sheet_service.py`). The same holds for clearing one
+    student. The user guide said that Clear "takes all of them away"; it now says what
+    happens. To make Clear remove saved marks, the sheet needs a list of marks to delete
+    (as it has for ratings), on the server, the page and the offline queue: the owner's word.
+  - Closing the browser or reloading the page inside the two seconds still loses the mark
+    (the request of a page that is going away is not sent). The help already says to wait
+    until "Changes pending..." has gone.
+  - The lesson log and a student's notes save by themselves too, each with code of its own;
+    they were not looked at for the same faults.
+
 **2026-11-18: the older documents, read and corrected, and what the reading found in the
 code** (PR 429, merged as `aeceec62f`; on the PR's commit CI's backend job passed 1,854
 tests with 55 skipped, the frontend job 2,100, and E2E 75 with one more that passed on its
@@ -442,7 +489,8 @@ and correct as needed").
     on the second it did. The PR changes nothing of the Attendance page, and the five E2E
     runs before it (PRs 427 and 428, and three pushes to `main`) passed all 76 at once.
     Whether a click can be lost on that page while its list is still loading was not
-    looked into: if it is seen again, start there.
+    looked into: if it is seen again, start there. **Looked into the same day: it can, and
+    in three more ways. Repaired in PR 430 (above).**
   - *The Auto-label workflow failed*, on this PR alone: GitHub's API refused the labeler
     with "too many files changed" (the diff removes 9,354 lines). It is not one of the
     required checks, and the label `requires:e2e` was on the PR from its opening.

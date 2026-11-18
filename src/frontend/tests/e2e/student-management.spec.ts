@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Route } from '@playwright/test';
 import {
   loginAsTestUser,
   loginAsTrackedTeacher,
@@ -606,6 +606,98 @@ test.describe('Attendance Tracking', () => {
     expect(savedRows.every((row) => row.status === 'Present')).toBe(true);
 
     await expect(page.locator('[role="alert"]').filter({ hasText: /error/i })).toHaveCount(0);
+  });
+
+  test('keeps the marks made while the server is slow to answer', async ({ page }) => {
+    // A mark was lost when it was made before the day's records had arrived, or while the save
+    // of an earlier mark was on its way: the answer replaced what the page held, and the page
+    // then agreed with the server, so nothing was left to save (found on 18 November 2026; the
+    // test above needed a second try on CI for the first of the two). An answer is held back
+    // here the way a far-away server holds it: it says what the server held when asked.
+    const apiBase = getApiBase();
+    const slowly = (ms: number) => async (route: Route) => {
+      const response = await route.fetch();
+      await new Promise((resolve) => setTimeout(resolve, ms));
+      await route.fulfill({ response });
+    };
+    const dayRecords = /\/api\/v1\/attendance\/date\/[^/]+\/course\/\d+/;
+    const isSheetSave = (method: string, url: string) =>
+      method === 'POST' && new URL(url).pathname.endsWith('/api/v1/attendance/sheet');
+
+    const course = generateCourseData();
+    const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
+      data: {
+        course_code: course.courseCode,
+        course_name: course.courseName,
+        credits: course.credits,
+        semester: course.semester,
+        is_active: course.isActive,
+      },
+    });
+    const createdCourse = await courseResp.json();
+    tracker.track('courses', createdCourse.id);
+
+    const names: string[] = [];
+    for (let index = 0; index < 2; index += 1) {
+      const student = generateStudentData();
+      const studentResp = await page.request.post(`${apiBase}/api/v1/students/`, {
+        data: {
+          first_name: student.firstName,
+          last_name: student.lastName,
+          email: student.email,
+          student_id: student.studentId,
+        },
+      });
+      const createdStudent = await studentResp.json();
+      tracker.track('students', createdStudent.id);
+      await enrollStudentViaAPI(page, createdCourse.id, createdStudent.id);
+      tracker.trackEnrollment(createdCourse.id, createdStudent.id);
+      names.push(`${student.firstName} ${student.lastName}`);
+    }
+    const present = (name: string) => page.getByRole('button', { name: `Present - ${name}`, exact: true });
+
+    await page.goto('/#/attendance');
+    await page.reload();
+    await page.waitForLoadState('networkidle').catch(() => {});
+    const courseSelect = page.getByTestId('attendance-course-select');
+    await expect(courseSelect.locator(`option[value="${createdCourse.id}"]`)).toHaveCount(1, { timeout: 15000 });
+    await courseSelect.selectOption(`${createdCourse.id}`);
+
+    // 1. The day's records take a second and a half to arrive. The first student is marked
+    //    before they do, and the mark must still be there, and be saved, afterwards.
+    await page.route(dayRecords, slowly(1500));
+    const dayArrived = page.waitForResponse((response) => dayRecords.test(response.url()), { timeout: 20000 });
+    const firstSave = page.waitForRequest((request) => isSheetSave(request.method(), request.url()), {
+      timeout: 25000,
+    });
+    await page.locator('div.grid-cols-7 > button:not([disabled])').first().click();
+    await expect(present(names[0])).toBeVisible({ timeout: 15000 });
+    await present(names[0]).click();
+    await dayArrived;
+    await page.unroute(dayRecords);
+
+    // 2. The save takes two seconds to answer. The second student is marked while it travels.
+    await page.route(/\/api\/v1\/attendance\/sheet$/, slowly(2000));
+    expect((await firstSave).postDataJSON().attendance).toHaveLength(1);
+    const bothSaved = page.waitForResponse(
+      (response) =>
+        isSheetSave(response.request().method(), response.url()) &&
+        response.request().postDataJSON().attendance.length === 2,
+      { timeout: 30000 }
+    );
+    await present(names[1]).click();
+    expect((await bothSaved).status()).toBe(200);
+
+    await expect(present(names[0])).toHaveClass(/bg-green-500/);
+    await expect(present(names[1])).toHaveClass(/bg-green-500/);
+    await expect
+      .poll(async () => {
+        const saved = await page.request.get(`${apiBase}/api/v1/attendance/?course_id=${createdCourse.id}&limit=100`);
+        const body = await saved.json();
+        const rows: Array<{ status: string }> = body.items ?? body;
+        return rows.map((row) => row.status);
+      })
+      .toEqual(['Present', 'Present']);
   });
 });
 
