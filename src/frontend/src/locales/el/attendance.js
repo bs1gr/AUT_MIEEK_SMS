@@ -86,6 +86,7 @@ export default {
   noDateSelected: 'Δεν έχει επιλεγεί ημερομηνία',
   autosavePending: 'Αλλαγές σε εκκρεμότητα...',
   saving: 'Αποθήκευση...',
+  attendanceSaved: 'Οι παρουσίες αποθηκεύτηκαν',
   historicalModeBanner: 'Προβολή προηγούμενης ημερομηνίας',
   offlineQueued: 'Εκτός σύνδεσης: οι αλλαγές μπήκαν σε ουρά και θα συγχρονιστούν όταν επανέλθει η σύνδεση.',
   queuedSyncCount: '{{count}} σε ουρά για συγχρονισμό',

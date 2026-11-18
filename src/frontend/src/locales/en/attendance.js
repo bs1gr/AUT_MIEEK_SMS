@@ -86,6 +86,7 @@ export default {
   noDateSelected: 'No date selected',
   autosavePending: 'Changes pending...',
   saving: 'Saving...',
+  attendanceSaved: 'Attendance saved',
   historicalModeBanner: 'Viewing past date',
   offlineQueued: 'Offline: changes queued and will sync when connection returns.',
   queuedSyncCount: '{{count}} queued for sync',
