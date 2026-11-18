@@ -243,8 +243,10 @@ Choose a **student** and a **course**. Only then does the page show the grades.
 
 **Adding a grade.** Under "Grade Entry": the assignment's name, its category, the points
 earned and the points possible. **Save Grade** stores it. A form with something missing
-answers "Please fill in all required fields". The form also has a box **Weight**: it is
-stored and shown with the grade ("×1") and changes nothing in the final grade (section 8).
+answers "Please fill in all required fields". The form also has a box **Weight**: how often
+the grade counts in the average of its category. A grade with weight 2 counts like two
+grades; an empty box is 1 and the highest is 3. The box is closed for Midterm Exam and Final
+Exam, which take their latest grade alone (section 8).
 
 **The summary** on the right shows the final grade so far: as a percentage, as a GPA, as a
 letter and on the Greek scale of 0 to 20 with its word (for example "15.5/20, Καλώς"). Under
@@ -265,10 +267,13 @@ rules. While a category has no grade yet it is left out, so the figure is "the f
 so far": with a midterm of 75% (weight 30) and homework of 85% (weight 10) it is 77.5%. A
 final grade under 50% fails the course.
 
-Within a category every grade counts the same, each as a percentage of its points: the
-average of the category is their plain average, whatever "Weight" was typed with a grade.
-Two exceptions: for Midterm Exam and Final Exam only the latest grade counts, and a day's
-rating in a category (section 6) counts like one more grade of that category.
+Within a category each grade counts as a percentage of its points, and as often as its
+**Weight** says: 20/20 with weight 1 and 0/20 with weight 3 average 25%, not 50%. Grades
+that all have the same weight average as usual. (Until November 2026 the Weight was stored
+and not used: a category was the plain average of its grades. A final grade that has
+grades of different weights in one category is therefore not what it was before.) Two
+exceptions: for Midterm Exam and Final Exam only the latest grade counts, and a day's rating
+in a category (section 6) counts like one more grade of that category, with weight 1.
 
 **Absences** are counted in periods:
 

@@ -301,9 +301,53 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-18: the Weight of a grade counts** (PR 426; the owner's decision of that day, point
+7 of the message at the head of todo 63: "The Weight box of a grade: make it count").
+
+- **What it was.** Grades > Grade Entry has a Weight box, and Grade History showed what was
+  typed ("×3"). The number was stored and never read: the final grade took the plain average
+  of a category's grades.
+- **What it is.** Within its category a grade counts as often as its Weight says: 20/20 with
+  weight 1 and 0/20 with weight 3 average 25%, not 50%. Grades of equal weight average as
+  before. A grade without a weight, or with 0, counts once: the pages have always shown such
+  a grade as "×1", and a grade that is recorded and silently left out would be worse than one
+  that counts. Midterm Exam and Final Exam take their latest grade alone, so a weight changes
+  nothing there. A day's rating from Attendance counts beside the weighted grades, with the
+  multiplier of the category's rule.
+- **What it means for the grades that exist.** A final grade changes where one category
+  holds grades of different weights; nothing else changes. Which final grades of the real
+  database that touches was not looked at.
+- **The pages.** Under the Weight box a line says what the weight does. The box is closed for
+  both exam categories: it was closed for the form's starting value only, and for "Midterm
+  Exam" it stayed open and silently saved 1. On the card of Students > View Performance the
+  average of a category is the weighted one, so that it agrees with the final grade, and a
+  grade whose weight is not 1 is marked ("×3"). `total_items` of a category is the number of
+  grades and ratings, where it was the sum of their weights.
+- **Found in the browser and repaired: a grade of 0/20 shown as "10000.0%" with the letter
+  A**, under Recent Grades on a student's profile. The fallback for the points possible stood
+  on the quotient, and a quotient of 0 counted as "nothing there".
+- **Left as they are:** the other averages of the application (a student's "Average", the
+  class statistics, the projections of the Outlook) are plain averages over all the grades,
+  whatever their category or weight. They are not the final grade and never followed its
+  rules.
+- **Texts.** The help answer on the Weight and the one on the final grade, in both languages;
+  sections 7 and 8 of the user guide.
+- **Tests.** `test_grade_weight_counts.py` (20): through the API for each case above, and a
+  changed weight changes the final grade at once. `GradingView.weight.test.tsx` (7), four
+  more in `CourseGradeBreakdown.test.tsx`, one more in `StudentProfile.test.tsx`.
+- **Tried in a browser, in English and in Greek, on a scratch copy:** two homework grades
+  with weights 1 and 3 give "Homework: 25.0%" and a final grade of 25; with a final exam of
+  10/20 (rules 40 and 60) the final grade is 40; the history shows ×1 and ×3; the card shows
+  25.0% and "×3"; the profile shows 0/20 as "0.0%" with an F.
+
 **2026-11-18: two roles, "No role" for every other account, and nothing but the rows**
-(PR 425; the owner's decisions of that day on the three choices the report on PRs 422 to 424
-had left: "1. Who may import: both teachers and admins. 2. Student accounts: Remove "Student"
+(PR 425, merged as `8b91caa2b`; on the PR's commit CI's backend job passed 1,795 tests with
+55 skipped, the frontend job 2,049 and E2E 76. The E2E run was started by hand: the workflow
+reads a pull request's labels from the event that opened it, and this time the label
+`requires:e2e` was attached a moment later, so the run was skipped; the pipeline's own check
+for the label cannot work at all, because it asks `gh pr view` without naming the
+repository in a job that has no checkout, and throws the error away. The owner's decisions
+of that day on the three choices the report on PRs 422 to 424 had left: "1. Who may import: both teachers and admins. 2. Student accounts: Remove "Student"
 from the role boxes. 3. Viewer and Guest: Remove both considering Removing the built-in
 permission list for accounts that never got a role row, which the note also asks for. It is a
 larger change: a start-up step, and most test fixtures." The rest of that message is at the
@@ -2181,8 +2225,8 @@ now** (todo 58).
       fail; the text of the one-page PDF behind the help."
       - *Points 1 to 3: done in PR 425* (see its entry: two roles, "No role", the closed list
         of 44 permissions, teachers import).
-      - *Open, in this order:* the Weight of a grade counts (7); a teacher changes the own
-        password (4); the audit log says who made a change, and a page shows it (5); the
+      - *Point 7: done in PR 426* (the Weight of a grade counts).
+      - *Open, in this order:* a teacher changes the own password (4); the audit log says who made a change, and a page shows it (5); the
         four smaller ones; the older documents, read and corrected, not deleted (6).
       - *Not in the message, and waiting for the owner's word:* a release and the update of
         the cloud VM; whether teachers also get the session file; the four tools nothing runs
@@ -2277,8 +2321,8 @@ now** (todo 58).
     - *Done in PR 424 (2026-11-18):* the help of Utils > Help & Documentation, read against
       the pages and written anew in both languages.
     - **Added by the reading of the help (PR 424), none of it changed:**
-    - *The "Weight" of a grade changes nothing* (the owner, 2026-11-18: "make it count";
-      open). Grades > Grade Entry has the box, with the
+    - *Done in PR 426 (the owner, 2026-11-18: "make it count"):* the "Weight" of a grade
+      changed nothing. As it was: Grades > Grade Entry has the box, with the
       hint "Higher weight = more important (1.0 is normal)", and Grade History shows it
       ("×1"). The final grade takes the plain average of a category's grades (tried: 20/20
       with weight 1 and 0/20 with weight 3 give 50%). Make it count within its category, or

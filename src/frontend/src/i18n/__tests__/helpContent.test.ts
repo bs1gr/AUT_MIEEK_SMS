@@ -47,8 +47,8 @@ function textsOf(language: 'en' | 'el'): Set<string> {
 
 // What stands in quotation marks without being a label of the application.
 const NOT_A_LABEL: Record<'en' | 'el', string[]> = {
-  en: ['×1', 'the final grade so far', '15.5/20, Καλώς'],
-  el: ['×1', 'ο τελικός βαθμός ως τώρα', '15,5/20, Καλώς'],
+  en: ['the final grade so far', '15.5/20, Καλώς'],
+  el: ['ο τελικός βαθμός ως τώρα', '15,5/20, Καλώς'],
 };
 const QUOTED = { en: /"([^"\n]+)"/g, el: /«([^»\n]+)»/g };
 

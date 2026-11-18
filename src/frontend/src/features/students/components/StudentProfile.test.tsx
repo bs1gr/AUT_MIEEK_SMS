@@ -156,6 +156,23 @@ describe('StudentProfile - dates of enrolment and of grades', () => {
     expect(screen.queryByText('N/A')).not.toBeInTheDocument();
   });
 
+  it('shows a grade of zero as 0%, not as 10000% with an A', async () => {
+    // Seen in a browser on 18 November 2026: "Homework 2  0 / 20  10000.0%  A".
+    mockedGradesAPI.getByStudent.mockResolvedValue([
+      { id: 21, student_id: 42, course_id: 9, assignment_name: 'Homework 2', grade: 0, max_grade: 20, date_submitted: '2026-11-18' },
+      { id: 22, student_id: 42, course_id: 9, assignment_name: 'Homework 1', grade: 20, max_grade: 20, date_submitted: '2026-11-17' },
+      { id: 23, student_id: 42, course_id: 9, assignment_name: 'Quiz', grade: 15, max_grade: 20, date_submitted: '2026-11-16' },
+    ]);
+
+    renderProfile();
+
+    expect(await screen.findByTestId('recent-grade-percent-21')).toHaveTextContent('0.0%');
+    expect(screen.getByTestId('recent-grade-letter-21')).toHaveTextContent('F');
+    expect(screen.getByTestId('recent-grade-percent-22')).toHaveTextContent('100.0%');
+    expect(screen.getByTestId('recent-grade-percent-23')).toHaveTextContent('75.0%');
+    expect(screen.queryByText(/10000/)).not.toBeInTheDocument();
+  });
+
   it('labels the dates of enrolment "Enrolled:", not "Courses"', async () => {
     renderProfile();
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
-import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
+import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade, gradeWeight } from '@/utils/gradeUtils';
 import { enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade } from '@/types';
@@ -217,6 +217,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     return [...base, ...customRules];
   }, [evaluationRules, t]);
 
+  // An exam takes its latest grade alone: the Weight box is closed for it. ('Midterm' is what
+  // the form starts with before a category is chosen; it used to be the only spelling checked,
+  // so the box stayed open for "Midterm Exam" and silently saved 1.)
+  const examCategory = ['Midterm', 'Midterm Exam', 'Final Exam'].includes(gradeEntry.category);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -355,9 +360,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             placeholder={t('weightPlaceholder')}
             value={gradeEntry.weight}
             onChange={e => gradeEntry.setWeight(e.target.value)}
-            disabled={gradeEntry.category==='Midterm' || gradeEntry.category==='Final Exam'}
+            disabled={examCategory}
+            aria-describedby="weight-hint"
           />
         </div>
+        {/* What the Weight does. An exam takes its latest grade alone, so it has none. */}
+        <p id="weight-hint" data-testid="weight-hint" className="text-xs text-gray-500">
+          {examCategory ? t('weightHintExam') : t('weightHint')}
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             name="grade"
@@ -495,7 +505,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                         )}
                         <td className="px-4 py-2 text-center">{g.grade} / {g.max_grade || 100}</td>
                         <td className="px-4 py-2 text-center"><span className={`font-semibold ${color}`}>{pct.toFixed(1)}%</span></td>
-                        <td className="px-4 py-2 text-center">×{g.weight || 1}</td>
+                        <td className="px-4 py-2 text-center">×{gradeWeight(g)}</td>
                         <td className="px-4 py-2 text-center"><span className={`px-2 py-1 rounded-full text-xs font-bold ${color}`}>{letter}</span></td>
                         <td className="px-4 py-2 text-gray-600">
                           {g.date_submitted ? formatDate(g.date_submitted) : (g.date_assigned ? formatDate(g.date_assigned) : '—')}
