@@ -301,8 +301,57 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-**2026-11-18: what an account can do for itself, and what it is told** (PR 427; from the
-owner's message of that day, at the head of todo 63: point 4, "A teacher has no page for
+**2026-11-18: the audit log says who did it, has a line for every change of an account, a
+role or a permission, and a page shows it** (PR 428; the owner's message of that day, at the
+head of todo 63: point 5, "Fix The audit log does not say who changed a role, and no page
+shows it", and the last of the things to take up, "audit log entries that do not say who
+changed a role").
+
+- **No entry ever had an author.** The audit service names the author from a note on the
+  request (`request.state.current_user`) that, by its own comment, an "auth middleware" was
+  to set. There is no such middleware, and nothing else set it: every entry written through
+  it, the imports and the data-subject requests included, had an empty `user_id` and
+  `user_email`. The note is now made where the account behind a request is resolved
+  (`remember_actor` in `backend/security/current_user.py`): its number and address, not the
+  database object, because an entry is written after the endpoint's own commits.
+- **Most changes had no entry at all.** Only the requests under `/admin/rbac` (Assign Role
+  to User) wrote one. What User Accounts does (create an account, change its role,
+  activate, deactivate, delete, reset a password) and what the Permissions Catalog does
+  (grant and revoke, for a role or for one account) left no line, so the usual way of making
+  somebody an administrator was not in the log. All of them write an entry now, and so does
+  an account's change of its own password. A password is never in an entry; a deleted
+  account stays in the log by its address; a refused request, and a save that changed
+  nothing, leave none.
+- **The page.** Control Panel > Maintenance > **Audit Log**, for administrators: When, Who,
+  What and About, the newest first, 25 to a page, narrowed by what was done, by who did it
+  and by a range of days. An entry is a sentence where the page knows what was done
+  ("Changed the role of ... from Teacher to Administrator", "Granted audit:view to the role
+  Teacher", "Set a new password for ..."), and the server's own words with its details where
+  it does not. "Not recorded" stands for an entry without an author: the ones written before
+  this change, and a request without a sign-in.
+- **Seen in the browser and repaired: the time of an entry was two hours early.** The time is
+  stored in UTC, SQLite hands it back without its zone, and a browser reads a time without a
+  zone as local time. The answer now carries the zone.
+- **Texts.** A help answer "Where do I see who changed what?" (82 answers); a section "The
+  audit log" in the administrator's guide; the matrix, the reference and the user guide.
+- **Tests.** `test_audit_author.py` (19): who is named, for each of the three panels'
+  changes; that nothing secret is written; that a refusal and an unchanged save write
+  nothing; the time with its zone. `AuditLogPanel.test.tsx` (11): the sentences, the
+  filters, the pages, a refusal told from a failure, and a name for every action and kind of
+  record in both languages.
+- **Tried in a browser, in English and in Greek, on a scratch copy:** ten changes made as two
+  administrators and a teacher (a role from Edit, a role revoked, a grant to a role and its
+  revoke, a grant to one account, an account deactivated, reset and deleted, an own
+  password, and a teacher's refused try to make itself an administrator); the page lists
+  each of the nine that happened with the right author and none for the refused one; the
+  filters by action and by author; a teacher is not shown the section.
+- **Not changed:** the panel is offered to administrators only, although the API answers any
+  account that was granted `audit:view`. Signing in and out is not written to the log.
+  Entries of before this change keep their empty author.
+
+**2026-11-18: what an account can do for itself, and what it is told** (PR 427, merged as
+`3d465ab21`; on the PR's commit CI's backend job passed 1,825 tests with 55 skipped, the
+frontend job 2,087 and E2E 76. From the owner's message of that day, at the head of todo 63: point 4, "A teacher has no page for
 changing their own password, should have access there", and three of the four things to take
 up: "the registration form's message that appears in two languages at once; a sentence
 telling an account without access why its pages fail; the text of the one-page PDF behind the
@@ -2278,9 +2327,10 @@ now** (todo 58).
       - *Point 4 and three of the four smaller ones: done in PR 427* (every account changes
         its own password; the line for an account without a role; the sign-in form's
         messages; the Quick Guide).
-      - *Open, in this order:* the audit log says who made a change, and a page shows it
-        (5, and the fourth of the smaller ones); the older documents, read and corrected,
-        not deleted (6).
+      - *Point 5 and the fourth of the smaller ones: done in PR 428* (the audit log names
+        the author, has an entry for every change of an account, a role or a permission,
+        and a page shows it).
+      - *Open:* the older documents, read and corrected, not deleted (6).
       - *Not in the message, and waiting for the owner's word:* a release and the update of
         the cloud VM; whether teachers also get the session file; the four tools nothing runs
         and the two unused page parts (delete or keep).
@@ -2305,8 +2355,8 @@ now** (todo 58).
       page for changing the own password. As it was: the form is in User Accounts,
       which answers "Access Denied" to everybody but an administrator. A teacher asks an
       administrator for a reset.
-    - *The audit log does not say who made a role or permission change* (the owner,
-      2026-11-18: "Fix"; open): `user_id` and
+    - *Done in PR 428 (the owner, 2026-11-18: "Fix"):* the audit log did not say who made
+      a role or permission change. As it was: `user_id` and
       `user_email` are empty in those entries. And no page shows the audit log; only the API
       answers.
     - *Decided and done in PR 425 ("both teachers and admins"; the list is closed):*

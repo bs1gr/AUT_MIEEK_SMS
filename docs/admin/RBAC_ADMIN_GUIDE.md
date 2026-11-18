@@ -189,7 +189,8 @@ Same tab, "Grant Permission": **Grant To**: User, the account's number, the perm
 account's next request.
 
 Example: `audit:view` granted to a teacher lets that account read the audit log through the
-API, and nothing else changes for it.
+API, and nothing else changes for it. (The **Audit Log** panel itself is shown to
+administrators only.)
 
 One limit: a grant opens what asks for a **permission**. It does not open what asks for the
 **administrator role**: the semester archive, the e-mail settings, the rate limits, the report
@@ -242,16 +243,34 @@ failure message on the page. An account without a role is told so by a line at t
 every page ("Your account has no role, ..."); in v1.18.73 and earlier it sees the failures
 alone.
 
-### Nobody is recorded as the author of a change
+### In v1.18.73 and earlier the audit log cannot say who made a change
 
-Role and permission changes are written to the audit log with the time, the account they were
-about and what changed. The entry does not say which administrator made the change.
+There, role and permission changes are written to the audit log with the time, the account
+they were about and what changed, and without the administrator who made them; what User
+Accounts and the Permissions Catalog do is not written at all; and no page shows the log
+(only the API answers, `GET /api/v1/audit/logs`). See "The audit log" below for what a
+current copy does.
 
-### No page shows the audit log
+## The audit log
 
-The audit log and the history of role changes are answered by the API
-(`GET /api/v1/audit/logs`, `GET /api/v1/admin/rbac/change-history`) for an account with
-`audit:view`. The application has no page for them.
+**Maintenance** > **Audit Log** (administrators only) lists what was done, the newest entry
+first: **When**, **Who**, **What** and **About**.
+
+- **What is in it.** Every change to an account (created, role changed, activated,
+  deactivated, deleted, password reset, own password changed), to a role (given, taken away)
+  and to a permission (granted to or revoked from a role or an account), from all three
+  panels: User Accounts, Assign Role to User and the Permissions Catalog. Also the imports
+  and what else the server records (a student's data export or erasure, for one).
+- **Who.** The account that was signed in when the change was made. "Not recorded" stands
+  for entries written before this was repaired, and for a request without a sign-in.
+- **Narrowing it.** **What was done** (role changed, permission granted, deleted, ...),
+  **Made by** (one account), and **From** / **To** for a range of days.
+- A password is never in the log: an entry says that one was set, and for whom.
+- A deleted account stays in the log by its e-mail address.
+- A refused request leaves no entry.
+
+The same list is answered by the API for an account with `audit:view`
+(`GET /api/v1/audit/logs`).
 
 ## If the administrator is locked out
 
@@ -299,4 +318,3 @@ The first start of the version that has two roles changes an existing installati
 - Permissions per course or per class. A teacher account sees and changes every student and
   every course.
 - An end date for a grant, from the page. (The API accepts one.)
-- A page for the audit log.

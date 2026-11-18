@@ -28,6 +28,7 @@ from backend.schemas import (
     UserResponse,
     UserUpdate,
 )
+from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.auth import PasswordChangeRequest
 from backend.security import login_throttle
 from backend.security.csrf import clear_csrf_cookie, issue_csrf_cookie
@@ -146,6 +147,30 @@ def _ensure_rbac_role_assignment(db: Session, user: User, role_name: Optional[st
 
 
 LEGACY_ROLE_PRIORITY = ("admin", "teacher")
+
+
+def _record_account_change(
+    request: Request, db: Session, action: AuditAction, account_id: Any, details: dict[str, Any]
+) -> None:
+    """Write to the audit log what was done to an account, and by whom.
+
+    User Accounts created, changed, deleted and reset accounts without a line in the audit
+    log, so the log could not say who had made somebody an administrator: only a role given
+    under Assign Role to User was recorded. Called after the change is committed. A failure
+    to write the entry is logged and never fails the request: the change is already made.
+    """
+    try:
+        from backend.services.audit_service import get_audit_logger
+
+        get_audit_logger(db).log_from_request(
+            request, action=action, resource=AuditResource.USER, resource_id=str(account_id), details=details
+        )
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        logger.warning("The audit entry for account %s could not be written: %r", account_id, exc)
 
 
 def _sync_rbac_legacy_role(db: Session, user: User, role_name: Optional[str]) -> None:
@@ -1156,6 +1181,13 @@ async def admin_create_user(
         _remove_what_points_at_account(db, int(user.id))
         db.commit()
         _ensure_rbac_role_assignment(db, user, role_name)
+        _record_account_change(
+            request,
+            db,
+            AuditAction.CREATE,
+            user.id,
+            {"operation": "create_account", "email": normalized_email, "role": role_name},
+        )
         # Explicit schema: returning the ORM object leaked hashed_password and lockout state.
         return UserResponse.model_validate(user).model_dump()
     except Exception as exc:
@@ -1226,6 +1258,26 @@ async def admin_update_user(
     except Exception as exc:
         db.rollback()
         raise internal_server_error("Unable to update user", request) from exc
+
+    if payload.role is not None and payload.role != original_role:
+        _record_account_change(
+            request,
+            db,
+            AuditAction.ROLE_CHANGE,
+            user.id,
+            {"operation": "set_role", "email": str(user.email), "from": original_role, "role": payload.role},
+        )
+    if bool(user.is_active) != original_active:
+        _record_account_change(
+            request,
+            db,
+            AuditAction.UPDATE,
+            user.id,
+            {
+                "operation": "activate_account" if bool(user.is_active) else "deactivate_account",
+                "email": str(user.email),
+            },
+        )
 
     # Serialize explicitly: returning the ORM object leaked hashed_password and lockout state.
     body: dict[str, Any] = UserResponse.model_validate(user).model_dump()
@@ -1300,8 +1352,10 @@ async def admin_delete_user(
         _remove_what_points_at_account(db, int(user.id))
         # Use query-based delete to avoid ORM cascade against
         # tables that may not exist in older database schemas.
+        deleted = {"operation": "delete_account", "email": str(user.email), "role": str(user.role)}
         db.query(models.User).filter(models.User.id == user.id).delete(synchronize_session=False)
         db.commit()
+        _record_account_change(request, db, AuditAction.DELETE, user_id, deleted)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except HTTPException:
         raise
@@ -1337,6 +1391,13 @@ async def admin_reset_password(
         db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
         db.add(user)
         db.commit()
+        _record_account_change(
+            request,
+            db,
+            AuditAction.PASSWORD_CHANGE,
+            user.id,
+            {"operation": "reset_password", "email": str(user.email)},
+        )
         return {"status": "password_reset"}
     except Exception as exc:
         db.rollback()
@@ -1442,6 +1503,13 @@ async def change_password(
         db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).update({"revoked": True})
         db.add(user)
         db.commit()
+        _record_account_change(
+            request,
+            db,
+            AuditAction.PASSWORD_CHANGE,
+            user.id,
+            {"operation": "change_own_password", "email": str(user.email)},
+        )
 
         # Issue new access token so client can continue without relogin
         new_access = create_access_token(subject=str(getattr(user, "email", "")))

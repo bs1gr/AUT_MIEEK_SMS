@@ -22,6 +22,7 @@ import Toast from './ui/Toast';
 import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
 import AdminUsersPanel from '@/components/admin/AdminUsersPanel';
 import { RBACPanel } from '@/components/admin/RBACPanel';
+import AuditLogPanel from '@/components/admin/AuditLogPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
@@ -133,6 +134,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
   const [expandRBAC, setExpandRBAC] = useState<boolean>(false);
+  const [expandAuditLog, setExpandAuditLog] = useState<boolean>(false);
   const [expandEmailConfig, setExpandEmailConfig] = useState<boolean>(false);
   const [expandImportExport, setExpandImportExport] = useState<boolean>(false);
   const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
@@ -865,6 +867,32 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                 {expandRBAC && (
                   <div className="p-6">
                     <RBACPanel />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Audit Log: who did what, and when. Only visible to admins - Collapsible */}
+            {user?.role === 'admin' && (
+              <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setExpandAuditLog(!expandAuditLog)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {t('controlPanel.auditLog.title')}
+                  </h3>
+                  <ChevronDown
+                    size={20}
+                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                      expandAuditLog ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {expandAuditLog && (
+                  <div className="p-6">
+                    <AuditLogPanel />
                   </div>
                 )}
               </div>

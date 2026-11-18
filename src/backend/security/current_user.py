@@ -154,7 +154,31 @@ def resolve_current_user(request: Request, token: str | None, db: Session) -> An
             "Password change required before using the application",
             request,
         )
+    remember_actor(request, user)
     return user
+
+
+def remember_actor(request: Request, user: Any) -> None:
+    """Note on the request who is acting, for the audit log.
+
+    ``AuditLogger.log_from_request`` reads ``request.state.current_user`` to name the author
+    of an entry. Nothing ever set it ("set by auth middleware", its comment said; there is no
+    such middleware), so every entry written that way had no author: a role change said which
+    account it was about and not who made it. The account is resolved here for every request
+    that carries a sign-in, so this is where it is noted.
+
+    What is kept is the number and the address, not the database object: an entry is written
+    after the endpoint's own commits, when the object may no longer be readable. The
+    placeholder administrator of a server without authentication is not noted: there is
+    nobody to name.
+    """
+    try:
+        from types import SimpleNamespace
+
+        request.state.current_user = SimpleNamespace(id=int(user.id), email=str(user.email))
+    except Exception:
+        # A request without a state, or an account object without a number: no author.
+        pass
 
 
 async def require_auth_even_if_disabled(

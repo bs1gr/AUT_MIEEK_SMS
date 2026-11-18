@@ -266,6 +266,8 @@ export default {
   helpManagePermissionsAnswer: '"System" → "Show Control Panel" → "Maintenance" → "RBAC Configuration":\n• "Overview": the roles and every permission\n• "Users": every account with its number and its roles\n• "Assign Role to User": give an account a role, or revoke one. An account whose last role is revoked can do nothing until it is given a role again\n• "Permissions Catalog": grant a permission to a role or to one account, revoke it, and look up what an account holds',
   helpHowToChangeOwnPassword: 'How do I change my password?',
   helpChangeOwnPasswordAnswer: '1. "System" → "Show Control Panel" → "Maintenance" → "User Accounts"\n2. Under "Change Your Password": "Current password", "New password" and "Confirm password"\n3. Click "Update password"\n\nThe new password needs at least 8 characters, with an uppercase and a lowercase letter, a number and a symbol, and no spaces.\n\nEvery account has this form. If you forgot your password, an administrator sets a new one for you.',
+  helpHowToSeeAuditLog: 'Where do I see who changed what? (Admin only)',
+  helpAuditLogAnswer: '"System" → "Show Control Panel" → "Maintenance" → "Audit Log". Each line says when something was done, who did it, what it was and which record it is about: an account created, changed or deleted, a role given or taken away, a permission granted or revoked, a new password, an import.\n\n"What was done" and "Made by" narrow the list, and "From" and "To" limit it to a range of days. The newest entry is first.',
   helpHowToManageUserAccounts: 'How do I manage user accounts? (Admin only)',
   helpManageUserAccountsAnswer: '"System" → "Show Control Panel" → "Maintenance" → "User Accounts": create an account, approve a registration, change the name, the role and "Active", reset a password, delete an account. Unticking "Active" stops an account at once.',
 
@@ -276,5 +278,5 @@ export default {
   helpHowToAccessControlPanel: 'How do I open the Control Panel?',
   helpControlPanelAnswer: 'Open "System" and click "Show Control Panel". Its tabs are Operations, Updates, Diagnostics, Ports, Logs, Environment, Rate Limits and Maintenance. Most of it works only for an administrator, or on the computer that runs the application.',
   helpWhatIsDevTools: 'What is under "Maintenance"?',
-  helpDevToolsAnswer: 'For administrators: User Accounts, RBAC Configuration, Email Configuration, Import/Export, System Operations (backup, restore, clearing the database, the semester archive) and Database Management.',
+  helpDevToolsAnswer: 'For administrators: User Accounts, RBAC Configuration, Audit Log, Email Configuration, Import/Export, System Operations (backup, restore, clearing the database, the semester archive) and Database Management.',
 };

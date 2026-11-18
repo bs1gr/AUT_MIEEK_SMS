@@ -2,11 +2,11 @@
 Audit logging schemas for tracking system actions.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class AuditAction(str, Enum):
@@ -91,6 +91,14 @@ class AuditLogResponse(BaseModel):
     new_values: Optional[Dict[str, Any]] = Field(None, description="New state (for updates)")
     change_reason: Optional[str] = Field(None, description="Reason provided by user for the change")
     request_id: Optional[str] = Field(None, description="Request correlation ID")
+
+    @field_validator("timestamp", mode="after")
+    @classmethod
+    def _in_utc(cls, value: datetime) -> datetime:
+        """The time of an entry is stored in UTC. SQLite hands it back without its zone, and a
+        time without a zone is read by a browser as its own local time: the page showed an
+        entry two hours early in Cyprus. Sent with its zone, it is shown right everywhere."""
+        return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
 class AuditLogListResponse(BaseModel):
