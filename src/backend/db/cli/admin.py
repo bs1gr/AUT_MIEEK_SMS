@@ -50,6 +50,11 @@ def create_admin(email: str, password: str | None = None) -> bool:
         )
         db.add(user)
         db.commit()
+        # An account may do what its role rows say. Where the roles exist the row is given
+        # now; on a database no server has started on yet, the first start gives it.
+        from backend.routers.routers_rbac import backfill_role_rows
+
+        backfill_role_rows(db)
         print(f"Created admin user {email}")
         return True
     finally:

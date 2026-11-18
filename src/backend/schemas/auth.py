@@ -28,7 +28,9 @@ def _validate_password_strength(value: str, field_name: str = "password") -> str
 class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
-    role: Optional[str] = Field(default="teacher", pattern=r"^(admin|teacher|student)$")
+    # The two roles an account can be created with. ("student" was a third until November
+    # 2026; nothing ever tied a student record to an account, so it meant "no access".)
+    role: Optional[str] = Field(default="teacher", pattern=r"^(admin|teacher)$")
 
 
 class UserCreate(UserBase):
@@ -42,7 +44,8 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = Field(default=None, max_length=200)
-    role: Optional[str] = Field(default=None, pattern=r"^(admin|teacher|student)$")
+    # "none" takes every role away: the account can sign in and nothing opens for it.
+    role: Optional[str] = Field(default=None, pattern=r"^(admin|teacher|none)$")
     is_active: Optional[bool] = None
 
 

@@ -136,11 +136,26 @@ def _register_user(client: TestClient, email: str, password: str, role: str = "t
             )
             db.add(u)
             db.commit()
-            return
+        _as_after_a_start(client)
+        return
 
     payload = {"email": email, "password": password, "role": role}
     r = client.post("/api/v1/auth/register", json=payload)
     assert r.status_code == 200, r.text
+    _as_after_a_start(client)
+
+
+def _as_after_a_start(client: TestClient) -> None:
+    """The roles, the permissions and every account's role row, as a start leaves them.
+
+    The database of these tests is new and nothing has started on it, so its role tables are
+    empty; an account may do what its rows say and nothing else.
+    """
+    from backend.db import get_session as db_get_session
+    from backend.tests.conftest import started_installation
+
+    with next(client.app.dependency_overrides[db_get_session]()) as db:  # type: ignore[attr-defined]
+        started_installation(db)
 
 
 def _login(client: TestClient, email: str, password: str) -> str:

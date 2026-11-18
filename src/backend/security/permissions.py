@@ -1,8 +1,7 @@
 """Fine-grained RBAC permission checks and FastAPI dependencies.
 
 Provides helpers similar to routers_auth.require_role/optional_require_role but
-for arbitrary permissions, backed by DB tables when available and falling back
-to default role->permission mappings when not configured.
+for arbitrary permissions, decided by the grants in the database alone (backend.rbac).
 """
 
 from __future__ import annotations
@@ -57,7 +56,7 @@ def optional_require_permission(permission: str):
     """Permission checker that respects AUTH_ENABLED and AUTH_MODE.
 
     - When AUTH is disabled: returns a dummy admin-like user for tests
-    - When AUTH is enabled: verifies permission via DB/defaults
+    - When AUTH is enabled: verifies permission via the grants in the database
     """
 
     def _dep(
@@ -90,48 +89,5 @@ def optional_require_permission(permission: str):
                 },
             )
         return user
-
-    return _dep
-
-
-def depends_on_permission(permission: str, *fallback_roles: str):
-    """Permission checker with role fallback for backward compatibility."""
-
-    def _dep(
-        request: Request,
-        user: Any = Depends(get_current_user),
-        db: Session = Depends(get_db),
-    ) -> Any:
-        auth_enabled = getattr(settings, "AUTH_ENABLED", False)
-        auth_mode = getattr(settings, "AUTH_MODE", "disabled")
-        if not auth_enabled or auth_mode == "disabled":
-            from types import SimpleNamespace
-
-            return SimpleNamespace(
-                id=1,
-                email="admin@example.com",
-                role="admin",
-                is_active=True,
-                full_name="Admin User",
-            )
-
-        if has_permission(user, permission, db):
-            return user
-
-        user_role = getattr(user, "role", None)
-        if user_role and str(user_role).lower() in {r.lower() for r in fallback_roles}:
-            return user
-
-        raise http_error(
-            403,
-            ErrorCode.FORBIDDEN,
-            f"Missing permission: {permission}",
-            request,
-            context={
-                "required_permission": permission,
-                "fallback_roles": list(fallback_roles),
-                "user_role": user_role,
-            },
-        )
 
     return _dep

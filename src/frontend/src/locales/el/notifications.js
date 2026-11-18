@@ -125,8 +125,6 @@ export const notificationsEL = {
   roles: {
     admin: 'Διαχειριστής',
     teacher: 'Καθηγητής',
-    student: 'Μαθητής',
-    viewer: 'Παρατηρητής',
   },
 
   // Bell component

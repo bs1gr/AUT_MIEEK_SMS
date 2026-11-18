@@ -145,17 +145,17 @@ def _ensure_rbac_role_assignment(db: Session, user: User, role_name: Optional[st
         raise
 
 
-LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
+LEGACY_ROLE_PRIORITY = ("admin", "teacher")
 
 
 def _sync_rbac_legacy_role(db: Session, user: User, role_name: Optional[str]) -> None:
     """Make the account's role rows say what its role now is.
 
-    The rows of the four built-in roles are removed and the row of the new role is added. A
-    role without a row of its own ("student": it is not a role in the tables) leaves the
-    account without any, which is what a student account has. This used to return early for
-    such a role, so an account changed to "student" kept the rows, and with them the
-    permissions, of the teacher or administrator it had been.
+    The rows of the built-in roles are removed and the row of the new role is added. A word
+    without a role of its own ("none") leaves the account without any: it can sign in and
+    nothing opens for it. This used to return early for such a word, so an account changed
+    to it kept the rows, and with them the permissions, of the teacher or administrator it
+    had been.
     """
     if not user or not role_name:
         return
@@ -818,8 +818,9 @@ async def login(
             user.password_change_required = True
             db.add(user)
             db.commit()
-            logger.warning("Login with a published default password; password change now required",
-                           extra={"user_id": user.id})
+            logger.warning(
+                "Login with a published default password; password change now required", extra={"user_id": user.id}
+            )
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")), role=str(getattr(user, "role", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible

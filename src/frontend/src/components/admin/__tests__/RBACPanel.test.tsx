@@ -136,8 +136,8 @@ describe('RBACPanel', () => {
     ],
     permissions: [
       { id: 1, key: 'students:view', resource: 'students', action: 'view', description: 'View all student records', is_active: true },
-      { id: 2, key: 'grades.self:read', resource: 'grades.self', action: 'read', description: 'Student: view own grades', is_active: true },
-      { id: 3, key: 'workshop:book', resource: 'workshop', action: 'book', description: 'Made by hand', is_active: true },
+      { id: 2, key: '*:*', resource: '*', action: '*', description: 'All permissions (admin wildcard)', is_active: true },
+      { id: 3, key: 'workshop.own:book', resource: 'workshop.own', action: 'book', description: 'Made by hand', is_active: true },
     ],
     role_permissions: [{ role_id: 2, permission_id: 1 }],
     user_roles: [
@@ -154,11 +154,11 @@ describe('RBACPanel', () => {
 
     expect(await screen.findByTestId('rbac-permission-1')).toHaveTextContent('students:view');
     expect(screen.getByTestId('rbac-permission-1')).toHaveTextContent('View Students');
-    // A key with a dot and a colon: i18next would split it, the panel must not.
-    expect(screen.getByTestId('rbac-permission-2')).toHaveTextContent('grades.self:read');
-    expect(screen.getByTestId('rbac-permission-2')).toHaveTextContent('Student: Own Grades');
-    // A permission the installation added itself has no name: its key alone.
-    expect(screen.getByTestId('rbac-permission-3').textContent).toBe('workshop:book');
+    // A key is looked up whole: i18next would split one at its colon (and at a dot).
+    expect(screen.getByTestId('rbac-permission-2')).toHaveTextContent('*:*');
+    expect(screen.getByTestId('rbac-permission-2')).toHaveTextContent('All Permissions');
+    // A permission the installation added itself has no name: its key alone, dot and colon and all.
+    expect(screen.getByTestId('rbac-permission-3').textContent).toBe('workshop.own:book');
     const mapping = screen.getByTestId('rbac-role-permission');
     expect(mapping).toHaveTextContent('Teacher');
     expect(mapping).toHaveTextContent('students:view');
@@ -170,7 +170,7 @@ describe('RBACPanel', () => {
     mockListUsers.mockResolvedValue([
       { id: 3, email: 'maria@example.com', full_name: 'Maria Georgiou', role: 'teacher', is_active: true },
       { id: 1, email: 'admin@example.com', full_name: null, role: 'admin', is_active: true },
-      { id: 7, email: 'pupil@example.com', full_name: 'Pupil Seven', role: 'student', is_active: true },
+      { id: 7, email: 'former@example.com', full_name: 'Former Seven', role: 'none', is_active: true },
     ]);
 
     renderWithProviders(<RBACPanel />);
@@ -234,7 +234,7 @@ describe('RBACPanel', () => {
     const summary: RBACSummary = {
       roles: [
         { id: 2, name: 'teacher', description: 'Teacher' },
-        { id: 3, name: 'viewer', description: 'Viewer' },
+        { id: 3, name: 'admin', description: 'System administrator' },
       ],
       permissions: [],
       role_permissions: [],
@@ -245,7 +245,7 @@ describe('RBACPanel', () => {
     };
     const apiModule = await import('@/api/api');
     vi.mocked(apiModule.rbacAPI.getSummary).mockResolvedValue(summary);
-    vi.mocked(mockRevokeRole).mockResolvedValue({ status: 'revoked', role: 'viewer' });
+    vi.mocked(mockRevokeRole).mockResolvedValue({ status: 'revoked', role: 'admin' });
     const user = userEvent.setup();
     renderWithProviders(<RBACPanel />);
     await screen.findByText('RBAC Configuration');

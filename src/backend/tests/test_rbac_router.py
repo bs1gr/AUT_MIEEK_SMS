@@ -95,7 +95,23 @@ def _create_user_direct(client: TestClient, email: str, password: str, role: str
         db.add(u)
         db.commit()
         db.refresh(u)
-        return u.id
+        user_id = u.id
+    _as_after_a_start(client)
+    return user_id
+
+
+def _as_after_a_start(client: TestClient) -> None:
+    """The roles, the permissions and every account's role row, as a start leaves them.
+
+    Nothing has started on the database of these tests, so its role tables are empty, and an
+    account may do what its rows say and nothing else: without this step the administrator
+    below could not even ask for "Initialize RBAC Defaults".
+    """
+    from backend.db import get_session as db_get_session
+    from backend.tests.conftest import started_installation
+
+    with next(client.app.dependency_overrides[db_get_session]()) as db:  # type: ignore[index]
+        started_installation(db)
 
 
 def _register_user_via_api(client: TestClient, email: str, password: str, role: str = "teacher") -> None:
@@ -150,8 +166,9 @@ def test_ensure_defaults_and_summary(rbac_client: TestClient):
     data = s.json()
     role_names = {r["name"] for r in data["roles"]}
     perm_keys = {p["key"] for p in data["permissions"]}  # Changed from "name" to "key"
-    assert {"admin", "teacher", "guest"}.issubset(role_names)
+    assert role_names == {"admin", "teacher"}  # Viewer and Guest went on 18 November 2026
     assert "*:*" in perm_keys  # Changed from "*" to "*:*"
+    assert len(perm_keys) == 44
 
 
 def test_assign_and_revoke_role_with_last_admin_protection(rbac_client: TestClient):
@@ -288,7 +305,7 @@ def test_admin_update_user_syncs_rbac_roles(rbac_client: TestClient):
 
 
 def test_role_hierarchy_auto_assigns_inherited_roles(rbac_client: TestClient):
-    """Test that assigning admin role automatically assigns teacher, viewer, guest."""
+    """Assigning the role admin gives the role teacher with it."""
     client = rbac_client
     strong_password = "Str0ngPass!123"  # pragma: allowlist secret
 
@@ -308,20 +325,16 @@ def test_role_hierarchy_auto_assigns_inherited_roles(rbac_client: TestClient):
     )
     assert assign_resp.status_code == 200, assign_resp.text
 
-    # Verify user has admin, teacher, viewer, and guest roles
     roles = _get_user_role_names(client, 2)
-    assert "admin" in roles, "User should have admin role"
-    assert "teacher" in roles, "User should inherit teacher role from admin"
-    assert "viewer" in roles, "User should inherit viewer role from admin"
-    assert "guest" in roles, "User should inherit guest role from admin"
+    assert roles == {"admin", "teacher"}
 
     # Verify legacy role is set to highest priority (admin)
     user = _get_user_by_id(client, 2)
     assert user.role == "admin", "Legacy role should be set to highest priority role"
 
 
-def test_teacher_role_inherits_viewer(rbac_client: TestClient):
-    """Test that assigning teacher role automatically assigns viewer and guest."""
+def test_the_teacher_role_brings_no_other_role_with_it(rbac_client: TestClient):
+    """Until 18 November 2026 a teacher was given the roles viewer and guest as well."""
     client = rbac_client
     strong_password = "Str0ngPass!123"  # pragma: allowlist secret
 
@@ -341,11 +354,8 @@ def test_teacher_role_inherits_viewer(rbac_client: TestClient):
     )
     assert assign_resp.status_code == 200, assign_resp.text
 
-    # Verify user has teacher, viewer, and guest roles
     roles = _get_user_role_names(client, 2)
-    assert "teacher" in roles, "User should have teacher role"
-    assert "viewer" in roles, "User should inherit viewer role from teacher"
-    assert "guest" in roles, "User should inherit guest role from teacher"
+    assert roles == {"teacher"}
 
     # Verify legacy role is set to teacher (highest priority)
     user = _get_user_by_id(client, 2)

@@ -301,6 +301,103 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-18: two roles, "No role" for every other account, and nothing but the rows**
+(PR 425; the owner's decisions of that day on the three choices the report on PRs 422 to 424
+had left: "1. Who may import: both teachers and admins. 2. Student accounts: Remove "Student"
+from the role boxes. 3. Viewer and Guest: Remove both considering Removing the built-in
+permission list for accounts that never got a role row, which the note also asks for. It is a
+larger change: a start-up step, and most test fixtures." The rest of that message is at the
+head of todo 63.)
+
+- **How the message was read.** Point 3 as "remove Viewer and Guest, and remove the built-in
+  list as well". Point 1 as the import of students and courses from a file (Utils >
+  Imports); a semester's session file (`sessions:manage`: grades and attendance of a whole
+  semester in one file) stays with the administrator. If teachers are to have that too, it is
+  one more grant.
+- **What an account may do is what its rows say.** `backend/rbac.py` had a list of
+  permissions for each word an account's Role column can hold, used when the account had no
+  matching role row. It is gone, with the special case that let the word "admin" pass every
+  `imports:` permission. A leftover word grants nothing any more.
+- **Two roles.** `admin` and `teacher`. The Role column of an account holds one of them or
+  `none` ("No role"). User Accounts offers Administrator and Teacher for a new account, and
+  Administrator, Teacher and No role under Edit; Assign Role to User and the Permissions
+  Catalog list the two roles; a message "to a role" goes to one of the two. The server refuses
+  any other word (422).
+- **A closed list of 44 permissions:** `*:*` and the 43 the endpoints ask for. The thirteen
+  that were asked for without a row were added (`imports:create`, `imports:view`,
+  `exports:view`, `sessions:manage`, four `jobs:`, two `diagnostics:`, `admin:manage`,
+  `reports:create`, `analytics:export`), so each can be granted from the Permissions Catalog;
+  the eight that opened nothing were removed. Two tests fail when an endpoint asks for a key
+  without a row, or the list holds a key nothing asks for.
+- **Teachers import.** The role `teacher` holds 25 permissions: the 20 it had that open
+  something, the four `imports:` ones, and `jobs:view`. The last was found in a browser: the
+  import ran, and the Imports tab could not follow it, because the job's status asked for a
+  permission only the administrator's wildcard covered.
+- **The step at every start.** Each account whose Role column says `admin` or `teacher` is
+  given the row of that role if it lacks it (`backfill_role_rows`). Without it three kinds of
+  account would have been left with nothing: the first administrator of an installation (the
+  start creates it after it seeded the roles), an account from before the role tables, and one
+  created with `python -m backend.db.cli.admin`. The bootstrap and that command now give the
+  row themselves; the step also runs after a restore from a backup, with "Initialize RBAC
+  Defaults", and at a start whose migrations failed (so that an administrator can sign in and
+  see what went wrong). It never gives a role back: "No role" names none.
+- **What the upgrade does to a database** (migration `5189ab647b5a`, data only, no table or
+  column changes): an account whose Role column says student, viewer or guest becomes `none`,
+  or keeps `teacher`/`admin` if it held that role too; the roles `viewer` and `guest` go with
+  their grants and the rows that gave them to accounts; the eight permissions go, the thirteen
+  come; `teacher` is granted the four `imports:` permissions and `jobs:view`. Changes an
+  administrator made to what `teacher` holds, and grants to single accounts, stay. A copy of
+  an older version keeps working against a database at this revision (it starts on a newer
+  revision, and gives the word `none` nothing). The downgrade puts roles, permissions and
+  standard grants back; it cannot know who was a Student, Viewer or Guest.
+- **Found while the tests were adapted, and repaired: with the list gone, deleting the role
+  `admin` would have locked every administrator out for good.** PR 422 had left renaming and
+  deleting that role as they were, because an administrator without the role was served by
+  the list. Without the list a deleted role left no administrator with anything, "Initialize
+  RBAC Defaults" included, and a restart did not seed (the tables were not empty); a renamed
+  one left every administrator created afterwards with nothing. The roles `admin` and
+  `teacher` can now be neither renamed nor deleted (400), and a start puts a missing one
+  back.
+- **The pages.** The names of the permissions are a table of exactly the 44, in both
+  languages, pinned to the server's list by a test (it had some sixty names, forty of them
+  for permissions that never existed). The help has an answer on importing (80 answers), and
+  its roles answer names two roles; the privacy notice says that students have no accounts.
+  Two Greek misspellings on the Imports tab corrected.
+- **Documents.** `PERMISSION_REFERENCE.md` rewritten (the sections "In the list, opening
+  nothing" and "Asked for by an endpoint, not in the list" are gone with their contents; new:
+  "Accounts without a role", with the step at start and the upgrade); the head of
+  `PERMISSION_MATRIX.md` (three kinds of account) and `RBAC_ADMIN_GUIDE.md` (no read-only
+  account any more; a section "After the upgrade"); `USER_GUIDE_COMPLETE.md` sections 10, 11,
+  12 and 14.
+- **Tests.** `test_two_roles_model.py` (15): the seed's shape; the step at start, also after
+  failed migrations, for the bootstrap and for the command line; a teacher's import from the
+  check to the finished job; what stays with the administrator; and the migration on a
+  scratch database filled as the version before left one (ten kinds of account), up, down and
+  up again. Eighteen test files had relied on the list or on the four roles: their accounts
+  now get what a start gives (`started_installation` in `conftest.py`). Page tests for the
+  role boxes, the message form and the name table.
+- **Tried on running copies.** A database made by the code of `main` with ten kinds of
+  account, then started with the new code: the two roles, 44 permissions, every Viewer, Guest
+  and Student account "No role" and refused everywhere, the two accounts without rows working
+  again, a grant to one account kept. In a browser, in English and in Greek: a teacher checks
+  and imports a student and the tab shows the job as completed; the session panel still says
+  the account may not use it; the role boxes offer what is written above; "No role" from Edit
+  takes the access away and "Initialize RBAC Defaults" does not give it back; Overview lists
+  2 roles and 44 permissions, each with a name. Every row of the matrix's table tried as an
+  administrator, a teacher, an account without a role and without a sign-in.
+- **What an installation will see at its first start of the next version:** accounts that
+  were Student, Viewer or Guest are listed with "No role" and can do nothing until an
+  administrator gives them a role. On the shared database that happens as soon as any copy of
+  this code starts on it, the development server of the main tree included. A copy of an
+  older version that still runs on the same database (the cloud VM, until it is updated)
+  goes on working; "Initialize RBAC Defaults" pressed on such a copy would put the two roles
+  and the eight permissions back (read from the older code, not tried).
+- **Left as it is:** `exports:view` stays with the administrator (the export jobs are todo
+  62); the rule in `backend/rbac.py` that lets an account with the word "student" read its own
+  student record (no account can have that word any more; removing it touches nine endpoints);
+  `src/backend/seed_database.py`, which still makes four roles and cannot run (it imports
+  `models` from a path that does not exist).
+
 **2026-11-18: the answers of Utils > Help & Documentation say what the pages do** (PR 424,
 merged as `38f8052ae`; the last of what the owner's "continue" selected: "read the ninety-one
 answers of the in-app help against the pages"; on the PR's commit CI's backend job passed
@@ -2070,10 +2167,30 @@ now** (todo 58).
 63. **Found on 2026-11-17 while the permission documents were checked against a running
     copy, and not changed** (each seen on a scratch server; the documents of PR 420 say what
     the application does today, these entries included).
+    - **The owner's decisions of 2026-11-18, on what this entry had collected** (one
+      message, after the report on PRs 422 to 424): "1. Who may import: both teachers and
+      admins. 2. Student accounts: Remove "Student" from the role boxes. 3. Viewer and Guest:
+      Remove both considering Removing the built-in permission list for accounts that never
+      got a role row, which the note also asks for. It is a larger change: a start-up step,
+      and most test fixtures. 4. A teacher has no page for changing their own password, should
+      have access there. 5. Fix The audit log does not say who changed a role, and no page
+      shows it. 6. About twenty-five older documents (admin and user) were not read: read and
+      correct as needed . 7The Weight box of a grade: make it count. Also take up: audit log
+      entries that do not say who changed a role; the registration form's message that appears
+      in two languages at once; a sentence telling an account without access why its pages
+      fail; the text of the one-page PDF behind the help."
+      - *Points 1 to 3: done in PR 425* (see its entry: two roles, "No role", the closed list
+        of 44 permissions, teachers import).
+      - *Open, in this order:* the Weight of a grade counts (7); a teacher changes the own
+        password (4); the audit log says who made a change, and a page shows it (5); the
+        four smaller ones; the older documents, read and corrected, not deleted (6).
+      - *Not in the message, and waiting for the owner's word:* a release and the update of
+        the cloud VM; whether teachers also get the session file; the four tools nothing runs
+        and the two unused page parts (delete or keep).
     - *Repaired in PR 423 (2026-11-18), on the owner's note of that day:* revoking an
       account's only role took nothing away. Such an account is now left with nothing (Role
-      column "No role"). *Offered as a next step:* taking the built-in list for an account
-      without role rows away altogether (see the entry of PR 423).
+      column "No role"). The built-in list for an account without role rows went altogether
+      in PR 425.
     - **The owner's note of 2026-11-18 on the three decisions below** (who may import, student
       accounts, Viewer and Guest) gives a direction for each and leaves the choice open:
       a permission that opens nothing is wired up or deleted, and one the code asks for is
@@ -2086,17 +2203,18 @@ now** (todo 58).
     - *Repaired in PR 422 (2026-11-18):* the Permissions Catalog's empty role boxes; the
       requests that could take `*:*` from the administrators; the blank permission names of
       the Overview tab and the invented names of the Users tab; saving a Viewer or Guest
-      account from Edit. *Still open from that last entry:* such an account cannot be
-      created in User Accounts (offer the two roles there, or take them out of Assign Role
-      to User: with the owner's decision on read-only accounts, below).
-    - *A teacher has no page for changing the own password.* The form is in User Accounts,
+      account from Edit. (The two roles are gone since PR 425.)
+    - *A teacher has no page for changing the own password* (the owner, 2026-11-18: "should
+      have access there"; open). The form is in User Accounts,
       which answers "Access Denied" to everybody but an administrator. A teacher asks an
       administrator for a reset.
-    - *The audit log does not say who made a role or permission change:* `user_id` and
+    - *The audit log does not say who made a role or permission change* (the owner,
+      2026-11-18: "Fix"; open): `user_id` and
       `user_email` are empty in those entries. And no page shows the audit log; only the API
       answers.
-    - *Thirteen permissions the code asks for are not in the database, and eight in the
-      database open nothing.* Not in the database, so that only an administrator passes:
+    - *Decided and done in PR 425 ("both teachers and admins"; the list is closed):*
+      thirteen permissions the code asked for were not in the database, and eight in the
+      database opened nothing. As it was: not in the database, so that only an administrator passes:
       `imports:create` and `imports:view` (a teacher cannot import, although the role holds
       `system:import`), `sessions:manage` (session export and import), `exports:view` (todo
       62), the four `jobs:` ones, the two `diagnostics:` ones, `admin:manage`,
@@ -2111,7 +2229,8 @@ now** (todo 58).
       rows, so that the Permissions Catalog can grant them; each of the eight that open
       nothing is put on the endpoints it names or removed by a migration; and a test fails
       when an endpoint asks for a key that has no row.
-    - *A student account can do nothing.* The code lets it read the student record that
+    - *Decided and done in PR 425 ("Remove "Student" from the role boxes"; existing ones
+      became "No role"):* a student account could do nothing. As it was: the code lets it read the student record that
       belongs to its account; nothing in the application ever ties a student record to an
       account (`students.user_id` is never set). Build that, or take "Student" off the role
       choices; today its one use is as the role without access. *With the note:* "No role"
@@ -2119,7 +2238,8 @@ now** (todo 58).
       without a gap; existing Student accounts would become "No role" by a migration, which
       changes nothing for them. Building the link instead is a feature of its own: a way to
       tie a record to an account, the student's own pages, and the privacy notice.
-    - *A viewer exports everything and sees no figures.* The viewer and guest roles hold
+    - *Decided and done in PR 425 ("Remove both"):* a viewer exported everything and saw no
+      figures. As it was: the viewer and guest roles hold
       `exports:generate` and `exports:download` (every list, and the ZIP of all data) and not
       `reports:generate`, so the Dashboard and the Analytics page open empty with refused
       requests. And every page shows a viewer its "Add" and "Save" buttons, which the server
@@ -2135,7 +2255,9 @@ now** (todo 58).
     - *The "User Guide" of Utils > Help & Documentation ("Complete reference guide", "Download
       English PDF") is a leaflet of one page* that the server composes itself
       (`routers_help.py`). `USER_GUIDE_COMPLETE.md` is not in the application.
-    - *Older documents and tools of the same kind, not read:* `docs/admin/`
+    - *Older documents and tools of the same kind, not read* (the owner, 2026-11-18, on the
+      documents: "read and correct as needed"; open, and to be done after the other points,
+      so that they are corrected once): `docs/admin/`
       `PERMISSION_MANAGEMENT_GUIDE.md` (930 lines), `RBAC_OPERATIONS_GUIDE.md` (1,184),
       `RBAC_CODEBASE_REVIEW.md`, `RBAC_ENDPOINT_AUDIT.md`, `RBAC_DATABASE_SCHEMA.md`,
       `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`; `docs/user/RBAC_GUIDE.md` and its Greek twin;
@@ -2155,7 +2277,8 @@ now** (todo 58).
     - *Done in PR 424 (2026-11-18):* the help of Utils > Help & Documentation, read against
       the pages and written anew in both languages.
     - **Added by the reading of the help (PR 424), none of it changed:**
-    - *The "Weight" of a grade changes nothing.* Grades > Grade Entry has the box, with the
+    - *The "Weight" of a grade changes nothing* (the owner, 2026-11-18: "make it count";
+      open). Grades > Grade Entry has the box, with the
       hint "Higher weight = more important (1.0 is normal)", and Grade History shows it
       ("×1"). The final grade takes the plain average of a category's grades (tried: 20/20
       with weight 1 and 0/20 with weight 3 give 50%). Make it count within its category, or
@@ -2166,17 +2289,19 @@ now** (todo 58).
       nothing; the server's `POST /adminops/generate-sample-data` is therefore reachable
       only by hand. Delete, or put the button on a page (the owner's OK).
     - *The one-page PDF of the help* ("Quick Guide") is composed by `routers_help.py`; its
-      text was not read against the pages.
-    - *An account without access (Student, No role) is not told why its pages fail:* it sees
+      text was not read against the pages (the owner, 2026-11-18: take it up; open).
+    - *An account without access (No role) is not told why its pages fail* (the owner,
+      2026-11-18: take it up; open): it sees
       "Error loading analytics data", "Failed to load data" and the like. One sentence at
       the top ("Your account has no role…") would say it.
     - *Not tried from end to end:* a scheduled report and a report sent by e-mail.
-    - *The privacy notice of the application says "A student account sees its own records
-      only".* It sees none (the entry on student accounts above).
+    - *Repaired in PR 425:* the privacy notice of the application said "A student account
+      sees its own records only". It says now that students have no accounts.
     - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
       The "N/A" dates of "Recent Grades" were narrower than written here: only a grade
       without a "date submitted" (see the entry of PR 422).
-    - *The registration form answers an empty address in two languages at once:* "Παρακαλώ
+    - *The registration form answers an empty address in two languages at once* (the owner,
+      2026-11-18: take it up; open): "Παρακαλώ
       εισάγετε τη διεύθυνση email σας. / Please enter your email."
     - *A teacher is shown System > Control Panel > Maintenance > System Operations* with
       Backup Database, Restore DB and Clear DB. Clear is refused by the server. Backup and
@@ -2186,7 +2311,8 @@ now** (todo 58).
       database; that was not tried. It is the Control API's rule as designed
       (`PERMISSION_MATRIX.md`); whether the panel should be shown to a teacher is the
       owner's call.
-    - *Fifteen older user documents were not read* (listed in `docs/user/INDEX.md`): two
+    - *Fifteen older user documents were not read* (the owner, 2026-11-18: "read and correct
+      as needed"; open) (listed in `docs/user/INDEX.md`): two
       quick-start guides, three older user guides (one of v1.9.7), the theme, localization,
       import/export and rate-limiting guides, the two RBAC guides and a note on PDF
       conversion. There is no Greek version of the checked guide. Delete, or read and

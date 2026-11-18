@@ -2,15 +2,18 @@
 
 Until 18 November 2026 revoking the only role of an account took nothing away. The row went,
 the page answered "revoked", and the account went on as before: the word in its Role column
-stayed (for an administrator it became "teacher"), and an account without role rows gets the
-built-in permissions of that word (``backend.rbac._default_role_permissions``). A teacher
-whose Teacher role was revoked still read, added and exported students, and "Initialize RBAC
-Defaults" gave the role back, because it gives every account the role its Role column names.
+stayed (for an administrator it became "teacher"), and an account without role rows got the
+permissions a list in the code kept for that word. A teacher whose Teacher role was revoked
+still read, added and exported students, and "Initialize RBAC Defaults" gave the role back,
+because it gives every account the role its Role column names.
 
 The note the owner sent on 18 November 2026 settles what such an account is: one without a
-role is denied by default. The Role column now follows the roles the account still holds, and reads "none" when the last
-is gone. "none" is not a role: nothing is built in for it, so every permission check and
-every role check refuses the account. It can still sign in.
+role is denied by default. The Role column now follows the roles the account still holds, and
+reads "none" when the last is gone. "none" is not a role, so every permission check and every
+role check refuses the account. It can still sign in.
+
+The same day the list in the code went, and the roles Viewer and Guest with it: an account
+may do what its rows say. The tests below are written for the two roles that are left.
 """
 
 from fastapi.testclient import TestClient
@@ -96,9 +99,7 @@ def test_a_role_given_again_brings_the_access_back(school: tuple[TestClient, Hea
     assert _role_word(client, admin, teacher_id) == "teacher"
     assert _reads_and_writes(client, teacher) == (200, 201)
     # And through User Accounts > Edit as well.
-    _revoke(client, admin, teacher_id, "teacher")
-    _revoke(client, admin, teacher_id, "viewer")
-    assert _revoke(client, admin, teacher_id, "guest")["role"] == "none"
+    assert _revoke(client, admin, teacher_id, "teacher")["role"] == "none"
     edited = client.patch(f"/api/v1/admin/users/{teacher_id}", json={"role": "teacher"}, headers=admin)
     assert edited.status_code == 200, edited.text
     assert client.get("/api/v1/students/", headers=teacher).status_code == 200
@@ -107,22 +108,20 @@ def test_a_role_given_again_brings_the_access_back(school: tuple[TestClient, Hea
 def test_the_role_column_steps_down_as_the_roles_go(school: tuple[TestClient, Headers]) -> None:  # noqa: F811
     client, admin = school
     account = _create(client, admin, "teacher@example.com", "teacher")
-    _assign(client, admin, account, "teacher")  # brings Viewer and Guest with it
-    teacher = _sign_in(client, "teacher@example.com")
+    _assign(client, admin, account, "admin")  # the account now holds both roles
+    promoted = _sign_in(client, "teacher@example.com")
+    assert _role_word(client, admin, account) == "admin"
+    assert client.get("/api/v1/admin/users", headers=promoted).status_code == 200
 
-    # A role below the highest one changes nothing.
-    assert _revoke(client, admin, account, "guest")["role"] == "teacher"
-    assert _reads_and_writes(client, teacher) == (200, 201)
+    # Without Administrator the account is a teacher again.
+    assert _revoke(client, admin, account, "admin")["role"] == "teacher"
+    assert client.get("/api/v1/admin/users", headers=promoted).status_code == 403
+    assert _reads_and_writes(client, promoted) == (200, 201)
 
-    # Without Teacher the account is a Viewer: it reads and cannot change.
-    assert _revoke(client, admin, account, "teacher")["role"] == "viewer"
-    assert client.get("/api/v1/students/", headers=teacher).status_code == 200
-    assert client.post("/api/v1/students/", json={**STUDENT, "student_id": "S-101"}, headers=teacher).status_code == 403
-
-    assert _revoke(client, admin, account, "viewer")["role"] == "none"
-    assert client.get("/api/v1/students/", headers=teacher).status_code == 403
+    assert _revoke(client, admin, account, "teacher")["role"] == "none"
+    assert client.get("/api/v1/students/", headers=promoted).status_code == 403
     # Nothing left to revoke.
-    assert _revoke(client, admin, account, "viewer") == {"status": "not_assigned"}
+    assert _revoke(client, admin, account, "teacher") == {"status": "not_assigned"}
 
 
 def test_an_administrator_left_without_roles_is_not_a_teacher(school: tuple[TestClient, Headers]) -> None:  # noqa: F811
@@ -160,16 +159,31 @@ def test_a_permission_granted_to_the_account_itself_stays(school: tuple[TestClie
     assert _reads_and_writes(client, teacher) == (200, 403)
 
 
-def test_a_student_account_keeps_its_word(school: tuple[TestClient, Headers]) -> None:  # noqa: F811
-    """Roles given to a Student account and taken again leave it a Student, not "none"."""
-    from backend import models
+def test_a_role_of_the_installations_own_leaves_the_role_column_alone(
+    school: tuple[TestClient, Headers],  # noqa: F811
+) -> None:
+    """Only the two standard roles are tied to the Role column."""
+    client, admin = school
+    teacher_id = _create(client, admin, "teacher@example.com", "teacher")
+    made = client.post("/api/v1/admin/rbac/roles", json={"name": "librarian", "description": "Library"}, headers=admin)
+    assert made.status_code == 200, made.text
+    _assign(client, admin, teacher_id, "librarian")
+
+    assert _revoke(client, admin, teacher_id, "librarian") == {"status": "revoked", "role": "teacher"}
+    assert _role_word(client, admin, teacher_id) == "teacher"
+
+
+def test_the_next_start_does_not_give_a_revoked_role_back(school: tuple[TestClient, Headers]) -> None:  # noqa: F811
+    """The start-up step gives every account the row of the role its Role column names."""
+    from backend.routers.routers_rbac import backfill_role_rows
 
     client, admin = school
-    pupil = _create(client, admin, "pupil@example.com", "student")
-    with _session(client) as db:  # a role row beside the word "student": only the database can make this
-        viewer = db.query(models.Role).filter(models.Role.name == "viewer").one()
-        db.add(models.UserRole(user_id=pupil, role_id=viewer.id))
-        db.commit()
+    teacher_id = _create(client, admin, "teacher@example.com", "teacher")
+    teacher = _sign_in(client, "teacher@example.com")
+    _revoke(client, admin, teacher_id, "teacher")
 
-    assert _revoke(client, admin, pupil, "viewer")["role"] == "student"
-    assert _role_word(client, admin, pupil) == "student"
+    with _session(client) as db:
+        assert backfill_role_rows(db) == 0
+
+    assert _role_word(client, admin, teacher_id) == "none"
+    assert _reads_and_writes(client, teacher) == (403, 403)

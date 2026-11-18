@@ -34,9 +34,11 @@ def _student(client, n: int = 1, **extra) -> dict:
 def _headers(db, email: str, role: str) -> dict:
     from backend.models import User
     from backend.routers.routers_auth import create_access_token
+    from backend.tests.conftest import started_installation
 
     db.add(User(email=email, hashed_password="x", role=role, is_active=True))
     db.commit()
+    started_installation(db)  # the roles and this account's role row, as after a start
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 
@@ -93,7 +95,7 @@ def test_the_health_endpoint_reads_and_writes_it(client, student_with_health):
 
 
 @pytest.mark.auth_required
-@pytest.mark.parametrize("role", ["teacher", "staff", "viewer"])
+@pytest.mark.parametrize("role", ["teacher", "none", "staff"])
 def test_only_an_administrator_reaches_health_information(client, db, student_with_health, strict_auth, role):
     headers = _headers(db, f"{role}@example.com", role)
     admin = _headers(db, "admin2@example.com", "admin")

@@ -141,6 +141,7 @@ const HelpDocumentation = () => {
       items: [
         { question: t('helpWhatExportFormats'), answer: t('helpExportFormatsAnswer') },
         { question: t('helpHowToExportStudentData'), answer: t('helpExportStudentDataAnswer') },
+        { question: t('helpHowToImportData'), answer: t('helpImportDataAnswer') },
       ]
     },
     {

@@ -92,13 +92,13 @@ describe('Utils > Notifications: the form that sends a message', () => {
     expect(targets()).toEqual(['all', 'role']);
 
     await user.selectOptions(screen.getByLabelText('Target audience'), 'role');
-    await user.selectOptions(screen.getByLabelText('Role'), 'student');
+    await user.selectOptions(screen.getByLabelText('Role'), 'teacher');
     await user.type(screen.getByLabelText('Title'), 'Exam');
     await user.type(screen.getByLabelText('Message'), 'On Friday.');
     await user.click(screen.getByRole('button', { name: 'Send notification' }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(post.mock.calls[0][1]).toMatchObject({ role_filter: 'student', user_ids: undefined });
+    expect(post.mock.calls[0][1]).toMatchObject({ role_filter: 'teacher', user_ids: undefined });
     expect(screen.queryByPlaceholderText('e.g., 12, 24, 57')).not.toBeInTheDocument();
   });
 
@@ -118,7 +118,7 @@ describe('Utils > Notifications: the form that sends a message', () => {
     expect(post.mock.calls[0][1]).toMatchObject({ user_ids: [12, 24], role_filter: undefined });
   });
 
-  it.each(['viewer', 'student', 'guest'])('is not offered to a %s, who is told so', async (role) => {
+  it.each(['none', 'student'])('is not offered to an account whose role is %s, which is told so', async (role) => {
     await renderNotificationsTab(role);
 
     expect(screen.getByText('Your account is not allowed to send notifications.')).toBeInTheDocument();

@@ -13,9 +13,11 @@ ERASE = "/api/v1/data-subject/students/{id}"
 def _headers(db, email: str, role: str) -> dict:
     from backend.models import User
     from backend.routers.routers_auth import create_access_token
+    from backend.tests.conftest import started_installation
 
     db.add(User(email=email, hashed_password="x", role=role, is_active=True))
     db.commit()
+    started_installation(db)  # the roles and this account's role row, as after a start
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 
@@ -187,7 +189,7 @@ def test_erasure_also_reaches_a_student_who_was_only_hidden(client, db, subject)
 
 
 @pytest.mark.auth_required
-@pytest.mark.parametrize("role", ["teacher", "staff", "viewer"])
+@pytest.mark.parametrize("role", ["teacher", "none", "staff"])
 def test_only_an_administrator_may_export_or_erase(client, db, subject, strict_auth, role):
     headers = _headers(db, f"{role}@example.com", role)
     admin = _headers(db, "admin2@example.com", "admin")

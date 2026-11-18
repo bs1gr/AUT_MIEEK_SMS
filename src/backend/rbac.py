@@ -165,153 +165,16 @@ def _permission_matches(granted: str, required: str) -> bool:
     return granted_key == required_key
 
 
-def _default_role_permissions(role: Optional[str]) -> set[str]:
-    """Permissive defaults for legacy roles and relaxed policy."""
-
-    role_key = (role or "").strip().lower()
-    defaults: dict[str, set[str]] = {
-        "admin": {"*:*"},
-        "staff": {
-            "students:view",
-            "students:view_all",
-            "students:create",
-            "students:edit",
-            "students:export",
-            "courses:view",
-            "courses:create",
-            "courses:edit",
-            "courses:export",
-            "grades:view",
-            "grades:view_all",
-            "grades:create",
-            "grades:edit",
-            "grades:delete",
-            "grades:export",
-            "grades:bulk_import",
-            "attendance:view",
-            "attendance:view_all",
-            "attendance:create",
-            "attendance:edit",
-            "attendance:delete",
-            "attendance:export",
-            "performance:view",
-            "performance:view_all",
-            "performance:create",
-            "performance:edit",
-            "performance:delete",
-            "highlights:view",
-            "highlights:view_all",
-            "highlights:create",
-            "highlights:edit",
-            "highlights:delete",
-            "reports:generate",
-            "reports:export",
-            "analytics:view",
-            "analytics:export",
-            "users:view",
-        },
-        "teacher": {
-            "students:view",
-            "students:create",
-            "students:edit",
-            "students:delete",
-            "courses:view",
-            "courses:create",
-            "courses:edit",
-            "courses:delete",
-            "grades:view",
-            "grades:edit",
-            "grades:delete",
-            "attendance:view",
-            "attendance:edit",
-            "attendance:delete",
-            "enrollments:view",
-            "enrollments:manage",
-            "reports:view",
-            "reports:generate",
-            "reports:export",
-            "analytics:view",
-            "system:import",
-            "system:export",
-            "notifications:manage",
-            "exports:generate",
-            "exports:download",
-        },
-        "guest": {
-            "students:view",
-            "courses:view",
-            "grades:view",
-            "attendance:view",
-            "enrollments:view",
-            "reports:view",
-            "analytics:view",
-            "exports:generate",
-            "exports:download",
-        },
-        "viewer": {
-            "students:view",
-            "courses:view",
-            "grades:view",
-            "attendance:view",
-            "enrollments:view",
-            "reports:view",
-            "analytics:view",
-        },
-        "student": {
-            "students.self:read",
-            "grades.self:read",
-            "attendance.self:read",
-        },
-    }
-
-    return defaults.get(role_key, set())
-
-
-def _assigned_role_names(user: User, db: Session) -> set[str]:
-    """Return normalized RBAC role names assigned to a user."""
-
-    try:
-        rows = db.execute(
-            text(
-                """
-                SELECT LOWER(r.name)
-                FROM roles r
-                JOIN user_roles ur ON ur.role_id = r.id
-                WHERE ur.user_id = :user_id
-                """
-            ),
-            {"user_id": user.id},
-        )
-        return {str(row[0]).strip().lower() for row in rows if row[0]}
-    except Exception:
-        _safe_rollback(db)
-        return set()
-
-
-def _should_use_legacy_role_defaults(user: User, db: Session, has_user_permissions: bool = False) -> bool:
-    """Return True when fallback role defaults should be considered.
-
-    Defaults are for legacy users with no explicit RBAC role assignment, plus
-    drift repair when the legacy role field and RBAC role assignment disagree.
-    Direct user permissions remain explicit and suppress defaults.
-    """
-
-    if has_user_permissions:
-        return False
-
-    role_key = (getattr(user, "role", "") or "").strip().lower()
-    if not _default_role_permissions(role_key):
-        return False
-
-    assigned_roles = _assigned_role_names(user, db)
-    if not assigned_roles:
-        return True
-
-    return role_key not in assigned_roles
+# What an account may do is what its rows say: the permissions granted to the account itself
+# (user_permissions) and the ones of the roles it holds (user_roles -> role_permissions).
+# There is no other source. Until November 2026 an account without a matching role row got a
+# built-in list for the word in its Role column, so a leftover word could grant access that no
+# row stood for. The rows of every administrator and teacher account are made sure of at each
+# start (backend.routers.routers_rbac.backfill_role_rows).
 
 
 def has_permission(user: User, permission_key: str, db: Session) -> bool:
-    """Check if a user has a specific permission (role, direct, or fallback).
+    """Check if a user has a specific permission (through a role, or granted to the account).
 
     The check is intentionally permissive when AUTH_MODE is disabled and
     supports dot/colon separators plus wildcards.
@@ -343,7 +206,7 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
 
 
 def _compute_permission(user: User, required_key: str, db: Session) -> bool:
-    """The uncached permission decision: direct grants, role grants, then the legacy fallbacks."""
+    """The uncached permission decision: grants to the account, then grants to its roles."""
 
     # Collect granted permissions
     granted: set[str] = set()
@@ -371,7 +234,7 @@ def _compute_permission(user: User, required_key: str, db: Session) -> bool:
                     continue
             granted.add(_normalize_permission_key(perm.key))
     except Exception:
-        # If anything goes wrong with direct permissions, fall back to role mapping
+        # If anything goes wrong with direct permissions, the role grants still decide
         _safe_rollback(db)
         pass
 
@@ -386,44 +249,13 @@ def _compute_permission(user: User, required_key: str, db: Session) -> bool:
         )
         granted.update(_normalize_permission_key(k) for (k,) in role_perm_rows)
     except Exception:
-        # Ignore DB issues here; fallback defaults will still apply
+        # A database error here grants nothing
         _safe_rollback(db)
         pass
 
     # Evaluate matches
     if any(_permission_matches(g, required_key) for g in granted):
         return True
-
-    # Defensive legacy/admin fallback (narrow scope):
-    # Some migrated environments can temporarily miss RBAC permission links
-    # for import operations, while legacy admin role is still authoritative.
-    # Keep this limited to imports:* so we don't broaden unrelated checks.
-    #
-    # NOTE:
-    # We intentionally do NOT require `granted` to be empty here. In mixed
-    # migration states an admin may have partial role/direct grants loaded,
-    # but still miss imports:* links specifically, which would otherwise
-    # return 403 for /imports/upload.
-    user_role = (getattr(user, "role", "") or "").strip().lower()
-    if user_role == "admin" and required_key.startswith("imports:"):
-        return True
-
-    # Check if user has any direct permission assignments (even if expired)
-    try:
-        has_user_permissions = (
-            db.query(UserPermission.id).filter(UserPermission.user_id == user.id).limit(1).first() is not None
-        )
-    except Exception:
-        _safe_rollback(db)
-        has_user_permissions = False
-
-    # Use fallback role permissions for legacy users and for stale role drift
-    # where User.role and user_roles disagree. Direct user permission rows still
-    # suppress defaults because those are explicit grants/restrictions.
-    if _should_use_legacy_role_defaults(user, db, has_user_permissions):
-        default_perms = _default_role_permissions(getattr(user, "role", None))
-        if any(_permission_matches(g, required_key) for g in default_perms):
-            return True
 
     return False
 
@@ -720,25 +552,6 @@ def get_user_permissions(user: User, db: Session) -> list[str]:
     except Exception:
         _safe_rollback(db)
 
-    assigned_roles = _assigned_role_names(user, db)
-    has_role_assignments = bool(assigned_roles)
-
-    # Check if user has any direct permission assignments (even if expired).
-    try:
-        has_user_permissions = (
-            db.query(UserPermission.id).filter(UserPermission.user_id == user.id).limit(1).first() is not None
-        )
-    except Exception:
-        _safe_rollback(db)
-        has_user_permissions = False
-
-    # Include defaults for legacy users with no assigned RBAC role, and for
-    # stale role drift where User.role and user_roles disagree.
-    if not permission_keys and not has_role_assignments:
-        permission_keys.update(_default_role_permissions(getattr(user, "role", None)))
-    elif _should_use_legacy_role_defaults(user, db, has_user_permissions):
-        permission_keys.update(_default_role_permissions(getattr(user, "role", None)))
-
     return sorted(list(permission_keys))
 
 
@@ -836,9 +649,7 @@ def require_any_permission(*permission_keys: str, allow_self_access: bool = Fals
                     kwargs.get("student_id"),
                 )
                 if not allowed:
-                    raise HTTPException(
-                        status_code=403, detail=f"Permission denied: requires one of {permission_keys}"
-                    )
+                    raise HTTPException(status_code=403, detail=f"Permission denied: requires one of {permission_keys}")
 
                 call_kwargs = {**kwargs}
                 if request is not None:

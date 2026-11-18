@@ -25,18 +25,23 @@ interface AdminUsersPanelProps {
   onToast: (toast: ToastState) => void;
 }
 
-// The roles this panel can give: the three the server accepts from it.
+// The roles an account can be created with.
 const roleOptions: Array<{ value: UserRole; key: string }> = [
   { value: 'admin', key: 'controlPanel.roles.admin' },
   { value: 'teacher', key: 'controlPanel.roles.teacher' },
-  { value: 'student', key: 'controlPanel.roles.student' },
 ];
-const isOfferedRole = (role: string | undefined): role is UserRole =>
-  roleOptions.some((option) => option.value === role);
+// What the Edit row can change a role to: the two roles, and "No role", which takes every role
+// away (the account can sign in and nothing opens for it).
+const editRoleOptions: Array<{ value: AccountRole; key: string }> = [
+  ...roleOptions,
+  { value: 'none', key: 'controlPanel.roles.none' },
+];
+const isOfferedRole = (role: string | undefined): role is AccountRole =>
+  editRoleOptions.some((option) => option.value === role);
 
-// What the Edit row holds. Its role can be one this panel does not give (Viewer, Guest): the
-// row shows it as it is and leaves it alone unless another one is chosen.
-type EditDraft = Omit<UpdateUserPayload, 'role'> & { role?: AccountRole };
+// What the Edit row holds. An account of an older database can carry a word that is not one
+// of the three: the row shows it as it is and leaves it alone unless another one is chosen.
+type EditDraft = Omit<UpdateUserPayload, 'role'> & { role?: string };
 
 const initialCreateForm: CreateUserPayload = {
   email: '',
@@ -91,7 +96,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     try {
       // The role of an account is the one the server sends with it. This list used to replace
       // it with the first of the account's role rows, which is not its highest: an administrator
-      // who got the role under Assign Role to User (rows: teacher, admin, viewer, guest) was
+      // who got the role under Assign Role to User (role rows: teacher first, then admin) was
       // listed as "Teacher", and Edit followed by Save sent "teacher" and made it one.
       setUsers(await adminUsersAPI.list());
       setAccessDenied(false);
@@ -256,9 +261,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
         full_name: (editDraft.full_name ?? '').trim() || null,
         is_active: editDraft.is_active,
       };
-      // The role goes to the server only when another one was chosen. Sent unchanged it was
-      // refused for a Viewer or Guest account (the server takes three roles here), and for any
-      // other account the server rebuilt its roles for nothing.
+      // The role goes to the server only when another one was chosen. Sent unchanged, the
+      // server rebuilt the account's roles for nothing, and refused a word it does not take.
       const current = users.find((account) => account.id === editingId)?.role;
       if (isOfferedRole(editDraft.role) && editDraft.role !== current) {
         payload.role = editDraft.role;
@@ -565,15 +569,15 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                         aria-label={t('userRole')}
                         data-testid={`edit-role-${user.id}`}
                         onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                          setEditDraft((draft: EditDraft) => ({ ...draft, role: event.target.value as AccountRole }))
+                          setEditDraft((draft: EditDraft) => ({ ...draft, role: event.target.value }))
                         }
                       >
-                        {/* A role this panel does not give (Viewer, Guest) is shown as the account
-                            has it; without this entry the box showed "Administrator" for it. */}
+                        {/* A word this panel does not give is shown as the account has it;
+                            without this entry the box showed "Administrator" for it. */}
                         {!isOfferedRole(user.role) && (
                           <option value={user.role}>{roleLabel(user.role)}</option>
                         )}
-                        {roleOptions.map((option) => (
+                        {editRoleOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {t(option.key)}
                           </option>
@@ -759,6 +763,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <label className="text-sm text-gray-700 dark:text-gray-200">
             {t('userRole')}
             <select
+              data-testid="create-role"
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
               value={createForm.role}
               onChange={(event) =>

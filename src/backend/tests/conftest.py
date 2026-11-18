@@ -408,6 +408,23 @@ def clean_db(db):
     return db
 
 
+def started_installation(db) -> None:
+    """Give the test database what an installation has once it has started.
+
+    Start-up tasks are off in tests, so the role tables are empty, and an account a test puts
+    straight into the database has no role row. An account may do what its rows say and
+    nothing else (backend.rbac has no built-in list), so a test that acts as a teacher or an
+    administrator with authentication on calls this after creating its accounts. It leaves
+    the database as `ensure_defaults_startup` does at every start: the standard roles,
+    permissions and grants, and for every account the row of the role its Role column names.
+
+    It can be called again after more accounts were added.
+    """
+    from backend.routers.routers_rbac import _seed_defaults
+
+    _seed_defaults(db)
+
+
 class _ClientProxy:
     """Proxy wrapper to accept extra kwargs like add_auth and forward to TestClient."""
 

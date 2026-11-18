@@ -32,7 +32,7 @@ export default {
 
   accessTitle: 'Who can see it',
   accessText:
-    'Only people with an account, according to their role: administrators, teachers and office staff. A student account sees its own records only. The data is not sold, not used for advertising and not shared with third parties by this system.',
+    'Only people with an account, according to their role: administrators, teachers and office staff. Students have no account: they do not sign in to this system. The data is not sold, not used for advertising and not shared with third parties by this system.',
   accessHosting:
     'The data is stored in the database the institution has chosen for this system. Ask the institution where it is hosted.',
 

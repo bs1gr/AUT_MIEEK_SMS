@@ -155,10 +155,12 @@ export default {
   // ===========================
   // 📤 DATA EXPORT
   // ===========================
-  helpDataExport: '📤 Data Export',
+  helpDataExport: '📤 Data Export & Import',
   helpWhatExportFormats: 'Which formats can I export to?',
   helpExportFormatsAnswer: '✓ Excel (.xlsx): for working with the figures\n✓ PDF: for printing\n✓ CSV: for other programs\n\nThe name of each file carries the date and time.',
   helpHowToExportStudentData: 'How do I export data?',
+  helpHowToImportData: 'How do I import students or courses from a file?',
+  helpImportDataAnswer: '1. "Utils" → "Imports"\n2. Choose "Students" or "Courses"\n3. "Upload files": one or more CSV or JSON files. Or paste the records under "Paste JSON (optional)"\n4. Click "Run preview": the page shows what would happen to each row (create, update, skip) and what is wrong with it, and changes nothing\n5. Click "Confirm & Import". It is offered when no row has an error\n6. "Background job status" below shows the import while it runs, and what it did\n\nA record that already exists is left as it is, unless you tick "Allow updates to existing records". "Skip duplicates" takes a record that is in the files twice only once.\n\nAdministrators and teachers can import. A whole semester is moved with "Session Export/Import", which is for administrators.',
   helpExportStudentDataAnswer: '1. "Utils" → "Export" → "Export Center"\n2. Pick Students List, Courses List, Attendance Records, All Grades or Course Enrollments\n3. "Choose format": PDF, Excel or CSV\n\nEach file holds all the records of its kind. For a selection (one student, one course, a range of dates), build a report under "Utils" → "Reports".',
 
   // ===========================
@@ -259,7 +261,7 @@ export default {
   // ===========================
   helpRolesPermissions: '🔐 Roles & Permissions',
   helpWhatIsRBACConfiguration: 'What are roles and permissions?',
-  helpRBACConfigurationAnswer: 'A role (Administrator, Teacher, Viewer, Guest) is a set of permissions, and the server checks them at every request. The pages show the same buttons to everybody: a button your account may not use answers with a failure message.\n\nAn account without a role can sign in and nothing else.',
+  helpRBACConfigurationAnswer: 'A role (Administrator, Teacher) is a set of permissions, and the server checks them at every request. The pages show the same buttons to everybody: a button your account may not use answers with a failure message.\n\nAn account without a role can sign in and nothing else.',
   helpHowToManagePermissions: 'How do I manage roles and permissions? (Admin only)',
   helpManagePermissionsAnswer: '"System" → "Show Control Panel" → "Maintenance" → "RBAC Configuration":\n• "Overview": the roles and every permission\n• "Users": every account with its number and its roles\n• "Assign Role to User": give an account a role, or revoke one. An account whose last role is revoked can do nothing until it is given a role again\n• "Permissions Catalog": grant a permission to a role or to one account, revoke it, and look up what an account holds',
   helpHowToManageUserAccounts: 'How do I manage user accounts? (Admin only)',

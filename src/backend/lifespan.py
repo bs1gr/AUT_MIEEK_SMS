@@ -8,7 +8,7 @@ from backend.db import SessionLocal, engine
 from backend.db.query_profiler import profiler
 from backend.environment import startup_tasks_enabled
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
-from backend.routers.routers_rbac import ensure_defaults_startup
+from backend.routers.routers_rbac import backfill_role_rows_startup, ensure_defaults_startup
 from backend.scripts.migrate.runner import run_migrations
 
 STARTUP_DEBUG = os.environ.get("STARTUP_DEBUG", "0").strip().lower() in {"1", "true", "yes", "debug"}
@@ -49,6 +49,10 @@ def get_lifespan():
                 logging.getLogger(__name__).warning(
                     "⚠️  Migrations failed during startup; continuing with reduced startup tasks"
                 )
+                # An administrator has to be able to sign in and see what went wrong. An
+                # account from before this version may lack the row of its role (it never
+                # needed one), and without it nothing opens. Logs and never raises.
+                backfill_role_rows_startup(SessionLocal)
 
             # Always run admin bootstrap if credentials are configured, but only
             # after migrations have run successfully (required for users table).
@@ -66,6 +70,10 @@ def get_lifespan():
                         bootstrap_logger.info("✅ Admin bootstrap completed successfully")
                     except Exception as e:
                         bootstrap_logger.error(f"❌ Admin bootstrap failed: {e}", exc_info=True)
+                    # The account the bootstrap just created (or restored) has the word "admin"
+                    # in its Role column and no role row yet: the roles were seeded before it
+                    # existed. Without the row it could do nothing.
+                    backfill_role_rows_startup(SessionLocal)
                 else:
                     bootstrap_logger.warning(
                         "⚠️  Skipping admin bootstrap because migrations did not complete successfully"

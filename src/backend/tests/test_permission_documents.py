@@ -7,8 +7,11 @@ roles would get before any of it was built. Nothing compared the documents with 
 nothing noticed. These tests do the comparing:
 
 - a permission named in one of the documents is one the code has;
-- the reference names every permission the code has, and sorts the ones no endpoint asks for,
-  and the ones that are asked for without being in the database, under the right heading;
+- the reference names every permission the code has, each under one of its four headings,
+  and says of each whether a teacher holds it;
+- the list is closed: a new database holds what the endpoints ask for and the wildcard, so
+  the reference needs no heading for permissions that open nothing or cannot be granted
+  (it had both until 18 November 2026, with eight and thirteen permissions under them);
 - what the reference says the roles hold is what a new database gets;
 - the table of endpoints in the matrix is what the application's route table says now.
 
@@ -31,6 +34,20 @@ MATRIX = DOCS / "PERMISSION_MATRIX.md"
 GUIDE = DOCS / "RBAC_ADMIN_GUIDE.md"
 
 WILDCARD = "*:*"
+
+# In the list until 18 November 2026 and asked for by no endpoint. The reference names them
+# once more, as history, for whoever finds them in an old database.
+REMOVED = {
+    "analytics:view",
+    "enrollments:view",
+    "enrollments:manage",
+    "system:import",
+    "system:export",
+    "students.self:read",
+    "grades.self:read",
+    "attendance.self:read",
+}
+HEADINGS = ("### Records", "### Reports, exports and messages", "### Imports", "### Administration")
 
 
 def _keys_in(text: str) -> set[str]:
@@ -96,8 +113,9 @@ def _held_by(db, role_name: str) -> set[str]:
 @pytest.mark.parametrize("document", [REFERENCE, MATRIX, GUIDE], ids=lambda path: path.name)
 def test_a_document_names_no_permission_the_code_does_not_have(document: Path, asked, new_database):
     real = asked | _in_the_database(new_database)
+    history = REMOVED if document == REFERENCE else set()
 
-    invented = _keys_in(document.read_text(encoding="utf-8")) - real
+    invented = _keys_in(document.read_text(encoding="utf-8")) - real - history
 
     assert not invented, f"{document.name} names permissions the code does not have: {sorted(invented)}"
 
@@ -110,43 +128,57 @@ def test_the_reference_names_every_permission_the_code_has(asked, new_database):
     assert not missing, f"PERMISSION_REFERENCE.md says nothing about: {sorted(missing)}"
 
 
-def test_the_reference_lists_the_permissions_that_open_nothing(asked, new_database):
+def test_the_list_is_closed(asked, new_database):
+    in_the_database = _in_the_database(new_database)
+
+    assert in_the_database - asked == {WILDCARD}, "in the list, and no endpoint asks for it"
+    assert asked - in_the_database == set(), "asked for by an endpoint, and nobody can be granted it"
+    assert REMOVED & in_the_database == set()
+
+
+def _rows_under(reference: str, heading: str) -> dict[str, bool]:
+    """Each permission in the first cell of a table row under that heading, with whether the
+    row's "Held by" cell names the teacher (the table of Administration has no such cell)."""
+    rows: dict[str, bool] = {}
+    for line in _section(reference, heading).splitlines():
+        if not line.startswith("| `"):
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        for key in _keys_in(cells[0]):
+            rows[key] = len(cells) > 2 and "teacher" in cells[2]
+    return rows
+
+
+def test_the_reference_has_every_permission_under_one_heading_with_who_holds_it(new_database):
     reference = REFERENCE.read_text(encoding="utf-8")
-    open_nothing = _in_the_database(new_database) - asked - {WILDCARD}
+    tables = [_rows_under(reference, heading) for heading in HEADINGS]
+    listed: dict[str, bool] = {}
+    for table in tables:
+        twice = set(listed) & set(table)
+        assert not twice, f"under two headings: {sorted(twice)}"
+        listed.update(table)
 
-    listed = _keys_in_first_column(_section(reference, "### In the list, opening nothing"))
-
-    assert listed == open_nothing, (
-        "the section 'In the list, opening nothing' and the code differ: "
-        f"only in the document {sorted(listed - open_nothing)}, only in the code {sorted(open_nothing - listed)}"
-    )
-
-
-def test_the_reference_lists_the_permissions_that_are_asked_for_and_not_in_the_database(asked, new_database):
-    reference = REFERENCE.read_text(encoding="utf-8")
-    not_in_the_list = asked - _in_the_database(new_database)
-
-    listed = _keys_in_first_column(_section(reference, "## Asked for by an endpoint, not in the list"))
-
-    assert listed == not_in_the_list, (
-        "the section 'Asked for by an endpoint, not in the list' and the code differ: "
-        f"only in the document {sorted(listed - not_in_the_list)}, only in the code {sorted(not_in_the_list - listed)}"
-    )
+    assert set(listed) == _in_the_database(new_database) - {WILDCARD}
+    assert {key for key, teacher in listed.items() if teacher} == _held_by(new_database, "teacher")
+    # Nothing of the last table is the teacher's.
+    assert not any(tables[-1].values())
 
 
-@pytest.mark.parametrize("role", ["teacher", "viewer"])
-def test_the_reference_says_what_a_role_holds_in_a_new_database(role: str, new_database):
+def test_the_reference_says_what_the_teacher_holds_in_a_new_database(new_database):
     reference = REFERENCE.read_text(encoding="utf-8")
     roles_table = _section(reference, "## The roles and what they hold")
 
-    assert _keys_in(_row(roles_table, f"`{role}`")) - {WILDCARD} == _held_by(new_database, role)
+    assert _keys_in(_row(roles_table, "`teacher`")) == _held_by(new_database, "teacher")
+    assert f"the teacher's {len(_held_by(new_database, 'teacher'))} once more" in _row(roles_table, "`admin`")
 
 
-def test_guest_holds_what_viewer_holds_and_the_administrator_holds_everything(new_database):
-    # The reference says both in words, not in a list.
-    assert _held_by(new_database, "guest") == _held_by(new_database, "viewer")
+def test_the_administrator_holds_everything_and_there_are_two_roles(new_database):
+    from backend import models
+
+    # The reference says the first in words, not in a list.
     assert WILDCARD in _held_by(new_database, "admin")
     assert _held_by(new_database, "teacher") <= _held_by(new_database, "admin")
+    assert {name for (name,) in new_database.query(models.Role.name)} == {"admin", "teacher"}
 
 
 def test_the_number_of_permissions_the_documents_give_is_the_number_in_a_new_database(new_database):

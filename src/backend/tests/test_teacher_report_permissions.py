@@ -1,8 +1,13 @@
 """Teachers must hold the permissions the analytics and report endpoints ask for.
 
 Found by the v1.18.67 smoke test: the roles seeded into the database gave teachers neither
-`reports:generate` nor `reports:export`, although backend.rbac's defaults and the permission
-reference do. The Dashboard overview and the Analytics page answered a teacher with 403.
+`reports:generate` nor `reports:export`, although the built-in list backend.rbac then had and
+the permission reference did. The Dashboard overview and the Analytics page answered a teacher
+with 403.
+
+That built-in list is gone (18 November 2026): the rows in the database are the only source,
+so there are no two lists left to drift apart. What can still go wrong is an endpoint that
+asks for a permission no row stands for; the last test of the first group watches for that.
 """
 
 import re
@@ -12,7 +17,6 @@ import pytest
 from sqlalchemy import create_engine, text
 
 from backend import models
-from backend.rbac import _default_role_permissions
 from backend.routers.routers_rbac import _seed_defaults
 
 PREVIOUS_HEAD = "c8e1f4a7d2b9"
@@ -45,12 +49,14 @@ def test_seeded_teacher_role_can_generate_and_export_reports(db):
     assert set(KEYS) <= _seeded_keys(db, "teacher")
 
 
-def test_seeded_teacher_role_covers_every_default_a_router_requires(db):
-    """The seed and backend.rbac's defaults are two lists; this fails when they drift apart."""
+def test_every_permission_a_router_asks_for_has_a_row_in_a_new_database(db):
+    """A key without a row can be granted to nobody: only the wildcard opens its endpoints.
+    Thirteen such keys had gathered by November 2026 (imports:create, jobs:view, ...)."""
     _seed_defaults(db, None)
-    expected = _default_role_permissions("teacher") & _keys_required_by_routers()
-    assert "reports:generate" in expected  # the scan found the routers
-    assert expected - _seeded_keys(db, "teacher") == set()
+    asked = _keys_required_by_routers()
+    assert "reports:generate" in asked  # the scan found the routers
+    in_the_database = {key for (key,) in db.query(models.Permission.key).all()}
+    assert asked - in_the_database == set()
 
 
 def _alembic(url: str):

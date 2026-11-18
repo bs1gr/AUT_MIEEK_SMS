@@ -40,9 +40,11 @@ def _save(client, course_id: int, day: date = DAY, period: int = 1, headers=None
 def _user_headers(db, email: str, role: str = "teacher", full_name: str | None = None) -> dict:
     from backend.models import User
     from backend.routers.routers_auth import create_access_token
+    from backend.tests.conftest import started_installation
 
     db.add(User(email=email, hashed_password="x", role=role, is_active=True, full_name=full_name))
     db.commit()
+    started_installation(db)  # the roles and this account's role row, as after a start
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 
@@ -272,8 +274,8 @@ def test_export_rejects_bad_requests(client):
 
 
 @pytest.mark.auth_required
-@pytest.mark.parametrize("role", ["viewer", "guest", "student"])
-def test_read_only_roles_cannot_export(client, db, course_id, strict_auth, role):
+@pytest.mark.parametrize("role", ["none", "student", "staff"])
+def test_an_account_without_a_role_cannot_export(client, db, course_id, strict_auth, role):
     headers = _user_headers(db, f"{role}@example.com", role)
 
     assert client.get(f"{EXPORT_URL}/pdf", params={"course_id": course_id}, headers=headers).status_code == 403
