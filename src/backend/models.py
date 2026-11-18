@@ -539,8 +539,10 @@ class Highlight(SoftDeleteMixin, Base):
 class User(Base):
     """Application user accounts with roles and secure passwords.
 
-    Roles: 'admin', 'teacher', 'student'
-    Supports both legacy role string and new many-to-many role assignments.
+    The Role column holds 'admin', 'teacher' or 'none' ("No role"). What an account may do
+    comes from the rows of its roles (user_roles) and the grants made to it alone
+    (user_permissions); the step at every start gives an administrator and a teacher the row
+    of their role.
     """
 
     __tablename__ = "users"
@@ -646,7 +648,7 @@ class AuditLog(Base):
 class Role(Base):
     """Role entity for fine-grained RBAC.
 
-    Uses a unique name (e.g., 'admin', 'teacher', 'student').
+    Uses a unique name. The application is built on two, 'admin' and 'teacher'.
     """
 
     __tablename__ = "roles"

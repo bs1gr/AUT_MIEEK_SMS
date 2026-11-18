@@ -14,6 +14,7 @@ with pages, settings and shortcuts that were never built.
 
 | For | Read |
 |---|---|
+| This guide in Greek | [ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md) |
 | Notifications and messages | [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md) |
 | Accounts, roles, permissions (administrators) | [../admin/RBAC_ADMIN_GUIDE.md](../admin/RBAC_ADMIN_GUIDE.md), [../admin/PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md) |
 | Backups and restoring (administrators) | [../admin/BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md) |
@@ -432,7 +433,6 @@ The earlier guide described these. They do not exist.
   rest is set on the server by whoever looks after the installation.
 - Keyboard shortcuts.
 - A page for a student to see the own grades.
-- A page for the audit log.
 
 ## 16. When something goes wrong
 

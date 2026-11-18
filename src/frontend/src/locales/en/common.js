@@ -224,7 +224,7 @@ export default {
   validating: 'Validating...',
   validationFailed: 'Validation Failed: {{count}} errors',
   andMoreErrors: '...and {{count}} more errors',
-  validationTip: '💡 Tip: Click "Validate" first to check for errors before importing. A backup is automatically created before import.'
+  validationTip: '💡 Tip: Click "Validate" first to check for errors before importing. Make a backup first: the import makes a copy of the database by itself only where the database is a single file (SQLite), not on PostgreSQL.'
   ,
   bullet: '•',
   fieldIsRequired: '{{field}} is required',

@@ -81,7 +81,7 @@ export default {
   helpHowToExportSemester: 'How do I export a semester?',
   helpExportSemesterAnswer: '1. "Utils" → "Export" → "Session Export/Import"\n2. Choose the semester\n3. Click "Export Session": the file is downloaded',
   helpHowToImportSemester: 'How do I import a semester?',
-  helpImportSemesterAnswer: '1. "Utils" → "Export" → "Session Export/Import"\n2. "Select File": the JSON file of the semester\n3. Choose "Update Existing" or "Skip Existing"\n4. "Validate" checks the file and changes nothing\n5. "Import Session"\n\n💡 A backup is made automatically before the import.',
+  helpImportSemesterAnswer: '1. "Utils" → "Export" → "Session Export/Import"\n2. "Select File": the JSON file of the semester\n3. Choose "Update Existing" or "Skip Existing"\n4. "Validate" checks the file and changes nothing\n5. "Import Session"\n\n⚠️ Make a backup first: the import makes a copy of the database by itself only where the database is a single file (SQLite), not on PostgreSQL.',
   helpWhatIsRateLimitIncrease: 'What are rate limits?',
   helpRateLimitIncreaseAnswer: 'The server accepts only so many requests a minute from one user, so that a faulty page or script cannot overload it. If a page answers that there were too many requests, wait a minute and try again. An administrator sets the limits under "System" → "Show Control Panel" → "Rate Limits".',
   helpPersistentLogin: 'Why am I still signed in after reloading the page?',

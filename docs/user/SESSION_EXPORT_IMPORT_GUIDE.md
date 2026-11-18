@@ -1,225 +1,162 @@
-# Session Export/Import Quick Start Guide
+# Session Export/Import
 
-## What is Session Export/Import?
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
-The Session Export/Import feature allows you to:
+The earlier text of this guide sent the reader to "Operations > Export Center", gave a file
+name the page does not produce, and did not say that the feature is for administrators only.
+This text corrects that. The earlier text is in the repository's history.
 
-- **Export** all data for a specific semester (courses, students, grades, attendance, etc.) into a single JSON file
-- **Import** that data into another system or restore it later, with intelligent merging
+## What it is
 
-This is perfect for:
+A session is one semester: its courses, the students enrolled in them, and their records.
+**Session Export/Import** writes a semester into one JSON file, and reads such a file back,
+here or in another installation. It is useful for:
 
-- Transferring data between computers
-- Creating semester backups
-- Sharing data with colleagues
-- Migrating between development and production
+- moving a semester to another computer or installation;
+- keeping a copy of a finished semester;
+- giving a semester to a colleague who is an administrator.
 
-## How to Use
+## Who may use it
 
-### Exporting a Session
+Administrators only. To any other account the panel says: "Your account may not export or
+import a session. Ask an administrator." (Teachers do not have the permission, as the user
+guide says: [USER_GUIDE_COMPLETE.md](USER_GUIDE_COMPLETE.md), sections 11 and 14.) A file
+made by an administrator can be read only by an administrator.
 
-1. Navigate to **Operations** → **Export Center**
-2. Find the **Session Export/Import** section (at the top of the bulk exports)
-3. In the left panel (**Export Complete Session**):
+## Where it is
 
-   - Select the semester you want to export from the dropdown
-   - Click **Export Session**
+Utils > **Export**, the bar **Session Export/Import**. It sits between **Export Center** and
+**Reports & Templates**. The bars are closed when the tab opens; click the name of the bar to
+open it (read from the code). The panel has two parts: **Export Complete Session** and
+**Import Session**.
 
-4. Your browser will download a JSON file named like: `session_export_2024-2025_Fall_20250119_103000.json`
-5. Save this file somewhere safe (e.g., USB drive, cloud storage, backup folder)
+## Exporting a session
 
-**What's included in the export:**
+1. Under **Select Semester**, choose the semester. The page lists the semesters of the
+   courses that are not deleted. The first one is already chosen when the list appears (read
+   from the code).
+2. Click **Export Session**. The page says "Session exported successfully!" and the browser
+   saves the file.
+3. Keep the file somewhere safe.
 
-- All courses for that semester
-- All students enrolled in those courses
-- Course enrollments
-- All grades for those students in those courses
-- All attendance records
-- Daily performance records
-- Student highlights for that semester
+The file is called `session_export_<semester>.json`, with the spaces of the semester's name
+written as underscores: for the semester "2024-2025 Fall", `session_export_2024-2025_Fall.json`
+(read from the code). It has no date in its name; rename it if you keep several.
 
-### Importing a Session
+If the list says "No semesters found in the system", no course has a semester. If it says
+"Could not load the semesters", the list could not be read: open the page again, and if it
+stays, tell the administrator who looks after the installation.
 
-1. Navigate to **Operations** → **Export Center**
-2. Find the **Session Export/Import** section
-3. In the right panel (**Import Session**):
+### What is in the file
+
+Read from the code:
 
-   - Click **Choose file** and select your session JSON file
-   - Choose a **Merge Strategy**:
-     - **Update Existing** (recommended): Updates existing records and creates new ones
-     - **Skip Existing**: Only creates new records, doesn't modify existing data
-   - Click **Import Session**
+- the courses of the semester, and the students enrolled in them;
+- the enrolments, the grades, the attendance and the daily performance of those students in
+  those courses, and their highlights;
+- the lesson log of those courses (the material covered and the teacher's notes).
+
+Records that were deleted are left out. Students' health information is not included. User
+accounts and settings are not in the file. Other semesters are not in it.
 
-4. Wait for the import to complete (may take a few seconds for large sessions)
-5. Check the success message for a summary:
-
-   - Created: X records
-   - Updated: Y records
-   - Errors: Z (if any)
-
-### Merge Strategies Explained
-
-#### Update Existing (Default)
-
-- **When to use**: You want to merge data from another PC or update outdated records
-- **What it does**:
-  - If a student/course already exists (same student_id or course_code), it updates their information
-  - If they don't exist, it creates a new record
-- **Example**: You filled grades on your laptop, then import to your desktop → grades get updated
-
-#### Skip Existing
-
-- **When to use**: You only want to add NEW students/courses without touching existing data
-- **What it does**:
-  - If a student/course already exists, it skips them (leaves unchanged)
-  - Only creates records that don't exist yet
-- **Example**: Importing a template with pre-configured courses, but you already have some → only new courses added
-
-## Common Scenarios
-
-### Scenario 1: Working on Multiple Computers
-
-**Problem**: You add data on your laptop, but need it on your desktop too.
-
-**Solution**:
-
-1. On laptop: Export the session you've been working on
-2. Transfer the JSON file (USB, email, cloud)
-3. On desktop: Import the session with "Update Existing" mode
-4. Result: Desktop now has all your laptop's data
-
-### Scenario 2: End-of-Semester Backup
-
-**Problem**: You want to archive all data for Fall 2024 semester.
-
-**Solution**:
-
-1. Export "Fall 2024" session
-2. Save the JSON file to your backup folder (e.g., `Backups/Fall_2024_Final.json`)
-3. If you ever need to restore: Import that file with "Update Existing"
-
-### Scenario 3: Sharing with Colleagues
-
-**Problem**: Your colleague needs all student data for a specific semester to review.
-
-**Solution**:
-
-1. Export the session
-2. Send them the JSON file
-3. They import it into their system
-4. They can now view/edit the data (import merges with their existing data)
-
-### Scenario 4: Setting Up New System
-
-**Problem**: You installed SMS on a new PC and want to transfer everything.
-
-**Solution**:
-
-1. On old PC: Export each semester you want to transfer
-2. On new PC: Install SMS, then import each session file
-3. Use "Update Existing" mode (since the new DB is empty, everything will be "created")
-
-## Tips & Best Practices
-
-### ✅ Do's
-
-- **Export regularly**: Create backups before making big changes
-- **Name your files**: Rename exports to something meaningful (e.g., `Fall2024_FinalGrades.json`)
-- **Test imports**: On important data, try importing to a test system first
-- **Check the summary**: Always review the Created/Updated/Errors counts after import
-- **Use Update mode**: Unless you specifically need to preserve existing data unchanged
-
-### ❌ Don'ts
-
-- **Don't edit JSON manually**: The file format is complex; use the UI to make changes instead
-- **Don't import untrusted files**: Only import files you exported yourself or from trusted sources
-- **Don't mix semesters**: Each export is for ONE semester; don't combine multiple semesters manually
-- **Don't panic on errors**: A few errors (e.g., "student already exists") are normal and safe
-
-## Troubleshooting
-
-### Problem: "No semesters found in the system"
-
-- **Cause**: You haven't created any courses with a semester field set
-- **Fix**: Create courses and assign them a semester (e.g., "2024-2025 Fall")
-
-### Problem: "Failed to load semesters"
-
-- **Cause**: Backend server is not running or unreachable
-- **Fix**: Check that the application is running, refresh the page
-
-### Problem: Import says "X errors"
-
-- **Cause**: Some records couldn't be imported (e.g., missing required fields)
-- **Fix**: Check the error details in the backend logs (`backend/logs/app.log`)
-- **Note**: Other records still imported successfully
-
-### Problem: Duplicate students after import
-
-- **Cause**: Student IDs don't match between systems (e.g., `S001` vs `s001`)
-- **Fix**: Standardize student IDs before exporting, or manually merge duplicates
-
-### Problem: Import taking too long
-
-- **Cause**: Large session with thousands of records
-- **Fix**: Be patient; imports can take 30-60 seconds for 1000+ students
-- **Note**: Don't refresh the page during import
-
-## Technical Details (Advanced Users)
-
-### File Format
-
-- **Type**: JSON (plain text, UTF-8 encoded)
-- **Size**: Varies (typically 100KB - 5MB depending on data volume)
-- **Structure**:
-
-  ```json
-  {
-    "metadata": { ... },
-    "courses": [ ... ],
-    "students": [ ... ],
-    "enrollments": [ ... ],
-    "grades": [ ... ],
-    "attendance": [ ... ],
-    "daily_performance": [ ... ],
-    "highlights": [ ... ]
-  }
-  ```
-
-### What Doesn't Get Exported
-
-- User accounts (admin/teacher logins)
-- System settings
-- Database configuration
-- Deleted records (soft-deleted items excluded)
-- Other semesters' data
-
-### Import Order
-
-Data is imported in this order to maintain referential integrity:
-
-1. Courses (must exist before enrollments)
-2. Students (must exist before enrollments)
-3. Enrollments (links students to courses)
-4. Grades, Attendance, Performance (reference enrollments)
-5. Highlights (reference students)
-
-### Matching Logic
-
-- **Courses**: Matched by `course_code` (e.g., "CS101")
-- **Students**: Matched by `student_id` (e.g., "202401001")
-- **Enrollments**: Matched by student_id + course_code combination
-- **Grades**: Matched by student_id + course_code + assignment_name
-
-## Support
-
-If you encounter issues not covered here:
-
-1. Check `backend/logs/app.log` for detailed error messages
-2. Review the import summary for specific failures
-3. Consult the full documentation: `SESSION_EXPORT_IMPORT_FEATURE.md`
-4. Contact your system administrator
-
----
-
-**Pro Tip**: Export your sessions regularly (weekly or after major changes) to create automatic backups. It only takes 10 seconds and can save hours if something goes wrong!
+## Importing a session
+
+1. Under **Import Session**, click **Select File** and choose the `.json` file.
+2. Under **Merge Strategy**, choose **Update Existing** (update existing records and create
+   new ones) or **Skip Existing** (only create new records and skip existing ones).
+3. Click **Validate**. It checks the whole file and changes nothing.
+   - When the file is good, the page says "Validation Passed" and, after "Ready to import:",
+     how many courses, students, grades and lesson log entries the file holds.
+   - When it is not, the page says "Validation Failed: N errors" and lists the first ten,
+     with "...and N more errors". After a validation that failed, **Import Session** cannot
+     be clicked (read from the code).
+4. Make a backup (next part), then click **Import Session**.
+5. The page says "Session imported successfully!" and, in brackets, how many records were
+   created and updated, and how many errors there were if any. It does not list the records
+   that went wrong (read from the code). Run **Validate** first, so that most problems
+   show before anything is stored.
+
+### What Validate checks
+
+Read from the code: the file has a `metadata` part with the semester; every course has a
+course code and a name, and its credits and hours are numbers in a sensible range; every
+student has a student ID, a first name, a last name and an e-mail address with an @ and a dot
+after it, and a study year from 1 to 10 if one is given; no course code, student ID or
+e-mail address appears twice; and every enrolment and every grade names a course and a
+student that are in the file.
+
+### Merge strategies
+
+**Update Existing.** A course or student that already exists (same course code or student ID)
+is updated; one that does not exist is created. Use it to bring in data from another
+computer, or to restore a semester.
+
+**Skip Existing.** Only records that do not exist yet are created; existing ones are left as
+they are. Use it to add what is new without touching what is there.
+
+### How records are matched
+
+Read from the code. Records that were deleted are never matched.
+
+- A course by its course code.
+- A student by the student ID, compared letter for letter: `S001` and `s001` are two
+  students.
+- An enrolment by the student and the course.
+- A grade by the student, the course and the assignment name. The category is not part of the
+  match: two grades of one student in one course with the same assignment name, in two
+  categories, are one record to the import. This was not tried.
+
+### If the import stops
+
+Read from the code. If a course or a student in the file is refused during the import, the
+whole import is cancelled and nothing is kept. If saving fails at the end, all changes are
+undone. After a good import, whether each course is active is worked out again from its
+enrolments.
+
+## Make a backup first
+
+The page's own tip says: "Click "Validate" first to check for errors before importing. Make a
+backup first: the import makes a copy of the database by itself only where the database is a
+single file (SQLite), not on PostgreSQL." The help answer "How do I import a semester?" ends
+with the same warning.
+
+So, before an import into an installation whose database is PostgreSQL, take a backup under
+System > Control Panel > Maintenance > System Operations; see
+[BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md). Which database an installation uses
+is shown by **System Health** on the System page (user guide, section 13).
+
+Read from the code, for a SQLite database: the copy is a file
+`pre_import_backup_<semester>_<date>_<time>.db` in the application's backups folder, made
+before anything is changed. If the copy cannot be made, the import goes on without it. The
+server has routes to list such copies and to go back to one (`/api/v1/sessions/backups` and
+`/api/v1/sessions/rollback`); no page uses them, and going back works only for SQLite.
+
+## Examples
+
+- **Two computers.** On the first, export the semester. Carry the file over. On the second,
+  sign in as an administrator, choose the file, **Validate**, and import with **Update
+  Existing**. A computer that has nothing yet gets everything created.
+- **A finished semester.** Export it and keep the file. To bring it back, import it with
+  **Update Existing**.
+- **A colleague.** Both of you need an administrator's account. The colleague imports the
+  file. What they already have is merged with it, as the strategy says.
+
+## Good habits
+
+- Export after big changes, and name the files so that you can tell them apart.
+- Run **Validate** before every import, and read the counts.
+- Import only files that you exported yourself or that come from someone you trust.
+- Do not edit the file by hand; the import refuses a file that does not pass the checks above.
+- One file is one semester; do not join two files.
+
+## The file
+
+JSON, UTF-8. Read from the code, the top-level parts are `metadata` (the semester, the time of
+the export, `exported_by`, the version `1.0` and the counts), `courses`, `students`,
+`enrollments`, `grades`, `attendance`, `daily_performance`, `highlights` and `lesson_logs`. A
+file made before the lesson log existed has no `lesson_logs`, and imports without it. The
+import reads the parts in this order: courses, students, enrolments, grades, attendance,
+daily performance, highlights, lesson logs.
+
+The source is `src/backend/routers/routers_sessions.py`. The permission is `sessions:manage`;
+only the administrator role has it ([PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md)).

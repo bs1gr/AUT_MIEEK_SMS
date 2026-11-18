@@ -1,197 +1,45 @@
-# User Guide PDF Conversion Instructions
+# User Guides as PDF
 
-This directory contains comprehensive user guides in Markdown format that need to be converted to PDF for distribution.
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
-## Files
+The earlier text of this note was a recipe for turning the user guides into PDF with pandoc,
+and a GitHub workflow that would publish the files under `frontend/public/docs`. None of that
+exists in the repository (see below). The earlier text is in the repository's history.
 
-- `SMS_USER_GUIDE_EN.md` - English user guide (comprehensive)
-- `SMS_USER_GUIDE_EL.md` - Greek user guide (comprehensive)
+## What the application offers
 
-## Conversion to PDF
+Utils > **Help & Documentation**, under the groups of questions, has a card **Quick Guide**
+(**Σύντομος Οδηγός**), "A one-page summary, as a PDF", with the links **Download English
+PDF** and **Download Greek PDF**. It is a one-page summary, not the user guide
+([USER_GUIDE_COMPLETE.md](USER_GUIDE_COMPLETE.md), section 11).
 
-### Method 1: Using Pandoc (Recommended)
+Read from the code:
 
-Install Pandoc: <https://pandoc.org/installing.html>
+- The links go to `/api/v1/help/user-guide/en` and `/el`. The files are named
+  `SMS_Quick_Guide_EN.pdf` and `SMS_Quick_Guide_EL.pdf`.
+- The server composes each PDF when it is asked, with ReportLab, from two texts in
+  `src/backend/routers/routers_help.py` (`QUICK_GUIDE_EN`, `QUICK_GUIDE_EL`), in the DejaVu
+  Sans fonts of `src/backend/fonts/`, which have Greek letters.
+- Every button, tab or page the text names in quotation marks must be a text of the
+  application in the same language, or `quickGuide.test.ts` in
+  `src/frontend/src/i18n/__tests__/` fails.
 
-```bash
-# English PDF
+## What does not exist
 
-pandoc SMS_USER_GUIDE_EN.md -o ../SMS_User_Guide_EN.pdf --pdf-engine=xelatex -V geometry:margin=1in --toc
+- a workflow `.github/workflows/generate-docs.yml`;
+- a folder `frontend/public/docs` (the frontend is `src/frontend`, which has no `public/docs`);
+- files `SMS_User_Guide_EN.pdf` and `SMS_User_Guide_EL.pdf`, so nothing stands behind the
+  addresses like `http://localhost:8080/docs/SMS_User_Guide_EN.pdf` of the earlier text;
+- a stylesheet `pdf-style.css`.
 
-# Greek PDF (requires Greek fonts)
+The earlier text named `SMS_USER_GUIDE_EN.md` and `SMS_USER_GUIDE_EL.md`. They are still in
+this folder, as short notes: each says that it was the guide of version 1.9.7 (December 2025)
+and points to the current one. The guide read against the running application is
+`USER_GUIDE_COMPLETE.md`.
 
-pandoc SMS_USER_GUIDE_EL.md -o ../SMS_User_Guide_EL.pdf --pdf-engine=xelatex -V geometry:margin=1in -V mainfont="DejaVu Sans" --toc
+## A PDF of a guide, by hand (not tried here)
 
-```text
-### Method 2: Using Markdown to PDF Online Converters
-
-1. **Markdown PDF** (VSCode Extension)
-   - Install "Markdown PDF" extension in VSCode
-   - Open the .md file
-   - Press `Ctrl+Shift+P` → "Markdown PDF: Export (pdf)"
-
-2. **Online Converters**
-   - <https://www.markdowntopdf.com/>
-   - <https://md2pdf.netlify.app/>
-   - Upload the .md file and download the PDF
-
-### Method 3: Using GitHub Actions (Automated)
-
-Create `.github/workflows/generate-docs.yml`:
-
-```yaml
-name: Generate User Guide PDFs
-
-on:
-  push:
-    paths:
-      - 'docs/user/SMS_USER_GUIDE_*.md'
-
-jobs:
-  convert-to-pdf:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install Pandoc
-
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc texlive-xelatex texlive-fonts-recommended
-
-      - name: Convert English to PDF
-
-        run: |
-          pandoc docs/user/SMS_USER_GUIDE_EN.md \
-            -o frontend/public/docs/SMS_User_Guide_EN.pdf \
-            --pdf-engine=xelatex \
-            -V geometry:margin=1in \
-            --toc
-
-      - name: Convert Greek to PDF
-
-        run: |
-          pandoc docs/user/SMS_USER_GUIDE_EL.md \
-            -o frontend/public/docs/SMS_User_Guide_EL.pdf \
-            --pdf-engine=xelatex \
-            -V geometry:margin=1in \
-            -V mainfont="DejaVu Sans" \
-            --toc
-
-      - name: Commit PDFs
-
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add frontend/public/docs/*.pdf
-          git commit -m "Auto-generate user guide PDFs" || echo "No changes"
-          git push
-
-```text
-## Output Location
-
-PDFs should be placed in:
-
-- `frontend/public/docs/SMS_User_Guide_EN.pdf`
-- `frontend/public/docs/SMS_User_Guide_EL.pdf`
-
-This makes them accessible at:
-
-- `<http://localhost:8080/docs/SMS_User_Guide_EN.pdf>`
-- `<http://localhost:8080/docs/SMS_User_Guide_EL.pdf>`
-
-## Styling Options
-
-For better PDF appearance, create a custom CSS file (`pdf-style.css`):
-
-```css
-body {
-  font-family: 'Arial', sans-serif;
-  font-size: 11pt;
-  line-height: 1.6;
-}
-
-h1 {
-  color: #4F46E5;
-  border-bottom: 2px solid #4F46E5;
-  padding-bottom: 0.3em;
-}
-
-h2 {
-  color: #6366F1;
-  border-bottom: 1px solid #E0E7FF;
-  padding-bottom: 0.2em;
-}
-
-code {
-  background-color: #F3F4F6;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-}
-
-pre {
-  background-color: #1F2937;
-  color: #F9FAFB;
-  padding: 1em;
-  border-radius: 5px;
-  overflow-x: auto;
-}
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 1em 0;
-}
-
-table th {
-  background-color: #4F46E5;
-  color: white;
-  padding: 0.5em;
-  text-align: left;
-}
-
-table td {
-  border: 1px solid #E5E7EB;
-  padding: 0.5em;
-}
-
-```text
-Then use:
-
-```bash
-pandoc SMS_USER_GUIDE_EN.md -o SMS_User_Guide_EN.pdf \
-  --pdf-engine=xelatex \
-  --css=pdf-style.css \
-  -V geometry:margin=1in \
-  --toc
-
-```text
-## Manual Conversion Steps
-
-If automated conversion is not available:
-
-1. Open the .md file in a Markdown editor (Typora, MarkText, etc.)
-2. Export/Print to PDF using the editor's built-in function
-3. Save as `SMS_User_Guide_EN.pdf` or `SMS_User_Guide_EL.pdf`
-4. Move to `frontend/public/docs/` directory
-
-## Verification
-
-After conversion, verify:
-
-- [ ] Table of contents is generated correctly
-- [ ] All headings are properly formatted
-- [ ] Code blocks are readable
-- [ ] Tables are formatted correctly
-- [ ] Greek characters display properly (for EL version)
-- [ ] Links are clickable (if supported by PDF converter)
-- [ ] Page numbers are present
-- [ ] File size is reasonable (< 5 MB)
-
-## Notes
-
-- The Greek PDF requires proper Unicode font support (DejaVu Sans, Arial Unicode MS)
-- PDF generation may take a few seconds depending on document length
-- Total pages: ~40-50 for English, ~45-55 for Greek
-- Recommended PDF settings: A4 size, 1-inch margins, 11pt font
+`USER_GUIDE_COMPLETE.md` (English) and `ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md` (its Greek version) are Markdown
+files. A tool such as pandoc can turn a
+Markdown file into PDF; for the Greek one it needs a font that has Greek letters, for example
+DejaVu Sans. No command is given because none was tried.

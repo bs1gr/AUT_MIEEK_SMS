@@ -1,292 +1,122 @@
-# Rate Limiting Control Guide
+# Rate Limits
 
-## Overview
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
-The Student Management System includes a flexible rate limiting system that prevents API overload while protecting against abuse. Rate limits can be adjusted dynamically by administrators without restarting the application.
+The server has five request limits, each a number of requests per minute for one client
+address. Administrators can change them on the **Rate Limits** tab of the Control Panel. A
+saved limit takes effect the next time the server starts, not at once. The earlier text of
+this guide said that changes applied immediately, listed uses for the groups that the server
+does not have, and described sliders and indicators the page does not show. The earlier text
+is in the repository's history. A one-page version of this guide is
+[RATE_LIMITING_QUICK_REFERENCE.md](RATE_LIMITING_QUICK_REFERENCE.md).
 
-## Default Rate Limits
+What was tried, on a scratch copy of the application on 18 November 2026: the read limit was
+set to 3 per minute on the **Rate Limits** tab. The server reported the new value, and eight
+reads in a row still answered 200. After the server was restarted, the fourth read was
+refused with HTTP 429, with the body `{"detail":"3 per 1 minute"}` and no `Retry-After`
+header. The value had been saved in `src/backend/config/rate_limits.json`.
 
-| Limit Type | Default | Requests/Min | Use Case |
-|------------|---------|--------------|----------|
-| **READ** | 1,000/min | ~16.7/sec | GET requests, queries, data retrieval |
-| **WRITE** | 500/min | ~8.3/sec | POST/PUT requests, data updates |
-| **HEAVY** | 200/min | ~3.3/sec | Report generation, exports, expensive operations |
-| **AUTH** | 120/min | ~2/sec | Login attempts, token refresh |
-| **TEACHER_IMPORT** | 5,000/min | ~83/sec | Bulk imports, student/grade uploads |
+What is read from the code and was not tried is marked "read from the code".
 
-## Why These Limits?
+## The five limits
 
-### Educational Context
+A limit is a number of requests per minute. The names are the ones the **Rate Limits** tab
+shows.
 
-- Designed for classroom environments with 30-100+ concurrent users
-- Teachers need fast bulk operations (imports, exports)
-- Students need responsive data access
-- Balance: Prevent DoS attacks without frustrating legitimate users
+| Name on the tab | Default | What it covers (read from the code) |
+|---|---|---|
+| **Read Requests** | 1,000 | Most routes that read records: students, courses, enrolments, attendance, grades, highlights, daily performance, lesson logs, student notes, notifications, analytics, the audit log, background jobs, metrics, privacy |
+| **Write Requests** | 500 | The routes that create, change or delete those records, sending feedback, and the reports routes |
+| **Heavy Operations** | 200 | The preview and **Confirm & Import** of Utils > Imports, and the older upload route; the export, import and rollback of a session file; the database backup, restore and clear; the semester archive's preview and execution; the export of one student's personal data; the monitoring routes of the Control Panel |
+| **Authentication** | 120 | Signing in, registering, signing out, refreshing the sign-in, asking who is signed in, and the route that issues the CSRF token |
+| **Bulk Imports** | 5,000 | One route: `POST /api/v1/imports/students`, which reads JSON files from a folder on the server and is not an upload. A function for courses carries the same limit but has no route. Utils > Imports does not use either |
 
-### Fixed Issues
+So the imports a teacher or administrator makes on Utils > **Imports** count under **Heavy
+Operations**, not under **Bulk Imports**.
 
-- **Login 400 errors**: Increased AUTH from 60→120/min (was blocking legitimate attempts)
-- **Import slowdowns**: TEACHER_IMPORT at 5,000/min allows continuous bulk operations
-- **Dashboard lag**: READ/WRITE limits prevent cascade failures from simple mistakes
+Routes with no limit of this kind (read from the code): the file exports of the Export Center
+(`/export`), the search routes, custom reports, dashboards, the help routes (including the
+Quick Guide PDF), the older `/import-export` routes, RBAC and the other Control Panel routes
+except monitoring.
 
-## Admin Control Panel
+A limit only decides when a request is refused. Raising it does not make anything faster.
 
-### Accessing Rate Limit Settings
+## How a limit counts
 
-1. **Navigate to Control Panel** (admin-only)
-2. **Click "Rate Limits" tab** (Zap icon ⚡)
-3. **Adjust sliders** for each limit type
-4. **Click Save** to apply immediately
+- Per client address: the address the server sees for the request. Two people who reach the
+  server from one address share the count (read from the code: `get_remote_address`).
+- The counts are kept in the server's memory (read from the code).
 
-### Control Panel Features
+## What a refused request looks like
 
-```text
-Rate Limit Configuration
-├── Read Requests (GET queries)
-│   └── Slider: 0-10,000/min
-├── Write Requests (POST/PUT updates)
-│   └── Slider: 0-5,000/min
-├── Heavy Operations (Reports)
-│   └── Slider: 0-1,000/min
-├── Authentication (Logins)
-│   └── Slider: 0-500/min
-└── Bulk Imports (Teachers)
-    └── Slider: 0-20,000/min
+HTTP 429, with a body of the form `{"detail":"3 per 1 minute"}`: the limit and "per 1
+minute". There is no `Retry-After` header (tried). Wait for the minute to pass.
 
-```text
-### Visual Indicators
+The sign-in lockout is a separate thing. After several wrong passwords an account is locked
+for a while ([USER_GUIDE_COMPLETE.md](USER_GUIDE_COMPLETE.md), section 1). Read from the
+code: the answer is also a 429, with the message "Too many failed login attempts. Please try
+again later." and a `Retry-After` header. Its settings are `AUTH_LOGIN_*` in
+`src/backend/ENV_VARS.md`. A wrong password alone is not a rate limit: the answer is "Invalid
+email or password".
 
-- **Default value** shown for each limit
-- **% change** from default highlighted in green/red
-- **Save button** disabled until changes made
-- **Reset to Defaults** button available at all times
+## Changing the limits: the Rate Limits tab
 
-## Configuration Methods
+For administrators only: System > Control Panel, tab **Rate Limits**. The title is **Rate
+Limiting Configuration**. The line under it says: "Adjust API rate limits to prevent service
+degradation. A saved limit takes effect the next time the server starts."
 
-### 1. **Admin Control Panel** (Recommended)
+The box **Rate Limit Configuration** says: "Adjust these limits if users experience 429 (Too
+Many Requests) errors." Below it are five rows: **Read Requests**, **Write Requests**,
+**Heavy Operations**, **Authentication** and **Bulk Imports**. Each has a slider, a number box,
+the text "requests per minute" and "Default: N".
 
-- User-friendly interface
-- Changes apply immediately
-- Persisted to disk
-- Full audit trail via request logging
+1. Change a value with the slider or in the number box. The row is marked **Modified**.
+2. Click **Save Changes**. It cannot be clicked until something is changed. The page says:
+   "Rate limits saved. They take effect the next time the server starts."
+3. Restart the server. Until then the old limits stay in force.
 
-```text
-POST /control/api/rate-limits/update
-{
-  "limit_type": "auth",
-  "value": 240
-}
+**Reset Defaults** asks "Reset all rate limits to defaults?" and then says: "Rate limits reset
+to defaults. They take effect the next time the server starts."
 
-```text
-### 2. **Environment Variables** (Deployment)
+Read from the code: the slider runs from 1 to three times the default in steps of 5; the
+number box takes any whole number from 1 up. A green "+N%" shows how far a value is above its
+default.
 
-- Set at startup time
-- Override defaults and saved config
-- Useful for container/Kubernetes deployments
+## Environment variables
 
-```bash
-RATE_LIMIT_READ_PER_MINUTE=2000
-RATE_LIMIT_WRITE_PER_MINUTE=1000
-RATE_LIMIT_AUTH_PER_MINUTE=240
-RATE_LIMIT_HEAVY_PER_MINUTE=400
-RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=10000
+`RATE_LIMIT_READ_PER_MINUTE`, `RATE_LIMIT_WRITE_PER_MINUTE`, `RATE_LIMIT_HEAVY_PER_MINUTE`,
+`RATE_LIMIT_AUTH_PER_MINUTE` and `RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE`. They are described in
+`src/backend/ENV_VARS.md`. Read from the code:
 
-```text
-### 3. **Docker/Kubernetes**
+- A variable that is set wins over the saved value. The tab goes on showing the saved value,
+  not the variable's (`src/backend/routers/control/rate_limits.py` returns the saved values),
+  so with a variable set, the tab can say something other than what is in force.
+- The limits are read when the server starts; a variable changed later also needs a restart.
 
-```yaml
-environment:
-  - RATE_LIMIT_AUTH_PER_MINUTE=240
-  - RATE_LIMIT_WRITE_PER_MINUTE=1000
+## Where the values are kept
 
-```text
-## Rate Limit Behavior
+In `src/backend/config/rate_limits.json`, in the backend's `config` folder; **Save Changes**
+and **Reset Defaults** write it. At the start the server reads it, and a file it cannot read
+is ignored: the defaults apply (read from the code).
 
-### What Happens at Limit?
+## The endpoints
 
-When a user exceeds a rate limit:
+All under `/control/api`. They need the sign-in of an administrator (read from the code:
+`optional_require_role("admin")`).
 
-1. **HTTP 429** response returned
-2. **Retry-After** header set (e.g., 30 seconds)
-3. **Error message**: "Too Many Requests. Please try again later."
-4. Request is **not** processed
+| Request | What it does |
+|---|---|
+| `GET /control/api/rate-limits` | The saved values (`current`), the defaults (`defaults`) and the time (`timestamp`) |
+| `POST /control/api/rate-limits/update` | Saves one limit: `{"limit_type": "auth", "value": 240}` |
+| `POST /control/api/rate-limits/bulk-update` | Saves several: `{"limits": {"read": 2000, "write": 1000}}` |
+| `POST /control/api/rate-limits/reset` | Saves the defaults |
 
-### Example: Login Attempts
+`limit_type` is one of `read`, `write`, `heavy`, `auth` and `teacher_import`. A value is a
+whole number from 1 up. The Rate Limits tab uses `bulk-update` and `reset`. Read from the
+code: a `bulk-update` that holds one wrong entry answers 400, but the correct entries in it
+have already been saved. Like a save on the page, these take effect at the next start.
 
-```text
-User 1: Login (1st attempt) → ✅ OK
-User 1: Login (2nd attempt) → ✅ OK
-User 1: Login (3rd attempt) → ✅ OK
-User 2: Login (1st attempt) → ✅ OK
-User 2: Login (2nd attempt) → ✅ OK
-...after 120 in 60 seconds...
-User N: Login → ❌ 429 Too Many Requests
+## Which limit to raise
 
-```text
-**Wait 60+ seconds before next login attempt.**
-
-### Per-User vs Global
-
-- **Current**: Global limits (shared across all users)
-- **Per-user limits**: Not yet implemented (future enhancement)
-
-## Troubleshooting
-
-### "Too Many Requests" During Normal Use
-
-**Symptoms:**
-- 429 errors on routine operations
-- Teachers complaining about slow imports
-- Dashboard queries failing
-
-**Solutions:**
-1. **Check current limits**: Control Panel → Rate Limits tab
-2. **Increase limit**: Adjust slider and save
-3. **Typical increases**:
-   - Struggling with imports? Increase TEACHER_IMPORT to 10,000/min
-   - Slow dashboard? Increase READ to 2,000/min
-   - Write operations timing out? Increase WRITE to 1,000/min
-
-### "Rate Limit Not Applying"
-
-**Check:**
-1. Environment variables not overriding? Remove them
-2. Config file corrupted? Reset to defaults via Control Panel
-3. Application caching? Restart backend: `DOCKER.ps1 -Restart`
-
-**Reset Configuration:**
-
-```powershell
-# Via Control Panel
-
-# Click "Reset Defaults" button
-
-# Or via API
-
-POST /control/api/rate-limits/reset
-
-```text
-### Login Still Failing with 400
-
-**This is NOT a rate limit error** (would be 429)
-
-**Check:**
-1. Invalid email format
-2. Password contains spaces (not allowed)
-3. User account doesn't exist
-4. Account is disabled
-
-**Solutions:**
-- Verify email/password validity
-- Check user exists: Control Panel → Maintenance → Users
-- Ensure user is active (not disabled)
-
-## API Endpoints (Admin)
-
-### Get Current Configuration
-
-```http
-GET /control/api/rate-limits
-
-```text
-**Response:**
-
-```json
-{
-  "current": {
-    "read": 1000,
-    "write": 500,
-    "heavy": 200,
-    "auth": 120,
-    "teacher_import": 5000
-  },
-  "defaults": {
-    "read": 1000,
-    "write": 500,
-    "heavy": 200,
-    "auth": 120,
-    "teacher_import": 5000
-  },
-  "timestamp": "2025-12-30T10:30:00Z"
-}
-
-```text
-### Update Single Limit
-
-```http
-POST /control/api/rate-limits/update
-Content-Type: application/json
-
-{
-  "limit_type": "auth",
-  "value": 240
-}
-
-```text
-### Bulk Update Multiple Limits
-
-```http
-POST /control/api/rate-limits/bulk-update
-Content-Type: application/json
-
-{
-  "limits": {
-    "read": 2000,
-    "write": 1000,
-    "auth": 240
-  }
-}
-
-```text
-### Reset All to Defaults
-
-```http
-POST /control/api/rate-limits/reset
-
-```text
-## Best Practices
-
-### For Teachers
-
-- 💡 **Imports slow?** Ask admin to increase TEACHER_IMPORT limit
-- 💡 **Dashboard lagging?** Ask admin to check READ limit
-
-### For Administrators
-
-- 🔍 **Monitor logs** for 429 errors to identify bottlenecks
-- 📊 **Peak hours**: Consider higher limits during registration/grading periods
-- 🔄 **Regular review**: Check admin logs for limit adjustments made
-- 🛡️ **Security**: Keep AUTH limit moderate (120-240) to prevent brute force
-
-### For Developers
-
-- 🧪 **Testing**: Disable limits with `DISABLE_STARTUP_TASKS=1` env var
-- 📝 **Endpoints**: Always apply appropriate limit decorator:
-
-  ```python
-  @router.post("/items/")
-  @limiter.limit(RATE_LIMIT_WRITE)
-  async def create_item(...):
-      pass
-  ```
-- 🔧 **Custom limits**: Create new limit types as needed
-
-## Performance Impact
-
-- **Memory**: Rate limit storage ~1KB (persistent config)
-- **CPU**: Negligible (<1% overhead per request)
-- **Disk I/O**: One write per config change (not per request)
-
-## Future Enhancements
-
-- [ ] Per-user rate limits (advanced auth)
-- [ ] Time-based schedules (peak hours, maintenance windows)
-- [ ] Whitelist/blacklist IPs
-- [ ] Endpoint-specific limits
-- [ ] Real-time analytics dashboard
-
-## Related Documentation
-
-- [CONTROL_API.md](../backend/CONTROL_API.md) - Full API reference
-- [Architecture](./development/ARCHITECTURE.md) - System design
-- [Security Guide](./user/SECURITY.md) - Security best practices
+Find the action that was refused in the table above and raise the limit of its group.
+Imports on Utils > **Imports** are in **Heavy Operations**. Then restart the server.

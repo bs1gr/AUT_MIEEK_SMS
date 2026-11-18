@@ -76,7 +76,7 @@ it over anything enumerated here.
 ## 🌐 Greek-language guides
 
 - **[user/ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md](user/ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md)** - Οδηγός γρήγορης εκκίνησης
-- **[user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Πλήρες εγχειρίδιο χρήστη
+- **[user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md](user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md)** - Ο οδηγός χρήσης (το ελληνικό κείμενο του USER_GUIDE_COMPLETE.md)
 - **[user/RBAC_GUIDE_EL.md](user/RBAC_GUIDE_EL.md)** - Οδηγός ρόλων & δικαιωμάτων
 
 ---

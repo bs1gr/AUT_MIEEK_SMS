@@ -45,12 +45,17 @@ Edition guides:
 
 ### First-Time Login
 
-Default credentials (change immediately after first login):
+There is no fixed default password.
 
-- **Email:** `admin@example.com`
-- **Password:** `YourSecurePassword123!`
+- **Lite Edition:** sign in with the administrator e-mail address and password you entered in
+  the installer; on a shared (QNAP) database, with your existing account. See
+  [Lite Edition](docs/deployment/LITE_EDITION_GUIDE.md), "First Login".
+- **Docker Edition and developer mode:** the start script generates a password and prints it
+  under "Initial admin login". See
+  [Quick Start](docs/user/QUICK_START_GUIDE.md), "Signing in for the first time".
 
-After login: Control Panel → Maintenance → Change Your Password.
+Afterwards every account changes its own password under System → Show Control Panel →
+Maintenance → User Accounts → Change Your Password.
 
 ---
 

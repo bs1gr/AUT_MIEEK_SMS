@@ -316,6 +316,8 @@ export default {
     },
     operations: {
       assign_role: 'Gave the role {{role}}',
+      bulk_assign_role: 'Gave the role {{role}}',
+      auto_assign_inherited: 'Gave the role {{role}} as well: it comes with the role that was given',
       revoke_role: 'Took the role {{role}} away',
       set_role: 'Changed the role of {{email}} from {{from}} to {{role}}',
       create_account: 'Created the account {{email}} ({{role}})',
@@ -325,11 +327,19 @@ export default {
       reset_password: 'Set a new password for {{email}}',
       change_own_password: 'Changed their own password',
       grant_permission: 'Granted {{permission}} to the role {{role}}',
+      bulk_grant_permission: 'Granted {{permission}} to the role {{role}}',
       revoke_permission: 'Revoked {{permission}} from the role {{role}}',
       grant_to_account: 'Granted {{permission}} to the account {{email}}',
       revoke_from_account: 'Revoked {{permission}} from the account',
       create_role: 'Created the role {{role}}',
-      create_permission: 'Created the permission {{permission}}'
+      rename_role: 'Renamed the role {{from}} to {{role}}',
+      update_role: 'Changed the description of the role {{role}}',
+      delete_role: 'Deleted the role {{role}}',
+      create_permission: 'Created the permission {{permission}}',
+      update_permission: 'Changed the permission {{permission}}',
+      activate_permission: 'Switched the permission {{permission}} on',
+      deactivate_permission: 'Switched the permission {{permission}} off',
+      delete_permission: 'Deleted the permission {{permission}}'
     },
     resources: {
       user: 'Account',
@@ -477,7 +487,7 @@ export default {
   // Rate Limiting Panel
   rateLimitsLabel: 'Rate Limits',
   rateLimitsTitle: 'Rate Limiting Configuration',
-  rateLimitsSubtitle: 'Adjust API rate limits to prevent service degradation. Changes apply immediately.',
+  rateLimitsSubtitle: 'Adjust API rate limits to prevent service degradation. A saved limit takes effect the next time the server starts.',
   rateLimits: {
     read: 'Read Requests',
     write: 'Write Requests',
@@ -499,10 +509,10 @@ export default {
     saving: 'Saving...',
     saveChanges: 'Save Changes',
     saveError: 'Failed to save changes',
-    updateSuccess: 'Rate limits updated successfully',
+    updateSuccess: 'Rate limits saved. They take effect the next time the server starts.',
     resetButton: 'Reset Defaults',
     confirmReset: 'Reset all rate limits to defaults?',
-    resetSuccess: 'Rate limits reset to defaults',
+    resetSuccess: 'Rate limits reset to defaults. They take effect the next time the server starts.',
     resetError: 'Failed to reset limits',
   },
   // Database Management Panel

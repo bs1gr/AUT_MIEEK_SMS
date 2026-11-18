@@ -1,91 +1,87 @@
-# Bulk Import/Export Operations Guide
+# The Import/Export panel of the Control Panel
 
-**Version**: 1.0
-**Last Updated**: January 2026
-**Feature**: #127
+**Checked against the application:** 18 November 2026, `main` after v1.18.73. What the
+panel does in a browser was seen on 17 November 2026; the rest is read from the code and
+marked so.
 
-## Overview
+**Related:** [IMPORT_EXPORT_USER_GUIDE.md](../user/IMPORT_EXPORT_USER_GUIDE.md) (the pages
+teachers and administrators use), [SESSION_EXPORT_IMPORT_GUIDE.md](../user/SESSION_EXPORT_IMPORT_GUIDE.md)
+(one whole semester), [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md) (every endpoint and what
+it asks for).
 
-The Bulk Import/Export module allows administrators to manage large datasets efficiently. It supports importing Students, Courses, and Grades via Excel/CSV files and exporting data for reporting purposes.
+This file described a wizard of four steps, a page "Data Management > Export", a template
+to download, a **Rollback** button that worked for 24 hours, a limit of 5,000 rows, a
+permission `exports:create` and a role "Manager". The application has none of them. The
+earlier text is in the repository's history.
 
-## Supported Formats
+## Which page to use
 
-| Type | Extensions | MIME Types |
-|------|------------|------------|
-| Excel | `.xlsx`, `.xls` | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` |
-| CSV | `.csv` | `text/csv` |
+| To | Use | Who |
+|---|---|---|
+| Download lists of records | Utils > **Export** > Export Center | administrators and teachers |
+| Add students or courses from files | Utils > **Imports** | administrators and teachers |
+| Move one whole semester | Utils > **Export** > Session Export/Import | administrators |
 
-## Import Workflow
+These were tried in a running copy and are described in
+[USER_GUIDE_COMPLETE.md](../user/USER_GUIDE_COMPLETE.md), section 11.
 
-The import process follows a 4-step wizard to ensure data integrity:
+## The panel under Maintenance
 
-1. **Upload**: Select the entity type (Student, Course, Grade) and upload the file.
-2. **Preview**: Review the first few rows of parsed data to confirm column mapping.
-3. **Validation**: The system checks for errors (duplicates, missing required fields, invalid formats).
-    - *Note*: If critical errors are found, the import is blocked.
+**System** > **Show Control Panel** > **Maintenance** > **Import/Export** is a second,
+older feature, offered to administrators. Do not rely on it:
 
-4. **Commit**: Confirm the import to write data to the database.
+- **Seen in a browser, as an administrator:** the panel sends its requests without the
+  sign-in. Where the server asks for one (the default), the list of earlier imports and
+  exports is refused, and so is what the export dialog asks for. The dialog's choice for
+  Excel also sends a word the server does not know.
+- **Its import was not tried.**
+- **Seen through the API, with a sign-in:** an export job works in one case, an Excel file
+  of students, courses or grades (the smoke tests of the releases check that). Asked for as
+  CSV or PDF, the job's file is still an Excel file under another name, or the job fails.
+  A job for `attendance` or `dashboard` never finishes.
 
-### Required Columns
+Whether the panel is repaired or taken off the page is open (plan, todo 62).
 
-#### Students
+## Its API (read from the code)
 
-- `first_name`
-- `last_name`
-- `email` (Unique)
-- `registration_number` (Unique)
+Under `/api/v1/import-export`. Who holds each permission is in
+[PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md).
 
-#### Courses
+| Request | Asks for | What it does |
+|---|---|---|
+| `POST /imports/students`, `/imports/courses`, `/imports/grades` | `imports:create` | Takes one `.csv` or `.xlsx` file and answers with a job. The file is then checked in the background |
+| `GET /imports`, `GET /imports/{id}` | `imports:view` | The jobs, or one job with its counts and `validation_errors` |
+| `POST /imports/{id}/commit` | `imports:create` | Stores the rows of a job whose status is `ready` |
+| `POST /exports` | `exports:generate` | Starts an export job (`export_type`: students, courses, grades, attendance or dashboard; see above for which of them work) |
+| `GET /exports`, `GET /exports/{id}` | `exports:view` | The export jobs, or one |
+| `GET /exports/{id}/download` | `exports:download` | The file of a finished job |
+| `GET /history` | `audit:view` | What was imported and exported |
+| `GET /settings/email`, `PUT /settings/email`, `POST /settings/email/test` | the role `admin` | The e-mail settings (**Email Configuration**) |
 
-- `code` (Unique)
-- `title`
-- `credits`
+A teacher holds `imports:create`, `imports:view`, `exports:generate` and
+`exports:download`, and not `exports:view`: a teacher can start an export job and download
+its file, and cannot look at the job (todo 62).
 
-#### Grades
+What a file must hold:
 
-- `student_registration_number`
-- `course_code`
-- `grade`
-- `term`
+| Import | Columns that must be there |
+|---|---|
+| Students | `first_name`, `last_name`, `email` |
+| Courses | `course_code`, `course_name` |
+| Grades | `student_id`, `course_code`, `grade` |
 
-## Export Workflow
+Things to know before anybody uses these requests. All are read from
+`src/backend/services/import_export_service.py`; none was tried:
 
-1. Navigate to **Data Management > Export**.
-2. Select the entity type to export.
-3. (Optional) Apply filters (e.g., specific course or date range).
-4. Select format (Excel or CSV).
-5. Click **Export**. The file will download automatically once generated.
+- **The check does not stop an import.** A job becomes `ready` whether or not rows have
+  errors; the errors are only listed in `validation_errors`. A file without the columns
+  above is the one case where every row counts as wrong.
+- A student is recognised by the e-mail address, a course by its code. One that exists is
+  left as it is; a new student without a `student_id` column gets a made-up number.
+- A grade is recognised by the student, the course and the assignment name (`assignment`,
+  or "Imported Grade" when the column is missing): a second row with the same three
+  replaces the first, also when its category is another one.
+- There is no rollback, no template and no limit on the number of rows in this code.
 
-## Troubleshooting
-
-### Common Errors
-
-**"Invalid File Format"**
-- Ensure the file is a valid `.csv` or `.xlsx` file.
-- Check that the file is not password protected.
-
-**"Missing Required Columns"**
-- The header row must match the system requirements exactly.
-- Download the *Template* from the import dialog to ensure correct formatting.
-
-**"Duplicate Entry"**
-- The system prevents duplicate emails or registration numbers.
-- Check existing records before importing.
-
-### Rollback
-
-If an import completes but the data is incorrect:
-1. Go to **Import History**.
-2. Locate the job ID.
-3. (If enabled) Click **Rollback**. *Note: Rollback is only available for 24 hours after import.*
-
-## Security & Permissions
-
-- **Import**: Requires `imports:create` permission (Admin only).
-- **Export**: Requires `exports:create` permission (Admin, Manager).
-- **View History**: Requires `imports:view` permission.
-
-## Performance Limits
-
-- **Max File Size**: 10MB
-- **Max Rows**: 5000 per batch (split larger files if necessary)
+For adding students or courses, Utils > **Imports** is the page that shows what will
+happen before anything is stored.

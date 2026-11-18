@@ -1,1184 +1,140 @@
-# RBAC Operations Guide
+# RBAC operations: what to check, and what repairs itself
 
-**Version**: 1.15.1
-**Last Updated**: January 8, 2026
-**Audience**: System Administrators, SRE, DevOps
-**Status**: Production Ready
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
----
+**Related:** [RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md) (the steps in the pages),
+[PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md) (every permission),
+[PERMISSION_MATRIX.md](PERMISSION_MATRIX.md) (who can do what),
+[PERMISSION_MANAGEMENT_GUIDE.md](PERMISSION_MANAGEMENT_GUIDE.md) (the API) and
+[BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md).
 
-## Overview
+This file used to hold daily, weekly and monthly SQL checks, alarm thresholds, incident
+runbooks and a support organisation, written for a database with three roles and a `role_id`
+column on the accounts. The application has neither, so the procedures no longer applied. The
+earlier text is in the repository's history.
 
-This guide covers day-to-day operational procedures for the RBAC system in production. It focuses on monitoring, maintenance, incident response, and compliance activities.
+## What a healthy installation shows
 
-### Quick Reference
+Sign in as an administrator: **System** > **Show Control Panel** > **Maintenance**.
 
-- **Permission Management**: See [PERMISSION_MANAGEMENT_GUIDE.md](./PERMISSION_MANAGEMENT_GUIDE.md)
-- **Permission Matrix**: See [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md)
-- **Database Schema**: See [RBAC_DATABASE_SCHEMA.md](./RBAC_DATABASE_SCHEMA.md)
+- **RBAC Configuration** > **Overview** shows **Roles (2)** and **Permissions (44)** on an
+  installation that nobody has added roles or permissions to. "Role-Permission Mappings" lists
+  51 grants: 26 for `admin` (`*:*` and the teacher's 25 by name) and 25 for `teacher`.
+- **RBAC Configuration** > **Users** lists every account with its number, the word in its Role
+  column and the roles it holds. An active Administrator or Teacher shows its role. "No RBAC
+  roles assigned" belongs only to an account that is meant to have no role.
+- **User Accounts** counts the registrations waiting for approval.
+- **Audit Log** says who changed what and when. Narrow it with **What was done** (for
+  example "Role changed" or "Permission granted"), **Made by**, **From** and **To**. Look for
+  changes nobody expected. "Not recorded" under **Who** stands for entries written before
+  authors were recorded, and for a request without a sign-in.
 
----
+## What every start does
 
-## Table of Contents
+The application does this at every start, without anybody pressing a button:
 
-1. [Daily Operations](#daily-operations)
-2. [Weekly Maintenance](#weekly-maintenance)
-3. [Monthly Reviews](#monthly-reviews)
-4. [Monitoring & Alerts](#monitoring--alerts)
-5. [Incident Response](#incident-response)
-6. [Change Management](#change-management)
-7. [Audit & Compliance](#audit--compliance)
-8. [Performance Optimization](#performance-optimization)
-9. [Backup & Recovery](#backup--recovery)
-10. [Runbooks](#runbooks)
+- It **seeds** when the database has no roles, no permissions or no grants, when one of the
+  two roles is missing, or when the role `admin` does not hold an active `*:*`. Seeding adds
+  what is missing (the roles, all 44 permissions, the standard grants, and it switches `*:*`
+  on) and removes nothing.
+- It **gives every account whose Role column says Administrator or Teacher the row of that
+  role** if the account lacks it. This keeps an old database working and gives the first
+  administrator of an installation the role the start has just seeded. It never gives back a
+  role that was taken away: **No role** names no role. This step also runs when the migrations
+  failed, so that an administrator can sign in and see what went wrong.
 
----
+A start does not put back a single standard grant that somebody took from `teacher` while
+nothing else is missing. **Initialize RBAC Defaults** does.
 
-## Daily Operations
+## Initialize RBAC Defaults
 
-### Morning Health Check (5 minutes)
+**RBAC Configuration** > **Settings** > **Initialize RBAC Defaults** does what a start does
+when it seeds, whatever the state of the database, including the rows of the accounts' roles.
+It removes nothing: a permission you took from a role comes back, a permission you added
+stays. What it adds is written to the Audit Log.
 
-**Run daily at 9:00 AM**
+## When something is wrong
 
-#### 1. Check RBAC System Health
+The steps are in "If the administrator is locked out" and "Take an account's access away" in
+[RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md). In short:
 
-```bash
-# Test permission seeding
+| What you see | What it is | The way out |
+|---|---|---|
+| The role and account panels answer "forbidden" for every administrator | `admin` has lost `*:*` | Restart the application: the start puts it back |
+| A person can sign in and every page answers "forbidden"; a line at the top says the account has no role | The account has no role | **User Accounts** > **Edit** > Teacher, or **Assign Role to User** |
+| A standard role is missing | An older version could delete it | Restart the application |
+| An administrator forgot the password | | Another administrator resets it in **User Accounts** |
+| There is no other administrator | | `DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_PASSWORD` and `DEFAULT_ADMIN_FORCE_RESET=true` in the server's environment; take `DEFAULT_ADMIN_FORCE_RESET` out afterwards |
+| An account has to stop at once | | **Edit** > untick **Active** |
 
-cd src/backend
-python ops/seed_rbac_data.py --verify
+## Keep two administrators
 
-```text
-**Expected Output**:
+The application refuses to delete, deactivate or demote the last active administrator, and to
+revoke the Administrator role from the last one. It cannot help when that one administrator
+forgets the password: the way out then is the environment settings above. A second administrator
+resets the password in **User Accounts**.
 
-```text
-✓ All 26 permissions exist
-✓ All 3 roles exist
-✓ All 44 role-permission mappings exist
+## Reviewing what single accounts were granted
 
-```text
-**If issues found**: Re-run seeding script
+A grant to one account is not in the **Users** tab, which lists roles. Look an account up in
+**RBAC Configuration** > **Permissions Catalog** > "User permission lookup": "Direct
+permissions" are the grants made to the account itself. Taking a role away, or choosing **No
+role**, leaves them in place. The **Audit Log**, with **What was done** set to "Permission
+granted", shows the grants and who made them (a permission that was created or switched on is
+listed there too).
 
-```bash
-python ops/seed_rbac_data.py
-
-```text
-#### 2. Verify Active Users Have Roles
-
-```sql
--- Check for users without roles
-SELECT COUNT(*) as users_without_roles
-FROM users
-WHERE is_active = 1 AND role_id IS NULL;
-
-```text
-**Expected**: `users_without_roles = 0`
-
-**If non-zero**: Investigate and assign default role
-
-```sql
--- View users without roles
-SELECT id, email, created_at
-FROM users
-WHERE is_active = 1 AND role_id IS NULL;
-
--- Assign viewer role as default
-UPDATE users
-SET role_id = (SELECT id FROM roles WHERE name = 'viewer')
-WHERE is_active = 1 AND role_id IS NULL;
-
-```text
-#### 3. Review Failed Permission Checks (Last 24 Hours)
-
-**Check application logs**:
-
-```powershell
-# Search for 403 errors in last 24 hours
-
-Select-String -Path "backend/logs/app.log" -Pattern "403.*Permission denied" |
-    Select-Object -Last 20
-
-```text
-**Pattern to watch for**: Same user hitting same permission multiple times
-
-**Action**: If legitimate access needed, grant permission. If abuse, investigate.
-
----
-
-## Weekly Maintenance
-
-### Permission Audit (15 minutes)
-
-**Run every Monday at 10:00 AM**
-
-#### 1. Review Direct User Permissions
-
-**Goal**: Direct permissions should be rare (use roles instead)
+For all accounts at once no page has a list. Somebody with access to the database can read it
+(the columns are those of `user_permissions`, `users` and `permissions` in `models.py`):
 
 ```sql
--- List all direct user permissions
-SELECT
-    u.email,
-    p.key as permission,
-    up.granted_at,
-    up.expires_at,
-    granter.email as granted_by
+-- Grants made to single accounts that still count, and who made them
+SELECT u.id, u.email, p.key, up.granted_at, up.expires_at, g.email AS granted_by
 FROM user_permissions up
-JOIN users u ON up.user_id = u.id
-JOIN permissions p ON up.permission_id = p.id
-LEFT JOIN users granter ON up.granted_by = granter.id
-WHERE up.expires_at IS NULL OR up.expires_at > datetime('now')
-ORDER BY up.granted_at DESC;
+JOIN users u ON u.id = up.user_id
+JOIN permissions p ON p.id = up.permission_id
+LEFT JOIN users g ON g.id = up.granted_by
+WHERE p.is_active IS TRUE
+  AND (up.expires_at IS NULL OR up.expires_at > CURRENT_TIMESTAMP)
+ORDER BY u.email, p.key;
 
-```text
-**Red Flags**:
-- ⚠️ More than 5 direct permissions active
-- ⚠️ Direct permissions older than 30 days without expiration
-- ⚠️ Admin-level permissions granted directly
-
-**Action**: Review each direct permission, convert to role assignment if permanent
-
-#### 2. Clean Up Expired Permissions
-
-```sql
--- Delete expired direct permissions
-DELETE FROM user_permissions
-WHERE expires_at < datetime('now', '-7 days');  -- Keep for 7 days as history
-
-```text
-**Expected**: Should delete 0-10 records per week
-
-#### 3. Role Membership Review
-
-```sql
--- Count users per role
-SELECT
-    r.name as role,
-    COUNT(u.id) as user_count
-FROM roles r
-LEFT JOIN users u ON r.id = u.role_id AND u.is_active = 1
-GROUP BY r.name
-ORDER BY user_count DESC;
-
-```text
-**Expected Distribution** (example for 100 users):
-- `viewer`: 50-70 users
-- `teacher`: 20-30 users
-- `admin`: 1-3 users
-
-**Red Flags**:
-- ⚠️ More than 5 admins
-- ⚠️ Zero users in a role (might indicate broken system)
-
-#### 4. Inactive Permission Detection
-
-```sql
--- Find permissions with no assigned roles or users
-SELECT p.key, p.description
-FROM permissions p
-WHERE p.is_active = 1
-  AND NOT EXISTS (
-      SELECT 1 FROM role_permissions rp WHERE rp.permission_id = p.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM user_permissions up
-      WHERE up.permission_id = p.id
-        AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
-  );
-
-```text
-**Expected**: 0-2 unused permissions
-
-**Action**: Review if permission is still needed, deactivate if obsolete
-
----
-
-## Monthly Reviews
-
-### Comprehensive RBAC Audit (30 minutes)
-
-**Run first Monday of each month**
-
-#### 1. Permission Matrix Export
-
-```sql
--- Export complete permission matrix
-SELECT
-    r.name as role,
-    p.resource,
-    p.action,
-    p.key as permission
-FROM roles r
-JOIN role_permissions rp ON r.id = rp.role_id
-JOIN permissions p ON rp.permission_id = p.id
-WHERE r.is_active = 1 AND p.is_active = 1
-ORDER BY r.name, p.resource, p.action;
-
-```text
-**Save to CSV** for management review:
-
-```bash
-sqlite3 data/student_management.db <<EOF > rbac_matrix_$(date +%Y%m%d).csv
-.mode csv
-.headers on
-SELECT
-    r.name as role,
-    p.resource,
-    p.action,
-    p.key as permission
-FROM roles r
-JOIN role_permissions rp ON r.id = rp.role_id
-JOIN permissions p ON rp.permission_id = p.id
-WHERE r.is_active = 1 AND p.is_active = 1
-ORDER BY r.name, p.resource, p.action;
-.quit
-EOF
-
-```text
-#### 2. User Activity Analysis
-
-```sql
--- Users who never logged in (potential security risk)
-SELECT
-    u.email,
-    r.name as role,
-    u.created_at,
-    u.last_login
+-- Active accounts that hold no role
+SELECT u.id, u.email, u.role
 FROM users u
-LEFT JOIN roles r ON u.role_id = r.id
-WHERE u.is_active = 1
-  AND (u.last_login IS NULL OR u.last_login < datetime('now', '-90 days'))
-ORDER BY u.created_at;
-
-```text
-**Action**:
-- Contact users to confirm account needed
-- Deactivate accounts with no login in 90+ days
-- Remove admin role from inactive users immediately
-
-#### 3. Permission Change History
-
-```sql
--- Review all permission grants in last 30 days
-SELECT
-    u.email as user_email,
-    p.key as permission,
-    up.granted_at,
-    up.expires_at,
-    granter.email as granted_by,
-    CASE
-        WHEN up.expires_at IS NULL THEN 'Permanent'
-        WHEN up.expires_at > datetime('now') THEN 'Active'
-        ELSE 'Expired'
-    END as status
-FROM user_permissions up
-JOIN users u ON up.user_id = u.id
-JOIN permissions p ON up.permission_id = p.id
-LEFT JOIN users granter ON up.granted_by = granter.id
-WHERE up.granted_at > datetime('now', '-30 days')
-ORDER BY up.granted_at DESC;
-
-```text
-**Review for**:
-- Unusual permission grants (e.g., audit:view to non-admins)
-- Bulk grants (multiple users same permission same time)
-- Permissions granted by non-admin users
-
-#### 4. Compliance Report
-
-**Generate monthly report** with:
-
-1. Total active users: `SELECT COUNT(*) FROM users WHERE is_active = 1;`
-2. Total roles: `SELECT COUNT(*) FROM roles WHERE is_active = 1;`
-3. Total permissions: `SELECT COUNT(*) FROM permissions WHERE is_active = 1;`
-4. Admin users: `SELECT COUNT(*) FROM users WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');`
-5. Direct permission grants this month: `SELECT COUNT(*) FROM user_permissions WHERE granted_at > datetime('now', '-30 days');`
-
-**Save template**: `reports/rbac_compliance_YYYYMM.txt`
-
----
-
-## Monitoring & Alerts
-
-### Key Metrics to Track
-
-#### 1. Permission Denied Rate
-
-**Metric**: Failed permission checks per hour
-
-**Query**:
-
-```sql
--- Count 403 errors in application logs
--- (Requires log parsing or metrics endpoint)
-
-```text
-**PowerShell script** for log analysis:
-
-```powershell
-# Count permission denied errors in last hour
-
-$logFile = "backend/logs/app.log"
-$pattern = "403.*Permission denied"
-$lastHour = (Get-Date).AddHours(-1)
-
-$errors = Select-String -Path $logFile -Pattern $pattern |
-    Where-Object {
-        $timestamp = [DateTime]::Parse(($_.Line -split " - ")[0])
-        $timestamp -gt $lastHour
-    }
-
-Write-Host "Permission denied errors in last hour: $($errors.Count)"
-
-```text
-**Thresholds**:
-- 🟢 **Normal**: <10 per hour
-- 🟡 **Warning**: 10-50 per hour (investigate)
-- 🔴 **Critical**: >50 per hour (possible attack or misconfiguration)
-
-#### 2. Role Distribution
-
-**Metric**: Percentage of users per role
-
-```sql
-SELECT
-    r.name,
-    COUNT(u.id) as count,
-    ROUND(COUNT(u.id) * 100.0 / (SELECT COUNT(*) FROM users WHERE is_active = 1), 2) as percentage
-FROM roles r
-LEFT JOIN users u ON r.id = u.role_id AND u.is_active = 1
-GROUP BY r.name;
-
-```text
-**Expected Distribution**:
-- viewer: 50-70%
-- teacher: 20-40%
-- admin: 1-5%
-
-**Alert if**: Admin percentage >10%
-
-#### 3. Direct Permission Growth
-
-**Metric**: Number of active direct user permissions
-
-```sql
-SELECT COUNT(*) as direct_permissions
-FROM user_permissions
-WHERE expires_at IS NULL OR expires_at > datetime('now');
-
-```text
-**Thresholds**:
-- 🟢 **Healthy**: <20 direct permissions
-- 🟡 **Review**: 20-50 (should use roles)
-- 🔴 **Problem**: >50 (RBAC not being used properly)
-
-#### 4. Expired Permission Cleanup
-
-**Metric**: Number of expired but not deleted permissions
-
-```sql
-SELECT COUNT(*) as expired_not_cleaned
-FROM user_permissions
-WHERE expires_at < datetime('now', '-7 days');
-
-```text
-**Expected**: 0 (should be cleaned weekly)
-
-**Alert if**: >100 records
-
-### Automated Monitoring Script
-
-**Create**: `scripts/rbac_monitor.py`
-
-```python
-#!/usr/bin/env python3
-"""RBAC monitoring script - run daily via cron"""
-
-import sqlite3
-from datetime import datetime, timedelta
-
-DB_PATH = "data/student_management.db"
-
-def check_users_without_roles():
-    """Alert if active users missing role"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.execute(
-        "SELECT COUNT(*) FROM users WHERE is_active = 1 AND role_id IS NULL"
-    )
-    count = cursor.fetchone()[0]
-    conn.close()
-
-    if count > 0:
-        print(f"⚠️  WARNING: {count} active users without roles")
-        return False
-    print(f"✓ All active users have roles")
-    return True
-
-def check_admin_count():
-    """Alert if too many admins"""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.execute(
-        """SELECT COUNT(*) FROM users u
-           JOIN roles r ON u.role_id = r.id
-           WHERE u.is_active = 1 AND r.name = 'admin'"""
-    )
-    count = cursor.fetchone()[0]
-    conn.close()
-
-    if count > 5:
-        print(f"⚠️  WARNING: {count} admin users (expected ≤5)")
-        return False
-    print(f"✓ Admin count OK: {count}")
-    return True
-
-def check_expired_cleanup():
-    """Alert if expired permissions not cleaned"""
-    conn = sqlite3.connect(DB_PATH)
-    cutoff = (datetime.now() - timedelta(days=7)).isoformat()
-    cursor = conn.execute(
-        f"SELECT COUNT(*) FROM user_permissions WHERE expires_at < '{cutoff}'"
-    )
-    count = cursor.fetchone()[0]
-    conn.close()
-
-    if count > 100:
-        print(f"⚠️  WARNING: {count} expired permissions not cleaned")
-        return False
-    print(f"✓ Expired permissions cleanup OK: {count} records")
-    return True
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("RBAC System Health Check")
-    print("=" * 60)
-
-    checks = [
-        check_users_without_roles(),
-        check_admin_count(),
-        check_expired_cleanup(),
-    ]
-
-    if all(checks):
-        print("\n✓ All checks passed")
-        exit(0)
-    else:
-        print("\n⚠️  Some checks failed - review above")
-        exit(1)
-
-```text
-**Schedule**: Run daily via cron or Task Scheduler
-
-```bash
-# Add to crontab (Linux)
-
-0 9 * * * cd /path/to/sms && python scripts/rbac_monitor.py >> logs/rbac_monitor.log 2>&1
-
-```text
-```powershell
-# Windows Task Scheduler (PowerShell)
-
-$action = New-ScheduledTaskAction -Execute "python" -Argument "scripts/rbac_monitor.py" -WorkingDirectory "D:\SMS\student-management-system"
-$trigger = New-ScheduledTaskTrigger -Daily -At 9am
-Register-ScheduledTask -TaskName "RBAC Health Check" -Action $action -Trigger $trigger
-
-```text
----
-
-## Incident Response
-
-### Scenario 1: Mass Permission Denied Errors
-
-**Symptoms**:
-- Sudden spike in 403 errors (>100/hour)
-- Multiple users reporting access issues
-- Logs show same permission repeatedly denied
-
-**Diagnosis**:
-
-```sql
--- Check if permission exists and is active
-SELECT * FROM permissions WHERE key = 'students:view';
-
--- Check role mappings
-SELECT r.name
-FROM roles r
-JOIN role_permissions rp ON r.id = rp.role_id
-JOIN permissions p ON rp.permission_id = p.id
-WHERE p.key = 'students:view';
-
-```text
-**Resolution**:
-
-1. **If permission missing**: Re-run seeding script
-   ```bash
-   python backend/ops/seed_rbac_data.py
-   ```
-
-2. **If permission inactive**: Reactivate
-   ```sql
-   UPDATE permissions SET is_active = 1 WHERE key = 'students:view';
-   ```
-
-3. **If role mapping missing**: Re-seed or add manually
-   ```sql
-   INSERT INTO role_permissions (role_id, permission_id, created_at)
-   VALUES (
-       (SELECT id FROM roles WHERE name = 'teacher'),
-       (SELECT id FROM permissions WHERE key = 'students:view'),
-       datetime('now')
-   );
-   ```
-
-**Prevention**: Add monitoring for permission check success rate
-
----
-
-### Scenario 2: User Locked Out (No Access)
-
-**Symptoms**:
-- User reports "Permission denied" on all actions
-- User can log in but can't access any features
-
-**Diagnosis**:
-
-```sql
--- Check user's role
-SELECT u.email, r.name as role, r.is_active
-FROM users u
-LEFT JOIN roles r ON u.role_id = r.id
-WHERE u.email = 'locked.user@example.com';
-
--- Check user's permissions
-SELECT p.key
-FROM permissions p
-JOIN role_permissions rp ON p.id = rp.permission_id
-JOIN users u ON rp.role_id = u.role_id
-WHERE u.email = 'locked.user@example.com'
-  AND p.is_active = 1;
-
-```text
-**Common Causes**:
-1. **No role assigned**: `role_id IS NULL`
-2. **Inactive role**: `r.is_active = 0`
-3. **Role with no permissions**: No rows returned
-
-**Resolution**:
-
-1. **Assign viewer role** (minimum access):
-   ```sql
-   UPDATE users
-   SET role_id = (SELECT id FROM roles WHERE name = 'viewer')
-   WHERE email = 'locked.user@example.com';
-   ```
-
-2. **Reactivate role** (if deactivated):
-   ```sql
-   UPDATE roles SET is_active = 1 WHERE name = 'teacher';
-   ```
-
-3. **Re-seed permissions** (if role has no permissions):
-   ```bash
-   python backend/ops/seed_rbac_data.py
-   ```
-
-**Prevention**: Monitor for users without roles daily
-
----
-
-### Scenario 3: Accidental Admin Privilege Removal
-
-**Symptoms**:
-- Admin can no longer access admin panel
-- 403 errors on system:admin endpoints
-
-**Emergency Recovery**:
-
-```sql
--- Restore admin role to user
-UPDATE users
-SET role_id = (SELECT id FROM roles WHERE name = 'admin')
-WHERE email = 'primary.admin@example.com';
-
--- Verify admin role has all permissions
-SELECT COUNT(*) FROM role_permissions
-WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');
--- Should return 26 (all permissions)
-
--- If count is wrong, re-seed
-
-```text
-```bash
-python backend/ops/seed_rbac_data.py
-
-```text
-**Prevention**:
-- Always maintain 2+ admin users
-- Never test permission changes on own admin account
-- Use separate test account for permission experiments
-
----
-
-### Scenario 4: Database Corruption
-
-**Symptoms**:
-- Inconsistent permission behavior
-- Missing permissions or roles
-- Foreign key violations in logs
-
-**Recovery**:
-
-1. **Backup current database**:
-   ```bash
-   sqlite3 data/student_management.db ".backup data/student_management_backup_$(date +%Y%m%d_%H%M%S).db"
-   ```
-
-2. **Check database integrity**:
-   ```bash
-   sqlite3 data/student_management.db "PRAGMA integrity_check;"
-   ```
-
-3. **Re-seed RBAC data**:
-   ```bash
-   python backend/ops/seed_rbac_data.py --verify
-   python backend/ops/seed_rbac_data.py
-   ```
-
-4. **If corruption persists**, restore from backup:
-   ```bash
-   cp backups/database/backup_YYYYMMDD.db data/student_management.db
-   ```
-
----
-
-## Change Management
-
-### Adding New Permission
-
-**Process**:
-
-1. **Design Phase** (1-2 days)
-   - Define permission key (e.g., `exports:download`)
-   - Determine which roles need it
-   - Document purpose and scope
-
-2. **Implementation** (1 hour)
-   - Add to `backend/ops/seed_rbac_data.py`:
-
-     ```python
-     Permission(
-         key="exports:download",
-         resource="exports",
-         action="download",
-         description="Download export files"
-     ),
-     ```
-   - Add to role mappings:
-
-     ```python
-     ("admin", "exports:download"),
-     ("teacher", "exports:download"),
-     ```
-
-3. **Testing** (30 minutes)
-   - Run dry-run: `python backend/ops/seed_rbac_data.py --dry-run`
-   - Verify output shows new permission
-   - Apply: `python backend/ops/seed_rbac_data.py`
-   - Confirm in DB:
-
-     ```sql
-     SELECT * FROM permissions WHERE key = 'exports:download';
-     ```
-
-4. **Documentation** (15 minutes)
-   - Update [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md)
-   - Update [API_PERMISSIONS_REFERENCE.md](../../backend/API_PERMISSIONS_REFERENCE.md)
-
-5. **Deployment** (5 minutes)
-   - Commit changes
-   - Deploy to staging
-   - Run seeding script on production
-
-**Rollback**: Deactivate permission if issues found
-
-```sql
-UPDATE permissions SET is_active = 0 WHERE key = 'exports:download';
-
-```text
----
-
-### Modifying Role Permissions
-
-**Process**:
-
-1. **Impact Assessment** (30 minutes)
-   - Identify affected users:
-
-     ```sql
-     SELECT COUNT(*) FROM users WHERE role_id = (SELECT id FROM roles WHERE name = 'teacher');
-     ```
-   - Test on staging environment first
-
-2. **Change Implementation** (15 minutes)
-   - Update `backend/ops/seed_rbac_data.py`
-   - Run on staging: `python backend/ops/seed_rbac_data.py`
-   - Verify:
-
-     ```sql
-     SELECT p.key
-     FROM permissions p
-     JOIN role_permissions rp ON p.id = rp.permission_id
-     WHERE rp.role_id = (SELECT id FROM roles WHERE name = 'teacher')
-     ORDER BY p.key;
-     ```
-
-3. **User Communication** (1 day before)
-   - Notify affected users via email
-   - Document changes in release notes
-
-4. **Production Deployment** (5 minutes)
-   - Deploy code changes
-   - Run seeding script: `python backend/ops/seed_rbac_data.py`
-   - Monitor logs for 403 errors (30 minutes)
-
-5. **Validation** (1 hour)
-   - Test key workflows with affected roles
-   - Verify no unexpected denials
-
-**Rollback**: Revert seed_rbac_data.py changes and re-run
-
----
-
-## Audit & Compliance
-
-### Quarterly Audit Procedures
-
-**Run every 3 months** (March, June, September, December)
-
-#### 1. Access Control Review
-
-**Export all user-role-permission mappings**:
-
-```sql
-SELECT
-    u.email,
-    u.is_active,
-    r.name as role,
-    GROUP_CONCAT(p.key, ', ') as permissions
-FROM users u
-LEFT JOIN roles r ON u.role_id = r.id
-LEFT JOIN role_permissions rp ON r.id = rp.role_id
-LEFT JOIN permissions p ON rp.permission_id = p.id
-WHERE u.is_active = 1 AND p.is_active = 1
-GROUP BY u.email, r.name
-ORDER BY u.email;
-
-```text
-**Save to**: `audits/rbac_access_review_YYYYQQ.csv`
-
-**Review for**:
-- Users with excessive permissions
-- Inactive users still active
-- Role assignments not matching job function
-
-#### 2. Permission Usage Analysis
-
-**Identify unused permissions**:
-
-```sql
--- Permissions assigned but never checked (requires app metrics)
--- Manual review: Check application logs for permission usage
-
-```text
-**Action**: Consider removing or consolidating unused permissions
-
-#### 3. Admin Access Log
-
-**List all users who had admin access in last 90 days**:
-
-```sql
--- Current admins
-SELECT u.email, 'Current' as status
-FROM users u
-JOIN roles r ON u.role_id = r.id
-WHERE r.name = 'admin' AND u.is_active = 1
-
-UNION
-
--- Users with direct system:admin permission
-SELECT u.email, 'Direct Grant' as status
-FROM user_permissions up
-JOIN users u ON up.user_id = u.id
-JOIN permissions p ON up.permission_id = p.id
-WHERE p.key = 'system:admin'
-  AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
-ORDER BY status, email;
-
-```text
-**Expected**: 1-3 current admins, 0 direct grants
-
-#### 4. Compliance Checklist
-
-- [ ] All active users have role assignments
-- [ ] Admin count ≤5 users
-- [ ] No direct admin permissions (all via role)
-- [ ] Expired permissions cleaned up
-- [ ] Permission matrix documented
-- [ ] Audit trail preserved (backup history)
-- [ ] No permissions granted without owner approval
-- [ ] Role definitions align with job functions
-
----
-
-## Performance Optimization
-
-### Query Performance
-
-**Check slow RBAC queries**:
-
-```sql
--- Enable query timing
-EXPLAIN QUERY PLAN
-SELECT p.key
-FROM permissions p
-JOIN role_permissions rp ON p.id = rp.permission_id
-WHERE rp.role_id = 1 AND p.is_active = 1;
-
-```text
-**Expected**: Should use indexes on `role_permissions.role_id` and `permissions.id`
-
-### Index Verification
-
-```sql
--- Check RBAC table indexes
-SELECT name, sql FROM sqlite_master
-WHERE type = 'index'
-  AND (tbl_name LIKE '%permission%' OR tbl_name LIKE '%role%');
-
-```text
-**Required Indexes**:
-- `permissions.key` (UNIQUE)
-- `permissions.is_active`
-- `role_permissions.role_id`
-- `role_permissions.permission_id`
-- `user_permissions.user_id`
-- `user_permissions.permission_id`
-
-**If missing**: Recreate via Alembic migration
-
-### Caching Strategy
-
-**Backend already implements**:
-- User permission cache (in-memory)
-- Role permission cache (in-memory)
-
-**Monitor cache hit rate** (requires application metrics):
-
-```python
-# In backend code
-
-cache_hits = permission_cache_hits
-cache_misses = permission_cache_misses
-hit_rate = cache_hits / (cache_hits + cache_misses)
-
-```text
-**Target**: >90% cache hit rate
-
-**If low hit rate**: Review cache TTL and eviction policy
-
----
-
-## Backup & Recovery
-
-### Daily Backup Procedure
-
-**Automated backup** (runs daily at 2:00 AM):
-
-```bash
-#!/bin/bash
-# scripts/backup_rbac.sh
-
-BACKUP_DIR="backups/rbac"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-DB_PATH="data/student_management.db"
-
-mkdir -p "$BACKUP_DIR"
-
-# Backup full database
-
-sqlite3 "$DB_PATH" ".backup $BACKUP_DIR/rbac_backup_$TIMESTAMP.db"
-
-# Export RBAC tables only (for quick restore)
-
-sqlite3 "$DB_PATH" <<EOF > "$BACKUP_DIR/rbac_tables_$TIMESTAMP.sql"
-.mode insert
-SELECT * FROM permissions;
-SELECT * FROM roles;
-SELECT * FROM role_permissions;
-SELECT * FROM user_permissions;
-EOF
-
-# Compress old backups (>7 days)
-
-find "$BACKUP_DIR" -name "*.db" -mtime +7 -exec gzip {} \;
-
-echo "Backup completed: $TIMESTAMP"
-
-```text
-**Retention Policy**:
-- Keep daily backups for 30 days
-- Keep monthly backups for 1 year
-- Compress backups >7 days old
-
-### Recovery Procedures
-
-**Scenario 1: Restore RBAC Tables Only**
-
-```bash
-# Restore from SQL export
-
-sqlite3 data/student_management.db < backups/rbac/rbac_tables_20260108.sql
-
-```text
-**Scenario 2: Full Database Restore**
-
-```bash
-# Stop application first
-
-./DOCKER.ps1 -Stop
-
-# Restore database
-
-cp backups/rbac/rbac_backup_20260108.db data/student_management.db
-
-# Restart application
-
-./DOCKER.ps1 -Start
-
-```text
-**Scenario 3: Point-in-Time Recovery**
-
-```bash
-# Find backup closest to desired time
-
-ls -lt backups/rbac/
-
-# Restore from that backup
-
-cp backups/rbac/rbac_backup_20260108_140000.db data/student_management.db
-
-```text
----
-
-## Runbooks
-
-### Runbook 1: Grant Emergency Admin Access
-
-**Use Case**: Regular admin unavailable, need emergency access
-
-**Steps**:
-
-1. **Verify requester identity** (phone call, video verification)
-
-2. **Create temporary admin account**:
-   ```sql
-   INSERT INTO users (email, password_hash, is_active, role_id, created_at, updated_at)
-   VALUES (
-       'emergency.admin@example.com',
-       '$2b$12$...', -- Generate hash with: `python -c "from passlib.hash import bcrypt; print(bcrypt.hash('temp_password'))"`
-       1,
-       (SELECT id FROM roles WHERE name = 'admin'),
-       datetime('now'),
-       datetime('now')
-   );
-   ```
-
-3. **Set expiration** (revoke in 24 hours):
-   ```sql
-   -- Create reminder task
-   INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at)
-   VALUES (
-       (SELECT id FROM users WHERE email = 'emergency.admin@example.com'),
-       (SELECT id FROM permissions WHERE key = 'system:admin'),
-       1,
-       datetime('now'),
-       datetime('now', '+1 day')
-   );
-   ```
-
-4. **Document** in incident log
-
-5. **Revoke after 24 hours**:
-   ```sql
-   UPDATE users SET is_active = 0 WHERE email = 'emergency.admin@example.com';
-   ```
-
----
-
-### Runbook 2: Bulk Role Migration
-
-**Use Case**: Move 50 users from "viewer" to "teacher"
-
-**Steps**:
-
-1. **Export user list**:
-   ```sql
-   SELECT email FROM users
-   WHERE role_id = (SELECT id FROM roles WHERE name = 'viewer')
-     AND email LIKE '%@school.edu';
-   ```
-
-2. **Verify users** (manual review of exported list)
-
-3. **Backup database**:
-   ```bash
-   sqlite3 data/student_management.db ".backup backups/pre_migration_$(date +%Y%m%d).db"
-   ```
-
-4. **Execute migration**:
-   ```sql
-   BEGIN TRANSACTION;
-
-   UPDATE users
-   SET role_id = (SELECT id FROM roles WHERE name = 'teacher'),
-       updated_at = datetime('now')
-   WHERE role_id = (SELECT id FROM roles WHERE name = 'viewer')
-     AND email LIKE '%@school.edu';
-
-   -- Verify count
-   SELECT changes() as rows_updated;
-
-   COMMIT;
-   ```
-
-5. **Verify results**:
-   ```sql
-   SELECT email FROM users
-   WHERE role_id = (SELECT id FROM roles WHERE name = 'teacher')
-     AND email LIKE '%@school.edu';
-   ```
-
-6. **Notify users** of permission changes
-
----
-
-### Runbook 3: Decommission Role
-
-**Use Case**: Remove obsolete "guest" role
-
-**Steps**:
-
-1. **Check usage**:
-   ```sql
-   SELECT COUNT(*) FROM users WHERE role_id = (SELECT id FROM roles WHERE name = 'guest');
-   ```
-
-2. **If users exist**, migrate to new role:
-   ```sql
-   UPDATE users
-   SET role_id = (SELECT id FROM roles WHERE name = 'viewer')
-   WHERE role_id = (SELECT id FROM roles WHERE name = 'guest');
-   ```
-
-3. **Deactivate role** (don't delete - preserves history):
-   ```sql
-   UPDATE roles SET is_active = 0 WHERE name = 'guest';
-   ```
-
-4. **Remove role permissions**:
-   ```sql
-   DELETE FROM role_permissions WHERE role_id = (SELECT id FROM roles WHERE name = 'guest');
-   ```
-
-5. **Document** in changelog
-
----
-
-## Troubleshooting Reference
-
-### Quick Diagnostics
-
-```bash
-# Check if RBAC tables exist
-
-sqlite3 data/student_management.db "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%permission%' OR name LIKE '%role%';"
-
-# Count records in each table
-
-sqlite3 data/student_management.db "
-  SELECT 'permissions', COUNT(*) FROM permissions UNION ALL
-  SELECT 'roles', COUNT(*) FROM roles UNION ALL
-  SELECT 'role_permissions', COUNT(*) FROM role_permissions UNION ALL
-  SELECT 'user_permissions', COUNT(*) FROM user_permissions;
-"
-
-# Check for foreign key violations
-
-sqlite3 data/student_management.db "PRAGMA foreign_key_check;"
-
-# Verify indexes
-
-sqlite3 data/student_management.db "PRAGMA index_list(permissions);"
-
-```text
-### Common Issues
-
-| Issue | Symptom | Fix |
-|-------|---------|-----|
-| Missing permissions | 404 permission not found | Re-run `seed_rbac_data.py` |
-| User no role | 403 on all endpoints | Assign viewer role |
-| Too many 403s | Spike in errors | Check permission seeding |
-| Slow queries | High latency | Verify indexes exist |
-| Expired not cleaned | Growing table | Run weekly cleanup |
-
----
-
-## Support & Escalation
-
-### Contact Information
-
-- **Tier 1 Support**: Owner / on-call operator
-- **Tier 2 Support**: Owner development queue
-- **Tier 3 Support**: Security-response workflow / specialist support if required
-
-### Escalation Criteria
-
-**Escalate to Tier 2 if**:
-- Issue not resolved in 1 hour
-- Affects >10% of users
-- Requires code changes
-
-**Escalate to Tier 3 if**:
-- Security breach suspected
-- Unauthorized admin access
-- Data exposure risk
-
----
-
-## Appendix
-
-### Useful Queries
-
-**Permission cheat sheet**:
-
-```sql
--- List all permissions
-SELECT key, description FROM permissions ORDER BY key;
-
--- List all roles
-SELECT name, description FROM roles WHERE is_active = 1;
-
--- Show user's role
-SELECT u.email, r.name FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE u.email = ?;
-
--- Show role's permissions
-SELECT p.key FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id WHERE rp.role_id = ?;
-
--- Count users per role
-SELECT r.name, COUNT(u.id) FROM roles r LEFT JOIN users u ON r.id = u.role_id GROUP BY r.name;
-
-```text
----
-
-**Last Updated**: January 8, 2026
-**Version**: 1.15.1
-**Maintained By**: SRE Team
+WHERE u.is_active IS TRUE
+  AND NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id);
+```
+
+The second list should hold only accounts whose Role column says `none`. One that says `admin`
+or `teacher` is given its role at the next start.
+
+These queries only read. Change nothing by SQL: it leaves no entry in the Audit Log, and a
+server that keeps answers for some seconds (`PERMISSION_CACHE_TTL_SECONDS`) sees the change only
+when they expire.
+
+## Adding a permission
+
+For a developer. A permission exists when an endpoint asks for it:
+
+1. The endpoint uses `@require_permission("area:action")` (see
+   [API_PERMISSIONS_REFERENCE.md](../../src/backend/API_PERMISSIONS_REFERENCE.md)).
+2. Add the key to `PERMISSION_DEFS` in `src/backend/routers/routers_rbac.py`, and to
+   `TEACHER_PERMISSIONS` if teachers are to hold it. These tests fail until it is there:
+   `test_two_roles_model.py` and `test_permission_documents.py`. The first also states the
+   numbers (44 permissions, 51 grants), which change with it.
+3. Add its name to `permissionNames` in `src/frontend/src/locales/en/rbac.js` and `el/rbac.js`;
+   `permissionNames.test.ts` fails until you do.
+4. Name it in [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md), under one of its four
+   headings, with who holds it, and update the number of permissions there and in
+   [RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md).
+5. Refresh the table of endpoints in [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md):
+   `python -m backend.scripts.endpoint_requirements --write`, run in `src/backend`.
+
+An installation that already runs does not get the new permission from a start: a start seeds
+only in the cases above. Add a migration that inserts it, as migration `5189ab647b5a` did for
+the thirteen it added, or have the administrators press **Initialize RBAC Defaults**.
+
+## Backup
+
+[BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md) says what is backed up and how to restore. After a
+restore the application gives the accounts the rows of their roles again (the step at every
+start); **Initialize RBAC Defaults** adds anything else that is missing.
