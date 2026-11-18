@@ -79,7 +79,10 @@ the moment of the request.
 - Shown to administrators and teachers only: the form that sends a message, the feedback
   inbox, "Add Highlight" on a student's profile.
 - An account without a role therefore sees buttons such as "Add Student". The server refuses
-  the request and the page reports a failure.
+  the request and the page reports a failure. A line at the top of every page tells such an
+  account that it has no role and that an administrator can give it one.
+- **User Accounts** shows an account that is not an administrator the form "Change Your
+  Password" and nothing else.
 
 ## Addresses outside the table
 

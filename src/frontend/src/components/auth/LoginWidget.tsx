@@ -56,12 +56,12 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
 
 
     if (!actualEmail) {
-      setError('Παρακαλώ εισάγετε τη διεύθυνση email σας. / Please enter your email.');
+      setError(t('auth.emailRequired'));
       setLoading(false);
       return;
     }
     if (!actualPassword) {
-      setError('Παρακαλώ εισάγετε τον κωδικό πρόσβασης. / Please enter your password.');
+      setError(t('auth.passwordRequired'));
       setLoading(false);
       return;
     }
@@ -79,10 +79,10 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
       if (errObj?.response?.status === 422) {
         const validationErrors = errObj.response?.data?.error?.details?.errors;
         if (validationErrors && validationErrors.length > 0) {
-          const firstErr = validationErrors[0];
-          const field = Array.isArray(firstErr.loc) ? firstErr.loc.join('.') : '';
-          const msg = firstErr.msg || 'validation error';
-          setError(`Validation failed: ${field} — ${msg}`);
+          // The server did not take what was typed: in practice an address that is not one.
+          // It used to be shown as the server's own English ("Validation failed: body.email …").
+          const field = Array.isArray(validationErrors[0].loc) ? validationErrors[0].loc.join('.') : '';
+          setError(field.includes('email') ? t('auth.emailInvalid') : t('auth.loginError'));
         } else {
           setError(getErrorMessage(err, t('auth.loginError')));
         }

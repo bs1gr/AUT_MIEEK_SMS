@@ -264,6 +264,8 @@ export default {
   helpRBACConfigurationAnswer: 'A role (Administrator, Teacher) is a set of permissions, and the server checks them at every request. The pages show the same buttons to everybody: a button your account may not use answers with a failure message.\n\nAn account without a role can sign in and nothing else.',
   helpHowToManagePermissions: 'How do I manage roles and permissions? (Admin only)',
   helpManagePermissionsAnswer: '"System" → "Show Control Panel" → "Maintenance" → "RBAC Configuration":\n• "Overview": the roles and every permission\n• "Users": every account with its number and its roles\n• "Assign Role to User": give an account a role, or revoke one. An account whose last role is revoked can do nothing until it is given a role again\n• "Permissions Catalog": grant a permission to a role or to one account, revoke it, and look up what an account holds',
+  helpHowToChangeOwnPassword: 'How do I change my password?',
+  helpChangeOwnPasswordAnswer: '1. "System" → "Show Control Panel" → "Maintenance" → "User Accounts"\n2. Under "Change Your Password": "Current password", "New password" and "Confirm password"\n3. Click "Update password"\n\nThe new password needs at least 8 characters, with an uppercase and a lowercase letter, a number and a symbol, and no spaces.\n\nEvery account has this form. If you forgot your password, an administrator sets a new one for you.',
   helpHowToManageUserAccounts: 'How do I manage user accounts? (Admin only)',
   helpManageUserAccountsAnswer: '"System" → "Show Control Panel" → "Maintenance" → "User Accounts": create an account, approve a registration, change the name, the role and "Active", reset a password, delete an account. Unticking "Active" stops an account at once.',
 

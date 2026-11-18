@@ -102,10 +102,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       setAccessDenied(false);
     } catch (error: unknown) {
       console.error('Failed to load users', error);
-      // Check if it's a 401 Unauthorized error
+      // Refused (401, or 403 for an account that may not manage accounts): the panel then
+      // shows what such an account gets, and no "could not load" on top of it.
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status?: number } };
-        if (axiosError.response?.status === 401) {
+        if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
           setAccessDenied(true);
           return; // Don't show toast for auth errors
         }
@@ -380,8 +381,102 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     );
   };
 
-  // Show access denied message if not authorized
-  if (accessDenied) {
+  // The account's own password. Everybody who is signed in gets this card: until November
+  // 2026 it stood behind the administrator check below, so a teacher had no page for a new
+  // password and had to ask an administrator for a reset.
+  const ownPasswordCard = (
+    <section className="rounded-2xl border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/30 shadow-xs">
+      <header className="flex items-center gap-3 border-b border-teal-100 dark:border-teal-800 px-4 py-3">
+        <LockKeyhole className="text-teal-600 dark:text-teal-300" size={18} />
+        <div>
+          <p className="text-sm font-semibold text-teal-800 dark:text-teal-100">{t('changeOwnPasswordTitle')}</p>
+          <p className="text-xs text-teal-600 dark:text-teal-300">{t('changeOwnPasswordSubtitle')}</p>
+        </div>
+      </header>
+      <form onSubmit={handleChangeOwnPassword} className="grid gap-4 p-4 md:grid-cols-3">
+        <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
+          {t('currentPassword')}
+          <input
+            type="password"
+            name="currentPassword"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
+            required
+          />
+        </label>
+        <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
+          {t('newPassword')}
+          <input
+            type="password"
+            name="newPassword"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
+            required
+          />
+          <div className="mt-1 flex items-center gap-2">
+            <div className="h-2 flex-1 overflow-hidden rounded bg-teal-100 dark:bg-teal-800">
+              <div
+                className={`h-full transition-all ${
+                  passwordStrength <= 2 ? 'bg-rose-500 w-1/6' :
+                  passwordStrength === 3 ? 'bg-amber-500 w-2/5' :
+                  passwordStrength === 4 ? 'bg-yellow-500 w-3/5' :
+                  passwordStrength === 5 ? 'bg-lime-500 w-4/5' : 'bg-emerald-500 w-full'
+                }`}
+              />
+            </div>
+            <span className="text-[10px] font-medium text-teal-700 dark:text-teal-300">
+              {t('passwordStrengthLabel')}: {passwordStrength}/6
+            </span>
+          </div>
+        </label>
+        <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
+          {t('confirmPassword')}
+          <input
+            type="password"
+            name="confirmPassword"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
+            required
+          />
+        </label>
+        <div className="md:col-span-3 flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={changingOwnPassword || !currentPassword || !newPassword || ownUnmet.length > 0 || newPassword !== confirmPassword}
+            className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save size={14} /> {t('changeOwnPasswordButton')}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }}
+            className="inline-flex items-center gap-1 rounded-md border border-teal-300 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-100 dark:text-teal-200 dark:border-teal-600"
+          >
+            <XCircle size={14} /> {t('cancel')}
+          </button>
+        </div>
+
+        {/* Validation feedback */}
+        <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
+          {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('currentPassword') })}</p>}
+          {!newPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('newPassword') })}</p>}
+          {newPassword && ownUnmet.length > 0 && (
+            <p data-testid="own-password-unmet">{t('bullet')} {describeUnmet(ownUnmet)}</p>
+          )}
+          {newPassword && confirmPassword && newPassword !== confirmPassword && <p>{t('bullet')} {t('changeOwnPasswordMismatch')}</p>}
+          <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('changeOwnPasswordHint')}</p>
+        </div>
+      </form>
+    </section>
+  );
+
+  if (!user || !accessToken) {
     return (
       <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-6">
         <div className="flex items-start gap-3">
@@ -399,98 +494,26 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     );
   }
 
+  if (user.role !== 'admin' || accessDenied) {
+    // Signed in, and not an administrator (or one the server refuses the list of accounts).
+    // Asked of the account itself and not only of the state the effect above sets: for the
+    // moment before the effect ran, a teacher was shown the administrator's forms.
+    return (
+      <div className="space-y-6">
+        {ownPasswordCard}
+        <p
+          data-testid="accounts-admin-only"
+          className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+        >
+          {t('accountsAdminOnlyNote')}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Self password change card */}
-      <section className="rounded-2xl border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/30 shadow-xs">
-        <header className="flex items-center gap-3 border-b border-teal-100 dark:border-teal-800 px-4 py-3">
-          <LockKeyhole className="text-teal-600 dark:text-teal-300" size={18} />
-          <div>
-            <p className="text-sm font-semibold text-teal-800 dark:text-teal-100">{t('changeOwnPasswordTitle')}</p>
-            <p className="text-xs text-teal-600 dark:text-teal-300">{t('changeOwnPasswordSubtitle')}</p>
-          </div>
-        </header>
-        <form onSubmit={handleChangeOwnPassword} className="grid gap-4 p-4 md:grid-cols-3">
-          <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
-            {t('currentPassword')}
-            <input
-              type="password"
-              name="currentPassword"
-              autoComplete="current-password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
-              required
-            />
-          </label>
-          <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
-            {t('newPassword')}
-            <input
-              type="password"
-              name="newPassword"
-              autoComplete="new-password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
-              required
-            />
-            <div className="mt-1 flex items-center gap-2">
-              <div className="h-2 flex-1 overflow-hidden rounded bg-teal-100 dark:bg-teal-800">
-                <div
-                  className={`h-full transition-all ${
-                    passwordStrength <= 2 ? 'bg-rose-500 w-1/6' :
-                    passwordStrength === 3 ? 'bg-amber-500 w-2/5' :
-                    passwordStrength === 4 ? 'bg-yellow-500 w-3/5' :
-                    passwordStrength === 5 ? 'bg-lime-500 w-4/5' : 'bg-emerald-500 w-full'
-                  }`}
-                />
-              </div>
-              <span className="text-[10px] font-medium text-teal-700 dark:text-teal-300">
-                {t('passwordStrengthLabel')}: {passwordStrength}/6
-              </span>
-            </div>
-          </label>
-          <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
-            {t('confirmPassword')}
-            <input
-              type="password"
-              name="confirmPassword"
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
-              required
-            />
-          </label>
-          <div className="md:col-span-3 flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={changingOwnPassword || !currentPassword || !newPassword || ownUnmet.length > 0 || newPassword !== confirmPassword}
-              className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Save size={14} /> {t('changeOwnPasswordButton')}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }}
-              className="inline-flex items-center gap-1 rounded-md border border-teal-300 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-100 dark:text-teal-200 dark:border-teal-600"
-            >
-              <XCircle size={14} /> {t('cancel')}
-            </button>
-          </div>
-
-          {/* Validation feedback */}
-          <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
-            {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('currentPassword') })}</p>}
-            {!newPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('newPassword') })}</p>}
-            {newPassword && ownUnmet.length > 0 && (
-              <p data-testid="own-password-unmet">{t('bullet')} {describeUnmet(ownUnmet)}</p>
-            )}
-            {newPassword && confirmPassword && newPassword !== confirmPassword && <p>{t('bullet')} {t('changeOwnPasswordMismatch')}</p>}
-            <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('changeOwnPasswordHint')}</p>
-          </div>
-        </form>
-      </section>
+      {ownPasswordCard}
       <section className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xs">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
           <div className="flex items-center gap-2 text-gray-800 dark:text-gray-100">

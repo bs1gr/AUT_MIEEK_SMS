@@ -226,6 +226,7 @@ const HelpDocumentation = () => {
       items: [
         { question: t('helpWhatIsRBACConfiguration'), answer: t('helpRBACConfigurationAnswer') },
         { question: t('helpHowToManagePermissions'), answer: t('helpManagePermissionsAnswer') },
+        { question: t('helpHowToChangeOwnPassword'), answer: t('helpChangeOwnPasswordAnswer') },
         { question: t('helpHowToManageUserAccounts'), answer: t('helpManageUserAccountsAnswer') },
       ]
     },
@@ -326,7 +327,7 @@ const HelpDocumentation = () => {
             <div className="space-y-2">
               <a
                 href="/api/v1/help/user-guide/en"
-                download="SMS_User_Guide_EN.pdf"
+                download="SMS_Quick_Guide_EN.pdf"
                 className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
               >
                 <Download size={14} className="mr-1" />
@@ -334,7 +335,7 @@ const HelpDocumentation = () => {
               </a>
               <a
                 href="/api/v1/help/user-guide/el"
-                download="SMS_User_Guide_EL.pdf"
+                download="SMS_Quick_Guide_EL.pdf"
                 className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
               >
                 <Download size={14} className="mr-1" />

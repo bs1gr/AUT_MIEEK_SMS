@@ -2,6 +2,9 @@ export default {
   loginTitle: 'Sign in to your account',
   loginDescription: 'Use your credentials to access the student management platform.',
   loginError: 'Unable to sign in. Check your email and password and try again.',
+  emailRequired: 'Please enter your email address.',
+  passwordRequired: 'Please enter your password.',
+  emailInvalid: 'This is not an email address. Check it and try again.',
   registerTitle: 'Create account',
   registerDescription: 'Provide your details to request access to the student management system.',
   registerSuccess: 'Account created successfully. You are now signed in.',
@@ -16,4 +19,5 @@ export default {
   openRegisterPrompt: 'Request access',
   hideRegisterPrompt: 'Hide registration form',
   signedInAs: 'Signed in as {{name}}',
+  noRoleNotice: 'Your account has no role, so no page of records opens for it. Ask an administrator to give it a role.',
 };

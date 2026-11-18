@@ -301,8 +301,57 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-**2026-11-18: the Weight of a grade counts** (PR 426; the owner's decision of that day, point
-7 of the message at the head of todo 63: "The Weight box of a grade: make it count").
+**2026-11-18: what an account can do for itself, and what it is told** (PR 427; from the
+owner's message of that day, at the head of todo 63: point 4, "A teacher has no page for
+changing their own password, should have access there", and three of the four things to take
+up: "the registration form's message that appears in two languages at once; a sentence
+telling an account without access why its pages fail; the text of the one-page PDF behind the
+help").
+
+- **Every account changes its own password.** The form "Change Your Password" stood behind
+  the administrator check of User Accounts, so the panel answered a teacher "Access Denied".
+  It now shows an account that is not an administrator that form, and a line saying that the
+  other accounts are managed by an administrator; the list of accounts and the form for a new
+  one stay with the administrator. The panel also asks the account itself whether it is an
+  administrator, where it waited for an effect: for a moment a teacher was shown the
+  administrator's forms. Tried as a teacher with the Control API answering 404, as it does in
+  Docker: the request is `POST /auth/change-password`, the old password is refused afterwards
+  and the new one accepted.
+- **An account without a role is told so**, by one line at the top of every page ("Your
+  account has no role, so no page of records opens for it. Ask an administrator to give it a
+  role."). It used to see a row of unrelated failures. Any word but Administrator and Teacher
+  counts as no role; an administrator and a teacher see nothing.
+- **The sign-in form's own messages are in the page's language.** It was the sign-in form,
+  not the registration form: an empty address and an empty password were answered in Greek
+  and English at once, written in the code, and an address that is not one with the server's
+  English ("Validation failed: body.email — ..."). Three texts in both languages.
+- **The Quick Guide** (the one-page PDF behind Utils > Help & Documentation) is written anew
+  in both languages. It promised a "Help" button, video tutorials "coming soon" and support
+  links, none of which exist; its Greek called the students "φοιτητές". It now gives the five
+  steps to start, the pages, the account and where the help is, naming each button, tab and
+  page as the application names it; `quickGuide.test.ts` finds every such name among the
+  application's texts of that language, so a renamed button fails the test. A4, one page.
+- **The Greek Quick Guide had no Greek letters on Docker.** The page was set in a font of the
+  operating system; the Docker image installs none, so there it fell back to Helvetica, which
+  has no Greek letters (read from the code and the image's packages; not looked at on a
+  Docker copy). It is set in the DejaVu fonts the application carries, like the other PDFs.
+- **Texts.** A help answer "How do I change my password?" (81 answers); the user guide
+  (sections 1, 13 and 14), the administrator's guide, the matrix and the reference.
+- **Tests.** `AdminUsersPanel.ownPassword.test.tsx` (7), `NoRoleBanner.test.tsx` (14),
+  three changed and one new in `LoginWidget.test.tsx`, `quickGuide.test.ts` (4),
+  `test_quick_guide.py` (10).
+- **Tried in a browser, in English and in Greek:** the teacher's password change as above;
+  the line for an account without a role on four pages, and none for a teacher or an
+  administrator; the three messages of the sign-in form. The text of both PDFs was read back
+  out of the files.
+- **Seen and not changed:** the two download links of the help are addresses of the page's
+  own origin (`/api/v1/help/user-guide/en`). In the Android app, whose pages do not come from
+  the server, they would not reach it (read from the code, not tried on a phone).
+
+**2026-11-18: the Weight of a grade counts** (PR 426, merged as `56b7e873f`; on the PR's
+commit CI's backend job passed 1,815 tests with 55 skipped, the frontend job 2,061 and E2E
+76. The owner's decision of that day, point 7 of the message at the head of todo 63: "The
+Weight box of a grade: make it count").
 
 - **What it was.** Grades > Grade Entry has a Weight box, and Grade History showed what was
   typed ("×3"). The number was stored and never read: the final grade took the plain average
@@ -2226,8 +2275,12 @@ now** (todo 58).
       - *Points 1 to 3: done in PR 425* (see its entry: two roles, "No role", the closed list
         of 44 permissions, teachers import).
       - *Point 7: done in PR 426* (the Weight of a grade counts).
-      - *Open, in this order:* a teacher changes the own password (4); the audit log says who made a change, and a page shows it (5); the
-        four smaller ones; the older documents, read and corrected, not deleted (6).
+      - *Point 4 and three of the four smaller ones: done in PR 427* (every account changes
+        its own password; the line for an account without a role; the sign-in form's
+        messages; the Quick Guide).
+      - *Open, in this order:* the audit log says who made a change, and a page shows it
+        (5, and the fourth of the smaller ones); the older documents, read and corrected,
+        not deleted (6).
       - *Not in the message, and waiting for the owner's word:* a release and the update of
         the cloud VM; whether teachers also get the session file; the four tools nothing runs
         and the two unused page parts (delete or keep).
@@ -2248,8 +2301,8 @@ now** (todo 58).
       requests that could take `*:*` from the administrators; the blank permission names of
       the Overview tab and the invented names of the Users tab; saving a Viewer or Guest
       account from Edit. (The two roles are gone since PR 425.)
-    - *A teacher has no page for changing the own password* (the owner, 2026-11-18: "should
-      have access there"; open). The form is in User Accounts,
+    - *Done in PR 427 (the owner, 2026-11-18: "should have access there"):* a teacher had no
+      page for changing the own password. As it was: the form is in User Accounts,
       which answers "Access Denied" to everybody but an administrator. A teacher asks an
       administrator for a reset.
     - *The audit log does not say who made a role or permission change* (the owner,
@@ -2332,10 +2385,10 @@ now** (todo 58).
       Data") is imported by no page, and `adminOpsAPI.generateSampleData` is called by
       nothing; the server's `POST /adminops/generate-sample-data` is therefore reachable
       only by hand. Delete, or put the button on a page (the owner's OK).
-    - *The one-page PDF of the help* ("Quick Guide") is composed by `routers_help.py`; its
-      text was not read against the pages (the owner, 2026-11-18: take it up; open).
-    - *An account without access (No role) is not told why its pages fail* (the owner,
-      2026-11-18: take it up; open): it sees
+    - *Done in PR 427:* the one-page PDF of the help ("Quick Guide"), composed by
+      `routers_help.py`, was read against the pages and written anew.
+    - *Done in PR 427:* an account without access (No role) was not told why its pages
+      fail. As it was: it sees
       "Error loading analytics data", "Failed to load data" and the like. One sentence at
       the top ("Your account has no role…") would say it.
     - *Not tried from end to end:* a scheduled report and a report sent by e-mail.
@@ -2344,8 +2397,8 @@ now** (todo 58).
     - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
       The "N/A" dates of "Recent Grades" were narrower than written here: only a grade
       without a "date submitted" (see the entry of PR 422).
-    - *The registration form answers an empty address in two languages at once* (the owner,
-      2026-11-18: take it up; open): "Παρακαλώ
+    - *Done in PR 427 (it was the sign-in form):* an empty address was answered in two
+      languages at once: "Παρακαλώ
       εισάγετε τη διεύθυνση email σας. / Please enter your email."
     - *A teacher is shown System > Control Panel > Maintenance > System Operations* with
       Backup Database, Restore DB and Clear DB. Clear is refused by the server. Backup and

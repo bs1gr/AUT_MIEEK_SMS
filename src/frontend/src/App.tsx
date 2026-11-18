@@ -20,6 +20,7 @@ import BackendStatusBanner from './components/common/BackendStatusBanner';
 import OfflineBanner from './components/common/OfflineBanner';
 import AppUpdateBanner from './components/common/AppUpdateBanner';
 import ReleaseAnnouncementBanner from './components/common/ReleaseAnnouncementBanner';
+import NoRoleBanner from './components/common/NoRoleBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
 import { getApiBaseUrl, isLocalMode } from '@/utils/serverUrl';
 import { useAndroidBackButton } from '@/hooks/useAndroidBackButton';
@@ -165,6 +166,9 @@ function AppLayout({ children }: AppLayoutProps) {
 
       {/* Browser and desktop editions: a newer release is published */}
       {isAuthenticated && <ReleaseAnnouncementBanner />}
+
+      {/* An account that holds no role: why its pages show failures */}
+      {isAuthenticated && <NoRoleBanner />}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

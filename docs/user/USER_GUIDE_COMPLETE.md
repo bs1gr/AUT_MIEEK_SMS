@@ -60,9 +60,11 @@ else opens.
 
 **Signing out** is the button with the power sign at the top right.
 
-**Changing your password.** An administrator does it under System > Control Panel >
-Maintenance > User Accounts ("Change Your Password"). A teacher has no page for it: ask an
-administrator for a reset.
+**Changing your password.** Under System > Control Panel > Maintenance > User Accounts, in
+the form "Change Your Password": the current password, the new one twice, then **Update
+password**. Every account has the form. The new password needs at least 8 characters, with
+an uppercase and a lowercase letter, a number and a symbol, and no spaces. If you forgot your
+password, an administrator sets a new one (User Accounts > Reset password).
 
 ## 2. The page
 
@@ -358,7 +360,7 @@ and deleting templates is for administrators.
 users or to the users of one role, and the **Feedback Inbox** with what was sent through
 Send Feedback. See [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md).
 
-**Help & Documentation.** Eighty questions and answers in eighteen groups, with a
+**Help & Documentation.** Eighty-one questions and answers in eighteen groups, with a
 search box, in English and in Greek. They were read against the pages on 18 November 2026.
 "Quick Guide", under the groups, downloads a one-page summary as a PDF; it is not this guide.
 
@@ -391,7 +393,8 @@ Three cards, each with a **Show** button.
 - **Credits:** the author, the licence and the software the application is built on.
 
 Most of the Control Panel works only on the computer that runs the application, or for an
-administrator. A teacher who opens Maintenance > User Accounts reads "Access Denied".
+administrator. A teacher who opens Maintenance > User Accounts gets the form for the own
+password, and a line saying that the other accounts are managed by an administrator.
 
 **Updates** checks whether a newer version is published. **System Operations** says whether
 the automatic daily backup is switched on; [BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md)
@@ -412,7 +415,7 @@ Students have no accounts: a student is a record the teachers keep, not somebody
 
 Every account sees the same pages and buttons. What it may do is decided by the server at
 each request, so an account that may not do something sees the button and gets a failure
-message. A teacher sees and changes every student and every course: there are no permissions
+message. An account without a role is told so by a line at the top of every page. A teacher sees and changes every student and every course: there are no permissions
 per course or per class.
 
 The full table is in [PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md).
@@ -428,7 +431,6 @@ The earlier guide described these. They do not exist.
   rest is set on the server by whoever looks after the installation.
 - Keyboard shortcuts.
 - A page for a student to see the own grades.
-- A page where a teacher changes the own password.
 - A page for the audit log.
 
 ## 16. When something goes wrong

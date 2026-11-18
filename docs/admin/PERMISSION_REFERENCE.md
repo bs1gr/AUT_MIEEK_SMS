@@ -182,9 +182,10 @@ An account holds no role when:
   its role to "No role";
 - it was a Student, Viewer or Guest account when the database was upgraded (see below).
 
-Its Role column reads `none`. It can sign in, see its own profile and change its password;
-every page of records answers "forbidden". A permission granted to the account itself still
-counts. Giving it a role again, in either place, brings the access back.
+Its Role column reads `none`. It can sign in, see its own profile and change its password
+(Control Panel > Maintenance > User Accounts); every page of records answers "forbidden",
+and a line at the top of every page says that the account has no role. A permission granted
+to the account itself still counts. Giving it a role again, in either place, brings the access back.
 
 **The step at every start.** Each time the application starts, every account whose Role column
 says `admin` or `teacher` is given the row of that role if it lacks it. This is what keeps the
