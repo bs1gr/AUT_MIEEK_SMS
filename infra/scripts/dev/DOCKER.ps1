@@ -2013,7 +2013,12 @@ function Initialize-EnvironmentFiles {
             $envContent = $envContent -replace 'DATABASE_URL=.*', "DATABASE_URL=sqlite:////data/student_management.db"
             Set-Content -Path $ROOT_ENV -Value $envContent
             Write-Success "Root .env created with secure SECRET_KEY (single-image + local SQLite)"
-            Write-Info "Initial admin login: $(if ($envContent -match '(?m)^DEFAULT_ADMIN_EMAIL=(.*)$') { $Matches[1].Trim() } else { 'admin' }) / $adminPassword  (stored in config\.env; change it after first login)"
+            # On the console only. Write-Info also writes to DOCKER_INSTALL.log when the installer
+            # runs this script (-Silent), and a password does not belong in a log: the log gets
+            # the address and where the password is kept.
+            $adminEmail = if ($envContent -match '(?m)^DEFAULT_ADMIN_EMAIL=(.*)$') { $Matches[1].Trim() } else { 'admin' }
+            Write-Host "ℹ Initial admin login: $adminEmail / $adminPassword  (stored in config\.env; change it after first login)" -ForegroundColor Cyan
+            if ($Silent) { Write-InstallerLog "INFO: Initial admin login: $adminEmail; the password is DEFAULT_ADMIN_PASSWORD in config\.env (change it after first login)" }
             $configured = $true
         } else {
             Write-Warning ".env.example not found, creating minimal .env..."

@@ -301,8 +301,105 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-**2026-11-18: a mark on the Attendance page is no longer lost** (PR 430; taken up from the
-E2E test that needed a second try on the CI of PR 429, "should mark student attendance").
+**2026-11-18: an installer built by hand takes tracked files only; the installation guide
+read against the installer** (PR 431; the last things named for a "continue" after PR 429:
+`docs/operations/INSTALLATION_GUIDE.md`, the toast of a session import, the index of the
+permission keys).
+
+- **What an installer built on the developer's PC packed.** A wildcard line of
+  `SMS_Installer.iss` (`Source: "..\..\..\src\backend\*"`) takes every file in its folder,
+  tracked by git or not. The published installers are built by the workflow
+  `release-installer-with-sha.yml` from a clean checkout, which holds tracked files only.
+  `RELEASE_READY` also builds one locally, from the main tree, and there the two lines for
+  `config\*` and `src\backend\*` found (counted in the main tree on 18 November; the local
+  builds themselves were not unpacked, but Inno Setup was run on a sample folder with the
+  two lines as they were, and it packed every one of these kinds of file):
+  - `config\.env`, `config\environments\production.env` and its `.SECURE` copy: the PC's
+    secret key and database password;
+  - `src\backend\.keys\master.key`, the key of the encrypted backups;
+  - 273 generated reports, 185 exports, four uploaded import files and 46 test result
+    files (`src\backend\reports`, `exports`, `data`, `test-results`).
+  - Nine such local builds lie in `infra\installer\dist` (v1.18.65 to v1.18.73, ignored by
+    git). **None was published:** the v1.18.73 asset on GitHub is another file (87,360,944
+    bytes against 90,266,856, another SHA-256). The copy installed on this PC from the
+    v1.18.63 installer holds no packed `config\.env` (its uninstall data lists the files
+    placed; the file there was made by `DOCKER.ps1` a minute after the install).
+- **What changes.**
+  - `SMS_Installer.iss` excludes those files on the two lines: `.env`, `*.env` and
+    `*.env.SECURE` under `config` (the `*.example` templates stay), and `reports`,
+    `exports`, `data`, `test-results`, `.keys` and `.mypy_cache` under the backend. None of
+    these folders holds a tracked file. Tried with Inno Setup on the same sample folder:
+    with the new lines it packs the code (a `routers_reports.py` and a `schemas\reports.py`
+    included) and the `*.example` templates, and none of the others.
+  - **The gate's "Installer Input Guard" now fails when a wildcard line would take a file
+    that git does not track** and the line does not exclude
+    (`scripts/validate_installer_release_inputs.ps1`). It used to look for database files
+    only. It asks git once per folder and takes 3.5 seconds. A clean checkout passes; a
+    working tree passes as long as every local file is excluded, so a new kind of local
+    file stops the gate with its name instead of travelling in the next local build.
+  - *What the guard found on its first run on CI.* The job that runs the gate on CI
+    machines ("COMMIT_READY Smoke (quick)", Ubuntu and Windows) first runs the tests, which
+    write `src\backend\pytest-results.xml` and `src\frontend\vitest-results.xml`; the guard
+    named both and the job failed. A test run's reports are not part of an installer: the
+    two lines leave them out now, with the other reports a run can write there
+    (`.coverage`, `coverage.xml`, `htmlcov`; `coverage`, `.vitest`, `test-results*.json`,
+    `test-output.log`, `e2e-results.txt`, `*.tsbuildinfo`). No tracked file has such a name
+    (a test checks it), Inno Setup packed none of them from a sample folder, and with the
+    two reports in place the guard passes. The new lines were also tried, read-only,
+    against the files of the main tree as they lie there: the guard passes.
+  - `DOCKER.ps1` no longer writes the first administrator's password into
+    `DOCKER_INSTALL.log` when the installer runs it: the console shows it, the log gets the
+    address and where the password is kept (`config\.env`).
+- **The installation guide** (`docs/operations/INSTALLATION_GUIDE.md`, "Version 1.9.8",
+  607 lines) is written anew from the installer's script, `DOCKER.ps1`, the Lite entry
+  point and the Control Panel's texts (246 lines): which edition, what the wizard asks and
+  does, the first sign-in, where the data and the backups are, updating, uninstalling.
+  Nothing was installed for it, and it says so, with a list of what was never tried.
+  `LITE_EDITION_GUIDE.md` named an installation folder (`C:\Program Files (x86)\SMS-UT\`)
+  and a layout of files that the installer does not make; both are corrected, and two dead
+  links. The README linked a Docker guide that does not exist.
+- **The toast of a session import** read "Created: 3, updated: 2, errors: 1", and in Greek
+  a singular beside two plurals: the three words were found in three places. They are asked
+  for in the export texts by name now.
+- **Tests.** `test_installer_packs_tracked_files_only.py` (8): the guard run against a
+  throwaway repository (a tracked checkout passes; a local settings file, a key and an
+  untracked note fail it and are named; what a line excludes is not counted; a line without
+  `recursesubdirs`), the two lines of the real script, the reports of a test run, and this
+  checkout.
+- **Found and not changed** (read from the scripts by the helper that wrote the guide, and
+  not tried on an installation; each is the owner's word or a later entry):
+  - *The database choice of the Docker wizard may not reach the application.* The wizard
+    writes it to `.env` in the installation folder (`WritePostgresEnv`); `DOCKER.ps1` reads
+    `config\.env` there and nothing was found that reads the other file. A new Docker
+    installation would then run on local SQLite whatever the wizard offered. To settle it:
+    one installation with the QNAP choice, then **System** > **Show System Health**.
+  - *"Delete all user data" of the uninstaller does not delete the database.* It deletes
+    the folders `data`, `backups`, `logs` and `config`; the Docker edition's database is in
+    the Docker volume `sms_data`, and Lite's in `%LOCALAPPDATA%\SMS_Native_Lite_Simple`.
+    Neither is touched, and the question's own list says "Database (data folder)".
+  - *The copy the installer makes before an update does not hold the database*, for the
+    same reason: it copies the installation folder's `data` folder and the `.env` files.
+  - *The permission keys are not unique in a migrated SQLite database.* Its `permissions`
+    table has no index at all (read from a scratch database at the head revision): the
+    application's own checks keep a key from being stored twice, the database does not. A
+    migration that adds the unique index is a change to the shared database's schema: the
+    owner's word. What the same migrations leave on PostgreSQL was not looked at.
+  - *CLAUDE.md, "Release Workflow", ends with `gh release upload vX.X.X
+    SMS_Installer_X.X.X.exe`.* The workflow on the tag builds and uploads the installer;
+    uploading the local build by hand would have published the files above. Not edited: the
+    file is the owner's instruction to the assistant.
+  - Stale texts that were not corrected: `infra/installer/windows/README.md` (it says the
+    upgrade restores the `.env` files and offers a "Fresh Install", names an uninstaller
+    file of v1.18.11 and links a file that does not exist); `installer_welcome.rtf` and
+    `installer_complete.rtf` (a version of their own; "the container will be built and
+    started", which the wizard does not do); the existing-installation box of the wizard
+    is English only although Greek texts for it exist; `DOCKER_OPERATIONS.md` on what
+    `-Install` does; `docs/misc/INSTALLER_STRATEGY.md` links the missing Docker guide.
+
+**2026-11-18: a mark on the Attendance page is no longer lost** (PR 430, merged as
+`30fc8cd30`; on the PR's last commit CI's backend job passed 1,854 tests with 55 skipped,
+the frontend job 2,116 and E2E 77, each at its first try. Taken up from the E2E test that
+needed a second try on the CI of PR 429, "should mark student attendance").
 
 - **What happened.** The page replaced its marks with the server's answer whenever one
   arrived: the records of a day that was just chosen, and the refresh that follows every
