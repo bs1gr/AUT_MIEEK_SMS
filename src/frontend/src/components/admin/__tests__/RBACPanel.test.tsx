@@ -205,4 +205,56 @@ describe('RBACPanel', () => {
     expect(screen.getByTestId('rbac-user-3')).toHaveTextContent('Teacher');
     expect(screen.queryByText(/@system/)).not.toBeInTheDocument();
   });
+
+  it('says that the account has no role left when its last one was revoked', async () => {
+    // The server answers with the word the account's Role column now holds.
+    const summary: RBACSummary = {
+      roles: [{ id: 2, name: 'teacher', description: 'Teacher' }],
+      permissions: [],
+      role_permissions: [],
+      user_roles: [{ user_id: 3, role_id: 2 }],
+    };
+    const apiModule = await import('@/api/api');
+    vi.mocked(apiModule.rbacAPI.getSummary).mockResolvedValue(summary);
+    vi.mocked(mockRevokeRole).mockResolvedValue({ status: 'revoked', role: 'none' });
+    const user = userEvent.setup();
+    renderWithProviders(<RBACPanel />);
+    await screen.findByText('RBAC Configuration');
+    await user.click(screen.getByText('Assign Role to User'));
+    await user.type(screen.getByPlaceholderText('Enter User ID'), '3');
+
+    expect(screen.queryByTestId('rbac-no-role-left')).not.toBeInTheDocument();
+    await user.click((await screen.findAllByText('Revoke'))[0]);
+
+    await waitFor(() => expect(mockRevokeRole).toHaveBeenCalledWith(3, 'teacher'));
+    expect(await screen.findByTestId('rbac-no-role-left')).toHaveTextContent('The account has no role left.');
+  });
+
+  it('does not say so while the account still holds a role', async () => {
+    const summary: RBACSummary = {
+      roles: [
+        { id: 2, name: 'teacher', description: 'Teacher' },
+        { id: 3, name: 'viewer', description: 'Viewer' },
+      ],
+      permissions: [],
+      role_permissions: [],
+      user_roles: [
+        { user_id: 3, role_id: 2 },
+        { user_id: 3, role_id: 3 },
+      ],
+    };
+    const apiModule = await import('@/api/api');
+    vi.mocked(apiModule.rbacAPI.getSummary).mockResolvedValue(summary);
+    vi.mocked(mockRevokeRole).mockResolvedValue({ status: 'revoked', role: 'viewer' });
+    const user = userEvent.setup();
+    renderWithProviders(<RBACPanel />);
+    await screen.findByText('RBAC Configuration');
+    await user.click(screen.getByText('Assign Role to User'));
+    await user.type(screen.getByPlaceholderText('Enter User ID'), '3');
+
+    await user.click((await screen.findAllByText('Revoke'))[0]);
+
+    expect(await screen.findByText('Role revoked successfully')).toBeInTheDocument();
+    expect(screen.queryByTestId('rbac-no-role-left')).not.toBeInTheDocument();
+  });
 });

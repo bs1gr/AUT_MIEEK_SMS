@@ -382,6 +382,12 @@ logger = logging.getLogger(__name__)
 
 LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
 
+# The word in the Role column of an account whose roles were all revoked. It is not a role:
+# no row of `roles` has this name and backend.rbac has no built-in permissions for it, so
+# the account passes no permission check and no role check. It can still sign in. Assigning
+# a role under Assign Role to User, or choosing one in User Accounts > Edit, ends the state.
+NO_ROLE = "none"
+
 # Role hierarchy: higher roles inherit ALL permissions from lower roles
 ROLE_HIERARCHY = {
     "admin": ["teacher", "viewer", "guest"],
@@ -830,19 +836,19 @@ async def revoke_role(
                 details={"role": role.name, "operation": "revoke_role", "success": True},
             )
 
-            # Keep legacy User.role in sync for compatibility (admin/teacher/viewer/guest)
-            if role.name in LEGACY_ROLE_PRIORITY and user.role == role.name:
-                legacy_role = _resolve_legacy_role_for_user(db, user)
-                if legacy_role and user.role != legacy_role:
-                    user.role = legacy_role
+            # The word in the account's Role column follows the roles the account still
+            # holds: the highest of the four built-in ones, or NO_ROLE when the last of them
+            # is gone. It used to stay as it was (and to become "teacher" for an administrator
+            # left without roles), and an account without role rows gets the built-in
+            # permissions of that word (backend.rbac): revoking the only role of a teacher
+            # took nothing away, and the next "Initialize RBAC Defaults" gave the role back.
+            if role.name in LEGACY_ROLE_PRIORITY and (user.role or "").strip().lower() in LEGACY_ROLE_PRIORITY:
+                remaining = _resolve_legacy_role_for_user(db, user) or NO_ROLE
+                if user.role != remaining:
+                    user.role = remaining
                     db.add(user)
                     db.commit()
-                elif role.name == "admin":
-                    # Prevent stale admin role when RBAC admin is removed
-                    user.role = "teacher"
-                    db.add(user)
-                    db.commit()
-            return {"status": "revoked"}
+            return {"status": "revoked", "role": user.role}
         return {"status": "not_assigned"}
     except HTTPException:
         raise

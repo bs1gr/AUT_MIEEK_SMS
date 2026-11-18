@@ -30,6 +30,7 @@ const texts: Record<string, string> = {
   'controlPanel.roles.student': 'Student',
   'controlPanel.roles.viewer': 'Viewer',
   'controlPanel.roles.guest': 'Guest',
+  'controlPanel.roles.none': 'No role',
 };
 const languageValue = { t: (key: string) => texts[key] ?? key };
 vi.mock('@/LanguageContext', () => ({ useLanguage: () => languageValue }));
@@ -41,6 +42,8 @@ const head = { id: 1, email: 'head@example.com', full_name: 'Head', role: 'admin
 const promoted = { id: 5, email: 'promoted@example.com', full_name: 'Promoted Teacher', role: 'admin', is_active: true };
 const viewer = { id: 4, email: 'viewer@example.com', full_name: 'Read Only', role: 'viewer', is_active: true };
 const teacher = { id: 3, email: 'teacher@example.com', full_name: 'Maria', role: 'teacher', is_active: true };
+// An account whose roles were all revoked under Assign Role to User.
+const roleless = { id: 8, email: 'former@example.com', full_name: 'Former Teacher', role: 'none', is_active: true };
 
 const rowOf = (email: string) => screen.getAllByRole('row').find((row) => row.textContent?.includes(email))!;
 const optionsOf = (select: HTMLElement) => within(select).getAllByRole('option').map((option) => option.textContent);
@@ -108,5 +111,25 @@ describe('AdminUsersPanel roles', () => {
 
     await waitFor(() => expect(adminUsersAPI.update).toHaveBeenCalledWith(5, { full_name: 'Promoted Teacher', is_active: true }));
     expect(await screen.findByTestId('user-role-5')).toHaveTextContent('Administrator');
+  });
+
+  it('lists an account without a role as that, and gives it one from Edit', async () => {
+    vi.mocked(adminUsersAPI.list).mockResolvedValue([head, roleless] as never);
+    vi.mocked(adminUsersAPI.update).mockResolvedValue({ ...roleless, role: 'teacher' } as never);
+    const user = userEvent.setup();
+    render(<AdminUsersPanel onToast={vi.fn()} />);
+
+    expect(await screen.findByTestId('user-role-8')).toHaveTextContent('No role');
+    await user.click(within(rowOf('former@example.com')).getByRole('button', { name: /edit/i }));
+    const box = screen.getByTestId('edit-role-8') as HTMLSelectElement;
+    expect(box.value).toBe('none');
+    expect(optionsOf(box)).toEqual(['No role', 'Administrator', 'Teacher', 'Student']);
+    await user.selectOptions(box, 'teacher');
+    await user.click(within(rowOf('former@example.com')).getByRole('button', { name: /save/i }));
+
+    await waitFor(() =>
+      expect(adminUsersAPI.update).toHaveBeenCalledWith(8, { full_name: 'Former Teacher', is_active: true, role: 'teacher' })
+    );
+    expect(await screen.findByTestId('user-role-8')).toHaveTextContent('Teacher');
   });
 });

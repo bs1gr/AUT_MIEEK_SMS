@@ -309,7 +309,8 @@ export default {
     teacher: 'Εκπαιδευτής',
     student: 'Σπουδαστής',
     viewer: 'Θεατής',
-    guest: 'Επισκέπτης'
+    guest: 'Επισκέπτης',
+    none: 'Χωρίς ρόλο'
   },
   roleDescriptions: {
     admin: 'Διαχειριστής με πλήρη πρόσβαση στο σύστημα',

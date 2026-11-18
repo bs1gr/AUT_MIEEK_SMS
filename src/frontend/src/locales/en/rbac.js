@@ -28,6 +28,7 @@ export default {
   roleAssignedError: 'Error assigning role',
   roleRevokedSuccess: 'Role revoked successfully',
   roleRevokedError: 'Error revoking role',
+  noRoleLeft: 'The account has no role left. It can still sign in, and nothing opens for it until it is given a role.',
   permissionGrantedSuccess: 'Permission granted successfully',
   permissionGrantedError: 'Error granting permission',
   permissionRevokedSuccess: 'Permission revoked successfully',

@@ -1,6 +1,6 @@
 # Accounts, roles and permissions: the administrator's guide
 
-**Checked against the application:** 17 November 2026, `main` after v1.18.73. Every step
+**Checked against the application:** 17 and 18 November 2026, `main` after v1.18.73. Every step
 below was done in a browser against a running copy, and every statement about what the server
 allows was tried with an account of that kind. Where v1.18.73 itself behaves differently, the
 text says so.
@@ -33,6 +33,7 @@ forms ask for that number, not for the name or the e-mail address.
 | Teacher | All of the school's records: students, courses, enrolments, grades, attendance, the lesson log, reports, exports, messages to all users. Not accounts, roles, imports, backups. |
 | Viewer, Guest | Read the records and export them. Change nothing. No Dashboard figures. |
 | Student | Sign in, and nothing else of use: no page of records opens for it. |
+| No role | The same. What an account is after its last role was revoked. |
 
 The full table is in [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md).
 
@@ -124,8 +125,8 @@ What follows from a role:
   then shows several roles. That is intended and changes nothing: the higher role already
   holds what the lower ones hold.
 - The Role column of User Accounts follows the highest role the account has: Administrator,
-  then Teacher, then Viewer, then Guest. (In v1.18.73 and earlier it shows the role the
-  account got first.)
+  then Teacher, then Viewer, then Guest, and reads "No role" when it has none. (In v1.18.73
+  and earlier it shows the role the account got first.)
 - The change counts from the account's next request. Nobody has to sign in again.
 
 ### Take a role away
@@ -134,11 +135,21 @@ Same tab: type the number, then **Revoke** next to the role. Taking away Teacher
 away the Viewer and Guest roles that came with it; revoke those as well if the account is to
 lose them.
 
-**Revoking the only role an account has takes nothing away.** The page answers "revoked" and
-the role is gone from the list, but the word in the account's Role column stays, and an
-account without roles gets the built-in permissions of that word. A teacher whose Teacher
-role was revoked still reads, changes and exports everything. Revoke is for moving an
-account down (Teacher to Viewer); to take access away, see below.
+**Revoking the last role leaves the account with nothing.** The page says so, the account's
+Role column reads "No role", and every page of records is refused to it from its next
+request, also for the sign-in it already has. It can still sign in. "Initialize RBAC
+Defaults" does not give the role back. To end the state, give the account a role here, or
+choose one in **User Accounts** > **Edit**. A permission granted to the account itself
+stays: look the account up in the Permissions Catalog.
+
+The Role column steps down with the roles: an account that loses Teacher and still has
+Viewer reads "Viewer".
+
+In v1.18.73 and earlier revoking the only role takes nothing away. The page answers
+"revoked" and the role is gone from the list, but the word in the Role column stays (an
+administrator's becomes "Teacher"), and an account without roles gets the built-in
+permissions of that word: a teacher whose Teacher role was revoked still reads, changes and
+exports everything. There, take access away as described below.
 
 The last administrator cannot lose the Administrator role ("Cannot remove the last admin
 user").
@@ -165,12 +176,13 @@ Any one of these works at once, for the sign-in the account already has too:
 - **Edit** > role **Student**. The account can sign in and no page of records opens for it.
   Permissions granted to the account itself stay: look it up in the Permissions Catalog and
   revoke them there.
+- **Assign Role to User** > **Revoke** every role the account has. The same, and the Role
+  column reads "No role". (Not in v1.18.73 and earlier: see "Take a role away".)
 - **Delete** the account.
 
-Revoking roles under Assign Role to User is **not** one of them: see "Take a role away".
-
-To check an account, look it up in the Permissions Catalog. A student account that holds
-nothing shows three permissions ending in `.self:read` and no role; those three open nothing.
+To check an account, look it up in the Permissions Catalog. An account without a role shows
+no permission at all. A student account that holds nothing shows three permissions ending in
+`.self:read` and no role; those three open nothing.
 
 In v1.18.73 and earlier the role Student did not take the roles away: a former teacher kept a
 teacher's access. There, untick **Active**.

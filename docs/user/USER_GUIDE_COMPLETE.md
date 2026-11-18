@@ -392,6 +392,7 @@ Utils > Export instead.
 | Teacher | Students, courses, enrolments, attendance, the lesson log, grades, reports, exports, messages to all users. Not accounts, imports, backups. |
 | Viewer, Guest | Read the records and export them; change nothing; no Dashboard figures |
 | Student | Sign in. No page of records opens. |
+| No role | The same: an administrator took the account's roles away. |
 
 Every account sees the same pages and buttons. What it may do is decided by the server at
 each request, so an account that may not do something sees the button and gets a failure
