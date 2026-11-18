@@ -228,6 +228,7 @@ const HelpDocumentation = () => {
         { question: t('helpHowToManagePermissions'), answer: t('helpManagePermissionsAnswer') },
         { question: t('helpHowToChangeOwnPassword'), answer: t('helpChangeOwnPasswordAnswer') },
         { question: t('helpHowToManageUserAccounts'), answer: t('helpManageUserAccountsAnswer') },
+        { question: t('helpHowToSeeAuditLog'), answer: t('helpAuditLogAnswer') },
       ]
     },
     {

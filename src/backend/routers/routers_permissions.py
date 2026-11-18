@@ -5,6 +5,7 @@ Provides endpoints for managing the new permission structure with key/resource/a
 Complements the existing routers_rbac.py with enhanced functionality.
 """
 
+import logging
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -28,9 +29,37 @@ from backend.schemas.permissions import (
     UserPermissionRevoke,
     UserPermissionsResponse,
 )
+from backend.schemas.audit import AuditAction, AuditResource
 from backend.security.current_user import get_current_user
 
 router = APIRouter(prefix="/permissions", tags=["Permissions Management"])
+logger = logging.getLogger(__name__)
+
+
+def _record(request: Request, db: Session, action: AuditAction, details: dict[str, Any], account_id: Any = None) -> None:
+    """Write a grant or a revoke to the audit log, with who made it.
+
+    The four requests of the Permissions Catalog changed what a role or an account may do
+    without a line in the audit log (the older requests under /admin/rbac wrote one). Called
+    after the change is committed; a failure to write the entry is logged and never fails
+    the request.
+    """
+    try:
+        from backend.services.audit_service import get_audit_logger
+
+        get_audit_logger(db).log_from_request(
+            request,
+            action=action,
+            resource=AuditResource.USER,
+            resource_id=str(account_id) if account_id is not None else None,
+            details=details,
+        )
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        logger.warning("The audit entry for %s could not be written: %r", details, exc)
 
 # The permission that makes an administrator one. The role "admin" holds it, and the requests
 # below refuse to take it from that role, to switch it off or to delete it.
@@ -339,6 +368,13 @@ async def grant_user_permission(
     )
     db.add(user_perm)
     db.commit()
+    _record(
+        request,
+        db,
+        AuditAction.PERMISSION_GRANT,
+        {"operation": "grant_to_account", "permission": grant.permission_key, "email": str(user.email)},
+        account_id=grant.user_id,
+    )
 
     return {"status": "granted", "user_id": grant.user_id, "permission_key": grant.permission_key}
 
@@ -373,6 +409,13 @@ async def revoke_user_permission(
 
     db.delete(user_perm)
     db.commit()
+    _record(
+        request,
+        db,
+        AuditAction.PERMISSION_REVOKE,
+        {"operation": "revoke_from_account", "permission": revoke.permission_key},
+        account_id=revoke.user_id,
+    )
 
     return {"status": "revoked", "user_id": revoke.user_id, "permission_key": revoke.permission_key}
 
@@ -418,6 +461,12 @@ async def grant_role_permission(
         {"role_id": role.id, "perm_id": permission.id, "created_at": now},
     )
     db.commit()
+    _record(
+        request,
+        db,
+        AuditAction.PERMISSION_GRANT,
+        {"operation": "grant_permission", "role": grant.role_name, "permission": grant.permission_key},
+    )
 
     return {"status": "granted", "role_name": grant.role_name, "permission_key": grant.permission_key}
 
@@ -461,6 +510,12 @@ async def revoke_role_permission(
         raise HTTPException(status_code=404, detail="Role permission assignment not found")
 
     db.commit()
+    _record(
+        request,
+        db,
+        AuditAction.PERMISSION_REVOKE,
+        {"operation": "revoke_permission", "role": revoke.role_name, "permission": revoke.permission_key},
+    )
 
     return {"status": "revoked", "role_name": revoke.role_name, "permission_key": revoke.permission_key}
 

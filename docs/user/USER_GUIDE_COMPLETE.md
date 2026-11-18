@@ -360,7 +360,7 @@ and deleting templates is for administrators.
 users or to the users of one role, and the **Feedback Inbox** with what was sent through
 Send Feedback. See [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md).
 
-**Help & Documentation.** Eighty-one questions and answers in eighteen groups, with a
+**Help & Documentation.** Eighty-two questions and answers in eighteen groups, with a
 search box, in English and in Greek. They were read against the pages on 18 November 2026.
 "Quick Guide", under the groups, downloads a one-page summary as a PDF; it is not this guide.
 
@@ -388,7 +388,8 @@ Three cards, each with a **Show** button.
 - **Control Panel:** tools for the person who looks after the installation. Its tabs are
   Operations, Updates, Diagnostics, Ports, Logs, Environment, Rate Limits (administrators)
   and Maintenance. Under **Maintenance** an administrator finds User Accounts, RBAC
-  Configuration, Email Configuration, Import/Export, System Operations (backup, restore,
+  Configuration, Audit Log (who did what, and when), Email Configuration, Import/Export,
+  System Operations (backup, restore,
   clearing the database, the semester archive) and Database Management.
 - **Credits:** the author, the licence and the software the application is built on.
 

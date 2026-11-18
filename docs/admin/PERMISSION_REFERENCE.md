@@ -129,7 +129,7 @@ No role but `admin` holds these.
 | `users:manage` | Create, change and delete an account, reset its password, unlock it |
 | `permissions:view` | The roles, the permissions and who holds what |
 | `permissions:manage` | Assign and remove a role; grant and revoke a permission; create, change and delete roles and permissions; "Initialize RBAC Defaults" |
-| `audit:view` | The audit log, the history of role and permission changes, the history of imports and exports |
+| `audit:view` | The audit log (the panel **Audit Log** is shown to administrators; the API answers any account that holds the permission), the history of role and permission changes, the history of imports and exports |
 | `adminops:backup` | `POST /api/v1/adminops/backup` |
 | `adminops:restore` | `POST /api/v1/adminops/restore` |
 | `adminops:clear` | `POST /api/v1/adminops/clear` |
@@ -229,11 +229,10 @@ sets `strict` itself. Use nothing else on a server that other machines can reach
 
 ## Known gaps
 
-Recorded in `docs/plans/UNIFIED_WORK_PLAN.md` (todo 63), not repaired:
-
-- The audit log does not record who made a role or permission change.
-
 Repaired on 18 November 2026, and still so in v1.18.73 and earlier:
+
+- The audit log did not record who made a change, had no entry at all for what User Accounts
+  and the Permissions Catalog do, and no page showed it (PR 428).
 
 - An account without role rows was given a list of permissions the code kept for the word in
   its Role column. A leftover word could grant access no row stood for, and revoking the only

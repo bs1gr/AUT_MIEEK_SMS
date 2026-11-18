@@ -52,7 +52,7 @@ the teachers keep, not somebody who signs in.
 | Own notifications, saved searches, own dashboards, own password | ✅ | ✅ | ✅ |
 | Accounts: list, create, change, delete, reset a password | ✅ | ❌ | ❌ |
 | Roles and permissions: see and change | ✅ | ❌ | ❌ |
-| Audit log (no page shows it; the API answers) | ✅ | ❌ | ❌ |
+| Audit log (Control Panel > Maintenance > Audit Log) | ✅ | ❌ | ❌ |
 | Backup, restore and clear the database through `/adminops` | ✅ | ❌ | ❌ |
 | Semester archive, e-mail settings, rate limits | ✅ | ❌ | ❌ |
 | A student's data export and erasure (GDPR), the health field | ✅ | ❌ | ❌ |
@@ -74,7 +74,8 @@ the moment of the request.
   Attendance, Grades, Students, Courses, Calendar, Utils, System.
 - Shown to the administrator role only: the pages under `#/admin/` (anyone else lands on the
   Dashboard), the **Rate Limits** tab of the Control Panel, the panels **RBAC Configuration**,
-  **Email Configuration** and **Import/Export** and the semester archive under Maintenance,
+  **Audit Log**, **Email Configuration** and **Import/Export** and the semester archive under
+  Maintenance,
   the privacy panel in a student's edit window, and the target "Specific users" of a message.
 - Shown to administrators and teachers only: the form that sends a message, the feedback
   inbox, "Add Highlight" on a student's profile.

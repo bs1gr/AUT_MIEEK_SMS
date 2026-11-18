@@ -1166,6 +1166,49 @@ export const rbacAPI = {
   revokeRole: revokeRBACRole,
 };
 
+// ==================== AUDIT LOG ====================
+
+/** One line of the audit log, as GET /audit/logs sends it. */
+export interface AuditLogEntry {
+  id: number;
+  action: string;
+  resource: string;
+  resource_id?: string | null;
+  /** Who did it: empty for a request that carried no sign-in, and in entries of older versions. */
+  user_id?: number | null;
+  user_email?: string | null;
+  details?: Record<string, unknown> | null;
+  success: boolean;
+  error_message?: string | null;
+  timestamp: string;
+}
+
+export interface AuditLogPage {
+  logs: AuditLogEntry[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_next: boolean;
+}
+
+export interface AuditLogQuery {
+  page?: number;
+  page_size?: number;
+  action?: string;
+  user_id?: number;
+  start_date?: string;
+  end_date?: string;
+}
+
+export const auditAPI = {
+  /** The newest entries first. Asks for the permission audit:view. */
+  list: async (query: AuditLogQuery = {}): Promise<AuditLogPage> => {
+    const params = Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== ''));
+    const response = await apiClient.get('/audit/logs', { params });
+    return unwrapResponse<AuditLogPage>(response.data);
+  },
+};
+
 // ==================== HEALTH CHECK ====================
 
 export const checkAPIHealth = async (): Promise<{ status: 'ok' | 'error'; data?: unknown; error?: string }> => {
