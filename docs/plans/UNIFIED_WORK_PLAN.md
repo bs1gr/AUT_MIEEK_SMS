@@ -335,6 +335,21 @@ E2E test that needed a second try on the CI of PR 429, "should mark student atte
 - **Tried in a browser on a scratch copy, before and after:** the four cases, each with the
   server asked afterwards what it holds. Before: the mark lost in all four. After: kept and
   stored in all four.
+- **The new E2E test itself needed a second try on its first CI run, and why is not
+  known.** On the first try none of the page's requests passed through Playwright's
+  `page.route`, and none was seen as an event, so the test waited for an answer it could
+  not see. The page had done its work: the video of that try shows the mark kept and the
+  "saved" message after five seconds. Looked at and ruled out here: the service worker of
+  the production build (a page under its control had its requests routed, with `fetch` and
+  with XMLHttpRequest), the on-device worker `sw-local-api.js` (only in the app's local
+  mode), and the request layer (nothing withholds a request). Twenty local runs with
+  service workers and eight without all passed at the first try. The test was rewritten to
+  judge by what the page shows and what the server holds, never by a request it expects
+  to see, and to skip, saying so, when nothing could be held back. Tests that wait for a
+  response are open to the same thing; it was not seen on them.
+- **The message after a save of the attendance read "File saved successfully"** (seen in
+  that video): the page asked for a text without its namespace and found the one of the
+  backup files. It has a text of its own now, "Attendance saved".
 - **Found and not changed:**
   - ***Clear* does nothing lasting to saved marks.** It empties the page; two seconds later
     the marks are back, and the server never heard of it: a sheet only creates and updates

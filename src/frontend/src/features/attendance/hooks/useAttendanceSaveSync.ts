@@ -665,7 +665,9 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       await refreshAttendancePrefill();
       // After refreshAttendancePrefill, state is synced with backend.
       // Keep the fetched values so dirty detection sees a clean state.
-      showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
+      // Its own text: 'savedSuccessfully' was found among the texts of the backup files, and
+      // the page said "File saved successfully" after every save of the attendance.
+      showToast(t('attendanceSaved') || 'Attendance saved', 'success');
     } catch (e) {
       if (isOfflineNetworkError(e)) {
         const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';

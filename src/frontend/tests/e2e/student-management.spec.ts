@@ -607,22 +607,49 @@ test.describe('Attendance Tracking', () => {
 
     await expect(page.locator('[role="alert"]').filter({ hasText: /error/i })).toHaveCount(0);
   });
+});
+
+test.describe('Attendance on a slow server', () => {
+  test.beforeEach(async ({ page }) => {
+    tracker = new TestDataTracker(page);
+    await loginAsTrackedTeacher(page, tracker);
+  });
+
+  test.afterEach(async () => {
+    await tracker.cleanup();
+  });
 
   test('keeps the marks made while the server is slow to answer', async ({ page }) => {
     // A mark was lost when it was made before the day's records had arrived, or while the save
     // of an earlier mark was on its way: the answer replaced what the page held, and the page
     // then agreed with the server, so nothing was left to save (found on 18 November 2026; the
-    // test above needed a second try on CI for the first of the two). An answer is held back
-    // here the way a far-away server holds it: it says what the server held when asked.
+    // attendance test above needed a second try on CI for the first of the two). An answer is
+    // held back here the way a far-away server holds it: it says what the server held when
+    // it was asked, and arrives late.
+    //
+    // The test judges by what the page shows and by what the server holds afterwards, never by
+    // a request it expects to see. On its first run on CI the page's requests did not pass
+    // through page.route on the first try, nor were they seen as events, while the video of
+    // that try shows the mark kept and "saved": why is not known (a page under a service
+    // worker was tried here and its requests were routed). When nothing was held back the
+    // test has shown nothing, and says so by skipping.
     const apiBase = getApiBase();
-    const slowly = (ms: number) => async (route: Route) => {
+    // One route for the two requests that are held back, each by its own number of
+    // milliseconds (0: not held). Changing the numbers is all a new phase needs: a route that
+    // is removed while it still holds an answer makes Playwright fail the test.
+    const hold = { day: 0, save: 0 };
+    const held = { day: 0, save: 0 };
+    await page.route(/\/api\/v1\/attendance\/(date\/[^/]+\/course\/\d+|sheet)$/, async (route: Route) => {
+      const which = new URL(route.request().url()).pathname.endsWith('/sheet') ? 'save' : 'day';
+      if (hold[which] === 0) {
+        await route.continue();
+        return;
+      }
+      held[which] += 1;
       const response = await route.fetch();
-      await new Promise((resolve) => setTimeout(resolve, ms));
-      await route.fulfill({ response });
-    };
-    const dayRecords = /\/api\/v1\/attendance\/date\/[^/]+\/course\/\d+/;
-    const isSheetSave = (method: string, url: string) =>
-      method === 'POST' && new URL(url).pathname.endsWith('/api/v1/attendance/sheet');
+      await new Promise((resolve) => setTimeout(resolve, hold[which]));
+      await route.fulfill({ response }).catch(() => {}); // the page may be gone by then
+    });
 
     const course = generateCourseData();
     const courseResp = await page.request.post(`${apiBase}/api/v1/courses/`, {
@@ -637,7 +664,7 @@ test.describe('Attendance Tracking', () => {
     const createdCourse = await courseResp.json();
     tracker.track('courses', createdCourse.id);
 
-    const names: string[] = [];
+    const students: Array<{ id: number; name: string }> = [];
     for (let index = 0; index < 2; index += 1) {
       const student = generateStudentData();
       const studentResp = await page.request.post(`${apiBase}/api/v1/students/`, {
@@ -652,9 +679,18 @@ test.describe('Attendance Tracking', () => {
       tracker.track('students', createdStudent.id);
       await enrollStudentViaAPI(page, createdCourse.id, createdStudent.id);
       tracker.trackEnrollment(createdCourse.id, createdStudent.id);
-      names.push(`${student.firstName} ${student.lastName}`);
+      students.push({ id: createdStudent.id, name: `${student.firstName} ${student.lastName}` });
     }
-    const present = (name: string) => page.getByRole('button', { name: `Present - ${name}`, exact: true });
+    const [first, second] = students;
+    const button = (status: string, name: string) =>
+      page.getByRole('button', { name: `${status} - ${name}`, exact: true });
+    // What the server holds for the course, as "student number: status", in a fixed order.
+    const stored = async () => {
+      const saved = await page.request.get(`${apiBase}/api/v1/attendance/?course_id=${createdCourse.id}&limit=100`);
+      const body = await saved.json();
+      const rows: Array<{ student_id: number; status: string }> = body.items ?? body;
+      return rows.map((row) => `${row.student_id}: ${row.status}`).sort();
+    };
 
     await page.goto('/#/attendance');
     await page.reload();
@@ -664,40 +700,34 @@ test.describe('Attendance Tracking', () => {
     await courseSelect.selectOption(`${createdCourse.id}`);
 
     // 1. The day's records take a second and a half to arrive. The first student is marked
-    //    before they do, and the mark must still be there, and be saved, afterwards.
-    await page.route(dayRecords, slowly(1500));
-    const dayArrived = page.waitForResponse((response) => dayRecords.test(response.url()), { timeout: 20000 });
-    const firstSave = page.waitForRequest((request) => isSheetSave(request.method(), request.url()), {
-      timeout: 25000,
-    });
+    //    before they do. The mark must reach the server and still be on the page afterwards;
+    //    it used to be taken off the page by the records, and never sent.
+    hold.day = 1500;
     await page.locator('div.grid-cols-7 > button:not([disabled])').first().click();
-    await expect(present(names[0])).toBeVisible({ timeout: 15000 });
-    await present(names[0]).click();
-    await dayArrived;
-    await page.unroute(dayRecords);
+    await expect(button('Present', first.name)).toBeVisible({ timeout: 15000 });
+    await button('Present', first.name).click();
+    await expect.poll(stored, { timeout: 20000 }).toEqual([`${first.id}: Present`]);
+    await expect(button('Present', first.name)).toHaveClass(/bg-green-500/);
+    test.skip(held.day === 0, 'The request for the day did not pass through page.route: nothing was held back.');
 
-    // 2. The save takes two seconds to answer. The second student is marked while it travels.
-    await page.route(/\/api\/v1\/attendance\/sheet$/, slowly(2000));
-    expect((await firstSave).postDataJSON().attendance).toHaveLength(1);
-    const bothSaved = page.waitForResponse(
-      (response) =>
-        isSheetSave(response.request().method(), response.url()) &&
-        response.request().postDataJSON().attendance.length === 2,
-      { timeout: 30000 }
-    );
-    await present(names[1]).click();
-    expect((await bothSaved).status()).toBe(200);
+    // 2. A save takes two and a half seconds to answer. The first student is changed to Late,
+    //    and while that save is on its way ("Saving...") the second student is marked. Both
+    //    must reach the server; the second mark used to be dropped by the refresh after the
+    //    first save, and never sent.
+    //    (The first save is over only when its refresh, which was held back too, has arrived:
+    //    the page says "Saving..." until then.)
+    const saving = page.getByText('Saving...', { exact: true });
+    await expect(saving).toBeHidden({ timeout: 15000 });
+    hold.day = 0;
+    hold.save = 2500;
+    await button('Late', first.name).click();
+    const sawSaving = await saving.waitFor({ state: 'visible', timeout: 15000 }).then(() => true, () => false);
+    test.skip(!sawSaving || held.save === 0, 'The save did not pass through page.route: nothing was held back.');
+    await button('Present', second.name).click();
 
-    await expect(present(names[0])).toHaveClass(/bg-green-500/);
-    await expect(present(names[1])).toHaveClass(/bg-green-500/);
-    await expect
-      .poll(async () => {
-        const saved = await page.request.get(`${apiBase}/api/v1/attendance/?course_id=${createdCourse.id}&limit=100`);
-        const body = await saved.json();
-        const rows: Array<{ status: string }> = body.items ?? body;
-        return rows.map((row) => row.status);
-      })
-      .toEqual(['Present', 'Present']);
+    await expect.poll(stored, { timeout: 30000 }).toEqual([`${first.id}: Late`, `${second.id}: Present`].sort());
+    await expect(button('Late', first.name)).toHaveClass(/bg-yellow-500/);
+    await expect(button('Present', second.name)).toHaveClass(/bg-green-500/);
   });
 });
 
