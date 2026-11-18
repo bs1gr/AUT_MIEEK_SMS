@@ -63,6 +63,8 @@ export default {
   categoryWillCount: 'This grade will count towards',
   categoryLabel: 'category',
   weightPlaceholder: 'Weight (multiplier)',
+  weightHint: 'Weight: a grade with weight 2 counts like two grades of its category. Empty counts as 1; the highest is 3.',
+  weightHintExam: 'Midterm Exam and Final Exam take the latest grade alone, so a weight changes nothing there.',
   refreshFinal: 'Refresh Final Grade',
   finalGradeSummary: 'Final Grade Summary',
   printSummaryReport: 'Print/Export Report',

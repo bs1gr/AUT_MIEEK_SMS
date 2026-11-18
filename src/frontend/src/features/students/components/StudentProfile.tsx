@@ -815,7 +815,10 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {grades.slice(0, 10).map(grade => {
-                    const percentage = (Number(grade.grade) / Number(grade.max_grade) || 100) * 100;
+                    // The fallback belongs to the points possible. It stood on the quotient, so a
+                    // grade of 0 (0 / 20 is 0, which counts as "nothing there") was shown as
+                    // "10000.0%" with the letter A.
+                    const percentage = (Number(grade.grade) / (Number(grade.max_grade) || 100)) * 100;
                     const letter = getLetterGrade(percentage);
                     // A grade typed on the Grades page has a "date submitted"; one that came with a
                     // session import or through the API may have only a "date assigned". The
@@ -828,12 +831,12 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                         <td className="px-6 py-4 text-center text-gray-600">
                           {grade.grade} / {grade.max_grade}
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-6 py-4 text-center" data-testid={`recent-grade-percent-${grade.id}`}>
                           <span className="text-lg font-bold text-indigo-600">
                             {percentage.toFixed(1)}%
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-6 py-4 text-center" data-testid={`recent-grade-letter-${grade.id}`}>
                           <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 font-bold">
                             {letter}
                           </span>

@@ -1,7 +1,13 @@
 import React, { memo, useEffect, useMemo, useState, useCallback } from 'react';
 import type { Grade, Course } from '@/types';
 import { coursesAPI } from '@/api/api';
-import { percentageToGreekScale, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
+import {
+  percentageToGreekScale,
+  getGreekGradeColor,
+  getLetterGrade,
+  gradeWeight,
+  weightedAveragePercent,
+} from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
 
 interface CourseGradeBreakdownProps {
@@ -199,10 +205,8 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
               {/* Categories */}
               <div className="p-4 space-y-3">
                 {Object.entries(byCategory).map(([category, catGrades]) => {
-                  const catAvg = catGrades.reduce(
-                    (sum, g) => sum + (g.grade / g.max_grade) * 100,
-                    0
-                  ) / catGrades.length;
+                  // Each grade counts as often as its Weight says, as in the final grade.
+                  const catAvg = weightedAveragePercent(catGrades);
 
                   return (
                     <div key={category} className="bg-gray-50 rounded-md p-3">
@@ -212,7 +216,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                         </span>
                         {catGrades.length > 1 && (
                           <span className="text-sm text-gray-700">
-                            {t('average')}: <span className="font-semibold">{catAvg.toFixed(1)}%</span>
+                            {t('average')}: <span className="font-semibold" data-testid="category-average">{catAvg.toFixed(1)}%</span>
                           </span>
                         )}
                       </div>
@@ -222,7 +226,12 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                           const letterGrade = getLetterGrade(percentage);
                           return (
                             <div key={idx} className="flex justify-between items-center text-xs text-gray-600">
-                              <span className="flex-1">{grade.assignment_name}</span>
+                              <span className="flex-1">
+                                {grade.assignment_name}
+                                {gradeWeight(grade) !== 1 && (
+                                  <span className="ml-2 text-gray-500" data-testid="grade-weight">×{gradeWeight(grade)}</span>
+                                )}
+                              </span>
                               <span className="flex items-center gap-2">
                                 <span className="font-medium text-indigo-700 min-w-8 text-center">{letterGrade}</span>
                                 <span className="min-w-24 text-right">

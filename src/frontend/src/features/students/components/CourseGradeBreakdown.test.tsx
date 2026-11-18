@@ -310,6 +310,49 @@ describe('CourseGradeBreakdown', () => {
     });
   });
 
+  describe('The Weight of a grade', () => {
+    // The final grade counts a grade as often as its Weight says, within its category
+    // (November 2026). The average this page shows for a category is that one, not the
+    // plain one, or the two would disagree for the same student.
+    const homework = (id: number, grade: number, weight: number | undefined): Grade => ({
+      id,
+      student_id: 1,
+      course_id: 1,
+      assignment_name: `Homework ${id}`,
+      grade,
+      max_grade: 20,
+      weight: weight as number,
+      category: 'Homework',
+      date_assigned: '2026-10-01',
+    });
+
+    it('counts a grade with weight 3 like three in the average of its category', () => {
+      renderComponent({ gradesList: [homework(1, 20, 1), homework(2, 0, 3)] });
+
+      // (100 x 1 + 0 x 3) / 4. The plain average is 50.
+      expect(screen.getByTestId('category-average')).toHaveTextContent('25.0%');
+    });
+
+    it('gives the plain average when the weights are equal', () => {
+      renderComponent({ gradesList: [homework(1, 20, 2), homework(2, 10, 2), homework(3, 0, 2)] });
+
+      expect(screen.getByTestId('category-average')).toHaveTextContent('50.0%');
+    });
+
+    it('counts a grade without a weight, or with 0, once', () => {
+      renderComponent({ gradesList: [homework(1, 20, 0), homework(2, 0, undefined)] });
+
+      expect(screen.getByTestId('category-average')).toHaveTextContent('50.0%');
+      expect(screen.queryByTestId('grade-weight')).not.toBeInTheDocument();
+    });
+
+    it('marks the grades that count more or less than once', () => {
+      renderComponent({ gradesList: [homework(1, 20, 1), homework(2, 0, 3), homework(3, 10, 0.5)] });
+
+      expect(screen.getAllByTestId('grade-weight').map((mark) => mark.textContent)).toEqual(['×3', '×0.5']);
+    });
+  });
+
   describe('Grade Color Coding', () => {
     it('applies color classes based on Greek grade', () => {
       renderComponent();

@@ -54,6 +54,21 @@ class AnalyticsService:
     }
     participation_observations = set(observation_default_percent)
 
+    @staticmethod
+    def grade_weight(grade: Any) -> float:
+        """How many times a grade counts in the average of its category.
+
+        The Weight box of Grades > Grade Entry ("Weight (multiplier)"; the server accepts 0
+        to 3). A grade without a weight, or with 0, counts once:
+        that is how the pages have always shown such a grade ("×1"), and a grade that is
+        recorded and silently left out of the average would be worse than one that counts.
+        """
+        try:
+            weight = float(getattr(grade, "weight", None) or 0)
+        except (TypeError, ValueError):
+            return 1.0
+        return weight if weight > 0 else 1.0
+
     def __init__(self, db: Session) -> None:
         self.db = db
         (
@@ -998,6 +1013,7 @@ class AnalyticsService:
 
             weighted_sum = 0.0
             total_item_weight = 0.0
+            item_count = 0
 
             category_lower = (category or "").lower()
             # Match grades to this rule category using normalized names
@@ -1014,8 +1030,13 @@ class AnalyticsService:
             for grade in category_grades:
                 if getattr(grade, "max_grade", 0):
                     grade_pct = (grade.grade / grade.max_grade) * 100
-                    weighted_sum += grade_pct
-                    total_item_weight += 1.0
+                    # The grade's own Weight: one with weight 2 counts like two grades of its
+                    # category. Until November 2026 the box was stored and never read, and
+                    # every grade counted once.
+                    item_weight = self.grade_weight(grade)
+                    weighted_sum += grade_pct * item_weight
+                    total_item_weight += item_weight
+                    item_count += 1
 
             if include_daily:
                 for perf in (
@@ -1025,6 +1046,7 @@ class AnalyticsService:
                         daily_pct = (perf.score / perf.max_score) * 100
                         weighted_sum += daily_pct * daily_multiplier
                         total_item_weight += daily_multiplier
+                        item_count += 1
 
             if category_lower in {"attendance", "παρουσία"}:
                 if attendance:
@@ -1033,6 +1055,7 @@ class AnalyticsService:
                     att_pct = (present / total * 100) if total > 0 else 0
                     weighted_sum += att_pct
                     total_item_weight += 1.0
+                    item_count += 1
 
             if total_item_weight > 0:
                 avg = weighted_sum / total_item_weight
@@ -1041,7 +1064,9 @@ class AnalyticsService:
                     "average": avg,
                     "weight": weight,
                     "contribution": (avg * weight) / 100,
-                    "total_items": int(total_item_weight),
+                    # How many grades and ratings the average is made of (not the sum of
+                    # their weights, which this used to be).
+                    "total_items": item_count,
                 }
 
         # Calculate final grade based on COMPLETED work only

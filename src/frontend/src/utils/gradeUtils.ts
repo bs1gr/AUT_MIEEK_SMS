@@ -140,6 +140,32 @@ export const formatAllGrades = (gpa: number): AllGradeFormats => {
  * Pass mark is 50%, matching the Greek 0-20 scale's pass threshold (10/20)
  * used elsewhere in this file.
  */
+/**
+ * How many times a grade counts in the average of its category: its Weight (Grades > Grade
+ * Entry). A grade without a weight, or with 0, counts once. The server's rule is the same
+ * (AnalyticsService.grade_weight), so that a page's average of a category is the one the
+ * final grade is made of.
+ */
+export const gradeWeight = (grade: { weight?: number | string | null }): number => {
+  const weight = Number(grade.weight);
+  return Number.isFinite(weight) && weight > 0 ? weight : 1;
+};
+
+/** The average of some grades in percent, each counted as often as its Weight says. */
+export const weightedAveragePercent = (
+  grades: Array<{ grade: number; max_grade: number; weight?: number | string | null }>
+): number => {
+  let sum = 0;
+  let weights = 0;
+  for (const grade of grades) {
+    if (!grade.max_grade) continue;
+    const weight = gradeWeight(grade);
+    sum += (grade.grade / grade.max_grade) * 100 * weight;
+    weights += weight;
+  }
+  return weights > 0 ? sum / weights : 0;
+};
+
 export const getLetterGrade = (percentage: number): string => {
   if (percentage >= 97) return 'A+';
   if (percentage >= 93) return 'A';
