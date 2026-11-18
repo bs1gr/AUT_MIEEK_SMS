@@ -301,6 +301,27 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-19: the `release-manager` agent and the `plan-review` skill run on a cheaper
+model** (asked for by the owner after `/usage`: which models the subagents use, and a
+cheaper one in the file that defines them where it fits the work. Each change was shown and
+chosen before it was made. Nothing of the application changes.)
+
+- **What the subagent logs of this project showed** (29 runs since October):
+  `release-manager` said `model: inherit` and used the session's model in its four runs;
+  `test-runner` and the built-in page reader were already on the cheapest model. The
+  largest cost by far was the three document audits of 18 November (PR 429): they were
+  already on the cheaper model, and their length was the cost (565 requests).
+- **What changes.** `.claude/agents/release-manager.md`: `model: sonnet`.
+  `.claude/skills/plan-review/SKILL.md`: `model: sonnet` and `context: fork`, so the audit
+  runs as a separate agent and only its report comes back, instead of this plan being read
+  into the main conversation.
+- **Not tried.** Neither has been run since the change. The first use shows the model in
+  the subagent's log. In a separate agent the skill's step 5 (the memory notes) may find
+  nothing to read.
+- **Not changed, by the owner's choice:** no default model for subagents is set
+  (`CLAUDE_CODE_SUBAGENT_MODEL`). The built-in agents have no file of their own; their
+  model is named on each call.
+
 **2026-11-18: an installer built by hand takes tracked files only; the installation guide
 read against the installer** (PR 431, merged on 19 November as `9616411fc`; on the PR's
 last commit CI's backend job passed 1,862 tests with 55 skipped, the frontend job 2,116 and

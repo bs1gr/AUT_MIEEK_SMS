@@ -1,6 +1,8 @@
 ---
 name: plan-review
 description: Audit docs/plans/UNIFIED_WORK_PLAN.md for staleness and accuracy against actual git history and code state, and report gaps. Use when asked to review, audit, or check the work plan / UNIFIED_WORK_PLAN.md, or before cutting a release.
+model: sonnet
+context: fork
 ---
 
 You audit `docs/plans/UNIFIED_WORK_PLAN.md` — this project's sole planning
