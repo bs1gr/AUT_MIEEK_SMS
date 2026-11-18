@@ -302,8 +302,11 @@ the VM and the QNAP.
 ### On `main` since v1.18.73 (unreleased)
 
 **2026-11-18: the older documents, read and corrected, and what the reading found in the
-code** (PR 429; the owner's message of that day, at the head of todo 63: point 6, "About
-twenty-five older documents (admin and user) were not read: read and correct as needed").
+code** (PR 429, merged as `aeceec62f`; on the PR's commit CI's backend job passed 1,854
+tests with 55 skipped, the frontend job 2,100, and E2E 75 with one more that passed on its
+second try: see the end of this entry. The owner's message of that day, at the head of
+todo 63: point 6, "About twenty-five older documents (admin and user) were not read: read
+and correct as needed").
 
 - **The documents.** Twenty-three: the 22 that `docs/user/INDEX.md` and todo 63 listed as
   not read, and `docs/admin/IMPORT_EXPORT_GUIDE.md`, which was in neither list. None was
@@ -432,6 +435,17 @@ twenty-five older documents (admin and user) were not read: read and correct as 
     on a real database); the download links of the help are plain addresses that the
     Android app may not reach (not tried); the tools nothing runs and the two unused page
     parts (todo 63).
+- **Seen on this PR's CI and not explained:**
+  - *One E2E test passed only on its second try:* "Attendance Tracking › should mark
+    student attendance" (`student-management.spec.ts`). On the first try the **Present**
+    button of the test's student was clicked and had not turned green after ten seconds;
+    on the second it did. The PR changes nothing of the Attendance page, and the five E2E
+    runs before it (PRs 427 and 428, and three pushes to `main`) passed all 76 at once.
+    Whether a click can be lost on that page while its list is still loading was not
+    looked into: if it is seen again, start there.
+  - *The Auto-label workflow failed*, on this PR alone: GitHub's API refused the labeler
+    with "too many files changed" (the diff removes 9,354 lines). It is not one of the
+    required checks, and the label `requires:e2e` was on the PR from its opening.
 
 **2026-11-18: the audit log says who did it, has a line for every change of an account, a
 role or a permission, and a page shows it** (PR 428, merged as `f0f07e085`; on the PR's
