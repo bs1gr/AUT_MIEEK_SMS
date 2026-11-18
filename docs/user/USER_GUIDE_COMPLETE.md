@@ -3,7 +3,8 @@
 **Version:** 1.18.73
 **Checked against the application:** 17 November 2026. Every page named here was opened in
 a running copy as a teacher and as an administrator, and each window and form was opened and
-read. Where something does not work, the guide says so.
+read. Where something does not work, the guide says so. What sections 7 and 8 say about how
+grades count was tried with grades on 18 November 2026.
 
 This guide is for the people who use the pages: teachers first, administrators second. It
 replaces a text of 1,560 lines that described the application as it was planned in 2025,
@@ -240,10 +241,10 @@ No e-mail and no notification is sent for low attendance.
 
 Choose a **student** and a **course**. Only then does the page show the grades.
 
-**Adding a grade.** Under "Grade Entry": the assignment's name, its category, a weight
-(a multiplier: 1, unless an assignment should count more), the points earned and the points
-possible. **Save Grade** stores it. A form with something missing answers "Please fill in
-all required fields".
+**Adding a grade.** Under "Grade Entry": the assignment's name, its category, the points
+earned and the points possible. **Save Grade** stores it. A form with something missing
+answers "Please fill in all required fields". The form also has a box **Weight**: it is
+stored and shown with the grade ("×1") and changes nothing in the final grade (section 8).
 
 **The summary** on the right shows the final grade so far: as a percentage, as a GPA, as a
 letter and on the Greek scale of 0 to 20 with its word (for example "15.5/20, Καλώς"). Under
@@ -264,6 +265,11 @@ rules. While a category has no grade yet it is left out, so the figure is "the f
 so far": with a midterm of 75% (weight 30) and homework of 85% (weight 10) it is 77.5%. A
 final grade under 50% fails the course.
 
+Within a category every grade counts the same, each as a percentage of its points: the
+average of the category is their plain average, whatever "Weight" was typed with a grade.
+Two exceptions: for Midterm Exam and Final Exam only the latest grade counts, and a day's
+rating in a category (section 6) counts like one more grade of that category.
+
 **Absences** are counted in periods:
 
 - Absent and Excused periods count. Late does not.
@@ -277,6 +283,11 @@ final grade under 50% fails the course.
 Both limits are set per course under Evaluation Rules. The application only shows this: on
 the Attendance page, on the Dashboard under Students Needing Attention, and in Analytics.
 Nothing is blocked, and nobody is told by e-mail.
+
+**The absence penalty.** A course can have one ("Absence penalty (points per absence)" in
+**Add Course** and **Edit Course**). Every Absent period then takes that many points off
+the final grade; Excused and Late periods are not counted for it. With a penalty of 2, two
+Absent periods turn a final grade of 75% into 71%.
 
 **Class Participation.** Each attended day is worth an equal part of the Class Participation
 share. An observation ticked for a day takes its percentage of that day's part (the most
@@ -337,14 +348,9 @@ and deleting templates is for administrators.
 users or to the users of one role, and the **Feedback Inbox** with what was sent through
 Send Feedback. See [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md).
 
-**Help & Documentation.** Questions and answers in eighteen groups, with a search box. Two
-warnings about it:
-
-- Some answers are older than the pages. "Click Save Attendance" is one: there is no such
-  button, the page saves by itself. "Only unexcused absences affect grades" is another:
-  excused periods count towards the absence limits (section 8).
-- "User Guide, Complete reference guide, Download English PDF" gives a leaflet of one page,
-  not this guide.
+**Help & Documentation.** Seventy-nine questions and answers in eighteen groups, with a
+search box, in English and in Greek. They were read against the pages on 18 November 2026.
+"Quick Guide", under the groups, downloads a one-page summary as a PDF; it is not this guide.
 
 ## 12. Analytics
 

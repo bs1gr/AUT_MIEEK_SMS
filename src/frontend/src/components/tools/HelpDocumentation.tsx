@@ -11,7 +11,9 @@ const HelpDocumentation = () => {
     setExpandedSection(expandedSection === sectionId ? null : sectionId);
   };
 
-  // Using translations for all help content
+  // The answers are in locales/<language>/help.js. They were read against the pages on
+  // 18 November 2026; i18n/__tests__/helpContent.test.ts keeps this list and the two
+  // languages in step.
   const documentation = [
     {
       id: 'getting-started',
@@ -19,18 +21,9 @@ const HelpDocumentation = () => {
       icon: Book,
       color: 'text-green-600',
       items: [
-        {
-          question: t('helpHowToAddStudent'),
-          answer: t('helpAddStudentAnswer')
-        },
-        {
-          question: t('helpHowToNavigate'),
-          answer: t('helpNavigateAnswer')
-        },
-        {
-          question: t('helpWhatDoINeed'),
-          answer: t('helpWhatNeedAnswer')
-        }
+        { question: t('helpHowToAddStudent'), answer: t('helpAddStudentAnswer') },
+        { question: t('helpHowToNavigate'), answer: t('helpNavigateAnswer') },
+        { question: t('helpWhatDoINeed'), answer: t('helpWhatNeedAnswer') },
       ]
     },
     {
@@ -39,18 +32,9 @@ const HelpDocumentation = () => {
       icon: MessageCircle,
       color: 'text-blue-600',
       items: [
-        {
-          question: t('helpHowToEditStudent'),
-          answer: t('helpEditStudentAnswer')
-        },
-        {
-          question: t('helpHowToDeleteStudent'),
-          answer: t('helpDeleteStudentAnswer')
-        },
-        {
-          question: t('helpHowToSearchStudent'),
-          answer: t('helpSearchStudentAnswer')
-        }
+        { question: t('helpHowToEditStudent'), answer: t('helpEditStudentAnswer') },
+        { question: t('helpHowToDeleteStudent'), answer: t('helpDeleteStudentAnswer') },
+        { question: t('helpHowToSearchStudent'), answer: t('helpSearchStudentAnswer') },
       ]
     },
     {
@@ -59,18 +43,9 @@ const HelpDocumentation = () => {
       icon: Book,
       color: 'text-indigo-600',
       items: [
-        {
-          question: t('helpWhatAreEvaluationRules'),
-          answer: t('helpEvaluationRulesAnswer')
-        },
-        {
-          question: t('helpHowToSetEvaluationRules'),
-          answer: t('helpSetEvaluationRulesAnswer')
-        },
-        {
-          question: t('helpCanIChangeRules'),
-          answer: t('helpChangeRulesAnswer')
-        }
+        { question: t('helpWhatAreEvaluationRules'), answer: t('helpEvaluationRulesAnswer') },
+        { question: t('helpHowToSetEvaluationRules'), answer: t('helpSetEvaluationRulesAnswer') },
+        { question: t('helpCanIChangeRules'), answer: t('helpChangeRulesAnswer') },
       ]
     },
     {
@@ -79,34 +54,9 @@ const HelpDocumentation = () => {
       icon: HelpCircle,
       color: 'text-emerald-600',
       items: [
-        {
-          question: t('helpWhatIsAutosave'),
-          answer: t('helpAutosaveAnswer')
-        },
-        {
-          question: t('helpWhereIsAutosave'),
-          answer: t('helpWhereAutosaveAnswer')
-        },
-        {
-          question: t('helpHowDoIKnowSaving'),
-          answer: t('helpKnowSavingAnswer')
-        },
-        {
-          question: t('helpCanIDisableAutosave'),
-          answer: t('helpDisableAutosaveAnswer')
-        },
-        {
-          question: t('helpWhatIfAutosaveFails'),
-          answer: t('helpAutosaveFailAnswer')
-        },
-        {
-          question: t('helpDoesAutosaveWorkOffline'),
-          answer: t('helpAutosaveOfflineAnswer')
-        },
-        {
-          question: t('helpIsAutosaveSecure'),
-          answer: t('helpAutosaveSecureAnswer')
-        }
+        { question: t('helpWhatIsAutosave'), answer: t('helpAutosaveAnswer') },
+        { question: t('helpHowDoIKnowSaving'), answer: t('helpKnowSavingAnswer') },
+        { question: t('helpWhatIfAutosaveFails'), answer: t('helpAutosaveFailAnswer') },
       ]
     },
     {
@@ -115,34 +65,12 @@ const HelpDocumentation = () => {
       icon: MessageCircle,
       color: 'text-amber-600',
       items: [
-        {
-          question: t('helpWhatsNewInLatest'),
-          answer: t('helpWhatsNewAnswer')
-        },
-        {
-          question: t('helpSessionExportImport'),
-          answer: t('helpSessionExportImportAnswer')
-        },
-        {
-          question: t('helpHowToExportSemester'),
-          answer: t('helpExportSemesterAnswer')
-        },
-        {
-          question: t('helpHowToImportSemester'),
-          answer: t('helpImportSemesterAnswer')
-        },
-        {
-          question: t('helpWhatIsRateLimitIncrease'),
-          answer: t('helpRateLimitIncreaseAnswer')
-        },
-        {
-          question: t('helpPersistentLogin'),
-          answer: t('helpPersistentLoginAnswer')
-        },
-        {
-          question: t('helpWindowsInstaller'),
-          answer: t('helpWindowsInstallerAnswer')
-        }
+        { question: t('helpWhatsNewInLatest'), answer: t('helpWhatsNewAnswer') },
+        { question: t('helpSessionExportImport'), answer: t('helpSessionExportImportAnswer') },
+        { question: t('helpHowToExportSemester'), answer: t('helpExportSemesterAnswer') },
+        { question: t('helpHowToImportSemester'), answer: t('helpImportSemesterAnswer') },
+        { question: t('helpWhatIsRateLimitIncrease'), answer: t('helpRateLimitIncreaseAnswer') },
+        { question: t('helpPersistentLogin'), answer: t('helpPersistentLoginAnswer') },
       ]
     },
     {
@@ -151,30 +79,12 @@ const HelpDocumentation = () => {
       icon: Video,
       color: 'text-purple-600',
       items: [
-        {
-          question: t('helpHowToRecordAttendance'),
-          answer: t('helpRecordAttendanceAnswer')
-        },
-        {
-          question: t('helpHowToRecordLesson'),
-          answer: t('helpRecordLessonAnswer')
-        },
-        {
-          question: t('helpWhereToReviewLessonLog'),
-          answer: t('helpReviewLessonLogAnswer')
-        },
-        {
-          question: t('helpWhatDoAttendanceStatusesMean'),
-          answer: t('helpAttendanceStatusAnswer')
-        },
-        {
-          question: t('helpWhatIsAbsencePenalty'),
-          answer: t('helpAbsencePenaltyAnswer')
-        },
-        {
-          question: t('helpDoesAttendanceAffectFinal'),
-          answer: t('helpAttendanceAffectAnswer')
-        }
+        { question: t('helpHowToRecordAttendance'), answer: t('helpRecordAttendanceAnswer') },
+        { question: t('helpHowToRecordLesson'), answer: t('helpRecordLessonAnswer') },
+        { question: t('helpWhereToReviewLessonLog'), answer: t('helpReviewLessonLogAnswer') },
+        { question: t('helpWhatDoAttendanceStatusesMean'), answer: t('helpAttendanceStatusAnswer') },
+        { question: t('helpWhatIsAbsencePenalty'), answer: t('helpAbsencePenaltyAnswer') },
+        { question: t('helpDoesAttendanceAffectFinal'), answer: t('helpAttendanceAffectAnswer') },
       ]
     },
     {
@@ -183,18 +93,9 @@ const HelpDocumentation = () => {
       icon: MessageCircle,
       color: 'text-orange-600',
       items: [
-        {
-          question: t('helpWhatIsDailyPerformance'),
-          answer: t('helpDailyPerformanceAnswer')
-        },
-        {
-          question: t('helpHowToRateDailyPerformance'),
-          answer: t('helpRateDailyPerformanceAnswer')
-        },
-        {
-          question: t('helpWhatIsPerformanceMultiplier'),
-          answer: t('helpPerformanceMultiplierAnswer')
-        }
+        { question: t('helpWhatIsDailyPerformance'), answer: t('helpDailyPerformanceAnswer') },
+        { question: t('helpHowToRateDailyPerformance'), answer: t('helpRateDailyPerformanceAnswer') },
+        { question: t('helpWhatAreParticipationObservations'), answer: t('helpParticipationObservationsAnswer') },
       ]
     },
     {
@@ -203,26 +104,11 @@ const HelpDocumentation = () => {
       icon: Book,
       color: 'text-yellow-600',
       items: [
-        {
-          question: t('helpHowToAddGrades'),
-          answer: t('helpAddGradesAnswer')
-        },
-        {
-          question: t('helpHowDoesWeightWork'),
-          answer: t('helpWeightAnswer')
-        },
-        {
-          question: t('helpHowIsFinalGradeCalculated'),
-          answer: t('helpFinalGradeCalculatedAnswer')
-        },
-        {
-          question: t('helpDoDailyPerformanceAffectFinal'),
-          answer: t('helpDailyPerformanceAffectAnswer')
-        },
-        {
-          question: t('helpHowIsGPACalculated'),
-          answer: t('helpGPACalculationAnswer')
-        }
+        { question: t('helpHowToAddGrades'), answer: t('helpAddGradesAnswer') },
+        { question: t('helpHowDoesWeightWork'), answer: t('helpWeightAnswer') },
+        { question: t('helpHowIsFinalGradeCalculated'), answer: t('helpFinalGradeCalculatedAnswer') },
+        { question: t('helpDoDailyPerformanceAffectFinal'), answer: t('helpDailyPerformanceAffectAnswer') },
+        { question: t('helpHowIsGPACalculated'), answer: t('helpGPACalculationAnswer') },
       ]
     },
     {
@@ -231,18 +117,9 @@ const HelpDocumentation = () => {
       icon: HelpCircle,
       color: 'text-cyan-600',
       items: [
-        {
-          question: t('helpWhatIsGradeBreakdown'),
-          answer: t('helpGradeBreakdownAnswer')
-        },
-        {
-          question: t('helpHowToViewBreakdown'),
-          answer: t('helpViewBreakdownAnswer')
-        },
-        {
-          question: t('helpWhatIsGreekGrade'),
-          answer: t('helpGreekGradeAnswer')
-        }
+        { question: t('helpWhatIsGradeBreakdown'), answer: t('helpGradeBreakdownAnswer') },
+        { question: t('helpHowToViewBreakdown'), answer: t('helpViewBreakdownAnswer') },
+        { question: t('helpWhatIsGreekGrade'), answer: t('helpGreekGradeAnswer') },
       ]
     },
     {
@@ -251,18 +128,9 @@ const HelpDocumentation = () => {
       icon: Video,
       color: 'text-teal-600',
       items: [
-        {
-          question: t('helpHowToExportSchedule'),
-          answer: t('helpExportScheduleAnswer')
-        },
-        {
-          question: t('helpWhatIsICSFile'),
-          answer: t('helpICSFileAnswer')
-        },
-        {
-          question: t('helpScheduleNotShowing'),
-          answer: t('helpScheduleNotShowingAnswer')
-        }
+        { question: t('helpHowToExportSchedule'), answer: t('helpExportScheduleAnswer') },
+        { question: t('helpWhatIsICSFile'), answer: t('helpICSFileAnswer') },
+        { question: t('helpScheduleNotShowing'), answer: t('helpScheduleNotShowingAnswer') },
       ]
     },
     {
@@ -271,14 +139,8 @@ const HelpDocumentation = () => {
       icon: HelpCircle,
       color: 'text-red-600',
       items: [
-        {
-          question: t('helpWhatExportFormats'),
-          answer: t('helpExportFormatsAnswer')
-        },
-        {
-          question: t('helpHowToExportStudentData'),
-          answer: t('helpExportStudentDataAnswer')
-        }
+        { question: t('helpWhatExportFormats'), answer: t('helpExportFormatsAnswer') },
+        { question: t('helpHowToExportStudentData'), answer: t('helpExportStudentDataAnswer') },
       ]
     },
     {
@@ -287,22 +149,11 @@ const HelpDocumentation = () => {
       icon: MessageCircle,
       color: 'text-pink-600',
       items: [
-        {
-          question: t('helpHowToChangeLanguage'),
-          answer: t('helpChangeLanguageAnswer')
-        },
-        {
-          question: t('helpWhatIsLocalized'),
-          answer: t('helpLocalizedAnswer')
-        },
-        {
-          question: t('helpWhyGreekEnglishCategories'),
-          answer: t('helpLocalizationCategoriesAnswer')
-        },
-        {
-          question: t('helpArePlaceholdersBilingual'),
-          answer: t('helpPlaceholdersBilingualAnswer')
-        }
+        { question: t('helpHowToChangeLanguage'), answer: t('helpChangeLanguageAnswer') },
+        { question: t('helpWhatIsLocalized'), answer: t('helpLocalizedAnswer') },
+        { question: t('helpWhyGreekEnglishCategories'), answer: t('helpLocalizationCategoriesAnswer') },
+        { question: t('helpHowToChangeTheme'), answer: t('helpChangeThemeAnswer') },
+        { question: t('helpHowToChangeDateFormat'), answer: t('helpChangeDateFormatAnswer') },
       ]
     },
     {
@@ -311,50 +162,10 @@ const HelpDocumentation = () => {
       icon: Book,
       color: 'text-gray-600',
       items: [
-        {
-          question: t('helpHowToBackup'),
-          answer: t('helpBackupAnswer')
-        },
-        {
-          question: t('helpHowToRestore'),
-          answer: t('helpRestoreAnswer')
-        },
-        {
-          question: t('helpWhatIsSampleData'),
-          answer: t('helpSampleDataAnswer')
-        },
-        {
-          question: t('helpSystemHealth'),
-          answer: t('helpSystemHealthAnswer')
-        },
-        {
-          question: t('helpHowToChangeTheme'),
-          answer: t('helpChangeThemeAnswer')
-        },
-        {
-          question: t('helpWhatIsSystemTheme'),
-          answer: t('helpSystemThemeAnswer')
-        },
-        {
-          question: t('helpCleanupObsolete'),
-          answer: t('helpCleanupObsoleteAnswer')
-        },
-        {
-          question: t('helpDockerVolumeUpdate'),
-          answer: t('helpDockerVolumeUpdateAnswer')
-        },
-        {
-          question: t('helpUpdateVolumeHowTo'),
-          answer: t('helpUpdateVolumeHowToAnswer')
-        },
-        {
-          question: t('helpUpdateVolumeRevert'),
-          answer: t('helpUpdateVolumeRevertAnswer')
-        },
-        {
-          question: t('helpUpdateVolumeMigrate'),
-          answer: t('helpUpdateVolumeMigrateAnswer')
-        }
+        { question: t('helpHowToBackup'), answer: t('helpBackupAnswer') },
+        { question: t('helpHowToRestore'), answer: t('helpRestoreAnswer') },
+        { question: t('helpSystemHealth'), answer: t('helpSystemHealthAnswer') },
+        { question: t('helpCleanupObsolete'), answer: t('helpCleanupObsoleteAnswer') },
       ]
     },
     {
@@ -363,74 +174,23 @@ const HelpDocumentation = () => {
       icon: Book,
       color: 'text-indigo-600',
       items: [
-        {
-          question: t('helpWhatAreCustomReports'),
-          answer: t('helpCustomReportsAnswer')
-        },
-        {
-          question: t('helpHowToCreateReport'),
-          answer: t('helpCreateReportAnswer')
-        },
-        {
-          question: t('helpWhatIsReportBuilder'),
-          answer: t('helpReportBuilderAnswer')
-        },
-        {
-          question: t('helpHowToEditReport'),
-          answer: t('helpEditReportAnswer')
-        },
-        {
-          question: t('helpHowToGenerateReport'),
-          answer: t('helpGenerateReportAnswer')
-        },
-        {
-          question: t('helpWhatAreTemplates'),
-          answer: t('helpTemplatesAnswer')
-        },
-        {
-          question: t('helpHowToUseTemplate'),
-          answer: t('helpUseTemplateAnswer')
-        },
-        {
-          question: t('helpHowToCreateTemplate'),
-          answer: t('helpCreateTemplateAnswer')
-        },
-        {
-          question: t('helpHowToShareTemplate'),
-          answer: t('helpShareTemplateAnswer')
-        },
-        {
-          question: t('helpWhatIsDataSourceTile'),
-          answer: t('helpDataSourceTileAnswer')
-        },
-        {
-          question: t('helpWhatIsOutputFormatTile'),
-          answer: t('helpOutputFormatTileAnswer')
-        },
-        {
-          question: t('helpWhatFiltersAvailable'),
-          answer: t('helpFiltersAvailableAnswer')
-        },
-        {
-          question: t('helpHowManySortRules'),
-          answer: t('helpSortRulesAnswer')
-        },
-        {
-          question: t('helpCanIDuplicateReport'),
-          answer: t('helpDuplicateReportAnswer')
-        },
-        {
-          question: t('helpWhereAreGeneratedReports'),
-          answer: t('helpGeneratedReportsAnswer')
-        },
-        {
-          question: t('helpCanReportsEmail'),
-          answer: t('helpReportsEmailAnswer')
-        },
-        {
-          question: t('helpCanReportsSchedule'),
-          answer: t('helpReportsScheduleAnswer')
-        }
+        { question: t('helpWhatAreCustomReports'), answer: t('helpCustomReportsAnswer') },
+        { question: t('helpHowToCreateReport'), answer: t('helpCreateReportAnswer') },
+        { question: t('helpWhatIsReportBuilder'), answer: t('helpReportBuilderAnswer') },
+        { question: t('helpHowToEditReport'), answer: t('helpEditReportAnswer') },
+        { question: t('helpHowToGenerateReport'), answer: t('helpGenerateReportAnswer') },
+        { question: t('helpWhatAreTemplates'), answer: t('helpTemplatesAnswer') },
+        { question: t('helpHowToUseTemplate'), answer: t('helpUseTemplateAnswer') },
+        { question: t('helpHowToCreateTemplate'), answer: t('helpCreateTemplateAnswer') },
+        { question: t('helpHowToShareTemplate'), answer: t('helpShareTemplateAnswer') },
+        { question: t('helpWhatIsDataSourceTile'), answer: t('helpDataSourceTileAnswer') },
+        { question: t('helpWhatIsOutputFormatTile'), answer: t('helpOutputFormatTileAnswer') },
+        { question: t('helpWhatFiltersAvailable'), answer: t('helpFiltersAvailableAnswer') },
+        { question: t('helpHowManySortRules'), answer: t('helpSortRulesAnswer') },
+        { question: t('helpCanIDuplicateReport'), answer: t('helpDuplicateReportAnswer') },
+        { question: t('helpWhereAreGeneratedReports'), answer: t('helpGeneratedReportsAnswer') },
+        { question: t('helpCanReportsEmail'), answer: t('helpReportsEmailAnswer') },
+        { question: t('helpCanReportsSchedule'), answer: t('helpReportsScheduleAnswer') },
       ]
     },
     {
@@ -439,22 +199,10 @@ const HelpDocumentation = () => {
       icon: Book,
       color: 'text-violet-600',
       items: [
-        {
-          question: t('helpWhatAreCustomDashboards'),
-          answer: t('helpCustomDashboardsAnswer')
-        },
-        {
-          question: t('helpHowToCreateDashboard'),
-          answer: t('helpCreateDashboardAnswer')
-        },
-        {
-          question: t('helpHowToSetDefaultDashboard'),
-          answer: t('helpSetDefaultDashboardAnswer')
-        },
-        {
-          question: t('helpHowToEditDeleteDashboard'),
-          answer: t('helpEditDeleteDashboardAnswer')
-        }
+        { question: t('helpWhatAreCustomDashboards'), answer: t('helpCustomDashboardsAnswer') },
+        { question: t('helpHowToCreateDashboard'), answer: t('helpCreateDashboardAnswer') },
+        { question: t('helpHowToSetDefaultDashboard'), answer: t('helpSetDefaultDashboardAnswer') },
+        { question: t('helpHowToEditDeleteDashboard'), answer: t('helpEditDeleteDashboardAnswer') },
       ]
     },
     {
@@ -463,22 +211,10 @@ const HelpDocumentation = () => {
       icon: HelpCircle,
       color: 'text-rose-600',
       items: [
-        {
-          question: t('helpWhatIsSemesterArchive'),
-          answer: t('helpSemesterArchiveAnswer')
-        },
-        {
-          question: t('helpSemesterArchiveVsSessionExport'),
-          answer: t('helpSemesterArchiveVsSessionExportAnswer')
-        },
-        {
-          question: t('helpHowToRunSemesterArchive'),
-          answer: t('helpRunSemesterArchiveAnswer')
-        },
-        {
-          question: t('helpWhereIsAcademicHistory'),
-          answer: t('helpAcademicHistoryAnswer')
-        }
+        { question: t('helpWhatIsSemesterArchive'), answer: t('helpSemesterArchiveAnswer') },
+        { question: t('helpSemesterArchiveVsSessionExport'), answer: t('helpSemesterArchiveVsSessionExportAnswer') },
+        { question: t('helpHowToRunSemesterArchive'), answer: t('helpRunSemesterArchiveAnswer') },
+        { question: t('helpWhereIsAcademicHistory'), answer: t('helpAcademicHistoryAnswer') },
       ]
     },
     {
@@ -487,18 +223,9 @@ const HelpDocumentation = () => {
       icon: MessageCircle,
       color: 'text-sky-600',
       items: [
-        {
-          question: t('helpWhatIsRBACConfiguration'),
-          answer: t('helpRBACConfigurationAnswer')
-        },
-        {
-          question: t('helpHowToManagePermissions'),
-          answer: t('helpManagePermissionsAnswer')
-        },
-        {
-          question: t('helpHowToManageUserAccounts'),
-          answer: t('helpManageUserAccountsAnswer')
-        }
+        { question: t('helpWhatIsRBACConfiguration'), answer: t('helpRBACConfigurationAnswer') },
+        { question: t('helpHowToManagePermissions'), answer: t('helpManagePermissionsAnswer') },
+        { question: t('helpHowToManageUserAccounts'), answer: t('helpManageUserAccountsAnswer') },
       ]
     },
     {
@@ -507,18 +234,8 @@ const HelpDocumentation = () => {
       icon: MessageCircle,
       color: 'text-blue-600',
       items: [
-        {
-          question: t('helpWhatIsDevTools'),
-          answer: t('helpDevToolsAnswer')
-        },
-        {
-          question: t('helpHowToAccessControlPanel'),
-          answer: t('helpControlPanelAnswer')
-        },
-        {
-          question: t('helpWhatIsServerControl'),
-          answer: t('helpServerControlAnswer')
-        }
+        { question: t('helpHowToAccessControlPanel'), answer: t('helpControlPanelAnswer') },
+        { question: t('helpWhatIsDevTools'), answer: t('helpDevToolsAnswer') },
       ]
     }
   ];
@@ -584,7 +301,9 @@ const HelpDocumentation = () => {
                   {section.items.map((item, idx) => (
                     <div key={idx} className="border-l-4 border-indigo-200 pl-4 py-2">
                       <h3 className="font-semibold text-gray-800 mb-2">{item.question}</h3>
-                      <p className="text-gray-600 text-sm leading-relaxed">{item.answer}</p>
+                      {/* The answers hold their steps and lists one to a line. Without
+                          whitespace-pre-line the browser ran them together into one paragraph. */}
+                      <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line" data-testid="help-answer">{item.answer}</p>
                     </div>
                   ))}
                 </div>
