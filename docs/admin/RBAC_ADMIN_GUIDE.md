@@ -63,17 +63,25 @@ Whether registration is offered at all is a setting of the server, `SELF_REGISTR
 
 ### Change an account
 
-**Edit** opens the row: the name, the role (Administrator, Teacher, Student) and the box
-"Active". **Save** stores all three.
+**Edit** opens the row: the name, the role and the box "Active". **Save** stores the name
+and "Active", and the role when you chose another one.
 
 - Unticking **Active** stops the account at once: its next request is refused and it cannot
   sign in. Ticking it again brings it back.
-- An account with the role Viewer or Guest **cannot be saved from Edit as it is**. The role
-  box has no entry for those two, shows "Administrator" and sends the old role, which the
-  server refuses ("Could not update user"). Choosing a role in the box saves, and changes the
-  role. To stop a Viewer account: choose **Student** in the box, untick **Active**, **Save**.
+- The role box offers Administrator, Teacher and Student. For an account with the role Viewer
+  or Guest it also shows that role, selected, and **Save** leaves the role as it is unless
+  you choose another one.
 - Changing the role to **Student** takes the account's roles away. It can still sign in
   and no page of records opens for it. See "Take an account's access away" below.
+
+In v1.18.73 and earlier the role in the list and in the Edit row is not always the
+account's, and **Save** sends the role it shows:
+
+- An account with the role Viewer or Guest cannot be saved from Edit as it is: the box shows
+  "Administrator" and the server refuses the save ("Could not update user").
+- **An administrator who got the role under Assign Role to User is listed as "Teacher", and
+  Edit followed by Save makes the account a teacher**, also when nothing was changed. There,
+  set the role box to the role the account is to have before every **Save**.
 
 ### Reset a password
 
@@ -116,7 +124,8 @@ What follows from a role:
   then shows several roles. That is intended and changes nothing: the higher role already
   holds what the lower ones hold.
 - The Role column of User Accounts follows the highest role the account has: Administrator,
-  then Teacher, then Viewer, then Guest.
+  then Teacher, then Viewer, then Guest. (In v1.18.73 and earlier it shows the role the
+  account got first.)
 - The change counts from the account's next request. Nobody has to sign in again.
 
 ### Take a role away
@@ -198,35 +207,41 @@ Two limits:
 
 ### Grant a permission to a role
 
-**Not possible from the page.** With **Grant To**: Role, the box that should list the roles is
-empty, in the grant form and in the revoke form. The page asks the server for the roles at an
-address that does not exist.
+The same form with **Grant To**: Role: choose the role (admin, teacher, guest or viewer) and
+the permission, then **Grant**. Every account with that role has the permission from its next
+request. "Revoke Permission" with Role takes it from the role the same way.
 
-The API does it (`POST /api/v1/permissions/roles/grant` and `.../revoke`, with `role_name` and
-`permission_key`), for somebody who works with the API. Take care with the revoke: that
-request also accepts `*:*` for the role `admin`, which locks every administrator out of the
-role and account pages. See "If the administrator is locked out".
+Example: `audit:view` granted to the role teacher lets every teacher read the audit log
+through the API; revoked, a teacher's next request for it is refused.
+
+- The two limits above hold here too.
+- **Initialize RBAC Defaults** (Settings tab) puts back a standard grant that was revoked.
+- `*:*` cannot be revoked from the role admin: the page says so, and the server refuses the
+  request. Without it no administrator could open the account or the role panels.
+
+In v1.18.73 and earlier the box that should list the roles is empty, in the grant form and in
+the revoke form, so neither can be done from the page; and the request behind the revoke form
+(`POST /api/v1/permissions/roles/revoke`) accepts `*:*` for the role `admin`. See "If the
+administrator is locked out".
 
 ## The other tabs of RBAC Configuration
 
-- **Overview** counts the roles and the permissions and names the roles. Its list of
-  permissions and its list "Role-Permission Mappings" show **no permission names**, only blank
-  rows and the role on the left. Use the Permissions Catalog instead.
-- **Users** lists the accounts that have a role, as "User 3" with an invented address
-  ("user_3@system") and "Legacy role: user", followed by the account's real roles. The number
-  is the account's number; the name and the address are placeholders.
+- **Overview** counts the roles and the permissions, names the roles, and lists every
+  permission by its key with its name in the page's language. "Role-Permission Mappings"
+  lists every grant as role → permission.
+- **Users** lists every account: name, e-mail address, number ("ID"), the word in its Role
+  column ("Legacy role") and the roles it holds, or "No RBAC roles assigned" (a Student
+  account, or one whose roles were all revoked). The number is what Assign Role to User and
+  the Permissions Catalog ask for.
+- In v1.18.73 and earlier the two lists of Overview show blank rows where the permissions
+  should be, and Users shows each account that has a role as "User 3" with an invented
+  address ("user_3@system") and "Legacy role: user".
 - **Settings** has one button, **Initialize RBAC Defaults**. It adds any of the four roles,
   the 39 permissions and their standard grants that are missing, and gives every account
   whose Role is Administrator, Teacher, Viewer or Guest that role if it lacks it. It removes
   nothing: a permission you took from a role comes back, a permission you added stays.
 
 ## Traps
-
-### A Viewer or Guest account cannot be saved from Edit
-
-See "Change an account": the role box has no entry for the two roles. Change such an
-account's roles under Assign Role to User. To stop it, choose Student in the box and untick
-Active, or delete it.
 
 ### The pages do not hide what an account may not do
 
@@ -247,10 +262,13 @@ The audit log and the history of role changes are answered by the API
 
 ## If the administrator is locked out
 
-- **The role and account panels answer "forbidden" for every administrator.** The wildcard
-  `*:*` was taken from the role `admin`. Restart the application: at every start it checks
-  that the role `admin` holds `*:*` and puts it back, together with the rest of the standard
-  grants.
+- **The role and account panels answer "forbidden" for every administrator.** The role
+  `admin` has lost the wildcard `*:*`. No page can do that, and the server refuses the
+  requests that would: taking it from the role, switching it off, deleting it, renaming it.
+  In v1.18.73 and earlier the server accepts them. Restart the application: at every start
+  it checks that the role `admin` holds `*:*` and that the permission is switched on, and
+  puts both right, together with the rest of the standard grants. (In v1.18.73 and earlier
+  a restart does not help when the permission was switched off; update the application.)
 - **An administrator forgot the password.** Another administrator resets it in User Accounts.
 - **There is no other administrator.** This cannot be done from the pages. The server has
   settings for it: with `DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_PASSWORD` and

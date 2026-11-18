@@ -3,7 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
-import testI18n from '@/test-utils/i18n-test-wrapper';
+// The application's own texts: the test set of '@/test-utils' has no role names.
+import testI18n from '@/i18n/config';
 import { LanguageProvider } from '@/LanguageContext';
 import { RBACPanel } from '../RBACPanel';
 import type { RBACSummary } from '@/api/api';
@@ -12,7 +13,7 @@ const mockApiClient = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 const mockAssignRole = vi.hoisted(() => vi.fn());
 const mockRevokeRole = vi.hoisted(() => vi.fn());
 const mockEnsureDefaults = vi.hoisted(() => vi.fn());
-const mockGrantPermission = vi.hoisted(() => vi.fn());
+const mockListUsers = vi.hoisted(() => vi.fn());
 
 vi.mock('@/api/api', () => ({
   __esModule: true,
@@ -23,8 +24,8 @@ vi.mock('@/api/api', () => ({
     ensureDefaults: mockEnsureDefaults,
     assignRole: mockAssignRole,
     revokeRole: mockRevokeRole,
-    grantPermission: mockGrantPermission,
   },
+  adminUsersAPI: { list: mockListUsers },
   isAuthOrPermissionError: () => false,
 }));
 
@@ -124,5 +125,84 @@ describe('RBACPanel', () => {
     await waitFor(() => {
       expect(mockRevokeRole).toHaveBeenCalled();
     });
+  });
+
+  // What the server sends: a permission is known by its key. The Overview tab used to read a
+  // "name" that was never sent, and showed 39 blank rows and mappings with nothing after the arrow.
+  const serverSummary = {
+    roles: [
+      { id: 1, name: 'admin', description: 'Admin' },
+      { id: 2, name: 'teacher', description: 'Teacher' },
+    ],
+    permissions: [
+      { id: 1, key: 'students:view', resource: 'students', action: 'view', description: 'View all student records', is_active: true },
+      { id: 2, key: 'grades.self:read', resource: 'grades.self', action: 'read', description: 'Student: view own grades', is_active: true },
+      { id: 3, key: 'workshop:book', resource: 'workshop', action: 'book', description: 'Made by hand', is_active: true },
+    ],
+    role_permissions: [{ role_id: 2, permission_id: 1 }],
+    user_roles: [
+      { user_id: 1, role_id: 1 },
+      { user_id: 3, role_id: 2 },
+    ],
+  } as RBACSummary;
+
+  it('names every permission on the Overview tab by its key, with its name where it has one', async () => {
+    const apiModule = await import('@/api/api');
+    vi.mocked(apiModule.rbacAPI.getSummary).mockResolvedValue(serverSummary);
+
+    renderWithProviders(<RBACPanel />);
+
+    expect(await screen.findByTestId('rbac-permission-1')).toHaveTextContent('students:view');
+    expect(screen.getByTestId('rbac-permission-1')).toHaveTextContent('View Students');
+    // A key with a dot and a colon: i18next would split it, the panel must not.
+    expect(screen.getByTestId('rbac-permission-2')).toHaveTextContent('grades.self:read');
+    expect(screen.getByTestId('rbac-permission-2')).toHaveTextContent('Student: Own Grades');
+    // A permission the installation added itself has no name: its key alone.
+    expect(screen.getByTestId('rbac-permission-3').textContent).toBe('workshop:book');
+    const mapping = screen.getByTestId('rbac-role-permission');
+    expect(mapping).toHaveTextContent('Teacher');
+    expect(mapping).toHaveTextContent('students:view');
+  });
+
+  it('lists the accounts on the Users tab as they are, also the ones without a role', async () => {
+    const apiModule = await import('@/api/api');
+    vi.mocked(apiModule.rbacAPI.getSummary).mockResolvedValue(serverSummary);
+    mockListUsers.mockResolvedValue([
+      { id: 3, email: 'maria@example.com', full_name: 'Maria Georgiou', role: 'teacher', is_active: true },
+      { id: 1, email: 'admin@example.com', full_name: null, role: 'admin', is_active: true },
+      { id: 7, email: 'pupil@example.com', full_name: 'Pupil Seven', role: 'student', is_active: true },
+    ]);
+
+    renderWithProviders(<RBACPanel />);
+    await screen.findByText('RBAC Configuration');
+    await userEvent.setup().click(screen.getByText('Users'));
+
+    const teacher = await screen.findByTestId('rbac-user-3');
+    expect(teacher).toHaveTextContent('Maria Georgiou');
+    expect(teacher).toHaveTextContent('maria@example.com');
+    expect(teacher).toHaveTextContent('ID: 3');
+    expect(teacher).toHaveTextContent('Legacy role: Teacher');
+    expect(screen.getByTestId('rbac-user-1')).toHaveTextContent('admin@example.com');
+    expect(screen.getByTestId('rbac-user-1')).toHaveTextContent('Administrator');
+    expect(screen.getByTestId('rbac-user-7')).toHaveTextContent('No RBAC roles assigned');
+    expect(screen.getByText('User-Role Mappings (3 users)')).toBeInTheDocument();
+    // What the tab used to make up for every account.
+    expect(screen.queryByText(/@system/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Legacy role: user/)).not.toBeInTheDocument();
+  });
+
+  it('shows the account numbers alone, and says so, when the list of accounts is refused', async () => {
+    const apiModule = await import('@/api/api');
+    vi.mocked(apiModule.rbacAPI.getSummary).mockResolvedValue(serverSummary);
+    mockListUsers.mockRejectedValue({ response: { status: 403 } });
+
+    renderWithProviders(<RBACPanel />);
+    await screen.findByText('RBAC Configuration');
+    await userEvent.setup().click(screen.getByText('Users'));
+
+    expect(await screen.findByTestId('rbac-accounts-not-loaded')).toBeInTheDocument();
+    expect(screen.getByTestId('rbac-user-3')).toHaveTextContent('ID: 3');
+    expect(screen.getByTestId('rbac-user-3')).toHaveTextContent('Teacher');
+    expect(screen.queryByText(/@system/)).not.toBeInTheDocument();
   });
 });

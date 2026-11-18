@@ -23,6 +23,13 @@ from backend.services.audit_service import get_audit_logger
 
 router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"description": "Not found"}})
 
+# The permission that makes an administrator one, held by the role "admin". The requests of
+# this module refuse to take it from that role, to rename it and to delete it: after any of
+# these no administrator could manage accounts or roles. (The role itself may be renamed or
+# deleted without that effect: the grants follow the role's number, and an administrator
+# without the role gets the built-in list of backend.rbac.)
+ADMIN_WILDCARD = "*:*"
+
 
 @router.post("/roles", response_model=RoleResponse)
 @require_permission("permissions:manage")
@@ -135,6 +142,14 @@ async def update_permission(
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
+    # Under another key the wildcard would open nothing, for administrators either.
+    if key and perm.key == ADMIN_WILDCARD and key.strip().lower() != ADMIN_WILDCARD:
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            "The wildcard permission cannot be renamed",
+            request,
+        )
     if key:
         perm.key = key.strip().lower()
     if resource:
@@ -158,6 +173,13 @@ async def delete_permission(
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
+    if perm.key == ADMIN_WILDCARD:
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            "The wildcard permission cannot be deleted",
+            request,
+        )
     db.delete(perm)
     db.commit()
     return {"status": "deleted"}
@@ -474,6 +496,10 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
         elif not p.description:
             p.description = pdesc
             db.commit()
+        if pkey == ADMIN_WILDCARD and p.is_active is False:
+            # Switched off, it opens nothing, and no administrator can switch it on again.
+            p.is_active = True
+            db.commit()
         name_to_perm[pkey] = p
 
     # Grants
@@ -590,7 +616,10 @@ def ensure_defaults_startup(session_factory) -> bool:
                         .join(models.Permission, models.RolePermission.permission_id == models.Permission.id)
                         .filter(
                             models.RolePermission.role_id == admin_role.id,
-                            models.Permission.key == "*:*",
+                            models.Permission.key == ADMIN_WILDCARD,
+                            # A wildcard that is switched off counts as missing: the seed
+                            # switches it on again.
+                            models.Permission.is_active.is_(True),
                         )
                         .first()
                     )

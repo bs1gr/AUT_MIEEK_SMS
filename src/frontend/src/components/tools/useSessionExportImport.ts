@@ -30,6 +30,9 @@ export function useSessionExportImport({ t, showToast }: UseSessionExportImportP
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mergeStrategy, setMergeStrategy] = useState<MergeStrategy>('update');
   const [loadingSemesters, setLoadingSemesters] = useState(false);
+  // Why the list of semesters is empty when it could not be read: the server refused this
+  // account ('refused'), or the request failed for another reason ('failed').
+  const [semesterLoadError, setSemesterLoadError] = useState<'refused' | 'failed' | null>(null);
   const [exportingSession, setExportingSession] = useState(false);
   const [importingSession, setImportingSession] = useState(false);
   const [validatingImport, setValidatingImport] = useState(false);
@@ -64,10 +67,18 @@ export function useSessionExportImport({ t, showToast }: UseSessionExportImportP
         ? (data as string[])
         : ((data as { semesters?: string[] })?.semesters || (data as { list?: string[] })?.list || []);
       setSemesters(list);
+      setSemesterLoadError(null);
       if (list && list.length > 0) setSelectedSemester(list[0]);
     } catch (error) {
-      console.error('Failed to load semesters:', error);
-      showToast(t('failedToLoadSemesters'), 'error');
+      const status = (error as { response?: { status?: number } } | null)?.response?.status;
+      if (status === 403) {
+        // Not an error of the page: the account may not use the panel, and the panel says so.
+        setSemesterLoadError('refused');
+      } else {
+        console.error('Failed to load semesters:', error);
+        setSemesterLoadError('failed');
+        showToast(t('failedToLoadSemesters'), 'error');
+      }
     } finally {
       setLoadingSemesters(false);
     }
@@ -196,6 +207,7 @@ export function useSessionExportImport({ t, showToast }: UseSessionExportImportP
     mergeStrategy,
     setMergeStrategy,
     loadingSemesters,
+    semesterLoadError,
     exportingSession,
     importingSession,
     validatingImport,

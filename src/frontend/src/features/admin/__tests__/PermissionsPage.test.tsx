@@ -87,7 +87,7 @@ describe('PermissionsPage', () => {
       if (url === '/permissions/stats') {
         return Promise.resolve({ data: mockStats });
       }
-      if (url === '/rbac/roles') {
+      if (url === '/admin/rbac/roles') {
         return Promise.resolve({ data: mockRoles });
       }
       return Promise.reject(new Error('Unknown endpoint'));
@@ -161,7 +161,7 @@ describe('PermissionsPage', () => {
       if (url === '/permissions/') return Promise.resolve({ data: mockPermissions });
       if (url === '/permissions/by-resource') return Promise.resolve({ data: mockPermissionsByResource });
       if (url === '/permissions/stats') return Promise.resolve({ data: mockStats });
-      if (url === '/rbac/roles') return Promise.resolve({ data: mockRoles });
+      if (url === '/admin/rbac/roles') return Promise.resolve({ data: mockRoles });
       if (url === '/permissions/users/42') return Promise.resolve({ data: mockUserPermissions });
       return Promise.reject(new Error('Unknown endpoint'));
     });
@@ -212,5 +212,40 @@ describe('PermissionsPage', () => {
     const directPermissionsSection = screen.getByText(/direct permissions/i).closest('div');
     expect(directPermissionsSection).toBeTruthy();
     expect(within(directPermissionsSection as HTMLElement).getByText('students:view')).toBeInTheDocument();
+  });
+
+  it('does not send the request that would take every permission from the Administrator role', async () => {
+    const wildcard = { id: 9, key: '*:*', resource: '*', action: '*', description: 'All permissions', is_active: true };
+    vi.mocked(apiModule.apiClient.get).mockImplementation((url: string) => {
+      if (url === '/permissions/') return Promise.resolve({ data: [wildcard] });
+      if (url === '/permissions/by-resource') return Promise.resolve({ data: [{ resource: '*', permissions: [wildcard] }] });
+      if (url === '/permissions/stats') return Promise.resolve({ data: null });
+      // The address the server has. The page asked '/rbac/roles', which answers 404, and both
+      // role boxes stayed empty; the mock of this file answered the wrong address too.
+      if (url === '/admin/rbac/roles') return Promise.resolve({ data: [{ id: 1, name: 'admin' }, { id: 2, name: 'teacher' }] });
+      return Promise.reject(new Error(`Unknown endpoint ${url}`));
+    });
+    const postSpy = vi.mocked(apiModule.apiClient.post);
+    postSpy.mockResolvedValue({ data: { status: 'revoked' } });
+    const user = userEvent.setup();
+    renderWithProviders(<PermissionsPage />);
+
+    const revokeCard = (await screen.findByText(/revoke permission/i)).closest('div') as HTMLElement;
+    const [, roleBox, permissionBox] = within(revokeCard).getAllByRole('combobox');
+    await waitFor(() => expect(within(roleBox).getByRole('option', { name: 'teacher' })).toBeInTheDocument());
+
+    await user.selectOptions(roleBox, 'admin');
+    await user.selectOptions(permissionBox, '*:*');
+    await user.click(within(revokeCard).getByRole('button', { name: /revoke/i }));
+
+    expect(await screen.findByText(/The Administrator role keeps/)).toBeInTheDocument();
+    expect(postSpy).not.toHaveBeenCalled();
+
+    // Any other role may lose it.
+    await user.selectOptions(roleBox, 'teacher');
+    await user.click(within(revokeCard).getByRole('button', { name: /revoke/i }));
+    await waitFor(() =>
+      expect(postSpy).toHaveBeenCalledWith('/permissions/roles/revoke', { role_name: 'teacher', permission_key: '*:*' })
+    );
   });
 });

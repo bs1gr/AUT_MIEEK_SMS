@@ -85,6 +85,41 @@ describe('useSessionExportImport', () => {
 
       await waitFor(() => expect(props.showToast).toHaveBeenCalledWith('failedToLoadSemesters', 'error'));
       expect(result.current.semesters).toEqual([]);
+      expect(result.current.semesterLoadError).toBe('failed');
+    });
+
+    it('raises no error when the server refuses the account, and says that it was refused', async () => {
+      // A teacher: GET /sessions/semesters asks for a permission only an administrator has.
+      // The panel used to answer with a red message on every opening of the section.
+      const props = buildProps();
+      mockListSemesters.mockRejectedValue({ response: { status: 403, data: { detail: 'Permission denied' } } });
+
+      const { result } = renderHook(() => useSessionExportImport(props));
+
+      await waitFor(() => expect(result.current.semesterLoadError).toBe('refused'));
+      expect(result.current.loadingSemesters).toBe(false);
+      expect(props.showToast).not.toHaveBeenCalled();
+      expect(result.current.semesters).toEqual([]);
+    });
+
+    it('forgets an earlier failure once the semesters load', async () => {
+      const props = buildProps();
+      mockListSemesters.mockRejectedValueOnce(new Error('boom'));
+      mockImportSession.mockResolvedValue({ summary: {} });
+      const { result } = renderHook(() => useSessionExportImport(props));
+      await waitFor(() => expect(result.current.semesterLoadError).toBe('failed'));
+
+      // An import reloads the list; this time the request is answered.
+      mockListSemesters.mockResolvedValue(['Fall 2026']);
+      act(() => {
+        result.current.handleFileChange({ target: { files: [makeFile()] } } as unknown as React.ChangeEvent<HTMLInputElement>);
+      });
+      await act(async () => {
+        await result.current.handleImportSession();
+      });
+
+      await waitFor(() => expect(result.current.semesters).toEqual(['Fall 2026']));
+      expect(result.current.semesterLoadError).toBeNull();
     });
   });
 

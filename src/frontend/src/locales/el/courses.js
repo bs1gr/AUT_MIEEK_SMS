@@ -38,6 +38,7 @@ export default {
   selectCourseForRules: 'Επιλέξτε Μάθημα για Διαμόρφωση',
   chooseCourse: 'Επιλέξτε μάθημα',
   gradingComponents: 'Στοιχεία Βαθμολογίας',
+  currentRules: 'Τρέχοντες κανόνες αξιολόγησης',
   evaluationRules: 'Κανόνες Αξιολόγησης',
   teachingSchedule: 'Πρόγραμμα Διδασκαλίας',
   courseStatusActive: 'Ενεργό',

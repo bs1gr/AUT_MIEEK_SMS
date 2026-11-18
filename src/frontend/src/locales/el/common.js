@@ -232,6 +232,8 @@ export default {
   bullet: '•',
   fieldIsRequired: 'Το {{field}} είναι υποχρεωτικό',
   idLabel: 'ID: {{id}}',
+  dialog: 'Παράθυρο διαλόγου',
+  localModeLabel: 'Τοπικά',
   loadedStudents: 'Φορτωμένοι μαθητές: {{count}}',
   scheduleCompact: '{{start}} · {{periods}} × {{duration}}m',
   studentsCount: '{{count}} μαθητές',

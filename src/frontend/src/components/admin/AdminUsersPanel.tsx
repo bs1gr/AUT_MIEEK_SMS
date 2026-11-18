@@ -16,8 +16,8 @@ import {
 
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { adminUsersAPI, rbacAPI } from '@/api/api';
-import type { CreateUserPayload, UpdateUserPayload, UserAccount, UserRole } from '@/types';
+import { adminUsersAPI } from '@/api/api';
+import type { AccountRole, CreateUserPayload, UpdateUserPayload, UserAccount, UserRole } from '@/types';
 import type { ToastState } from '@/features/operations/components/DevToolsPanel';
 import { unmetPasswordRequirements, type PasswordRequirementKey } from '@/utils/passwordPolicy';
 
@@ -25,11 +25,18 @@ interface AdminUsersPanelProps {
   onToast: (toast: ToastState) => void;
 }
 
+// The roles this panel can give: the three the server accepts from it.
 const roleOptions: Array<{ value: UserRole; key: string }> = [
   { value: 'admin', key: 'controlPanel.roles.admin' },
   { value: 'teacher', key: 'controlPanel.roles.teacher' },
   { value: 'student', key: 'controlPanel.roles.student' },
 ];
+const isOfferedRole = (role: string | undefined): role is UserRole =>
+  roleOptions.some((option) => option.value === role);
+
+// What the Edit row holds. Its role can be one this panel does not give (Viewer, Guest): the
+// row shows it as it is and leaves it alone unless another one is chosen.
+type EditDraft = Omit<UpdateUserPayload, 'role'> & { role?: AccountRole };
 
 const initialCreateForm: CreateUserPayload = {
   email: '',
@@ -48,7 +55,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createForm, setCreateForm] = useState<CreateUserPayload>(initialCreateForm);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editDraft, setEditDraft] = useState<UpdateUserPayload>({});
+  const [editDraft, setEditDraft] = useState<EditDraft>({});
   const [resetId, setResetId] = useState<number | null>(null);
   const [resetPassword, setResetPassword] = useState('');
   // Self password change state
@@ -82,25 +89,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     setLoading(true);
     setAccessDenied(false);
     try {
-      // Fetch both users and RBAC summary to get actual roles
-      const [usersData, rbacData] = await Promise.all([
-        adminUsersAPI.list(),
-        rbacAPI.getSummary(),
-      ]);
-
-      // Merge RBAC roles into user objects
-      const usersWithRoles = usersData.map(user => {
-        const userRoleMapping = rbacData?.user_roles?.find(ur => ur.user_id === user.id);
-        if (userRoleMapping) {
-          const actualRole = rbacData?.roles?.find(r => r.id === userRoleMapping.role_id);
-          if (actualRole) {
-            return { ...user, role: actualRole.name as UserRole };
-          }
-        }
-        return user;
-      });
-
-      setUsers(usersWithRoles);
+      // The role of an account is the one the server sends with it. This list used to replace
+      // it with the first of the account's role rows, which is not its highest: an administrator
+      // who got the role under Assign Role to User (rows: teacher, admin, viewer, guest) was
+      // listed as "Teacher", and Edit followed by Save sent "teacher" and made it one.
+      setUsers(await adminUsersAPI.list());
       setAccessDenied(false);
     } catch (error: unknown) {
       console.error('Failed to load users', error);
@@ -261,9 +254,15 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     try {
       const payload: UpdateUserPayload = {
         full_name: (editDraft.full_name ?? '').trim() || null,
-        role: editDraft.role,
         is_active: editDraft.is_active,
       };
+      // The role goes to the server only when another one was chosen. Sent unchanged it was
+      // refused for a Viewer or Guest account (the server takes three roles here), and for any
+      // other account the server rebuilt its roles for nothing.
+      const current = users.find((account) => account.id === editingId)?.role;
+      if (isOfferedRole(editDraft.role) && editDraft.role !== current) {
+        payload.role = editDraft.role;
+      }
       const updated = await adminUsersAPI.update(editingId, payload);
       setUsers((prev: UserAccount[]) => prev.map((u: UserAccount) => (u.id === updated.id ? updated : u)));
       onToast(activationToast(updated, t('updateUserSuccess')));
@@ -352,6 +351,13 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
   };
 
   const currentResetUser = resetId ? sortedUsers.find((user) => user.id === resetId) : null;
+
+  // "Viewer" and "Guest" have a name in both languages too; an unknown role shows as it is.
+  const roleLabel = (role: string) => {
+    const key = `controlPanel.roles.${role}`;
+    const label = t(key);
+    return label && label !== key ? label : role;
+  };
 
   const statusBadge = (account: UserAccount) => {
     const pending = isPending(account);
@@ -538,7 +544,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                         type="text"
                         className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm dark:bg-gray-800"
                         value={editDraft.full_name ?? ''}
-                        onChange={(event: ChangeEvent<HTMLInputElement>) => setEditDraft((draft: UpdateUserPayload) => ({ ...draft, full_name: event.target.value }))}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => setEditDraft((draft: EditDraft) => ({ ...draft, full_name: event.target.value }))}
                         placeholder={t('fullNamePlaceholder')}
                       />
                     ) : (
@@ -555,12 +561,18 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                     {editingId === user.id ? (
                       <select
                         className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm dark:bg-gray-800"
-                        value={editDraft.role ?? 'teacher'}
+                        value={editDraft.role ?? user.role}
                         aria-label={t('userRole')}
+                        data-testid={`edit-role-${user.id}`}
                         onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                          setEditDraft((draft: UpdateUserPayload) => ({ ...draft, role: event.target.value as UserRole }))
+                          setEditDraft((draft: EditDraft) => ({ ...draft, role: event.target.value as AccountRole }))
                         }
                       >
+                        {/* A role this panel does not give (Viewer, Guest) is shown as the account
+                            has it; without this entry the box showed "Administrator" for it. */}
+                        {!isOfferedRole(user.role) && (
+                          <option value={user.role}>{roleLabel(user.role)}</option>
+                        )}
                         {roleOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {t(option.key)}
@@ -568,8 +580,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                         ))}
                       </select>
                     ) : (
-                      <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 capitalize">
-                        {t(roleOptions.find((opt) => opt.value === user.role)?.key || user.role)}
+                      <span
+                        className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600 capitalize"
+                        data-testid={`user-role-${user.id}`}
+                      >
+                        {roleLabel(user.role)}
                       </span>
                     )}
                   </td>
@@ -580,7 +595,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                           type="checkbox"
                           checked={!!editDraft.is_active}
                           onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            setEditDraft((draft: UpdateUserPayload) => ({ ...draft, is_active: event.target.checked }))
+                            setEditDraft((draft: EditDraft) => ({ ...draft, is_active: event.target.checked }))
                           }
                         />
                         {t('isActiveLabel')}

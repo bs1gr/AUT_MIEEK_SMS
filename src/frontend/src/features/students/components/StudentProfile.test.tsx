@@ -120,3 +120,49 @@ describe('StudentProfile - Academic History', () => {
     expect(screen.queryByText('Academic History')).not.toBeInTheDocument();
   });
 });
+
+describe('StudentProfile - dates of enrolment and of grades', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedStudentsAPI.getById.mockResolvedValue(STUDENT);
+    mockedAttendanceAPI.getByStudent.mockResolvedValue([]);
+    mockedHighlightsAPI.getByStudent.mockResolvedValue([]);
+    mockedGradesAPI.getByStudent.mockResolvedValue([
+      // Typed on the Grades page: it has a "date submitted".
+      { id: 11, student_id: 42, course_id: 9, assignment_name: 'Midterm', grade: 15, max_grade: 20, date_submitted: '2026-11-10' },
+      // From a session import or the API: only a "date assigned".
+      { id: 12, student_id: 42, course_id: 9, assignment_name: 'Homework 1', grade: 18, max_grade: 20, date_assigned: '2026-11-03' },
+      { id: 13, student_id: 42, course_id: 9, assignment_name: 'Homework 2', grade: 12, max_grade: 20 },
+    ]);
+    mockedApiClient.get.mockImplementation((url: string) => {
+      if (url.includes('/performance-history')) return Promise.resolve({ data: [] });
+      if (url.startsWith('/enrollments/student/')) {
+        return Promise.resolve({ data: [{ id: 1, student_id: 42, course_id: 9, enrolled_at: '2026-09-10' }] });
+      }
+      if (url === '/courses/9') {
+        return Promise.resolve({ data: { id: 9, course_code: 'AUT0105', course_name: 'Engines', is_active: true } });
+      }
+      return Promise.resolve({ data: [] });
+    });
+  });
+
+  it('shows the date a grade has, whichever of the two it is', async () => {
+    renderProfile();
+
+    expect(await screen.findByTestId('recent-grade-date-11')).toHaveTextContent('2026-11-10');
+    // This one read "N/A": the table looked at "date submitted" alone.
+    expect(screen.getByTestId('recent-grade-date-12')).toHaveTextContent('2026-11-03');
+    expect(screen.getByTestId('recent-grade-date-13')).toHaveTextContent('—');
+    expect(screen.queryByText('N/A')).not.toBeInTheDocument();
+  });
+
+  it('labels the dates of enrolment "Enrolled:", not "Courses"', async () => {
+    renderProfile();
+
+    // Under the enrolled course, where "Courses: 2026-09-10" stood.
+    expect(await screen.findByText('Enrolled: 2026-09-10')).toBeInTheDocument();
+    // In the header, where "Courses 2026-01-01" stood.
+    expect(screen.getByText('Enrolled: 2026-01-01')).toBeInTheDocument();
+    expect(screen.queryByText(/^Courses:? \d/)).not.toBeInTheDocument();
+  });
+});

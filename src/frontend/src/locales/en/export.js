@@ -158,6 +158,8 @@ export default {
   skipped: 'Skipped',
   errors: 'Errors',
   noSemestersFound: 'No semesters found in the system',
+  failedToLoadSemesters: 'Could not load the semesters',
+  sessionNotAllowed: 'Your account may not export or import a session. Ask an administrator.',
   sessionExportFailed: 'Session export failed',
   sessionImportFailed: 'Session import failed',
   // Import preview & jobs

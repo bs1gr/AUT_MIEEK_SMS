@@ -67,7 +67,7 @@ export default function Modal({
         )}
         role="dialog"
         aria-modal="true"
-        aria-label={title || t('dialog') || 'Dialog'}
+        aria-label={title || t('dialog')}
       >
         {/* Header */}
         {(title || showCloseButton) && (

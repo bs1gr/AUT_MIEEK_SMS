@@ -116,7 +116,9 @@ export default function PermissionsPage() {
   const { data: roles } = useQuery<Role[]>({
     queryKey: ['roles'],
     queryFn: async () => {
-      const response = await apiClient.get('/rbac/roles');
+      // The roles are served under /admin/rbac; '/rbac/roles' never existed, which left both
+      // role boxes of this page empty.
+      const response = await apiClient.get('/admin/rbac/roles');
       return extractAPIResponseData(response.data) ?? [];
     },
   });
@@ -212,6 +214,13 @@ export default function PermissionsPage() {
 
   const handleRevoke = () => {
     if (!revokePermission || !revokeTargetId) return;
+
+    // Without '*:*' on the admin role no administrator could open this panel again (the server
+    // refuses the request as well).
+    if (revokeMode === 'role' && revokeTargetId === 'admin' && revokePermission === '*:*') {
+      showToast(t('adminKeepsAllPermissions'), 'error');
+      return;
+    }
 
     if (revokeMode === 'role') {
       revokeRolePermission.mutate({ roleName: revokeTargetId, permissionKey: revokePermission });

@@ -38,6 +38,7 @@ export default {
   selectCourseForRules: 'Select Course to Configure',
   chooseCourse: 'Choose a course',
   gradingComponents: 'Grading Components',
+  currentRules: 'Current evaluation rules',
   evaluationRules: 'Evaluation Rules',
   teachingSchedule: 'Teaching Schedule',
   courseStatusActive: 'Active',
