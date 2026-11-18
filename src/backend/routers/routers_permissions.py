@@ -32,6 +32,10 @@ from backend.security.current_user import get_current_user
 
 router = APIRouter(prefix="/permissions", tags=["Permissions Management"])
 
+# The permission that makes an administrator one. The role "admin" holds it, and the requests
+# below refuse to take it from that role, to switch it off or to delete it.
+ADMIN_WILDCARD = "*:*"
+
 
 @router.get("/", response_model=list[PermissionListItem])
 @require_permission("permissions:view")
@@ -243,6 +247,11 @@ async def update_permission(
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
 
+    # Switched off, the wildcard opens nothing: no administrator could manage accounts, roles
+    # or permissions any more, this request included, so nobody could switch it on again.
+    if permission.key == ADMIN_WILDCARD and permission_update.is_active is False:
+        raise HTTPException(status_code=400, detail="The wildcard permission cannot be deactivated")
+
     # Update fields
     if permission_update.description is not None:
         permission.description = permission_update.description
@@ -273,6 +282,9 @@ async def delete_permission(
     permission = db.query(Permission).filter(Permission.id == permission_id).first()
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
+
+    if permission.key == ADMIN_WILDCARD:
+        raise HTTPException(status_code=400, detail="The wildcard permission cannot be deleted")
 
     db.delete(permission)
     db.commit()
@@ -432,6 +444,12 @@ async def revoke_role_permission(
     permission = db.query(Permission).filter(Permission.key == revoke.permission_key).first()
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
+
+    # The admin role keeps its wildcard, as POST /admin/rbac/revoke-permission has always
+    # insisted. Without it no administrator passes a permission check any more, the checks of
+    # this router and of the account panel included, until a restart seeds the grant again.
+    if role.name == "admin" and permission.key == ADMIN_WILDCARD:
+        raise HTTPException(status_code=400, detail="Cannot remove wildcard permission from admin role")
 
     # Delete role permission (using raw SQL)
     result = db.execute(

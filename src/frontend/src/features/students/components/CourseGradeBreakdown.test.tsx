@@ -100,7 +100,8 @@ describe('CourseGradeBreakdown', () => {
 
     it('displays empty state when no grades', () => {
       renderComponent({ gradesList: [] });
-      expect(screen.getByText(/noGradesAvailable/i)).toBeInTheDocument();
+      // The text itself: this used to expect the name of a text that did not exist.
+      expect(screen.getByText('No grades recorded')).toBeInTheDocument();
     });
   });
 
@@ -196,8 +197,8 @@ describe('CourseGradeBreakdown', () => {
         },
       ];
       renderComponent({ gradesList: gradesWithoutCategory });
-      // Should show "Other" or translated equivalent
-      expect(screen.getByText(/other/i)).toBeInTheDocument();
+      // Under the heading for grades without a category (it used to be the raw key "other").
+      expect(screen.getByText('Uncategorized')).toBeInTheDocument();
     });
 
     it('preserves unknown category names', () => {

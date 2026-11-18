@@ -64,11 +64,15 @@ export interface Role {
   description?: string;
 }
 
+// A permission as /admin/rbac/summary sends it. It is known by its key ('students:view');
+// the server has never sent a "name".
 export interface Permission {
   id: number;
-  name: string;
-  key?: string;
+  key: string;
+  resource?: string;
+  action?: string;
   description?: string;
+  is_active?: boolean;
 }
 
 export interface RBACSummary {
@@ -1145,14 +1149,6 @@ export async function assignRBACRole(userId: number, roleName: string): Promise<
   return unwrapResponse<{ status: string }>(response.data);
 }
 
-export async function grantRBACPermission(roleName: string, permissionName: string): Promise<{ status: string }> {
-  const response = await apiClient.post('/admin/rbac/grant-permission', {
-    role_name: roleName,
-    permission_name: permissionName
-  });
-  return unwrapResponse<{ status: string }>(response.data);
-}
-
 export async function revokeRBACRole(userId: number, roleName: string): Promise<{ status: string }> {
   const response = await apiClient.post('/admin/rbac/revoke-role', {
     user_id: userId,
@@ -1165,7 +1161,6 @@ export const rbacAPI = {
   getSummary: getRBACSSummary,
   ensureDefaults: ensureRBACDefaults,
   assignRole: assignRBACRole,
-  grantPermission: grantRBACPermission,
   revokeRole: revokeRBACRole,
 };
 

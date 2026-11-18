@@ -594,7 +594,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
               <div className="p-6">
                 {evaluationRules.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs text-gray-600">{t('currentRules') || 'Current evaluation rules'}:</p>
+                    <p className="text-xs text-gray-600">{t('currentRules')}:</p>
                     <div className="mt-1 flex flex-wrap gap-2">
                       {evaluationRules.map((rule, idx) => {
                         const w = parseFloat(String(rule.weight));

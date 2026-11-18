@@ -438,7 +438,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               </div>
               <div className="flex items-center space-x-3 text-indigo-700">
                 <Calendar size={20} />
-                <span>{t('enrolled', { ns: 'students' })} {formatDate(student.enrollment_date)}</span>
+                {/* 'enrolled' of the students texts is the word "Courses" (the count on a student's
+                    row); the label for a date of enrolment is the Dashboard's "Enrolled:". */}
+                <span>{t('enrolled', { ns: 'dashboard' })} {student.enrollment_date ? formatDate(student.enrollment_date) : '—'}</span>
               </div>
               <div className="md:col-span-4 mt-4">
                 <button
@@ -744,7 +746,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                     <div className="flex items-center justify-between p-3 rounded border">
                       <div>
                         <div className="font-semibold text-gray-800">{course ? `${course.course_code} — ${course.course_name}` : `Course #${e.course_id}`}</div>
-                        <div className="text-xs text-gray-500">{t('enrolled', { ns: 'students' })}: {e.enrolled_at ? formatDate(e.enrolled_at) : '-'}</div>
+                        <div className="text-xs text-gray-500">{t('enrolled', { ns: 'dashboard' })} {e.enrolled_at ? formatDate(e.enrolled_at) : '—'}</div>
                       </div>
                       <div>
                         <button
@@ -815,6 +817,11 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   {grades.slice(0, 10).map(grade => {
                     const percentage = (Number(grade.grade) / Number(grade.max_grade) || 100) * 100;
                     const letter = getLetterGrade(percentage);
+                    // A grade typed on the Grades page has a "date submitted"; one that came with a
+                    // session import or through the API may have only a "date assigned". The
+                    // Grades page and the student card show either; this table read the first
+                    // alone and said "N/A" for the rest.
+                    const gradeDate = grade.date_submitted || grade.date_assigned;
                     return (
                       <tr key={grade.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 font-medium text-gray-800">{translateAssignmentName(grade.assignment_name)}</td>
@@ -831,7 +838,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                             {letter}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600">{grade.date_submitted ? formatDate(grade.date_submitted) : 'N/A'}</td>
+                        <td className="px-6 py-4 text-gray-600" data-testid={`recent-grade-date-${grade.id}`}>{gradeDate ? formatDate(gradeDate) : '—'}</td>
                       </tr>
                     );
                   })}

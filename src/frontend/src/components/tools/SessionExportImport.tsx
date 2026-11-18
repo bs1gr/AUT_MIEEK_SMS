@@ -15,6 +15,7 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
     mergeStrategy,
     setMergeStrategy,
     loadingSemesters,
+    semesterLoadError,
     exportingSession,
     importingSession,
     validatingImport,
@@ -25,6 +26,22 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
     handleFileChange,
     handleValidateImport,
   } = useSessionExportImport({ t, showToast });
+
+  // The server refuses the whole panel to this account (export, validation and import ask for
+  // the same permission): say so, and do not offer forms that can only be refused.
+  if (semesterLoadError === 'refused') {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="flex items-center space-x-2 mb-4">
+          <Database size={24} className="text-indigo-600" />
+          <h2 className="text-2xl font-bold text-gray-800">{t('sessionExportImport')}</h2>
+        </div>
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" data-testid="session-not-allowed">
+          {t('sessionNotAllowed')}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
@@ -53,6 +70,8 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
               </label>
               {loadingSemesters ? (
                 <div className="text-sm text-gray-500">{t('loadingSemesters')}</div>
+              ) : semesterLoadError === 'failed' ? (
+                <div className="text-sm text-red-600">{t('failedToLoadSemesters')}</div>
               ) : semesters.length === 0 ? (
                 <div className="text-sm text-gray-500">{t('noSemestersFound')}</div>
               ) : (

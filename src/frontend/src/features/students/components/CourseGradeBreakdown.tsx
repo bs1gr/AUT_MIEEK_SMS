@@ -103,7 +103,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
       // Group by category
       const byCategory: Record<string, Grade[]> = {};
       courseGrades.forEach((g) => {
-        const cat = g.category || t('other') || 'Other';
+        const cat = g.category || t('uncategorized');
         if (!byCategory[cat]) {
           byCategory[cat] = [];
         }
@@ -160,7 +160,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
       </div>
 
       {courseBreakdown.length === 0 ? (
-        <p className="text-indigo-700 text-sm font-semibold drop-shadow-xs">{t('noGradesAvailable') || 'No grades available'}</p>
+        <p className="text-indigo-700 text-sm font-semibold drop-shadow-xs">{t('noGradesRecorded')}</p>
       ) : (
         <div className="space-y-4">
           {courseBreakdown.map(({ courseId, courseName, courseCode, avgPercentage, avgGreek, letterGrade, gradeColor, byCategory }) => (

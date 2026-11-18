@@ -301,6 +301,72 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-18: the small page repairs of todo 63, and what they uncovered** (PR 422; the
+owner's "continue" after a report that named five repairs as what it would take up: the two
+places where a page shows the name of a text, the empty role list of the Permissions
+Catalog with a guard for the administrator's full access, the blank permission names of the
+Overview tab, saving a Viewer account from Edit, and the dates on a student's page). Each
+was seen on a scratch copy before and after, in English and in Greek.
+
+- **Pressing Save could turn an administrator into a teacher** (found while repairing Edit;
+  the worst of the day). User Accounts replaced each account's role with the first of its
+  role rows. An administrator who got the role under Assign Role to User has the rows
+  teacher, admin, viewer, guest: the list said "Teacher", the Edit row said "Teacher", and
+  **Save**, with nothing changed, sent `"role": "teacher"`. The server did as told. The list
+  now shows the role the server sends with the account (which follows the highest role),
+  and Save sends the role only when another one was chosen.
+- **A Viewer or Guest account can be saved from Edit.** The role box shows the account's own
+  role as a fourth entry, selected, and leaves it alone. Before, the box showed
+  "Administrator" and the save was refused (422). Whether the two roles are offered for a
+  new account stays with the owner's decision on read-only accounts (todo 63).
+- **The Permissions Catalog can grant to a role and revoke from one.** Both role boxes were
+  empty: the page asked `GET /rbac/roles`, which does not exist (`/admin/rbac/roles` does).
+  The page's own test answered the wrong address too, so it could not fail. Seen in a
+  browser: `audit:view` granted to the role teacher opened the audit log for a teacher,
+  revoked it closed again.
+- **The administrator's full access cannot be taken away any more.** Now that the page can
+  send it, `POST /permissions/roles/revoke` refuses `*:*` for the role `admin`, as
+  `POST /admin/rbac/revoke-permission` always did; the page refuses first, with a sentence.
+  Looking for other ways found three, none sent by a page: switching the permission `*:*`
+  off (`PATCH /permissions/{id}`), deleting it (two addresses) and renaming it. After the
+  switch-off **a restart did not put it back** (the check at start looked for the grant, not
+  at whether the permission was on): seen on the scratch copy, whose administrator stayed
+  out of the account and role panels until the new code started. All are refused now, and
+  the check at start repairs a database in that state. Renaming or deleting the *role*
+  `admin` was tried as well and locks nobody out (the grants follow the role's number, and
+  an administrator without the role gets the built-in list); those requests are unchanged.
+- **The Overview tab names the permissions, and the Users tab the accounts.** Overview read
+  a `name` the server never sent: 39 blank rows, and mappings with nothing after the arrow.
+  It shows the key and a name in the page's language (20 of the 39 had none in either
+  language; added). i18next splits a key such as `students:view` at the colon and answered
+  "view", so the table of names is read whole. Users showed "User 3", "user_3@system",
+  "Legacy role: user"; it lists every account with its name, address, number, Role word and
+  roles, and says so when the list of accounts is refused. `rbacAPI.grantPermission`, which
+  posted to an address that does not exist and was called by nothing, is removed.
+- **The two names of texts, and four more.** "currentRules:" above a course's rules and
+  "failedToLoadSemesters" in Session Export/Import have their texts. The session panel no
+  longer raises an error for an account the server refuses: it says "Your account may not
+  export or import a session. Ask an administrator." and offers no form (every request of
+  the panel asks for the same permission). **Why they got through:** a test checks every
+  key used through `useTranslation()`, none checked the application's own `useLanguage()`,
+  which most pages use. `useLanguageKeys.test.ts` does now, and found four more:
+  `localModeLabel` (the "Local" badge of SMS Lite, English for a Greek reader), `dialog`
+  (the spoken name of a window without a title), and `other` and `noGradesAvailable` in the
+  grade breakdown of a student's page, where two tests expected the raw names.
+- **A student's page.** The dates of enrolment were labelled "Courses" (the word for the
+  count on a student's row); they read "Enrolled:". **A correction of yesterday's entry:**
+  the dates of "Recent Grades" are not missing for grades typed on the Grades page, which
+  stores a "date submitted". They read "N/A" for a grade that has only a "date assigned"
+  (one made through the API, as mine were, or brought by a session import). The table now
+  shows either date, as the Grades page and the student card do, and a dash for none.
+- **Tests.** Backend `test_permissions_role_grants.py`, 11 tests, 6 of them failing on the
+  old code. Frontend: `AdminUsersPanel.roles` (4), `SessionExportImport` (4),
+  `useLanguageKeys` (4), and additions to `RBACPanel` (3), `PermissionsPage` (1),
+  `useSessionExportImport` (2) and `StudentProfile` (2).
+- **Documents.** `RBAC_ADMIN_GUIDE.md`, `PERMISSION_REFERENCE.md` and the user guide said
+  what the application did; they say what it does, with the old behaviour kept under "In
+  v1.18.73 and earlier" for installations that are not updated.
+
 **2026-11-17: the user guide says what the application does** (PR 421, merged as
 `8eb82f9e9`; the owner's "continue": the rest of the last entry of todo 59; on the PR's
 commit CI's backend job passed 1,750 tests with 55 skipped and the frontend job 2,012; E2E
@@ -1428,10 +1494,12 @@ tree as evidence that GitHub is clear.
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
 the cloud VM has not been updated to it and waits for the owner's word.** **Since then
-`main` carries PRs 419 to 421, unreleased: a repair of two ways an account kept access it
-should not have had (419), and the permission documents and the user guide checked against
-the application (420, 421). The VM has neither; on it an account changed to "Student" still
-keeps its old access. What the two readings found and did not change is todo 63.** Older entries that are still open, further
+`main` carries PRs 419 to 422, unreleased: a repair of two ways an account kept access it
+should not have had (419), the permission documents and the user guide checked against the
+application (420, 421), and the small page repairs of todo 63 (422). The VM has none of
+them; on it an account changed to "Student" still keeps its old access, and Edit followed
+by Save turns an administrator who got the role under Assign Role to User into a teacher.
+What the readings found and did not change is todo 63.** Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
@@ -1918,24 +1986,12 @@ now** (todo 58).
       should such an account become: a Student, or nothing at all? The owner's call; it is a
       few lines either way. Until then the guide says how access is taken away (Edit: role
       Student, or untick Active).
-    - *The Permissions Catalog cannot grant to a role, or revoke from one.* The box that
-      should list the roles is empty: the page asks `GET /rbac/roles`, which does not exist
-      (the address is `/admin/rbac/roles`). Granting to one account by its number works.
-    - *The same catalog's request can lock every administrator out.*
-      `POST /permissions/roles/revoke` accepts `*:*` for the role `admin`
-      (`POST /admin/rbac/revoke-permission` refuses it). After it no administrator can open
-      the account or role panels. A restart puts the grant back. The page cannot send it
-      today, because of the entry above.
-    - *The Overview tab shows no permission names* (it reads `name`; the server sends `key`):
-      39 blank rows, and "Role-Permission Mappings" with the role and nothing after the
-      arrow. *The Users tab shows invented names:* "User 3", "user_3@system", "Legacy role:
-      user" for every account. And `rbacAPI.grantPermission` in `api.ts` posts to
-      `/admin/rbac/grant-permission`, which does not exist; nothing calls it.
-    - *An account with the role Viewer or Guest cannot be saved from Edit in User Accounts.*
-      The role box offers Administrator, Teacher and Student, shows "Administrator" for such
-      an account and sends "viewer", which the server refuses (422, "Could not update user").
-      Nor can such an account be created there. To repair: offer the two roles in both
-      places, or take them out of Assign Role to User.
+    - *Repaired in PR 422 (2026-11-18):* the Permissions Catalog's empty role boxes; the
+      requests that could take `*:*` from the administrators; the blank permission names of
+      the Overview tab and the invented names of the Users tab; saving a Viewer or Guest
+      account from Edit. *Still open from that last entry:* such an account cannot be
+      created in User Accounts (offer the two roles there, or take them out of Assign Role
+      to User: with the owner's decision on read-only accounts, below).
     - *A teacher has no page for changing the own password.* The form is in User Accounts,
       which answers "Access Denied" to everybody but an administrator. A teacher asks an
       administrator for a reset.
@@ -1981,10 +2037,9 @@ now** (todo 58).
       its log, while the commit gate ran its first backend batches in the same clone. It did
       not happen during the next two gates.
     - **Added by the reading for the user guide (PR 421), none of it changed:**
-    - *Two pages show the name of a text where the text should be:* "currentRules:" above
-      the rules of a course (Courses > Evaluation Rules), and "failedToLoadSemesters" in
-      Utils > Export > Session Export/Import for a teacher, whose request for the semesters
-      is refused. The panel is offered to accounts that cannot use it.
+    - *Repaired in PR 422:* the two names of texts ("currentRules:",
+      "failedToLoadSemesters"), with a test that finds such keys; the session panel tells a
+      refused account that it may not use it.
     - *The help of Utils > Help & Documentation is older than the pages in places.* "Click
       Save Attendance" (there is no such button); "Only unexcused absences affect grades"
       (excused periods count towards both absence limits, as the Attendance page itself
@@ -1992,8 +2047,9 @@ now** (todo 58).
       Eighteen groups, ninety-one answers: they need the reading the guide got.
     - *The privacy notice of the application says "A student account sees its own records
       only".* It sees none (the entry on student accounts above).
-    - *On a student's page* the dates of "Recent Grades" read "N/A" for grades that have a
-      date, and the line under each enrolled course reads "Courses: 17/11/2026".
+    - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
+      The "N/A" dates of "Recent Grades" were narrower than written here: only a grade
+      without a "date submitted" (see the entry of PR 422).
     - *The registration form answers an empty address in two languages at once:* "Παρακαλώ
       εισάγετε τη διεύθυνση email σας. / Please enter your email."
     - *A teacher is shown System > Control Panel > Maintenance > System Operations* with

@@ -176,13 +176,17 @@ export interface HighlightCreatePayload {
   is_positive?: boolean;
 }
 
+/** The roles the account forms can send (POST and PATCH /admin/users accept these three). */
 export type UserRole = 'admin' | 'teacher' | 'student';
+
+/** The roles an account can have: Viewer and Guest come from RBAC Configuration > Assign Role to User. */
+export type AccountRole = UserRole | 'viewer' | 'guest';
 
 export interface UserAccount {
   id: number;
   email: string;
   full_name?: string | null;
-  role: UserRole;
+  role: AccountRole;
   is_active: boolean;
   password_change_required?: boolean;
   /** A self-registration awaiting approval (an admin-deactivated account is inactive but not pending) */

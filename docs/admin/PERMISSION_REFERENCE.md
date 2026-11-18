@@ -208,12 +208,21 @@ Recorded in `docs/plans/UNIFIED_WORK_PLAN.md` (todo 63), not repaired:
 - Revoking the only role of an account under **Assign Role to User** takes nothing away: the
   account keeps the word in its Role column and gets the built-in list for it ("Accounts
   without role rows" above).
-- The **Permissions Catalog** cannot grant to or revoke from a role: its list of roles is
-  empty. Its request for a role, which the API accepts, can take `*:*` away from `admin`.
-  Restarting the application puts it back.
-- An account with the Role Viewer or Guest cannot be saved from **Edit** in User Accounts.
-- The **Overview** tab shows no permission names, and the **Users** tab invented ones.
 - The audit log does not record who made a role or permission change.
+
+Repaired on 18 November 2026 (PR 422), and still so in v1.18.73 and earlier:
+
+- The **Permissions Catalog** could not grant to or revoke from a role: its list of roles
+  was empty.
+- Five requests could take `*:*` from the administrators, after which none of them could open
+  the account or the role panels: revoking it from the role `admin` through
+  `POST /permissions/roles/revoke`, switching the permission off, deleting it (two
+  addresses) and renaming it. After a switch-off a restart did not put it back. All five are
+  refused now, and a start repairs a database in that state.
+- An account with the Role Viewer or Guest could not be saved from **Edit** in User Accounts,
+  and an administrator who got the role under Assign Role to User was listed there as a
+  Teacher and became one when Edit was saved.
+- The **Overview** tab showed no permission names, and the **Users** tab invented ones.
 
 Repaired on 17 November 2026 (PR 419), and still so in v1.18.73 and earlier: a change of the
 Role to "Student" left the account's roles in place, and on SQLite a deleted account's roles

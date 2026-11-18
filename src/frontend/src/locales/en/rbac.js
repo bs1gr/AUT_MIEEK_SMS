@@ -32,6 +32,8 @@ export default {
   permissionGrantedError: 'Error granting permission',
   permissionRevokedSuccess: 'Permission revoked successfully',
   permissionRevokedError: 'Error revoking permission',
+  adminKeepsAllPermissions: 'The Administrator role keeps "*:*" (all permissions): without it no administrator could manage accounts or roles.',
+  accountsNotLoaded: 'The list of accounts could not be loaded: only the account numbers are shown.',
   defaultsInitializedSuccess: 'RBAC defaults initialized successfully',
   defaultsInitializedError: 'Error initializing RBAC defaults',
   createDefaultsDesc: 'Create default roles and permissions. This will seed the database with standard RBAC entities and backfill existing users.',
@@ -128,6 +130,27 @@ export default {
     maintenance: 'Maintenance',
     'maintenance:execute': 'Run Maintenance Tasks',
     sessions: 'Sessions',
-    'sessions:manage': 'Manage Semester Session Data'
+    'sessions:manage': 'Manage Semester Session Data',
+    // The permissions of a new database that had no name here.
+    '*:*': 'All Permissions',
+    'enrollments:view': 'View Enrollments',
+    'enrollments:manage': 'Manage Enrollments',
+    'reports:view': 'View Reports',
+    'users:manage': 'Manage Users',
+    'permissions:view': 'View Permissions and Roles',
+    'permissions:manage': 'Manage Permissions and Roles',
+    'system:import': 'Import Data',
+    'system:export': 'Export Data',
+    'notifications:manage': 'Send Notifications',
+    'adminops:backup': 'Create Backups',
+    'adminops:restore': 'Restore the Database',
+    'adminops:clear': 'Clear the Database',
+    'imports:preview': 'Preview an Import',
+    'imports:execute': 'Run an Import',
+    'exports:generate': 'Generate Exports',
+    'exports:download': 'Download Exports',
+    'students.self:read': 'Student: Own Profile',
+    'grades.self:read': 'Student: Own Grades',
+    'attendance.self:read': 'Student: Own Attendance'
   }
 };

@@ -498,7 +498,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                         <td className="px-4 py-2 text-center">×{g.weight || 1}</td>
                         <td className="px-4 py-2 text-center"><span className={`px-2 py-1 rounded-full text-xs font-bold ${color}`}>{letter}</span></td>
                         <td className="px-4 py-2 text-gray-600">
-                          {g.date_submitted ? formatDate(g.date_submitted) : (g.date_assigned ? formatDate(g.date_assigned) : 'N/A')}
+                          {g.date_submitted ? formatDate(g.date_submitted) : (g.date_assigned ? formatDate(g.date_assigned) : '—')}
                         </td>
                         <td className="px-4 py-2 text-center">
                           <div className="flex gap-2 justify-center">

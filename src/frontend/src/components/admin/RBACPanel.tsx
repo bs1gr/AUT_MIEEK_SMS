@@ -5,19 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useApiMutation, useApiQuery } from '@/hooks/useApiWithRecovery';
-import apiClient, { isAuthOrPermissionError, rbacAPI, type Role, type RBACSummary } from '@/api/api';
+import apiClient, { adminUsersAPI, isAuthOrPermissionError, rbacAPI, type Role, type RBACSummary } from '@/api/api';
+import type { UserAccount } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 import PermissionsPage from '@/features/admin/components/PermissionsPage';
 
 export const RBACPanel: React.FC = () => {
   const { t } = useLanguage();
-  const { t: tRbac } = useTranslation('rbac');
+  const { i18n } = useTranslation('rbac');
   const { user, updateUser } = useAuth();
 
-  const translatePermission = (permName: string): string => {
-    const translated = tRbac(`permissionNames.${permName}`);
-    return translated === `permissionNames.${permName}` ? permName : translated;
+  // The name of a permission in the page's language, or '' when it has none. The keys hold
+  // ':' and '.' ('students:view', 'grades.self:read'), which i18next reads as separators
+  // (asked for 'students:view' it answers "view"), so the table of names is read as it was
+  // loaded and looked up here.
+  const namesIn = (language: string | undefined): Record<string, unknown> | null => {
+    const table: unknown = language ? i18n.getResource(language, 'rbac', 'permissionNames') : null;
+    return table && typeof table === 'object' ? (table as Record<string, unknown>) : null;
+  };
+  const permissionNames = namesIn(i18n.resolvedLanguage ?? i18n.language) ?? namesIn('en');
+  const permissionName = (key: string): string => {
+    const name = permissionNames?.[key];
+    return typeof name === 'string' ? name : '';
   };
 
   const getTranslationValue = (key: string): string => {
@@ -49,15 +59,23 @@ export const RBACPanel: React.FC = () => {
     { enabled: activeTab === 'overview' || activeTab === 'users' }
   );
 
-  // Derive users from RBAC summary (user_roles contains all user IDs)
-  const usersData = rbacData?.user_roles
-    ? Array.from(new Set(rbacData.user_roles.map((ur) => ur.user_id))).map((id) => ({
-        id,
-        email: `user_${id}@system`,
-        full_name: `User ${id}`,
-        role: 'user',
-      }))
-    : [];
+  // The accounts themselves, for the Users tab: the summary has only their numbers. The tab
+  // used to make up a name, an address and a role for each ("User 3", "user_3@system", "user").
+  const { data: accounts, isError: accountsFailed } = useApiQuery<UserAccount[]>(
+    ['rbac-accounts'],
+    () => adminUsersAPI.list(),
+    { enabled: activeTab === 'users' }
+  );
+
+  // Every account, with or without role rows. When the list of accounts cannot be read, the
+  // numbers that have a role are shown as numbers, with nothing made up.
+  const usersData: Array<{ id: number; email?: string; full_name?: string | null; role?: string }> = accounts
+    ? [...accounts].sort((a, b) => a.id - b.id)
+    : rbacData?.user_roles
+      ? Array.from(new Set(rbacData.user_roles.map((ur) => ur.user_id)))
+          .sort((a, b) => a - b)
+          .map((id) => ({ id }))
+      : [];
 
   const refreshCurrentUser = async (targetUserId: number | null) => {
     if (!user || !targetUserId || user.id !== targetUserId) return;
@@ -222,8 +240,11 @@ export const RBACPanel: React.FC = () => {
                   <CardContent>
                     <ul className="space-y-2 max-h-48 overflow-y-auto">
                       {rbacData.permissions.map((perm) => (
-                        <li key={perm.id} className="text-sm p-2 bg-green-50 rounded">
-                          <strong>{translatePermission(perm.name)}</strong>
+                        <li key={perm.id} className="text-sm p-2 bg-green-50 rounded" data-testid={`rbac-permission-${perm.id}`}>
+                          <strong className="font-mono">{perm.key}</strong>
+                          {permissionName(perm.key) && (
+                            <span className="ml-2 text-xs text-gray-600">{permissionName(perm.key)}</span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -241,10 +262,10 @@ export const RBACPanel: React.FC = () => {
                       const role = rbacData.roles.find((r) => r.id === rp.role_id);
                       const perm = rbacData.permissions.find((p) => p.id === rp.permission_id);
                       return (
-                        <div key={idx} className="text-sm p-1 bg-gray-100 rounded flex justify-between">
+                        <div key={idx} className="text-sm p-1 bg-gray-100 rounded flex justify-between" data-testid="rbac-role-permission">
                           <span>{translateRoleName(role?.name)}</span>
                           <span className="text-gray-600">→</span>
-                          <span>{perm?.name ? translatePermission(perm.name) : ''}</span>
+                          <span className="font-mono">{perm?.key ?? ''}</span>
                         </div>
                       );
                     })}
@@ -261,6 +282,11 @@ export const RBACPanel: React.FC = () => {
                 <CardTitle className="text-sm">{t('rbac.userRoleMappings', { count: usersData.length })}</CardTitle>
               </CardHeader>
               <CardContent>
+                {accountsFailed && (
+                  <p className="mb-3 text-xs text-amber-700" data-testid="rbac-accounts-not-loaded">
+                    {t('rbac.accountsNotLoaded')}
+                  </p>
+                )}
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {usersData.map((user) => {
                     const userRoles = rbacData.user_roles
@@ -269,12 +295,22 @@ export const RBACPanel: React.FC = () => {
                       .filter(Boolean);
 
                     return (
-                      <div key={user.id} className="p-3 bg-gray-50 rounded border">
+                      <div key={user.id} className="p-3 bg-gray-50 rounded border" data-testid={`rbac-user-${user.id}`}>
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="font-medium text-sm">{user.full_name || user.email}</div>
-                            <div className="text-xs text-gray-600">{user.email}</div>
-                            <div className="text-xs text-gray-500">{t('rbac.legacyRole', { role: user.role })}</div>
+                            <div className="font-medium text-sm">
+                              {user.full_name || user.email || t('idLabel', { id: user.id })}
+                            </div>
+                            {user.email && <div className="text-xs text-gray-600">{user.email}</div>}
+                            {/* The number is what Assign Role to User and the Permissions Catalog ask for. */}
+                            {(user.full_name || user.email) && (
+                              <div className="text-xs text-gray-600">{t('idLabel', { id: user.id })}</div>
+                            )}
+                            {user.role && (
+                              <div className="text-xs text-gray-500">
+                                {t('rbac.legacyRole', { role: translateRoleName(user.role) })}
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {userRoles.length > 0 ? (

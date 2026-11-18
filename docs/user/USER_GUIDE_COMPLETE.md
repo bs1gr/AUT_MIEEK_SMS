@@ -317,8 +317,8 @@ Six tabs.
   Enrollments, each with **Choose format**; and **Print Calendar**. The file's name carries
   the date and time.
 - *Session Export/Import:* everything of one semester in a file, and reading such a file
-  back. For administrators only. To a teacher the panel shows the word
-  "failedToLoadSemesters" and an empty list.
+  back. For administrators only: to a teacher the panel says that the account may not use
+  it.
 - *Reports & Templates:* ways into the Reports tab.
 
 **Imports.** Checking a CSV or JSON file of students or courses before importing it, and
@@ -425,6 +425,6 @@ The earlier guide described these. They do not exist.
 | "Changes pending..." does not go away on the Attendance page | The page could not reach the server. Do not close it; check the connection. |
 | The Students page says its list could not be loaded | The server did not answer. Use the button to try again. |
 | "Access Denied" in the Control Panel | That panel is for administrators. |
-| A word such as "failedToLoadSemesters" where a sentence should be | A text is missing in the page. Tell the administrator what you were doing. |
+| One run-together word where a sentence should be | A text is missing in the page. Tell the administrator what you were doing. |
 
 For anything else: **Send Feedback** at the right edge of every page.

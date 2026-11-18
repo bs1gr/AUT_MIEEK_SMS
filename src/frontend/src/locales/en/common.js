@@ -229,6 +229,8 @@ export default {
   bullet: '•',
   fieldIsRequired: '{{field}} is required',
   idLabel: 'ID: {{id}}',
+  dialog: 'Dialog',
+  localModeLabel: 'Local',
   loadedStudents: 'Loaded students: {{count}}',
   scheduleCompact: '{{start}} · {{periods}} × {{duration}}m',
   studentsCount: '{{count}} students',
