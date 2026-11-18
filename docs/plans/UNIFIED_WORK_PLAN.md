@@ -301,10 +301,54 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-**2026-11-18: an account whose last role is revoked is left with nothing** (PR 423; the
-first point of a note the owner sent that day, in answer to the four decisions the report of
-the night before had left open: revoking the only role, who may import, student accounts,
-Viewer accounts).
+**2026-11-18: the answers of Utils > Help & Documentation say what the pages do** (PR 424;
+the last of what the owner's "continue" selected: "read the ninety-one answers of the
+in-app help against the pages").
+
+- **What it was.** 91 answers in 18 groups, most of them older than the pages. "Click Save
+  Attendance" (no such button); "Only unexcused absences affect grades" (excused periods
+  count towards both limits); "Operations → Export Center", "Operations → Backups",
+  "Operations → Settings", "Operations → Reports" (the tab is Utils, the backups are under
+  System); a "Power" tab (it is called System); themes "Light", "Dark" and "System" with a
+  Save button (there are eight themes, none of those names, and no Save); "use sample data
+  first" (no page offers sample data); ten charts for a dashboard (there are five); "the
+  role tabs" of RBAC Configuration; a "performance multiplier" set in the rules (no page
+  sets one). The Greek answers were older again, in two vocabularies ("φοιτητής" and
+  "σπουδαστής"), beside two whole groups of texts that no page showed.
+- **What it is.** 79 answers in the same 18 groups, in English and in Greek, written from
+  the recordings of the pages of 17 November, the code, and an experiment for the grades.
+  Every button, tab and page an answer names is named as the page names it, in each
+  language. Twelve answers are gone: about things that do not exist (sample data, a System
+  theme, a performance multiplier, the Windows installer) or that said nothing ("Can I
+  disable autosave?"); four Docker answers became one, about what Control Panel >
+  Operations is for. The texts no page showed are removed from both files.
+- **Tried with grades on a scratch copy, because the help and the code disagreed.**
+  - *The Weight of a grade does nothing.* Homework 20/20 with weight 1 and 0/20 with weight
+    3 give a category average of 50%, the plain average. The page's own hint says "Higher
+    weight = more important". The help and the user guide (which called it a multiplier)
+    now say what happens; whether the box should count or go is todo 63.
+  - *For Midterm Exam and Final Exam only the latest grade counts:* 10/20 and then 20/20
+    give 100%.
+  - *A day's rating counts like one more grade of its category.*
+  - *The absence penalty of a course is real, and the user guide did not have it:* with a
+    penalty of 2, two Absent periods took 4 points off (75% became 71%); an Excused and a
+    Late period took nothing. Section 8 of the guide has it now.
+- **The page ran every answer's lines together** into one paragraph ("1. Open … 2. Click …
+  3. …"), in both languages: the answers are shown line by line.
+- **"User Guide, Complete reference guide"** above the two PDF links is "Quick Guide, a
+  one-page summary, as a PDF", which is what the links give.
+- **Tests.** `helpContent.test.ts` (7): the page shows only texts that exist in both
+  languages, the two files hold the same texts and none that the page does not show, and
+  every name an answer puts in quotation marks is a text of the application in that
+  language, so that a renamed button fails the test. `HelpDocumentation.test.tsx` (3).
+- **Not read:** the text of the one-page PDF. **Not tried:** a scheduled report and a report
+  sent by e-mail, from end to end; the answers say what the form offers.
+
+**2026-11-18: an account whose last role is revoked is left with nothing** (PR 423, merged
+as `dfd11a55c`; the first point of a note the owner sent that day, in answer to the four
+decisions the report of the night before had left open: revoking the only role, who may
+import, student accounts, Viewer accounts; on the PR's commit CI's backend job passed 1,768
+tests with 55 skipped, the frontend job 2,035 and E2E 76).
 
 - **What the note says, and what of it applies here.** Its four points: an account without
   a role is denied by default and a revoke takes effect at once; the permissions are one
@@ -344,7 +388,9 @@ Viewer accounts).
 - **The note's other three points wait for the owner's choice** (todo 63): who may import,
   student accounts, Viewer and Guest.
 
-**2026-11-18: the small page repairs of todo 63, and what they uncovered** (PR 422; the
+**2026-11-18: the small page repairs of todo 63, and what they uncovered** (PR 422, merged
+as `bf6535bda`; on the PR's commit CI's backend job passed 1,761 tests with 55 skipped, the
+frontend job 2,032 and E2E 76; the
 owner's "continue" after a report that named five repairs as what it would take up: the two
 places where a page shows the name of a text, the empty role list of the Permissions
 Catalog with a guard for the administrator's full access, the blank permission names of the
@@ -1537,12 +1583,14 @@ tree as evidence that GitHub is clear.
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
 the cloud VM has not been updated to it and waits for the owner's word.** **Since then
-`main` carries PRs 419 to 422, unreleased: a repair of two ways an account kept access it
+`main` carries PRs 419 to 424, unreleased: a repair of two ways an account kept access it
 should not have had (419), the permission documents and the user guide checked against the
-application (420, 421), and the small page repairs of todo 63 (422). The VM has none of
-them; on it an account changed to "Student" still keeps its old access, and Edit followed
-by Save turns an administrator who got the role under Assign Role to User into a teacher.
-What the readings found and did not change is todo 63.** Older entries that are still open, further
+application (420, 421), the small page repairs of todo 63 (422), an account whose last role
+is revoked left with nothing (423), and the in-app help read against the pages (424). The VM
+has none of them; on it an account changed to "Student" still keeps its old access, Edit
+followed by Save turns an administrator who got the role under Assign Role to User into a
+teacher, and revoking an account's only role takes nothing away. What the readings found
+and did not change is todo 63.** Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
@@ -2103,11 +2151,25 @@ now** (todo 58).
     - *Repaired in PR 422:* the two names of texts ("currentRules:",
       "failedToLoadSemesters"), with a test that finds such keys; the session panel tells a
       refused account that it may not use it.
-    - *The help of Utils > Help & Documentation is older than the pages in places.* "Click
-      Save Attendance" (there is no such button); "Only unexcused absences affect grades"
-      (excused periods count towards both absence limits, as the Attendance page itself
-      says); "What is absence penalty?" describes a deduction per absence without the limits.
-      Eighteen groups, ninety-one answers: they need the reading the guide got.
+    - *Done in PR 424 (2026-11-18):* the help of Utils > Help & Documentation, read against
+      the pages and written anew in both languages.
+    - **Added by the reading of the help (PR 424), none of it changed:**
+    - *The "Weight" of a grade changes nothing.* Grades > Grade Entry has the box, with the
+      hint "Higher weight = more important (1.0 is normal)", and Grade History shows it
+      ("×1"). The final grade takes the plain average of a category's grades (tried: 20/20
+      with weight 1 and 0/20 with weight 3 give 50%). Make it count within its category, or
+      take the box away: the owner's call. Until then the help and the guide say that it
+      does nothing.
+    - *Two things nothing uses:* `components/tools/DevTools.tsx` (a panel with "Add Sample
+      Data") is imported by no page, and `adminOpsAPI.generateSampleData` is called by
+      nothing; the server's `POST /adminops/generate-sample-data` is therefore reachable
+      only by hand. Delete, or put the button on a page (the owner's OK).
+    - *The one-page PDF of the help* ("Quick Guide") is composed by `routers_help.py`; its
+      text was not read against the pages.
+    - *An account without access (Student, No role) is not told why its pages fail:* it sees
+      "Error loading analytics data", "Failed to load data" and the like. One sentence at
+      the top ("Your account has no role…") would say it.
+    - *Not tried from end to end:* a scheduled report and a report sent by e-mail.
     - *The privacy notice of the application says "A student account sees its own records
       only".* It sees none (the entry on student accounts above).
     - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
