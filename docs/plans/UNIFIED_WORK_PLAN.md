@@ -301,6 +301,49 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-18: an account whose last role is revoked is left with nothing** (PR 423; the
+first point of a note the owner sent that day, in answer to the four decisions the report of
+the night before had left open: revoking the only role, who may import, student accounts,
+Viewer accounts).
+
+- **What the note says, and what of it applies here.** Its four points: an account without
+  a role is denied by default and a revoke takes effect at once; the permissions are one
+  closed list, each one asked for by some endpoint and present in the database; a student
+  account is tied to a student record or the choice "Student" goes; a Viewer has one
+  coherent purpose or goes. Read against the code:
+  - *Already so:* every check reads the account and its roles from the database at each
+    request; the role in the sign-in token is not used, and the optional cache is emptied by
+    any change made through the application. A revoke counted from the next request before.
+  - *The mechanism the first point is about:* an account without role rows gets a built-in
+    list for the word in its Role column (`backend.rbac._default_role_permissions`), and
+    the endpoints that ask for the administrator role read that word. A revoke removed the
+    row and left the word, so nothing was lost; "Initialize RBAC Defaults" then gave the
+    role back, because it gives every account the role its Role column names.
+- **What changed.** `POST /admin/rbac/revoke-role` makes the Role column follow the roles
+  that are left: the highest of them, or `none` when the last is gone (it used to stay, and
+  an administrator's became "teacher"). `none` is not a role and nothing is built in for
+  it, so every permission check and every role check refuses the account; it can still sign
+  in. The page says "The account has no role left…" after such a revoke, User Accounts
+  lists the account as "No role" (EN) / "Χωρίς ρόλο" (EL), and a role given again, under
+  Assign Role to User or in Edit, brings the access back. A permission granted to the
+  account itself stays, as the administrator's own word about that account.
+- **Seen on a scratch copy**, in English and in Greek: a teacher's only role revoked in the
+  browser; students, courses, the Dashboard's figures and an export answered 200 before and
+  403 after, for the sign-in the account already had and for a new one; "Initialize RBAC
+  Defaults" changed nothing; Edit > Teacher > Save brought it back. Signed in, such an
+  account lands on the Dashboard and sees the pages' failure messages, with no page error.
+- **Not done, on purpose: taking the built-in list away altogether** (the note's "never let
+  a leftover role name grant access"). It still serves an account that has no role rows
+  because it never got any: a database from before the role tables, and most accounts the
+  test suite creates. Removing it needs a start-up step that gives every such account its
+  row first, and a pass over the test fixtures; offered to the owner as a next step.
+- **Tests.** Backend `test_revoke_last_role.py`, 7 tests, all failing on the old code.
+  Frontend: 2 added to `RBACPanel`, 1 to `AdminUsersPanel.roles`.
+- **Documents.** The admin guide, the permission reference, the matrix and the user guide
+  name the fifth kind of account, "No role", and say how the older versions behave.
+- **The note's other three points wait for the owner's choice** (todo 63): who may import,
+  student accounts, Viewer and Guest.
+
 **2026-11-18: the small page repairs of todo 63, and what they uncovered** (PR 422; the
 owner's "continue" after a report that named five repairs as what it would take up: the two
 places where a page shows the name of a text, the empty role list of the Permissions
@@ -1978,14 +2021,19 @@ now** (todo 58).
 63. **Found on 2026-11-17 while the permission documents were checked against a running
     copy, and not changed** (each seen on a scratch server; the documents of PR 420 say what
     the application does today, these entries included).
-    - *Revoking an account's only role takes nothing away.* Control Panel > Maintenance > RBAC
-      Configuration > Assign Role to User > Revoke removes the row, answers "revoked", and
-      the account goes on as before: the word in its Role column stays, and an account
-      without role rows gets the built-in permissions of that word (`_default_role_permissions`).
-      A teacher whose Teacher role was revoked still read, added and exported students. What
-      should such an account become: a Student, or nothing at all? The owner's call; it is a
-      few lines either way. Until then the guide says how access is taken away (Edit: role
-      Student, or untick Active).
+    - *Repaired in PR 423 (2026-11-18), on the owner's note of that day:* revoking an
+      account's only role took nothing away. Such an account is now left with nothing (Role
+      column "No role"). *Offered as a next step:* taking the built-in list for an account
+      without role rows away altogether (see the entry of PR 423).
+    - **The owner's note of 2026-11-18 on the three decisions below** (who may import, student
+      accounts, Viewer and Guest) gives a direction for each and leaves the choice open:
+      a permission that opens nothing is wired up or deleted, and one the code asks for is
+      in the database or the button goes; a student account is tied to a student record when
+      it is created, or "Student" leaves the choices (the note calls that the right
+      fallback while no link exists), and student accounts without a record are disabled; a
+      Viewer gets one purpose that can be said in a sentence, with exports no wider than
+      what it can see, or the role goes. What each choice means in this application is in
+      the three entries marked with the note below.
     - *Repaired in PR 422 (2026-11-18):* the Permissions Catalog's empty role boxes; the
       requests that could take `*:*` from the administrators; the blank permission names of
       the Overview tab and the invented names of the Users tab; saving a Viewer or Guest
@@ -2007,16 +2055,31 @@ now** (todo 58).
       `analytics:view`, `enrollments:view`, `enrollments:manage`, `system:import`,
       `system:export` and the three `.self:read`. And the built-in list for `viewer` lacks
       the two `exports:` permissions that the role's rows have. To decide: who should import,
-      and whether the list is tidied.
+      and whether the list is tidied. *With the note:* the choice is "administrators only"
+      (the Imports tab and the session panel are then not offered to others, and
+      `system:import` goes) or "teachers too" (the import permissions are added to the
+      database and given to the role teacher). Either way, by the note: the thirteen keys get
+      rows, so that the Permissions Catalog can grant them; each of the eight that open
+      nothing is put on the endpoints it names or removed by a migration; and a test fails
+      when an endpoint asks for a key that has no row.
     - *A student account can do nothing.* The code lets it read the student record that
       belongs to its account; nothing in the application ever ties a student record to an
       account (`students.user_id` is never set). Build that, or take "Student" off the role
-      choices; today its one use is as the role without access.
+      choices; today its one use is as the role without access. *With the note:* "No role"
+      (PR 423) is now the state without access, so "Student" can leave the two role boxes
+      without a gap; existing Student accounts would become "No role" by a migration, which
+      changes nothing for them. Building the link instead is a feature of its own: a way to
+      tie a record to an account, the student's own pages, and the privacy notice.
     - *A viewer exports everything and sees no figures.* The viewer and guest roles hold
       `exports:generate` and `exports:download` (every list, and the ZIP of all data) and not
       `reports:generate`, so the Dashboard and the Analytics page open empty with refused
       requests. And every page shows a viewer its "Add" and "Save" buttons, which the server
-      refuses. Whether read-only accounts are wanted at all is the owner's call.
+      refuses. Whether read-only accounts are wanted at all is the owner's call. *With the
+      note:* "remove Viewer and Guest" (their accounts become "No role", the roles and their
+      grants go by a migration), or "one read-only role" that sees the figures
+      (`reports:generate`), exports nothing, and is offered in User Accounts; the pages'
+      "Add" and "Save" buttons would then still show and be refused, unless they are hidden
+      for it, which is the larger part of that work.
     - *Two addresses answer without a sign-in that probably should not:*
       `GET /api/v1/analytics/reports/templates` (an empty list on the scratch copy) and
       `GET /control/api/restart` (whether a restart is possible here).

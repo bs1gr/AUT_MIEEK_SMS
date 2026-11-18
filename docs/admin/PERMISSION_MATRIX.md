@@ -22,6 +22,7 @@ what three planned roles would get. The application was built differently in sev
 | **Teacher** (`teacher`) | Role "Teacher" in **User Accounts**; every account that registers itself | 25 permissions: all of the school's records, reports, exports, messages |
 | **Viewer** (`viewer`) and **Guest** (`guest`) | Only under **Assign Role to User**; the two hold the same | 9 permissions: read the records, export them |
 | **Student** (`student`) | Role "Student" in **User Accounts** | Nothing that opens anything: see below |
+| **No role** (`none`) | Every role of the account revoked under **Assign Role to User** | Nothing. In the table below it is refused what a student account is refused. |
 
 Both panels are under **System > Control Panel > Maintenance**.
 

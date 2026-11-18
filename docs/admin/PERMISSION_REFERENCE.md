@@ -51,7 +51,9 @@ A new database gets four roles. This is what the application gives them at its f
 | `viewer` | `students:view`, `courses:view`, `grades:view`, `attendance:view`, `enrollments:view`, `reports:view`, `analytics:view`, `exports:generate`, `exports:download` |
 | `guest` | the same nine as `viewer` |
 
-There is no `student` role. An account whose Role is "Student" has no role row.
+There is no `student` role. An account whose Role is "Student" has no role row. Nor is
+`none` a role: it is what the Role column holds ("No role") after the last role of an account
+was revoked, and nothing is built in for it.
 
 **Giving a role brings the lower ones with it.** Assigning `admin` under **Assign Role to
 User** also gives `teacher`, `viewer` and `guest`; assigning `teacher` also gives `viewer` and
@@ -188,6 +190,10 @@ This matters in two cases:
 - An account granted a permission of its own **and** left without a matching role row gets
   only what its rows say. The built-in list is then not used.
 
+An account whose roles were revoked under **Assign Role to User** is not such an account:
+the revoke changes the word in its Role column with the rows (to the highest role that is
+left, or to `none`), so the built-in list of the old word no longer applies to it.
+
 ## The three auth modes
 
 `AUTH_MODE` is a setting of the server (environment or `.env`), not something a page changes.
@@ -205,10 +211,12 @@ sets `strict` itself. Use nothing else on a server that other machines can reach
 
 Recorded in `docs/plans/UNIFIED_WORK_PLAN.md` (todo 63), not repaired:
 
-- Revoking the only role of an account under **Assign Role to User** takes nothing away: the
-  account keeps the word in its Role column and gets the built-in list for it ("Accounts
-  without role rows" above).
 - The audit log does not record who made a role or permission change.
+
+Repaired on 18 November 2026 (PR 423), and still so in v1.18.73 and earlier: revoking the
+only role of an account under **Assign Role to User** took nothing away. The account kept the
+word in its Role column and got the built-in list for it ("Accounts without role rows"
+above).
 
 Repaired on 18 November 2026 (PR 422), and still so in v1.18.73 and earlier:
 

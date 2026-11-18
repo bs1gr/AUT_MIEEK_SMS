@@ -179,8 +179,11 @@ export interface HighlightCreatePayload {
 /** The roles the account forms can send (POST and PATCH /admin/users accept these three). */
 export type UserRole = 'admin' | 'teacher' | 'student';
 
-/** The roles an account can have: Viewer and Guest come from RBAC Configuration > Assign Role to User. */
-export type AccountRole = UserRole | 'viewer' | 'guest';
+/**
+ * What the Role column of an account can say: Viewer and Guest come from RBAC Configuration >
+ * Assign Role to User, and 'none' is an account whose roles were all revoked there.
+ */
+export type AccountRole = UserRole | 'viewer' | 'guest' | 'none';
 
 export interface UserAccount {
   id: number;

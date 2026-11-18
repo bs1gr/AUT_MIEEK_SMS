@@ -30,6 +30,7 @@ export default {
   roleAssignedError: 'Σφάλμα κατά την ανάθεση ρόλου',
   roleRevokedSuccess: 'Ο ρόλος αφαιρέθηκε με επιτυχία',
   roleRevokedError: 'Σφάλμα κατά την αφαίρεση ρόλου',
+  noRoleLeft: 'Ο λογαριασμός δεν έχει πλέον κανέναν ρόλο. Μπορεί ακόμη να συνδεθεί, αλλά δεν ανοίγει τίποτα για αυτόν μέχρι να του ανατεθεί ρόλος.',
   permissionGrantedSuccess: 'Το δικαίωμα ανατέθηκε με επιτυχία',
   permissionGrantedError: 'Σφάλμα κατά την ανάθεση δικαιώματος',
   permissionRevokedSuccess: 'Το δικαίωμα αφαιρέθηκε με επιτυχία',

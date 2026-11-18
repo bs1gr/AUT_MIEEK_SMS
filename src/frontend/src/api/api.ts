@@ -1149,12 +1149,14 @@ export async function assignRBACRole(userId: number, roleName: string): Promise<
   return unwrapResponse<{ status: string }>(response.data);
 }
 
-export async function revokeRBACRole(userId: number, roleName: string): Promise<{ status: string }> {
+// The answer's role is the word in the account's Role column after the revoke: 'none' when
+// no role is left.
+export async function revokeRBACRole(userId: number, roleName: string): Promise<{ status: string; role?: string }> {
   const response = await apiClient.post('/admin/rbac/revoke-role', {
     user_id: userId,
     role_name: roleName
   });
-  return unwrapResponse<{ status: string }>(response.data);
+  return unwrapResponse<{ status: string; role?: string }>(response.data);
 }
 
 export const rbacAPI = {

@@ -119,7 +119,7 @@ export const RBACPanel: React.FC = () => {
     }
   );
 
-  const revokeRoleMutation = useApiMutation<{ status: string }, Error, { user_id: number; role_name: string }>(
+  const revokeRoleMutation = useApiMutation<{ status: string; role?: string }, Error, { user_id: number; role_name: string }>(
     async (data) => rbacAPI.revokeRole(data.user_id, data.role_name),
     {
       onSuccess: async () => {
@@ -416,6 +416,13 @@ export const RBACPanel: React.FC = () => {
                   <div className="flex items-center gap-2 text-green-600 text-sm">
                     <CheckCircle className="h-4 w-4" />
                     {t('rbac.roleRevokedSuccess')}
+                  </div>
+                )}
+                {/* The last role went: the account is left with nothing, and the page says so. */}
+                {revokeRoleMutation.isSuccess && revokeRoleMutation.data?.role === 'none' && (
+                  <div className="flex items-start gap-2 text-amber-700 text-sm" data-testid="rbac-no-role-left">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    {t('rbac.noRoleLeft')}
                   </div>
                 )}
               </CardContent>

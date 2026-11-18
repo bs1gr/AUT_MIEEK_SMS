@@ -309,7 +309,8 @@ export default {
     teacher: 'Teacher',
     student: 'Student',
     viewer: 'Viewer',
-    guest: 'Guest'
+    guest: 'Guest',
+    none: 'No role'
   },
   roleDescriptions: {
     admin: 'Administrator with full system access',
