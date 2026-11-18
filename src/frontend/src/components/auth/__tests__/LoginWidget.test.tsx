@@ -34,7 +34,10 @@ describe('LoginWidget', () => {
       await user.click(screen.getByRole('button', { name: 'common.login' }));
 
       expect(mockLogin).not.toHaveBeenCalled();
-      expect(screen.getByText(/enter your email/i)).toBeInTheDocument();
+      // A text of the page's language. It was written in the code, in Greek and English at
+      // once: "Παρακαλώ εισάγετε τη διεύθυνση email σας. / Please enter your email."
+      expect(screen.getByText('auth.emailRequired')).toBeInTheDocument();
+      expect(screen.queryByText(/ \/ /)).not.toBeInTheDocument();
     });
 
     it('shows a validation error and does not call login when password is empty', async () => {
@@ -45,7 +48,8 @@ describe('LoginWidget', () => {
       await user.click(screen.getByRole('button', { name: 'common.login' }));
 
       expect(mockLogin).not.toHaveBeenCalled();
-      expect(screen.getByText(/enter your password/i)).toBeInTheDocument();
+      expect(screen.getByText('auth.passwordRequired')).toBeInTheDocument();
+      expect(screen.queryByText(/ \/ /)).not.toBeInTheDocument();
     });
 
     it('calls login with trimmed credentials and fires onLoginSuccess', async () => {
@@ -116,7 +120,7 @@ describe('LoginWidget', () => {
       expect(onLoginSuccess).not.toHaveBeenCalled();
     });
 
-    it('surfaces the first field-level message on a 422 validation error', async () => {
+    it('says in the page\'s language that the address is not one, when the server refuses it', async () => {
       const validationError = Object.assign(new Error('Unprocessable Entity'), {
         response: {
           status: 422,
@@ -137,7 +141,25 @@ describe('LoginWidget', () => {
       await user.type(screen.getByTestId('auth-login-password'), 'secret123');
       await user.click(screen.getByRole('button', { name: 'common.login' }));
 
-      expect(await screen.findByText(/body\.email.*not a valid email/)).toBeInTheDocument();
+      // It used to show the server's own English: "Validation failed: body.email — not a valid email".
+      expect(await screen.findByText('auth.emailInvalid')).toBeInTheDocument();
+      expect(screen.queryByText(/Validation failed|body\.email/)).not.toBeInTheDocument();
+    });
+
+    it('answers any other refused field with the ordinary sign-in message', async () => {
+      const validationError = Object.assign(new Error('Unprocessable Entity'), {
+        response: { status: 422, data: { error: { details: { errors: [{ loc: ['body', 'password'], msg: 'too short' }] } } } },
+      });
+      mockLogin.mockRejectedValue(validationError);
+      const user = userEvent.setup();
+      render(<LoginWidget variant="inline" />);
+
+      await user.type(screen.getByTestId('auth-login-email'), 'user@example.com');
+      await user.type(screen.getByTestId('auth-login-password'), 'x');
+      await user.click(screen.getByRole('button', { name: 'common.login' }));
+
+      expect(await screen.findByText('auth.loginError')).toBeInTheDocument();
+      expect(screen.queryByText(/too short|body\.password/)).not.toBeInTheDocument();
     });
   });
 

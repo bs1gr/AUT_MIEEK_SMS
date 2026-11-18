@@ -89,9 +89,12 @@ list and in the Edit row is not always the account's, and **Save** sends the rol
 open sessions from being renewed and unlocks an account that was locked after too many
 failed sign-ins.
 
-The person is not asked to choose a new password at the next sign-in. An administrator
-changes the own password at the top of User Accounts ("Change Your Password"). Nobody else
-has a page for that: a teacher who wants a new password asks an administrator for a reset.
+The person is not asked to choose a new password at the next sign-in, and can choose one:
+every account has the form "Change Your Password" at the top of User Accounts. For an
+account that is not an administrator that form is all the panel shows, with a line saying
+that the other accounts are managed by an administrator. (In v1.18.73 and earlier the panel
+answers such an account "Access Denied", and a teacher who wants a new password asks an
+administrator for a reset.)
 
 ### Delete an account
 
@@ -235,7 +238,9 @@ administrator is locked out".
 
 Apart from the administrator's own panels, every signed-in account sees the same pages and
 buttons. What it may do is decided by the server at each request. A refused request shows as a
-failure message on the page.
+failure message on the page. An account without a role is told so by a line at the top of
+every page ("Your account has no role, ..."); in v1.18.73 and earlier it sees the failures
+alone.
 
 ### Nobody is recorded as the author of a change
 
@@ -295,4 +300,3 @@ The first start of the version that has two roles changes an existing installati
   every course.
 - An end date for a grant, from the page. (The API accepts one.)
 - A page for the audit log.
-- A page where a teacher changes the own password.

@@ -1,65 +1,158 @@
 """
 Help and Documentation Router
 
-Provides endpoints for accessing help documentation and user guides.
+Serves the one-page "Quick Guide" of Utils > Help & Documentation as a PDF, in English and in
+Greek. The page is composed here, from the two texts below.
 """
 
+import html
+import re
 from io import BytesIO
 from pathlib import Path
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/help")
 
+# What the Quick Guide says. Written as plain text so that it can be read against the pages:
+# "# " is the title, "## " the line under it, "### " a heading, "**...**" bold; an empty line
+# ends a paragraph. Every button, tab or page it names stands in quotation marks ("..." in
+# English, «...» in Greek) under the name the application gives it in that language, and
+# src/frontend/src/i18n/__tests__/quickGuide.test.ts fails when one of them is no longer a
+# text of the application: rename a button and the test says that this page has to follow.
+#
+# Until November 2026 the page promised a "Help" button, video tutorials and support links,
+# none of which exist, and its Greek called the students "φοιτητές".
+QUICK_GUIDE_EN = """
+# Student Management System
+## Quick Guide
 
-def _register_unicode_fonts():
-    """Register Unicode-capable fonts for Greek and other languages"""
+### To get started
+1. **Students.** Open "Students" and click "Add Student": the student's ID, first name, last name and e-mail address.
+2. **Courses.** Open "Courses" and click "Add Course". Then give the course its "Evaluation Rules" (categories whose weights add up to 100%) and its "Teaching Schedule".
+3. **Enrolment.** On the tab "Enrollment" of the course, enrol its students. A course becomes active when it has students.
+4. **Attendance.** Open "Attendance", choose the course and the day, and mark each student. What you enter is saved by itself.
+5. **Grades.** Open "Grades", choose a student and a course, and add each grade with "Save Grade". The page shows the final grade so far.
+
+### The pages
+• "Dashboard": the figures, the students who need attention, and "Analytics"
+• "Search": students, courses and grades
+• "Calendar": the week's teaching schedule
+• "Utils": "Export", "Imports", "Settings", "Reports", "Notifications" and the help
+• "System": the state of the application and the Control Panel
+
+The language switch is at the top right, next to the bell with your notifications.
+
+### Your account
+An administrator creates your account, or approves the one you asked for with "Request access" on the sign-in page. To change your password: "System" → "Show Control Panel" → "Maintenance" → "User Accounts".
+
+### More help
+"Utils" → "Help & Documentation" answers the common questions, and has a search box. "Send Feedback", at the bottom of every page, sends a remark to the "Feedback Inbox" of the administrators and teachers.
+"""
+
+QUICK_GUIDE_EL = """
+# Σύστημα Διαχείρισης Σπουδαστών
+## Σύντομος Οδηγός
+
+### Για να ξεκινήσετε
+1. **Σπουδαστές.** Ανοίξτε τους «Σπουδαστές» και πατήστε «Προσθήκη Σπουδαστή»: αριθμός μητρώου, όνομα, επώνυμο και διεύθυνση email.
+2. **Μαθήματα.** Ανοίξτε τα «Μαθήματα» και πατήστε «Προσθήκη Μαθήματος». Έπειτα δώστε στο μάθημα τους «Κανόνες Αξιολόγησης» (κατηγορίες με βαρύτητες που αθροίζουν στο 100%) και το «Πρόγραμμα Διδασκαλίας».
+3. **Εγγραφή.** Στην καρτέλα «Εγγραφές» του μαθήματος, εγγράψτε τους σπουδαστές του. Ένα μάθημα γίνεται ενεργό όταν έχει σπουδαστές.
+4. **Παρουσίες.** Ανοίξτε τις «Παρουσίες», επιλέξτε το μάθημα και την ημέρα, και σημειώστε κάθε σπουδαστή. Ό,τι καταχωρίζετε αποθηκεύεται μόνο του.
+5. **Βαθμοί.** Ανοίξτε τη σελίδα «Βαθμοί», επιλέξτε σπουδαστή και μάθημα, και προσθέστε κάθε βαθμό με «Αποθήκευση Βαθμού». Η σελίδα δείχνει τον τελικό βαθμό ως τώρα.
+
+### Οι σελίδες
+• «Επισκόπηση»: τα στοιχεία, οι σπουδαστές που χρειάζονται προσοχή και τα «Αναλυτικά»
+• «Αναζήτηση»: σπουδαστές, μαθήματα και βαθμοί
+• «Ημερολόγιο»: το πρόγραμμα διδασκαλίας της εβδομάδας
+• «Εργαλεία»: «Εξαγωγή», «Εισαγωγές», «Ρυθμίσεις», «Αναφορές», «Ειδοποιήσεις» και η βοήθεια
+• «Σύστημα»: η κατάσταση της εφαρμογής και ο Πίνακας Ελέγχου
+
+Η αλλαγή γλώσσας βρίσκεται πάνω δεξιά, δίπλα στο καμπανάκι με τις ειδοποιήσεις σας.
+
+### Ο λογαριασμός σας
+Ένας διαχειριστής δημιουργεί τον λογαριασμό σας, ή εγκρίνει αυτόν που ζητήσατε με «Εμφάνιση φόρμας εγγραφής» στη σελίδα σύνδεσης. Για να αλλάξετε τον κωδικό σας: «Σύστημα» → «Προβολή Πίνακα Ελέγχου» → «Συντήρηση» → «Λογαριασμοί Χρηστών».
+
+### Περισσότερη βοήθεια
+«Εργαλεία» → «Βοήθεια & Τεκμηρίωση»: απαντήσεις στις συνηθισμένες ερωτήσεις, με πεδίο αναζήτησης. Η «Αποστολή σχολίων», στο κάτω μέρος κάθε σελίδας, στέλνει ένα σχόλιο στο «Κιβώτιο Ανατροφοδότησης» των διαχειριστών και των εκπαιδευτών.
+"""
+
+QUICK_GUIDE = {"en": QUICK_GUIDE_EN, "el": QUICK_GUIDE_EL}
+
+
+def _register_unicode_fonts() -> tuple[str, str]:
+    """The fonts for the page: one that has Greek letters, and its bold.
+
+    The DejaVu fonts the application carries (backend/fonts, also inside SMS Lite) come
+    first. This used to look for fonts of the operating system alone; the Docker image has
+    none, so there the Greek page was set in Helvetica, which has no Greek letters.
+    """
     try:
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfbase.ttfonts import TTFont
 
-        # Find system font that supports Greek (Arial, DejaVu, or Noto Sans)
+        registered = set(pdfmetrics.getRegisteredFontNames())
+
+        fonts_dir = Path(__file__).resolve().parents[1] / "fonts"
+        regular, bold = fonts_dir / "DejaVuSans.ttf", fonts_dir / "DejaVuSans-Bold.ttf"
+        if regular.exists() and bold.exists():
+            try:
+                if "DejaVuSans" not in registered:
+                    pdfmetrics.registerFont(TTFont("DejaVuSans", str(regular)))
+                if "DejaVuSans-Bold" not in registered:
+                    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", str(bold)))
+                pdfmetrics.registerFontFamily(
+                    "DejaVuSans",
+                    normal="DejaVuSans",
+                    bold="DejaVuSans-Bold",
+                    italic="DejaVuSans",
+                    boldItalic="DejaVuSans-Bold",
+                )
+                return "DejaVuSans", "DejaVuSans-Bold"
+            except Exception as e:
+                print(f"Could not register the DejaVu fonts of the application: {e}")
+
+        # A font of the operating system that has Greek letters (no bold of its own).
         font_candidates = [
-            # Windows paths
             "C:\\Windows\\Fonts\\arial.ttf",
-            "C:\\Windows\\Fonts\\ariblk.ttf",
             "C:\\Windows\\Fonts\\DejaVuSans.ttf",
             "C:\\Windows\\Fonts\\NotoSans-Regular.ttf",
-            # Linux paths
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-            # macOS paths
             "/Library/Fonts/Arial.ttf",
             "/Library/Fonts/DejaVuSans.ttf",
         ]
-
-        font_file = None
         for candidate in font_candidates:
-            if Path(candidate).exists():
-                font_file = candidate
-                break
-
-        if font_file:
-            # Register the font under different names for flexibility
+            if not Path(candidate).exists():
+                continue
             try:
-                pdfmetrics.registerFont(TTFont("CustomFont", font_file))
-                pdfmetrics.registerFont(TTFont("CustomFontBold", font_file))
-                return "CustomFont", "CustomFontBold"
+                if "CustomFont" not in registered:
+                    pdfmetrics.registerFont(TTFont("CustomFont", candidate))
+                pdfmetrics.registerFontFamily(
+                    "CustomFont", normal="CustomFont", bold="CustomFont", italic="CustomFont", boldItalic="CustomFont"
+                )
+                return "CustomFont", "CustomFont"
             except Exception as e:
-                print(f"Could not register font {font_file}: {e}")
+                print(f"Could not register font {candidate}: {e}")
 
-        # Fallback to built-in Helvetica (limited Greek support)
+        # Built-in Helvetica: no Greek letters.
         return "Helvetica", "Helvetica-Bold"
     except Exception as e:
         print(f"Font registration error: {e}")
         return "Helvetica", "Helvetica-Bold"
 
 
+def _markup(line: str) -> str:
+    """One line of the guide's text as the markup the PDF paragraphs take."""
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(line, quote=False))
+
+
 @router.get("/user-guide/{language}")
 async def get_user_guide(language: str = "en"):
     """
-    Serve user guide PDF in specified language.
+    The Quick Guide as a PDF, in the language asked for.
 
     Args:
         language: 'en' for English, 'el' for Greek (Ελληνικά)
@@ -67,167 +160,98 @@ async def get_user_guide(language: str = "en"):
     Returns:
         PDF file for download
     """
-    if language.lower() not in ["en", "el"]:
+    language = language.lower()
+    if language not in QUICK_GUIDE:
         raise HTTPException(status_code=400, detail="Language must be 'en' or 'el'")
 
-    # Generate PDF content
     try:
         from reportlab.lib import colors
-        from reportlab.lib.pagesizes import letter
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
         from reportlab.lib.units import inch
-        from reportlab.platypus import Flowable, SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.platypus import Flowable, Paragraph, SimpleDocTemplate, Spacer
 
-        # Register unicode-capable fonts
         font_normal, font_bold = _register_unicode_fonts()
 
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(
             pdf_buffer,
-            pagesize=letter,
+            pagesize=A4,
             rightMargin=0.75 * inch,
             leftMargin=0.75 * inch,
-            topMargin=0.75 * inch,
-            bottomMargin=0.75 * inch,
+            topMargin=0.6 * inch,
+            bottomMargin=0.6 * inch,
+            title="Quick Guide" if language == "en" else "Σύντομος Οδηγός",
         )
 
         styles = getSampleStyleSheet()
-
-        # Update default styles with Unicode-capable font
-        for style in styles.byName.values():
-            style.fontName = font_normal
-
+        indigo = colors.HexColor("#4f46e5")
         title_style = ParagraphStyle(
-            "CustomTitle",
+            "GuideTitle",
             parent=styles["Heading1"],
-            fontName=font_normal,
-            fontSize=24,
-            textColor=colors.HexColor("#4f46e5"),
-            spaceAfter=30,
-            alignment=1,  # Center alignment
+            fontName=font_bold,
+            fontSize=20,
+            textColor=indigo,
+            spaceAfter=4,
+            alignment=1,  # centred
         )
-
-        heading_style = ParagraphStyle(
-            "CustomHeading",
+        subtitle_style = ParagraphStyle(
+            "GuideSubtitle",
             parent=styles["Heading2"],
             fontName=font_normal,
-            fontSize=14,
-            textColor=colors.HexColor("#4f46e5"),
-            spaceAfter=12,
-            spaceBefore=12,
+            fontSize=13,
+            textColor=indigo,
+            spaceAfter=10,
+            alignment=1,
         )
-
+        heading_style = ParagraphStyle(
+            "GuideHeading",
+            parent=styles["Heading2"],
+            fontName=font_bold,
+            fontSize=12,
+            textColor=indigo,
+            spaceBefore=8,
+            spaceAfter=4,
+        )
         body_style = ParagraphStyle(
-            "CustomBody",
+            "GuideBody",
             parent=styles["Normal"],
             fontName=font_normal,
-            fontSize=11,
+            fontSize=10,
             leading=14,
+            spaceAfter=6,
         )
 
         story: list[Flowable] = []
+        paragraph: list[str] = []
 
-        # Title
-        if language.lower() == "en":
-            story.append(Paragraph("Student Management System", title_style))
-            story.append(Paragraph("User Guide", heading_style))
-            story.append(Spacer(1, 20))
+        def end_paragraph() -> None:
+            if paragraph:
+                story.append(Paragraph("<br/>".join(paragraph), body_style))
+                paragraph.clear()
 
-            # Quick Start
-            story.append(Paragraph("Quick Start (3 Steps)", heading_style))
-            story.append(
-                Paragraph(
-                    "1. <b>Create Students:</b> Add student names, IDs, and email addresses<br/>"
-                    "2. <b>Add Courses:</b> Set up courses and grading rules<br/>"
-                    "3. <b>Record Data:</b> Track attendance, grades, and performance",
-                    body_style,
-                )
-            )
-            story.append(Spacer(1, 12))
+        for raw in QUICK_GUIDE[language].strip().splitlines():
+            line = raw.strip()
+            if not line:
+                end_paragraph()
+            elif line.startswith("### "):
+                end_paragraph()
+                story.append(Paragraph(_markup(line[4:]), heading_style))
+            elif line.startswith("## "):
+                end_paragraph()
+                story.append(Paragraph(_markup(line[3:]), subtitle_style))
+            elif line.startswith("# "):
+                end_paragraph()
+                story.append(Paragraph(_markup(line[2:]), title_style))
+            else:
+                paragraph.append(_markup(line))
+        end_paragraph()
+        story.append(Spacer(1, 4))
 
-            # Features
-            story.append(Paragraph("Key Features", heading_style))
-            story.append(
-                Paragraph(
-                    "✓ Student &amp; Course Management<br/>"
-                    "✓ Attendance Tracking<br/>"
-                    "✓ Grades &amp; Performance Analysis<br/>"
-                    "✓ Custom Reports &amp; Exports<br/>"
-                    "✓ Multi-Language Support (EN/EL)<br/>"
-                    "✓ Auto-Save &amp; Automatic Daily Backup<br/>"
-                    "✓ Real-Time Analytics Dashboard",
-                    body_style,
-                )
-            )
-            story.append(Spacer(1, 12))
-
-            # Help System
-            story.append(Paragraph("Getting Help", heading_style))
-            story.append(
-                Paragraph(
-                    "Need more information? Access the built-in help system by clicking the "
-                    "'Help' button in the application. You'll find:<br/>"
-                    "• Detailed feature explanations<br/>"
-                    "• Step-by-step how-to guides<br/>"
-                    "• Video tutorials (coming soon)<br/>"
-                    "• Direct support links",
-                    body_style,
-                )
-            )
-
-        else:  # Greek
-            story.append(Paragraph("Σύστημα Διαχείρισης Φοιτητών", title_style))
-            story.append(Paragraph("Οδηγός Χρήστη", heading_style))
-            story.append(Spacer(1, 20))
-
-            # Quick Start
-            story.append(Paragraph("Γρήγορη Έναρξη (3 Βήματα)", heading_style))
-            story.append(
-                Paragraph(
-                    "1. <b>Δημιουργία Φοιτητών:</b> Προσθέστε ονόματα, ΑΜ και email φοιτητών<br/>"
-                    "2. <b>Προσθήκη Μαθημάτων:</b> Ορίστε μαθήματα και κανόνες αξιολόγησης<br/>"
-                    "3. <b>Καταγραφή Δεδομένων:</b> Παρακολουθήστε παρουσία, βαθμούς και απόδοση",
-                    body_style,
-                )
-            )
-            story.append(Spacer(1, 12))
-
-            # Features
-            story.append(Paragraph("Κύρια Χαρακτηριστικά", heading_style))
-            story.append(
-                Paragraph(
-                    "✓ Διαχείριση Φοιτητών &amp; Μαθημάτων<br/>"
-                    "✓ Παρακολούθηση Παρουσίας<br/>"
-                    "✓ Ανάλυση Βαθμών &amp; Απόδοσης<br/>"
-                    "✓ Προσαρμοσμένες Αναφορές &amp; Εξαγωγές<br/>"
-                    "✓ Πολύγλωσση Υποστήριξη (EN/EL)<br/>"
-                    "✓ Αυτόματη Αποθήκευση &amp; Αντίγραφο Ασφαλείας<br/>"
-                    "✓ Άμεσος Πίνακας Ελέγχου Ανάλυσης",
-                    body_style,
-                )
-            )
-            story.append(Spacer(1, 12))
-
-            # Help System
-            story.append(Paragraph("Λήψη Βοήθειας", heading_style))
-            story.append(
-                Paragraph(
-                    "Χρειάζεστε περισσότερες πληροφορίες; Προσπελάστε το ενσωματωμένο σύστημα "
-                    "βοήθειας κάνοντας κλικ στο κουμπί 'Βοήθεια' στην εφαρμογή. Θα βρείτε:<br/>"
-                    "• Λεπτομερείς εξηγήσεις χαρακτηριστικών<br/>"
-                    "• Βήμα προς βήμα οδηγούς<br/>"
-                    "• Βίντεο εκπαίδευσης (σύντομα)<br/>"
-                    "• Άμεσα links υποστήριξης",
-                    body_style,
-                )
-            )
-
-        # Build PDF
         doc.build(story)
         pdf_buffer.seek(0)
 
-        # Return PDF file using StreamingResponse
-        filename = f"SMS_User_Guide_{'EN' if language.lower() == 'en' else 'EL'}.pdf"
+        filename = f"SMS_Quick_Guide_{language.upper()}.pdf"
         return StreamingResponse(
             iter([pdf_buffer.getvalue()]),
             media_type="application/pdf",
