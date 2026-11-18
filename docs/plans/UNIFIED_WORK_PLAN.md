@@ -301,9 +301,10 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
-**2026-11-18: the answers of Utils > Help & Documentation say what the pages do** (PR 424;
-the last of what the owner's "continue" selected: "read the ninety-one answers of the
-in-app help against the pages").
+**2026-11-18: the answers of Utils > Help & Documentation say what the pages do** (PR 424,
+merged as `38f8052ae`; the last of what the owner's "continue" selected: "read the ninety-one
+answers of the in-app help against the pages"; on the PR's commit CI's backend job passed
+1,768 tests with 55 skipped, the frontend job 2,045 and E2E 76).
 
 - **What it was.** 91 answers in 18 groups, most of them older than the pages. "Click Save
   Attendance" (no such button); "Only unexcused absences affect grades" (excused periods
