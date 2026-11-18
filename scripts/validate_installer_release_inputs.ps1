@@ -10,20 +10,35 @@
     Prebuild mode validates tracked/static inputs only.
     Postbuild mode (-RequireGeneratedArtifacts) additionally requires generated
     compile-time assets (wizard bitmaps, SMS_Manager.exe) to exist.
-    Wildcard Source roots are also scanned for ignored local database payloads
-    that would otherwise leak into local installer builds.
+    A wildcard Source line (for example "src\backend\*") takes every file in its
+    folder, tracked by git or not. On a developer's PC those folders also hold
+    local files: settings with a secret key and a database password
+    (config\.env), the key of the encrypted backups (src\backend\.keys),
+    generated reports and exports, uploaded import files. An installer built
+    there by hand packed them. So every file a wildcard line would take must be
+    tracked by git or be excluded on that line; anything else fails the check,
+    with the names of the files. (Until November 2026 only database files were
+    looked for.) A checkout made by CI holds tracked files only and passes.
+
+.PARAMETER RepoRoot
+    The repository to check. Defaults to the one this script is in; the tests
+    pass a throwaway repository.
 #>
 
 [CmdletBinding()]
 param(
     [string]$InstallerScriptPath,
-    [switch]$RequireGeneratedArtifacts
+    [switch]$RequireGeneratedArtifacts,
+    [string]$RepoRoot
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$RepoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+if (-not $RepoRoot) {
+    $RepoRoot = Join-Path $PSScriptRoot '..'
+}
+$RepoRoot = [System.IO.Path]::GetFullPath($RepoRoot)
 if (-not $InstallerScriptPath) {
     $InstallerScriptPath = Join-Path $RepoRoot 'infra\installer\windows\SMS_Installer.iss'
 }
@@ -48,14 +63,6 @@ $generatedAllowlist = @(
 # matched against wildcard Source: lines (e.g. "dist\SMS_Lite\*"), not single-file ones.
 $optionalGeneratedAllowlist = @(
     'infra\installer\windows\dist\SMS_Lite'  # Built separately via PyInstaller, optional for Docker Edition
-)
-
-$dangerousPayloadPatterns = @(
-    '*.db',
-    '*.db-shm',
-    '*.db-wal',
-    '*.sqlite',
-    '*.sqlite3'
 )
 
 function Get-NormalizedRelativePath {
@@ -132,29 +139,19 @@ function Get-InstallerSourceRoot {
     return Resolve-InstallerReference -Reference $sourceDir
 }
 
-function Test-AnyWildcardMatch {
-    param(
-        [string]$Value,
-        [string[]]$Patterns
-    )
-
-    foreach ($pattern in $Patterns) {
-        if ($Value -like $pattern) {
-            return $true
-        }
-    }
-
-    return $false
-}
-
 function Test-InstallerExcludeMatch {
+    # Whether Inno Setup's Excludes would leave a file out. Its rules: a pattern without a
+    # backslash is a name, of a file or of a folder at any depth ("tests" leaves out every
+    # folder called tests with all it holds); a pattern that starts with a backslash is
+    # matched from the source folder down; any other pattern with a backslash is matched
+    # against the end of the path ("logs\*").
     param(
         [string]$RelativePath,
         [string[]]$ExcludePatterns
     )
 
     $normalizedRelativePath = ($RelativePath -replace '[\\/]+', '\').TrimStart('\')
-    $leafName = Split-Path -Path $normalizedRelativePath -Leaf
+    $names = $normalizedRelativePath -split '\\'
 
     foreach ($pattern in $ExcludePatterns) {
         $normalizedPattern = ($pattern -replace '[\\/]+', '\').Trim()
@@ -162,15 +159,24 @@ function Test-InstallerExcludeMatch {
             continue
         }
 
-        if ($normalizedPattern.Contains('\')) {
-            if ($normalizedRelativePath -like $normalizedPattern) {
+        if ($normalizedPattern.StartsWith('\')) {
+            if ($normalizedRelativePath -like $normalizedPattern.TrimStart('\')) {
                 return $true
             }
             continue
         }
 
-        if ($leafName -like $normalizedPattern -or $normalizedRelativePath -like $normalizedPattern) {
-            return $true
+        if ($normalizedPattern.Contains('\')) {
+            if ($normalizedRelativePath -like $normalizedPattern -or $normalizedRelativePath -like "*\$normalizedPattern") {
+                return $true
+            }
+            continue
+        }
+
+        foreach ($name in $names) {
+            if ($name -like $normalizedPattern) {
+                return $true
+            }
         }
     }
 
@@ -236,6 +242,7 @@ for ($i = 0; $i -lt $content.Count; $i++) {
                     Reference = $refValue
                     Line = $lineNo
                     ExcludePatterns = @($excludePatterns)
+                    Recurses = [bool]($line -match '(?i)\brecursesubdirs\b')
                 })
             }
             continue
@@ -327,33 +334,52 @@ foreach ($wildcardSource in $wildcardSources) {
         continue
     }
 
+    # A folder that a build step fills (SMS Lite) holds untracked files by its nature.
+    if ($isOptionalGenerated -or ($generatedAllowlist -contains $repoRelativeRoot)) {
+        Write-Host "ℹ️  [generated] $repoRelativeRoot\* (line $($wildcardSource.Line)) - not checked for untracked files" -ForegroundColor DarkYellow
+        continue
+    }
+
+    # What the folder holds and git does not track, ignored files included: one question to
+    # git for the whole folder. Names come back with forward slashes, unquoted.
+    $rootForGit = ($repoRelativeRoot -replace '\\', '/').TrimEnd('/')
+    $untracked = @(& git -C $RepoRoot -c core.quotepath=off ls-files --others -- $rootForGit)
+    if ($LASTEXITCODE -ne 0) {
+        $failures.Add("$($wildcardSource.Kind) line $($wildcardSource.Line): $($wildcardSource.Reference) -> $repoRelativeRoot (git could not list the folder)")
+        continue
+    }
+
+    # Folders the line leaves out by name (node_modules, .venv, ...) hold tens of thousands of
+    # files: they are dropped with one expression before the patterns are tried one by one.
+    $plainNames = @($wildcardSource.ExcludePatterns | Where-Object { $_ -notmatch '[\\/*?]' } | ForEach-Object { [regex]::Escape($_) })
+    $skipFolders = if ($plainNames.Count -gt 0) { '(^|/)(' + ($plainNames -join '|') + ')(/|$)' } else { $null }
+    $filePattern = Split-Path -Path $wildcardSource.Reference -Leaf
+
     $leakedPayloads = New-Object System.Collections.Generic.List[string]
-    $candidateFiles = Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -ErrorAction SilentlyContinue |
-        Where-Object { Test-AnyWildcardMatch -Value $_.Name -Patterns $dangerousPayloadPatterns }
-
-    foreach ($candidate in $candidateFiles) {
-        $repoRelative = Get-RepoRelativePath -AbsolutePath $candidate.FullName
-        if (Test-GitTracked -RepoRelativePath $repoRelative) {
+    foreach ($entry in $untracked) {
+        $relativeForGit = $entry.Substring($rootForGit.Length).TrimStart('/')
+        if ($skipFolders -and $relativeForGit -match $skipFolders) {
             continue
         }
-
-        $relativeToSourceRoot = Get-NormalizedRelativePath -BasePath $sourceRoot -AbsolutePath $candidate.FullName
-        if (Test-InstallerExcludeMatch -RelativePath $relativeToSourceRoot -ExcludePatterns $wildcardSource.ExcludePatterns) {
+        if (-not $wildcardSource.Recurses -and $relativeForGit.Contains('/')) {
             continue
         }
-
-        $ignoreState = if (Test-GitIgnored -RepoRelativePath $repoRelative) {
-            'ignored by git'
-        } else {
-            'untracked in git'
+        if (($relativeForGit -split '/')[-1] -notlike $filePattern) {
+            continue
         }
-        $leakedPayloads.Add("$repoRelative ($ignoreState)")
+        if (Test-InstallerExcludeMatch -RelativePath ($relativeForGit -replace '/', '\') -ExcludePatterns $wildcardSource.ExcludePatterns) {
+            continue
+        }
+        $leakedPayloads.Add(($entry -replace '/', '\'))
     }
 
     if ($leakedPayloads.Count -gt 0) {
-        $examples = ($leakedPayloads | Select-Object -First 3) -join ', '
-        $failures.Add("$($wildcardSource.Kind) line $($wildcardSource.Line): $($wildcardSource.Reference) -> $repoRelativeRoot includes $($leakedPayloads.Count) local database artifact(s) not excluded (examples: $examples)")
+        $examples = ($leakedPayloads | Select-Object -First 5) -join ', '
+        $failures.Add("$($wildcardSource.Kind) line $($wildcardSource.Line): $($wildcardSource.Reference) would pack $($leakedPayloads.Count) file(s) that git does not track (for example: $examples). Add them to the line's Excludes, or remove them.")
+        continue
     }
+
+    Write-Host "✅ [wildcard] $repoRelativeRoot\* (line $($wildcardSource.Line)): tracked files only" -ForegroundColor Green
 }
 
 if ($failures.Count -gt 0) {

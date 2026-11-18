@@ -19,7 +19,7 @@ with pages, settings and shortcuts that were never built.
 | Accounts, roles, permissions (administrators) | [../admin/RBAC_ADMIN_GUIDE.md](../admin/RBAC_ADMIN_GUIDE.md), [../admin/PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md) |
 | Backups and restoring (administrators) | [../admin/BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md) |
 | Personal data | [../admin/PRIVACY_AND_GDPR.md](../admin/PRIVACY_AND_GDPR.md) |
-| Installing the application | [../operations/INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md) (not checked in this reading) |
+| Installing the application | [../operations/INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md) (read against the installer's script on 18 November 2026; nothing was installed for it) |
 
 ---
 

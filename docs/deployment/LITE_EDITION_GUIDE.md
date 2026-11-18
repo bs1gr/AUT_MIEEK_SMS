@@ -62,7 +62,7 @@
   stayed, so Lite kept connecting to QNAP although SQLite had been chosen.
 
 **Step 3: Installation Complete**
-- SMS_Lite.exe will be installed to `C:\Program Files (x86)\SMS-UT\`
+- SMS_Lite.exe will be installed to `C:\Program Files\SMS\`
 - Desktop shortcut created: "Student Management System"
 - Ready to launch on first run
 
@@ -77,12 +77,12 @@
 - App launches and opens in browser at http://127.0.0.1:8000
 
 **From File Explorer**
-- Navigate to: `C:\Program Files (x86)\SMS-UT\`
+- Navigate to: `C:\Program Files\SMS\`
 - Double-click: `SMS_Lite.exe`
 
 **From Command Line**
 ```powershell
-cd "C:\Program Files (x86)\SMS-UT\"
+cd "C:\Program Files\SMS\"
 .\SMS_Lite.exe
 ```
 
@@ -234,32 +234,37 @@ an administrator deactivated stays deactivated.
 
 ## 📁 Data Storage Locations
 
+Read from the installer's script and from `lite_simple_entrypoint.py` on 18 November 2026.
+
 ### Application Files
 ```
-C:\Program Files (x86)\SMS-UT\
+C:\Program Files\SMS\
 ├── SMS_Lite.exe (main application)
-├── frontend/ (React web app)
-├── backend/ (Python API)
-└── docker/ (Docker config - for reference only)
+├── _internal\ (its own backend, frontend and libraries)
+└── data\, logs\, backups\ (folders the installer makes)
 ```
 
 ### User Data & Configuration
 ```
 C:\Users\{username}\AppData\Local\SMS_Native_Lite_Simple\
 ├── sms_lite.db (SQLite database - LOCAL MODE)
-├── local-secrets/
-│   └── qnap-credentials.json (QNAP config - if using QNAP mode)
-├── logs/
-│   ├── debug.log (startup & runtime logs)
-│   └── sms.log (activity logs)
-├── migrations.log (database migrations)
-└── (other runtime data)
+├── debug.log (startup & runtime log)
+├── local-secrets\
+│   ├── qnap-credentials.json (QNAP config - if using QNAP mode)
+│   ├── secret_key.txt (this installation's secret key)
+│   └── backup-keys\ (the key of the encrypted backups)
+└── logs\
+    └── migrations.log (database migrations)
 ```
+
+The database is here, not in the installation folder: an uninstall, and the copy the
+installer makes before an update, do not touch it.
 
 ### Backup Location
 ```
-C:\Program Files (x86)\SMS-UT\backups\
-└── pre_upgrade_X.X.X/ (automatic pre-upgrade backups)
+C:\Program Files\SMS\backups\
+└── pre_upgrade_X.X.X\ (what the installer copies before an update: the installation
+    folder's data folder and settings files, not the database above)
 ```
 
 ---
@@ -345,7 +350,7 @@ Docker; only the `SMS_Manager.exe` launcher runs on Windows.
 - Manual backup: Copy `sms_lite.db` from AppData before uninstalling
 
 **If data is lost:**
-- Check: `C:\Program Files (x86)\SMS-UT\backups/` for auto-backups
+- Check: `C:\Program Files\SMS\backups/` for auto-backups
 - Restore from manual backup if you created one
 - Contact support for data recovery options
 
@@ -465,10 +470,10 @@ The installer also accepts `/EDITION=lite` (or `docker`) on the command line, fo
 ## 📚 Related Documentation
 
 - **Main README:** [README.md](../../README.md)
-- **Installer Guide:** [installer/README.md](../installer/README.md)
+- **Installer Guide:** [infra/installer/windows/README.md](../../infra/installer/windows/README.md)
 - **QNAP Setup:** [QNAP_POSTGRES_SINGLE_SOURCE.md](QNAP_POSTGRES_SINGLE_SOURCE.md)
 - **Database Guide:** [QNAP_RECONCILE_RUNBOOK.md](QNAP_RECONCILE_RUNBOOK.md)
-- **Deployment:** [Installation Guide](../../DEPLOY_ON_NEW_PC.md)
+- **Deployment:** [Installation Guide](../operations/INSTALLATION_GUIDE.md)
 
 ---
 

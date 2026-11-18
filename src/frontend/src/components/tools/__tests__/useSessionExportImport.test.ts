@@ -223,7 +223,7 @@ describe('useSessionExportImport', () => {
 
       expect(mockImportSession).toHaveBeenCalledWith(expect.any(File), 'skip');
       expect(props.showToast).toHaveBeenCalledWith(
-        'sessionImportSuccess (created: 5, updated: 1)',
+        'sessionImportSuccess (export.created: 5, export.updated: 1)',
         'success'
       );
       // File selection is cleared so the same import can't be fired twice
@@ -244,7 +244,7 @@ describe('useSessionExportImport', () => {
       });
 
       expect(props.showToast).toHaveBeenCalledWith(
-        'sessionImportSuccess (created: 1, updated: 0, errors: 1)',
+        'sessionImportSuccess (export.created: 1, export.updated: 0, export.errors: 1)',
         'warning'
       );
     });

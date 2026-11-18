@@ -129,10 +129,13 @@ export function useSessionExportImport({ t, showToast }: UseSessionExportImportP
       const totalUpdated = Object.values(summary).reduce((sum: number, item: { updated?: number }) => sum + (item.updated || 0), 0);
       const totalErrors = Object.values(summary).reduce((sum: number, item: { errors?: unknown[] }) => sum + ((item.errors?.length as number) || 0), 0);
 
+      // The three words are asked for in the export texts by name. Without the namespace each
+      // was found in another place, in another form: "Created: 3, updated: 2, errors: 1", and
+      // in Greek a singular beside two plurals.
       if (typeof totalErrors === 'number' && totalErrors > 0) {
-        showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated}, ${t('errors')}: ${totalErrors})`, 'warning');
+        showToast(`${t('sessionImportSuccess')} (${t('export.created')}: ${totalCreated}, ${t('export.updated')}: ${totalUpdated}, ${t('export.errors')}: ${totalErrors})`, 'warning');
       } else {
-        showToast(`${t('sessionImportSuccess')} (${t('created')}: ${totalCreated}, ${t('updated')}: ${totalUpdated})`, 'success');
+        showToast(`${t('sessionImportSuccess')} (${t('export.created')}: ${totalCreated}, ${t('export.updated')}: ${totalUpdated})`, 'success');
       }
 
       // Reset file input

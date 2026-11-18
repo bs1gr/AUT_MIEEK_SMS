@@ -40,7 +40,8 @@ Read [CLAUDE.md](CLAUDE.md) before working on this project. It contains all mand
 
 Edition guides:
 - [Lite Edition](docs/deployment/LITE_EDITION_GUIDE.md)
-- [Docker Edition](docs/deployment/DOCKER_DEPLOYMENT_GUIDE.md)
+- [Docker Edition](docs/deployment/DOCKER_OPERATIONS.md)
+- [Installation Guide](docs/operations/INSTALLATION_GUIDE.md) (both editions: what the installer asks and does)
 - [QNAP NAS Deployment](docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)
 
 ### First-Time Login
