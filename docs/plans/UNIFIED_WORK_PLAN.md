@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.73
-**Last Updated**: November 18, 2026
+**Last Updated**: November 19, 2026
 **Status**: ✅ **v1.18.73 released 2026-11-17** (tag on `50e4b57fc`, run by the assistant; the
 owner: "Release v1.18.73 with what has been merged since v1.18.72 (#409 to #415)", the last of
 four things asked for in one message, after the other three were done: so it carries PRs 409
@@ -302,9 +302,16 @@ the VM and the QNAP.
 ### On `main` since v1.18.73 (unreleased)
 
 **2026-11-18: an installer built by hand takes tracked files only; the installation guide
-read against the installer** (PR 431; the last things named for a "continue" after PR 429:
+read against the installer** (PR 431, merged on 19 November as `9616411fc`; on the PR's
+last commit CI's backend job passed 1,862 tests with 55 skipped, the frontend job 2,116 and
+E2E 77, each at its first try, and the job that runs the gate passed on Ubuntu and on
+Windows. The last things named for a "continue" after PR 429:
 `docs/operations/INSTALLATION_GUIDE.md`, the toast of a session import, the index of the
 permission keys).
+
+- **After the merge the guard was run in the main tree**, with its own script and the files
+  as they lie there (about 570 untracked files under the backend folder besides the caches,
+  three under `config`): it passes, every one of them is left out by the lines.
 
 - **What an installer built on the developer's PC packed.** A wildcard line of
   `SMS_Installer.iss` (`Source: "..\..\..\src\backend\*"`) takes every file in its folder,
@@ -2131,14 +2138,19 @@ tree as evidence that GitHub is clear.
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
 the cloud VM has not been updated to it and waits for the owner's word.** **Since then
-`main` carries PRs 419 to 429, unreleased: a repair of two ways an account kept access it
+`main` carries PRs 419 to 431, unreleased: a repair of two ways an account kept access it
 should not have had (419), the permission documents and the user guide checked against the
 application (420, 421), the small page repairs of todo 63 (422), an account whose last role
 is revoked left with nothing (423), the in-app help read against the pages (424), and the
 owner's seven decisions of 18 November on todo 63: two roles and "No role" with a closed
 list of 44 permissions and imports for teachers (425), the Weight of a grade counts (426),
 every account changes its own password (427), the audit log names its authors and has a
-page (428), the older documents read and corrected (429). The first start of this code on
+page (428), the older documents read and corrected (429); and after them a mark on the
+Attendance page that is no longer lost when the server answers late (430), and an installer
+built by hand that takes tracked files only, with the installation guide written anew (431).
+What 430 and 431 found and did not change is in their entries under "On `main` since
+v1.18.73": *Clear* on the Attendance page, the database choice of the Docker wizard, what the
+uninstaller deletes, the nine local installer builds in `infra\installer\dist`. The first start of this code on
 a database turns every Student, Viewer and Guest account into "No role" (migration
 `5189ab647b5a`). The VM
 has none of them; on it an account changed to "Student" still keeps its old access, Edit
