@@ -466,7 +466,7 @@ def import_courses(
 ):
     """Import all courses from JSON files in the courses templates directory.
 
-    **Rate limit:** 83 requests per minute (teacher import operation, loosened to avoid throttling bulk uploads)
+    **Rate limit:** the bulk-import limit (5000 requests per minute unless changed: loose, so that bulk uploads are not throttled)
 
     JSON schema example:
     {
@@ -1656,6 +1656,14 @@ async def import_preview(
 
                     add_item(action, obj, course_issues)
 
+        # What could not be read at all: a file that is no JSON, a CSV file for courses, a CSV
+        # row without a name or an address. These messages were collected above and then
+        # dropped: the check showed only the rows it could read, said nothing about the
+        # others, and left "Confirm & Import" open for a file it had not read (the import
+        # itself reports them in its job, afterwards). Each is a row with an error now.
+        for message in parse_errors:
+            add_item("skip", {}, [f"error: {message}"])
+
         total_rows = row_no
         can_proceed = error_count == 0
         # Estimate: ~10ms per item
@@ -1726,7 +1734,7 @@ def import_students(
 ):
     """Import all students from JSON files in the students templates directory.
 
-    **Rate limit:** 83 requests per minute (teacher import operation, loosened to avoid throttling bulk uploads)
+    **Rate limit:** the bulk-import limit (5000 requests per minute unless changed: loose, so that bulk uploads are not throttled)
 
     JSON schema example:
     {

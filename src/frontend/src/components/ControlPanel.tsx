@@ -1022,7 +1022,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                 <Activity size={20} />
                 {t('rateLimitsTitle') || 'Rate Limiting Configuration'}
               </h2>
-              <p className="text-sm text-yellow-200">{t('rateLimitsSubtitle') || 'Adjust API rate limits to prevent service degradation. Changes apply immediately.'}</p>
+              <p className="text-sm text-yellow-200">{t('rateLimitsSubtitle')}</p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">

@@ -85,6 +85,12 @@ AUTH_LOGIN_MAX_ATTEMPTS / AUTH_LOGIN_LOCKOUT_SECONDS / AUTH_LOGIN_TRACKING_WINDO
 - Defaults: `5` attempts / `300` seconds / `300` seconds
 - Purpose: Controls the built-in login throttle. After `AUTH_LOGIN_MAX_ATTEMPTS` failures inside the tracking window, the account (and originating IP/email combination) is locked for `AUTH_LOGIN_LOCKOUT_SECONDS`. Increase the window to relax sensitivity or raise attempts to tolerate more mistakes.
 
+RATE_LIMIT_READ_PER_MINUTE / RATE_LIMIT_WRITE_PER_MINUTE / RATE_LIMIT_HEAVY_PER_MINUTE / RATE_LIMIT_AUTH_PER_MINUTE / RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE
+
+- Type: integer (requests per minute, per client address)
+- Defaults: unset (the built-in values are `1000` / `500` / `200` / `120` / `5000`)
+- Purpose: The five request limits of the API. A variable that is set wins over the value saved from Control Panel > Rate Limits (kept in `backend/config/rate_limits.json`), and the tab goes on showing the saved value, not the variable's. The limits are read once, when the server starts: a variable changed, or a value saved on the tab, takes effect at the next start. Separate from the sign-in lockout above. See `docs/user/RATE_LIMITING_GUIDE.md`.
+
 SECRET_KEY_STRICT_ENFORCEMENT
 
 - Type: boolean ("1"/"0")

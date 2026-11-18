@@ -822,7 +822,7 @@ async def toggle_saved_search_favorite(
     - Requires authentication (any authenticated user)
     - User can only modify their own searches
     """
-    # current_user is guaranteed non-None by optional_require_permission("*") dependency
+    # current_user is never None here: the get_current_user dependency refuses a request without a sign-in
 
     try:
         from backend.services.saved_search_service import SavedSearchService

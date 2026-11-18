@@ -40,6 +40,8 @@ const ACTIONS = [
 // What an entry's details can say was done, for which the page has a sentence.
 const OPERATIONS = new Set([
   'assign_role',
+  'bulk_assign_role',
+  'auto_assign_inherited',
   'revoke_role',
   'set_role',
   'create_account',
@@ -49,15 +51,40 @@ const OPERATIONS = new Set([
   'reset_password',
   'change_own_password',
   'grant_permission',
+  'bulk_grant_permission',
   'revoke_permission',
   'grant_to_account',
   'revoke_from_account',
   'create_role',
+  'rename_role',
+  'update_role',
+  'delete_role',
   'create_permission',
+  'update_permission',
+  'activate_permission',
+  'deactivate_permission',
+  'delete_permission',
 ]);
 
-// Changes to what a role holds: they are about the role, not about an account.
-const ABOUT_A_ROLE = new Set(['grant_permission', 'revoke_permission', 'create_role']);
+// Changes to a role or to what it holds: they are about the role, not about an account.
+const ABOUT_A_ROLE = new Set([
+  'grant_permission',
+  'bulk_grant_permission',
+  'revoke_permission',
+  'create_role',
+  'rename_role',
+  'update_role',
+  'delete_role',
+]);
+
+// Changes to a permission itself: the sentence names it, and there is no record to point at.
+const ABOUT_A_PERMISSION = new Set([
+  'create_permission',
+  'update_permission',
+  'activate_permission',
+  'deactivate_permission',
+  'delete_permission',
+]);
 
 // Details the sentence already says, or that say nothing to a reader.
 const SAID = new Set(['operation', 'success', 'role', 'from', 'permission', 'email']);
@@ -149,7 +176,7 @@ const AuditLogPanel: React.FC = () => {
   const about = useCallback((entry: AuditLogEntry): string => {
     const details = entry.details ?? {};
     if (ABOUT_A_ROLE.has(asText(details.operation))) return `${text('role')} ${roleName(details.role)}`;
-    if (asText(details.operation) === 'create_permission') return '—';
+    if (ABOUT_A_PERMISSION.has(asText(details.operation))) return '—';
     const kind = text(`resources.${entry.resource}`);
     return entry.resource_id ? `${kind} ${entry.resource_id}` : kind;
   }, [roleName, text]);

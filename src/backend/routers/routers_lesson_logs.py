@@ -4,9 +4,9 @@ Lesson log routes: the material covered (διδακτέα ύλη) and the teache
 One row per course, date and period. The Attendance page saves it with a single idempotent PUT
 (autosave), and the same list endpoint feeds the per-course log where entries are reviewed and edited.
 
-Access follows attendance editing (``attendance:edit``: admin, staff and teacher). Read-only roles
-(guest, viewer) hold ``attendance:view`` but must not see a teacher's private notes, so reads need
-the edit permission too.
+Access follows attendance editing (``attendance:edit``: administrators and teachers). Reads need
+the edit permission too: an account granted ``attendance:view`` alone must not see a teacher's
+private notes.
 """
 
 import logging

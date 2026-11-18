@@ -12,6 +12,11 @@ changed a role"):
    does (create an account, change its role, deactivate it, delete it, reset its password)
    and what the Permissions Catalog does (grant and revoke for a role or an account) left no
    line at all, so the usual way of making somebody an administrator was not in the log.
+
+A third was found when the older documents were read against the code, the same day: no page
+creates, renames or deletes a role or a permission, but the API does (``/admin/rbac/roles``,
+``/admin/rbac/permissions``, ``/permissions``), and those requests left no line either. A role
+could be deleted, with every account's membership of it, and the log said nothing.
 """
 
 # The fixture `school` is imported and then named as an argument of every test.
@@ -26,6 +31,7 @@ from backend.tests.test_account_role_leftovers import (  # noqa: F401
     PASSWORD,
     Headers,
     _create,
+    _roles,
     _session,
     _sign_in,
     rbac_client,
@@ -283,6 +289,199 @@ def test_a_refused_change_writes_nothing(school):
     ]
 
     assert [answer.status_code for answer in refused] == [403, 403, 403]
+    assert len(_entries(client, admin)) == before
+
+
+# --- a role or a permission created, changed or deleted ------------------------------------------
+# No page does these (the pages grant and revoke): a script that calls the API does.
+
+RBAC = "/api/v1/admin/rbac"
+LIBRARY = {"key": "library:view", "resource": "library", "action": "view", "description": "See the library"}
+
+
+def _role(client: TestClient, admin: Headers, name: str, description: str | None = None) -> int:
+    body = {"name": name, "description": description} if description else {"name": name}
+    created = client.post(f"{RBAC}/roles", json=body, headers=admin)
+    assert created.status_code == 200, created.text
+    return int(created.json()["id"])
+
+
+def test_a_role_created_through_the_api_is_in_the_log(school):
+    client, admin = school
+
+    _role(client, admin, "Librarian", "Keeps the books")
+
+    entry = _last(client, admin, "create_role")
+    assert (entry["action"], entry["user_email"]) == ("role_change", HEAD)
+    assert entry["details"] == {"operation": "create_role", "role": "librarian", "description": "Keeps the books"}
+
+
+def test_a_role_renamed_or_described_anew_is_in_the_log_and_an_unchanged_save_is_not(school):
+    client, admin = school
+    role_id = _role(client, admin, "librarian")
+
+    renamed = client.put(f"{RBAC}/roles/{role_id}", json={"name": "Archivist"}, headers=admin)
+    assert renamed.status_code == 200, renamed.text
+    entry = _last(client, admin, "rename_role")
+    assert (entry["action"], entry["user_email"]) == ("role_change", HEAD)
+    assert entry["details"] == {"operation": "rename_role", "from": "librarian", "role": "archivist"}
+
+    client.put(f"{RBAC}/roles/{role_id}", json={"description": "Keeps the archive"}, headers=admin)
+    assert _last(client, admin, "update_role")["details"] == {
+        "operation": "update_role",
+        "role": "archivist",
+        "description": "Keeps the archive",
+    }
+
+    before = len(_entries(client, admin))
+    same = client.put(
+        f"{RBAC}/roles/{role_id}", json={"name": "archivist", "description": "Keeps the archive"}, headers=admin
+    )
+    assert same.status_code == 200, same.text
+    assert len(_entries(client, admin)) == before
+
+
+def test_a_deleted_role_is_in_the_log_with_how_many_accounts_held_it(school):
+    client, admin = school
+    role_id = _role(client, admin, "librarian")
+    account = _create(client, admin, "teacher@example.com", "teacher")
+    given = client.post(f"{RBAC}/assign-role", json={"user_id": account, "role_name": "librarian"}, headers=admin)
+    assert given.status_code == 200, given.text
+
+    assert client.delete(f"{RBAC}/roles/{role_id}", headers=admin).status_code == 200
+
+    entry = _last(client, admin, "delete_role")
+    assert (entry["action"], entry["user_email"]) == ("role_change", HEAD)
+    assert entry["details"] == {"operation": "delete_role", "role": "librarian", "accounts": 1}
+
+
+def test_a_role_made_after_one_was_deleted_is_held_by_nobody(school):
+    """SQLite does not enforce the foreign key of ``user_roles`` and hands a new role the number
+    of the last one deleted: the accounts of the deleted role held the new one."""
+    client, admin = school
+    old_id = _role(client, admin, "librarian")
+    account = _create(client, admin, "teacher@example.com", "teacher")
+    client.post(f"{RBAC}/assign-role", json={"user_id": account, "role_name": "librarian"}, headers=admin)
+    assert _roles(client, account) == {"teacher", "librarian"}
+    assert client.delete(f"{RBAC}/roles/{old_id}", headers=admin).status_code == 200
+
+    new_id = _role(client, admin, "auditor")
+
+    # SQLite hands out the number that was freed: that is the case this test is about.
+    assert new_id == old_id
+    assert _roles(client, account) == {"teacher"}
+
+
+def test_a_new_role_does_not_take_over_what_an_earlier_version_left_behind(school):
+    from sqlalchemy import func
+
+    from backend import models
+
+    client, admin = school
+    account = _create(client, admin, "teacher@example.com", "teacher")
+    with _session(client) as db:
+        number = int(db.query(func.max(models.Role.id)).scalar()) + 1
+        db.add(models.UserRole(user_id=account, role_id=number))  # a role deleted before this repair
+        db.commit()
+
+    new_id = _role(client, admin, "auditor")
+
+    assert new_id == number
+    assert _roles(client, account) == {"teacher"}
+
+
+def test_a_permission_made_changed_and_deleted_under_admin_rbac_is_in_the_log(school):
+    client, admin = school
+
+    created = client.post(f"{RBAC}/permissions", json=LIBRARY, headers=admin)
+    assert created.status_code == 200, created.text
+    made = _last(client, admin, "create_permission")
+    assert (made["action"], made["user_email"]) == ("permission_grant", HEAD)
+    assert made["details"] == {
+        "operation": "create_permission",
+        "permission": "library:view",
+        "description": "See the library",
+    }
+
+    permission = created.json()["id"]
+    changed = client.put(
+        f"{RBAC}/permissions/{permission}", json={"key": "library:read", "action": "read"}, headers=admin
+    )
+    assert changed.status_code == 200, changed.text
+    entry = _last(client, admin, "update_permission")
+    assert (entry["action"], entry["user_email"]) == ("update", HEAD)
+    assert entry["details"] == {
+        "operation": "update_permission",
+        "permission": "library:read",
+        "key_was": "library:view",
+        "action": "read",
+    }
+
+    grant = {"role_name": "teacher", "permission_key": "library:read"}
+    assert client.post("/api/v1/permissions/roles/grant", json=grant, headers=admin).status_code == 200
+    assert client.delete(f"{RBAC}/permissions/{permission}", headers=admin).status_code == 200
+    gone = _last(client, admin, "delete_permission")
+    assert (gone["action"], gone["user_email"]) == ("permission_revoke", HEAD)
+    assert gone["details"] == {"operation": "delete_permission", "permission": "library:read", "roles": 1, "accounts": 0}
+
+
+def test_a_permission_made_switched_off_and_on_and_deleted_under_permissions_is_in_the_log(school):
+    client, admin = school
+
+    created = client.post("/api/v1/permissions/", json=LIBRARY, headers=admin)
+    assert created.status_code == 201, created.text
+    assert _last(client, admin, "create_permission")["details"] == {
+        "operation": "create_permission",
+        "permission": "library:view",
+        "description": "See the library",
+    }
+    address = f"/api/v1/permissions/{created.json()['id']}"
+
+    assert client.patch(address, json={"is_active": False}, headers=admin).status_code == 200
+    off = _last(client, admin, "deactivate_permission")
+    assert (off["action"], off["user_email"]) == ("permission_revoke", HEAD)
+    assert off["details"] == {"operation": "deactivate_permission", "permission": "library:view"}
+
+    client.patch(address, json={"is_active": True, "description": "Read the library"}, headers=admin)
+    on = _last(client, admin, "activate_permission")
+    assert on["action"] == "permission_grant"
+    assert on["details"] == {
+        "operation": "activate_permission",
+        "permission": "library:view",
+        "description": "Read the library",
+    }
+
+    client.patch(address, json={"description": "Read the whole library"}, headers=admin)
+    described = _last(client, admin, "update_permission")
+    assert (described["action"], described["details"]) == (
+        "update",
+        {"operation": "update_permission", "permission": "library:view", "description": "Read the whole library"},
+    )
+
+    before = len(_entries(client, admin))
+    client.patch(address, json={"is_active": True, "description": "Read the whole library"}, headers=admin)
+    assert len(_entries(client, admin)) == before
+
+    assert client.delete(address, headers=admin).status_code == 204
+    gone = _last(client, admin, "delete_permission")
+    assert (gone["action"], gone["user_email"]) == ("permission_revoke", HEAD)
+    assert gone["details"] == {"operation": "delete_permission", "permission": "library:view", "roles": 0, "accounts": 0}
+
+
+def test_a_name_that_exists_is_refused_and_writes_nothing(school):
+    # Both used to be answered with a 500: the database refused the second row of that name.
+    client, admin = school
+    role_id = _role(client, admin, "librarian")
+    _role(client, admin, "archivist")
+    permission = client.post(f"{RBAC}/permissions", json=LIBRARY, headers=admin).json()["id"]
+    before = len(_entries(client, admin))
+
+    refused = [
+        client.put(f"{RBAC}/roles/{role_id}", json={"name": "Archivist"}, headers=admin),
+        client.put(f"{RBAC}/permissions/{permission}", json={"key": "students:view"}, headers=admin),
+    ]
+
+    assert [answer.status_code for answer in refused] == [400, 400]
     assert len(_entries(client, admin)) == before
 
 

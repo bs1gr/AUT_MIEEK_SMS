@@ -1,425 +1,148 @@
-# API Permissions Reference
+# API permissions reference
 
-**Version**: 1.18.21
-**Last Updated**: May 22, 2026
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
-This document provides a complete reference of all API endpoints and their required permissions after Phase 2 RBAC implementation.
+**Related:** [PERMISSION_MATRIX.md](../../docs/admin/PERMISSION_MATRIX.md) (every endpoint and
+what it asks for), [PERMISSION_REFERENCE.md](../../docs/admin/PERMISSION_REFERENCE.md) (the 44
+permissions), [PERMISSION_MANAGEMENT_GUIDE.md](../../docs/admin/PERMISSION_MANAGEMENT_GUIDE.md)
+(the requests that manage roles and permissions) and
+[RBAC_OPERATIONS_GUIDE.md](../../docs/admin/RBAC_OPERATIONS_GUIDE.md) ("Adding a permission").
 
-## Overview
+This file held a table per router of about 77 endpoints, with the permission each was said to
+ask for, test samples and a migration guide. Most of the addresses and permissions in it do not
+exist, so it no longer applied. The earlier text is in the repository's history. It is for
+developers and for whoever writes a script against the API.
 
-The Student Management System uses Role-Based Access Control (RBAC) with fine-grained permissions. Each administrative endpoint requires specific permissions, enforced via the `@require_permission` decorator.
+## The list of endpoints is generated
 
-### Permission Format
+Every endpoint, with what it asks for, is the table at the end of
+[PERMISSION_MATRIX.md](../../docs/admin/PERMISSION_MATRIX.md). A program writes it from the
+application's route table:
 
-Permissions follow the format: `{resource}:{action}`
+```
+cd src/backend
+python -m backend.scripts.endpoint_requirements --write
+```
 
-**Example**: `students:edit` (permission to edit student records)
+`src/backend/tests/test_permission_documents.py` fails when the table and the application
+differ. There is no second table here, so there is nothing to keep in step. The 44 permissions
+and what each opens are in [PERMISSION_REFERENCE.md](../../docs/admin/PERMISSION_REFERENCE.md).
 
-## Authentication Modes
+An endpoint asks for one of five things: a permission; the role `admin` (or `admin` or
+`teacher`); only a sign-in; nothing; or the Control API rules. A grant to an account opens what
+asks for a permission, and does not open what asks for a role.
 
-The API supports three authentication modes via the `AUTH_MODE` environment variable:
+## How a request is authenticated
 
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| `disabled` | No authentication required | Emergency access only |
-| `permissive` | Requests **without** a token skip every permission check (full anonymous access); requests with a token are role-checked | Automated tests / E2E only — never on a reachable server |
-| `strict` | Token required, permissions enforced | **Every real deployment** |
+- Sign in with `POST /api/v1/auth/login` and a JSON body `{"email": "...", "password": "..."}`.
+  The answer is `{"access_token": "...", "token_type": "bearer"}`.
+- Send `Authorization: Bearer <access_token>` with every later request. A token lasts 30 minutes
+  unless the server sets `ACCESS_TOKEN_EXPIRE_MINUTES` differently.
+- At every request the server reads the account from the database. An account that is
+  inactive, or that does not exist, is refused with 401, and a change of its roles or
+  grants counts from its next request.
+- An account that has to change its password first is refused everywhere except `/auth/me`,
+  the password change, the token refresh and the sign-out.
 
-**Default**: `strict`
+## The three auth modes
 
-The backend logs a warning at startup whenever `AUTH_MODE` is not `strict`.
+`AUTH_MODE` is a setting of the server (environment or `.env`), not something a page changes.
 
-## Permission Categories
+| Mode | What it does |
+|---|---|
+| `strict` (the default) | Every request must be signed in, and the checks apply |
+| `permissive` | A request **without** a sign-in passes the permission checks. A signed-in request is checked as in `strict` |
+| `disabled` | No check is made |
 
-### 1. Student Management (`students:*`)
+**`permissive` lets anybody who can reach the server read and change the data, with no sign-in
+at all. Never use it, or `disabled`, on a server that other machines can reach.** The server
+writes a warning to its log at every start when the mode is not `strict`. SMS Lite sets
+`strict` itself.
 
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `students:view` | View student records | Read-only access |
-| `students:create` | Create new students | Write access |
-| `students:edit` | Update student information | Write access |
-| `students:delete` | Delete students (soft-delete) | Destructive |
+## What a refused request answers
 
-### 2. Course Management (`courses:*`)
+Errors come in the same envelope as every other answer:
 
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `courses:view` | View course catalog | Read-only access |
-| `courses:create` | Create new courses | Write access |
-| `courses:edit` | Update course information | Write access |
-| `courses:delete` | Delete courses (soft-delete) | Destructive |
-
-### 3. Grade Management (`grades:*`)
-
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `grades:view` | View grade records | Read-only access |
-| `grades:edit` | Submit and update grades | Write access |
-
-### 4. Attendance Management (`attendance:*`)
-
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `attendance:view` | View attendance records | Read-only access |
-| `attendance:edit` | Log and update attendance | Write access |
-
-### 5. Reporting & Analytics (`reports:*`, `analytics:*`)
-
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `reports:generate` | Generate reports and analytics views | Read-only access to aggregated data |
-| `reports:export` | Export reports as files | PDF/Excel report exports |
-| `analytics:view` | View analytics dashboards | Read-only analytics access |
-| `analytics:export` | Export analytics dashboard data | PDF/Excel analytics exports |
-
-### 6. Audit Logs (`audit:*`)
-
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `audit:view` | View audit log entries | Read-only access to audit trail |
-
-### 7. User & Role Management (`users:*`)
-
-| Permission | Description | Scope |
-|-----------|-------------|-------|
-| `users:manage_roles` | Assign/remove user roles | Administrative |
-| `users:manage_perms` | Manage role permissions | Administrative |
-
-## Endpoint Permission Matrix
-
-### Student Endpoints (`/api/v1/students/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/students` | `students:view` | No |
-| POST | `/students` | `students:create` | No |
-| GET | `/students/{id}` | `students:view` | Yes (own record) |
-| PUT | `/students/{id}` | `students:edit` | Yes (own record) |
-| DELETE | `/students/{id}` | `students:delete` | No |
-| GET | `/students/email/{email}` | `students:view` | Yes (own email) |
-| GET | `/students/search` | `students:view` | No |
-| PUT | `/students/{id}/restore` | `students:delete` | No |
-
-**Self-Access Rules**:
-- Students can view their own record (`GET /students/{id}` where id matches their user)
-- Students can edit basic fields in their own record (email, phone) but NOT academic fields
-- Students cannot delete their own record
-
-### Course Endpoints (`/api/v1/courses/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/courses` | `courses:view` | No |
-| POST | `/courses` | `courses:create` | No |
-| GET | `/courses/{id}` | `courses:view` | No |
-| PUT | `/courses/{id}` | `courses:edit` | No |
-| DELETE | `/courses/{id}` | `courses:delete` | No |
-| GET | `/courses/code/{code}` | `courses:view` | No |
-| PUT | `/courses/{id}/restore` | `courses:delete` | No |
-
-**Self-Access Rules**: None (students cannot modify courses)
-
-### Course Enrollment Endpoints (`/api/v1/courses/{course_id}/students/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/courses/{course_id}/students` | `courses:view` | No |
-| POST | `/courses/{course_id}/students/{student_id}` | `courses:edit` | No |
-| DELETE | `/courses/{course_id}/students/{student_id}` | `courses:edit` | No |
-
-### Grade Endpoints (`/api/v1/grades/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/grades/student/{student_id}` | `grades:view` | Yes (own grades) |
-| POST | `/grades` | `grades:edit` | No |
-| PUT | `/grades/{id}` | `grades:edit` | No |
-| DELETE | `/grades/{id}` | `grades:edit` | No |
-| GET | `/grades/course/{course_id}` | `grades:view` | No |
-| GET | `/grades/{id}` | `grades:view` | Yes (own grade) |
-| PUT | `/grades/{id}/restore` | `grades:edit` | No |
-| GET | `/grades/student/{student_id}/summary` | `grades:view` | Yes (own summary) |
-
-**Self-Access Rules**:
-- Students can view their own grades
-- Students cannot submit or edit grades
-
-### Attendance Endpoints (`/api/v1/attendance/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/attendance/student/{student_id}` | `attendance:view` | Yes (own records) |
-| POST | `/attendance` | `attendance:edit` | No |
-| PUT | `/attendance/{id}` | `attendance:edit` | No |
-| DELETE | `/attendance/{id}` | `attendance:edit` | No |
-| GET | `/attendance/course/{course_id}` | `attendance:view` | No |
-| GET | `/attendance/date/{date}` | `attendance:view` | No |
-| GET | `/attendance/{id}` | `attendance:view` | Yes (own record) |
-| PUT | `/attendance/{id}/restore` | `attendance:edit` | No |
-| GET | `/attendance/student/{student_id}/summary` | `attendance:view` | Yes (own summary) |
-| GET | `/attendance/student/{student_id}/statistics` | `attendance:view` | Yes (own stats) |
-
-**Self-Access Rules**:
-- Students can view their own attendance records and statistics
-- Students cannot log or modify attendance
-
-### Lesson Log Endpoints (`/api/v1/lesson-logs/*`)
-
-The material covered and the teacher's private notes for each teaching period (one row per course, date and `period_number`).
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/lesson-logs` | `attendance:edit` | No |
-| PUT | `/lesson-logs` | `attendance:edit` | No |
-
-**Why reads need `attendance:edit`, not `attendance:view`**:
-- The `guest` and `viewer` roles hold `attendance:view`, and the teacher's notes are private to people who can edit attendance (admin, staff, teacher).
-- Students have no access at all.
-- `PUT` is an idempotent upsert for autosave: a text field left out of the body keeps its stored value, and an empty string clears it.
-
-### Daily Performance Endpoints (`/api/v1/performance/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/performance` | `grades:view` | No |
-| POST | `/performance` | `grades:edit` | No |
-| GET | `/performance/{id}` | `grades:view` | Yes (own record) |
-| PUT | `/performance/{id}` | `grades:edit` | No |
-| DELETE | `/performance/{id}` | `grades:edit` | No |
-| GET | `/performance/student/{student_id}` | `grades:view` | Yes (own records) |
-
-**Self-Access Rules**:
-- Students can view their own daily performance records
-- Students cannot create or modify performance entries
-
-### Highlight Endpoints (`/api/v1/highlights/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/highlights` | `grades:view` | No |
-| POST | `/highlights` | `grades:edit` | No |
-| GET | `/highlights/{id}` | `grades:view` | Yes (if about student) |
-| PUT | `/highlights/{id}` | `grades:edit` | No |
-| DELETE | `/highlights/{id}` | `grades:edit` | No |
-| GET | `/highlights/student/{student_id}` | `grades:view` | Yes (own records) |
-
-**Self-Access Rules**:
-- Students can view highlights about them
-- Students cannot create or modify highlights
-
-### Analytics Endpoints (`/api/v1/analytics/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/analytics/student/{student_id}` | `reports:generate` | Yes (own analytics) |
-| GET | `/analytics/course/{course_id}` | `reports:generate` | No |
-| GET | `/analytics/cohort` | `reports:generate` | No |
-| GET | `/analytics/at-risk` | `reports:generate` | No |
-| POST | `/analytics/export/excel` | One of `analytics:export`, `reports:export`, `reports:generate` | No |
-| POST | `/analytics/export/pdf` | One of `analytics:export`, `reports:export`, `reports:generate` | No |
-
-**Self-Access Rules**:
-- Students can view their own analytics
-- Course and cohort analytics are admin-only
-
-### Metrics Endpoints (`/api/v1/metrics/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/metrics/students` | `reports:generate` | No |
-| GET | `/metrics/courses` | `reports:generate` | No |
-| GET | `/metrics/grades` | `reports:generate` | No |
-| GET | `/metrics/attendance` | `reports:generate` | No |
-| GET | `/metrics/dashboard` | `reports:generate` | No |
-
-**Self-Access Rules**: None (all metrics are aggregated administrative views)
-
-### Reports Endpoints (`/api/v1/reports/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/reports/student/{student_id}/transcript` | `reports:generate` | Yes (own transcript) |
-| GET | `/reports/course/{course_id}/roster` | `reports:generate` | No |
-| GET | `/reports/course/{course_id}/grade-distribution` | `reports:generate` | No |
-| GET | `/reports/student/{student_id}/attendance-report` | `reports:generate` | Yes (own report) |
-| GET | `/reports/at-risk-students` | `reports:generate` | No |
-| GET | `/reports/class-performance` | `reports:generate` | No |
-| GET | `/reports/export` | `reports:generate` | No |
-
-**Self-Access Rules**:
-- Students can generate their own transcript and attendance report
-- Administrative reports (roster, distribution, at-risk) are admin-only
-
-### Audit Endpoints (`/api/v1/audit/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/audit/logs` | `audit:view` | No |
-
-**Self-Access Rules**: None (audit logs are administrative only)
-
-### Permission Management Endpoints (`/api/v1/permissions/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/permissions` | `users:manage_perms` | No |
-| POST | `/permissions` | `users:manage_perms` | No |
-| GET | `/permissions/{id}` | `users:manage_perms` | No |
-| PUT | `/permissions/{id}` | `users:manage_perms` | No |
-| DELETE | `/permissions/{id}` | `users:manage_perms` | No |
-
-### Role Permission Endpoints (`/api/v1/roles/{role_id}/permissions/*`)
-
-| Method | Endpoint | Required Permission | Allow Self Access |
-|--------|----------|---------------------|-------------------|
-| GET | `/roles/{role_id}/permissions` | `users:manage_roles` | No |
-| POST | `/roles/{role_id}/permissions` | `users:manage_roles` | No |
-| DELETE | `/roles/{role_id}/permissions/{permission_id}` | `users:manage_roles` | No |
-
-## Error Responses
-
-### Permission Denied (403 Forbidden)
-
-When a user lacks the required permission:
-
-```json
+```
 {
   "success": false,
+  "data": null,
   "error": {
     "code": "HTTP_403",
-    "message": "Permission denied: students:edit",
-    "details": {
-      "required_permission": "students:edit",
-      "user_permissions": ["students:view"],
-      "allow_self_access": false
-    }
+    "message": "Permission denied: requires 'students:edit'",
+    "details": null,
+    "path": "/api/v1/students/7"
   },
-  "meta": {
-    "request_id": "req_abc123",
-    "timestamp": "2026-01-08T10:30:00Z",
-    "version": "1.15.1"
-  }
+  "meta": {"request_id": "...", "timestamp": "...", "version": "..."}
 }
 ```
 
-### Unauthorized (401)
+| Case | Status and text |
+|---|---|
+| No bearer token, in `strict` mode | 401 "Authentication required" |
+| A token that is not valid, or an account that is inactive | 401 "Could not validate credentials" |
+| A permission the account does not hold | 403 "Permission denied: requires 'students:edit'". With several keys asked for in the alternative: "requires one of '...', '...'" |
+| A role check the account fails | 403 "Access denied. Required role: admin. Your role: teacher" |
+| Another account's permissions, without `users:view` | 403 "Permission denied" |
+| An account that has to change its password | 403 "Password change required before using the application" |
 
-When authentication is required but not provided (in `strict` mode):
+The text of the permission check is English, whatever language the client asks for: the
+decorator sends a plain string, and the error handler passes a plain string through. A request
+refused for lack of a permission is not written to the audit log.
 
-```json
-{
-  "success": false,
-  "error": {
-    "code": "HTTP_401",
-    "message": "Authentication required",
-    "details": null
-  },
-  "meta": {
-    "request_id": "req_def456",
-    "timestamp": "2026-01-08T10:30:00Z",
-    "version": "1.15.1"
-  }
-}
-```
+## The lesson log
 
-## Testing Permissions
+`GET /api/v1/lesson-logs/`, `PUT /api/v1/lesson-logs/` and
+`GET /api/v1/lesson-logs/export/{file_format}` (`pdf` or `excel`) all ask for `attendance:edit`.
+Reading needs it too, because an entry holds the teacher's private notes: `attendance:view` is
+not enough.
 
-### Using the Test Client
+- One row per course, date and teaching period (`period_number`, from 1; the default is 1).
+- `PUT` creates or updates the row and is safe to repeat, which is how the Attendance page
+  saves as it goes. A text field left out of the body keeps its stored value. An empty string,
+  or `null`, clears it. The fields are `material_covered` and `teacher_notes`.
+- The account that last changed the text is recorded, and shown as `updated_by_name`.
+- The list takes `course_id`, `date`, `start_date`, `end_date` and `period_number`, newest date
+  first.
+- The export needs `course_id`; `start_date` and `end_date` narrow it, `lang` is `en` or `el`.
+  The teacher's notes are printed only with `include_notes=true`.
 
-When writing tests, you can create users with specific permissions:
-
-```python
-from backend.models import User, Role, Permission, RolePermission
-from backend.schemas import UserCreate
-
-def test_student_can_view_own_grades(client, db):
-    # Create permission
-    perm = Permission(
-        key="grades:view",
-        resource="grades",
-        action="view",
-        description="View grades"
-    )
-    db.add(perm)
-
-    # Create role with permission
-    role = Role(name="student", description="Student role")
-    db.add(role)
-    db.flush()
-
-    role_perm = RolePermission(role_id=role.id, permission_id=perm.id)
-    db.add(role_perm)
-
-    # Create user with role
-    user = User(username="student1", role_id=role.id)
-    db.add(user)
-    db.commit()
-
-    # Test endpoint
-    response = client.get(
-        f"/api/v1/grades/student/{user.id}",
-        headers={"Authorization": f"Bearer {user.id}"}
-    )
-    assert response.status_code == 200
-```
-
-### Testing Self-Access
-
-Some endpoints allow users to access their own data even without explicit permissions:
+## Protecting a new endpoint
 
 ```python
-def test_student_cannot_view_other_student_grades(client, db):
-    student1 = create_student_user(db, "student1")
-    student2 = create_student_user(db, "student2")
-
-    # Student1 tries to view Student2's grades
-    response = client.get(
-        f"/api/v1/grades/student/{student2.id}",
-        headers={"Authorization": f"Bearer {student1.id}"}
-    )
-    assert response.status_code == 403  # Forbidden
+@router.post("/")
+@limiter.limit(RATE_LIMIT_WRITE)  # from backend.rate_limiting, as the other routers do
+@require_permission("things:create")  # from backend.rbac
+async def create_thing(request: Request, payload: ThingIn, db: Session = Depends(get_db)):
+    ...
 ```
 
-## Security Best Practices
+- The key is `area:action`, in lower case. A list of keys, `require_permission(["a:view",
+  "b:view"])`, lets any one of them through. `require_any_permission` and
+  `require_all_permissions` in the same module take their keys as arguments.
+- **The endpoint must take `request: Request`.** Without it, in `strict` and `permissive` mode,
+  the decorator answers 500 "Request not available".
+- The decorator hands `db` to the endpoint only if the endpoint has a parameter of that name.
+  It reads the account from the token itself; no `current_user` parameter is needed.
+- The permission must be in the list. Add the key to `PERMISSION_DEFS` in
+  `src/backend/routers/routers_rbac.py` (and to `TEACHER_PERMISSIONS` if teachers are to hold
+  it). Until it is there these tests fail: `test_permission_documents.py` ("the list is closed")
+  and `test_two_roles_model.py`. The remaining steps (the frontend name, the reference, the
+  table, and how an installation that already runs gets the permission) are in
+  [RBAC_OPERATIONS_GUIDE.md](../../docs/admin/RBAC_OPERATIONS_GUIDE.md), "Adding a permission".
+- `allow_self_access=True` is a leftover for student accounts, which no account can be any
+  more: it opens nothing today.
+- `backend/security/permissions.py` has a `require_permission` and an
+  `optional_require_permission` that are dependencies, not decorators. They answer "Missing
+  permission: ..."; `optional_require_permission` is the one the `/adminops` and search
+  endpoints use. The other routers that ask for a permission use the decorator of
+  `backend/rbac.py`.
 
-1. **Principle of Least Privilege**: Grant only the minimum permissions needed
-2. **Regular Audits**: Review user permissions periodically via audit logs
-3. **Self-Access Restrictions**: Students can view but not modify their own records
-4. **Administrative Separation**: `users:manage_roles` and `users:manage_perms` should be restricted to admin accounts
-5. **Token Security**: Use strong authentication tokens and rotate regularly
+## Role checks
 
-## Migration Guide
-
-### Upgrading from Pre-RBAC (v1.14.3 or earlier)
-
-If you're upgrading from a version before RBAC implementation:
-
-1. **Database Migration**: Run `alembic upgrade head` to add permission tables
-2. **Seed Permissions**: Run the permission seeding script
-3. **Assign Default Roles**: Assign appropriate roles to existing users
-4. **Test Access**: Verify users can access expected endpoints
-5. **Review Audit Logs**: Check for any permission denied errors
-
-### Default Role Assignments
-
-After migration, assign these default roles:
-
-| User Type | Recommended Role | Permissions |
-|-----------|------------------|-------------|
-| Administrator | `admin` | All permissions (`*:*`) |
-| Staff | `staff` | `students:create`, `grades:edit`, `attendance:edit`, `reports:generate`, `reports:export`, `analytics:export` |
-| Teacher/Instructor | `teacher` | `courses:view`, `students:view`, `grades:edit`, `attendance:edit`, `reports:generate`, `reports:export` |
-| Student | `student` | Self-access only (no explicit permissions needed) |
-| Auditor | `auditor` | `students:view`, `courses:view`, `grades:view`, `attendance:view`, `reports:generate`, `audit:view` |
-
-## Support & Documentation
-
-- **Architecture**: See `docs/development/ARCHITECTURE.md`
-- **RBAC Design**: See `docs/admin/RBAC_DESIGN.md`
-- **Permission Matrix**: See `docs/admin/PERMISSION_MATRIX.md`
-- **API Examples**: See `backend/CONTROL_API.md`
-
----
-
-**Last reviewed**: May 22, 2026
-**Next review**: As part of the next RBAC permission audit
+An endpoint that only the administrator may use, whatever permissions a grant gives, uses
+`Depends(optional_require_role("admin"))` from `backend/routers/routers_auth.py`. It reads
+the word in the account's Role column (`admin`, `teacher` or `none`), so a grant does not open
+it: a teacher who holds every permission in the list still cannot open the semester archive.
+With `AUTH_MODE` set to `disabled` it hands the endpoint a placeholder administrator, and
+answers 401 on the paths that contain `/admin`.

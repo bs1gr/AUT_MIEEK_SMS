@@ -1,256 +1,101 @@
-# Control Panel Theme Guide
-
-## Overview
-
-The Control Panel Operations now features **6 professional appearance themes** inspired by top 2025 responsive design trends. Users can switch themes on-the-fly using the Theme selector button.
-
-## Available Themes
-
-### 1. Default Theme
-
-**Best for:** General use, accessibility
-
-- Balanced light/dark mode support
-- Clean gray color palette
-- Standard rounded corners (`rounded-lg`)
-- Subtle shadows for depth
-- High readability and WCAG compliance
-
-**Colors:**
-
-- Container: White/Gray-800
-- Cards: Gray-50/Gray-800
-- Buttons: Indigo-600
-- Text: Gray-900/Gray-100
-
----
-
-### 2. Glassmorphism Theme
-
-**Best for:** Modern, premium feel
-
-- Frosted glass effect with `backdrop-blur`
-- Semi-transparent backgrounds
-- Vibrant gradient buttons (indigo → purple)
-- Extra-large rounded corners (`rounded-2xl`)
-- Layered depth with translucent elements
-
-**Visual Style:**
-
-- Heavy use of `bg-white/10` transparency
-- `backdrop-blur-xl` for glass effect
-- Border: `border-white/20`
-- Gradient buttons with shadow glow
-- Smooth hover transitions
-
-**Inspired by:** Apple macOS Big Sur, iOS interfaces
-
----
-
-### 3. Neumorphism Theme
-
-**Best for:** Tactile, 3D interfaces
-
-- Soft shadows create embossed/debossed look
-- Monochromatic color scheme
-- Inner shadows for pressed buttons
-- Extremely smooth rounded corners (`rounded-3xl`)
-- Subtle depth without borders
-
-**Shadow System:**
-
-```css
-/* Raised elements */
-shadow-[8px_8px_16px_#bebebe,-8px_-8px_16px_#ffffff]
-
-/* Inset elements */
-shadow-[inset_4px_4px_8px_#bebebe,inset_-4px_-4px_8px_#ffffff]
-
-/* Dark mode variants */
-shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
-
-```text
-**Inspired by:** Dribbble neumorphic designs, Soft UI
-
----
-
-### 4. Gradient Theme
-
-**Best for:** Colorful, energetic interfaces
-
-- Multi-color gradients (indigo → purple → pink)
-- Glass-like cards on gradient backgrounds
-- Vibrant button shadows
-- Background: `bg-gradient-to-br`
-- High visual interest
-
-**Gradient System:**
-
-- Container: `from-indigo-50 via-purple-50 to-pink-50`
-- Dark: `from-gray-900 via-indigo-950 to-purple-950`
-- Buttons: `from-indigo-600 via-purple-600 to-pink-600`
-- Shadow glow: `shadow-indigo-500/50`
-
-**Inspired by:** Linear app, Stripe dashboard
-
----
-
-### 5. Modern Dark Theme
-
-**Best for:** Low-light environments, focus
-
-- Deep dark backgrounds (gray-900)
-- High contrast text
-- Enhanced shadows with glow effects
-- Gradient backgrounds for depth
-- Optimized for extended use
-
-**Color Palette:**
-
-- Background: Gray-900 → Gray-800 gradient
-- Cards: Gray-800 → Gray-900 gradient
-- Borders: Gray-700/Gray-600
-- Accent: Indigo-600 with shadow glow
-
-**Inspired by:** GitHub dark mode, VS Code themes
-
----
-
-### 6. Light Professional Theme
-
-**Best for:** Corporate, formal settings
-
-- Crisp white backgrounds
-- Sharp borders (gray-200)
-- Minimal rounded corners (`rounded-md`)
-- Traditional flat design
-- Highest contrast for readability
-
-**Design Philosophy:**
-
-- Simplicity over decoration
-- Clear visual hierarchy
-- Standard UI patterns
-- Maximum accessibility
-- Fast rendering
-
-**Inspired by:** Google Material Design, Bootstrap 5
-
----
-
-## Implementation Details
-
-### Theme Selector Component
-
-Located at: `frontend/src/features/operations/components/ThemeSelector.tsx`
-
-```tsx
-export type ThemeVariant =
-  | 'default'
-  | 'glassmorphism'
-  | 'neumorphism'
-  | 'gradient'
-  | 'modern-dark'
-  | 'light-professional';
-
-```text
-### Theme Styles Object
-
-Each theme provides consistent styling for:
-
-- `container` - Main panel container
-- `card` - Individual operation cards
-- `subtleCard` - Nested/secondary cards
-- `input` - Text inputs and selects
-- `button` - Primary action buttons
-- `secondaryButton` - Secondary/cancel buttons
-- `text` - Primary text color
-- `mutedText` - Secondary/muted text
-
-### Usage in Components
-
-```tsx
-const theme = themeStyles[selectedTheme];
-
-<div className={theme.container}>
-  <button className={theme.button}>Action</button>
-  <input className={theme.input} />
-</div>
-
-```text
-## User Guide
-
-### How to Switch Themes
-
-1. Open Control Panel → Operations tab
-2. Click the **Theme** button (palette icon) in the header
-3. Select desired theme from dropdown
-4. Theme applies instantly without page reload
-
-### Accessibility Notes
-
-All themes maintain:
-
-- ✅ WCAG 2.1 AA contrast ratios
-- ✅ Keyboard navigation support
-- ✅ Screen reader compatibility
-- ✅ Focus indicators
-- ✅ Consistent interactive states
-
-## Technical Details
-
-### Browser Support
-
-- Chrome/Edge 88+ (backdrop-filter)
-- Firefox 103+ (backdrop-filter)
-- Safari 14.1+ (backdrop-filter)
-- All themes gracefully degrade on older browsers
-
-### Performance
-
-- CSS-only (no JavaScript animations)
-- Hardware-accelerated effects
-- Optimized shadow rendering
-- Minimal repaints on theme switch
-
-### Customization
-
-Themes can be extended by modifying `themeStyles` object in `ThemeSelector.tsx`:
-
-```tsx
-export const themeStyles = {
-  'custom-theme': {
-    container: 'your-classes-here',
-    card: 'your-classes-here',
-    // ... other properties
-  }
-};
-
-```text
-## Design Inspiration Sources
-
-1. **shadcn/ui** - Component architecture, color systems
-2. **daisyUI** - Comprehensive component patterns
-3. **Tailwind UI** - Professional design patterns
-4. **Glassmorphism.com** - Glass effect best practices
-5. **Neumorphism.io** - Shadow calculation tools
-6. **Linear** - Modern gradient aesthetics
-7. **Stripe** - Professional gradient usage
-8. **GitHub** - Dark mode optimization
-
-## Future Enhancements
-
-Potential additions:
-
-- [ ] Theme persistence in localStorage
-- [ ] Custom theme builder
-- [ ] Theme preview panel
-- [ ] Animation preference toggle
-- [ ] High contrast mode
-- [ ] Reduced motion support
-- [ ] Theme export/import
-
----
-
-**Last Updated:** November 13, 2025
-**Version:** 1.6.0+
+# Themes
+
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
+
+The earlier text of this guide described six themes in the Control Panel and a Theme button
+there. That is not how the application works today: there are eight themes, and they are
+chosen under Utils > **Settings**. The earlier text is in the repository's history.
+
+The first part is for everybody who uses the pages. The second part is for developers and is
+read from the code; nobody added a theme to try it.
+
+## The eight themes
+
+The names are the ones the pages show. The line under each name is the one the page shows
+under it.
+
+| English | Greek | What the page says about it |
+|---|---|---|
+| **Default** | **Προεπιλογή** | Balanced light/dark theme / Ισορροπημένο φωτεινό/σκούρο θέμα |
+| **Glassmorphism** | **Glassmorphism** | Frosted glass with blur effects / Εφέ παγωμένου γυαλιού με θαμπώματα |
+| **Neumorphism** | **Neumorphism** | Soft 3D depth with shadows / Απαλό 3D βάθος με σκιές |
+| **Gradient** | **Gradient** | Vibrant gradients with glass accents / Ζωντανές διαβαθμίσεις με γυάλινες πινελιές |
+| **Modern Dark** | **Σύγχρονο Σκοτεινό** | High-contrast night mode / Θέμα υψηλής αντίθεσης για νυχτερινή χρήση |
+| **Light Professional** | **Φωτεινό Επαγγελματικό** | Clean minimal light mode / Καθαρό και μινιμαλιστικό φωτεινό θέμα |
+| **ΜΙΕΕΚ** | **ΜΙΕΕΚ** | Professional admin interface with green accent / Επαγγελματική διεπαφή διαχείρισης με πράσινο τονισμό |
+| **ΜΙΕΕΚ Dark** | **ΜΙΕΕΚ Σκοτεινό** | Dark professional interface with vivid white text / Σκοτεινή επαγγελματική διεπαφή με έντονα λευκή γραμματοσειρά |
+
+Two of the eight are dark: **Modern Dark** and **ΜΙΕΕΚ Dark**. When nothing has been chosen
+on a device, the pages use **Default** (read from the code).
+
+## Choosing a theme
+
+1. Open **Utils** and the tab **Settings** (**Ρυθμίσεις** in Greek).
+2. The first box is headed **Appearance Themes** (**Θέματα Εμφάνισης**). Click the button
+   **Theme** (**Θέμα**) in it.
+3. Click the theme you want in the list that opens.
+
+The pages change at once, and the box under the button shows the result. The choice is
+remembered on the device, not in your account: the same account on another computer or phone
+starts with **Default** until you choose there too.
+
+Read from the code: the list shows each theme with its name and its line. The box under the
+button is headed **Live preview** (**Ζωντανή προεπισκόπηση**) and shows sample figures,
+buttons and a field in the chosen theme. A line **Current Theme** (**Τρέχον Θέμα**) names the
+theme and says that it styles the whole interface: dashboards, navigation, data tables and
+the maintenance tools. There is no **Save** button.
+
+Below the themes, the same tab holds the **timezone** and the **date format**. They are also
+remembered on the device. See [USER_GUIDE_COMPLETE.md](USER_GUIDE_COMPLETE.md), section 11.
+
+## For developers
+
+Everything in this part is read from the code.
+
+**Where the choice is kept.** In the browser's local storage, under two names that always
+hold the same value: `sms.appearance.theme` and `sms.operations.theme`. On start the first of
+the two that has a value is used. The theme is set on the page as the attribute
+`data-appearance` on `<html>` and `<body>`; **Default** sets no attribute
+(`src/frontend/src/contexts/AppearanceThemeContext.tsx`, lines 20, 36-51, 56-72).
+
+**The files.**
+
+- `src/frontend/src/contexts/AppearanceThemeContext.tsx`: the type `AppearanceThemeVariant`,
+  the list `SUPPORTED_THEMES`, the storage and the attribute.
+- `src/frontend/src/features/operations/components/AppearanceThemeSelector.tsx`: the button
+  and the list (`AppearanceThemeSelectorWidget`), the preview, `THEME_COPY` (which locale
+  keys give each theme its name and line) and `themeStyles` (the classes for the preview and
+  for the cards of System Operations in the Control Panel).
+- `src/frontend/src/features/operations/components/OperationsSettingsTab.tsx`: puts the
+  selector at the top of the **Settings** tab.
+- `src/frontend/src/index.css`: one block `[data-appearance='<name>']` per theme that sets
+  the custom properties `--appearance-bg`, `-surface`, `-surface-subtle`, `-text`,
+  `-muted-text`, `-border`, `-accent`, `-accent-fill`, `-accent-strong`, `-accent-contrast`,
+  `-shadow`, `-blur` and `-highlight` (lines 1486-1596). **ΜΙΕΕΚ Dark** has many more rules
+  (for example lines 189 and 729) and its own file,
+  `src/frontend/src/styles/mieek-dark-utilities.css`.
+- `src/frontend/src/locales/en/controlPanel.js` and `el/controlPanel.js`: `appearanceThemes`,
+  `themeButton`, `currentTheme`, `appearancePreview` and `themeOptions.<key>.name` and
+  `.description` for each theme (lines 21-62).
+- `src/frontend/src/utils/nativeSystemBars.ts`: the Android app only.
+
+**Adding a theme takes all of this.**
+
+1. Add the name to the type and to `SUPPORTED_THEMES` in `AppearanceThemeContext.tsx`.
+2. Add an entry to `THEME_COPY` and one to `themeStyles` in `AppearanceThemeSelector.tsx`.
+   Both are typed over the list of names, so the code does not compile until both exist.
+3. Add `themeOptions.<key>` with `name` and `description` in the English and in the Greek
+   `controlPanel.js`. The key is the one `THEME_COPY` names (`modernDark` for `modern-dark`).
+4. Add the block `[data-appearance='<name>']` to `index.css`, and any further rules the
+   theme needs.
+5. For a dark theme, add its page colour to `DARK_APPEARANCE_BACKGROUNDS` in
+   `nativeSystemBars.ts` (lines 35-38). Without it the Android status and navigation bars
+   stay light, with dark icons, above a dark page.
+
+There are tests next to the code: `AppearanceThemeContext.test.tsx` and
+`AppearanceThemeSelector.test.tsx`.
+
+**An older selector.** `ThemeContext.tsx` (stored under the name `theme`: light, dark,
+relaxing, fancy or system) still wraps the application (`App.tsx`, line 254). The component
+that offered its choice, `components/tools/ThemeSelector.tsx`, is not imported by any page, so
+nothing on the pages sets it.

@@ -31,12 +31,15 @@ This is the main entry point for navigating all project documentation. For detai
 
 ### Administrator Documentation
 - **[Admin Guides](admin/)** - System administration and configuration
-  - [Permission Matrix](admin/PERMISSION_MATRIX.md) - Role-based access control matrix
-  - [Permission Matrix Endpoint Mapping](admin/PERMISSION_MATRIX_ENDPOINT_MAPPING.md) - Endpoint-to-permission mappings
-  - [RBAC Database Schema](admin/RBAC_DATABASE_SCHEMA.md) - Database schema documentation
-  - [RBAC Endpoint Audit](admin/RBAC_ENDPOINT_AUDIT.md) - Endpoint security audit
+  - [RBAC Admin Guide](admin/RBAC_ADMIN_GUIDE.md) - Accounts, roles and permissions, step by step, and the audit log
+  - [Permission Matrix](admin/PERMISSION_MATRIX.md) - Who can do what, and every endpoint with what it asks for
+  - [Permission Reference](admin/PERMISSION_REFERENCE.md) - The 44 permissions and how a request is decided
+  - [Managing permissions through the API](admin/PERMISSION_MANAGEMENT_GUIDE.md) - The requests behind the pages, for a script
+  - [RBAC Operations](admin/RBAC_OPERATIONS_GUIDE.md) - What to check, what every start repairs, adding a permission
+  - [RBAC Database Schema](admin/RBAC_DATABASE_SCHEMA.md) - The tables and how a permission is resolved
+  - [RBAC Codebase Review](admin/RBAC_CODEBASE_REVIEW.md), [RBAC Endpoint Audit](admin/RBAC_ENDPOINT_AUDIT.md), [Permission Matrix Endpoint Mapping](admin/PERMISSION_MATRIX_ENDPOINT_MAPPING.md) - Records of January 2026: what they found then, and what is true today
   - [Notifications Admin Guide](admin/NOTIFICATIONS_ADMIN_GUIDE.md) - What creates a notification, sending a message to users, what does not exist
-  - [Import/Export Guide](admin/IMPORT_EXPORT_GUIDE.md) - Bulk data import/export operations
+  - [Import/Export panel](admin/IMPORT_EXPORT_GUIDE.md) - The older panel of the Control Panel, what works in it, and which page to use instead
 
 ### API Documentation
 - **[API Guides](api/)** - API reference and examples

@@ -301,8 +301,142 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-18: the older documents, read and corrected, and what the reading found in the
+code** (PR 429; the owner's message of that day, at the head of todo 63: point 6, "About
+twenty-five older documents (admin and user) were not read: read and correct as needed").
+
+- **The documents.** Twenty-three: the 22 that `docs/user/INDEX.md` and todo 63 listed as
+  not read, and `docs/admin/IMPORT_EXPORT_GUIDE.md`, which was in neither list. None was
+  deleted or renamed, because other documents link to them; each was corrected in place or
+  written anew, says at its head how it was checked, marks what is read from the code and
+  was not tried, and says that its earlier text is in the repository's history. Together
+  they went from 9,577 lines to 2,841.
+  - *Roles and permissions:* `PERMISSION_MANAGEMENT_GUIDE.md` (now "Managing permissions
+    through the API": the requests behind the pages, with bodies and answers),
+    `RBAC_OPERATIONS_GUIDE.md` (what to check, what every start repairs, adding a
+    permission), `RBAC_DATABASE_SCHEMA.md` (the tables, completed, and how a permission is
+    resolved), `API_PERMISSIONS_REFERENCE.md` (for developers; no endpoint table of its
+    own, the generated one in `PERMISSION_MATRIX.md` is the list), `RBAC_GUIDE.md` and
+    `RBAC_GUIDE_EL.md` (the model on one page), and three records of January 2026 cut down
+    to "what it found then, what is true today" (`RBAC_CODEBASE_REVIEW.md`,
+    `RBAC_ENDPOINT_AUDIT.md`, `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`).
+  - **`RBAC_GUIDE.md` and its Greek twin recommended `AUTH_MODE=permissive` for production
+    and said it still asked for a sign-in.** It does not: a request without a sign-in
+    passes the permission checks. Both now say so, in bold.
+  - *The user guide in Greek:* `ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md` is the text of `USER_GUIDE_COMPLETE.md`
+    in Greek, with the names the Greek pages show (154 of its names in bold or in «» are
+    texts of the Greek locale files; the others are headings and examples). It was not
+    itself read against a running copy, and says so. `SMS_USER_GUIDE_EN.md` and `_EL.md`
+    (the guide of version 1.9.7) are short notes that point to the current guide and keep
+    the three things that were true and nowhere else.
+  - *Starting the application:* `QUICK_START_GUIDE.md` and `ΓΡΗΓΟΡΗ_ΕΚΚΙΝΗΣΗ.md`, read
+    against `DOCKER.ps1` and `NATIVE.ps1` (where the scripts are, what `-Install` and
+    `-Setup` do, the password they generate and print); not run. **The README's "First-Time
+    Login" published `admin@example.com` with a fixed password that no edition creates any
+    more** (the server lists it among the known public ones); it now points to the Lite
+    guide and the quick start.
+  - *Features:* `IMPORT_EXPORT_USER_GUIDE.md`, `SESSION_EXPORT_IMPORT_GUIDE.md`,
+    `RATE_LIMITING_GUIDE.md`, `RATE_LIMITING_QUICK_REFERENCE.md`, `THEME_GUIDE.md`,
+    `THEMES_SUMMARY.md` (eight themes under Utils > Settings, not six in the Control
+    Panel), `LOCALIZATION.md`, `README_PDF_CONVERSION.md`, and the admin
+    `IMPORT_EXPORT_GUIDE.md` (the older panel of the Control Panel: which page to use
+    instead, and its API).
+  - `docs/user/INDEX.md` and `docs/INDEX.md` list them as corrected, not as "not checked".
+- **Repaired, because a document or a page said something the application does not do:**
+  - *The Rate Limits tab said "Changes apply immediately".* Tried on a scratch copy: the
+    read limit saved as 3 per minute, the server reported 3, and eight reads in a row were
+    still answered; after a restart the fourth was refused (429, `{"detail":"3 per 1
+    minute"}`, no `Retry-After`). Each endpoint takes its limit when its module is
+    imported. The tab and its two messages now say that a saved limit takes effect the next
+    time the server starts (both languages); `ENV_VARS.md` lists the five
+    `RATE_LIMIT_*_PER_MINUTE` variables, which it lacked. The limits were not made to apply
+    at once.
+  - *The session import promised a backup that most installations do not get.* The tip on
+    the page and the help answer said "A backup is automatically created before import".
+    The copy is made only where the database is a SQLite file
+    (`routers_sessions.py`); on PostgreSQL, which the shared database and the cloud VM
+    use, none is. Both texts now say to make a backup first.
+  - *A role or a permission created, changed or deleted left no line in the audit log*, so
+    PR 428's "every change" was not yet true. No page does these; the API does
+    (`/admin/rbac/roles`, `/admin/rbac/permissions`, `/permissions`). They write an entry
+    now: a role created, renamed, described anew or deleted (with how many accounts held
+    it), a permission created, changed, switched off or on, or deleted (with how many
+    roles and accounts held it); a save that changed nothing writes none. The Audit Log
+    page has a sentence for each, and for three operations the server already wrote and
+    the page showed as "Role changed" without the role (`bulk_assign_role`,
+    `bulk_grant_permission`, `auto_assign_inherited`). The page's test now reads the
+    operation names out of the three server modules, so one added there fails it until it
+    has a sentence in both languages.
+  - *Found while testing that: the accounts of a deleted role held the next role created.*
+    On SQLite (no foreign-key enforcement, and the number of the last role deleted is
+    handed out again) the rows in `user_roles` stayed and pointed at the new role. Seen in
+    a test before the repair (`{'auditor', 'teacher'}` for an account that had been given
+    "librarian"). Deleting a role now removes those rows itself, and creating one clears
+    any that an earlier version left under its number. Reachable through the API only.
+  - *Renaming a role or a permission to a name that exists answered 500* (the database
+    refused the second row). It is a 400 now.
+  - *The check of Utils > Imports dropped what it could not read.* The messages for a CSV
+    row without a name, an address or a student ID, and for a CSV file offered for
+    courses, were collected and then thrown away: the check showed the other rows, said
+    nothing, and left **Confirm & Import** open. Each is a row with an error now, which
+    closes the button as any other error does. (Found by the helper that read the import
+    guide against the code; the new test fails on the old code.)
+  - `USER_GUIDE_COMPLETE.md`, section 15, still said the application has no page for the
+    audit log (it has since PR 428). The Greek page text of the ΜΙΕΕΚ theme had a wrong
+    article ("με πράσινη τονισμό"). Comments in five modules still named viewer, guest
+    and student roles, "83 requests per minute" and a dependency that is not used.
+- **Tried in a browser, in English and in Greek, on a scratch copy:** a role created, given
+  to an account, renamed, described, refused the name "teacher" and deleted, and a
+  permission created, granted, switched off and on, described and deleted, all through
+  the API; the Audit Log lists each with its sentence, its author and its details, and no
+  row of `user_roles` is left for the deleted role; the Rate Limits tab's line and what it
+  says after **Save Changes**; the tip of the session import.
+- **Tests.** `test_audit_author.py` (27, eight new: the entries for roles and permissions,
+  the role made after one was deleted, what an earlier version left behind, the two 400s);
+  `test_imports_integration.py` (23, two new); `AuditLogPanel.test.tsx` (13, two new).
+- **How it was done.** Three helpers read the documents against the code and the checked
+  guides, each wrote the corrections for its own documents, and every file was then read
+  by the assistant, with a script that looks up each quoted message, setting and
+  permission in the code (43 of 43 found) and each name in bold among the page texts.
+- **Found and not changed** (the owner's word, or a later entry):
+  - *The session import recognises a grade by student, course and assignment name, not by
+    category* (`routers_sessions.py`), and the older `/import-export/imports/grades` does
+    the same. Two grades of one assignment in two categories, which the owner keeps on
+    purpose (rows 141 and 146), are one record to both: with **Update Existing** the
+    second overwrites the first, with **Skip Existing** it is left out. Two grades of the
+    same name and category on two dates collapse the same way. Read from the code, not
+    tried; the guide warns. What identifies a grade (name and category, or the date too)
+    is a decision.
+  - The older import path of the Control Panel's Import/Export panel (todo 62) marks a job
+    "ready" also when rows have errors, recognises a student by the e-mail address among
+    deleted ones too, and has no rollback, template or row limit, all of which its old
+    guide promised. Read from the code.
+  - *CLAUDE.md's own i18n example does not work as written:* `useTranslation()` without a
+    namespace reads only the root texts, so its `t('common.save')` never resolves
+    (`useTranslationKeys.test.ts` says so and guards it). `useLanguage().t('common.save')`
+    or `useTranslation('common')` with `t('save')` do. Not edited: the file is the
+    owner's instruction to the assistant.
+  - The **Bulk Imports** limit of the Rate Limits tab covers one route that Utils >
+    Imports does not use; the imports of that page count under **Heavy Operations**.
+  - `GET /admin/rbac/change-history` lists three kinds of action, so a change to a
+    permission's description or key (action "update") is in the Audit Log and not there.
+    No page uses that request.
+  - The toast of a finished session import may mix capital and small letters in
+    "Created/Updated/Errors" (two namespaces hold the words); not tried.
+  - Not looked at: `docs/operations/INSTALLATION_GUIDE.md` (the helper says it still
+    tells the reader to unzip and run `.\DOCKER.ps1`), and the records under
+    `docs/deployment/`, `docs/releases/`, `docs/training/` and `ACADEMIC_PRESENTATION.md`
+    that describe the nine RBAC documents as they were ("1,050 lines covering daily ops").
+  - Carried over from the reading and still open: the migration `d37fb9f4bd49` creates the
+    index on a permission's key without "unique" while the model says unique (not checked
+    on a real database); the download links of the help are plain addresses that the
+    Android app may not reach (not tried); the tools nothing runs and the two unused page
+    parts (todo 63).
+
 **2026-11-18: the audit log says who did it, has a line for every change of an account, a
-role or a permission, and a page shows it** (PR 428; the owner's message of that day, at the
+role or a permission, and a page shows it** (PR 428, merged as `f0f07e085`; on the PR's
+commit CI's backend job passed 1,844 tests with 55 skipped, the frontend job 2,098 and E2E
+76. The owner's message of that day, at the
 head of todo 63: point 5, "Fix The audit log does not say who changed a role, and no page
 shows it", and the last of the things to take up, "audit log entries that do not say who
 changed a role").
@@ -1823,10 +1957,16 @@ tree as evidence that GitHub is clear.
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
 the cloud VM has not been updated to it and waits for the owner's word.** **Since then
-`main` carries PRs 419 to 424, unreleased: a repair of two ways an account kept access it
+`main` carries PRs 419 to 429, unreleased: a repair of two ways an account kept access it
 should not have had (419), the permission documents and the user guide checked against the
 application (420, 421), the small page repairs of todo 63 (422), an account whose last role
-is revoked left with nothing (423), and the in-app help read against the pages (424). The VM
+is revoked left with nothing (423), the in-app help read against the pages (424), and the
+owner's seven decisions of 18 November on todo 63: two roles and "No role" with a closed
+list of 44 permissions and imports for teachers (425), the Weight of a grade counts (426),
+every account changes its own password (427), the audit log names its authors and has a
+page (428), the older documents read and corrected (429). The first start of this code on
+a database turns every Student, Viewer and Guest account into "No role" (migration
+`5189ab647b5a`). The VM
 has none of them; on it an account changed to "Student" still keeps its old access, Edit
 followed by Save turns an administrator who got the role under Assign Role to User into a
 teacher, and revoking an account's only role takes nothing away. What the readings found
@@ -2303,6 +2443,12 @@ now** (todo 58).
     - *What works:* an Excel export asked for with a token, which is what the smoke tests of
       this release and of the earlier ones check. The exports under Utils > Export are
       another part of the application and work.
+    - *Added on 2026-11-18 by the reading of the panel's old guide (PR 429), read from the
+      code and not tried:* the panel's import marks a job "ready" also when rows have
+      errors, so the check stops nothing; it recognises a grade by student, course and
+      assignment name alone, and a student by the e-mail address among deleted ones too.
+      `docs/admin/IMPORT_EXPORT_GUIDE.md` now says what the panel does and sends the reader
+      to Utils > Imports and Utils > Export.
     - To do, on the owner's word: repair it as the Search page was repaired, or take the
       dialog off the page.
 
@@ -2330,10 +2476,13 @@ now** (todo 58).
       - *Point 5 and the fourth of the smaller ones: done in PR 428* (the audit log names
         the author, has an entry for every change of an account, a role or a permission,
         and a page shows it).
-      - *Open:* the older documents, read and corrected, not deleted (6).
+      - *Point 6: done in PR 429* (twenty-three older documents read against the code and
+        corrected, none deleted; and what the reading found in the code). **All seven
+        points and the four smaller ones are done.**
       - *Not in the message, and waiting for the owner's word:* a release and the update of
         the cloud VM; whether teachers also get the session file; the four tools nothing runs
-        and the two unused page parts (delete or keep).
+        and the two unused page parts (delete or keep); what identifies a grade when a
+        session file is imported (see the entry of PR 429).
     - *Repaired in PR 423 (2026-11-18), on the owner's note of that day:* revoking an
       account's only role took nothing away. Such an account is now left with nothing (Role
       column "No role"). The built-in list for an account without role rows went altogether
@@ -2402,9 +2551,9 @@ now** (todo 58).
     - *The "User Guide" of Utils > Help & Documentation ("Complete reference guide", "Download
       English PDF") is a leaflet of one page* that the server composes itself
       (`routers_help.py`). `USER_GUIDE_COMPLETE.md` is not in the application.
-    - *Older documents and tools of the same kind, not read* (the owner, 2026-11-18, on the
-      documents: "read and correct as needed"; open, and to be done after the other points,
-      so that they are corrected once): `docs/admin/`
+    - *Older documents and tools of the same kind* (the owner, 2026-11-18, on the
+      documents: "read and correct as needed"). **The documents: done in PR 429**, these
+      nine and fourteen more. The tools below are still as they were. As it was: `docs/admin/`
       `PERMISSION_MANAGEMENT_GUIDE.md` (930 lines), `RBAC_OPERATIONS_GUIDE.md` (1,184),
       `RBAC_CODEBASE_REVIEW.md`, `RBAC_ENDPOINT_AUDIT.md`, `RBAC_DATABASE_SCHEMA.md`,
       `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`; `docs/user/RBAC_GUIDE.md` and its Greek twin;

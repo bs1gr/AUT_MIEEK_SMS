@@ -14,7 +14,7 @@ from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
-from backend.models import Permission, Role, User, UserPermission
+from backend.models import Permission, Role, RolePermission, User, UserPermission
 from backend.rbac import get_user_permissions, has_permission, require_permission
 from backend.schemas.permissions import (
     PermissionCreate,
@@ -251,11 +251,15 @@ async def create_permission(
         db.add(permission)
         db.commit()
         db.refresh(permission)
-        return PermissionDetail.model_validate(permission)
 
     # Fetch the created permission
     permission = db.query(Permission).filter(Permission.key == permission_data.key).first()
-    return PermissionDetail.model_validate(permission)
+    answer = PermissionDetail.model_validate(permission)
+    details = {"operation": "create_permission", "permission": permission_data.key}
+    if permission_data.description:
+        details["description"] = permission_data.description
+    _record(request, db, AuditAction.PERMISSION_GRANT, details)
+    return answer
 
 
 @router.patch("/{permission_id}", response_model=PermissionDetail)
@@ -281,6 +285,9 @@ async def update_permission(
     if permission.key == ADMIN_WILDCARD and permission_update.is_active is False:
         raise HTTPException(status_code=400, detail="The wildcard permission cannot be deactivated")
 
+    was_description = permission.description
+    was_active = bool(permission.is_active)
+
     # Update fields
     if permission_update.description is not None:
         permission.description = permission_update.description
@@ -291,7 +298,21 @@ async def update_permission(
     db.commit()
     db.refresh(permission)
 
-    return PermissionDetail.model_validate(permission)
+    answer = PermissionDetail.model_validate(permission)
+    # Switched off, a permission opens nothing for anybody who holds it: that is recorded as a
+    # revoke, and switching it on again as a grant. A save that changed nothing writes nothing.
+    details: dict[str, Any] = {"permission": answer.key}
+    if answer.description != was_description:
+        details["description"] = answer.description or ""
+    if bool(answer.is_active) != was_active:
+        details["operation"] = "activate_permission" if answer.is_active else "deactivate_permission"
+        _record(
+            request, db, AuditAction.PERMISSION_GRANT if answer.is_active else AuditAction.PERMISSION_REVOKE, details
+        )
+    elif "description" in details:
+        details["operation"] = "update_permission"
+        _record(request, db, AuditAction.UPDATE, details)
+    return answer
 
 
 @router.delete("/{permission_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -315,8 +336,16 @@ async def delete_permission(
     if permission.key == ADMIN_WILDCARD:
         raise HTTPException(status_code=400, detail="The wildcard permission cannot be deleted")
 
+    # The roles and the single accounts that held it lose it with it: said in the entry.
+    details = {
+        "operation": "delete_permission",
+        "permission": permission.key,
+        "roles": db.query(RolePermission).filter(RolePermission.permission_id == permission.id).count(),
+        "accounts": db.query(UserPermission).filter(UserPermission.permission_id == permission.id).count(),
+    }
     db.delete(permission)
     db.commit()
+    _record(request, db, AuditAction.PERMISSION_REVOKE, details)
 
     return None
 

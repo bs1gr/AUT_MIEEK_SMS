@@ -47,6 +47,31 @@ def _refuse_if_standard_role(role: models.Role, change: str, request: Request) -
         )
 
 
+def _record_catalog_change(request: Request, db: Session, action: AuditAction, details: dict) -> None:
+    """Write the creation, change or deletion of a role or a permission to the audit log.
+
+    The pages grant and revoke; they neither create nor delete a role or a permission, so
+    these requests are made by a script, and until now they left no line: a role could be
+    deleted, with every account's membership of it, and the log said nothing. Called after
+    the change is committed. Details without a value are left out; a failure to write the
+    entry is logged and never fails the request.
+    """
+    try:
+        get_audit_logger(db).log_from_request(
+            request,
+            action=action,
+            resource=AuditResource.USER,
+            resource_id=None,
+            details={key: value for key, value in details.items() if value is not None},
+        )
+    except Exception as exc:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        logging.getLogger(__name__).warning("The audit entry for %s could not be written: %r", details, exc)
+
+
 @router.post("/roles", response_model=RoleResponse)
 @require_permission("permissions:manage")
 async def create_role(
@@ -60,9 +85,18 @@ async def create_role(
         raise http_error(status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Role already exists", request)
     role = models.Role(name=name, description=description)
     db.add(role)
+    db.flush()
+    # Nobody holds a role that was only just created. A database may hold what a role deleted
+    # by an earlier version left behind in user_roles (see delete_role), under the number this
+    # role was just given.
+    db.query(models.UserRole).filter(models.UserRole.role_id == role.id).delete(synchronize_session=False)
     db.commit()
     db.refresh(role)
-    return RoleResponse.model_validate(role)
+    answer = RoleResponse.model_validate(role)
+    _record_catalog_change(
+        request, db, AuditAction.ROLE_CHANGE, {"operation": "create_role", "role": name, "description": description}
+    )
+    return answer
 
 
 @router.get("/roles", response_model=list[RoleResponse])
@@ -87,14 +121,36 @@ async def update_role(
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
+    was_name = role.name
+    was_description = role.description
     if name and name.strip().lower() != (role.name or "").strip().lower():
         _refuse_if_standard_role(role, "renamed", request)
-        role.name = name.strip().lower()
+        new_name = name.strip().lower()
+        # The name is unique: without this the database refused it and the answer was a 500.
+        if db.query(models.Role).filter(models.Role.name == new_name).first():
+            raise http_error(status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Role already exists", request)
+        role.name = new_name
     if description is not None:
         role.description = description
     db.commit()
     db.refresh(role)
-    return RoleResponse.model_validate(role)
+    answer = RoleResponse.model_validate(role)
+    described = answer.description if answer.description != was_description else None
+    if answer.name != was_name:
+        _record_catalog_change(
+            request,
+            db,
+            AuditAction.ROLE_CHANGE,
+            {"operation": "rename_role", "from": was_name, "role": answer.name, "description": described},
+        )
+    elif answer.description != was_description:
+        _record_catalog_change(
+            request,
+            db,
+            AuditAction.ROLE_CHANGE,
+            {"operation": "update_role", "role": answer.name, "description": answer.description or ""},
+        )
+    return answer
 
 
 @router.delete("/roles/{role_id}")
@@ -108,8 +164,17 @@ async def delete_role(
     if not role:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
     _refuse_if_standard_role(role, "deleted", request)
+    was_name = role.name
+    # The accounts that held it lose it with the role: their rows are removed here, and the
+    # entry says how many there were. PostgreSQL removes them through the foreign key. SQLite
+    # does not (the application runs it without foreign-key enforcement) and hands the next
+    # role the number of the last one deleted: those accounts then held a role nobody gave them.
+    held_by = db.query(models.UserRole).filter(models.UserRole.role_id == role.id).delete(synchronize_session=False)
     db.delete(role)
     db.commit()
+    _record_catalog_change(
+        request, db, AuditAction.ROLE_CHANGE, {"operation": "delete_role", "role": was_name, "accounts": held_by}
+    )
     return {"status": "deleted"}
 
 
@@ -133,7 +198,14 @@ async def create_permission(
     db.add(perm)
     db.commit()
     db.refresh(perm)
-    return PermissionResponse.model_validate(perm)
+    answer = PermissionResponse.model_validate(perm)
+    _record_catalog_change(
+        request,
+        db,
+        AuditAction.PERMISSION_GRANT,
+        {"operation": "create_permission", "permission": key, "description": description},
+    )
+    return answer
 
 
 @router.get("/permissions", response_model=list[PermissionResponse])
@@ -168,7 +240,13 @@ async def update_permission(
             "The wildcard permission cannot be renamed",
             request,
         )
-    if key:
+    was = {"key": perm.key, "resource": perm.resource, "action": perm.action, "description": perm.description}
+    if key and key.strip().lower() != perm.key:
+        # The key is unique: without this the database refused it and the answer was a 500.
+        if db.query(models.Permission).filter(models.Permission.key == key.strip().lower()).first():
+            raise http_error(
+                status.HTTP_400_BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Permission already exists", request
+            )
         perm.key = key.strip().lower()
     if resource:
         perm.resource = resource.strip().lower()
@@ -178,7 +256,16 @@ async def update_permission(
         perm.description = description
     db.commit()
     db.refresh(perm)
-    return PermissionResponse.model_validate(perm)
+    answer = PermissionResponse.model_validate(perm)
+    now = {"key": perm.key, "resource": perm.resource, "action": perm.action, "description": perm.description}
+    changed = {name: (value if value is not None else "") for name, value in now.items() if value != was[name]}
+    if changed:
+        details = {"operation": "update_permission", "permission": now["key"]}
+        if "key" in changed:
+            details["key_was"] = was["key"]
+        details.update({name: value for name, value in changed.items() if name != "key"})
+        _record_catalog_change(request, db, AuditAction.UPDATE, details)
+    return answer
 
 
 @router.delete("/permissions/{permission_id}")
@@ -198,9 +285,22 @@ async def delete_permission(
             "The wildcard permission cannot be deleted",
             request,
         )
+    details = _what_goes_with_a_permission(db, perm)
     db.delete(perm)
     db.commit()
+    _record_catalog_change(request, db, AuditAction.PERMISSION_REVOKE, details)
     return {"status": "deleted"}
+
+
+def _what_goes_with_a_permission(db: Session, perm: models.Permission) -> dict:
+    """The audit details of a permission about to be deleted: its key, and how many roles and
+    how many single accounts lose it with it."""
+    return {
+        "operation": "delete_permission",
+        "permission": perm.key,
+        "roles": db.query(models.RolePermission).filter(models.RolePermission.permission_id == perm.id).count(),
+        "accounts": db.query(models.UserPermission).filter(models.UserPermission.permission_id == perm.id).count(),
+    }
 
 
 # --- RBAC CHANGE HISTORY ENDPOINT ---
@@ -793,9 +893,7 @@ async def assign_role(
                 details={"role": role.name, "operation": "assign_role", "success": True},
             )
 
-        # Role hierarchy: assign inherited roles automatically
-        # If assigning admin → also assign teacher, viewer, guest
-        # If assigning teacher → also assign viewer, guest
+        # Role hierarchy: an administrator is given the role teacher as well
         inherited_roles = ROLE_HIERARCHY.get(role.name, [])
         for inherited_role_name in inherited_roles:
             inherited_role = db.query(models.Role).filter(models.Role.name == inherited_role_name).first()
@@ -824,7 +922,7 @@ async def assign_role(
                         },
                     )
 
-        # Keep legacy User.role in sync for compatibility (admin/teacher/viewer/guest)
+        # Keep the word in the account's Role column in step (admin, teacher or none)
         legacy_role = _resolve_legacy_role_for_user(db, user)
         if legacy_role and user.role != legacy_role:
             user.role = legacy_role

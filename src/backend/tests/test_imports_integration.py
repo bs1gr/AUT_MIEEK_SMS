@@ -78,6 +78,35 @@ class TestImportPreviewEndpoint:
         assert body["can_proceed"] is True
         assert body["summary"].get("create", 0) >= 1
 
+    def test_preview_shows_the_rows_of_a_csv_file_that_it_could_not_read(self, client: TestClient):
+        """The check collected the messages for the rows it could not read and then dropped
+        them: it showed the other rows, said nothing, and left "Confirm & Import" open. Found
+        on 18 November 2026, when the import guide was read against the code."""
+        rows = "100;Maria;Georgiou;maria@example.com;1\n101;;;nobody@example.com;1\n102;Nikos;Pavlou;;1\n"
+        files = {"files": ("students.csv", rows.encode("utf-8"), "text/csv")}
+
+        resp = client.post("/api/v1/imports/preview", files=files, data={"import_type": "students"})
+
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        problems = [issue for item in body["items"] for issue in item["issues"]]
+        assert "error: students.csv row 2: Missing first_name or last_name" in problems
+        assert "error: students.csv row 3: Missing email" in problems
+        assert (body["total_rows"], body["rows_with_errors"], body["can_proceed"]) == (3, 2, False)
+        # The row it could read is still offered.
+        assert body["summary"]["create"] == 1
+        assert [item["validation_status"] for item in body["items"]] == ["valid", "error", "error"]
+
+    def test_preview_says_that_a_csv_file_is_for_students_only(self, client: TestClient):
+        files = {"files": ("courses.csv", b"CS101;Introduction\n", "text/csv")}
+
+        resp = client.post("/api/v1/imports/preview", files=files, data={"import_type": "courses"})
+
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert (body["total_rows"], body["rows_with_errors"], body["can_proceed"]) == (1, 1, False)
+        assert body["items"][0]["issues"] == ["error: courses.csv: CSV import only supported for students"]
+
     def test_preview_no_files_rejected(self, client: TestClient):
         """Preview should reject requests with no files."""
         resp = client.post("/api/v1/imports/preview", data={"import_type": "students"})

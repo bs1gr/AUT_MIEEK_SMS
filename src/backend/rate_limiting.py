@@ -70,7 +70,13 @@ RATE_LIMIT_TEACHER_IMPORT = f"{_DEFAULT_TEACHER_IMPORT}/minute"
 
 # Function to update rate limit strings at runtime
 def update_rate_limit_strings():
-    """Update exported rate limit strings (called by config endpoint after changes)."""
+    """Update the exported strings after a change (called by the control endpoints).
+
+    This does not change what the endpoints enforce: each ``@limiter.limit(RATE_LIMIT_...)``
+    took its string when its module was imported. A changed limit is enforced from the next
+    start of the server (checked on a running copy, 18 November 2026: with the read limit
+    saved as 3, eight reads in a row were answered; after a restart the fourth was refused).
+    """
     global RATE_LIMIT_READ, RATE_LIMIT_WRITE, RATE_LIMIT_HEAVY, RATE_LIMIT_AUTH, RATE_LIMIT_TEACHER_IMPORT
     global _DEFAULT_READ, _DEFAULT_WRITE, _DEFAULT_HEAVY, _DEFAULT_AUTH, _DEFAULT_TEACHER_IMPORT
 

@@ -261,6 +261,11 @@ first: **When**, **Who**, **What** and **About**.
   and to a permission (granted to or revoked from a role or an account), from all three
   panels: User Accounts, Assign Role to User and the Permissions Catalog. Also the imports
   and what else the server records (a student's data export or erasure, for one).
+- **Roles and permissions themselves.** No page creates, renames or deletes a role or a
+  permission; a script that calls the API can (see `PERMISSION_MANAGEMENT_GUIDE.md`). Each
+  such change has its entry too: a role created, renamed, described anew or deleted (with
+  the number of accounts that held it), a permission created, changed, switched off or on,
+  or deleted (with the number of roles and accounts that held it).
 - **Who.** The account that was signed in when the change was made. "Not recorded" stands
   for entries written before this was repaired, and for a request without a sign-in.
 - **Narrowing it.** **What was done** (role changed, permission granted, deleted, ...),

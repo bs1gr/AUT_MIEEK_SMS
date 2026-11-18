@@ -6,6 +6,9 @@
  * when, as a sentence where it knows what was done, and can be narrowed by what was done, by
  * who did it and by date.
  */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -130,6 +133,78 @@ describe('AuditLogPanel', () => {
     expect(role).not.toHaveTextContent('controlPanel.auditLog.resources.user');
     expect(screen.getByTestId('audit-what-4')).toHaveTextContent('"permission":"audit:view"');
     expect(screen.getByTestId('audit-entry-5')).toHaveTextContent('controlPanel.auditLog.resources.user 9');
+  });
+
+  it('has a sentence for a role or a permission that was itself created, changed or deleted', async () => {
+    // No page does these; a script that calls the API does, and each leaves an entry.
+    vi.mocked(auditAPI.list).mockResolvedValue(
+      page([
+        entry(6, { resource_id: null, details: { operation: 'rename_role', from: 'librarian', role: 'archivist' } }),
+        entry(7, { resource_id: null, details: { operation: 'delete_role', role: 'archivist', accounts: 2 } }),
+        entry(8, {
+          action: 'permission_revoke',
+          resource_id: null,
+          details: { operation: 'delete_permission', permission: 'library:view', roles: 1, accounts: 0 },
+        }),
+        entry(9, {
+          action: 'update',
+          resource_id: null,
+          details: { operation: 'update_permission', permission: 'library:read', key_was: 'library:view' },
+        }),
+      ]) as never
+    );
+
+    render(<AuditLogPanel />);
+
+    const renamed = await screen.findByTestId('audit-what-6');
+    expect(renamed).toHaveTextContent('controlPanel.auditLog.operations.rename_role');
+    // A role the page has no name for goes into the sentence as it is.
+    expect(renamed).toHaveTextContent('"role":"archivist"');
+    expect(renamed).toHaveTextContent('"from":"librarian"');
+    const deleted = screen.getByTestId('audit-entry-7');
+    expect(deleted).toHaveTextContent('controlPanel.auditLog.operations.delete_role');
+    expect(deleted).toHaveTextContent('controlPanel.auditLog.role archivist');
+    expect(deleted).toHaveTextContent('accounts: 2');
+    // A permission is named by the sentence: there is no record to point at.
+    for (const id of [8, 9]) {
+      expect(screen.getByTestId(`audit-entry-${id}`)).not.toHaveTextContent('controlPanel.auditLog.resources.user');
+    }
+    expect(screen.getByTestId('audit-what-8')).toHaveTextContent('controlPanel.auditLog.operations.delete_permission');
+    expect(screen.getByTestId('audit-entry-8')).toHaveTextContent('roles: 1');
+    expect(screen.getByTestId('audit-what-9')).toHaveTextContent('controlPanel.auditLog.operations.update_permission');
+    expect(screen.getByTestId('audit-entry-9')).toHaveTextContent('key_was: library:view');
+  });
+
+  it('has a sentence in both languages for everything the server says was done', async () => {
+    // What the server writes into an entry's details as the operation, read from the three
+    // modules that write them. One without a sentence was shown as "Role changed" alone, and
+    // without the role: an operation added to the server has to get its sentence here.
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const written = new Set<string>();
+    for (const name of ['routers_auth.py', 'routers_rbac.py', 'routers_permissions.py']) {
+      const source = fs.readFileSync(path.resolve(here, '../../../../../backend/routers', name), 'utf8');
+      for (const match of source.matchAll(/"operation"\]?\s*[:=]\s*"(\w+)"(?:\s+if\s+[^\n]*?\s+else\s+"(\w+)")?/g)) {
+        written.add(match[1]);
+        if (match[2]) written.add(match[2]);
+      }
+    }
+    expect(written.size).toBeGreaterThanOrEqual(25);
+    for (const table of [controlPanelEn, controlPanelEl] as Array<{ auditLog: Record<string, Record<string, string>> }>) {
+      expect(Object.keys(table.auditLog.operations).sort()).toEqual([...written].sort());
+    }
+
+    // And the page uses the sentence for each of them.
+    const operations = [...written].sort();
+    vi.mocked(auditAPI.list).mockResolvedValue(
+      page(operations.map((operation, index) => entry(100 + index, { details: { operation, role: 'teacher' } }))) as never
+    );
+    render(<AuditLogPanel />);
+    await screen.findByTestId('audit-entry-100');
+    operations.forEach((operation, index) => {
+      expect(screen.getByTestId(`audit-what-${100 + index}`)).toHaveTextContent(
+        `controlPanel.auditLog.operations.${operation} `
+      );
+    });
   });
 
   it('says so when an entry names nobody, and when what was tried failed', async () => {

@@ -1,423 +1,184 @@
-# RBAC Database Schema Documentation
-
-**Created**: January 8, 2026
-**Status**: ✅ ALREADY IMPLEMENTED
-**Version**: 1.0
-**Source**: `backend/models.py` (lines 399-535)
-
----
-
-## 📊 Schema Overview
-
-The RBAC system uses a **multi-table design** supporting both role-based and direct user permissions:
-
-```text
-┌─────────┐      ┌──────────────┐      ┌────────────┐
-│  User   │─────▶│  UserRole    │─────▶│    Role    │
-└─────────┘      └──────────────┘      └────────────┘
-     │                                         │
-     │                                         ▼
-     │                                  ┌──────────────────┐
-     │                                  │ RolePermission   │
-     │                                  └──────────────────┘
-     │                                         │
-     ▼                                         ▼
-┌──────────────────┐                   ┌────────────┐
-│ UserPermission   │──────────────────▶│ Permission │
-└──────────────────┘                   └────────────┘
-
-```text
----
-
-## 🗂️ Table Schemas
-
-### 1. **Permission** Table
-
-**Purpose**: Stores all system permissions with resource:action convention
-
-| Column | Type | Constraints | Index | Description |
-|--------|------|-------------|-------|-------------|
-| `id` | Integer | PRIMARY KEY | ✅ | Unique identifier |
-| `key` | String(100) | UNIQUE, NOT NULL | ✅ (unique) | Permission key (e.g., `students:view`) |
-| `resource` | String(50) | NOT NULL | ✅ | Resource domain (e.g., `students`) |
-| `action` | String(50) | NOT NULL | ❌ | Action type (e.g., `view`) |
-| `description` | Text | - | ❌ | Human-readable description |
-| `is_active` | Boolean | DEFAULT true | ✅ | Enable/disable permission |
-| `created_at` | DateTime(TZ) | NOT NULL | ❌ | Creation timestamp |
-| `updated_at` | DateTime(TZ) | NOT NULL | ❌ | Last update timestamp |
-
-**Indexes**:
-- `idx_permissions_key` (unique) - Fast lookup by permission key
-- `idx_permissions_resource` - Filter by resource domain
-- `idx_permissions_is_active` - Filter active permissions
-
-**Example Rows**:
-
-```sql
-INSERT INTO permissions (key, resource, action, description, is_active) VALUES
-('students:view', 'students', 'view', 'View student list and details', true),
-('students:create', 'students', 'create', 'Create new students', true),
-('students:edit', 'students', 'edit', 'Update student information', true),
-('students:delete', 'students', 'delete', 'Soft-delete students', true);
-
-```text
----
-
-### 2. **Role** Table
-
-**Purpose**: Stores role definitions (Admin, Teacher, Viewer, etc.)
-
-| Column | Type | Constraints | Index | Description |
-|--------|------|-------------|-------|-------------|
-| `id` | Integer | PRIMARY KEY | ✅ | Unique identifier |
-| `name` | String(100) | UNIQUE, NOT NULL | ✅ (unique) | Role name (e.g., `admin`) |
-| `description` | String(255) | - | ❌ | Human-readable description |
-
-**Indexes**:
-- `idx_roles_name` (unique) - Fast lookup by role name
-
-**Example Rows**:
-
-```sql
-INSERT INTO roles (name, description) VALUES
-('admin', 'System administrator with full access'),
-('teacher', 'Teaching staff with grading and attendance permissions'),
-('viewer', 'Read-only access to reports and data');
-
-```text
----
-
-### 3. **RolePermission** Table (Junction)
-
-**Purpose**: Maps which permissions belong to each role
-
-| Column | Type | Constraints | Index | Description |
-|--------|------|-------------|-------|-------------|
-| `id` | Integer | PRIMARY KEY | ✅ | Unique identifier |
-| `role_id` | Integer | FK → roles.id, NOT NULL | ✅ | Reference to role |
-| `permission_id` | Integer | FK → permissions.id, NOT NULL | ✅ | Reference to permission |
-| `created_at` | DateTime(TZ) | NOT NULL | ❌ | Assignment timestamp |
-
-**Constraints**:
-- `FK role_id → roles.id ON DELETE CASCADE` - Delete role removes all permissions
-- `FK permission_id → permissions.id ON DELETE CASCADE` - Delete permission removes all assignments
-
-**Indexes**:
-- `idx_role_permission_unique` (role_id, permission_id) - Prevent duplicate assignments
-- Standard index on `role_id` for fast joins
-- Standard index on `permission_id` for reverse lookups
-
-**Example Rows**:
-
-```sql
--- Admin role gets all permissions (25 rows)
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-(1, 1),  -- admin gets students:view
-(1, 2),  -- admin gets students:create
-(1, 3),  -- admin gets students:edit
-...;
-
--- Teacher role gets teaching permissions (11 rows)
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-(2, 1),  -- teacher gets students:view
-(2, 10), -- teacher gets grades:edit
-...;
-
-```text
----
-
-### 4. **UserRole** Table (Junction)
-
-**Purpose**: Maps which roles are assigned to each user
-
-| Column | Type | Constraints | Index | Description |
-|--------|------|-------------|-------|-------------|
-| `id` | Integer | PRIMARY KEY | ✅ | Unique identifier |
-| `user_id` | Integer | FK → users.id, NOT NULL | ✅ | Reference to user |
-| `role_id` | Integer | FK → roles.id, NOT NULL | ✅ | Reference to role |
-
-**Constraints**:
-- `FK user_id → users.id ON DELETE CASCADE` - Delete user removes role assignments
-- `FK role_id → roles.id ON DELETE CASCADE` - Delete role removes all user assignments
-
-**Indexes**:
-- `idx_user_role_unique` (user_id, role_id) - Prevent duplicate assignments
-
-**Example Rows**:
-
-```sql
-INSERT INTO user_roles (user_id, role_id) VALUES
-(1, 1),  -- User 1 has admin role
-(2, 2),  -- User 2 has teacher role
-(3, 3);  -- User 3 has viewer role
-
-```text
----
-
-### 5. **UserPermission** Table (Direct Assignments)
-
-**Purpose**: Grant specific permissions directly to users (bypassing roles)
-
-| Column | Type | Constraints | Index | Description |
-|--------|------|-------------|-------|-------------|
-| `id` | Integer | PRIMARY KEY | ✅ | Unique identifier |
-| `user_id` | Integer | FK → users.id, NOT NULL | ✅ | Reference to user |
-| `permission_id` | Integer | FK → permissions.id, NOT NULL | ✅ | Reference to permission |
-| `granted_by` | Integer | FK → users.id | ❌ | Admin who granted permission |
-| `granted_at` | DateTime(TZ) | NOT NULL | ❌ | Grant timestamp |
-| `expires_at` | DateTime(TZ) | - | ✅ | Optional expiration |
-
-**Constraints**:
-- `FK user_id → users.id ON DELETE CASCADE`
-- `FK permission_id → permissions.id ON DELETE CASCADE`
-- `FK granted_by → users.id ON DELETE SET NULL` - Preserve history if granting admin deleted
-
-**Indexes**:
-- `idx_user_permission_unique` (user_id, permission_id) - Prevent duplicates
-- `idx_user_permission_user_id` - Fast user lookup
-- `idx_user_permission_expires_at` - Query expired permissions
-
-**Use Cases**:
-- **Temporary elevated access**: Grant `system:import` to a teacher for 1 day
-- **Exception handling**: Grant `grades:delete` to specific user without making them admin
-- **Time-limited permissions**: Expire automatically via `expires_at` check
-
-**Example Rows**:
-
-```sql
-INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at) VALUES
-(5, 22, 1, '2026-01-08 10:00:00+00', '2026-01-15 23:59:59+00');  -- Temporary system:import
-
-```text
----
-
-### 6. **User** Table (Extended)
-
-**Purpose**: User accounts with legacy role field for backward compatibility
-
-| Column | Type | Constraints | Index | Description |
-|--------|------|-------------|-------|-------------|
-| `id` | Integer | PRIMARY KEY | ✅ | Unique identifier |
-| `email` | String(255) | UNIQUE, NOT NULL | ✅ | User email |
-| `hashed_password` | String(255) | NOT NULL | ❌ | Bcrypt hash |
-| `full_name` | String(200) | - | ❌ | Display name |
-| `role` | String(50) | NOT NULL, DEFAULT 'teacher' | ✅ | **Legacy role** (still used) |
-| `is_active` | Boolean | DEFAULT true | ✅ | Account status |
-| ... | ... | ... | ... | Other auth fields |
-
-**Relationships**:
-- `user_permissions` → UserPermission (one-to-many, cascade delete)
-- `user_roles` → UserRole (one-to-many via table, cascade delete)
-
-**Migration Strategy**:
-- **Phase 1** (Current): Both `User.role` string and `UserRole` table coexist
-- **Phase 2** (Future): Deprecate `User.role` after full RBAC migration
-- **Compatibility**: Auth checks use **both** systems during transition
-
----
-
-## 🔄 Permission Resolution Logic
-
-### How Permissions Are Checked
-
-```python
-def user_has_permission(user_id: int, permission_key: str) -> bool:
-    """Check if user has a specific permission.
-
-    Resolution order:
-    1. Check UserPermission (direct assignments, respect expiration)
-    2. Check UserRole → RolePermission (role-based)
-    3. Fallback to legacy User.role (admin gets all)
-    """
-    # Step 1: Direct user permissions
-    direct_perm = db.query(UserPermission).join(Permission).filter(
-        UserPermission.user_id == user_id,
-        Permission.key == permission_key,
-        Permission.is_active == True,
-        or_(
-            UserPermission.expires_at.is_(None),
-            UserPermission.expires_at > datetime.now(timezone.utc)
-        )
-    ).first()
-    if direct_perm:
-        return True
-
-    # Step 2: Role-based permissions
-    role_perm = db.query(RolePermission).join(UserRole).join(Permission).filter(
-        UserRole.user_id == user_id,
-        Permission.key == permission_key,
-        Permission.is_active == True
-    ).first()
-    if role_perm:
-        return True
-
-    # Step 3: Legacy role check (backward compatibility)
-    user = db.query(User).filter(User.id == user_id).first()
-    if user and user.role == "admin":
-        return True  # Admins have all permissions
-
-    return False
-
-```text
----
-
-## 📈 Performance Considerations
-
-### Index Strategy
-
-All foreign keys are indexed for JOIN performance:
-- `role_permissions.role_id` - Fast role → permissions lookup
-- `role_permissions.permission_id` - Fast permission → roles lookup
-- `user_roles.user_id` - Fast user → roles lookup
-- `user_permissions.user_id` - Fast user → direct permissions lookup
-- `permissions.key` (unique) - Fast permission key lookup
-- `permissions.resource` - Filter by domain
-- `permissions.is_active` - Filter active permissions only
-
-### Query Optimization
-
-- **Composite unique indexes** prevent duplicate assignments
-- **Cascade deletes** maintain referential integrity
-- **is_active flag** allows soft-disabling permissions without deletion
-- **expires_at index** enables efficient expiration cleanup queries
-
----
-
-## 🚀 Seeding Strategy
-
-### Default Permissions (25 total)
-
-Reference: [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md)
-
-```python
-# Students domain (4)
-
-students:view, students:create, students:edit, students:delete
-
-# Courses domain (4)
-
-courses:view, courses:create, courses:edit, courses:delete
-
-# Grades domain (3)
-
-grades:view, grades:edit, grades:delete
-
-# Attendance domain (3)
-
-attendance:view, attendance:edit, attendance:delete
-
-# Enrollments domain (2)
-
-enrollments:view, enrollments:manage
-
-# Reports/Analytics domain (2)
-
-reports:view, analytics:view
-
-# Users domain (2)
-
-users:view, users:manage
-
-# Permissions domain (2)
-
-permissions:view, permissions:manage
-
-# System domain (3)
-
-audit:view, system:import, system:export
-
-```text
-### Default Roles (3 core)
-
-```python
-# Admin role: All 25 permissions
-
-admin = Role(name="admin", description="System administrator")
-
-# Teacher role: 11 permissions
-
-teacher_perms = [
-    "students:view", "students:edit",
-    "courses:view",
-    "grades:view", "grades:edit",
-    "attendance:view", "attendance:edit",
-    "enrollments:view", "enrollments:manage",
-    "reports:view", "analytics:view"
-]
-
-# Viewer role: 7 permissions
-
-viewer_perms = [
-    "students:view", "courses:view", "grades:view",
-    "attendance:view", "enrollments:view",
-    "reports:view", "analytics:view"
-]
-
-```text
----
-
-## 🔧 Migration Plan
-
-### Phase 1: Seeding (Week 1 - Jan 27-31)
-
-1. ✅ Create tables (already exists via models.py)
-2. 🔜 Seed 25 permissions via `backend/seed_permissions.py`
-3. 🔜 Create 3 default roles (admin, teacher, viewer)
-4. 🔜 Assign permissions to roles via RolePermission
-5. 🔜 Migrate existing User.role to UserRole table
-
-**Script**: `backend/ops/seed_rbac_data.py` (to be created)
-
-### Phase 2: Integration (Week 2 - Feb 3-7)
-
-1. Update `@require_permission()` decorator to use new tables
-2. Refactor all admin endpoints to check permissions
-3. Maintain backward compatibility with legacy User.role
-4. Add permission checks to 148 endpoints
-
-### Phase 3: UI (Week 3 - Feb 10-14)
-
-1. Build permission management API
-2. Create admin UI for role/permission assignment
-3. Add permission indicators in frontend
-
----
-
-## 📋 Open Questions & Decisions
-
-### ✅ Resolved
-
-- **Multi-role support**: Users can have multiple roles via UserRole
-- **Direct permissions**: UserPermission allows exceptions to role-based access
-- **Expiration**: UserPermission supports time-limited access via expires_at
-- **Resource/action split**: Permission table splits key into resource+action for flexible querying
-
-### ❓ Pending
-
-- **Role hierarchy**: Should admin inherit teacher permissions? (Current: No hierarchy, explicit assignments)
-- **Permission caching**: Cache user permissions in Redis? (Current: Query on each request)
-- **Audit trail**: Log permission changes? (Current: No, but can add via AuditLog)
-
----
-
-## ✅ Schema Validation Checklist
-
-- [x] All tables have primary keys
-- [x] All foreign keys have indexes
-- [x] Unique constraints on natural keys (role.name, permission.key)
-- [x] Composite unique indexes on junction tables
-- [x] Cascade deletes configured for cleanup
-- [x] Timestamps for audit trail
-- [x] is_active flags for soft-disable
-- [x] Backward compatibility maintained (User.role still exists)
-
-**Schema Status**: ✅ **PRODUCTION READY** (already implemented in models.py)
-
----
-
-**Last Updated**: January 8, 2026 00:30
-**Reviewed By**: Schema already in production since v1.14+
-**Next Steps**:
-1. Create seeding script (Task 4 prerequisite)
-2. Design `@require_permission()` decorator (Task 4)
-3. Plan migration from User.role to UserRole table
+# RBAC database schema
+
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
+
+**Related:** [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md) (how a request is decided, and
+what the roles hold), [RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md) (the pages) and
+[PERMISSION_MATRIX.md](PERMISSION_MATRIX.md) (who can do what).
+
+This file described the tables well, and then went on with a seeding plan for three roles and
+25 permissions, a fallback to the Role column, a migration plan in three phases and a list of
+open questions. The tables below are those of the old text, checked against `backend/models.py`
+and completed; everything after them was corrected, and the plans and questions were removed.
+The earlier text is in the repository's history.
+
+## The tables
+
+```
+ users --- user_roles --- roles --- role_permissions --- permissions
+   |                                                          |
+   +------------------- user_permissions --------------------+
+   |
+   +--- audit_logs  (who did it, kept when the account goes)
+```
+
+An account may do what these rows say: the grants of its roles (`user_roles` to
+`role_permissions`) and the grants made to it alone (`user_permissions`).
+
+### permissions (`Permission`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `key` | string(100) | unique, not null, indexed: `resource:action`, for example `students:view` |
+| `resource` | string(50) | not null, indexed |
+| `action` | string(50) | not null |
+| `description` | text | |
+| `is_active` | boolean | default true, indexed. A permission that is off counts for nobody |
+| `created_at`, `updated_at` | datetime with time zone | not null |
+
+Indexes: `idx_permissions_key` (unique), `idx_permissions_resource`, `idx_permissions_is_active`.
+
+### roles (`Role`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `name` | string(100) | unique, not null, indexed |
+| `description` | string(255) | |
+
+Index: `idx_roles_name` (unique). A role has no `is_active` and no time stamps.
+
+### role_permissions (`RolePermission`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `role_id` | integer | not null, indexed, foreign key to `roles.id`, ON DELETE CASCADE |
+| `permission_id` | integer | not null, indexed, foreign key to `permissions.id`, ON DELETE CASCADE |
+| `created_at` | datetime with time zone | not null |
+
+Index: `idx_role_permission_unique` on (`role_id`, `permission_id`), unique.
+
+### user_roles (`UserRole`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `user_id` | integer | not null, indexed, foreign key to `users.id`, ON DELETE CASCADE |
+| `role_id` | integer | not null, indexed, foreign key to `roles.id`, ON DELETE CASCADE |
+
+Index: `idx_user_role_unique` on (`user_id`, `role_id`), unique. An account may hold several
+roles.
+
+### user_permissions (`UserPermission`)
+
+Permissions granted to one account, past its roles.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `user_id` | integer | not null, indexed, foreign key to `users.id`, ON DELETE CASCADE |
+| `permission_id` | integer | not null, indexed, foreign key to `permissions.id`, ON DELETE CASCADE |
+| `granted_by` | integer | foreign key to `users.id`, ON DELETE SET NULL; the account that sent the grant; not indexed |
+| `granted_at` | datetime with time zone | not null |
+| `expires_at` | datetime with time zone | optional end date, indexed. After it the grant counts for nothing |
+
+Indexes: `idx_user_permission_unique` on (`user_id`, `permission_id`), unique;
+`idx_user_permission_user_id`; `idx_user_permission_expires_at`.
+
+### users (`User`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `email` | string(255) | unique, not null, indexed |
+| `hashed_password` | string(255) | not null |
+| `full_name` | string(200) | |
+| `role` | string(50) | not null, indexed, default `teacher`. Holds `admin`, `teacher` or `none` ("No role") |
+| `is_active` | boolean | default true, indexed |
+| `password_change_required` | boolean | not null, default false, indexed |
+| `registration_pending` | boolean | not null, default false: a registration waiting for approval |
+| `failed_login_attempts` | integer | not null, default 0 |
+| `last_failed_login_at`, `lockout_until` | datetime with time zone | indexed |
+| `created_at`, `updated_at` | datetime with time zone | not null, indexed |
+
+Index: `idx_users_email_role` on (`email`, `role`). In the model, the account has relations to
+its `user_permissions` and its dashboards only; `user_roles` is reached through its own table.
+
+The Role column does not grant anything. Role checks read it (see "Checks that are not
+permissions" in [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md)); permission checks do not.
+
+### audit_logs (`AuditLog`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | integer | primary key |
+| `action` | string(50) | not null, indexed: `role_change`, `permission_grant`, `permission_revoke`, `create`, `update`, `delete`, `password_change`, and others |
+| `resource` | string(50) | not null, indexed: `user` for accounts, roles and permissions |
+| `resource_id` | string(100) | indexed: the number of the account the entry is about, when it is about one |
+| `user_id` | integer | foreign key to `users.id`, indexed: the account that made the change; empty when it is not known or when that account was deleted |
+| `user_email` | string(255) | the same account's address, kept when the account is deleted |
+| `ip_address`, `user_agent` | string(45), string(512) | from the request |
+| `details` | JSON | what was done, for example `{"operation": "assign_role", "role": "teacher"}` |
+| `success` | boolean | not null, default true |
+| `error_message` | text | |
+| `timestamp` | datetime with time zone | not null, indexed |
+| `old_values`, `new_values`, `change_reason` | JSON, JSON, string(500) | |
+| `request_id` | string(64) | indexed |
+
+Indexes: `idx_audit_user_action` (`user_id`, `action`), `idx_audit_resource_action`
+(`resource`, `action`), `idx_audit_timestamp_action` (`timestamp`, `action`),
+`idx_audit_request_id`.
+
+## How a permission is resolved
+
+`has_permission` in `backend/rbac.py`:
+
+1. With `AUTH_MODE` set to `disabled` the answer is yes without a look at the tables.
+2. Otherwise it collects the permissions that count: the account's rows in `user_permissions`
+   whose permission is active and whose `expires_at` is empty or still to come, and the active
+   permissions of every role the account holds (`user_roles` to `role_permissions`).
+3. A collected permission satisfies the one asked for when it is the same, when it is `*:*`, or
+   when it is an area followed by `:*` (none is in use).
+4. The answer is yes when any does. There is no other source: the Role column adds nothing.
+
+Keys are compared in lower case, a key written with a dot and no colon is read with a colon,
+and `*` is read as `*:*`. A database
+error while reading one of the two sources counts that source as granting nothing. With
+`PERMISSION_CACHE_TTL_SECONDS` set, an answer is kept for that many seconds; it is off unless
+set.
+
+## What a new database holds
+
+The application seeds these at its first start (see "The step at every start" in
+[PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md)):
+
+- **Two roles**, `admin` and `teacher`. They can be neither renamed nor deleted.
+- **44 permissions**: the wildcard `*:*` and the 43 that endpoints ask for.
+- **51 grants** in `role_permissions`: 26 for `admin` (`*:*`, and each of the teacher's 25 by
+  name) and 25 for `teacher`.
+
+Every account whose Role column says `admin` or `teacher` is given the row of that role in
+`user_roles` at each start, if it lacks it. Assigning `admin` under **Assign Role to User** also
+gives `teacher`; creating an account in **User Accounts** gives the one role. The Role column
+follows the highest role the account holds, and reads `none` when it holds neither.
+
+## Deleting an account, a role
+
+The foreign keys above say ON DELETE CASCADE (and SET NULL for `granted_by`). PostgreSQL does
+what they say. This application runs SQLite without foreign-key enforcement, so when an
+account is deleted, and when one is created, it removes by itself what still points at the
+number. Its entries in `audit_logs` stay: `user_id` is emptied and `user_email` remains.
+
+Deleting a role removes its rows in `user_roles` in the same request, so that no account is
+left holding a role that was never given to it once SQLite hands the number to the next role.
+Creating a role clears any such leftover rows under its new number.
+
+## What is recorded
+
+Role changes, grants and revokes, what is done to an account, and the creation, change and
+deletion of a role or a permission are written to `audit_logs` with the account that made
+them (**Maintenance** > **Audit Log**; see "The audit log" in
+[RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md)). Not written: a request refused for lack of a
+permission, and signing in and out.

@@ -50,7 +50,7 @@ export default {
     },
     mieek: {
       name: 'ΜΙΕΕΚ',
-      description: 'Επαγγελματική διεπαφή διαχείρισης με πράσινη τονισμό',
+      description: 'Επαγγελματική διεπαφή διαχείρισης με πράσινο τονισμό',
     },
     mieekDark: {
       name: 'ΜΙΕΕΚ Σκοτεινό',
@@ -316,6 +316,8 @@ export default {
     },
     operations: {
       assign_role: 'Έδωσε τον ρόλο {{role}}',
+      bulk_assign_role: 'Έδωσε τον ρόλο {{role}}',
+      auto_assign_inherited: 'Έδωσε και τον ρόλο {{role}}: συνοδεύει τον ρόλο που δόθηκε',
       revoke_role: 'Αφαίρεσε τον ρόλο {{role}}',
       set_role: 'Άλλαξε τον ρόλο του {{email}} από {{from}} σε {{role}}',
       create_account: 'Δημιούργησε τον λογαριασμό {{email}} ({{role}})',
@@ -325,11 +327,19 @@ export default {
       reset_password: 'Όρισε νέο κωδικό για τον {{email}}',
       change_own_password: 'Άλλαξε τον δικό του κωδικό',
       grant_permission: 'Χορήγησε το {{permission}} στον ρόλο {{role}}',
+      bulk_grant_permission: 'Χορήγησε το {{permission}} στον ρόλο {{role}}',
       revoke_permission: 'Ανακάλεσε το {{permission}} από τον ρόλο {{role}}',
       grant_to_account: 'Χορήγησε το {{permission}} στον λογαριασμό {{email}}',
       revoke_from_account: 'Ανακάλεσε το {{permission}} από τον λογαριασμό',
       create_role: 'Δημιούργησε τον ρόλο {{role}}',
-      create_permission: 'Δημιούργησε το δικαίωμα {{permission}}'
+      rename_role: 'Μετονόμασε τον ρόλο {{from}} σε {{role}}',
+      update_role: 'Άλλαξε την περιγραφή του ρόλου {{role}}',
+      delete_role: 'Διέγραψε τον ρόλο {{role}}',
+      create_permission: 'Δημιούργησε το δικαίωμα {{permission}}',
+      update_permission: 'Άλλαξε το δικαίωμα {{permission}}',
+      activate_permission: 'Ενεργοποίησε το δικαίωμα {{permission}}',
+      deactivate_permission: 'Απενεργοποίησε το δικαίωμα {{permission}}',
+      delete_permission: 'Διέγραψε το δικαίωμα {{permission}}'
     },
     resources: {
       user: 'Λογαριασμός',
@@ -477,7 +487,7 @@ export default {
   // Rate Limiting Panel
   rateLimitsLabel: 'Όρια Ρυθμού',
   rateLimitsTitle: 'Διαμόρφωση Ορίων Ρυθμού',
-  rateLimitsSubtitle: 'Προσαρμόστε τα όρια ρυθμού του API για να αποτρέψετε την υποβάθμιση της υπηρεσίας. Οι αλλαγές ισχύουν άμεσα.',
+  rateLimitsSubtitle: 'Προσαρμόστε τα όρια ρυθμού του API για να αποτρέψετε την υποβάθμιση της υπηρεσίας. Ένα αποθηκευμένο όριο ισχύει από την επόμενη εκκίνηση του διακομιστή.',
   rateLimits: {
     read: 'Αιτήματα Ανάγνωσης',
     write: 'Αιτήματα Ενημέρωσης',
@@ -499,10 +509,10 @@ export default {
     saving: 'Αποθήκευση...',
     saveChanges: 'Αποθήκευση Αλλαγών',
     saveError: 'Αποτυχία αποθήκευσης αλλαγών',
-    updateSuccess: 'Τα όρια ρυθμού ενημερώθηκαν με επιτυχία',
+    updateSuccess: 'Τα όρια ρυθμού αποθηκεύτηκαν. Ισχύουν από την επόμενη εκκίνηση του διακομιστή.',
     resetButton: 'Επαναφορά Προεπιλογών',
     confirmReset: 'Επαναφορά όλων των ορίων ρυθμού στις προεπιλογές;',
-    resetSuccess: 'Τα όρια ρυθμού επαναφέρθηκαν στις προεπιλογές',
+    resetSuccess: 'Τα όρια ρυθμού επαναφέρθηκαν στις προεπιλογές. Ισχύουν από την επόμενη εκκίνηση του διακομιστή.',
     resetError: 'Αποτυχία επαναφοράς ορίων',
   },
   // Database Management Panel

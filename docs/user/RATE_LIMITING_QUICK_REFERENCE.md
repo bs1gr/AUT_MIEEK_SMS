@@ -1,121 +1,55 @@
-# Rate Limiting Quick Reference
+# Rate Limits: Quick Reference
 
-## Quick Start (Admin)
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
-1. **Open Control Panel** → **Rate Limits** tab
-2. **Adjust sliders** as needed
-3. **Click Save** → Changes apply instantly ⚡
+One page for administrators; the whole guide is
+[RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md). The earlier text of this page promised that
+a saved limit applies at once and gave advice on speed that the application cannot follow.
+It is in the repository's history.
 
-## Typical Adjustments
+## The five limits
 
-### Issue: "Too Many Requests" on Imports
+Requests per minute, counted per client address. The names are those of the **Rate Limits**
+tab. What each covers is read from the code.
 
-```text
-Current: TEACHER_IMPORT = 5,000/min
-Solution: Increase to 10,000/min
-Impact: Teachers can upload 10x more records per minute
+| Name on the tab | Default | Covers |
+|---|---|---|
+| **Read Requests** | 1,000 | Most routes that read records |
+| **Write Requests** | 500 | Routes that create, change or delete records; feedback; reports |
+| **Heavy Operations** | 200 | Preview and **Confirm & Import** of Utils > **Imports**; session file export, import, rollback; database backup, restore, clear; semester archive; one student's data export; monitoring routes |
+| **Authentication** | 120 | Sign-in, registration, sign-out, refresh, CSRF token |
+| **Bulk Imports** | 5,000 | `POST /api/v1/imports/students` only (reads JSON files from a server folder). Utils > Imports does not use it |
 
-```text
-### Issue: Dashboard is Slow
+No limit of this kind: the Export Center's file downloads, search, custom reports,
+dashboards, help.
 
-```text
-Current: READ = 1,000/min
-Solution: Increase to 2,000/min
-Impact: Queries ~2x faster, covers 100+ concurrent users
+## Changing a limit
 
-```text
-### Issue: Login Failures
+1. System > Control Panel > tab **Rate Limits** (administrators only).
+2. Change a row; it is marked **Modified**. Click **Save Changes**. The page says: "Rate
+   limits saved. They take effect the next time the server starts."
+3. Restart the server.
 
-```text
-Current: AUTH = 120/min
-Solution: Check it's 120+ (not lower)
-Note: If still failing, check error—might not be rate limit (would be 429)
+**Reset Defaults** asks first, then says: "Rate limits reset to defaults. They take effect
+the next time the server starts."
 
-```text
-## Default Configuration (Per Minute)
+## When it takes effect
 
-```text
-├─ READ:           1,000  (GET requests, queries)
-├─ WRITE:            500  (POST/PUT updates)
-├─ HEAVY:            200  (Reports, exports)
-├─ AUTH:             120  (Login attempts) ← Fixed login 400 errors
-└─ TEACHER_IMPORT: 5,000  (Bulk uploads)
+At the next start of the server, not at once. Tried on 18 November 2026: with the read limit
+saved as 3 per minute, eight reads in a row still answered 200; after a restart the fourth
+was refused. The values are kept in `src/backend/config/rate_limits.json`.
 
-```text
-## Environment Variables (Deployment)
+## Environment variables
 
-Override defaults at startup:
+`RATE_LIMIT_READ_PER_MINUTE`, `RATE_LIMIT_WRITE_PER_MINUTE`, `RATE_LIMIT_HEAVY_PER_MINUTE`,
+`RATE_LIMIT_AUTH_PER_MINUTE`, `RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE`. One that is set wins over
+the saved value, and the tab goes on showing the saved value (read from the code). They are
+read when the server starts.
 
-```bash
-# Docker
+## A refused request, and the endpoints
 
-docker run -e RATE_LIMIT_AUTH_PER_MINUTE=240 sms-app
+HTTP 429, body `{"detail":"3 per 1 minute"}` (the limit exceeded), no `Retry-After` header
+(tried). The lockout after wrong passwords is separate, with its own message.
 
-# Docker Compose
-
-environment:
-  RATE_LIMIT_WRITE_PER_MINUTE: 1000
-  RATE_LIMIT_AUTH_PER_MINUTE: 240
-
-# PowerShell
-
-$env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE="10000"
-
-```text
-## REST API (Admin Only)
-
-### Get Limits
-
-```bash
-curl http://localhost:8000/control/api/rate-limits
-
-```text
-### Update One Limit
-
-```bash
-curl -X POST http://localhost:8000/control/api/rate-limits/update \
-  -H "Content-Type: application/json" \
-  -d '{"limit_type":"auth","value":240}'
-
-```text
-### Update Multiple
-
-```bash
-curl -X POST http://localhost:8000/control/api/rate-limits/bulk-update \
-  -H "Content-Type: application/json" \
-  -d '{
-    "limits": {
-      "read": 2000,
-      "write": 1000,
-      "auth": 240
-    }
-  }'
-
-```text
-### Reset All to Defaults
-
-```bash
-curl -X POST http://localhost:8000/control/api/rate-limits/reset
-
-```text
-## Error Codes
-
-| Code | Meaning | Action |
-|------|---------|--------|
-| **429** | Rate limit exceeded | Wait 60+ seconds, retry |
-| **400** | Invalid email/password | Check credentials (not rate limit) |
-| **403** | Not authorized | Check user role (needs admin) |
-| **500** | Server error | Check logs |
-
-## Need Help?
-
-- **Can't access Control Panel?** You need admin role
-- **Changes not saving?** Check browser console for errors
-- **Still getting 429?** Wait 60+ seconds, limits reset per minute
-- **Limits reverted?** Application restarted—use env vars for permanent override
-
----
-
-**Last Updated:** 2025-12-30
-**Version:** 1.14.0
-**Related:** [Full Rate Limiting Guide](RATE_LIMITING_GUIDE.md)
+Endpoints, for an administrator's sign-in, under `/control/api`: `GET /rate-limits`,
+`POST /rate-limits/update`, `/bulk-update` and `/reset`. Values are whole numbers from 1 up.

@@ -1,930 +1,149 @@
-# Permission Management Guide
+# Managing permissions through the API
 
-**Version**: 1.15.1
-**Last Updated**: January 8, 2026
-**Audience**: System Administrators, DevOps
-**Status**: Production Ready
+**Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
----
+**Related:** [RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md) (the administrator's steps in the
+pages), [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md) (every permission and what it opens)
+and [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md) (every endpoint and what it asks for).
 
-## Overview
+This file used to hold SQL and curl procedures written for a plan: three roles, 26 permissions,
+a `role_id` column on the accounts and a seed script. The application has none of these, so the
+procedures no longer applied. The earlier text is in the repository's history.
 
-This guide covers operational procedures for managing RBAC permissions in the Student Management System. After Phase 2 implementation, all 79 API endpoints are protected with fine-grained permissions.
+## Use the pages first
 
-### Quick Links
+Everything below can be done in the pages: **System** > **Show Control Panel** >
+**Maintenance** > **RBAC Configuration** and **User Accounts**. The steps are in
+[RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md). Write a script only when something has to be done
+many times or without a person at the screen.
 
-- **Permission Matrix**: [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md) - Complete permission reference
-- **API Reference**: [../../backend/API_PERMISSIONS_REFERENCE.md](../../backend/API_PERMISSIONS_REFERENCE.md) - Endpoint permissions
-- **Database Schema**: [RBAC_DATABASE_SCHEMA.md](./RBAC_DATABASE_SCHEMA.md) - Technical details
+The pages use the same requests. **Permissions Catalog** sends the four requests under
+`/api/v1/permissions` that grant and revoke. **Assign Role to User** and **Initialize RBAC
+Defaults** use `/api/v1/admin/rbac`.
 
----
+## Signing in for the API
 
-## Table of Contents
+The API takes a bearer token. Get one with a sign-in, then send it with every request:
 
-1. [Getting Started](#getting-started)
-2. [Permission Seeding](#permission-seeding)
-3. [Managing Roles](#managing-roles)
-4. [Granting Permissions](#granting-permissions)
-5. [Revoking Permissions](#revoking-permissions)
-6. [User Permission Workflows](#user-permission-workflows)
-7. [Troubleshooting](#troubleshooting)
-8. [Security Best Practices](#security-best-practices)
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Administrative access to the server
-- Database access (SQLite or PostgreSQL)
-- Python environment with backend dependencies
-
-### First-Time Setup
-
-After deploying v1.18.3+, run the permission seeding script:
-
-```bash
-cd src/backend
-python ops/seed_rbac_data.py
-
-```text
-This creates:
-- **26 permissions** across 8 domains
-- **3 default roles** (admin, teacher, viewer)
-- **44 role-permission mappings**
-
-**Note**: Seeding is idempotent—safe to run multiple times.
-
----
-
-## Permission Seeding
-
-### Running the Seed Script
-
-**Full seeding** (creates/updates all data):
-
-```bash
-python backend/ops/seed_rbac_data.py
-
-```text
-**Dry run** (preview without changes):
-
-```bash
-python backend/ops/seed_rbac_data.py --dry-run
-
-```text
-**Verification only** (check existing data):
-
-```bash
-python backend/ops/seed_rbac_data.py --verify
-
-```text
-### Seed Script Output
-
-```text
-======================================================================
-RBAC Data Seeding Script
-======================================================================
-
-📊 Database: sqlite:///D:/SMS/student-management-system/data/student_management.db
-
-1️⃣  Seeding Permissions...
-  ✓  Permission exists: students:view
-  ✓  Permission exists: students:create
-  ...
-  ✓  Created: 0, Updated: 0, Unchanged: 26
-
-2️⃣  Seeding Roles...
-  ✓  Role exists: admin
-  ✓  Role exists: teacher
-  ✓  Role exists: viewer
-  ✓  Created: 0, Updated: 0, Unchanged: 3
-
-3️⃣  Seeding Role-Permission Mappings...
-  ✓  Created: 0, Skipped: 44
-
-======================================================================
-SUMMARY
-======================================================================
-Permissions: 0 created, 0 updated, 26 unchanged
-Roles: 0 created, 0 updated, 3 unchanged
-Role-Permission Mappings: 0 created, 44 skipped
-======================================================================
-
-```text
-### What Gets Seeded
-
-**Permissions** (26 total):
-
-| Domain | Count | Examples |
-|--------|-------|----------|
-| students | 4 | `students:view`, `students:create`, `students:edit`, `students:delete` |
-| courses | 4 | `courses:view`, `courses:create`, `courses:edit`, `courses:delete` |
-| grades | 3 | `grades:view`, `grades:edit`, `grades:delete` |
-| attendance | 3 | `attendance:view`, `attendance:edit`, `attendance:delete` |
-| enrollments | 2 | `enrollments:view`, `enrollments:manage` |
-| reports | 2 | `reports:view`, `analytics:view` |
-| users | 2 | `users:view`, `users:manage` |
-| permissions | 2 | `permissions:view`, `permissions:manage` |
-| audit | 1 | `audit:view` |
-| system | 3 | `system:admin`, `system:import`, `system:export` |
-
-**Roles** (3 default):
-
-1. **admin** - Full access (all permissions)
-2. **teacher** - Course management, grading, attendance
-3. **viewer** - Read-only access to students, courses, grades
-
----
-
-## Managing Roles
-
-### View All Roles
-
-**SQL Query**:
-
-```sql
-SELECT id, name, description, is_active, created_at
-FROM roles
-WHERE is_active = 1
-ORDER BY name;
-
-```text
-**Expected Output**:
-
-| id | name | description | is_active | created_at |
-|----|------|-------------|-----------|------------|
-| 1 | admin | Administrator with full access | 1 | 2026-01-08... |
-| 2 | teacher | Instructor with course/grade management | 1 | 2026-01-08... |
-| 3 | viewer | Read-only observer | 1 | 2026-01-08... |
-
-### View Role Permissions
-
-**SQL Query** (all permissions for a role):
-
-```sql
-SELECT p.key, p.resource, p.action, p.description
-FROM permissions p
-JOIN role_permissions rp ON p.id = rp.permission_id
-WHERE rp.role_id = 1  -- Change role_id as needed
-  AND p.is_active = 1
-ORDER BY p.resource, p.action;
-
-```text
-**Example Output for admin role**:
-
-```text
-attendance:delete | attendance | delete | Delete attendance records
-attendance:edit   | attendance | edit   | Log and update attendance
-attendance:view   | attendance | view   | View attendance records
-...
-(26 rows - admin has all permissions)
-
-```text
-### Create Custom Role
-
-**Using SQL**:
-
-```sql
-INSERT INTO roles (name, description, is_active, created_at, updated_at)
-VALUES ('instructor', 'Teaching assistant with limited access', 1, datetime('now'), datetime('now'));
-
-```text
-**Verify Creation**:
-
-```sql
-SELECT * FROM roles WHERE name = 'instructor';
-
-```text
----
-
-## Granting Permissions
-
-### Grant Permission to Role
-
-**Method 1: Direct SQL**
-
-```sql
--- Step 1: Get role ID
-SELECT id FROM roles WHERE name = 'instructor';  -- e.g., returns 4
-
--- Step 2: Get permission ID
-SELECT id FROM permissions WHERE key = 'grades:edit';  -- e.g., returns 10
-
--- Step 3: Grant permission
-INSERT INTO role_permissions (role_id, permission_id, created_at)
-VALUES (4, 10, datetime('now'));
-
-```text
-**Method 2: Using API** (POST `/api/v1/permissions/roles/grant`):
-
-```bash
-curl -X POST http://localhost:8080/api/v1/permissions/roles/grant \
+```
+curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "role_name": "instructor",
-    "permission_key": "grades:edit"
-  }'
-
-```text
-**Response**:
-
-```json
-{
-  "status": "granted",
-  "role_name": "instructor",
-  "permission_key": "grades:edit"
-}
-
-```text
-### Grant Multiple Permissions to Role
-
-**Bulk SQL Insert**:
-
-```sql
--- Grant instructor read/edit for grades and attendance
-INSERT INTO role_permissions (role_id, permission_id, created_at)
-SELECT 4, id, datetime('now')
-FROM permissions
-WHERE key IN ('grades:view', 'grades:edit', 'attendance:view', 'attendance:edit');
-
-```text
-**Verify**:
-
-```sql
-SELECT p.key
-FROM permissions p
-JOIN role_permissions rp ON p.id = rp.permission_id
-WHERE rp.role_id = 4;
-
-```text
-### Grant Permission Directly to User
-
-**Use Case**: Temporary access or special cases
-
-**SQL**:
-
-```sql
--- Step 1: Get user and permission IDs
-SELECT id FROM users WHERE email = 'temp.admin@example.com';  -- e.g., 42
-SELECT id FROM permissions WHERE key = 'audit:view';          -- e.g., 23
-
--- Step 2: Grant permission
-INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at)
-VALUES (42, 23, 1, datetime('now'), datetime('now', '+7 days'));
-
-```text
-**Note**: `granted_by` should be the ID of the admin granting the permission.
-
----
-
-## Revoking Permissions
-
-### Revoke Permission from Role
-
-**Method 1: Direct SQL**
-
-```sql
-DELETE FROM role_permissions
-WHERE role_id = (SELECT id FROM roles WHERE name = 'instructor')
-  AND permission_id = (SELECT id FROM permissions WHERE key = 'grades:edit');
-
-```text
-**Method 2: Using API** (POST `/api/v1/permissions/roles/revoke`):
-
-```bash
-curl -X POST http://localhost:8080/api/v1/permissions/roles/revoke \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "role_name": "instructor",
-    "permission_key": "grades:edit"
-  }'
-
-```text
-### Revoke All Permissions from Role
-
-**SQL**:
-
-```sql
-DELETE FROM role_permissions
-WHERE role_id = (SELECT id FROM roles WHERE name = 'instructor');
-
-```text
-**Warning**: This removes ALL permissions from the role.
-
-### Revoke Direct User Permission
-
-**SQL**:
-
-```sql
-DELETE FROM user_permissions
-WHERE user_id = (SELECT id FROM users WHERE email = 'temp.admin@example.com')
-  AND permission_id = (SELECT id FROM permissions WHERE key = 'audit:view');
-
-```text
----
-
-## User Permission Workflows
-
-### Assign Role to User
-
-**SQL**:
-
-```sql
--- Update user's role
-UPDATE users
-SET role_id = (SELECT id FROM roles WHERE name = 'teacher')
-WHERE email = 'instructor@example.com';
-
-```text
-**Verify**:
-
-```sql
-SELECT u.email, r.name as role
-FROM users u
-LEFT JOIN roles r ON u.role_id = r.id
-WHERE u.email = 'instructor@example.com';
-
-```text
-### View All User Permissions
-
-**SQL** (combines role permissions + direct permissions):
-
-```sql
--- Role-based permissions
-SELECT DISTINCT p.key, p.description, 'role' as source
-FROM users u
-JOIN roles r ON u.role_id = r.id
-JOIN role_permissions rp ON r.id = rp.role_id
-JOIN permissions p ON rp.permission_id = p.id
-WHERE u.email = 'instructor@example.com'
-  AND p.is_active = 1
-
-UNION
-
--- Direct user permissions
-SELECT p.key, p.description, 'direct' as source
-FROM users u
-JOIN user_permissions up ON u.id = up.user_id
-JOIN permissions p ON up.permission_id = p.id
-WHERE u.email = 'instructor@example.com'
-  AND p.is_active = 1
-  AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
-
-ORDER BY key;
-
-```text
-### Check If User Has Specific Permission
-
-**SQL**:
-
-```sql
-SELECT COUNT(*) as has_permission
-FROM (
-    -- Check role permissions
-    SELECT 1
-    FROM users u
-    JOIN roles r ON u.role_id = r.id
-    JOIN role_permissions rp ON r.id = rp.role_id
-    JOIN permissions p ON rp.permission_id = p.id
-    WHERE u.email = 'instructor@example.com'
-      AND p.key = 'grades:edit'
-      AND p.is_active = 1
-
-    UNION
-
-    -- Check direct permissions
-    SELECT 1
-    FROM users u
-    JOIN user_permissions up ON u.id = up.user_id
-    JOIN permissions p ON up.permission_id = p.id
-    WHERE u.email = 'instructor@example.com'
-      AND p.key = 'grades:edit'
-      AND p.is_active = 1
-      AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
-);
-
-```text
-**Result**: `has_permission = 1` means user has the permission, `0` means they don't.
-
----
-
-## Troubleshooting
-
-### Permission Denied Errors
-
-**Error**: `403 Forbidden - Permission denied: requires 'students:edit'`
-
-**Diagnosis**:
-
-1. **Verify user's role**:
-   ```sql
-   SELECT u.email, r.name as role
-   FROM users u
-   LEFT JOIN roles r ON u.role_id = r.id
-   WHERE u.email = 'user@example.com';
-   ```
-
-2. **Check role permissions**:
-   ```sql
-   SELECT p.key
-   FROM permissions p
-   JOIN role_permissions rp ON p.id = rp.permission_id
-   JOIN roles r ON rp.role_id = r.id
-   WHERE r.name = 'teacher'  -- Replace with actual role
-     AND p.key = 'students:edit';
-   ```
-
-3. **Grant missing permission**:
-   ```sql
-   INSERT INTO role_permissions (role_id, permission_id, created_at)
-   VALUES (
-       (SELECT id FROM roles WHERE name = 'teacher'),
-       (SELECT id FROM permissions WHERE key = 'students:edit'),
-       datetime('now')
-   );
-   ```
-
-### Permission Not Found
-
-**Error**: `404 - Permission not found or inactive`
-
-**Diagnosis**:
-
-```sql
-SELECT * FROM permissions WHERE key = 'students:edit';
-
-```text
-**If missing**, re-run seeding script:
-
-```bash
-python backend/ops/seed_rbac_data.py
-
-```text
-### Expired Direct Permissions
-
-**Symptom**: User had access yesterday but not today
-
-**Check for expired permissions**:
-
-```sql
-SELECT p.key, up.expires_at
-FROM user_permissions up
-JOIN permissions p ON up.permission_id = p.id
-WHERE up.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
-  AND up.expires_at < datetime('now');
-
-```text
-**Solution**: Grant new permission or remove expiration:
-
-```sql
-UPDATE user_permissions
-SET expires_at = NULL
-WHERE user_id = (SELECT id FROM users WHERE email = 'user@example.com')
-  AND permission_id = (SELECT id FROM permissions WHERE key = 'audit:view');
-
-```text
-### Check Permission Audit Trail
-
-**View recent permission grants**:
-
-```sql
-SELECT
-    u.email,
-    p.key,
-    up.granted_at,
-    up.expires_at,
-    granter.email as granted_by
-FROM user_permissions up
-JOIN users u ON up.user_id = u.id
-JOIN permissions p ON up.permission_id = p.id
-LEFT JOIN users granter ON up.granted_by = granter.id
-ORDER BY up.granted_at DESC
-LIMIT 20;
-
-```text
----
-
-## Security Best Practices
-
-### 1. Principle of Least Privilege
-
-✅ **DO**: Grant only the minimum permissions needed
-
-```sql
--- Good: Teacher needs to grade but not delete students
-INSERT INTO role_permissions (role_id, permission_id, created_at)
-SELECT
-    (SELECT id FROM roles WHERE name = 'teacher'),
-    id,
-    datetime('now')
-FROM permissions
-WHERE key IN ('grades:view', 'grades:edit', 'students:view');
-
-```text
-❌ **DON'T**: Grant admin to everyone
-
-```sql
--- Bad: Giving full admin access to instructors
-UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'admin');
-
-```text
-### 2. Use Role-Based Permissions
-
-✅ **DO**: Assign permissions to roles, then roles to users
-
-```sql
--- Create role → Grant permissions → Assign users
-INSERT INTO roles (name, description, is_active, created_at, updated_at)
-VALUES ('grader', 'TA with grading access only', 1, datetime('now'), datetime('now'));
-
-INSERT INTO role_permissions (role_id, permission_id, created_at)
-SELECT
-    (SELECT id FROM roles WHERE name = 'grader'),
-    id,
-    datetime('now')
-FROM permissions
-WHERE key IN ('grades:view', 'grades:edit');
-
-UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'grader')
-WHERE email IN ('ta1@example.com', 'ta2@example.com');
-
-```text
-❌ **DON'T**: Grant permissions directly to individual users (except for temporary access)
-
-### 3. Use Expiration for Temporary Access
-
-✅ **DO**: Set expiration dates for temporary permissions
-
-```sql
--- Grant audit access for 7 days
-INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at)
-VALUES (
-    (SELECT id FROM users WHERE email = 'auditor@example.com'),
-    (SELECT id FROM permissions WHERE key = 'audit:view'),
-    1,  -- Admin user ID
-    datetime('now'),
-    datetime('now', '+7 days')
-);
-
-```text
-### 4. Regular Audits
-
-**Monthly permission review query**:
-
-```sql
--- Find users with direct permissions (unusual)
-SELECT
-    u.email,
-    p.key,
-    up.expires_at,
-    granter.email as granted_by
-FROM user_permissions up
-JOIN users u ON up.user_id = u.id
-JOIN permissions p ON up.permission_id = p.id
-LEFT JOIN users granter ON up.granted_by = granter.id
-WHERE up.expires_at IS NULL OR up.expires_at > datetime('now')
-ORDER BY u.email;
-
-```text
-**Export role permissions matrix**:
-
-```sql
-SELECT
-    r.name as role,
-    p.resource,
-    GROUP_CONCAT(p.action, ', ') as actions
-FROM roles r
-JOIN role_permissions rp ON r.id = rp.role_id
-JOIN permissions p ON rp.permission_id = p.id
-WHERE r.is_active = 1 AND p.is_active = 1
-GROUP BY r.name, p.resource
-ORDER BY r.name, p.resource;
-
-```text
-### 5. Protect Admin Role
-
-✅ **DO**: Limit admin role to 1-2 trusted users
-
-```sql
--- Check who has admin role
-SELECT email FROM users
-WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');
-
-```text
-✅ **DO**: Use separate roles for day-to-day operations
-
-```sql
--- Create super_user role with most permissions except system:admin
-INSERT INTO roles (name, description, is_active, created_at, updated_at)
-VALUES ('super_user', 'High privileges without system admin', 1, datetime('now'), datetime('now'));
-
-INSERT INTO role_permissions (role_id, permission_id, created_at)
-SELECT
-    (SELECT id FROM roles WHERE name = 'super_user'),
-    id,
-    datetime('now')
-FROM permissions
-WHERE key NOT LIKE 'system:%';
-
-```text
----
-
-## Common Permission Scenarios
-
-### Scenario 1: New Teacher Onboarding
-
-**Goal**: Give instructor full course/grade/attendance management
-
-```sql
--- Assign teacher role
-UPDATE users
-SET role_id = (SELECT id FROM roles WHERE name = 'teacher')
-WHERE email = 'new.teacher@example.com';
-
-```text
-**Teacher role includes**:
-- `courses:view`, `courses:create`, `courses:edit`
-- `students:view`
-- `grades:view`, `grades:edit`
-- `attendance:view`, `attendance:edit`
-- `reports:view`
-
-### Scenario 2: Temporary Auditor Access
-
-**Goal**: Grant audit access for external reviewer (2 weeks)
-
-```sql
-INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at)
-VALUES (
-    (SELECT id FROM users WHERE email = 'external.auditor@review.com'),
-    (SELECT id FROM permissions WHERE key = 'audit:view'),
-    (SELECT id FROM users WHERE email = 'admin@example.com'),
-    datetime('now'),
-    datetime('now', '+14 days')
-);
-
-```text
-### Scenario 3: Promote User to Admin
-
-**Goal**: Elevate trusted user to full admin
-
-```sql
--- Verify current permissions
-SELECT r.name FROM users u
-JOIN roles r ON u.role_id = r.id
-WHERE u.email = 'trusted.user@example.com';
-
--- Promote to admin
-UPDATE users
-SET role_id = (SELECT id FROM roles WHERE name = 'admin')
-WHERE email = 'trusted.user@example.com';
-
-```text
-### Scenario 4: Create Custom "Registrar" Role
-
-**Goal**: User who manages student records but not grades
-
-```sql
--- Create role
-INSERT INTO roles (name, description, is_active, created_at, updated_at)
-VALUES ('registrar', 'Student records management', 1, datetime('now'), datetime('now'));
-
--- Grant permissions
-INSERT INTO role_permissions (role_id, permission_id, created_at)
-SELECT
-    (SELECT id FROM roles WHERE name = 'registrar'),
-    id,
-    datetime('now')
-FROM permissions
-WHERE key IN (
-    'students:view',
-    'students:create',
-    'students:edit',
-    'courses:view',
-    'enrollments:view',
-    'enrollments:manage',
-    'reports:view'
-);
-
--- Assign users
-UPDATE users
-SET role_id = (SELECT id FROM roles WHERE name = 'registrar')
-WHERE email IN ('registrar1@example.com', 'registrar2@example.com');
-
-```text
----
-
-## API Endpoints for Permission Management
-
-### List All Permissions
-
-```bash
-GET /api/v1/permissions/
-
-```text
-**Response**:
-
-```json
-[
-  {
-    "id": 1,
-    "key": "students:view",
-    "resource": "students",
-    "action": "view",
-    "description": "View student list and details",
-    "is_active": true
-  },
-  ...
-]
-
-```text
-### Get Permissions Grouped by Resource
-
-```bash
-GET /api/v1/permissions/by-resource
-
-```text
-**Response**:
-
-```json
-[
-  {
-    "resource": "students",
-    "permissions": [
-      {"key": "students:view", "action": "view", ...},
-      {"key": "students:create", "action": "create", ...}
-    ]
-  },
-  ...
-]
-
-```text
-### Get Permission Statistics
-
-```bash
-GET /api/v1/permissions/stats
-
-```text
-**Response**:
-
-```json
-{
-  "total_permissions": 26,
-  "active_permissions": 26,
-  "inactive_permissions": 0,
-  "permissions_by_resource": {
-    "students": 4,
-    "courses": 4,
-    "grades": 3,
-    ...
-  },
-  "most_common_actions": [
-    ["view", 10],
-    ["edit", 8],
-    ["create", 4],
-    ...
-  ]
-}
-
-```text
-### Grant Permission to Role
-
-```bash
-POST /api/v1/permissions/roles/grant
-Content-Type: application/json
-
-{
-  "role_name": "teacher",
-  "permission_key": "students:edit"
-}
-
-```text
-### Revoke Permission from Role
-
-```bash
-POST /api/v1/permissions/roles/revoke
-Content-Type: application/json
-
-{
-  "role_name": "teacher",
-  "permission_key": "students:delete"
-}
-
-```text
-### Get User's Effective Permissions
-
-```bash
-GET /api/v1/permissions/users/{user_id}
-
-```text
-**Response**:
-
-```json
-{
-  "user_id": 42,
-  "email": "teacher@example.com",
-  "role": "teacher",
-  "permissions": ["students:view", "students:edit", ...],
-  "direct_permissions": [
-    {
-      "permission_key": "audit:view",
-      "granted_at": "2026-01-08T10:00:00Z",
-      "expires_at": "2026-01-15T10:00:00Z"
-    }
-  ],
-  "role_permissions": [
-    {"permission_key": "students:view", "role_name": "teacher"},
-    ...
-  ]
-}
-
-```text
----
-
-## Backup & Restore
-
-### Backup Permission Configuration
-
-**Export all RBAC data**:
-
-```bash
-sqlite3 data/student_management.db <<EOF
-.mode insert
-.output rbac_backup.sql
-SELECT * FROM permissions;
-SELECT * FROM roles;
-SELECT * FROM role_permissions;
-SELECT * FROM user_permissions;
-.quit
-EOF
-
-```text
-**Or use Python script**:
-
-```bash
-python backend/ops/seed_rbac_data.py --export rbac_backup.json
-
-```text
-### Restore from Backup
-
-**Re-run seeding script** (safest):
-
-```bash
-python backend/ops/seed_rbac_data.py
-
-```text
-**Or restore from SQL backup**:
-
-```bash
-sqlite3 data/student_management.db < rbac_backup.sql
-
-```text
----
-
-## Maintenance
-
-### Cleanup Expired Permissions
-
-**Automatically handled by queries** (expires_at checked), but you can clean up manually:
-
-```sql
-DELETE FROM user_permissions
-WHERE expires_at < datetime('now');
-
-```text
-### Deactivate Permission (Don't Delete)
-
-**Better than deletion** (preserves history):
-
-```sql
-UPDATE permissions
-SET is_active = 0, updated_at = datetime('now')
-WHERE key = 'old:permission';
-
-```text
-### Re-activate Permission
-
-```sql
-UPDATE permissions
-SET is_active = 1, updated_at = datetime('now')
-WHERE key = 'old:permission';
-
-```text
----
-
-## Support & Documentation
-
-- **Permission Matrix**: See [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md) for complete list
-- **API Reference**: See [API_PERMISSIONS_REFERENCE.md](../../backend/API_PERMISSIONS_REFERENCE.md)
-- **Database Schema**: See [RBAC_DATABASE_SCHEMA.md](./RBAC_DATABASE_SCHEMA.md)
-- **Codebase**: `backend/rbac.py`, `backend/ops/seed_rbac_data.py`
-
----
-
-**Last Updated**: January 8, 2026
-**Version**: 1.15.1
-**Reviewed By**: Phase 2 RBAC Team
+  -d '{"email": "admin@example.com", "password": "..."}'
+
+curl http://localhost:8000/api/v1/permissions/stats \
+  -H "Authorization: Bearer <access_token>"
+```
+
+- The answer to the sign-in is `{"access_token": "...", "token_type": "bearer"}`. A token
+  lasts 30 minutes unless the server sets `ACCESS_TOKEN_EXPIRE_MINUTES` differently; sign in
+  again for a new one.
+- Port 8000 is a server started from source (native), port 8080 the Docker stack.
+- The account must be active. One that has to change its password first is refused everywhere
+  except `/auth/me`, the password change, the token refresh and the sign-out.
+- The server's CSRF check (`CSRF_ENABLED`) is off unless the installation switches it on.
+  Where it is on, requests that change data are checked for a CSRF token as well; this file does
+  not cover that.
+
+## What a request asks for
+
+Reading needs `permissions:view`, changing needs `permissions:manage`, and the history of
+changes needs `audit:view`. Only the role `admin` holds them. Every request below is checked
+with the permissions of the account that sent it, and a change counts from the next request
+(see "How a request is decided" in [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md)).
+
+The two families spell the permission differently in a body: `/permissions/...` says
+`permission_key`, `/admin/rbac/...` says `permission_name`.
+
+## `/api/v1/permissions`
+
+| Request | Asks for | Body or query | Answer |
+|---|---|---|---|
+| `GET /permissions/` | `permissions:view` | query `resource`, `action`, `is_active`, `search`, `skip` (0), `limit` (100, at most 500) | a list of `{id, key, resource, action, description, is_active}` |
+| `GET /permissions/by-resource` | `permissions:view` | none | `[{resource, permissions: [...]}]`, the active ones |
+| `GET /permissions/stats` | `permissions:view` | none | `{total_permissions, active_permissions, inactive_permissions, permissions_by_resource, most_common_actions}`; a new database counts 44 |
+| `GET /permissions/{id}` | `permissions:view` | none | one permission, with `created_at` and `updated_at` |
+| `POST /permissions/` | `permissions:manage` | `{key, resource, action, description?}` | 201 and the permission; 400 when the key exists |
+| `PATCH /permissions/{id}` | `permissions:manage` | `{description?, is_active?}` | the permission |
+| `DELETE /permissions/{id}` | `permissions:manage` | none | 204; its grants go with it |
+| `POST /permissions/roles/grant` | `permissions:manage` | `{role_name, permission_key}` | `{status: "granted", role_name, permission_key}`, or `{status: "already_granted"}` |
+| `POST /permissions/roles/revoke` | `permissions:manage` | `{role_name, permission_key}` | `{status: "revoked", ...}`; 404 when the role did not hold it |
+| `POST /permissions/users/grant` | `permissions:manage` | `{user_id, permission_key, expires_at?}` | `{status: "granted", user_id, permission_key}`; when it was held already, `{status: "already_granted", updated_expiration: true or false}` |
+| `POST /permissions/users/revoke` | `permissions:manage` | `{user_id, permission_key}` | `{status: "revoked", ...}`; 404 when the account did not hold it |
+| `GET /permissions/users/{user_id}` | signed in; another account needs `users:view` | none | `{user_id, email, role, permissions, direct_permissions, role_permissions}` |
+
+In the last answer `permissions` is every key the account holds, `direct_permissions` is a list
+of `{permission_key, granted_at, expires_at}` and `role_permissions` a list of
+`{permission_key, role_name}`.
+
+A grant needs an active permission (404 "Permission not found or inactive"). The wildcard
+`*:*` cannot be switched off, deleted, renamed, or revoked from the role `admin`: the server
+answers 400.
+
+## `/api/v1/admin/rbac`
+
+| Request | Asks for | Body or query | Answer |
+|---|---|---|---|
+| `GET /roles` | `permissions:view` | none | `[{id, name, description}]` |
+| `POST /roles` | `permissions:manage` | `{name, description?}` | the role; 400 when it exists |
+| `PUT /roles/{id}` | `permissions:manage` | `{name?, description?}` | the role; 400 when `admin` or `teacher` is renamed, and when the new name exists |
+| `DELETE /roles/{id}` | `permissions:manage` | none | `{status: "deleted"}`; the accounts that held the role lose it; 400 for `admin` and `teacher` |
+| `GET /permissions` | `permissions:view` | none | a list of `{id, key, resource, action, description, is_active}` |
+| `POST /permissions` | `permissions:manage` | `{key, resource, action, description?}` | the permission; 400 when the key exists |
+| `PUT /permissions/{id}` | `permissions:manage` | `{key?, resource?, action?, description?}` | the permission; 400 when the new key exists, or when the key of `*:*` is changed |
+| `DELETE /permissions/{id}` | `permissions:manage` | none | `{status: "deleted"}` |
+| `POST /assign-role` | `permissions:manage` | `{user_id, role_name}` | `{status: "assigned"}`; `admin` also gives `teacher` |
+| `POST /revoke-role` | `permissions:manage` | `{user_id, role_name}` | `{status: "revoked", role}` with the word now in the account's Role column, or `{status: "not_assigned"}`; 400 "Cannot remove the last admin user" |
+| `POST /bulk-assign-role` | `permissions:manage` | `{user_ids: [...], role_name}` | `{results: [{user_id, status}]}`, status `assigned`, `already_assigned` or `user_not_found` |
+| `POST /bulk-grant-permission` | `permissions:manage` | `{role_names: [...], permission_name}` | `{results: [{role_name, status}]}`, status `granted`, `already_granted` or `role_not_found` |
+| `POST /revoke-permission` | `permissions:manage` | `{role_name, permission_name}` | `{status: "revoked"}` or `{status: "not_granted"}` |
+| `POST /ensure-defaults` | `permissions:manage` | none | `{status: "ok"}`; the button **Initialize RBAC Defaults** |
+| `GET /summary` | `permissions:view` | none | `{roles, permissions, role_permissions: [{role_id, permission_id}], user_roles: [{user_id, role_id}]}` |
+| `GET /change-history` | `audit:view` | query `page` (1), `page_size` (50), `action`, `user_id` | `{logs, total, page, page_size, has_next}`: only entries of the actions `role_change`, `permission_grant` and `permission_revoke`; `user_id` is the account that made the change |
+
+Accounts themselves (`/api/v1/admin/users`, `/api/v1/auth/...`) ask for `users:view` and
+`users:manage`: see [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md).
+
+## When a request is refused
+
+- Without a token, in the default mode: 401 "Authentication required".
+- A permission the account does not hold: 403 "Permission denied: requires
+  'permissions:manage'". The text names the key, and it is English whatever language the client
+  asks for.
+- The answer has the same envelope as every other: `success`, `error` with `code` (`HTTP_403`),
+  `message`, `details` and `path`, and `meta` with `request_id`, `timestamp` and `version`.
+- Another account's permissions without `users:view`: 403 "Permission denied".
+
+## An end date, and who granted
+
+- A grant to an account may carry `expires_at`. It counts while that moment has not passed; a
+  time sent without a zone is read as UTC. Afterwards it counts for nothing.
+- Sending the grant again with a new `expires_at` changes the date. Sending it without one
+  changes nothing, so to remove an end date, revoke the grant and grant it again. The pages
+  have no field for an end date.
+- The account that sent a grant to an account is stored as `granted_by` in `user_permissions`,
+  with `granted_at`. No page shows the column; the Audit Log names the author of every grant and
+  revoke.
+
+## What the Audit Log records
+
+**Maintenance** > **Audit Log** and `GET /api/v1/audit/logs` (for `audit:view`) show, with
+the account that made it:
+
+- assigning and revoking a role, in bulk or one by one;
+- every grant and revoke of a permission, to a role or to an account, from either family;
+- creating, renaming, describing anew and deleting a role (a deletion says how many accounts
+  held the role);
+- creating, changing, switching off, switching on and deleting a permission (a deletion says
+  how many roles and accounts held it);
+- what **Initialize RBAC Defaults** adds.
+
+A save that changes nothing writes nothing. Switching a permission off is recorded as a
+revoke and switching it on as a grant; a change to its key, its description, its resource or
+its action is recorded with the action `update`, so `GET /change-history` does not list it
+(see above) and the Audit Log does.
+
+Not written: a change of the end date of a grant that exists, a request refused for lack of a
+permission, and signing in and out.
+
+Do not change the tables by SQL. It leaves no entry in the Audit Log, and a server that keeps
+answers for some seconds (`PERMISSION_CACHE_TTL_SECONDS`) sees the change only when they expire.
