@@ -55,7 +55,7 @@ def test_user(db: Session, client: TestClient) -> User:
             "email": "testsearch@example.com",
             "password": "Test123!@#",
             "full_name": "Search Test User",
-            "role": "student",  # Use valid role: admin, teacher, or student
+            "role": "teacher",  # a second account beside the administrator's; its role plays no part
         },
     )
 

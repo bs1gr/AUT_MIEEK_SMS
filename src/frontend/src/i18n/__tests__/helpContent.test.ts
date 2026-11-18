@@ -55,7 +55,7 @@ const QUOTED = { en: /"([^"\n]+)"/g, el: /«([^»\n]+)»/g };
 describe('Help & Documentation', () => {
   it('has the groups and answers that were read against the pages', () => {
     expect(groups).toHaveLength(18);
-    expect(pairs).toHaveLength(79);
+    expect(pairs).toHaveLength(80);
     expect(new Set(pairs.map((pair) => pair[1])).size).toBe(pairs.length);
     expect(new Set(pairs.map((pair) => pair[2])).size).toBe(pairs.length);
   });

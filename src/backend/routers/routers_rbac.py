@@ -25,10 +25,26 @@ router = APIRouter(prefix="/admin/rbac", tags=["RBAC"], responses={404: {"descri
 
 # The permission that makes an administrator one, held by the role "admin". The requests of
 # this module refuse to take it from that role, to rename it and to delete it: after any of
-# these no administrator could manage accounts or roles. (The role itself may be renamed or
-# deleted without that effect: the grants follow the role's number, and an administrator
-# without the role gets the built-in list of backend.rbac.)
+# these no administrator could manage accounts or roles.
 ADMIN_WILDCARD = "*:*"
+
+# The two roles the application is built on. An account is tied to them by name: the word in
+# its Role column names one of them, and creating an account, changing its role and the step
+# at every start look the role up by that name. They can be neither renamed nor deleted.
+# Without the role "admin" no administrator holds anything (an account may do what its rows
+# say, there is no list in the code to fall back on), "Initialize RBAC Defaults" included;
+# renamed, every administrator created afterwards would hold nothing.
+STANDARD_ROLES = ("admin", "teacher")
+
+
+def _refuse_if_standard_role(role: models.Role, change: str, request: Request) -> None:
+    if (role.name or "").strip().lower() in STANDARD_ROLES:
+        raise http_error(
+            status.HTTP_400_BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            f"The role {role.name} cannot be {change}: the accounts of the application are tied to it by name",
+            request,
+        )
 
 
 @router.post("/roles", response_model=RoleResponse)
@@ -71,7 +87,8 @@ async def update_role(
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
-    if name:
+    if name and name.strip().lower() != (role.name or "").strip().lower():
+        _refuse_if_standard_role(role, "renamed", request)
         role.name = name.strip().lower()
     if description is not None:
         role.description = description
@@ -90,6 +107,7 @@ async def delete_role(
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
         raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
+    _refuse_if_standard_role(role, "deleted", request)
     db.delete(role)
     db.commit()
     return {"status": "deleted"}
@@ -380,21 +398,111 @@ async def bulk_grant_permission(
 logger = logging.getLogger(__name__)
 
 
-LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
+# The roles of the application, highest first. The word in an account's Role column is the
+# highest one it holds, or NO_ROLE.
+LEGACY_ROLE_PRIORITY = ("admin", "teacher")
 
-# The word in the Role column of an account whose roles were all revoked. It is not a role:
-# no row of `roles` has this name and backend.rbac has no built-in permissions for it, so
-# the account passes no permission check and no role check. It can still sign in. Assigning
-# a role under Assign Role to User, or choosing one in User Accounts > Edit, ends the state.
+# The word in the Role column of an account that holds no role: its roles were all revoked,
+# or it was a Student, Viewer or Guest account before those went (November 2026). It is not
+# a role: no row of `roles` has this name, so the account passes no permission check and no
+# role check. It can still sign in. Assigning a role under Assign Role to User, or choosing
+# one in User Accounts > Edit, ends the state.
 NO_ROLE = "none"
 
-# Role hierarchy: higher roles inherit ALL permissions from lower roles
+# A role brings the ones below it: an administrator is also given the teacher role.
 ROLE_HIERARCHY = {
-    "admin": ["teacher", "viewer", "guest"],
-    "teacher": ["viewer", "guest"],
-    "viewer": [],
-    "guest": [],
+    "admin": ["teacher"],
+    "teacher": [],
 }
+
+ROLE_DESCRIPTIONS = {
+    "admin": "System administrator",
+    "teacher": "Teacher",
+}
+
+# Every permission the application knows: the wildcard, and each key an endpoint asks for
+# (tests/test_permission_documents.py holds the two lists together). key, resource, action,
+# description.
+PERMISSION_DEFS: tuple[tuple[str, str, str, str], ...] = (
+    (ADMIN_WILDCARD, "*", "*", "All permissions (admin wildcard)"),
+    ("students:view", "students", "view", "View all student records"),
+    ("students:create", "students", "create", "Create student records"),
+    ("students:edit", "students", "edit", "Update student records"),
+    ("students:delete", "students", "delete", "Delete student records"),
+    ("courses:view", "courses", "view", "View all courses"),
+    ("courses:create", "courses", "create", "Create courses"),
+    ("courses:edit", "courses", "edit", "Update courses"),
+    ("courses:delete", "courses", "delete", "Delete courses"),
+    ("grades:view", "grades", "view", "View grades for all students"),
+    ("grades:edit", "grades", "edit", "Assign or update grades"),
+    ("grades:delete", "grades", "delete", "Delete grade records"),
+    ("attendance:view", "attendance", "view", "View attendance records"),
+    ("attendance:edit", "attendance", "edit", "Record or update attendance"),
+    ("attendance:delete", "attendance", "delete", "Delete attendance records"),
+    ("reports:view", "reports", "view", "View and generate reports"),
+    ("reports:generate", "reports", "generate", "Generate reports and analytics views"),
+    ("reports:export", "reports", "export", "Export reports and analytics"),
+    ("reports:create", "reports", "create", "Create analytics reports"),
+    ("analytics:export", "analytics", "export", "Export analytics"),
+    ("users:view", "users", "view", "View user list"),
+    ("users:manage", "users", "manage", "Create/update/delete users and roles"),
+    ("permissions:view", "permissions", "view", "View permissions and roles"),
+    ("permissions:manage", "permissions", "manage", "Assign or revoke permissions"),
+    ("audit:view", "audit", "view", "View audit logs"),
+    ("notifications:manage", "notifications", "manage", "Send broadcast notifications"),
+    ("adminops:backup", "adminops", "backup", "Create backups"),
+    ("adminops:restore", "adminops", "restore", "Restore database"),
+    ("adminops:clear", "adminops", "clear", "Clear database content"),
+    ("imports:preview", "imports", "preview", "Preview data import"),
+    ("imports:execute", "imports", "execute", "Execute data import"),
+    ("imports:create", "imports", "create", "Upload a file to import"),
+    ("imports:view", "imports", "view", "View import jobs"),
+    ("exports:generate", "exports", "generate", "Generate data export"),
+    ("exports:download", "exports", "download", "Download exported data"),
+    ("exports:view", "exports", "view", "View export jobs"),
+    ("sessions:manage", "sessions", "manage", "Export and import a semester's session"),
+    ("jobs:create", "jobs", "create", "Start background jobs"),
+    ("jobs:view", "jobs", "view", "View background jobs"),
+    ("jobs:manage", "jobs", "manage", "Cancel background jobs"),
+    ("jobs:delete", "jobs", "delete", "Delete background jobs"),
+    ("diagnostics:view", "diagnostics", "view", "View query diagnostics"),
+    ("diagnostics:manage", "diagnostics", "manage", "Reset query diagnostics"),
+    ("admin:manage", "admin", "manage", "Clear the analytics cache"),
+)
+
+# What the role teacher holds. The administrator holds the wildcard, and these as well.
+TEACHER_PERMISSIONS: tuple[str, ...] = (
+    "students:view",
+    "students:create",
+    "students:edit",
+    "students:delete",
+    "courses:view",
+    "courses:create",
+    "courses:edit",
+    "courses:delete",
+    "grades:view",
+    "grades:edit",
+    "grades:delete",
+    "attendance:view",
+    "attendance:edit",
+    "attendance:delete",
+    "reports:view",
+    # Every /analytics, /reports and /metrics endpoint asks for reports:generate (the
+    # Dashboard overview included).
+    "reports:generate",
+    "reports:export",
+    "notifications:manage",
+    "exports:generate",
+    "exports:download",
+    # Importing students and courses from a file (the owner, 18 November 2026: "both teachers
+    # and admins"). A semester's session file stays with the administrator (sessions:manage).
+    "imports:preview",
+    "imports:execute",
+    "imports:create",
+    "imports:view",
+    # The Imports tab follows an import it started through GET /jobs/{id}.
+    "jobs:view",
+)
 
 
 def _resolve_legacy_role_for_user(db: Session, user: models.User) -> str | None:
@@ -414,21 +522,15 @@ def _resolve_legacy_role_for_user(db: Session, user: models.User) -> str | None:
 
 
 def _seed_defaults(db: Session, request: Request | None = None) -> None:
+    """Add whatever of the standard roles, permissions and grants is missing. Removes nothing."""
     audit_logger = get_audit_logger(db)
 
     def _log(**kwargs):
         if request:
             audit_logger.log_from_request(request, **kwargs)
 
-    # Ensure roles
-    role_names = {
-        "admin": "System administrator",
-        "teacher": "Teacher",
-        "guest": "Guest (read-only)",
-        "viewer": "Viewer (read-only)",
-    }
     name_to_role: dict[str, models.Role] = {}
-    for name, desc in role_names.items():
+    for name, desc in ROLE_DESCRIPTIONS.items():
         r = db.query(models.Role).filter(models.Role.name == name).first()
         if not r:
             r = models.Role(name=name, description=desc)
@@ -443,50 +545,8 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
             )
         name_to_role[name] = r
 
-    # Ensure permissions (using new Permission schema: key, resource, action)
-    perm_defs = [
-        ("*:*", "*", "*", "All permissions (admin wildcard)"),
-        ("students:view", "students", "view", "View all student records"),
-        ("students:create", "students", "create", "Create student records"),
-        ("students:edit", "students", "edit", "Update student records"),
-        ("students:delete", "students", "delete", "Delete student records"),
-        ("courses:view", "courses", "view", "View all courses"),
-        ("courses:create", "courses", "create", "Create courses"),
-        ("courses:edit", "courses", "edit", "Update courses"),
-        ("courses:delete", "courses", "delete", "Delete courses"),
-        ("grades:view", "grades", "view", "View grades for all students"),
-        ("grades:edit", "grades", "edit", "Assign or update grades"),
-        ("grades:delete", "grades", "delete", "Delete grade records"),
-        ("attendance:view", "attendance", "view", "View attendance records"),
-        ("attendance:edit", "attendance", "edit", "Record or update attendance"),
-        ("attendance:delete", "attendance", "delete", "Delete attendance records"),
-        ("enrollments:view", "enrollments", "view", "View enrollments"),
-        ("enrollments:manage", "enrollments", "manage", "Create/update/delete enrollments"),
-        ("reports:view", "reports", "view", "View and generate reports"),
-        ("reports:generate", "reports", "generate", "Generate reports and analytics views"),
-        ("reports:export", "reports", "export", "Export reports and analytics"),
-        ("analytics:view", "analytics", "view", "View analytics dashboards"),
-        ("users:view", "users", "view", "View user list"),
-        ("users:manage", "users", "manage", "Create/update/delete users and roles"),
-        ("permissions:view", "permissions", "view", "View permissions and roles"),
-        ("permissions:manage", "permissions", "manage", "Assign or revoke permissions"),
-        ("audit:view", "audit", "view", "View audit logs"),
-        ("system:import", "system", "import", "Import data"),
-        ("system:export", "system", "export", "Export data"),
-        ("notifications:manage", "notifications", "manage", "Send broadcast notifications"),
-        ("adminops:backup", "adminops", "backup", "Create backups"),
-        ("adminops:restore", "adminops", "restore", "Restore database"),
-        ("adminops:clear", "adminops", "clear", "Clear database content"),
-        ("imports:preview", "imports", "preview", "Preview data import"),
-        ("imports:execute", "imports", "execute", "Execute data import"),
-        ("exports:generate", "exports", "generate", "Generate data export"),
-        ("exports:download", "exports", "download", "Download exported data"),
-        ("students.self:read", "students.self", "read", "Student: view own profile"),
-        ("grades.self:read", "grades.self", "read", "Student: view own grades"),
-        ("attendance.self:read", "attendance.self", "read", "Student: view own attendance"),
-    ]
     name_to_perm: dict[str, models.Permission] = {}
-    for pkey, presource, paction, pdesc in perm_defs:
+    for pkey, presource, paction, pdesc in PERMISSION_DEFS:
         p = db.query(models.Permission).filter(models.Permission.key == pkey).first()
         if not p:
             p = models.Permission(key=pkey, resource=presource, action=paction, description=pdesc)
@@ -508,7 +568,6 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
             db.commit()
         name_to_perm[pkey] = p
 
-    # Grants
     def grant(role_name: str, perm_name: str):
         role = name_to_role[role_name]
         perm = name_to_perm[perm_name]
@@ -527,82 +586,63 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
                 details={"role": role_name, "permission": perm_name, "operation": "grant_permission"},
             )
 
-    # Admin wildcard (covers everything)
-    grant("admin", "*:*")
-
-    # Teacher permissions (explicit grants)
-    teacher_perms = [
-        "students:view",
-        "students:create",
-        "students:edit",
-        "students:delete",
-        "courses:view",
-        "courses:create",
-        "courses:edit",
-        "courses:delete",
-        "grades:view",
-        "grades:edit",
-        "grades:delete",
-        "attendance:view",
-        "attendance:edit",
-        "attendance:delete",
-        "enrollments:view",
-        "enrollments:manage",
-        "reports:view",
-        # Every /analytics, /reports and /metrics endpoint asks for reports:generate (the
-        # Dashboard overview included). Keep this list in step with backend.rbac's defaults;
-        # existing databases got the two grants from migration d3a7b9c1e5f2.
-        "reports:generate",
-        "reports:export",
-        "analytics:view",
-        "system:import",
-        "system:export",
-        "notifications:manage",
-        "exports:generate",
-        "exports:download",
-    ]
-    for pn in teacher_perms:
+    # The wildcard covers everything; the teacher's grants are given to admin as well, so
+    # that the list of what an administrator holds reads complete.
+    grant("admin", ADMIN_WILDCARD)
+    for pn in TEACHER_PERMISSIONS:
         grant("teacher", pn)
-
-    # Viewer/Guest permissions (read-only)
-    viewer_perms = [
-        "students:view",
-        "courses:view",
-        "grades:view",
-        "attendance:view",
-        "enrollments:view",
-        "reports:view",
-        "analytics:view",
-        "exports:generate",
-        "exports:download",
-    ]
-    for pn in viewer_perms:
-        grant("guest", pn)
-        grant("viewer", pn)
-
-    # Role hierarchy: Admin inherits all teacher permissions explicitly
-    # (wildcard already covers it, but explicit grants for clarity)
-    for pn in teacher_perms:
         grant("admin", pn)
 
-    # Teacher inherits all viewer permissions explicitly
-    for pn in viewer_perms:
-        grant("teacher", pn)
+    backfill_role_rows(db)
 
-    # Backfill UserRole from legacy User.role (admin/teacher/guest only)
-    users = db.query(models.User).all()
-    for u in users:
-        legacy = (getattr(u, "role", None) or "").strip().lower()
-        if legacy in name_to_role and legacy != "student":
-            role_obj = name_to_role[legacy]
-            exists = (
-                db.query(models.UserRole)
-                .filter(models.UserRole.user_id == u.id, models.UserRole.role_id == role_obj.id)
-                .first()
-            )
-            if not exists:
-                db.add(models.UserRole(user_id=u.id, role_id=role_obj.id))
-                db.commit()
+
+def backfill_role_rows(db: Session) -> int:
+    """Give every account the role row its Role column names, if it lacks it. Returns how many.
+
+    An account is what its rows say (backend.rbac has no other source), so an administrator
+    or teacher account without its row could do nothing. Such accounts exist: the first
+    administrator of an installation is created after the roles are seeded, and a database
+    from before the role tables has none. Called at every start, after the administrator
+    bootstrap, and by "Initialize RBAC Defaults".
+
+    It never gives a role back that was taken away: revoking an account's last role sets its
+    Role column to NO_ROLE, which names no role.
+    """
+    added = 0
+    roles = {role.name: role for role in db.query(models.Role).filter(models.Role.name.in_(LEGACY_ROLE_PRIORITY)).all()}
+    if not roles:
+        return 0
+    for user in db.query(models.User).all():
+        word = (getattr(user, "role", None) or "").strip().lower()
+        role = roles.get(word)
+        if role is None:
+            continue
+        held = (
+            db.query(models.UserRole)
+            .filter(models.UserRole.user_id == user.id, models.UserRole.role_id == role.id)
+            .first()
+        )
+        if not held:
+            db.add(models.UserRole(user_id=user.id, role_id=role.id))
+            added += 1
+    if added:
+        db.commit()
+    return added
+
+
+def backfill_role_rows_startup(session_factory) -> int:
+    """`backfill_role_rows` in a session of its own; a failure is logged and never raised."""
+    session = session_factory()
+    try:
+        added = backfill_role_rows(session)
+        if added:
+            logger.info("Role rows added for %s account(s) that had none for their role", added)
+        return added
+    except Exception as exc:
+        logger.warning("Role rows could not be checked at start: %s", exc, exc_info=True)
+        return 0
+    finally:
+        session.close()
 
 
 def ensure_defaults_startup(session_factory) -> bool:
@@ -612,6 +652,12 @@ def ensure_defaults_startup(session_factory) -> bool:
         perm_count = session.query(models.Permission).count()
         role_perm_count = session.query(models.RolePermission).count()
         needs_seed = role_count == 0 or perm_count == 0 or role_perm_count == 0
+
+        if not needs_seed:
+            # A database an earlier version let lose one of the two standard roles (it could
+            # be renamed or deleted then): the seed puts it back, and removes nothing.
+            standard = session.query(models.Role).filter(models.Role.name.in_(STANDARD_ROLES)).count()
+            needs_seed = standard < len(STANDARD_ROLES)
 
         if not needs_seed:
             try:
@@ -637,6 +683,8 @@ def ensure_defaults_startup(session_factory) -> bool:
         if needs_seed:
             _seed_defaults(session, None)
             return True
+        # Nothing to seed: the accounts' role rows are still made sure of (see the function).
+        backfill_role_rows(session)
         return False
     except Exception as exc:
         logger.warning("⚠️  RBAC defaults seeding skipped: %s", exc, exc_info=True)
@@ -651,12 +699,11 @@ async def ensure_defaults(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """Create default roles and permissions if they don't exist.
+    """Add the standard roles, permissions and grants that are missing. Removes nothing.
 
-    - Roles: admin, teacher, student
-    - Admin gets wildcard '*'
-    - Teacher gets permissive academic operations; student gets self-* reads
-    - Assign User.role -> UserRole when applicable
+    - Roles: admin, teacher
+    - admin holds the wildcard `*:*`; teacher holds TEACHER_PERMISSIONS
+    - Every account whose Role column names one of the two roles gets that role's row
     """
     try:
         _seed_defaults(db, request)
@@ -837,11 +884,11 @@ async def revoke_role(
             )
 
             # The word in the account's Role column follows the roles the account still
-            # holds: the highest of the four built-in ones, or NO_ROLE when the last of them
-            # is gone. It used to stay as it was (and to become "teacher" for an administrator
-            # left without roles), and an account without role rows gets the built-in
-            # permissions of that word (backend.rbac): revoking the only role of a teacher
-            # took nothing away, and the next "Initialize RBAC Defaults" gave the role back.
+            # holds: the higher of the two standard ones, or NO_ROLE when both are gone. It
+            # used to stay as it was (and to become "teacher" for an administrator left
+            # without roles). The role checks read that word (optional_require_role), and the
+            # start-up step gives every account the row of the role its word names: with the
+            # word left in place, the next start gave the revoked role back.
             if role.name in LEGACY_ROLE_PRIORITY and (user.role or "").strip().lower() in LEGACY_ROLE_PRIORITY:
                 remaining = _resolve_legacy_role_for_user(db, user) or NO_ROLE
                 if user.role != remaining:

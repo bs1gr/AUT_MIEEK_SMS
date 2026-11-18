@@ -95,8 +95,11 @@ def test_the_refresh_token_does_not_log_in(client):
     assert refused.status_code == 401, refused.text
 
 
-def test_the_refresh_token_does_not_open_the_api_in_strict_mode(client, strict_auth):
+def test_the_refresh_token_does_not_open_the_api_in_strict_mode(client, db, strict_auth):
+    from backend.tests.conftest import started_installation
+
     access, refresh = _login(client, role="admin")
+    started_installation(db)  # the roles and this account's role row, as after a start
 
     assert client.get("/api/v1/students/", headers=_bearer(access)).status_code == 200
     assert client.get("/api/v1/students/", headers=_bearer(refresh)).status_code == 401

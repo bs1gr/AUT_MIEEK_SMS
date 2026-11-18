@@ -580,57 +580,84 @@ def test_024_viewer_read_only_enforcement(db):
 # ============================================================================
 
 
+def _held_by_role(db, role_name: str) -> set[str]:
+    rows = (
+        db.query(Permission.key)
+        .join(RolePermission, RolePermission.permission_id == Permission.id)
+        .join(Role, Role.id == RolePermission.role_id)
+        .filter(Role.name == role_name)
+    )
+    return {key for (key,) in rows}
+
+
 def test_025_admin_has_all_seeded_permissions(db):
-    """Admin role should receive all seeded permissions."""
-    from backend.rbac import _default_role_permissions
+    """The role admin holds the wildcard, which covers every permission."""
+    from backend.routers.routers_rbac import _seed_defaults
 
-    admin_defaults = _default_role_permissions("admin")
+    _seed_defaults(db)
 
-    # Admin should have wildcard permission
-    assert "*:*" in admin_defaults
+    assert "*:*" in _held_by_role(db, "admin")
+    assert _held_by_role(db, "teacher") <= _held_by_role(db, "admin")
 
 
 def test_026_teacher_has_expected_subset(db):
-    """Teacher role should have expected subset of permissions."""
-    from backend.rbac import _default_role_permissions
+    """The role teacher holds the daily work, and nothing of the administration."""
+    from backend.routers.routers_rbac import _seed_defaults
 
-    teacher_defaults = _default_role_permissions("teacher")
+    _seed_defaults(db)
+    teacher = _held_by_role(db, "teacher")
 
-    # Check core teacher permissions
-    assert "students:view" in teacher_defaults
-    assert "students:edit" in teacher_defaults
-    assert "courses:view" in teacher_defaults
-    assert "grades:view" in teacher_defaults
-    assert "grades:edit" in teacher_defaults
-    assert "reports:generate" in teacher_defaults
-    assert "reports:export" in teacher_defaults
-
-
-def test_026_staff_has_expected_export_subset(db):
-    """Staff fallback should match seeded reporting/export permissions."""
-    from backend.rbac import _default_role_permissions
-
-    staff_defaults = _default_role_permissions("staff")
-
-    assert "students:create" in staff_defaults
-    assert "reports:generate" in staff_defaults
-    assert "reports:export" in staff_defaults
-    assert "analytics:view" in staff_defaults
-    assert "analytics:export" in staff_defaults
-    assert "reports:schedule" not in staff_defaults
+    for key in (
+        "students:view",
+        "students:edit",
+        "courses:view",
+        "grades:view",
+        "grades:edit",
+        "reports:generate",
+        "reports:export",
+        "imports:preview",
+        "imports:execute",
+        "jobs:view",
+    ):
+        assert key in teacher, key
+    for key in ("*:*", "users:manage", "permissions:manage", "audit:view", "sessions:manage", "adminops:backup"):
+        assert key not in teacher, key
 
 
-def test_026b_legacy_role_drift_uses_legacy_defaults(db, monkeypatch):
-    """Legacy role should repair stale RBAC role assignment drift at check time."""
+@pytest.mark.parametrize("word", ["staff", "viewer", "guest", "student", "none"])
+def test_026_a_word_that_names_no_role_gives_nothing(db, monkeypatch, word):
+    """There is no built-in list any more: what an account may do is what its rows say.
+
+    Until 18 November 2026 an account without role rows was given a list kept in the code,
+    by the word in its Role column (staff, viewer, guest and student each had one).
+    """
     from backend.rbac import get_user_permissions
+    from backend.routers.routers_rbac import _seed_defaults
 
     monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+    user = User(email=f"{word}@test.com", hashed_password="dummy", is_active=True, role=word)
+    db.add(user)
+    db.commit()
+    _seed_defaults(db)  # the start-up step gives a row to administrators and teachers only
+    db.refresh(user)
 
-    teacher_role = Role(name="teacher", description="Teacher role")
-    students_view = create_permission(db, "students:view")
-    db.add_all([teacher_role, students_view])
-    db.flush()
-    db.add(RolePermission(role_id=teacher_role.id, permission_id=students_view.id))
+    assert get_user_permissions(user, db) == []
+    assert has_permission(user, "students:view", db) is False
+    assert has_permission(user, "reports:generate", db) is False
+
+
+def test_026b_an_account_is_what_its_rows_say_and_the_start_gives_the_missing_row(db, monkeypatch):
+    """An administrator whose only row is the teacher's holds the teacher's permissions, until
+    the start-up step gives the account the row its Role column names.
+
+    The code used to notice the difference at each check and answer from its built-in list.
+    """
+    from backend.rbac import get_user_permissions
+    from backend.routers.routers_rbac import _seed_defaults, backfill_role_rows
+
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+    _seed_defaults(db)
+    teacher_role = db.query(Role).filter(Role.name == "teacher").one()
 
     user = User(email="drift-admin@test.com", hashed_password="dummy", is_active=True, role="admin")
     db.add(user)
@@ -640,24 +667,31 @@ def test_026b_legacy_role_drift_uses_legacy_defaults(db, monkeypatch):
     db.refresh(user)
 
     assert has_permission(user, "students:view", db) is True
-    assert has_permission(user, "analytics:export", db) is True
+    assert has_permission(user, "users:manage", db) is False
+    assert "*:*" not in get_user_permissions(user, db)
+
+    assert backfill_role_rows(db) == 1
+
+    assert has_permission(user, "users:manage", db) is True
     assert "*:*" in get_user_permissions(user, db)
+    # A second start finds nothing to add.
+    assert backfill_role_rows(db) == 0
 
 
-def test_027_viewer_has_expected_subset(db):
-    """Viewer role should have minimal read permissions only."""
-    from backend.rbac import _default_role_permissions
+def test_027_the_start_never_gives_back_a_role_that_was_taken_away(db, monkeypatch):
+    """The word "none" names no role, so the start-up step leaves such an account without one."""
+    from backend.routers.routers_rbac import _seed_defaults, backfill_role_rows
 
-    viewer_defaults = _default_role_permissions("viewer")
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+    _seed_defaults(db)
+    user = User(email="revoked@test.com", hashed_password="dummy", is_active=True, role="none")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 
-    # Viewer should have read-only permissions
-    assert "students:view" in viewer_defaults
-    assert "courses:view" in viewer_defaults
-    assert "grades:view" in viewer_defaults
-
-    # Should NOT have edit permissions
-    assert "students:edit" not in viewer_defaults
-    assert "grades:edit" not in viewer_defaults
+    assert backfill_role_rows(db) == 0
+    assert db.query(UserRole).filter(UserRole.user_id == user.id).count() == 0
+    assert has_permission(user, "students:view", db) is False
 
 
 @pytest.mark.skip(reason="Seed script testing requires actual seed script")

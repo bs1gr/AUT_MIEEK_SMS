@@ -1,16 +1,17 @@
 # Permission matrix: who can do what
 
-**Checked against the application:** 17 November 2026, `main` after v1.18.73. The table of
-endpoints at the end is read from the application's own route table; the cells of the first table were tried
-against a running copy as an administrator, a teacher, a viewer, a guest, a student account and
-without a sign-in.
+**Checked against the application:** 18 November 2026, `main` after v1.18.73. The table of
+endpoints at the end is read from the application's own route table; the cells of the first
+table were tried against a running copy as an administrator, a teacher, an account without a
+role and without a sign-in.
 
 **Related:** [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md) (every permission and what it
 opens) and [RBAC_ADMIN_GUIDE.md](RBAC_ADMIN_GUIDE.md) (the administrator's steps).
 
-This file replaces a design document of January 2026 that listed 25 planned permissions and
-what three planned roles would get. The application was built differently in several places
-(a teacher adds and deletes students and courses, for one), so that text is gone.
+Since 18 November 2026 the application has two roles. The roles Viewer and Guest are gone,
+"Student" is no longer a role an account can have, and teachers import students and courses
+(the owner's decisions; not in v1.18.73 or earlier). The reference says what an upgrade does
+with the accounts that had one of the three.
 
 ---
 
@@ -19,54 +20,48 @@ what three planned roles would get. The application was built differently in sev
 | Kind | How an account gets it | What it holds |
 |---|---|---|
 | **Administrator** (`admin`) | Role "Administrator" in **User Accounts**, or the role `admin` under **Assign Role to User** | Every permission (the wildcard `*:*`), and the things only the administrator role may do |
-| **Teacher** (`teacher`) | Role "Teacher" in **User Accounts**; every account that registers itself | 25 permissions: all of the school's records, reports, exports, messages |
-| **Viewer** (`viewer`) and **Guest** (`guest`) | Only under **Assign Role to User**; the two hold the same | 9 permissions: read the records, export them |
-| **Student** (`student`) | Role "Student" in **User Accounts** | Nothing that opens anything: see below |
-| **No role** (`none`) | Every role of the account revoked under **Assign Role to User** | Nothing. In the table below it is refused what a student account is refused. |
+| **Teacher** (`teacher`) | Role "Teacher" in **User Accounts**; every account that registers itself | 25 permissions: all of the school's records, reports, exports, imports, messages |
+| **No role** (`none`) | "No role" under **Edit** in **User Accounts**, or every role of the account revoked under **Assign Role to User**; an account that was a Student, Viewer or Guest before the upgrade | Nothing |
 
 Both panels are under **System > Control Panel > Maintenance**.
 
-A student account is not a role in the permission tables. It can sign in, read its own
-notifications and change its password; every page of records answers "forbidden". The code has
-a rule that lets a student read the record that belongs to its own account, but no page and no
-request ever ties a student record to an account, so the rule never applies.
+An account without a role can sign in, read its own notifications and change its password;
+every page of records answers "forbidden". Students have no accounts: a student is a record
+the teachers keep, not somebody who signs in.
 
 ## What each kind can do
 
 ✅ the server allows it, ❌ the server refuses it (HTTP 403; 401 without a sign-in).
 
-| Task | Administrator | Teacher | Viewer, Guest | Student account |
-|---|---|---|---|---|
-| See students, courses, enrolments, grades, attendance, highlights | ✅ | ✅ | ✅ | ❌ |
-| Search page | ✅ | ✅ | ✅ | ❌ |
-| Add, change and delete students and courses; enrol | ✅ | ✅ | ❌ | ❌ |
-| Record and delete grades and attendance, daily performance, highlights | ✅ | ✅ | ❌ | ❌ |
-| Lesson log: read, write, export | ✅ | ✅ | ❌ | ❌ |
-| Own private notes about a student | ✅ | ✅ | ✅ | ❌ |
-| Dashboard figures, Analytics page, student performance reports | ✅ | ✅ | ❌ | ❌ |
-| Custom reports: list, create, change, delete | ✅ | ✅ | ✅ | ❌ |
-| Custom reports: generate and download | ✅ | ✅ | ❌ | ❌ |
-| Report templates: create, change, delete, import | ✅ | ❌ | ❌ | ❌ |
-| Export files (Utils > Export: CSV, Excel, PDF, everything as a ZIP) | ✅ | ✅ | ✅ | ❌ |
-| Import files (Utils > Imports; Control Panel > Import/Export) | ✅ | ❌ | ❌ | ❌ |
-| Session export and import (Utils > Export) | ✅ | ❌ | ❌ | ❌ |
-| Send a message to all users or to a role | ✅ | ✅ | ❌ | ❌ |
-| Feedback inbox (Utils > Notifications) | ✅ | ✅ | ❌ | ❌ |
-| Own notifications, saved searches, own dashboards, own password | ✅ | ✅ | ✅ | ✅ |
-| Accounts: list, create, change, delete, reset a password | ✅ | ❌ | ❌ | ❌ |
-| Roles and permissions: see and change | ✅ | ❌ | ❌ | ❌ |
-| Audit log (no page shows it; the API answers) | ✅ | ❌ | ❌ | ❌ |
-| Backup, restore and clear the database through `/adminops` | ✅ | ❌ | ❌ | ❌ |
-| Semester archive, e-mail settings, rate limits | ✅ | ❌ | ❌ | ❌ |
-| A student's data export and erasure (GDPR), the health field | ✅ | ❌ | ❌ | ❌ |
+| Task | Administrator | Teacher | No role |
+|---|---|---|---|
+| See students, courses, enrolments, grades, attendance, highlights | ✅ | ✅ | ❌ |
+| Search page | ✅ | ✅ | ❌ |
+| Add, change and delete students and courses; enrol | ✅ | ✅ | ❌ |
+| Record and delete grades and attendance, daily performance, highlights | ✅ | ✅ | ❌ |
+| Lesson log: read, write, export | ✅ | ✅ | ❌ |
+| Own private notes about a student | ✅ | ✅ | ❌ |
+| Dashboard figures, Analytics page, student performance reports | ✅ | ✅ | ❌ |
+| Custom reports: list, create, change, delete, generate and download | ✅ | ✅ | ❌ |
+| Report templates: create, change, delete, import | ✅ | ❌ | ❌ |
+| Export files (Utils > Export: CSV, Excel, PDF, everything as a ZIP) | ✅ | ✅ | ❌ |
+| Import students and courses from a file (Utils > Imports), and follow the import | ✅ | ✅ | ❌ |
+| Session export and import (Utils > Export) | ✅ | ❌ | ❌ |
+| Send a message to all users or to a role | ✅ | ✅ | ❌ |
+| Feedback inbox (Utils > Notifications) | ✅ | ✅ | ❌ |
+| Own notifications, saved searches, own dashboards, own password | ✅ | ✅ | ✅ |
+| Accounts: list, create, change, delete, reset a password | ✅ | ❌ | ❌ |
+| Roles and permissions: see and change | ✅ | ❌ | ❌ |
+| Audit log (no page shows it; the API answers) | ✅ | ❌ | ❌ |
+| Backup, restore and clear the database through `/adminops` | ✅ | ❌ | ❌ |
+| Semester archive, e-mail settings, rate limits | ✅ | ❌ | ❌ |
+| A student's data export and erasure (GDPR), the health field | ✅ | ❌ | ❌ |
 
-Three rows deserve a second look:
+Two rows deserve a second look:
 
-- **A viewer exports everything.** "Read-only" means the account cannot change a record. It
-  can download every list and the ZIP of all of them.
-- **A viewer has no Dashboard figures.** The Dashboard and the Analytics page ask for
-  `reports:generate`, which the viewer and guest roles do not hold, so those pages open with
-  empty panels.
+- **A semester's session file stays with the administrator.** A teacher imports students and
+  courses; the file that carries a whole semester, grades and attendance included, asks for
+  `sessions:manage`.
 - **The export jobs of Control Panel > Import/Export** are a separate, partly broken feature
   (plan todo 62) and are not in the table.
 
@@ -83,8 +78,8 @@ the moment of the request.
   the privacy panel in a student's edit window, and the target "Specific users" of a message.
 - Shown to administrators and teachers only: the form that sends a message, the feedback
   inbox, "Add Highlight" on a student's profile.
-- A viewer, a guest and a student account therefore see buttons such as "Add Student". The
-  server refuses the request and the page reports a failure.
+- An account without a role therefore sees buttons such as "Add Student". The server refuses
+  the request and the page reports a failure.
 
 ## Addresses outside the table
 
@@ -129,7 +124,8 @@ How to read the right-hand column:
 
 - A permission in code font: the account must hold it. "or" means any one is enough, "and"
   means all of them.
-- "(or the student's own record)": the rule for student accounts described above.
+- "(or the student's own record)": a rule left in the code for student accounts, which no
+  account can be any more. See [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md#accounts-without-a-role).
 - "role `admin`": the account's role is checked, not a permission. A grant cannot open it.
 - "signed in": any active account.
 - "nothing": answers without a sign-in.

@@ -31,6 +31,41 @@ def _parse_bool(value: Any) -> bool:
     return bool(value)
 
 
+def _ensure_admin_role_row(session: Session, models_mod: Any, user: Any, log: logging.Logger) -> None:
+    """Give the account the row of the role "admin", if the role exists and the row is missing.
+
+    An account is what its role rows say (backend.rbac): the word "admin" in the Role column
+    alone opens nothing. On a database whose roles are not seeded yet there is nothing to add
+    here; the start-up step that seeds them adds the row
+    (backend.routers.routers_rbac.backfill_role_rows). Never fails the bootstrap.
+    """
+    try:
+        role_model = getattr(models_mod, "Role", None)
+        user_role_model = getattr(models_mod, "UserRole", None)
+        if role_model is None or user_role_model is None or getattr(user, "id", None) is None:
+            return
+        if str(getattr(user, "role", "") or "").strip().lower() != "admin":
+            return
+        role = session.query(role_model).filter(role_model.name == "admin").first()
+        if role is None:
+            return
+        held = (
+            session.query(user_role_model)
+            .filter(user_role_model.user_id == user.id, user_role_model.role_id == role.id)
+            .first()
+        )
+        if held is None:
+            session.add(user_role_model(user_id=user.id, role_id=role.id))
+            session.commit()
+            log.info("Bootstrap: gave %s the role row of admin", getattr(user, "email", "?"))
+    except Exception as exc:  # the account exists; the start-up step will add the row
+        try:
+            session.rollback()
+        except Exception:
+            pass
+        log.warning("Bootstrap: could not check the admin role row: %s", exc)
+
+
 def ensure_default_admin_account(
     *,
     settings: Any,
@@ -138,6 +173,7 @@ def ensure_default_admin_account(
                 change_required,
             )
             _echo(f"✅ Admin user created: {email}")
+            _ensure_admin_role_row(session, models_mod, user, log)
             return
 
         changed_fields: list[str] = []
@@ -177,6 +213,7 @@ def ensure_default_admin_account(
             _echo(f"✅ Admin user updated: {email} ({', '.join(changed_fields)})")
         else:
             log.debug("✅ Bootstrap: default admin user %s already up to date", email)
+        _ensure_admin_role_row(session, models_mod, user, log)
     except Exception as exc:
         if session is not None:
             session.rollback()

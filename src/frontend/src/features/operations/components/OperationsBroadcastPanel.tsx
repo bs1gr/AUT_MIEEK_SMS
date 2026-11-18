@@ -108,8 +108,6 @@ const OperationsBroadcastPanel = ({
               >
                 <option value="admin">{t('roles.admin', { ns: 'notifications' })}</option>
                 <option value="teacher">{t('roles.teacher', { ns: 'notifications' })}</option>
-                <option value="student">{t('roles.student', { ns: 'notifications' })}</option>
-                <option value="viewer">{t('roles.viewer', { ns: 'notifications' })}</option>
               </select>
             </label>
           )}

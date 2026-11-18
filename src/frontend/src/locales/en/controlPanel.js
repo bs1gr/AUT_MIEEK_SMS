@@ -305,20 +305,12 @@ export default {
   nameNotProvided: 'Not provided',
   roles: {
     admin: 'Administrator',
-    staff: 'Staff',
     teacher: 'Teacher',
-    student: 'Student',
-    viewer: 'Viewer',
-    guest: 'Guest',
     none: 'No role'
   },
   roleDescriptions: {
     admin: 'Administrator with full system access',
-    staff: 'Staff role',
-    teacher: 'Teacher with teaching and grading capabilities',
-    student: 'Student role',
-    viewer: 'Read-only access to most resources',
-    guest: 'Guest (read-only)'
+    teacher: 'Teacher with teaching and grading capabilities'
   },
   isActiveLabel: 'Active',
   save: 'Save',

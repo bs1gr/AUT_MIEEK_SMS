@@ -990,6 +990,13 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
 
             ensure_default_admin_account(settings=settings, session_factory=restore_session_factory, close_session=True)
             logger.info("Admin account ensured after restore")
+
+            # The restored accounts are what their role rows say. A backup from an older
+            # version can hold administrator and teacher accounts without their row: give
+            # them it now, and not only at the next start.
+            from backend.routers.routers_rbac import ensure_defaults_startup
+
+            ensure_defaults_startup(restore_session_factory)
         except Exception as e:
             logger.warning(f"Failed to ensure admin account after restore: {e}", exc_info=True)
 

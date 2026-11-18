@@ -125,8 +125,6 @@ export const notificationsEN = {
   roles: {
     admin: 'Admin',
     teacher: 'Teacher',
-    student: 'Student',
-    viewer: 'Viewer',
   },
 
   // Bell component

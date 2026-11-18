@@ -316,7 +316,7 @@ Choose the **Type** (Students, Courses or Grades) and type in **Query**.
   in either direction. **Results per page** is 10, 20 or 50; **Previous** and **Next** turn
   the pages, and the page says how many results there are.
 
-A student account has no search: the server refuses it.
+An account without a role has no search: the server refuses it.
 
 ## 11. Utils
 
@@ -332,8 +332,13 @@ Six tabs.
   it.
 - *Reports & Templates:* ways into the Reports tab.
 
-**Imports.** Checking a CSV or JSON file of students or courses before importing it, and
-importing it. For administrators only: the server refuses a teacher.
+**Imports.** For administrators and teachers: students or courses from CSV or JSON files.
+Choose **Students** or **Courses**, pick the files under **Upload files** (or paste the
+records), and click **Run preview**: the page shows what would happen to each row (create,
+update, skip) and what is wrong with it, and changes nothing. **Confirm & Import** then does
+it, and is offered when no row has an error; **Background job status** below shows the import
+while it runs and what it did. A record that already exists is left as it is unless **Allow
+updates to existing records** is ticked.
 
 **Settings.** The **theme** of the pages, with a preview; the **timezone**; and the **date
 format** (DD/MM/YYYY, DD/MM/YY or MM/DD/YYYY). They are remembered on the device, not in the
@@ -348,7 +353,7 @@ and deleting templates is for administrators.
 users or to the users of one role, and the **Feedback Inbox** with what was sent through
 Send Feedback. See [NOTIFICATIONS_USER_GUIDE.md](NOTIFICATIONS_USER_GUIDE.md).
 
-**Help & Documentation.** Seventy-nine questions and answers in eighteen groups, with a
+**Help & Documentation.** Eighty questions and answers in eighteen groups, with a
 search box, in English and in Greek. They were read against the pages on 18 November 2026.
 "Quick Guide", under the groups, downloads a one-page summary as a PDF; it is not this guide.
 
@@ -365,7 +370,7 @@ what is shown; **Refresh** reads it again.
 **Select Dashboard** and **Manage** are for arrangements of this page that you save under a
 name ("Dashboard Manager").
 
-A viewer or guest account gets no figures here or on the Dashboard: the server refuses them.
+An account without a role gets no figures here or on the Dashboard: the server refuses them.
 
 ## 13. System
 
@@ -395,10 +400,10 @@ Utils > Export instead.
 | Account | In short |
 |---|---|
 | Administrator | Everything |
-| Teacher | Students, courses, enrolments, attendance, the lesson log, grades, reports, exports, messages to all users. Not accounts, imports, backups. |
-| Viewer, Guest | Read the records and export them; change nothing; no Dashboard figures |
-| Student | Sign in. No page of records opens. |
-| No role | The same: an administrator took the account's roles away. |
+| Teacher | Students, courses, enrolments, attendance, the lesson log, grades, reports, exports, imports of students and courses, messages to all users. Not accounts, a semester's session file, backups. |
+| No role | Sign in. No page of records opens. An administrator took the account's roles away, or it was a Student, Viewer or Guest account before those three went (18 November 2026). |
+
+Students have no accounts: a student is a record the teachers keep, not somebody who signs in.
 
 Every account sees the same pages and buttons. What it may do is decided by the server at
 each request, so an account that may not do something sees the button and gets a failure

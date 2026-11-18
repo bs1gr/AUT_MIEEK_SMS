@@ -176,14 +176,15 @@ export interface HighlightCreatePayload {
   is_positive?: boolean;
 }
 
-/** The roles the account forms can send (POST and PATCH /admin/users accept these three). */
-export type UserRole = 'admin' | 'teacher' | 'student';
+/** The two roles of the application: what an account can be created with. */
+export type UserRole = 'admin' | 'teacher';
 
 /**
- * What the Role column of an account can say: Viewer and Guest come from RBAC Configuration >
- * Assign Role to User, and 'none' is an account whose roles were all revoked there.
+ * What the Role column of an account can say: one of the two roles, or 'none' for an account
+ * that holds no role (its roles were all revoked, or it was a Student, Viewer or Guest
+ * account before those went). PATCH /admin/users accepts all three.
  */
-export type AccountRole = UserRole | 'viewer' | 'guest' | 'none';
+export type AccountRole = UserRole | 'none';
 
 export interface UserAccount {
   id: number;
@@ -209,7 +210,7 @@ export interface CreateUserPayload {
 
 export interface UpdateUserPayload {
   full_name?: string | null;
-  role?: UserRole;
+  role?: AccountRole;
   is_active?: boolean;
 }
 

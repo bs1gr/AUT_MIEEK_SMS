@@ -100,8 +100,11 @@ def strict_auth(monkeypatch):
 
 @pytest.fixture
 def admin_headers(db):
+    from backend.tests.conftest import started_installation
+
     db.add(User(email="loop-admin@example.com", hashed_password="x", role="admin", is_active=True))
     db.commit()
+    started_installation(db)  # the roles and this account's role row, as after a start
     return {"Authorization": f"Bearer {create_access_token(subject='loop-admin@example.com', role='admin')}"}
 
 
@@ -215,17 +218,17 @@ def test_a_slow_database_does_not_hold_the_loop_during_the_checks(db, name, stri
 
 @pytest.mark.parametrize("name", DECORATORS)
 def test_strict_mode_still_refuses_and_admits(db, name, strict_auth, admin_headers):
-    # A student account holds only the "self" permissions, neither students:view nor courses:view.
-    db.add(User(email="loop-student@example.com", hashed_password="x", role="student", is_active=True))
+    # An account without a role holds nothing, neither students:view nor courses:view.
+    db.add(User(email="loop-norole@example.com", hashed_password="x", role="none", is_active=True))
     db.commit()
-    student = {"Authorization": f"Bearer {create_access_token(subject='loop-student@example.com', role='student')}"}
+    without_role = {"Authorization": f"Bearer {create_access_token(subject='loop-norole@example.com', role='none')}"}
     app = _app(DECORATORS[name](), db)
 
     async def scenario(client):
         return {
             "no token": (await client.get("/coroutine")).status_code,
             "garbage token": (await client.get("/coroutine", headers={"Authorization": "Bearer garbage"})).status_code,
-            "no permission": (await client.get("/blocking", headers=student)).status_code,
+            "no permission": (await client.get("/blocking", headers=without_role)).status_code,
             "admin, def endpoint": (await client.get("/blocking", headers=admin_headers)).status_code,
             "admin, coroutine endpoint": (await client.get("/coroutine", headers=admin_headers)).status_code,
         }

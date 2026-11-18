@@ -361,9 +361,11 @@ class TestHealthCheckQueries:
 def _headers(db, email: str, role: str) -> dict:
     from backend.models import User
     from backend.routers.routers_auth import create_access_token
+    from backend.tests.conftest import started_installation
 
     db.add(User(email=email, hashed_password="x", role=role, is_active=True))
     db.commit()
+    started_installation(db)  # the roles and this account's role row, as after a start
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 

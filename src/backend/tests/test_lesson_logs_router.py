@@ -254,9 +254,11 @@ def test_the_router_is_registered(client):
 def _headers_for(db, email: str, role: str) -> dict:
     from backend.models import User
     from backend.routers.routers_auth import create_access_token
+    from backend.tests.conftest import started_installation
 
     db.add(User(email=email, hashed_password="x", role=role, is_active=True))
     db.commit()
+    started_installation(db)  # the roles and this account's role row, as after a start
     return {"Authorization": f"Bearer {create_access_token(subject=email, role=role)}"}
 
 
@@ -282,8 +284,8 @@ def test_anonymous_requests_are_refused(client, course_id, strict_auth):
 
 
 @pytest.mark.auth_required
-@pytest.mark.parametrize("role", ["viewer", "guest", "student"])
-def test_read_only_and_student_roles_can_neither_read_nor_write(client, db, course_id, strict_auth, role):
+@pytest.mark.parametrize("role", ["none", "student", "staff"])
+def test_an_account_without_a_role_can_neither_read_nor_write(client, db, course_id, strict_auth, role):
     headers = _headers_for(db, f"{role}@example.com", role)
 
     assert client.get(URL, headers=headers).status_code == 403
@@ -291,7 +293,7 @@ def test_read_only_and_student_roles_can_neither_read_nor_write(client, db, cour
 
 
 @pytest.mark.auth_required
-@pytest.mark.parametrize("role", ["teacher", "staff", "admin"])
+@pytest.mark.parametrize("role", ["teacher", "admin"])
 def test_people_who_can_edit_attendance_can_read_and_write(client, db, course_id, strict_auth, role):
     headers = _headers_for(db, f"{role}@example.com", role)
 

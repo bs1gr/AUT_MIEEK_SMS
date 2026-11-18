@@ -5,7 +5,7 @@ and "Revoke: Role". Until 18 November 2026 both role boxes were empty, because t
 for the roles at an address the server does not have, so nobody could send these requests
 from the page. Now that the page can, three things have to hold:
 
-- the address the page reads the roles from exists and names the four roles;
+- the address the page reads the roles from exists and names the roles;
 - a permission granted to a role opens what it names for the accounts of that role, and
   revoking it closes it again;
 - ``*:*`` cannot be taken from the role ``admin``. ``POST /admin/rbac/revoke-permission`` has
@@ -20,9 +20,12 @@ whether the permission was on), which left an installation with no way back shor
 the database. They are refused now, and the check at start repairs a database that is
 already in that state.
 
-Renaming or deleting the role ``admin`` was tried as well and locks nobody out: the grants
-follow the role's number, and an administrator without the role gets the built-in list.
-Those two requests are left as they were, and the last test says what they do.
+Renaming or deleting the role ``admin`` locked nobody out that day: an administrator without
+the role was given a list the code kept for the word "admin". That list went the same day
+(an account may do what its rows say), and with it gone the two requests would have left
+every administrator with nothing, "Initialize RBAC Defaults" included, and a restart would
+not have helped. The two standard roles, ``admin`` and ``teacher``, can now be neither renamed
+nor deleted, and a start puts a missing one back.
 """
 
 import pytest
@@ -62,7 +65,7 @@ def test_the_page_can_read_the_roles(school: tuple[TestClient, Headers]) -> None
     answer = client.get("/api/v1/admin/rbac/roles", headers=admin)
 
     assert answer.status_code == 200, answer.text
-    assert {role["name"] for role in answer.json()} == {"admin", "teacher", "viewer", "guest"}
+    assert {role["name"] for role in answer.json()} == {"admin", "teacher"}
     # The address the page used to ask. If it ever starts to exist, the page has two to choose from.
     assert client.get("/api/v1/rbac/roles", headers=admin).status_code == 404
 
@@ -162,14 +165,69 @@ def test_what_these_requests_may_still_do(school: tuple[TestClient, Headers]) ->
     assert client.patch(f"/api/v1/permissions/{audit}", json={"is_active": False}, headers=admin).status_code == 200
     assert _is_an_administrator(client, admin)
 
-    # The role "admin" may be renamed, and deleted: the grants follow its number, and without
-    # the role the account gets the built-in list for the word "admin" in its Role column.
-    renamed = client.put(f"/api/v1/admin/rbac/roles/{admin_role}", json={"name": "boss"}, headers=admin)
-    assert renamed.status_code == 200, renamed.text
+    # A standard role may get another description, and be sent its own name again.
+    described = client.put(
+        f"/api/v1/admin/rbac/roles/{admin_role}", json={"name": "Admin", "description": "The head"}, headers=admin
+    )
+    assert described.status_code == 200, described.text
+    assert described.json()["name"] == "admin"
+    # A role of the installation's own may be renamed and deleted.
+    made = client.post("/api/v1/admin/rbac/roles", json={"name": "librarian"}, headers=admin)
+    assert made.status_code == 200, made.text
+    own = made.json()["id"]
+    assert client.put(f"/api/v1/admin/rbac/roles/{own}", json={"name": "archivist"}, headers=admin).status_code == 200
+    assert client.delete(f"/api/v1/admin/rbac/roles/{own}", headers=admin).status_code == 200
     assert _is_an_administrator(client, admin)
-    deleted = client.delete(f"/api/v1/admin/rbac/roles/{admin_role}", headers=admin)
-    assert deleted.status_code == 200, deleted.text
+
+
+@pytest.mark.parametrize("role_name", ["admin", "teacher"])
+def test_the_two_standard_roles_can_be_neither_renamed_nor_deleted(
+    school: tuple[TestClient, Headers],  # noqa: F811
+    role_name: str,
+) -> None:
+    client, admin = school
+    _create(client, admin, "teacher@example.com", "teacher")
+    teacher = _sign_in(client, "teacher@example.com")
+    summary = client.get("/api/v1/admin/rbac/summary", headers=admin).json()
+    role_id = next(r["id"] for r in summary["roles"] if r["name"] == role_name)
+
+    renamed = client.put(f"/api/v1/admin/rbac/roles/{role_id}", json={"name": "boss"}, headers=admin)
+    deleted = client.delete(f"/api/v1/admin/rbac/roles/{role_id}", headers=admin)
+
+    assert (renamed.status_code, deleted.status_code) == (400, 400), (renamed.text, deleted.text)
+    assert role_name in renamed.text and role_name in deleted.text
     assert _is_an_administrator(client, admin)
+    assert client.get("/api/v1/students/", headers=teacher).status_code == 200
+
+
+@pytest.mark.parametrize("damage", ["deleted", "renamed"])
+def test_a_start_puts_the_role_admin_back(
+    school: tuple[TestClient, Headers],  # noqa: F811
+    damage: str,
+) -> None:
+    """A database an earlier version let into this state. Deleted, no administrator holds
+    anything; renamed, the ones that exist go on and one created afterwards holds nothing."""
+    from backend import models
+    from backend.routers.routers_rbac import ensure_defaults_startup
+
+    client, admin = school
+    with _session(client) as db:
+        role = db.query(models.Role).filter(models.Role.name == "admin").one()
+        if damage == "deleted":
+            db.query(models.UserRole).filter(models.UserRole.role_id == role.id).delete()
+            db.query(models.RolePermission).filter(models.RolePermission.role_id == role.id).delete()
+            db.delete(role)
+        else:
+            role.name = "boss"
+        db.commit()
+    assert _is_an_administrator(client, admin) is (damage == "renamed")
+
+    assert ensure_defaults_startup(lambda: _session(client)) is True
+
+    assert _is_an_administrator(client, admin)
+    _create(client, admin, "second@example.com", "admin")
+    assert _is_an_administrator(client, _sign_in(client, "second@example.com"))
+    assert ensure_defaults_startup(lambda: _session(client)) is False
 
 
 @pytest.mark.parametrize("damage", ["switched off", "deleted", "renamed"])

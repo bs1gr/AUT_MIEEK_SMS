@@ -1,4 +1,4 @@
-"""What an account keeps when its role is changed to Student, and what is left when it is deleted.
+"""What an account keeps when its role is taken away, and what is left when it is deleted.
 
 Two ways an account held access that the list of accounts said it did not have. Both were
 found on 17 November 2026, while the permission documents were being checked against a
@@ -17,6 +17,10 @@ running copy.
 
 A database may still hold what an account deleted by an earlier version left behind, so the
 same rows are cleared under a new account's number when the account is created.
+
+Since 18 November 2026 "student" is not a role an account can have. The word that takes every
+role away is "none" ("No role" in User Accounts), and an account is created as an
+administrator or as a teacher. The first defect is tested with that word.
 """
 
 from typing import Any
@@ -101,17 +105,17 @@ def _status(client: TestClient, method: str, path: str, headers: Headers) -> int
     return client.request(method, f"/api/v1{path}", headers=headers).status_code
 
 
-# --- the role "student" ------------------------------------------------------------------------
+# --- "No role" -----------------------------------------------------------------------------------
 
 
-def test_a_teacher_changed_to_student_loses_the_teachers_access(school):
+def test_a_teacher_changed_to_no_role_loses_the_teachers_access(school):
     client, admin = school
     user_id = _create(client, admin, "was.teacher@example.com", "teacher")
     account = _sign_in(client, "was.teacher@example.com")
     assert _roles(client, user_id) == {"teacher"}
     assert _status(client, "GET", "/students/", account) == 200
 
-    _set_role(client, admin, user_id, "student")
+    _set_role(client, admin, user_id, "none")
 
     assert _roles(client, user_id) == set()
     # The same sign-in: a permission is looked up at every request.
@@ -122,25 +126,25 @@ def test_a_teacher_changed_to_student_loses_the_teachers_access(school):
     assert _status(client, "GET", "/students/", _sign_in(client, "was.teacher@example.com")) == 403
 
 
-def test_an_administrator_changed_to_student_loses_every_permission(school):
+def test_an_administrator_changed_to_no_role_loses_every_permission(school):
     client, admin = school
     user_id = _create(client, admin, "was.admin@example.com", "admin")
     account = _sign_in(client, "was.admin@example.com")
     assert _roles(client, user_id) == {"admin"}
     assert _status(client, "GET", "/admin/users", account) == 200
 
-    _set_role(client, admin, user_id, "student")
+    _set_role(client, admin, user_id, "none")
 
     assert _roles(client, user_id) == set()
     assert _status(client, "GET", "/admin/users", account) == 403
     assert _status(client, "GET", "/students/", account) == 403
 
 
-def test_a_student_made_teacher_again_has_the_teachers_access_again(school):
+def test_an_account_made_teacher_again_has_the_teachers_access_again(school):
     client, admin = school
     user_id = _create(client, admin, "back@example.com", "teacher")
     account = _sign_in(client, "back@example.com")
-    _set_role(client, admin, user_id, "student")
+    _set_role(client, admin, user_id, "none")
     assert _status(client, "GET", "/students/", account) == 403
 
     _set_role(client, admin, user_id, "teacher")
@@ -160,8 +164,8 @@ def test_a_change_between_administrator_and_teacher_still_swaps_the_role(school)
     assert _roles(client, user_id) == {"teacher"}
 
 
-def test_a_role_that_is_not_one_of_the_four_is_left_alone(school):
-    # Only the built-in roles are tied to the Role column. One made through the API stays.
+def test_a_role_that_is_not_one_of_the_two_is_left_alone(school):
+    # Only the two standard roles are tied to the Role column. One made through the API stays.
     from backend import models
 
     client, admin = school
@@ -173,9 +177,34 @@ def test_a_role_that_is_not_one_of_the_four_is_left_alone(school):
         db.add(models.UserRole(user_id=user_id, role_id=role.id))
         db.commit()
 
-    _set_role(client, admin, user_id, "student")
+    _set_role(client, admin, user_id, "none")
 
     assert _roles(client, user_id) == {"librarian"}
+
+
+@pytest.mark.parametrize("word", ["student", "viewer", "guest", "staff"])
+def test_an_account_cannot_be_given_a_word_that_names_no_role(school, word):
+    client, admin = school
+    user_id = _create(client, admin, "stays@example.com", "teacher")
+
+    refused = client.patch(f"/api/v1/admin/users/{user_id}", json={"role": word}, headers=admin)
+    made = client.post(
+        "/api/v1/admin/users", json={"email": "new@example.com", "password": PASSWORD, "role": word}, headers=admin
+    )
+
+    assert (refused.status_code, made.status_code) == (422, 422), (refused.text, made.text)
+    assert _roles(client, user_id) == {"teacher"}
+
+
+def test_an_account_cannot_be_created_without_a_role(school):
+    # "No role" takes roles away from an account that exists; a new one is made with a role.
+    client, admin = school
+
+    made = client.post(
+        "/api/v1/admin/users", json={"email": "new@example.com", "password": PASSWORD, "role": "none"}, headers=admin
+    )
+
+    assert made.status_code == 422, made.text
 
 
 # --- a deleted account ---------------------------------------------------------------------------
@@ -222,15 +251,15 @@ def test_the_next_account_does_not_inherit_what_the_deleted_one_had(school):
     _give_the_account_things_of_its_own(client, admin, old_id, _sign_in(client, "leaving@example.com"))
     assert client.delete(f"/api/v1/admin/users/{old_id}", headers=admin).status_code == 204
 
-    new_id = _create(client, admin, "new.student@example.com", "student")
-    newcomer = _sign_in(client, "new.student@example.com")
+    new_id = _create(client, admin, "new.teacher@example.com", "teacher")
+    newcomer = _sign_in(client, "new.teacher@example.com")
 
     # SQLite hands out the number that was freed: that is the case this test is about.
     assert new_id == old_id
-    assert _roles(client, new_id) == set()
+    assert _roles(client, new_id) == {"teacher"}
     assert _status(client, "GET", "/admin/users", newcomer) == 403
     assert _status(client, "GET", "/audit/logs", newcomer) == 403
-    assert _status(client, "GET", "/students/", newcomer) == 403
+    assert _status(client, "GET", "/students/", newcomer) == 200
     notifications = client.get("/api/v1/notifications/", headers=newcomer)
     assert notifications.status_code == 200, notifications.text
     body = notifications.json()
@@ -293,11 +322,13 @@ def test_an_account_made_by_an_administrator_gets_nothing_that_was_left_under_it
     number = _next_account_number(client)
     _leave_rows_behind_under(client, number)
 
-    new_id = _create(client, admin, "fresh@example.com", "student")
+    new_id = _create(client, admin, "fresh@example.com", "teacher")
     newcomer = _sign_in(client, "fresh@example.com")
 
     assert new_id == number
-    assert _rows_pointing_at(client, new_id) == dict.fromkeys(_rows_pointing_at(client, new_id), 0)
+    assert _roles(client, new_id) == {"teacher"}
+    counts = _rows_pointing_at(client, new_id)
+    assert (counts["user_roles"], counts["user_permissions"], counts["notifications"]) == (1, 0, 0), counts
     assert _status(client, "GET", "/admin/users", newcomer) == 403
     assert _status(client, "GET", "/audit/logs", newcomer) == 403
 
