@@ -337,6 +337,16 @@ permission keys).
     only. It asks git once per folder and takes 3.5 seconds. A clean checkout passes; a
     working tree passes as long as every local file is excluded, so a new kind of local
     file stops the gate with its name instead of travelling in the next local build.
+  - *What the guard found on its first run on CI.* The job that runs the gate on CI
+    machines ("COMMIT_READY Smoke (quick)", Ubuntu and Windows) first runs the tests, which
+    write `src\backend\pytest-results.xml` and `src\frontend\vitest-results.xml`; the guard
+    named both and the job failed. A test run's reports are not part of an installer: the
+    two lines leave them out now, with the other reports a run can write there
+    (`.coverage`, `coverage.xml`, `htmlcov`; `coverage`, `.vitest`, `test-results*.json`,
+    `test-output.log`, `e2e-results.txt`, `*.tsbuildinfo`). No tracked file has such a name
+    (a test checks it), Inno Setup packed none of them from a sample folder, and with the
+    two reports in place the guard passes. The new lines were also tried, read-only,
+    against the files of the main tree as they lie there: the guard passes.
   - `DOCKER.ps1` no longer writes the first administrator's password into
     `DOCKER_INSTALL.log` when the installer runs it: the console shows it, the log gets the
     address and where the password is kept (`config\.env`).
@@ -351,10 +361,11 @@ permission keys).
 - **The toast of a session import** read "Created: 3, updated: 2, errors: 1", and in Greek
   a singular beside two plurals: the three words were found in three places. They are asked
   for in the export texts by name now.
-- **Tests.** `test_installer_packs_tracked_files_only.py` (7): the guard run against a
+- **Tests.** `test_installer_packs_tracked_files_only.py` (8): the guard run against a
   throwaway repository (a tracked checkout passes; a local settings file, a key and an
   untracked note fail it and are named; what a line excludes is not counted; a line without
-  `recursesubdirs`), the two lines of the real script, and this checkout.
+  `recursesubdirs`), the two lines of the real script, the reports of a test run, and this
+  checkout.
 - **Found and not changed** (read from the scripts by the helper that wrote the guide, and
   not tried on an installation; each is the owner's word or a later entry):
   - *The database choice of the Docker wizard may not reach the application.* The wizard

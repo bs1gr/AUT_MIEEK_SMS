@@ -201,10 +201,12 @@ Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{c
 ; is built by hand the backend folder also holds what the application wrote there: generated
 ; reports and exports, uploaded import files (data), test results, the type checker's cache and
 ; the key of the encrypted backups (.keys\master.key). None of them belongs in an installer.
+; Nor do the reports a test run leaves in the two folders (pytest-results.xml, vitest-results.xml,
+; coverage): the CI job that runs the commit gate writes the first two before the guard looks.
 ; scripts\validate_installer_release_inputs.ps1 (the gate's "Installer Input Guard") fails when a
 ; wildcard line would take a file that git does not track.
-Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3,build,.ruff_cache,dist,reports,exports,data,test-results,.keys,.mypy_cache"; Check: not IsLiteInstall
-Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts,android"; Check: not IsLiteInstall
+Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3,build,.ruff_cache,dist,reports,exports,data,test-results,.keys,.mypy_cache,pytest-results.xml,.coverage,coverage.xml,htmlcov"; Check: not IsLiteInstall
+Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts,android,vitest-results.xml,coverage,.vitest,test-results*.json,test-output.log,e2e-results.txt,*.tsbuildinfo"; Check: not IsLiteInstall
 Source: "..\..\..\infra\docker\compose\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"; Check: not IsLiteInstall
 Source: "..\..\..\.dockerignore"; DestDir: "{app}"; DestName: ".dockerignore"; Flags: ignoreversion; Check: IsDockerInstall
 ; The settings of the PC the installer is built on stay there: config\.env and

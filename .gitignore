@@ -163,6 +163,8 @@ src/frontend/coverage/
 src/frontend/test-diagnostics/
 src/frontend/test-output.log
 src/frontend/e2e-results.txt
+# The backend's JUnit report (the commit-ready-smoke workflow writes it there)
+src/backend/pytest-results.xml
 
 # Node / Frontend
 frontend/node_modules/

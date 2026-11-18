@@ -191,6 +191,47 @@ def test_the_installer_leaves_out_what_the_application_wrote_into_the_backend_fo
         assert not inside, f"the installer would leave out tracked files of {backend / folder}: {inside[:3]}"
 
 
+def test_the_installer_leaves_out_the_reports_of_a_test_run():
+    """The CI job that runs the commit gate first runs the tests, which write
+    ``src/backend/pytest-results.xml`` and ``src/frontend/vitest-results.xml``. The guard then
+    named both, on Ubuntu and on Windows (PR 431, first run): a test run's reports are not part
+    of an installer, so the two lines leave them out, with the other reports a run can write."""
+    from fnmatch import fnmatchcase
+
+    wanted = {
+        r"src\backend": ("pytest-results.xml", ".coverage", "coverage.xml", "htmlcov"),
+        r"src\frontend": (
+            "vitest-results.xml",
+            "coverage",
+            ".vitest",
+            "test-results*.json",
+            "test-output.log",
+            "e2e-results.txt",
+            "*.tsbuildinfo",
+        ),
+    }
+    for folder, names in wanted.items():
+        excludes = _excludes_of(folder)
+        for name in names:
+            assert name in excludes, f"{name} is not excluded on the line of {folder}: {excludes}"
+        if not GIT:
+            continue
+        # A name without a backslash leaves out a file or a folder of that name at any depth:
+        # none of these may be a part of the path of a file the application needs.
+        root = folder.replace("\\", "/")
+        tracked = subprocess.run(
+            [GIT, "-C", str(REPO_ROOT), "-c", "core.quotepath=off", "ls-files", "--", root],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        ).stdout.splitlines()
+        for name in names:
+            hit = [
+                path for path in tracked if any(fnmatchcase(part, name) for part in path[len(root) + 1 :].split("/"))
+            ]
+            assert not hit, f"{name} would leave tracked files of {folder} out of the installer: {hit[:3]}"
+
+
 @needs_pwsh_and_git
 def test_this_checkout_passes_the_check():
     done = subprocess.run(
