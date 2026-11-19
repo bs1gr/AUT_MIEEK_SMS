@@ -383,7 +383,7 @@ the VM and the QNAP.
 ### On `main` since v1.18.74 (unreleased)
 
 **2026-11-19: the Updates tab of the Control Panel sends the login token, so the update check no
-longer answers 403 in the Docker edition** (the owner, with a screenshot of the Docker stack at
+longer answers 403 in the Docker edition** (PR 441, merged as `48617cf26`; the owner, with a screenshot of the Docker stack at
 `localhost:8080/#/power`: "on docker image running, the update check fails"; "Request failed
 with status code 403").
 
@@ -411,6 +411,12 @@ with status code 403").
   was stopped during the session and no image is built on this PC) and whether the host updater
   task is running on the owner's PC (`host_updater_ready`). A Docker stack runs this
   repair only from the next release.
+- **Merged:** PR 441, branch commit `d86cce795`, as `48617cf26` with `--admin` after every CI
+  check was green (backend job 9 min 45 s, frontend 3 min 7 s, the Ubuntu and Windows quick
+  gates 12 and 20 min; the Windows one was cancelled once, at about 20 minutes, by the
+  assistant, who took it for a hang after misreading local time as UTC, and re-run). E2E was
+  skipped: no test under `src/frontend/tests` touches the Updates
+  tab.
 
 **2026-11-19: after Docker's cleanup SMS comes back; every text of the wizard in both
 languages; the installer's older notes, two unused pages and a CI step** (PR 438, merged as `27adbfca3`; on the PR's commit CI's backend job passed 1,948 tests with 55 skipped, E2E 77 with none flaky, and the gate job on Ubuntu and Windows, its repaired page check included. The owner's
@@ -2770,7 +2776,8 @@ v1.18.74" says which one the assistant took, so that the owner can turn it round
 account into "No role" (migration `5189ab647b5a`). What the readings found
 and did not change is todo 63. Older entries that are still open, further
 down: 40 (a real Update
-install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
+install; the Android offer was confirmed on a phone on 2026-11-19, the Lite installer through
+UAC and the Docker host task are not), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
@@ -2795,6 +2802,32 @@ second identity check. Left for the owner: a copy of a newer backup taken off th
 then (todo 55). **The shared database's PostgreSQL 14 reached its
 end of life on 2026-11-12, and no newer image runs on the NAS; the owner stays on 14.18 for
 now** (todo 58).
+
+**Order of work, set 2026-11-19** (the owner, after the list of what waited: "create a suitable
+plan order to accomplish all pending tasks and suggested, and continue"). That word covers the
+v1.18.75 release, todo 52 stage 2, todo 55 (b) and (c), and the two decisions of todo 61. It
+does not cover, and each is asked for afterwards: a release after v1.18.75, updating the cloud
+VM, and todo 52 stage 3 (it measures on the VM). One heavy local job at a time (a gate, the
+release run, a whole suite); while the release runs detached, only text is read and written.
+Where the list left a choice open, the entry says which one the assistant took.
+
+1. PR 441 (the Updates tab sends the login token): merge when CI is green; the plan notes of
+   PRs 437 to 441 and todo 40's Android half (done on the owner's phone, 2026-11-19).
+2. **Release v1.18.75 with PRs 437 to 441 only.** First, so that the large changes below do not
+   ride on it: the isolated smoke test, `RELEASE_READY`, the Docker build check, the tag, the
+   published files checked.
+3. Todo 55 (b) and (c): try the key on the 22 older backups (decrypted in memory, nothing
+   written out), then repeat the restore drill on a fresh backup taken off the VM, since
+   v1.18.74 changed the database.
+4. Todo 61, SQLite foreign keys: a read-only count of rows without a parent, then enforcement
+   switched on only for a database where that count is zero; a database that has such rows
+   keeps working as today and logs what it found (the assistant's choice: it cannot refuse a
+   change an installation could make before).
+5. Todo 61, failures answered with 200: router by router, the page that calls it read first and
+   changed in the same PR.
+6. Todo 52 stage 2: router by router, each its own PR, measured before and after with the
+   measurement of stage 1; it stops at the first router whose tests fail for a reason that is
+   not understood.
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -2904,9 +2937,26 @@ now** (todo 58).
       secret.
     - **Left:** (a) the owner's: now and then a newer backup taken off the VM (the runbook has
       the commands; the copy on the dev PC is of 16 November and does not renew itself).
-      (b) Whether the key next to the code on the dev PC
-      still opens the 22 older encrypted backups there is not known. (c) The drill is one
-      drill: after a release that changes the database, it is worth repeating.
+      ~~(b) Whether the key next to the code on the dev PC still opens the 22 older encrypted
+      backups there is not known.~~ **Done 2026-11-19 (the owner: "accomplish all pending
+      tasks"):** the key `src/.keys/master.key` opens all 24 encrypted files in
+      `backups/database` (22 made by hand, from 3 September to 6 November, and the dev PC's own
+      two automatic ones of 16 and 17 November): each decrypted in memory, its header and
+      length agree, and each is a data-only SQL text of 80 KB to 810 KB; nothing was written
+      out. That shows the key and the format, not that each file restores.
+      ~~(c) The drill is one drill: after a release that changes the database, it is worth
+      repeating.~~ **Repeated 2026-11-19, after v1.18.74 had changed the shared database:** the
+      newest backup on the VM (`auto_backup_20261119_041110.enc`, made by the VM just before its
+      update, so at revision `a7d4e9c2b5f8`: 30 tables, 2,371 rows) and the VM's key were copied
+      to a scratch folder (the VM's copies deleted at once), decrypted in memory, and restored
+      by `database_manager.restore_sql_content` into a scratch PostgreSQL 14 built to that
+      revision by the tag's migrations; then upgraded to `e2b7c9d4a1f6`, the way an update
+      does. Against the live shared database, read-only, table by table (row count and a
+      checksum of every row): **28 of 31 tables identical**; `refresh_tokens` has one row less
+      (a sign-in since 04:11); `permissions` and `role_permissions` differ in the
+      `created_at`/`updated_at` that the migrations stamp when they run, and are identical in
+      id, key and every other column (checksum without the timestamps equal on both sides).
+      The scratch database, the backup, the key and the files were deleted afterwards.
 56. **Small things from the same review.**
     - ~~*The Socket.IO channel carries nothing.* `send_notification_to_user`,
       `broadcast_notification` and `broadcast_to_room` in `websocket_server.py` have no caller;
@@ -3455,6 +3505,9 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
     Never exercised: the Lite installer through UAC, the Docker host task, and the Android offer on
     a device. Each needs an install one release behind a published one: v1.18.66 is now out, so a
     PC on v1.18.65 can be updated to it.
+    - **Android half closed 2026-11-19 (owner):** an update on a phone one release behind the
+      published one was done on the owner's Android phone, and "works fine". **Still never
+      exercised:** the Lite installer through UAC and the Docker host task.
 
 <!-- -->
 
