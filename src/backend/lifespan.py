@@ -101,6 +101,15 @@ def get_lifespan():
                 except Exception:
                     logging.getLogger(__name__).debug("Could not check user count at startup", exc_info=True)
 
+            # SQLite: enforce foreign keys from here on, but only where no row is without its
+            # parent (see backend.db.sqlite_foreign_keys). Last of the startup work on purpose:
+            # the migrations rebuild tables, and the seeding above is what ran before. Never
+            # raises, and does nothing on PostgreSQL, which enforces them always.
+            if migrations_ok:
+                from backend.db.sqlite_foreign_keys import enable_foreign_keys_where_clean
+
+                enable_foreign_keys_where_clean(engine)
+
         # Warn about insecure defaults when auth is active
         _log = logging.getLogger(__name__)
         _KNOWN_WEAK_PASSWORDS = {

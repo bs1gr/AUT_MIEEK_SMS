@@ -407,7 +407,48 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.75 (unreleased)
 
-Nothing yet.
+**2026-11-19: SQLite enforces foreign keys where its data allows it** (todo 61; the owner,
+after the list of what waited: "create a suitable plan order to accomplish all pending tasks
+and suggested, and continue").
+
+- **What was wrong.** `init_db` ran `PRAGMA foreign_keys=ON` once, on one connection, and the
+  engine opens a new SQLite connection for every use (`NullPool`): the application's
+  connections answered `PRAGMA foreign_keys` with 0. A deleted parent left its children, and
+  the next row that got the same number inherited them (PR 419 repaired one such case by
+  hand, for accounts). PostgreSQL always enforced them.
+- **The assistant's choice** (the entry of todo 61 left it open: "each installation's
+  database has to be looked at first"): the server looks at its own database. At the end of
+  the startup work, after the migrations and the seeding, `backend.db.sqlite_foreign_keys`
+  runs `PRAGMA foreign_key_check`. **No row without its parent: every new connection runs
+  `PRAGMA foreign_keys=ON`** (log line "SQLite foreign keys are enforced"). **Some rows
+  without a parent: nothing changes**, the installation works as it did, and a warning names
+  the tables ("SQLite foreign keys NOT enforced: 2 row(s) have no parent row (user_roles ->
+  roles: 1, user_roles -> users: 1) ..."); once the rows are repaired or removed, the next
+  start switches enforcement on. It never raises and does nothing on PostgreSQL. To turn it
+  round: delete the call in `lifespan.py`.
+- **What it changes for a clean installation:** a delete of a row that others still point at
+  is now refused with the database's own error instead of leaving orphans, as on PostgreSQL
+  (the account and the student-erasure endpoints already delete their dependants first, since
+  they were written for PostgreSQL).
+- **Tests.** `test_sqlite_foreign_keys.py` (7): the pragma does not reach new connections
+  without the switch; a clean database refuses an orphan insert and a delete of a parent
+  that still has a child on every new connection; a database with an orphan is left as it
+  was and the log names the tables; a second call stacks no listener; another engine is not
+  touched; a failing check never raises. `db_setup.py` gained an opt-in,
+  `SMS_TEST_SQLITE_FOREIGN_KEYS=1`, that runs the whole suite with enforcement on.
+- **Seen on a scratch server** (SQLite file, the clone's code): an empty database logged
+  "enforced"; the same file with one `user_roles` row for account 9999 and role 9999 inserted
+  by hand logged the warning above and started normally.
+- **The whole suite with enforcement on** (`SMS_TEST_SQLITE_FOREIGN_KEYS=1`, the batch runner,
+  in the clone): 1,947 passed, 24 failed. Twenty-three are test fixtures, not code: the test's
+  stand-in for the signed-in user is account 1, which has no row, so the audit rows, report
+  rows and archive rows the tests write point at nobody (`test_audit*.py`,
+  `test_custom_report_generation_service.py`, the GitHub feedback import, the semester
+  archive). The last one is the installer check that the clone's new files are not yet
+  tracked. A real signed-in user always has a row, and deleting an account clears its
+  refresh tokens and nulls its audit rows first (`routers_auth.py`), so no path of the
+  application was found to break. The opt-in therefore stays off by default; the fixtures
+  are not changed here. The suite without the opt-in is CI's run on this PR.
 
 ### In v1.18.75
 

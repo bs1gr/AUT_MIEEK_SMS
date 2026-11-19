@@ -1302,7 +1302,11 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
 
             install_idle_pre_ping(engine, pre_ping_idle)
 
-        # Apply SQLite performance/safety pragmas (WAL, foreign_keys)
+        # Apply SQLite performance pragmas (WAL, synchronous). journal_mode=WAL is kept in the
+        # file; the others belong to one connection. Foreign keys are NOT switched on here:
+        # a pragma run on this one connection never reached the others (the pool opens a new
+        # one for every use). backend.db.sqlite_foreign_keys does it for every connection,
+        # at startup, once it has checked that no row lacks its parent.
         try:
             if engine.dialect.name == "sqlite":
                 # Use a transaction context so PRAGMAs are applied consistently
@@ -1311,8 +1315,6 @@ def init_db(db_url: str = "sqlite:///student_management.db"):
                     conn.execute(text("PRAGMA journal_mode=WAL"))
                     # Reasonable durability without being too slow for dev
                     conn.execute(text("PRAGMA synchronous=NORMAL"))
-                    # Ensure foreign keys constraints are enforced
-                    conn.execute(text("PRAGMA foreign_keys=ON"))
         except Exception:
             # Best-effort; do not fail initialization on pragma errors
             pass
