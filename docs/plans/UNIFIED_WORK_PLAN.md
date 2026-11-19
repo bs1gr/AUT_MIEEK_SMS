@@ -1,6 +1,6 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.73
+**Current Version**: 1.18.74
 **Last Updated**: November 19, 2026
 **Status**: ✅ **v1.18.73 released 2026-11-17** (tag on `50e4b57fc`, run by the assistant; the
 owner: "Release v1.18.73 with what has been merged since v1.18.72 (#409 to #415)", the last of
@@ -301,6 +301,54 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-19: before the tag of v1.18.74: the local installer builds, the smoke test, the
+release run** (everything of the owner's go-ahead below is merged: PRs 432 to 436. What
+follows the tag, the published files and the update of the cloud VM, is recorded at the head
+of this plan once it is done.)
+
+- **The nine local installer builds** (`infra\installer\dist`, v1.18.65 to v1.18.73, 798 MB;
+  made before PR 431, so with the PC's own settings and data in them) **are in the Recycle
+  Bin.** The owner's list said "delete or keep"; the bin keeps it reversible, and emptying it
+  is the owner's. The build of this release is the first that takes tracked files only.
+- **Smoke test (isolated copies under `D:\tmp`, scratch databases only; the code of PR 436's
+  commit, which is the code of the release before its version number).** Each edition as an
+  administrator and as a teacher: 45 to 48 checks through the API (the checks of v1.18.73 and
+  fourteen for what is new: the two roles and "No role", the audit log's author, a mark taken
+  off the attendance sheet, the session file as a teacher with the two grades of one
+  assignment kept apart, the return to a backup refused, export jobs as CSV and PDF, an
+  import with a fault and one without, an account's own password), the packaged-edition
+  check, and ten pages in a browser with every API answer and every console line watched.
+  - *The released v1.18.73 first, as the "before":* the server from source on PostgreSQL
+    14.25 and the packaged SMS Lite. Eleven of the checks fail there, the things this
+    release changes (and the released server drops the connection of an export job it cannot
+    write).
+  - *The server from source on PostgreSQL 14.25, upgraded from the database v1.18.73 had
+    made:* the three migrations ran in order (`5189ab647b5a`, `9c41f7e2a6d3`,
+    `e2b7c9d4a1f6`); the roles are admin and teacher; the three Student accounts are "No
+    role" (one signs in and is refused the list of students); 44 permissions and 53 grants;
+    the teacher's role holds 26 with `sessions:manage`; the unique index on a permission's
+    key was there before and is there after; 6 students, 6 grades and 6 attendance rows as
+    before. 48/48, among them the teacher, the students, the grades and the message of
+    before; in the browser all claims for each role; no ERROR line in 1,703 log lines.
+  - *The server from source, a first start on SQLite:* 45/45, 11/11, in the browser all
+    claims for each role, no ERROR line in 1,448 log lines; the new database has the unique
+    index.
+  - *Packaged SMS Lite, upgraded:* the released v1.18.73 build in a throwaway profile (34 of
+    45), then the new build on that profile: 48/48, 11/11, in the browser all claims for each
+    role, no ERROR line in 1,124 log lines; the profile's database is at `e2b7c9d4a1f6` and
+    got its unique index.
+  - **Not done this time: the Docker image was not built or run on this PC.** Its build took
+    the PC's free memory down to 722 MB and the memory watch stopped it (the PC restarted
+    from such a shortage on 18 November). The PostgreSQL path was tried with the server from
+    source instead, old code and then new code on one database. The image is built by CI on
+    every change and for both processor types before the tag. Not checked either: the
+    installer was not installed, and the Android app was not run on a device.
+- **`RELEASE_READY` (no `-TagRelease`):** 66.8 minutes, exit 0, every gate passed; the backend
+  suite ran 62/62 batches with 1,940 passed, 43 gated skips and 0 failed; the local installer
+  (90,207,816 bytes) was built and signed, with the frozen-Lite check passing 11/11. The
+  release commit is `b8dd61be8`. The generated GitHub body said only "5 new features" and "8
+  bug fixes" and is rewritten by hand in the commit that carries this entry.
+
 **2026-11-19: the owner's go-ahead for everything that waited** (one message, after the list
 of what waited for a word: "after getting finished with the tasks pending, you should proceed
 without stop until finish all suggested actions as of these you listed", and the list: the
@@ -312,8 +360,9 @@ panel of todo 62; the unused tools and page parts). Where the list left a choice
 or keep", "repair or take off the page") the entries below say which was taken and why; each
 is the assistant's choice and one change to undo.
 
-**2026-11-19: the Import/Export panel of the Control Panel does what it offers** (PR 436;
-todo 62, the last of the things of the owner's go-ahead above that is code. The plan had
+**2026-11-19: the Import/Export panel of the Control Panel does what it offers** (PR 436,
+merged as `e40e0a294`; on the PR's commit CI's backend job passed 1,928 tests with 55
+skipped, the frontend job 2,135 and E2E 77, each at its first try. Todo 62, the last of the things of the owner's go-ahead above that is code. The plan had
 left it open: "repair it as the Search page was repaired, or take the dialog off the page".
 It is repaired: nothing the owner sees goes away, and what it offered now works. Taking it
 off instead would be a smaller change: say so if that is wanted.)
@@ -373,7 +422,9 @@ off instead would be a smaller change: say so if that is wanted.)
   more and takes several files).
 
 **2026-11-19: the database chosen in the installer reaches a new installation, and the
-uninstaller says what it deletes** (PR 435; two of the things of the owner's go-ahead above.
+uninstaller says what it deletes** (PR 435, merged as `9fd729c26`; on the PR's commit CI's
+backend job passed 1,900 tests with 55 skipped, the frontend job 2,125 and E2E 77, each at
+its first try. Two of the things of the owner's go-ahead above.
 Both were read from the scripts on 18 November and not seen on an installation; **no
 installer was run for this either**.)
 
@@ -2413,34 +2464,37 @@ tree as evidence that GitHub is clear.
 
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
-the cloud VM has not been updated to it and waits for the owner's word.** **Since then
-`main` carries PRs 419 to 431, unreleased: a repair of two ways an account kept access it
+the cloud VM was not updated to it.** **v1.18.74 carries PRs 419 to 436** (the owner's
+go-ahead of 2026-11-19 names the release and the update of the cloud VM; the tag goes on the
+commit that carries this text, and the published files and the VM's update are recorded at
+the head of this plan once they are done): a repair of two ways an account kept access it
 should not have had (419), the permission documents and the user guide checked against the
 application (420, 421), the small page repairs of todo 63 (422), an account whose last role
-is revoked left with nothing (423), the in-app help read against the pages (424), and the
+is revoked left with nothing (423), the in-app help read against the pages (424), the
 owner's seven decisions of 18 November on todo 63: two roles and "No role" with a closed
 list of 44 permissions and imports for teachers (425), the Weight of a grade counts (426),
 every account changes its own password (427), the audit log names its authors and has a
-page (428), the older documents read and corrected (429); and after them a mark on the
-Attendance page that is no longer lost when the server answers late (430), and an installer
-built by hand that takes tracked files only, with the installation guide written anew (431).
-What 430 and 431 found and did not change is in their entries under "On `main` since
-v1.18.73": *Clear* on the Attendance page, the database choice of the Docker wizard, what the
-uninstaller deletes, the nine local installer builds in `infra\installer\dist`. The first start of this code on
-a database turns every Student, Viewer and Guest account into "No role" (migration
-`5189ab647b5a`). The VM
-has none of them; on it an account changed to "Student" still keeps its old access, Edit
-followed by Save turns an administrator who got the role under Assign Role to User into a
-teacher, and revoking an account's only role takes nothing away. What the readings found
-and did not change is todo 63.** Older entries that are still open, further
+page (428), the older documents read and corrected (429); a mark on the Attendance page that
+is no longer lost when the server answers late (430), an installer built by hand that takes
+tracked files only, with the installation guide written anew (431); and what the owner's
+go-ahead of 19 November covered: the session file for teachers and a grade known by its
+category in an import (432), *Clear* on the Attendance page that takes saved marks off (433),
+a permission's key unique in every database, the tools nothing ran and the unused page parts
+deleted, CLAUDE.md's release text (434), the database choice of the Docker wizard and the
+uninstaller's question (435), and the Import/Export panel of the Control Panel (436, which
+closes todo 62). **Where the go-ahead left a choice open, the entry of each PR under "On
+`main` since v1.18.73" says which one the assistant took, so that the owner can turn it
+round.** The first start of this code on a database turns every Student, Viewer and Guest
+account into "No role" (migration `5189ab647b5a`). What the readings found
+and did not change is todo 63. Older entries that are still open, further
 down: 40 (a real Update
 install), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
 reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
-a message is settled in PR 417: the page offers it), todo 61 (found while the Search page
-was repaired) and todo 62 (the export jobs of the Import/Export page work in one case of
-many; found by the smoke test before v1.18.73). The six E2E tests of todo 53 that described things the application does not
+a message is settled in PR 417: the page offers it) and todo 61 (found while the Search page
+was repaired). Todo 62 (the export jobs of the Import/Export page, found by the smoke test
+before v1.18.73) is closed by PR 436. The six E2E tests of todo 53 that described things the application does not
 have, and the four unused components of todo 60, are deleted in PR 418: todo 53 is closed. Todo 60 itself is done in PR 416: the Search page sorts,
 pages and filters, and the Students page says when its list could not be loaded. Todo 51 is closed: the owner confirmed on
 2026-11-15 that the attendance fix works on the phone. Also still open in their own sections: the contrast
