@@ -439,6 +439,27 @@ answer to the report on PR 437, quoted in todo 64, which this closes).
   labels have a fixed width). Nor was any cleanup run against Docker. The Greek was written
   by the assistant and read by nobody else.
 
+**2026-11-19, later (the owner: "first proceed with 2, 3, and 4" of the list of what waited):**
+
+- *2, the cloud VM's daily backup hour:* a one-time timer on the VM (`sms-backup-hour`, made
+  with `systemd-run`, gone after it ran or after a reboot) runs one forced automatic backup at
+  15:19:06 UTC today, so the daily backup is back at about 15:19 UTC (17:19 in Cyprus).
+  Its output goes to `~/backup_hour_2026-11-19.log` on the VM. Nothing else on the VM was
+  changed.
+- *3:* the Recycle Bin was already empty (the nine local builds are gone). CLAUDE.md's i18n
+  example corrected in PR 439.
+- *4, the older entries:* **PR 439 merged** (`caba53fbd`, todo 61: two dead search endpoints
+  and unused code removed) and **PR 440 merged** (`e3f988fc2`, todo 59's four findings and
+  todo 61's separate accent marks); both unreleased, CI and E2E green. **Not done, each
+  needing the owner's word:** todo 52 stage 2 (about 160 endpoints turned from `async def`
+  to `def`, router by router: a large change) and stage 3 (a measurement on the VM); todo 55
+  (b) and (c) open or restore real backups, which needs a new yes; todo 61's foreign keys on
+  SQLite (each installation's database looked at first) and the 83 places that answer a
+  failure with HTTP 200 (a change of the API's answers that the pages read); todos 40, 44
+  and 50 are the owner's own steps (an update on a device one release behind; Oracle's
+  agreement and ΜΙΕΕΚ policy, the phone, Tailscale key expiry). Oracle's pages refuse an
+  automated reader (HTTP 403), so the agreement of todo 50 has to be read in a browser.
+
 **2026-11-19: the installer's information pages are right for both editions and in both
 languages, and the Docker guide and the installer's README are written anew** (PR 437,
 merged as `1edcb8283`; on the PR's commit CI's backend job passed 1,938 tests with 55
