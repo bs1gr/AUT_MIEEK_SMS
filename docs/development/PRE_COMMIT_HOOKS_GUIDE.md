@@ -4,6 +4,15 @@
 **Status**: ✅ Ready for use
 **Reference**: `.pre-commit-config.yaml`
 
+> **Note of 19 November 2026.** This guide is as it was written in January 2026 and was not
+> read against the repository since. Known to be out of date: the first hook,
+> `validate-rbac-decorators`, and its script `scripts/validate_rbac_decorators.py` are gone
+> (the script looked for `backend/routers`, where the routers were before the folders were
+> rearranged, and nothing ran it). The configuration is `config/.pre-commit-config.yaml`, and
+> none of the three hooks described here is in it (it has `pip-audit`, `npm-audit` and
+> `no-hardcoded-secrets`). The gate before a commit is `infra\scripts\ops\COMMIT_READY.ps1`
+> (see CLAUDE.md).
+
 ---
 
 ## Overview

@@ -312,6 +312,47 @@ panel of todo 62; the unused tools and page parts). Where the list left a choice
 or keep", "repair or take off the page") the entries below say which was taken and why; each
 is the assistant's choice and one change to undo.
 
+**2026-11-19: permission keys are unique in every database, the tools nothing ran and the
+unused page parts are gone, and CLAUDE.md's release text no longer ends with an upload by
+hand** (PR 434; three of the things of the owner's go-ahead above).
+
+- **The unique index on a permission's key** (migration `e2b7c9d4a1f6`). The model says
+  unique. Read from the migrations: on PostgreSQL revision `3af743932574` already makes
+  `ix_permissions_key` a unique index, so **the shared database needs nothing and the
+  migration does nothing there**; that revision skips SQLite, and a migrated SQLite database
+  (every SMS Lite, a Docker installation on its own database) had no unique index on the key.
+  The migration does nothing where a unique index or constraint is there; otherwise it first
+  makes every key single (of rows that share a key the oldest stays and takes over the
+  others' grants to roles and accounts; none are expected, and a database that has them must
+  not fail to start because of them) and then makes the index. The way back leaves the index.
+- **Deleted, on the owner's go-ahead ("the unused tools and page parts"; the list said
+  "delete or keep", and nothing ran or used any of them):**
+  - `src/backend/scripts/seed_permissions.py` (a second seed, "53 permissions", beside the one
+    the application uses), `scripts/audit_router_permissions.py`,
+    `scripts/validate_rbac_decorators.py` and `scripts/rbac_monitor.py` (all three looked for
+    `backend/routers` where it was before the folders were rearranged);
+  - `components/tools/DevTools.tsx` (a panel with "Add Sample Data" that no page imported)
+    and `adminOpsAPI.generateSampleData`, which nothing called. The server never had that
+    route: only the on-device worker of the Android app (`sw-local-api.js`) answers
+    `POST /adminops/generate-sample-data`, and nothing calls it now. The worker was left as
+    it is (it cannot be tried here without a device).
+  - `PRE_COMMIT_HOOKS_GUIDE.md` (January 2026) describes three hooks of which none is
+    configured; it has a dated note now and was not rewritten. The dated deployment records
+    of January that name `rbac_monitor.py` are left as records.
+- **CLAUDE.md, "Release Workflow"**, ended with `gh release upload vX.X.X
+  SMS_Installer_X.X.X.exe`. The workflow on the tag builds, signs and uploads the installer;
+  the text now says so, says to verify the published installer, and says never to upload or
+  hand out the one built on this PC. The same line of `.claude/agents/release-manager.md` is
+  corrected. Not touched, because the owner's list did not name it: CLAUDE.md's i18n
+  example, which does not resolve as written (see the entry of PR 429).
+- **Tests.** `test_permission_keys_unique.py` (4): before the migration a SQLite database
+  takes a key twice; after it the database refuses; keys that are there twice become one and
+  keep their grants, without a grant twice; it can run again and the way back leaves the
+  index.
+- **Not tried:** the migration on PostgreSQL (it is expected to find the index and do
+  nothing; the smoke test before the release starts a database of v1.18.73 on PostgreSQL and
+  upgrades it).
+
 **2026-11-19: *Clear* on the Attendance page takes saved marks off** (PR 433; one of the
 things of the owner's go-ahead above. Found on 18 November while PR 430 was made: *Clear*
 emptied the page, and two seconds later the marks were back.)
@@ -356,7 +397,9 @@ emptied the page, and two seconds later the marks were back.)
   sent, also a mark somebody else made meanwhile (as it overwrites one).
 
 **2026-11-19: a semester's session file is the teacher's too, and an import knows a grade by
-its category as well** (PR 432; two of the things above).
+its category as well** (PR 432, merged as `b470d8f00`; on the PR's commit CI's backend job
+passed 1,878 tests with 55 skipped, the frontend job 2,116 and E2E 77, each at its first
+try. Two of the things above).
 
 - **Teachers and the session file.** "Who may import: both teachers and admins" was read on
   18 November as the import of students and courses (PR 425), and the session file stayed
@@ -506,13 +549,13 @@ permission keys).
     Neither is touched, and the question's own list says "Database (data folder)".
   - *The copy the installer makes before an update does not hold the database*, for the
     same reason: it copies the installation folder's `data` folder and the `.env` files.
-  - *The permission keys are not unique in a migrated SQLite database.* Its `permissions`
+  - *The permission keys are not unique in a migrated SQLite database* (**done in PR 434**)*.* Its `permissions`
     table has no index at all (read from a scratch database at the head revision): the
     application's own checks keep a key from being stored twice, the database does not. A
     migration that adds the unique index is a change to the shared database's schema: the
     owner's word. What the same migrations leave on PostgreSQL was not looked at.
   - *CLAUDE.md, "Release Workflow", ends with `gh release upload vX.X.X
-    SMS_Installer_X.X.X.exe`.* The workflow on the tag builds and uploads the installer;
+    SMS_Installer_X.X.X.exe`* (**corrected in PR 434**, on the owner's go-ahead)*.* The workflow on the tag builds and uploads the installer;
     uploading the local build by hand would have published the files above. Not edited: the
     file is the owner's instruction to the assistant.
   - Stale texts that were not corrected: `infra/installer/windows/README.md` (it says the
@@ -719,7 +762,8 @@ and correct as needed").
     that describe the nine RBAC documents as they were ("1,050 lines covering daily ops").
   - Carried over from the reading and still open: the migration `d37fb9f4bd49` creates the
     index on a permission's key without "unique" while the model says unique (not checked
-    on a real database); the download links of the help are plain addresses that the
+    on a real database; **done in PR 434**: a later revision makes it unique on PostgreSQL, a
+    migrated SQLite database lacked it and gets it); the download links of the help are plain addresses that the
     Android app may not reach (not tried); the tools nothing runs and the two unused page
     parts (todo 63).
 - **Seen on this PR's CI and not explained:**
@@ -2867,7 +2911,7 @@ now** (todo 58).
       `RBAC_CODEBASE_REVIEW.md`, `RBAC_ENDPOINT_AUDIT.md`, `RBAC_DATABASE_SCHEMA.md`,
       `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`; `docs/user/RBAC_GUIDE.md` and its Greek twin;
       `src/backend/API_PERMISSIONS_REFERENCE.md`. Most are from the design months and likely
-      wrong in the same ways. And tools nothing runs: `src/backend/scripts/seed_permissions.py`
+      wrong in the same ways. And tools nothing runs (**deleted in PR 434**): `src/backend/scripts/seed_permissions.py`
       ("53 permissions", a second seed beside the one the application uses), and
       `scripts/audit_router_permissions.py`, `validate_rbac_decorators.py` and
       `rbac_monitor.py`, which look for `backend/routers` where it was before the folders
@@ -2889,7 +2933,7 @@ now** (todo 58).
       with weight 1 and 0/20 with weight 3 give 50%). Make it count within its category, or
       take the box away: the owner's call. Until then the help and the guide say that it
       does nothing.
-    - *Two things nothing uses:* `components/tools/DevTools.tsx` (a panel with "Add Sample
+    - *Two things nothing uses* (**deleted in PR 434**)*:* `components/tools/DevTools.tsx` (a panel with "Add Sample
       Data") is imported by no page, and `adminOpsAPI.generateSampleData` is called by
       nothing; the server's `POST /adminops/generate-sample-data` is therefore reachable
       only by hand. Delete, or put the button on a page (the owner's OK).
