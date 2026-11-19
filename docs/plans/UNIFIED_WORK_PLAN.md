@@ -1,8 +1,33 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.74
+**Current Version**: 1.18.75
 **Last Updated**: November 19, 2026
-**Status**: ✅ **v1.18.74 released 2026-11-19** (tag on `fdaa0233a`, run by the assistant; the
+**Status**: ✅ **v1.18.75 released 2026-11-19** (tag on `92201ca8e`, run by the assistant; the
+owner, after the list of what waited: "create a suitable plan order to accomplish all pending
+tasks and suggested, and continue"; step 2 of the order of work in "Next todos"). It carries
+PRs 437 to 441 only, under "In v1.18.75" below: a message names its sender and "Specific
+users" is a list of names, the in-app setting of an account is honoured, search finds a letter
+typed with a separate accent mark, two search endpoints that could never answer are gone, the
+installer's pages for both editions and languages, the Docker cleanup no longer leaves SMS
+down, and the Updates tab of the Control Panel works in the Docker edition. **No database
+change.** The cloud VM was not updated (it runs v1.18.74; that needs the owner's word).
+
+- **Before the tag:** the smoke test of what the release changes (23 checks through the API on
+  scratch servers from source): v1.18.74 failed 7, exactly those changes (one: a sender name
+  written into the body of a message was kept, so a message could be signed by anyone); the
+  candidate passed 23 of 23. `RELEASE_READY` (no `-TagRelease`): exit 0, 1,964 passed and 0
+  failed. `DOCKER_BUILD_CHECK.ps1 -Version 1.18.75` on `92201ca8e` (the commit with the
+  hand-written notes): success, amd64 and arm64; CI/CD and E2E green on the same commit; the
+  tag's release, installer and APK workflows succeeded.
+- **Verified on the published assets:** `SMS_Installer_1.18.75.exe` 87,449,640 bytes, SHA-256
+  `bbdc1deb…a3bf` = GitHub's digest, Authenticode Valid, CN=AUT MIEEK, thumbprint
+  `2693C1B1…075D`, timestamped, file version v1.18.75, not the local build (90,225,888 bytes);
+  `SMS_Android_1.18.75.apk` 4,201,246 bytes, SHA-256 `ff560944…d22e`, `versionCode 118075`,
+  signer `686fb6ed…d2ea` as before (phones upgrade in place). The release carries the
+  hand-written text and those two files only. **Not done:** the installer was not installed,
+  the APK not run on a device.
+
+**Before that: v1.18.74 released 2026-11-19** (tag on `fdaa0233a`, run by the assistant; the
 owner, after the list of what waited: "after getting finished with the tasks pending, you
 should proceed without stop until finish all suggested actions as of these you listed", a
 list that begins with "Release v1.18.74 and the cloud VM update"). It carries PRs 419 to 436
@@ -380,7 +405,11 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.74 (unreleased)
+### On `main` since v1.18.75 (unreleased)
+
+Nothing yet.
+
+### In v1.18.75
 
 **2026-11-19: the Updates tab of the Control Panel sends the login token, so the update check no
 longer answers 403 in the Docker edition** (PR 441, merged as `48617cf26`; the owner, with a screenshot of the Docker stack at
@@ -2813,7 +2842,7 @@ Where the list left a choice open, the entry says which one the assistant took.
 
 1. PR 441 (the Updates tab sends the login token): merge when CI is green; the plan notes of
    PRs 437 to 441 and todo 40's Android half (done on the owner's phone, 2026-11-19).
-2. **Release v1.18.75 with PRs 437 to 441 only.** First, so that the large changes below do not
+2. ~~**Release v1.18.75 with PRs 437 to 441 only.**~~ **Done 2026-11-19** (status block). First, so that the large changes below do not
    ride on it: the isolated smoke test, `RELEASE_READY`, the Docker build check, the tag, the
    published files checked.
 3. Todo 55 (b) and (c): try the key on the 22 older backups (decrypted in memory, nothing
