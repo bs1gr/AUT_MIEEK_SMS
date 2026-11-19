@@ -25,7 +25,7 @@ from backend.security.permissions import optional_require_permission
 from backend.security.current_user import get_current_user, require_auth_even_if_disabled
 from backend.models import User
 from backend.services.search_service import SearchService
-from backend.schemas.response import APIResponse, success_response, error_response
+from backend.schemas.response import APIResponse, success_response, error_json
 from backend.schemas.search import (
     SavedSearchCreateSchema,
     SavedSearchUpdateSchema,
@@ -89,7 +89,7 @@ async def search_students(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching students: {str(e)}")
-        return error_response(
+        return error_json(
             code="SEARCH_ERROR", message="Failed to search students", request_id=request.state.request_id
         )
 
@@ -134,7 +134,7 @@ async def search_courses(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching courses: {str(e)}")
-        return error_response(
+        return error_json(
             code="SEARCH_ERROR", message="Failed to search courses", request_id=request.state.request_id
         )
 
@@ -199,7 +199,7 @@ async def search_grades(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching grades: {str(e)}")
-        return error_response(
+        return error_json(
             code="SEARCH_ERROR", message="Failed to search grades", request_id=request.state.request_id
         )
 
@@ -268,7 +268,7 @@ async def advanced_search(
         # Validate entity
         entity = body.get("entity", "students")
         if entity not in ["students", "courses", "grades"]:
-            return error_response(
+            return error_json(
                 code="INVALID_ENTITY",
                 message="Invalid entity. Must be 'students', 'courses', or 'grades'",
                 request_id=request.state.request_id,
@@ -331,7 +331,7 @@ async def advanced_search(
             else:
                 offset = page_number * limit
         if paging_error:
-            return error_response(
+            return error_json(
                 code="INVALID_PAGINATION",
                 message=paging_error,
                 request_id=request.state.request_id,
@@ -342,7 +342,7 @@ async def advanced_search(
         sort_field = sort.get("field") or "relevance"
         sort_direction = sort.get("direction") or "desc"
         if sort_field not in SearchService.SORT_FIELDS[entity] or sort_direction not in ("asc", "desc"):
-            return error_response(
+            return error_json(
                 code="INVALID_SORT",
                 message=(
                     f"Cannot sort {entity} by '{sort_field}' ({sort_direction}). "
@@ -376,14 +376,14 @@ async def advanced_search(
         raise
     except ValueError as ve:
         logger.warning(f"Invalid filter value: {str(ve)}")
-        return error_response(
+        return error_json(
             code="INVALID_FILTER",
             message="Invalid filter value",
             request_id=request.state.request_id,
         )
     except Exception as e:
         logger.error(f"Error in advanced search: {str(e)}")
-        return error_response(
+        return error_json(
             code="SEARCH_ERROR",
             message="Failed to perform advanced search",
             request_id=request.state.request_id,
@@ -440,7 +440,7 @@ async def get_suggestions(
         return success_response(suggestions, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}")
-        return error_response(
+        return error_json(
             code="SUGGESTION_ERROR",
             message="Failed to get search suggestions",
             request_id=request.state.request_id,
@@ -494,7 +494,7 @@ async def get_statistics(
         return success_response(stats, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting statistics: {str(e)}")
-        return error_response(
+        return error_json(
             code="STATS_ERROR", message="Failed to get search statistics", request_id=request.state.request_id
         )
 
@@ -545,7 +545,7 @@ async def create_saved_search(
         saved_search = service.create_saved_search(current_user.id, create_data)
 
         if not saved_search:
-            return error_response(
+            return error_json(
                 code="CREATE_ERROR",
                 message="Failed to create saved search",
                 request_id=request.state.request_id,
@@ -560,7 +560,7 @@ async def create_saved_search(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error creating saved search: {str(e)}")
-        return error_response(
+        return error_json(
             code="CREATE_ERROR",
             message="Failed to create saved search",
             request_id=request.state.request_id,
@@ -612,7 +612,7 @@ async def list_saved_searches(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error listing saved searches: {str(e)}")
-        return error_response(
+        return error_json(
             code="LIST_ERROR",
             message="Failed to list saved searches",
             request_id=request.state.request_id,
@@ -651,7 +651,7 @@ async def get_saved_search(
 
         if not saved_search:
             # Return 403 instead of 404 to avoid information leakage (don't reveal whether search exists)
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to access this saved search",
                 request_id=request.state.request_id,
@@ -671,7 +671,7 @@ async def get_saved_search(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting saved search {search_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="GET_ERROR",
             message="Failed to get saved search",
             request_id=request.state.request_id,
@@ -724,7 +724,7 @@ async def update_saved_search(
 
         if not saved_search:
             # Return 403 instead of 404 to avoid information leakage
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to update this saved search",
                 request_id=request.state.request_id,
@@ -740,7 +740,7 @@ async def update_saved_search(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error updating saved search {search_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to update saved search",
             request_id=request.state.request_id,
@@ -779,7 +779,7 @@ async def delete_saved_search(
 
         if not success:
             # Return 403 instead of 404 to avoid information leakage
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to delete this saved search",
                 request_id=request.state.request_id,
@@ -788,7 +788,7 @@ async def delete_saved_search(
         return success_response({"message": "Saved search deleted successfully"}, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error deleting saved search {search_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="DELETE_ERROR",
             message="Failed to delete saved search",
             request_id=request.state.request_id,
@@ -827,7 +827,7 @@ async def toggle_saved_search_favorite(
 
         if not saved_search:
             # Return 403 instead of 404 to avoid information leakage
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to modify this saved search",
                 request_id=request.state.request_id,
@@ -841,7 +841,7 @@ async def toggle_saved_search_favorite(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error toggling favorite for search {search_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to toggle favorite",
             request_id=request.state.request_id,
@@ -896,7 +896,7 @@ async def get_student_facets(
         return success_response(result.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting student facets: {str(e)}")
-        return error_response(
+        return error_json(
             code="FACET_ERROR",
             message="Failed to get student facets",
             request_id=request.state.request_id,
@@ -945,7 +945,7 @@ async def get_course_facets(
         return success_response(result.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting course facets: {str(e)}")
-        return error_response(
+        return error_json(
             code="FACET_ERROR",
             message="Failed to get course facets",
             request_id=request.state.request_id,

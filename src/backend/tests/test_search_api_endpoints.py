@@ -434,8 +434,9 @@ class TestAdvancedSearchEndpoint:
         """Should reject invalid entity types (or return empty results)"""
         response = client.post(self.endpoint, json={"entity": "invalid", "query": "test"}, headers=admin_headers)
 
-        # Endpoint may return 200 with empty results instead of rejecting
-        assert response.status_code in [200, 400]
+        # An entity that does not exist is refused (it used to be answered with a 200).
+        assert response.status_code == 422
+        assert response.json()["error"]["code"] == "INVALID_ENTITY"
 
     def test_advanced_search_with_filters(self, client, admin_headers, test_data):
         """Should apply filters correctly"""
@@ -683,7 +684,7 @@ class TestErrorHandling:
         monkeypatch.setattr(SearchService, "search_students", _boom)
 
         response = client.get("/api/v1/search/students", params={"q": "test"}, headers=admin_headers)
-        assert response.status_code == 200
+        assert response.status_code == 500
         body = response.json()
         assert body["success"] is False
         assert "secret internal detail" not in response.text

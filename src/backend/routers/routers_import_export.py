@@ -24,7 +24,7 @@ from backend.schemas import (
     ExportJobCreate,
     ExportJobResponse,
     success_response,
-    error_response,
+    error_json,
 )
 from backend.services.import_export_service import ImportExportService
 from backend.services.async_export_service import AsyncExportService
@@ -104,7 +104,7 @@ async def create_student_import(
         raise
     except Exception as e:
         logger.error(f"Error creating import job: {str(e)}")
-        return error_response(
+        return error_json(
             "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
         )
 
@@ -162,7 +162,7 @@ async def create_course_import(
         raise
     except Exception as e:
         logger.error(f"Error creating course import: {str(e)}")
-        return error_response(
+        return error_json(
             "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
         )
 
@@ -220,7 +220,7 @@ async def create_grade_import(
         raise
     except Exception as e:
         logger.error(f"Error creating grade import: {str(e)}")
-        return error_response(
+        return error_json(
             "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
         )
 
@@ -239,7 +239,7 @@ async def get_import_job(
     """
     job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Import job {import_job_id} not found", request_id=request.state.request_id)
+        return error_json("NOT_FOUND", f"Import job {import_job_id} not found", request_id=request.state.request_id)
 
     return success_response(
         ImportJobResponse(
@@ -329,10 +329,10 @@ async def commit_import_job(
     """
     job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", "Import job not found", request_id=request.state.request_id)
+        return error_json("NOT_FOUND", "Import job not found", request_id=request.state.request_id)
 
     if job.status != "ready":
-        return error_response(
+        return error_json(
             "INVALID_STATE",
             f"Job is in '{job.status}' state, must be 'ready' to commit",
             request_id=request.state.request_id,
@@ -432,7 +432,7 @@ async def create_export(
 
     except Exception as e:
         logger.error(f"Error creating export job: {str(e)}")
-        return error_response(
+        return error_json(
             "INTERNAL_ERROR", f"Failed to create export: {str(e)}", request_id=request.state.request_id
         )
 
@@ -452,7 +452,7 @@ async def get_export_job(
     """
     job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
+        return error_json("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
 
     return success_response(
         ExportJobResponse(
@@ -493,15 +493,15 @@ async def download_export(
 
     job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
+        return error_json("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
 
     if job.status != "completed":
-        return error_response(
+        return error_json(
             "INVALID_STATE", f"Export not ready (status: {job.status})", request_id=request.state.request_id
         )
 
     if not job.file_path or not os.path.exists(job.file_path):
-        return error_response("NOT_FOUND", "Export file not found", request_id=request.state.request_id)
+        return error_json("NOT_FOUND", "Export file not found", request_id=request.state.request_id)
 
     # Log download
     logger.info(
