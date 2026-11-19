@@ -50,6 +50,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.75] - 2026-11-19
+
+### Bug Fixes
+- **control-panel**: the Updates tab sends the login token, so the update check no longer answers 403 in the Docker edition (#441)
+- **notifications,search**: a message says who sent it, recipients by name, in-app preference honoured, deleted notifications removed; search folds separate accent marks (#440)
+- **installer,docker**: after Docker's cleanup SMS comes back; every text of the wizard in both languages; older installer notes, unused pages, CI step (#438)
+- **installer**: the wizard's information pages are right for both editions and both languages; the Docker guide and the installer's README written anew (#437)
+
+### Documentation
+- **plan**: order of work for the pending tasks; PR 441 merged; todo 40's Android half done; todo 55 (b) and (c) done
+- **plan**: PRs 439 and 440 merged; the VM's backup hour set back; what of the older entries waits for the owner
+- **plan**: PR 438 merged; the owner checked the Greek wizard
+- **plan**: PR 437 merged
+- **plan**: v1.18.74 released (tag on fdaa0233a), the published files verified, the cloud VM updated
+
+### Chores
+- **search,docs**: remove the two search endpoints that could not answer and the unused search/list code; correct CLAUDE.md's i18n example (#439)
+
 ## [1.18.74] - 2026-11-19
 
 ### Features
@@ -5023,6 +5042,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
