@@ -1,10 +1,13 @@
-from sqlalchemy import create_engine
+import os
+
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 # lower() for all letters and translate() on every SQLite connection of the run, as in the
 # application (backend.models imports it too; here it does not depend on the order of imports).
 import backend.sqlite_unicode  # noqa: F401
+from backend.db.sqlite_foreign_keys import _switch_on
 
 # --- Database Setup for Tests ---
 # Use an in-memory SQLite database for testing.
@@ -19,5 +22,12 @@ engine = create_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
+
+# Opt-in: run the suite with SQLite enforcing foreign keys, as PostgreSQL always does and as the
+# application does at startup on a database without orphan rows
+# (backend.db.sqlite_foreign_keys). `SMS_TEST_SQLITE_FOREIGN_KEYS=1` shows which tests (and which
+# endpoints) depend on a row outliving its parent. Off by default: many tests build rows by hand.
+if os.environ.get("SMS_TEST_SQLITE_FOREIGN_KEYS", "").strip().lower() in {"1", "true", "yes"}:
+    event.listen(engine, "connect", _switch_on)
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
