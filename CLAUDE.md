@@ -179,9 +179,9 @@ Phase 3: Docs + publish
   .\infra\scripts\release\GENERATE_RELEASE_DOCS.ps1 -Version "X.X.X"
   git commit + push
   .\infra\scripts\release\DOCKER_BUILD_CHECK.ps1 -Version "X.X.X" (must exit 0)
-  git tag vX.X.X + push (triggers GitHub Actions)
+  git tag vX.X.X + push (triggers GitHub Actions: they build, sign and upload SMS_Installer_X.X.X.exe)
   Wait for Actions to pass
-  gh release upload vX.X.X SMS_Installer_X.X.X.exe
+  Verify the published installer (size, SHA-256, signature). Never upload a local build.
 ```
 
 Primary automated script: `.\infra\scripts\release\RELEASE_READY.ps1 -ReleaseVersion "X.X.X" -TagRelease`
@@ -193,6 +193,9 @@ passed. Before a tag made by hand, run it on the commit that gets the tag: a com
 after the release commit needs a run of its own.
 
 Release assets are installer-only (`SMS_Installer_<version>.exe`). Never upload generic CI artifacts.
+The installer on a release is the one the tag's workflow built from a clean checkout. The one
+`RELEASE_READY.ps1` builds on this PC (`infra\installer\dist`) is for testing only: never upload
+it or hand it out (until November 2026 such a build packed the PC's own settings and data).
 Historical release tags are immutable — never re-dispatch old tag workflows.
 
 ---

@@ -1081,11 +1081,6 @@ export const adminOpsAPI = {
     });
     return unwrapResponse<{ message: string }>(response.data);
   },
-
-  generateSampleData: async (): Promise<{ message: string }> => {
-    const response = await apiClient.post<{ message: string }>('/adminops/generate-sample-data');
-    return unwrapResponse<{ message: string }>(response.data);
-  },
 };
 
 // ==================== ADMIN USERS API ====================

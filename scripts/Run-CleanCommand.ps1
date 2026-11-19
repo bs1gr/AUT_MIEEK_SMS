@@ -17,7 +17,7 @@
     .\scripts\Run-CleanCommand.ps1 -Command "Get-ChildItem"
 
 .EXAMPLE
-    .\scripts\Run-CleanCommand.ps1 -Command "python scripts/audit_router_permissions.py" -NoEcho
+    .\scripts\Run-CleanCommand.ps1 -Command "python scripts/validate_migrations.py" -NoEcho
 #>
 
 param(
