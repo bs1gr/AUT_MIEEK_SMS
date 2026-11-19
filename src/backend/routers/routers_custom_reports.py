@@ -14,6 +14,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Respons
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE, limiter
 from backend.dependencies import get_db
 from backend.security.current_user import get_current_user, require_auth_even_if_disabled
 from backend.routers.routers_auth import optional_require_role
@@ -80,6 +81,7 @@ def _get_request_language(request: Request, override: Optional[str]) -> str:
     response_model=APIResponse[Dict[str, Any]],
     summary="Create report template",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def create_report_template(
     request: Request,
     body: ReportTemplateCreate,
@@ -169,6 +171,7 @@ async def get_report_template(
     response_model=APIResponse[Dict[str, Any]],
     summary="Update report template",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def update_report_template(
     request: Request,
     template_id: int,
@@ -201,6 +204,7 @@ async def update_report_template(
     response_model=APIResponse[Dict[str, Any]],
     summary="Deactivate report template",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def delete_report_template(
     request: Request,
     template_id: int,
@@ -235,6 +239,7 @@ async def delete_report_template(
     response_model=APIResponse[Dict[str, Any]],
     summary="Import default templates",
 )
+@limiter.limit(RATE_LIMIT_HEAVY)
 async def import_default_templates(
     request: Request,
     db: Session = Depends(get_db),
@@ -267,6 +272,7 @@ async def import_default_templates(
     response_model=APIResponse[Dict[str, Any]],
     summary="Create custom report",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
 async def create_custom_report(
     request: Request,
@@ -383,6 +389,7 @@ async def get_custom_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Update custom report",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
 async def update_custom_report(
     request: Request,
@@ -416,6 +423,7 @@ async def update_custom_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Delete custom report",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
 async def delete_custom_report(
     request: Request,
@@ -456,6 +464,7 @@ async def delete_custom_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Generate report",
 )
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("reports:generate")
 async def generate_report(
     request: Request,
@@ -572,6 +581,7 @@ async def list_generated_reports(
     response_model=APIResponse[Dict[str, Any]],
     summary="Update generated report",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
 async def update_generated_report(
     request: Request,
@@ -606,6 +616,7 @@ async def update_generated_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Delete a generated report",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
 async def delete_generated_report(
     request: Request,
@@ -743,6 +754,7 @@ async def download_generated_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Bulk generate reports",
 )
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("reports:generate")
 async def bulk_generate_reports(
     request: Request,

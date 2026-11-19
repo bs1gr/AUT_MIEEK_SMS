@@ -14,6 +14,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 
+from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE, limiter
 from backend.db import get_session as get_db
 from backend.models import ImportJob, ExportJob
 from backend.rbac import require_any_permission, require_permission
@@ -43,6 +44,7 @@ async_export_service = AsyncExportService()
 
 
 @router.post("/imports/students", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def create_student_import(
     request: Request,
@@ -110,6 +112,7 @@ async def create_student_import(
 
 
 @router.post("/imports/courses", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def create_course_import(
     request: Request,
@@ -168,6 +171,7 @@ async def create_course_import(
 
 
 @router.post("/imports/grades", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def create_grade_import(
     request: Request,
@@ -315,6 +319,7 @@ async def list_import_jobs(
 
 
 @router.post("/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def commit_import_job(
     import_job_id: int,
@@ -366,6 +371,7 @@ async def commit_import_job(
 
 
 @router.post("/exports", response_model=APIResponse[ExportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("exports:generate")
 async def create_export(
     request: Request,
@@ -650,6 +656,7 @@ async def get_email_settings(
 
 
 @router.put("/settings/email")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def update_email_settings(
     request: Request,
     payload: dict,
@@ -672,6 +679,7 @@ async def update_email_settings(
 
 
 @router.post("/settings/email/test")
+@limiter.limit(RATE_LIMIT_HEAVY)
 async def test_email_settings(
     request: Request,
     payload: dict,

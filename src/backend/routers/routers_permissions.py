@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.db import get_session as get_db
 from backend.models import Permission, Role, RolePermission, User, UserPermission
 from backend.rbac import get_user_permissions, has_permission, require_permission
@@ -200,6 +201,7 @@ async def get_permission(
 
 
 @router.post("/", response_model=PermissionDetail, status_code=status.HTTP_201_CREATED)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def create_permission(
     request: Request,
@@ -263,6 +265,7 @@ async def create_permission(
 
 
 @router.patch("/{permission_id}", response_model=PermissionDetail)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def update_permission(
     request: Request,
@@ -316,6 +319,7 @@ async def update_permission(
 
 
 @router.delete("/{permission_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def delete_permission(
     request: Request,
@@ -351,6 +355,7 @@ async def delete_permission(
 
 
 @router.post("/users/grant", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def grant_user_permission(
     request: Request,
@@ -409,6 +414,7 @@ async def grant_user_permission(
 
 
 @router.post("/users/revoke", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def revoke_user_permission(
     request: Request,
@@ -450,6 +456,7 @@ async def revoke_user_permission(
 
 
 @router.post("/roles/grant", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def grant_role_permission(
     request: Request,
@@ -501,6 +508,7 @@ async def grant_role_permission(
 
 
 @router.post("/roles/revoke", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def revoke_role_permission(
     request: Request,

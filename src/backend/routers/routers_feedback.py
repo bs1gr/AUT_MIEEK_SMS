@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from backend.db import get_session
 from backend.models import AuditLog
-from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
+from backend.rate_limiting import RATE_LIMIT_HEAVY, RATE_LIMIT_WRITE, limiter
 from backend.routers.routers_auth import optional_require_role
 from backend.schemas import (
     FeedbackEntry,
@@ -147,6 +147,7 @@ async def list_feedback_entries(
 
 
 @router.post("/github/import", response_model=None, status_code=status.HTTP_201_CREATED)
+@limiter.limit(RATE_LIMIT_HEAVY)
 async def import_github_feedback(
     request: Request,
     payload: FeedbackImportRequest,
@@ -195,6 +196,7 @@ async def import_github_feedback(
 
 
 @router.patch("/entries/{entry_id}/archive")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def archive_feedback_entry(
     entry_id: int,
     request: Request,
@@ -227,6 +229,7 @@ async def archive_feedback_entry(
 
 
 @router.patch("/entries/{entry_id}/unarchive")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def unarchive_feedback_entry(
     entry_id: int,
     request: Request,
@@ -261,6 +264,7 @@ async def unarchive_feedback_entry(
 
 
 @router.delete("/entries/{entry_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
 async def delete_feedback_entry(
     entry_id: int,
     request: Request,

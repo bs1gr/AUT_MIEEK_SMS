@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 import backend.models as models
 
 # --- CRUD ENDPOINTS FOR ROLES ---
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.db import get_session as get_db
 from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.rbac import require_permission
@@ -73,6 +74,7 @@ def _record_catalog_change(request: Request, db: Session, action: AuditAction, d
 
 
 @router.post("/roles", response_model=RoleResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def create_role(
     request: Request,
@@ -110,6 +112,7 @@ async def list_roles(
 
 
 @router.put("/roles/{role_id}", response_model=RoleResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def update_role(
     request: Request,
@@ -154,6 +157,7 @@ async def update_role(
 
 
 @router.delete("/roles/{role_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def delete_role(
     request: Request,
@@ -180,6 +184,7 @@ async def delete_role(
 
 # --- CRUD ENDPOINTS FOR PERMISSIONS ---
 @router.post("/permissions", response_model=PermissionResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def create_permission(
     request: Request,
@@ -219,6 +224,7 @@ async def list_permissions(
 
 
 @router.put("/permissions/{permission_id}", response_model=PermissionResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def update_permission(
     request: Request,
@@ -269,6 +275,7 @@ async def update_permission(
 
 
 @router.delete("/permissions/{permission_id}")
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def delete_permission(
     request: Request,
@@ -351,6 +358,7 @@ async def get_rbac_change_history(
 
 # --- BULK ADMIN ENDPOINTS ---
 @router.post("/bulk-assign-role", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def bulk_assign_role(
     request: Request,
@@ -418,6 +426,7 @@ async def bulk_assign_role(
 
 
 @router.post("/bulk-grant-permission", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def bulk_grant_permission(
     request: Request,
@@ -798,6 +807,7 @@ def ensure_defaults_startup(session_factory) -> bool:
 
 
 @router.post("/ensure-defaults", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def ensure_defaults(
     request: Request,
@@ -838,6 +848,7 @@ async def get_rbac_summary(
 
 
 @router.post("/assign-role", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def assign_role(
     request: Request,
@@ -944,6 +955,7 @@ async def assign_role(
 
 
 @router.post("/revoke-role", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def revoke_role(
     request: Request,
@@ -1007,6 +1019,7 @@ async def revoke_role(
 
 
 @router.post("/revoke-permission", status_code=status.HTTP_200_OK)
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
 async def revoke_permission_from_role(
     request: Request,
