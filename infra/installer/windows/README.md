@@ -1,5 +1,12 @@
 # SMS Installer - v1.18.24
 
+> **Note of 19 November 2026.** This file describes the installer of v1.18.11 and was not read
+> against the script since. Known to be out of date: there is no "Fresh Install" choice (an
+> existing installation is always updated in place), a new installation uses this PC's own
+> SQLite database unless the wizard is told otherwise, and the uninstaller does not delete the
+> database. The guide that was read against the script is
+> [docs/operations/INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+>
 > **This directory is live, not legacy.** Despite the `-old` suffix, this is
 > the only Inno Setup installer configuration in the repository and is
 > actively used by `infra/scripts/release/INSTALLER_BUILDER.ps1`. Do not
@@ -18,14 +25,14 @@ The installer supports **two editions**:
 - **Database:** Local SQLite (default) or optional QNAP PostgreSQL
 - **File Size:** ~70 MB executable
 - **Setup Time:** ~2 minutes
-- **📖 Full Guide:** [LITE_EDITION_GUIDE.md](../docs/deployment/LITE_EDITION_GUIDE.md)
+- **📖 Full Guide:** [LITE_EDITION_GUIDE.md](../../../docs/deployment/LITE_EDITION_GUIDE.md)
 
 ### 2. **Docker Edition** (Recommended for institutions)
 - **Application:** Docker container with SMS_Manager.exe control panel
 - **Database:** QNAP PostgreSQL (required)
 - **File Size:** ~25-30 MB installer
 - **Setup Time:** ~10-15 minutes (includes Docker build)
-- **📖 Deployment Guide:** [DEPLOY_ON_NEW_PC.md](../DEPLOY_ON_NEW_PC.md)
+- **📖 Deployment Guide:** [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md)
 
 ## Recent Changes (v1.18.11)
 

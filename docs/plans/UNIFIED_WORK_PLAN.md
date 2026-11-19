@@ -312,6 +312,53 @@ panel of todo 62; the unused tools and page parts). Where the list left a choice
 or keep", "repair or take off the page") the entries below say which was taken and why; each
 is the assistant's choice and one change to undo.
 
+**2026-11-19: the database chosen in the installer reaches a new installation, and the
+uninstaller says what it deletes** (PR 435; two of the things of the owner's go-ahead above.
+Both were read from the scripts on 18 November and not seen on an installation; **no
+installer was run for this either**.)
+
+- **The database choice of the Docker wizard.** The wizard writes it to `.env` in the
+  installation folder (`WritePostgresEnv`); `DOCKER.ps1` works with `config\.env` and never
+  read the other file, so a new installation ran on its own SQLite database whatever the
+  wizard was told.
+  - *A new installation* (its `config\.env` was made in this run): `DOCKER.ps1` writes the
+    wizard's choice into `config\.env` (`Sync-InstallerDatabaseChoice`: engine, `POSTGRES_*`,
+    `DATABASE_URL`; what the first start generated, the secret key and the administrator's
+    password, stays).
+  - *An installation that already has a `config\.env`* keeps the database it runs on. This is
+    the assistant's choice, and the careful one: every installation made so far ran on its own
+    database whatever its wizard's file says, its records are there, and a switch at an update
+    would look as if they were gone. When the wizard's file names another database,
+    `DOCKER.ps1` changes nothing and says so (output and `DOCKER_INSTALL.log`).
+  - *The wizard's database page* on an update showed what its own file of an earlier run
+    said; it reads `config\.env` first now.
+- **The uninstaller's second question** asked "Do you want to delete all user data?" and
+  listed "Database (data folder)". Yes deletes the folders `data`, `backups`, `logs` and
+  `config`; the database of the Docker edition is in the Docker volume `sms_data` or on a
+  PostgreSQL server, and the one of SMS Lite in the user's AppData. **The question now says
+  what it deletes, that the database is not among it, and where the database is.** Deleting
+  the database from the uninstaller was not built: it cannot be tried here, and it would
+  remove what cannot be brought back. Say so if it is wanted.
+- **Two questions in Greek.** That question, and the wizard's question about an installation
+  that is already there, were English text in the code; they are texts in both languages now
+  (the Greek texts that existed were for a choice between update and "fresh install" that the
+  wizard no longer offers).
+- **Documents.** `INSTALLATION_GUIDE.md` (sections 2, 7 and 10). The installer's own
+  `README.md` describes v1.18.11: it has a dated note and two repaired links, and was not
+  rewritten.
+- **Tests.** `test_installer_database_choice.py` (12): the function taken out of `DOCKER.ps1`
+  and run on folders of two files (a new installation told PostgreSQL; told its own database;
+  an installation that runs; the same server with another password; no file, no database, an
+  engine it does not know; no `config\.env`), where the script calls it, the wizard's page,
+  the uninstaller's text in both languages, and that every text the code asks for is there in
+  English and in Greek.
+- **Compiled, not run.** Inno Setup compiled the whole script without making an installer
+  (`ISCC /O-`): it passes, and a copy with a deliberate mistake in the uninstaller's code
+  fails. The wizard, the uninstaller and `DOCKER.ps1 -Install` were not run.
+- **Not changed:** the copy the installer makes before an update still does not hold the
+  database; `DOCKER_OPERATIONS.md`, the two `.rtf` pages and the rest of the installer's
+  README are as they were.
+
 **2026-11-19: permission keys are unique in every database, the tools nothing ran and the
 unused page parts are gone, and CLAUDE.md's release text no longer ends with an upload by
 hand** (PR 434; three of the things of the owner's go-ahead above).
@@ -353,7 +400,9 @@ hand** (PR 434; three of the things of the owner's go-ahead above).
   nothing; the smoke test before the release starts a database of v1.18.73 on PostgreSQL and
   upgrades it).
 
-**2026-11-19: *Clear* on the Attendance page takes saved marks off** (PR 433; one of the
+**2026-11-19: *Clear* on the Attendance page takes saved marks off** (PR 433, merged as
+`aceaf1dcd`; on the PR's commit CI's backend job passed 1,884 tests with 55 skipped, the
+frontend job 2,125 and E2E 77, each at its first try. One of the
 things of the owner's go-ahead above. Found on 18 November while PR 430 was made: *Clear*
 emptied the page, and two seconds later the marks were back.)
 
@@ -538,12 +587,12 @@ permission keys).
   checkout.
 - **Found and not changed** (read from the scripts by the helper that wrote the guide, and
   not tried on an installation; each is the owner's word or a later entry):
-  - *The database choice of the Docker wizard may not reach the application.* The wizard
+  - *The database choice of the Docker wizard may not reach the application* (**repaired in PR 435** for a new installation)*.* The wizard
     writes it to `.env` in the installation folder (`WritePostgresEnv`); `DOCKER.ps1` reads
     `config\.env` there and nothing was found that reads the other file. A new Docker
     installation would then run on local SQLite whatever the wizard offered. To settle it:
     one installation with the QNAP choice, then **System** > **Show System Health**.
-  - *"Delete all user data" of the uninstaller does not delete the database.* It deletes
+  - *"Delete all user data" of the uninstaller does not delete the database* (**the question says so since PR 435**)*.* It deletes
     the folders `data`, `backups`, `logs` and `config`; the Docker edition's database is in
     the Docker volume `sms_data`, and Lite's in `%LOCALAPPDATA%\SMS_Native_Lite_Simple`.
     Neither is touched, and the question's own list says "Database (data folder)".
