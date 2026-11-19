@@ -383,7 +383,7 @@ the VM and the QNAP.
 ### On `main` since v1.18.74 (unreleased)
 
 **2026-11-19: after Docker's cleanup SMS comes back; every text of the wizard in both
-languages; the installer's older notes, two unused pages and a CI step** (PR 438; the owner's
+languages; the installer's older notes, two unused pages and a CI step** (PR 438, merged as `27adbfca3`; on the PR's commit CI's backend job passed 1,948 tests with 55 skipped, E2E 77 with none flaky, and the gate job on Ubuntu and Windows, its repaired page check included. The owner's
 answer to the report on PR 437, quoted in todo 64, which this closes).
 
 - **`DOCKER.ps1`'s cleanup.** `-Prune`, `-PruneAll` and `-DeepClean` stay Docker's own
@@ -434,8 +434,8 @@ answer to the report on PR 437, quoted in todo 64, which this closes).
   written as text, and every message has the same `%1` places in both languages and ASCII
   English. Five of the new tests fail on `main`; with the other installer tests, 40 pass.
 - **Verified:** the installer's script compiles with and without SMS Lite; `DOCKER.ps1`
-  parses; the CI step's two commands were run here. **Not verified: no wizard was run, so
-  whether each Greek text fits its label is not known** (Greek is often longer, and several
+  parses; the CI step's two commands were run here. **The owner on 2026-11-19, after looking at the Greek wizard: "greek are ok."** Before that no wizard had been run, so
+  whether each Greek text fits its label was not known (Greek is often longer, and several
   labels have a fixed width). Nor was any cleanup run against Docker. The Greek was written
   by the assistant and read by nobody else.
 
