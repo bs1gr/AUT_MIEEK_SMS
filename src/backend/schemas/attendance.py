@@ -13,6 +13,13 @@ class AttendanceSheetEntry(BaseModel):
     status: str = Field(..., pattern="^(Present|Absent|Late|Excused)$")
 
 
+class AttendanceSheetDelete(BaseModel):
+    """A mark taken off the sheet: the attendance of one student in one period."""
+
+    student_id: int
+    period_number: int = Field(default=1, ge=1)
+
+
 class AttendanceSheetPerformance(BaseModel):
     student_id: int
     category: str = Field(..., min_length=1, max_length=100)
@@ -31,6 +38,9 @@ class AttendanceSheetSave(BaseModel):
     course_id: int
     date: date
     attendance: List[AttendanceSheetEntry] = Field(default_factory=list, max_length=MAX_SHEET_ITEMS)
+    # Marks the page took off (Clear, or one student's Clear). Until November 2026 a sheet could
+    # only create and update: a saved mark that was cleared came back with the next refresh.
+    attendance_deletes: List[AttendanceSheetDelete] = Field(default_factory=list, max_length=MAX_SHEET_ITEMS)
     daily_performance: List[AttendanceSheetPerformance] = Field(default_factory=list, max_length=MAX_SHEET_ITEMS)
     daily_performance_deletes: List[AttendanceSheetPerformanceDelete] = Field(
         default_factory=list, max_length=MAX_SHEET_ITEMS
@@ -41,6 +51,7 @@ class AttendanceSheetResult(BaseModel):
     attendance_created: int = 0
     attendance_updated: int = 0
     attendance_unchanged: int = 0
+    attendance_deleted: int = 0
     performance_created: int = 0
     performance_updated: int = 0
     performance_unchanged: int = 0

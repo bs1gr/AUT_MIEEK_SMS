@@ -20,6 +20,11 @@ export interface AttendanceSheetPayload {
   /** YYYY-MM-DD */
   date: string;
   attendance: Array<{ student_id: number; period_number: number; status: string }>;
+  /**
+   * Marks taken off the sheet (Clear). Present only when there are some. A server older than
+   * v1.18.74 does not know the list and leaves those marks as they are.
+   */
+  attendance_deletes?: Array<{ student_id: number; period_number: number }>;
   daily_performance: Array<{ student_id: number; category: string; score: number; max_score: number }>;
   daily_performance_deletes: Array<{ student_id: number; category: string }>;
 }

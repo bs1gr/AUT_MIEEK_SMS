@@ -312,6 +312,49 @@ panel of todo 62; the unused tools and page parts). Where the list left a choice
 or keep", "repair or take off the page") the entries below say which was taken and why; each
 is the assistant's choice and one change to undo.
 
+**2026-11-19: *Clear* on the Attendance page takes saved marks off** (PR 433; one of the
+things of the owner's go-ahead above. Found on 18 November while PR 430 was made: *Clear*
+emptied the page, and two seconds later the marks were back.)
+
+- **Why it did nothing lasting.** A sheet could only create and update
+  (`attendance_sheet_service.py`). The page sent the sheet without the marks it had taken
+  off, the server kept its rows, and the refresh after the save put them back.
+- **What changes.**
+  - *The server.* A sheet has a list of marks to take off (`attendance_deletes`: student and
+    period), beside the one it had for ratings. Each is marked as deleted, as every delete
+    here, and a slot that is taken off and marked in the same request ends with the new
+    mark. It asks for nothing more than the sheet already asks (`attendance:edit`,
+    `students:edit`): taking a mark off is part of editing the sheet, as changing it is.
+    `DELETE /attendance/{id}` keeps `attendance:delete`.
+  - *The page.* What the server holds, as far as the page knows, and the page no longer
+    shows is sent as deletions (`removedAttendanceKeys`): with the autosave, with the sheet
+    that is sent when a day is left, and in the offline queue. A server without the sheet
+    endpoint is asked to delete the records one by one.
+  - *A question before the whole day goes.* **Clear** above the list now deletes: when saved
+    marks are among those it takes off, the page asks first ("This takes the saved marks of
+    Students with saved marks on this day: N…"). One student's **Clear** is not asked about. This was the
+    assistant's addition: say so if the question is in the way.
+  - *The Greek label.* The button read **Άκυρο** ("Cancel") in Greek; it reads
+    **Εκκαθάριση**, which is what the Greek guide already called it.
+- **Tests.** `test_attendance_sheet.py` (14, six new: one mark, the whole day and marking it
+  again, a slot taken off and marked at once, a mark that is not there, this day and this
+  course only, the row kept as deleted). `useAttendanceSaveSync.marksKept.test.ts` (nine
+  new: the hook with real state, one student, the whole day, a mark never saved, a sheet
+  without deletions, the offline queue, the day left inside the two seconds, a server
+  without the sheet endpoint).
+- **Tried in a browser on a scratch copy** (two students marked and saved, then **Clear**):
+  answered "Cancel", both marks stay and the server holds both; answered "OK", the marks are
+  off at once, the next sheet carries two deletions, the server holds nothing, and the page
+  loaded anew shows both unmarked. A mark that was never saved is cleared without a question
+  and without a request. In Greek the button reads **Εκκαθάριση** and the question is Greek.
+  Seven of the nine new hook tests fail on the hook as it was. Not tried in the browser: one
+  student's **Clear** (the scratch course has no day with several periods; the hook's test
+  covers it).
+- **What it leaves.** A phone app newer than its server: a server from v1.18.69 to v1.18.73
+  has the sheet endpoint and does not know the list, so there *Clear* still does nothing
+  lasting. A sheet that waited in the offline queue deletes what it was told to when it is
+  sent, also a mark somebody else made meanwhile (as it overwrites one).
+
 **2026-11-19: a semester's session file is the teacher's too, and an import knows a grade by
 its category as well** (PR 432; two of the things above).
 
@@ -538,6 +581,7 @@ needed a second try on the CI of PR 429, "should mark student attendance").
     student. The user guide said that Clear "takes all of them away"; it now says what
     happens. To make Clear remove saved marks, the sheet needs a list of marks to delete
     (as it has for ratings), on the server, the page and the offline queue: the owner's word.
+    **Done in PR 433 (above), on the owner's go-ahead of 19 November.**
   - Closing the browser or reloading the page inside the two seconds still loses the mark
     (the request of a page that is going away is not sent). The help already says to wait
     until "Changes pending..." has gone.

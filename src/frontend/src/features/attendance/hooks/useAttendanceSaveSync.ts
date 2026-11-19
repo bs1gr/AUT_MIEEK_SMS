@@ -71,6 +71,26 @@ export const keepLocalChanges = <T,>(
 // How often a sheet is asked for again when a save crossed the answer (see refreshAttendancePrefill).
 const MAX_SHEET_READS = 5;
 
+/**
+ * The marks the page took off: what the server holds, as far as the page knows (`agreed`),
+ * and the page no longer shows. Clear, or one student's Clear, leaves exactly these. They are
+ * sent as deletions; until November 2026 nothing was sent for them, the server kept its rows,
+ * and the refresh after the save put the marks back on the page.
+ */
+export const removedAttendanceKeys = (
+  local: Record<string, string>,
+  agreed: Record<string, string>,
+): string[] => Object.keys(agreed).filter((key) => !(key in local));
+
+/** The same, as the part of a queued sheet: there only when a mark was taken off. */
+const removedAttendancePart = (
+  local: Record<string, string>,
+  agreed: Record<string, string>,
+): { attendanceDeletes?: string[] } => {
+  const removed = removedAttendanceKeys(local, agreed);
+  return removed.length ? { attendanceDeletes: removed } : {};
+};
+
 // Narrow unknown thrown values to objects with optional response.status
 const isResponseLike = (e: unknown): e is { response?: { status?: number } } => (
   typeof e === 'object' && e !== null && 'response' in e
@@ -115,6 +135,8 @@ export interface SyncAttendanceAndPerformanceOptions {
   dailyPerformance: Record<string, number>;
   performanceIdMap: Record<string, number>;
   performanceDeleteKeys: string[];
+  /** Keys of marks to delete (see removedAttendanceKeys). */
+  attendanceDeleteKeys?: string[];
   onPerformanceIdAssigned?: (key: string, id: number) => void;
 }
 
@@ -135,6 +157,7 @@ export async function syncAttendanceAndPerformanceRequests(
     dailyPerformance,
     performanceIdMap,
     performanceDeleteKeys,
+    attendanceDeleteKeys = [],
     onPerformanceIdAssigned,
   } = options;
 
@@ -221,7 +244,25 @@ export async function syncAttendanceAndPerformanceRequests(
     });
   });
 
-  const allPromises = [...attendancePromises, ...performancePromises, ...performanceDeletePromises];
+  const attendanceDeletePromises = attendanceDeleteKeys.map((key) => {
+    const parsed = parseAttendanceKey(key, fallbackDate);
+    if (!parsed.studentId) return Promise.resolve(null);
+    const recordId = attendanceIdMap[`${parsed.studentId}|${parsed.periodNumber}|${parsed.payloadDate}`];
+    if (!isValidRecordId(recordId)) return Promise.resolve(null);
+    return apiClient.delete(`/attendance/${recordId}`).catch((error) => {
+      if (isResponseLike(error) && error.response?.status === 404) {
+        return Promise.resolve(null);
+      }
+      throw error;
+    });
+  });
+
+  const allPromises = [
+    ...attendancePromises,
+    ...attendanceDeletePromises,
+    ...performancePromises,
+    ...performanceDeletePromises,
+  ];
   const CHUNK_SIZE = 30;
   for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
     await Promise.all(allPromises.slice(i, i + CHUNK_SIZE));
@@ -233,7 +274,7 @@ export async function syncAttendanceAndPerformanceRequests(
 
 export type AttendanceSheetOptions = Pick<
   SyncAttendanceAndPerformanceOptions,
-  'courseId' | 'fallbackDate' | 'attendanceRecords' | 'dailyPerformance' | 'performanceDeleteKeys'
+  'courseId' | 'fallbackDate' | 'attendanceRecords' | 'dailyPerformance' | 'performanceDeleteKeys' | 'attendanceDeleteKeys'
 >;
 
 /**
@@ -242,7 +283,7 @@ export type AttendanceSheetOptions = Pick<
  * nothing, when the server has no sheet endpoint; the caller then sends the records one by one.
  */
 export async function saveAttendanceAsSheet(options: AttendanceSheetOptions): Promise<AttendanceSheetOutcome> {
-  const { courseId, fallbackDate, attendanceRecords, dailyPerformance, performanceDeleteKeys } = options;
+  const { courseId, fallbackDate, attendanceRecords, dailyPerformance, performanceDeleteKeys, attendanceDeleteKeys = [] } = options;
 
   const sheets = new Map<string, AttendanceSheetPayload>();
   const sheetFor = (date: string): AttendanceSheetPayload => {
@@ -262,6 +303,13 @@ export async function saveAttendanceAsSheet(options: AttendanceSheetOptions): Pr
       period_number: parsed.periodNumber,
       status,
     });
+  });
+  attendanceDeleteKeys.forEach((key) => {
+    const parsed = parseAttendanceKey(key, fallbackDate);
+    if (!parsed.studentId) return;
+    // The list is on the sheet only when it holds something: see AttendanceSheetPayload.
+    const sheet = sheetFor(parsed.payloadDate);
+    (sheet.attendance_deletes ??= []).push({ student_id: parsed.studentId, period_number: parsed.periodNumber });
   });
   Object.entries(dailyPerformance).forEach(([key, score]) => {
     const { studentId, category } = parseDailyPerformanceKey(key);
@@ -378,6 +426,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       courseId,
       date: snapshotDate,
       attendanceRecords: { ...attendanceRecords },
+      ...removedAttendancePart(attendanceRecords, persistedAttendanceRecords),
       dailyPerformance: { ...dailyPerformance },
       dailyPerformanceDeletes: Array.from(pendingPerformanceDeleteKeys),
     });
@@ -386,7 +435,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
     setPersistedDailyPerformance({ ...dailyPerformance });
     updatePendingSyncCount();
     return true;
-  }, [selectedCourse, attendanceRecords, dailyPerformance, pendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance, updatePendingSyncCount]);
+  }, [selectedCourse, attendanceRecords, persistedAttendanceRecords, dailyPerformance, pendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance, updatePendingSyncCount]);
 
   const syncSnapshotToServer = useCallback(async (snapshot: Omit<AttendanceSyncSnapshot, 'id' | 'enqueuedAt'>) => {
     saveActivityRef.current += 1;
@@ -528,6 +577,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
         courseId,
         date: dateStr,
         attendanceRecords: { ...page.attendanceRecords },
+        ...removedAttendancePart(page.attendanceRecords, page.persistedAttendanceRecords),
         dailyPerformance: { ...page.dailyPerformance },
         dailyPerformanceDeletes: Array.from(page.pendingPerformanceDeleteKeys),
       };
@@ -600,6 +650,8 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
 
       const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
       const performanceDeleteKeys = Array.from(pendingPerformanceDeleteKeys);
+      // Marks taken off since the page last agreed with the server (Clear).
+      const attendanceDeleteKeys = removedAttendanceKeys(attendanceRecords, persistedAttendanceRecords);
       saveActivityRef.current += 1;
       try {
         const outcome = await saveAttendanceAsSheet({
@@ -608,6 +660,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
           attendanceRecords,
           dailyPerformance,
           performanceDeleteKeys,
+          attendanceDeleteKeys,
         });
         if (outcome === 'unsupported') {
           await syncAttendanceAndPerformanceRequests({
@@ -618,6 +671,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
             dailyPerformance,
             performanceIdMap: dailyPerformanceIds,
             performanceDeleteKeys,
+            attendanceDeleteKeys,
             onPerformanceIdAssigned: (key, id) => setDailyPerformanceIds(prev => ({ ...prev, [key]: id })),
           });
         }
@@ -639,6 +693,10 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       });
       Array.from(pendingPerformanceDeleteKeys).forEach((key) => {
         const { studentId } = parseDailyPerformanceKey(key);
+        if (studentId) affectedStudentIds.add(studentId);
+      });
+      attendanceDeleteKeys.forEach((key) => {
+        const { studentId } = parseAttendanceKey(key, dateStr);
         if (studentId) affectedStudentIds.add(studentId);
       });
 
@@ -680,7 +738,7 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
       showToast(t('saveFailed') || 'Save failed', 'error');
       throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, pendingPerformanceDeleteKeys, t, refreshAttendancePrefill, isOfflineNetworkError, queueAttendanceSnapshot, showToast, setDailyPerformanceIds, setPendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance]);
+  }, [selectedCourse, selectedDate, attendanceRecords, persistedAttendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, pendingPerformanceDeleteKeys, t, refreshAttendancePrefill, isOfflineNetworkError, queueAttendanceSnapshot, showToast, setDailyPerformanceIds, setPendingPerformanceDeleteKeys, setPersistedAttendanceRecords, setPersistedDailyPerformance]);
 
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
@@ -731,6 +789,7 @@ async function sendSnapshot(snapshot: Omit<AttendanceSyncSnapshot, 'id' | 'enque
     attendanceRecords: snapshot.attendanceRecords,
     dailyPerformance: snapshot.dailyPerformance,
     performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
+    attendanceDeleteKeys: snapshot.attendanceDeletes || [],
   });
   if (outcome === 'saved') return;
 
@@ -779,5 +838,6 @@ async function sendSnapshot(snapshot: Omit<AttendanceSyncSnapshot, 'id' | 'enque
     dailyPerformance: snapshot.dailyPerformance,
     performanceIdMap,
     performanceDeleteKeys: snapshot.dailyPerformanceDeletes || [],
+    attendanceDeleteKeys: snapshot.attendanceDeletes || [],
   });
 }

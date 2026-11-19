@@ -19,7 +19,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { keepLocalChanges, useAttendanceSaveSync } from '../useAttendanceSaveSync';
+import { keepLocalChanges, removedAttendanceKeys, useAttendanceSaveSync } from '../useAttendanceSaveSync';
 
 vi.mock('@/api/api', () => ({
   default: { get: vi.fn(), put: vi.fn(), post: vi.fn(), delete: vi.fn() },
@@ -37,6 +37,8 @@ import { saveAttendanceSheet } from '@/api/attendanceSheetAPI';
 import { enqueueAttendanceSyncSnapshot } from '@/features/attendance/utils/offlineAttendanceQueue';
 
 const mockGet = apiClient.get as unknown as ReturnType<typeof vi.fn>;
+const mockDelete = apiClient.delete as unknown as ReturnType<typeof vi.fn>;
+const mockPut = apiClient.put as unknown as ReturnType<typeof vi.fn>;
 const mockSaveSheet = saveAttendanceSheet as unknown as ReturnType<typeof vi.fn>;
 const mockEnqueue = enqueueAttendanceSyncSnapshot as unknown as ReturnType<typeof vi.fn>;
 
@@ -111,7 +113,16 @@ const usePage = () => {
   const mark = (student: number, status = 'Present') =>
     setAttendanceRecords((records) => ({ ...records, [getAttendanceKey(student)]: status }));
 
-  return { sync, attendanceRecords, dailyPerformance, setDailyPerformance, mark, setDay, setCourse, showToast };
+  // What the page's two Clear buttons do: one student's mark, or every mark of the day.
+  const clear = (student: number) =>
+    setAttendanceRecords((records) => {
+      const next = { ...records };
+      delete next[getAttendanceKey(student)];
+      return next;
+    });
+  const clearAll = () => setAttendanceRecords({});
+
+  return { sync, attendanceRecords, dailyPerformance, setDailyPerformance, mark, clear, clearAll, setDay, setCourse, showToast };
 };
 
 const flush = () => act(async () => { await Promise.resolve(); });
@@ -339,5 +350,158 @@ describe('a mark on the Attendance page is kept', () => {
 
     expect(mockEnqueue).not.toHaveBeenCalled();
     expect(result.current.showToast).toHaveBeenCalledWith('saveFailed', 'error');
+  });
+});
+
+/**
+ * Clear takes a saved mark off for good.
+ *
+ * Until 19 November 2026 nothing was sent for a mark the page had taken off: the sheet that
+ * went out simply did not hold it, the server kept its row, and the refresh after the save
+ * put the mark back on the page two seconds after Clear. The marks the page took off are
+ * sent as deletions now.
+ */
+describe('removedAttendanceKeys', () => {
+  it('is what the server holds, as far as the page knows, and the page no longer shows', () => {
+    expect(removedAttendanceKeys({ b: 'Late' }, { a: 'Present', b: 'Late' })).toEqual(['a']);
+    expect(removedAttendanceKeys({}, { a: 'Present', b: 'Late' })).toEqual(['a', 'b']);
+  });
+
+  it('is nothing for a mark that was only changed, or never saved', () => {
+    expect(removedAttendanceKeys({ a: 'Absent', c: 'Present' }, { a: 'Present' })).toEqual([]);
+    expect(removedAttendanceKeys({}, {})).toEqual([]);
+  });
+});
+
+describe('Clear on the Attendance page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sheetReads.length = 0;
+    holdSheetReads();
+    mockSaveSheet.mockResolvedValue('saved');
+    setOnline(true);
+  });
+
+  afterEach(() => {
+    setOnline(true);
+  });
+
+  /** A page whose day holds two saved marks. */
+  const pageWithTwoSavedMarks = async () => {
+    const page = renderHook(() => usePage());
+    await waitFor(() => expect(sheetReads).toHaveLength(1));
+    await act(async () => { sheetReads[0].resolve([row(1), row(2, 'Absent')]); });
+    expect(page.result.current.attendanceRecords).toEqual({ [key(1)]: 'Present', [key(2)]: 'Absent' });
+    expect(page.result.current.sync.hasChanges).toBe(false);
+    return page;
+  };
+
+  it('one student cleared: the mark is sent as a deletion and stays off the page', async () => {
+    const { result } = await pageWithTwoSavedMarks();
+
+    act(() => result.current.clear(1));
+    expect(result.current.sync.hasChanges).toBe(true);
+    let saving: Promise<void> = Promise.resolve();
+    act(() => { saving = result.current.sync.performSave(); });
+    await waitFor(() => expect(sheetReads).toHaveLength(2));
+
+    expect(mockSaveSheet).toHaveBeenCalledTimes(1);
+    const sheet = mockSaveSheet.mock.calls[0][0];
+    expect(sheet.attendance).toEqual([{ student_id: 2, period_number: 1, status: 'Absent' }]);
+    // It used to be all that was sent, and the answer below held both rows again.
+    expect(sheet.attendance_deletes).toEqual([{ student_id: 1, period_number: 1 }]);
+
+    await act(async () => { sheetReads[1].resolve([row(2, 'Absent')]); await saving; });
+    expect(result.current.attendanceRecords).toEqual({ [key(2)]: 'Absent' });
+    expect(result.current.sync.hasChanges).toBe(false);
+  });
+
+  it('the whole day cleared: every saved mark is sent as a deletion', async () => {
+    const { result } = await pageWithTwoSavedMarks();
+
+    act(() => result.current.clearAll());
+    let saving: Promise<void> = Promise.resolve();
+    act(() => { saving = result.current.sync.performSave(); });
+    await waitFor(() => expect(sheetReads).toHaveLength(2));
+
+    const sheet = mockSaveSheet.mock.calls[0][0];
+    expect(sheet.attendance).toEqual([]);
+    expect(sheet.attendance_deletes).toEqual([
+      { student_id: 1, period_number: 1 },
+      { student_id: 2, period_number: 1 },
+    ]);
+
+    await act(async () => { sheetReads[1].resolve([]); await saving; });
+    expect(result.current.attendanceRecords).toEqual({});
+    expect(result.current.sync.hasChanges).toBe(false);
+  });
+
+  it('a mark that was never saved is cleared without a word to the server', async () => {
+    const { result } = await pageWithTwoSavedMarks();
+
+    act(() => result.current.mark(3));
+    act(() => result.current.clear(3));
+
+    expect(result.current.sync.hasChanges).toBe(false);
+    expect(mockSaveSheet).not.toHaveBeenCalled();
+  });
+
+  it('a sheet from which nothing was taken off has no list of deletions', async () => {
+    const { result } = await pageWithTwoSavedMarks();
+
+    act(() => result.current.mark(3, 'Late'));
+    let saving: Promise<void> = Promise.resolve();
+    act(() => { saving = result.current.sync.performSave(); });
+    await waitFor(() => expect(sheetReads).toHaveLength(2));
+
+    expect('attendance_deletes' in mockSaveSheet.mock.calls[0][0]).toBe(false);
+    await act(async () => { sheetReads[1].resolve([row(1), row(2, 'Absent'), row(3, 'Late')]); await saving; });
+  });
+
+  it('without a connection the deletion waits in the queue with the sheet', async () => {
+    const { result } = await pageWithTwoSavedMarks();
+    setOnline(false);
+
+    act(() => result.current.clear(1));
+    await act(async () => { await result.current.sync.performSave(); });
+
+    expect(mockSaveSheet).not.toHaveBeenCalled();
+    expect(mockEnqueue).toHaveBeenCalledTimes(1);
+    expect(mockEnqueue.mock.calls[0][0]).toMatchObject({
+      courseId: 1,
+      date: DAY,
+      attendanceRecords: { [key(2)]: 'Absent' },
+      attendanceDeletes: [key(1)],
+    });
+  });
+
+  it('cleared and the day left inside the two seconds: the deletion goes with the sheet that is sent on the way out', async () => {
+    const { result } = await pageWithTwoSavedMarks();
+
+    act(() => result.current.clear(2));
+    act(() => result.current.setDay(NEXT_DAY));
+    await flush();
+
+    expect(mockSaveSheet).toHaveBeenCalledTimes(1);
+    const sheet = mockSaveSheet.mock.calls[0][0];
+    expect(sheet.date).toBe(DAY);
+    expect(sheet.attendance_deletes).toEqual([{ student_id: 2, period_number: 1 }]);
+  });
+
+  it('a server without the sheet endpoint is asked to delete the record itself', async () => {
+    mockSaveSheet.mockResolvedValue('unsupported');
+    mockPut.mockResolvedValue({ data: {} });
+    mockDelete.mockResolvedValue({ data: {} });
+    const { result } = await pageWithTwoSavedMarks();
+
+    act(() => result.current.clear(1));
+    let saving: Promise<void> = Promise.resolve();
+    act(() => { saving = result.current.sync.performSave(); });
+    await waitFor(() => expect(sheetReads).toHaveLength(2));
+
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+    expect(mockDelete).toHaveBeenCalledWith('/attendance/101');
+    await act(async () => { sheetReads[1].resolve([row(2, 'Absent')]); await saving; });
+    expect(result.current.attendanceRecords).toEqual({ [key(2)]: 'Absent' });
   });
 });

@@ -12,6 +12,7 @@ export default {
   late: 'Late',
   excused: 'Excused',
   clear: 'Clear',
+  clearSavedConfirm: 'Students with saved marks on this day: {{count}}. Clear deletes their marks, it does not only hide them. Continue?',
   saveAttendance: 'Save Attendance',
   attendanceSavedSuccessfully: 'Attendance saved successfully!',
   previousMonth: 'Previous Month',

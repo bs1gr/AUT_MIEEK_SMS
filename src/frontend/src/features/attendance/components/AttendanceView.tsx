@@ -784,6 +784,22 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   const clearAllAttendance = () => {
     if (!enrolledStudents || enrolledStudents.length === 0) return;
+    // Clear takes saved marks off as well since v1.18.74 (the autosave deletes them on the
+    // server). One tap on the whole class's day is asked about first; a single student's
+    // Clear is not.
+    const periodsToClear = activePeriods.length ? activePeriods : [1];
+    const studentsWithSavedMarks = enrolledStudents.filter((student) =>
+      periodsToClear.some((period) => getAttendanceKey(student.id, period) in persistedAttendanceRecords)
+    ).length;
+    if (
+      studentsWithSavedMarks > 0 &&
+      !window.confirm(
+        t('clearSavedConfirm', { count: studentsWithSavedMarks }) ||
+          `Students with saved marks on this day: ${studentsWithSavedMarks}. Clear deletes their marks. Continue?`
+      )
+    ) {
+      return;
+    }
     setAttendanceRecords((prev) => {
       const next = { ...prev };
       const periods = activePeriods.length ? activePeriods : [1];

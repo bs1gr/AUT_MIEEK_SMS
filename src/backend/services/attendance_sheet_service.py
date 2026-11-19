@@ -9,7 +9,8 @@ students, one for the day's attendance rows, one for the day's performance rows,
 in a single transaction.
 
 The result is what the per-record endpoints would have produced: a row that exists is updated,
-one that does not is created, and nothing else is touched.
+one that does not is created, a mark the page took off is deleted (as every delete here: marked
+as deleted, not removed), and nothing else is touched.
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ def save_attendance_sheet(
     # queue) must not make the whole sheet unsaveable: leave those rows out and say so.
     wanted_ids = (
         {entry.student_id for entry in sheet.attendance}
+        | {entry.student_id for entry in sheet.attendance_deletes}
         | {entry.student_id for entry in sheet.daily_performance}
         | {entry.student_id for entry in sheet.daily_performance_deletes}
     )
@@ -70,11 +72,12 @@ def save_attendance_sheet(
     result.skipped_student_ids = skipped_student_ids
 
     logger.info(
-        "Saved attendance sheet course=%s date=%s: attendance +%s ~%s, performance +%s ~%s -%s, skipped students %s",
+        "Saved attendance sheet course=%s date=%s: attendance +%s ~%s -%s, performance +%s ~%s -%s, skipped students %s",
         sheet.course_id,
         sheet.date,
         result.attendance_created,
         result.attendance_updated,
+        result.attendance_deleted,
         result.performance_created,
         result.performance_updated,
         result.performance_deleted,
@@ -90,8 +93,9 @@ def _apply_sheet(
     result = AttendanceSheetResult()
 
     with transaction(db):
-        if sheet.attendance:
+        if sheet.attendance or sheet.attendance_deletes:
             existing_attendance: dict[tuple[int, int], object] = {}
+            every_row: dict[tuple[int, int], list] = {}
             rows = (
                 db.query(Attendance)
                 .filter(
@@ -106,6 +110,23 @@ def _apply_sheet(
                 # One row per slot since uq_attendance_live_slot. Should a database still hold a
                 # repeat (its migration has not run), the first row is the one that is updated.
                 existing_attendance.setdefault((row.student_id, row.period_number or 1), row)
+                every_row.setdefault((row.student_id, row.period_number or 1), []).append(row)
+
+            # Marks taken off the sheet go first, every live row of the slot with them. A slot
+            # that is taken off and marked in the same request ends with the new mark.
+            taken_off: set[tuple[int, int]] = set()
+            for removal in sheet.attendance_deletes:
+                slot = (removal.student_id, removal.period_number)
+                if slot in taken_off:
+                    continue
+                taken_off.add(slot)
+                existing_attendance.pop(slot, None)
+                for row in every_row.pop(slot, []):
+                    row.mark_deleted()
+                    result.attendance_deleted += 1
+            if taken_off:
+                # Before a mark for the same slot is added: one live row per slot is allowed.
+                db.flush()
 
             # The last entry for a student and period wins if the request repeats one.
             wanted_status = {
