@@ -2,7 +2,88 @@
 
 **Current Version**: 1.18.74
 **Last Updated**: November 19, 2026
-**Status**: ✅ **v1.18.73 released 2026-11-17** (tag on `50e4b57fc`, run by the assistant; the
+**Status**: ✅ **v1.18.74 released 2026-11-19** (tag on `fdaa0233a`, run by the assistant; the
+owner, after the list of what waited: "after getting finished with the tasks pending, you
+should proceed without stop until finish all suggested actions as of these you listed", a
+list that begins with "Release v1.18.74 and the cloud VM update"). It carries PRs 419 to 436
+and ships what is under "In v1.18.74" below: two roles (Administrator, Teacher) and "No role"
+for every other account, four repairs of access an account kept or got, attendance marks that
+are no longer lost on a slow connection and a *Clear* that clears, the Weight of a grade, the
+session file and the imports for teachers, the audit log with its authors, the Import/Export
+panel, the installer's database choice, and the documents read against the application.
+**Three database changes, made by the first start** (`5189ab647b5a`, `9c41f7e2a6d3`,
+`e2b7c9d4a1f6`): rows of roles and permissions only; the records of students, courses, grades
+and attendance are not touched. The open work is listed at the start of "Next todos".
+
+**The Docker build check.** `RELEASE_READY` started a build-only run for the release commit
+`b8dd61be8` (run 44451488890: amd64 and arm64, passed, nothing published). The tag was to go
+on the commit with the hand-written notes, so `DOCKER_BUILD_CHECK.ps1 -Version 1.18.74` was
+run on that commit, `fdaa0233a`: it dispatched run 44453971966, waited 6.8 minutes and ended
+with exit code 0. The tag was made after that, and after CI/CD (the backend job 1,928 passed
+with 55 skipped, the frontend job 2,135, its E2E job 77) and E2E (77 passed, none flaky, none
+skipped) were green on the same commit.
+
+**Before the tag:** the smoke test and the `RELEASE_READY` run are the first entry under "In
+v1.18.74". In short: the released v1.18.73 was run first as the "before" (eleven of the
+checks fail there, the things this release changes); then the server from source on
+PostgreSQL 14.25 upgraded from the database v1.18.73 had made, a first start on SQLite, and
+the packaged SMS Lite upgraded with its data, each as an administrator and as a teacher (45 to
+48 checks through the API, the packaged-edition check, ten pages in a browser). `RELEASE_READY`
+(no `-TagRelease`): 66.8 minutes, exit 0, every gate passed, 62/62 batches with 1,940 passed,
+43 gated skips and 0 failed. **Not done: the Docker image was not built or run on this PC**
+(its build took the PC's free memory down to 722 MB and the memory watch stopped it; CI builds
+it, and the cloud VM built and runs it, below). The installer was not installed, and the
+Android app was not run on a device.
+
+**Verified on the published assets:** `SMS_Installer_1.18.74.exe` 87,443,520 bytes, SHA-256
+`668215e6…57b320` = GitHub's digest, Authenticode Valid, signer CN=AUT MIEEK, thumbprint
+`2693C1B1…075D`, timestamped, file version v1.18.74, and not the file that was built on this
+PC (that one has 90,207,816 bytes); `SMS_Android_1.18.74.apk` 4,200,886 bytes, SHA-256
+`68525d36…c33c3a` = GitHub's digest, `versionName 1.18.74` / `versionCode 118074`, target SDK
+36, signed with the same certificate as v1.18.73 (SHA-256 `686fb6ed…d2ea`, so phones upgrade
+in place); three of the new texts are in its bundle (the question of *Clear*, "Εκκαθάριση",
+the import wizard's "Nothing is stored yet"). The release on GitHub carries the hand-written
+text and those two files only. The release, installer and APK workflows on the tag succeeded.
+
+**The cloud VM runs v1.18.74** (updated 2026-11-19, 04:11 to 04:14 UTC, by the assistant over
+SSH, on the same go-ahead). Before: `main` at `38d1111b3` (v1.18.72 with #409), healthy. In
+order:
+
+- a read-only record of the shared database's roles, grants and permission list and of the
+  counts of its records (taken inside the container; ids, role words and keys only);
+- a fresh backup, made on the VM by the application's own function
+  (`auto_backup_20261119_041110.enc`, 575,786 bytes): it stays on the VM beside those of 16 to
+  18 November, and it was not copied or opened;
+- `git checkout v1.18.74` and `docker compose up -d --build`: the image was built in 109
+  seconds, and the container was healthy 134 seconds after the build began;
+- the container's first start ran the three migrations on the shared database (PostgreSQL
+  14.18), in order, from `a7d4e9c2b5f8` to `e2b7c9d4a1f6`.
+
+After: `/health` reports v1.18.74 with the database connected, on the VM and through the
+tailnet address; the list of students and the audit log answer 401 without a sign-in; the
+log has no ERROR line, no traceback and no skipped router (one WARNING, the standing notice
+that CSRF protection is off); the four backups and the key are on the volume. **On the shared
+database:** the roles are admin and teacher (viewer and guest are gone with their 18 grants;
+no account held either); 44 permissions (eight removed, thirteen added); 51 grants (admin
+25, teacher 26, with `sessions:manage` and the import permissions); **both accounts are
+administrators and neither was changed**; the counts of accounts, students, courses,
+enrolments, grades, attendance rows and audit entries are what they were (2, 81, 55, 84, 34,
+1,042, 555). The record of before and after, with the way back, is
+`backups\pre_v1.18.74_migration_rows_2026-11-19.json` in the main tree (ignored by git).
+
+Two things the update brought to light, neither changed:
+
+- **The hour of the daily backup moved.** The backup made before the update counts as the
+  day's, and the next automatic one comes 24 hours after the newest: at about 04:11 UTC
+  (06:11 in Cyprus) from now on, instead of 15:19 UTC (17:19). What is entered during a day
+  is in a backup the next morning instead of the same afternoon. An automatic backup forced
+  at the wanted hour moves it back (one command on the VM, on the owner's word).
+- **On the shared database the role admin holds two rows fewer than on a new database**
+  (`reports:export` and `reports:generate`; it held neither before the update). Its wildcard
+  opens both, so nothing is refused: only the list of what the role holds, in the Permissions
+  Catalog, is two lines shorter than on a new installation.
+
+v1.18.73 was released 2026-11-17 (tag on `50e4b57fc`, run by the assistant; the
 owner: "Release v1.18.73 with what has been merged since v1.18.72 (#409 to #415)", the last of
 four things asked for in one message, after the other three were done: so it carries PRs 409
 to 418). It ships what is under "In v1.18.73" below: the Search page that sorts, pages and
@@ -64,9 +145,9 @@ bytes, SHA-256 `8678ceef…ac3482` = GitHub's digest, `versionName 1.18.73` /
 on GitHub carries the hand-written text. The release, installer and APK workflows on the tag
 succeeded.
 
-**The cloud VM was not updated.** It runs `main` at `38d1111b3` (v1.18.72 with #409) and
-stays there until the owner says so: it is a change to the server in use. No database change
-comes with v1.18.73.
+**The cloud VM was not updated to v1.18.73.** It ran `main` at `38d1111b3` (v1.18.72 with
+#409) until 2026-11-19, when it was updated to v1.18.74 (above). No database change came with
+v1.18.73.
 
 v1.18.72 was released 2026-11-16 (tag on `4ffa6afa2`, run by the assistant; the
 second release of the day. Asked after #408 was merged, the owner chose "Release v1.18.72").
@@ -299,12 +380,16 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.73 (unreleased)
+### On `main` since v1.18.74 (unreleased)
+
+Only the record of the release in this document.
+
+### In v1.18.74
 
 **2026-11-19: before the tag of v1.18.74: the local installer builds, the smoke test, the
 release run** (everything of the owner's go-ahead below is merged: PRs 432 to 436. What
-follows the tag, the published files and the update of the cloud VM, is recorded at the head
-of this plan once it is done.)
+followed the tag, the published files and the update of the cloud VM, is at the head of this
+plan.)
 
 - **The nine local installer builds** (`infra\installer\dist`, v1.18.65 to v1.18.73, 798 MB;
   made before PR 431, so with the PC's own settings and data in them) **are in the Recycle
@@ -2464,10 +2549,10 @@ tree as evidence that GitHub is clear.
 
 **Open work as of 2026-11-15** (from the review of that day; what it fixed is under "In
 v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 409 to 418;
-the cloud VM was not updated to it.** **v1.18.74 carries PRs 419 to 436** (the owner's
-go-ahead of 2026-11-19 names the release and the update of the cloud VM; the tag goes on the
-commit that carries this text, and the published files and the VM's update are recorded at
-the head of this plan once they are done): a repair of two ways an account kept access it
+the cloud VM was not updated to it.** **v1.18.74 of 2026-11-19 carries PRs 419 to 436, and
+the cloud VM runs it since that morning** (the owner's go-ahead of that day names both; the
+published files, the VM and the shared database after the update are at the head of this
+plan): a repair of two ways an account kept access it
 should not have had (419), the permission documents and the user guide checked against the
 application (420, 421), the small page repairs of todo 63 (422), an account whose last role
 is revoked left with nothing (423), the in-app help read against the pages (424), the
@@ -2482,9 +2567,8 @@ category in an import (432), *Clear* on the Attendance page that takes saved mar
 a permission's key unique in every database, the tools nothing ran and the unused page parts
 deleted, CLAUDE.md's release text (434), the database choice of the Docker wizard and the
 uninstaller's question (435), and the Import/Export panel of the Control Panel (436, which
-closes todo 62). **Where the go-ahead left a choice open, the entry of each PR under "On
-`main` since v1.18.73" says which one the assistant took, so that the owner can turn it
-round.** The first start of this code on a database turns every Student, Viewer and Guest
+closes todo 62). **Where the go-ahead left a choice open, the entry of each PR under "In
+v1.18.74" says which one the assistant took, so that the owner can turn it round.** The first start of this code on a database turns every Student, Viewer and Guest
 account into "No role" (migration `5189ab647b5a`). What the readings found
 and did not change is todo 63. Older entries that are still open, further
 down: 40 (a real Update
@@ -2967,7 +3051,7 @@ now** (todo 58).
       to Utils > Imports and Utils > Export.
     - To do, on the owner's word: repair it as the Search page was repaired, or take the
       dialog off the page. **Repaired in PR 436, on the owner's go-ahead of 19 November
-      2026: see its entry under "On `main` since v1.18.73". This todo is closed.**
+      2026: see its entry under "In v1.18.74". This todo is closed.**
 
 63. **Found on 2026-11-17 while the permission documents were checked against a running
     copy, and not changed** (each seen on a scratch server; the documents of PR 420 say what
@@ -3000,8 +3084,8 @@ now** (todo 58).
         the cloud VM; whether teachers also get the session file; the four tools nothing runs
         and the two unused page parts (delete or keep); what identifies a grade when a
         session file is imported (see the entry of PR 429). **The owner's go-ahead for all
-        of them came on 19 November 2026** (the entry at the head of "On `main` since
-        v1.18.73"): teachers and the grade are done in PR 432.
+        of them came on 19 November 2026** (the entry "the owner's go-ahead for everything that waited" under "In
+        v1.18.74"): teachers and the grade are done in PR 432.
     - *Repaired in PR 423 (2026-11-18), on the owner's note of that day:* revoking an
       account's only role took nothing away. Such an account is now left with nothing (Role
       column "No role"). The built-in list for an account without role rows went altogether
