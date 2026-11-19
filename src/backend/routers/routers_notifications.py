@@ -411,8 +411,12 @@ async def broadcast_notification_endpoint(
     broadcast: BroadcastNotificationCreate,
     db: Session = Depends(get_db),
     service: NotificationService = Depends(get_notification_service),
+    current_user: dict = Depends(get_current_user),
 ):
-    """Broadcast a notification to users (admin only).
+    """Broadcast a notification to users (administrators and teachers: ``notifications:manage``).
+
+    Every copy says who sent it (``data.sender_id`` and ``data.sender_name``), and a receiver
+    who switched in-app notifications off in their preferences gets no copy.
 
     Request Body:
         broadcast: BroadcastNotificationCreate with notification details
@@ -430,17 +434,33 @@ async def broadcast_notification_endpoint(
         # Filter by role
         user_ids = [u.id for u in db.query(User).filter(User.role == broadcast.role_filter, User.is_active).all()]
 
+    # Who sent it travels with every copy: a teacher's message to all users must not look like
+    # an administrator's. The sender's id and name are set here, never taken from the body.
+    sender_id = _get_user_id(current_user)
+    sender = db.query(User).filter(User.id == sender_id).first() if sender_id else None
+    data = dict(broadcast.data or {})
+    data.pop("sender_id", None)
+    data.pop("sender_name", None)
+    if sender is not None:
+        data["sender_id"] = sender.id
+        data["sender_name"] = sender.full_name or sender.email
+
     # Create notifications in database and broadcast via WebSocket
     sent_count = 0
+    skipped_count = 0
     for user_id in user_ids:
         try:
+            if not NotificationPreferenceService.should_notify(db, user_id, broadcast.notification_type, "in_app"):
+                skipped_count += 1
+                continue
+
             # Create in database
             service.create_notification(
                 user_id=user_id,
                 notification_type=broadcast.notification_type,
                 title=broadcast.title,
                 message=broadcast.message,
-                data=broadcast.data,
+                data=data or None,
             )
 
             # Broadcast via WebSocket
@@ -449,7 +469,7 @@ async def broadcast_notification_endpoint(
                 notification_type=broadcast.notification_type,
                 title=broadcast.title,
                 message=broadcast.message,
-                data=broadcast.data,
+                data=data or None,
             )
 
             sent_count += 1
@@ -459,5 +479,6 @@ async def broadcast_notification_endpoint(
     return {
         "total_users": len(user_ids),
         "sent_count": sent_count,
+        "skipped_count": skipped_count,
         "detail": f"Notification broadcast to {sent_count} users",
     }

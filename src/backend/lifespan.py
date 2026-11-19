@@ -45,6 +45,11 @@ def get_lifespan():
                 from backend.services.refresh_token_cleanup import purge_dead_refresh_tokens_in_own_session
 
                 purge_dead_refresh_tokens_in_own_session(SessionLocal)
+
+                # Notifications deleted in the bell more than 30 days ago (same kind of job).
+                from backend.services.notification_cleanup import purge_deleted_notifications_in_own_session
+
+                purge_deleted_notifications_in_own_session(SessionLocal)
             else:
                 logging.getLogger(__name__).warning(
                     "⚠️  Migrations failed during startup; continuing with reduced startup tasks"

@@ -30,9 +30,16 @@ def _escape_like(text: str) -> str:
 # of them was typed and whichever is stored. The sigma is not a nicety: PostgreSQL lowers the
 # last letter of "ΠΑΠΑΔΟΠΟΥΛΟΣ" to "σ" and Python lowers it to "ς", so a surname stored in
 # capitals was not found when it was typed in full.
-_FOLD_FROM = "άέήίόύώϊϋΐΰς"
+#
+# A letter can also come as two characters: the vowel, then a separate accent mark (some
+# keyboards and pasted texts give it so). The marks at the end of _FOLD_FROM have nothing at
+# their place in _FOLD_TO, so `translate()` removes them, in PostgreSQL, in SQLite (through
+# `backend.sqlite_unicode`) and here: "ά" typed as "α" + U+0301 is "α" as well.
+_COMBINING_MARKS = "́̈̈́"  # acute (tonos), diaeresis (dialytika), both
+_FOLD_LETTERS = "άέήίόύώϊϋΐΰς"
 _FOLD_TO = "αεηιουωιυιυσ"
-_FOLD_TABLE = str.maketrans(_FOLD_FROM, _FOLD_TO)
+_FOLD_FROM = _FOLD_LETTERS + _COMBINING_MARKS
+_FOLD_TABLE = str.maketrans(_FOLD_LETTERS, _FOLD_TO, _COMBINING_MARKS)
 
 
 def fold_text(text: str) -> str:

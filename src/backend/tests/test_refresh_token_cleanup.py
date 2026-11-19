@@ -186,7 +186,7 @@ def test_the_hourly_cleanup_runs_once_an_hour():
     maintenance.schedule_cleanup_task(frequency="hourly")
 
     jobs = maintenance.export_scheduler.scheduler.jobs
-    assert set(jobs) == {"cleanup_exports_hourly", "purge_refresh_tokens_hourly"}
+    assert set(jobs) == {"cleanup_exports_hourly", "purge_refresh_tokens_hourly", "purge_deleted_notifications_hourly"}
     for _func, options in jobs.values():
         first, second, third = _fire_times(options["trigger"], 3)
         assert (first.minute, first.second) == (0, 0)
@@ -219,7 +219,7 @@ def test_the_daily_maintenance_job_includes_the_purge():
     maintenance.schedule_cleanup_task(frequency="daily")
 
     jobs = maintenance.export_scheduler.scheduler.jobs
-    assert set(jobs) == {"cleanup_exports_daily", "purge_refresh_tokens_daily"}
+    assert set(jobs) == {"cleanup_exports_daily", "purge_refresh_tokens_daily", "purge_deleted_notifications_daily"}
     func, options = jobs["purge_refresh_tokens_daily"]
     assert func == maintenance.purge_dead_refresh_tokens
     assert options["replace_existing"] is True
@@ -260,9 +260,7 @@ def lifespan_module(monkeypatch):
     monkeypatch.setattr(module, "ensure_defaults_startup", lambda _session_factory: False)
     monkeypatch.setattr(module.settings, "DEFAULT_ADMIN_EMAIL", None, raising=False)
     monkeypatch.setattr("backend.services.smtp_override.load_and_apply", lambda: None)
-    monkeypatch.setattr(
-        "backend.services.maintenance_scheduler.get_maintenance_scheduler", lambda: _NoSchedulers()
-    )
+    monkeypatch.setattr("backend.services.maintenance_scheduler.get_maintenance_scheduler", lambda: _NoSchedulers())
     return module
 
 

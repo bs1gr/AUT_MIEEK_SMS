@@ -5,13 +5,19 @@ export interface NotificationTypeOption {
 
 export type BroadcastTarget = 'all' | 'role' | 'users';
 
+export interface BroadcastRecipient {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface OperationsBroadcastPanelProps {
   t: (key: string, options?: Record<string, unknown>) => string;
   /** The account may send: an administrator or a teacher (the roles the server lets send). */
   canSend: boolean;
   /**
-   * The account can find the numbers "Specific users" asks for: an administrator, in User
-   * Management. A teacher has no page that shows them, so the target is not offered.
+   * The account may choose accounts by name ("Specific users"): an administrator, who may read
+   * the list of accounts. A teacher may not, so the target is not offered.
    */
   canPickUsers: boolean;
   broadcastType: string;
@@ -21,8 +27,10 @@ export interface OperationsBroadcastPanelProps {
   setBroadcastTarget: (value: BroadcastTarget) => void;
   broadcastRole: string;
   setBroadcastRole: (value: string) => void;
-  broadcastUserIds: string;
-  setBroadcastUserIds: (value: string) => void;
+  broadcastUserIds: number[];
+  setBroadcastUserIds: (value: number[]) => void;
+  /** The active accounts to choose from; null while they are being loaded. */
+  broadcastRecipients: BroadcastRecipient[] | null;
   broadcastTitle: string;
   setBroadcastTitle: (value: string) => void;
   broadcastMessage: string;
@@ -44,6 +52,7 @@ const OperationsBroadcastPanel = ({
   setBroadcastRole,
   broadcastUserIds,
   setBroadcastUserIds,
+  broadcastRecipients,
   broadcastTitle,
   setBroadcastTitle,
   broadcastMessage,
@@ -113,17 +122,39 @@ const OperationsBroadcastPanel = ({
           )}
 
           {canPickUsers && broadcastTarget === 'users' && (
-            <label className="space-y-2 text-sm font-medium text-slate-700">
-              <span>{t('admin.userIdsLabel', { ns: 'notifications' })}</span>
-              <input
-                type="text"
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-200"
-                placeholder={t('admin.userIdsPlaceholder', { ns: 'notifications' })}
-                value={broadcastUserIds}
-                onChange={(event) => setBroadcastUserIds(event.target.value)}
-              />
+            <fieldset className="space-y-2 text-sm font-medium text-slate-700">
+              <legend>{t('admin.userIdsLabel', { ns: 'notifications' })}</legend>
+              {broadcastRecipients === null ? (
+                <p className="text-xs text-slate-500">{t('admin.recipientsLoading', { ns: 'notifications' })}</p>
+              ) : broadcastRecipients.length === 0 ? (
+                <p className="text-xs text-slate-500">{t('admin.recipientsNone', { ns: 'notifications' })}</p>
+              ) : (
+                <ul className="max-h-56 space-y-1 overflow-y-auto rounded border border-slate-300 p-2">
+                  {broadcastRecipients.map((recipient) => (
+                    <li key={recipient.id}>
+                      <label className="flex items-center gap-2 font-normal">
+                        <input
+                          type="checkbox"
+                          checked={broadcastUserIds.includes(recipient.id)}
+                          onChange={(event) =>
+                            setBroadcastUserIds(
+                              event.target.checked
+                                ? [...broadcastUserIds, recipient.id]
+                                : broadcastUserIds.filter((id) => id !== recipient.id)
+                            )
+                          }
+                        />
+                        <span>{recipient.name}</span>
+                        {recipient.email && recipient.email !== recipient.name && (
+                          <span className="text-xs text-slate-500">{recipient.email}</span>
+                        )}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <p className="text-xs text-slate-500">{t('admin.userIdsHelp', { ns: 'notifications' })}</p>
-            </label>
+            </fieldset>
           )}
 
           <label className="space-y-2 text-sm font-medium text-slate-700">
