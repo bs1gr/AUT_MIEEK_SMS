@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 import logging
 
+from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.dependencies import get_db
 from backend.errors import ErrorCode, http_error
 from backend.rbac import has_permission
@@ -210,6 +211,7 @@ async def search_grades(
     summary="Advanced search with filters",
     description="Perform advanced search with complex filter combinations",
 )
+@limiter.limit(RATE_LIMIT_READ)
 async def advanced_search(
     request: Request,
     body: Dict[str, Any],
@@ -510,6 +512,7 @@ async def get_statistics(
     summary="Create saved search",
     description="Save a search query for later reuse",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def create_saved_search(
     request: Request,
     body: Dict[str, Any],
@@ -684,6 +687,7 @@ async def get_saved_search(
     summary="Update saved search",
     description="Update a saved search",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def update_saved_search(
     request: Request,
     search_id: int,
@@ -753,6 +757,7 @@ async def update_saved_search(
     summary="Delete saved search",
     description="Delete a saved search",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def delete_saved_search(
     request: Request,
     search_id: int,
@@ -801,6 +806,7 @@ async def delete_saved_search(
     summary="Toggle saved search favorite",
     description="Toggle favorite status of a saved search",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def toggle_saved_search_favorite(
     request: Request,
     search_id: int,

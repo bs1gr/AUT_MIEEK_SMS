@@ -15,7 +15,7 @@ WRITE_METHODS = {"post", "put", "delete", "patch"}
 ROUTERS_DIR = Path(__file__).resolve().parent.parent / "routers"
 
 
-def _decorators(func: ast.FunctionDef):
+def _decorators(func: ast.FunctionDef | ast.AsyncFunctionDef):
     return func.decorator_list
 
 
@@ -54,7 +54,9 @@ def test_write_endpoints_rate_limited():
         tree = ast.parse(source, filename=str(router_file))
         lines = source.splitlines()
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            # Both kinds: until 2026-11 only plain `def` was checked, and 51 `async def` write
+            # endpoints had no limit without the guard ever seeing them.
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 decs = _decorators(node)
                 if _is_write(decs) and not _has_limit(decs) and not _is_exempt(node, lines):
                     problems.append(f"{router_file.name}:{node.lineno}:{node.name}")

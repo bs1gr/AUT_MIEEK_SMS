@@ -12,6 +12,7 @@ import logging
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.db import get_session
 from backend.db.query_profiler import profiler
 from backend.rbac import require_permission
@@ -103,6 +104,7 @@ async def get_query_patterns(request: Request, db: Session = Depends(get_session
 
 
 @router.post("/queries/reset")
+@limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("diagnostics:manage")
 async def reset_profiler(request: Request, db: Session = Depends(get_session)):
     """

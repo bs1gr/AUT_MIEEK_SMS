@@ -407,6 +407,27 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.75 (unreleased)
 
+**2026-11-20: 51 write endpoints that had no rate limit have one, and the guard test sees
+`async def`** (found while making todo 52 stage 2: the `def` change made the guard fail).
+
+- **What was wrong.** `test_rate_limit_enforcement.py` enforces the rule "every write endpoint
+  has `@limiter.limit`", but it walked `ast.FunctionDef` only: an `async def` endpoint was
+  never looked at. 51 POST/PUT/DELETE endpoints, all `async def`, had no limit: custom reports
+  (11), dashboards (4), the profiler reset (1), feedback (4), import/export (7), permissions
+  (7), roles (12), search (5). Turning them into `def` (stage 2) brought them into the guard's
+  view and it failed.
+- **Repair.** The guard checks both kinds. Each of the 51 got its limit after the route
+  decorator, as in the other routers (the assistant's choice of class): `RATE_LIMIT_READ`
+  for `advanced_search` (a read sent as POST, as the Search page types); `RATE_LIMIT_HEAVY`
+  for report generation (single and bulk), the three imports, the import commit, the export,
+  the test e-mail, the GitHub feedback import and the import of the default templates;
+  `RATE_LIMIT_WRITE` for the rest. The limits are per client and minute (1,000 / 200 / 500 by
+  default, changeable in the Control Panel), so ordinary use does not reach them.
+- **Shown:** the guard fails on the old routers and passes on the new; with the limiter
+  switched on and a write limit of 3, the fourth dashboard create answers 429 on the new
+  router and never on the old one (a throwaway test, not kept). Whole backend suite in the
+  clone: 1,971 passed, none failed.
+
 **2026-11-19: SQLite enforces foreign keys where its data allows it** (todo 61; the owner,
 after the list of what waited: "create a suitable plan order to accomplish all pending tasks
 and suggested, and continue").

@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from backend.rate_limiting import RATE_LIMIT_WRITE, limiter
 from backend.dependencies import get_db
 from backend.schemas.dashboards import CreateDashboardRequest
 from backend.schemas.response import APIResponse, error_json, success_response
@@ -79,6 +80,7 @@ async def list_dashboards(
     "",
     summary="Create dashboard",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def create_dashboard(
     request: Request,
     body: CreateDashboardRequest,
@@ -207,6 +209,7 @@ async def get_dashboard(
     response_model=APIResponse[Dict[str, Any]],
     summary="Update dashboard",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def update_dashboard(
     request: Request,
     dashboard_id: int,
@@ -256,6 +259,7 @@ async def update_dashboard(
     response_model=APIResponse[Dict[str, str]],
     summary="Delete dashboard",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def delete_dashboard(
     request: Request,
     dashboard_id: int,
@@ -292,6 +296,7 @@ async def delete_dashboard(
     response_model=APIResponse[Dict[str, Any]],
     summary="Set dashboard as default",
 )
+@limiter.limit(RATE_LIMIT_WRITE)
 async def set_default_dashboard(
     request: Request,
     dashboard_id: int,
