@@ -1,17 +1,12 @@
 ; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.18.11 - Bilingual (English / Greek)
+; Bilingual (English / Greek). The version is read from the VERSION file (below).
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ;
-; LATEST CHANGES (v1.18.11):
-; - Restore build-time generation of Greek RTF installer info files
-; - Installer upgrade profile-drift prevention (preserves existing PostgreSQL config)
-; - Local-first secure profile defaults for fresh installs
-; - Control Panel auto-updater with SHA256 verification
-; - Database management panel (backup, diagnostics, user admin)
-; - Offline support with centralized network status and reconnect sync
-; - Remote database credential upload UI
-; - SQL backup support (encrypted/unencrypted modes)
+; What the wizard asks and does, page by page: docs/operations/INSTALLATION_GUIDE.md.
+; The two information pages (installer_welcome*.rtf, installer_complete*.rtf) are written at
+; every build by infra\scripts\diagnostics\fix_greek_encoding_permanent.py, in both languages:
+; change their lines there.
 ;
 ; NOTE: Inno Setup 6.x does not support UninstallExeName directive.
 ; Workaround: Uninstaller is renamed from unins000.exe to unins{version}.exe
@@ -97,7 +92,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\..\..\LI
 Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.rtf"; InfoAfterFile: "installer_complete_el.rtf"
 
 ; Note: Greek messages use local Greek.isl (official Inno translation)
-; Note: Greek info pages are regenerated during the installer build pipeline
+; Note: the info pages of both languages are regenerated during the installer build pipeline
 ; English messages serve as fallback
 
 [CustomMessages]
@@ -187,6 +182,8 @@ english.LiteAdminConfirm=Confirm password:
 english.LiteAdminEmailInvalid=Enter a valid administrator email address, for example name@school.gr. Addresses ending in .local cannot be used.
 english.LiteAdminPasswordShort=The administrator password needs at least 8 characters, with an uppercase and a lowercase letter, a number and a symbol, and no spaces.
 english.LiteAdminPasswordMismatch=The two passwords do not match.
+; SMS Lite: the wizard's last page
+english.LiteFinishedText=SMS Lite is installed.%n%nStart it with the Student Management System shortcut. It opens in your browser.%n%nNew local database: sign in with the administrator account you entered in this wizard.%n%nShared QNAP database, or a local database that was already on this PC: sign in with your existing account.
 
 ; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
 
@@ -2319,24 +2316,12 @@ begin
 
   if CurPageID = wpFinished then
   begin
-    // For Lite Edition: Update completion message for Lite-specific content
+    // SMS Lite: the last page says how to start it and with which account to sign in. The text
+    // was English in the code and told of an "admin account (see documentation)"; the wizard
+    // itself asks for the administrator of a new local database.
     if IsLiteInstall then
     begin
-      // Replace Docker-focused message with Lite Edition message
-      WizardForm.FinishedLabel.Caption :=
-        'Files Installed Successfully' + chr(10) + chr(10) +
-        'SMS Lite Edition has been installed on your computer.' + chr(10) + chr(10) +
-        'Next Step: Launch SMS' + chr(10) +
-        'Click the desktop shortcut to start the application.' + chr(10) + chr(10) +
-        'First-time setup:' + chr(10) +
-        '- Log in with admin account (see documentation)' + chr(10) +
-        '- Change password immediately' + chr(10) +
-        '- Configure QNAP PostgreSQL if enabled (optional)' + chr(10) + chr(10) +
-        'Features:' + chr(10) +
-        '- Local SQLite database (default, works offline)' + chr(10) +
-        '- Optional QNAP PostgreSQL for data sharing' + chr(10) +
-        '- No Docker required - fully standalone application' + chr(10) +
-        '- Works without internet connection';
+      WizardForm.FinishedLabel.Caption := CustomMessage('LiteFinishedText');
     end
     else
     begin

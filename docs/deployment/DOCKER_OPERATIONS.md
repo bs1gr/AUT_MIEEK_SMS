@@ -1,93 +1,144 @@
 # Docker Operations Guide
 
-**Version:** 1.9.3+
-**Mode:** Docker Deployment
+**Read against `DOCKER.ps1`:** 19 November 2026, `main` after v1.18.74. Nothing was started,
+stopped or built for this reading; the section "Updating to a new release" is older (v1.18.57)
+and was tried then. The last section lists what was never tried.
 
-**🎯 CRITICAL WORKFLOW RULE:**
+This file was the guide of version 1.9.3 (December 2025). It described two containers
+(`sms-backend`, `sms-frontend`), a script `SMART_SETUP.ps1` and a "Power Tab", none of which
+exist any more. The earlier text is in the repository's history.
+
+The guide is for the administrator of a Docker installation: the Docker edition that the
+installer puts on a Windows PC, or a checkout of the repository. How the installer gets
+there is in [INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md).
+
+## 1. What runs
+
+One script does everything on the host: `DOCKER.ps1`. In an installation it is in the
+install folder (normally `C:\Program Files\SMS`); in the repository it is
+`infra\scripts\dev\DOCKER.ps1`. With no option it starts the application.
+
+| | |
+|---|---|
+| Image | `sms-fullstack:<version>`, built on this PC from `Dockerfile.fullstack` (the version is the `VERSION` file) |
+| Container | `sms-app`, `--restart unless-stopped`: Docker starts it again with Docker Desktop, unless you stopped it |
+| Address | `http://localhost:8080` (port 8080 of the PC to port 8000 in the container; the port is fixed in the script) |
+| Data volume | Docker volume `sms_data`, at `/data` in the container |
+| Settings | `config\.env`. The script makes it at the first run from `config\.env.example`, with a random `SECRET_KEY` and a random administrator password |
+| Folders of the host the container sees | `backups` (at `/app/backups`), `templates` (read-only) and `data\.triggers` (the requests of the Control Panel's Update) |
+
+The front end and the API are in the one image; there is no separate web server container.
+
+**The database** is what `config\.env` says:
+
+- *Local SQLite (what a new `config\.env` gets):* `DATABASE_ENGINE=sqlite`, the file
+  `/data/student_management.db` in the volume `sms_data`.
+- *PostgreSQL on another machine (the shared QNAP database):* `SMS_DATABASE_PROFILE=remote`,
+  `DATABASE_ENGINE=postgresql` and the `POSTGRES_*` values; see
+  [QNAP_POSTGRES_SINGLE_SOURCE.md](QNAP_POSTGRES_SINGLE_SOURCE.md). From v1.18.74 a new
+  installation gets these from the installer's wizard.
+- *PostgreSQL on this PC:* with `DATABASE_ENGINE=postgresql` and a `POSTGRES_HOST` that is
+  empty, `localhost` or `postgres`, the script runs a second container, `sms-postgres`
+  (`postgres:16-alpine`, volume `sms_postgres_data`), and connects the application to it.
+  `POSTGRES_PASSWORD` has to be set.
+
+The script refuses to start with a `SECRET_KEY` shorter than 32 characters or one that
+holds a placeholder word such as "change" or "example".
+
+There is one more layout, `SMS_DEPLOYMENT_MODE=split` with PostgreSQL: the script then uses
+Docker Compose (`docker-compose.yml` with `docker-compose.prod.yml`, a `backend` and a
+`frontend` service). Nothing sets it by itself; a new `config\.env` says `single`.
+
+## 2. The options
+
+Run them in PowerShell, in the folder of the script. `.\DOCKER.ps1 -Help` prints the list.
+
+| Option | What it does |
+|---|---|
+| `-Install` | Checks PowerShell and Docker, makes `config\.env`, the folders `data`, `backups`, `logs` and the volume `sms_data`, and builds the image (5-10 minutes the first time). Then it asks "Start application now? (Y/n)". The installer runs it with `-Silent -NoShortcut`: no question, no start. |
+| `-Start` (or nothing) | Builds the image if it is not there, runs the container, waits until it is healthy, prints the addresses and opens the browser. If it already runs: "SMS is already running!" |
+| `-Stop` | Stops the container. |
+| `-Restart` | `-Stop`, then `-Start`. |
+| `-Status` | Container, state, health, ports, volume. "SMS is not running" if there is no container. |
+| `-Logs` | Follows the container's log from its last 100 lines. Ctrl+C ends it. |
+| `-Backup` | Copies the SQLite database to `backups\database` (section 4). |
+| `-Update` | A backup as `-Backup` makes it, then stops and removes the container, builds the image again from the files that are there (with the build cache) and starts. |
+| `-UpdateClean` | The same, after the cleanup of `-PruneAll`, with `--pull --no-cache`. |
+| `-WithMonitoring` | Starts the application and then Grafana and Prometheus (section 6). |
+| `-StopMonitoring` | Stops Grafana and Prometheus only. |
+| `-Prune`, `-PruneAll`, `-DeepClean` | Cleanup (section 5). |
+
+In an installation the shortcut **Student Management System** opens `SMS_Manager.exe`, a
+console menu for the same things: 1) START container and open web app, 2) STOP, 3) RESTART,
+4) CHECK container status, 5) VIEW container logs, 6) OPEN web app, Q) QUIT.
+
+## 3. Is it up
 
 ```powershell
-# ✅ Use DOCKER.ps1 ONLY for production deployment
+.\DOCKER.ps1 -Status
+```
 
-.\DOCKER.ps1 -Start          # Production container (8080)
+The application answers at three addresses without a sign-in:
 
-# ✅ Use NATIVE.ps1 for testing/development (NOT here)
+- `http://localhost:8080/health`: JSON with `status`, `version` and `database`;
+- `http://localhost:8080/health/live`: the process answers;
+- `http://localhost:8080/health/ready`: it is ready for requests.
 
-.\NATIVE.ps1 -Start          # Testing only (8000/5173, hot reload)
+In the application, **System** > **Show System Health** says which database is in use.
 
-```text
-This guide explains the operational architecture for the Student Management System Docker deployment and how to perform common tasks.
+When it does not come up:
 
----
+- **"Docker is not available".** Start Docker Desktop (the script also tries), then run
+  `-Start` again.
+- **"Container stopped unexpectedly" or "Timeout waiting for application".** `.\DOCKER.ps1 -Logs`.
+- **Port 8080 is in use.** `netstat -ano | findstr ":8080"` shows the process. The port is
+  fixed in the script.
+- **The installer's page "Completing Installation" ended with an error.** Read
+  `DOCKER_INSTALL.log` and `DOCKER_INSTALL_WRAPPER.log` in the install folder, then run
+  `.\DOCKER.ps1 -Install`.
 
-## 🏗️ Architecture: Host vs Container Separation
+## 4. Backups
 
-The system follows a **clean separation of concerns** between host operations and container operations:
+**The application's own backup** is the one to rely on: every running server makes an
+encrypted backup when its newest is older than 24 hours and keeps the newest 30. They are
+under **System** > **Show Control Panel** > **Maintenance** > **System Operations** >
+**Manage Backups**, and in `backups\database` of the install folder. Where the key is, how
+to restore and what to copy off the machine:
+[BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md). A backup without its key cannot be
+read.
 
-### **Host Layer** (PowerShell Scripts)
+**`.\DOCKER.ps1 -Backup`** copies the SQLite file out of the container (or out of the volume
+when the container is stopped) to `backups\database\sms_backup_<date>_<time>_<hash>.db` and
+keeps the newest 10. `-Update` and `-UpdateClean` do the same first. With a PostgreSQL
+database there is no such file: the script says "No database file found - skipping backup"
+and goes on. Then the application's own backup is the only one this PC makes.
 
-- **Purpose:** Container lifecycle management and infrastructure control
-- **Tools:** `DOCKER.ps1`, Docker Compose
-- **Operations:**
-  - Start/stop/restart containers
-  - Build Docker images
-  - View container status and logs
-  - Manage Docker volumes
-  - System cleanup
+## 5. Cleaning up
 
-### **Container Layer** (Backend API)
+These options call Docker's own cleanup, which is **not limited to SMS**: on a PC that also
+runs other containers they remove those containers' leftovers too.
 
-- **Purpose:** Application operations and monitoring
-- **Tools:** FastAPI endpoints, Web Control Panel
-- **Operations:**
-  - System status and health checks
-  - Diagnostics and troubleshooting
-  - Database backup/restore
-  - Log viewing
-  - Environment information
+| Option | Removes |
+|---|---|
+| `-Prune` | every stopped container, dangling images, and build cache older than an hour |
+| `-PruneAll` | the same, and unused networks |
+| `-DeepClean` | asks "Continue? (yes/no)"; then stops and removes `sms-app`, and removes all build cache, every stopped container, every unused image and unused networks |
 
-### **UI Layer** (React Control Panel)
+None of them removes a volume: the database in `sms_data` stays. After `-DeepClean` the
+next `-Start` builds the image from nothing.
 
-- **Purpose:** User-friendly interface for Docker-safe operations
-- **Location:** <http://localhost:8080> → Power Tab
-- **Features:**
-  - Mode-aware UI (shows only Docker-compatible operations)
-  - Real-time system monitoring
-  - Diagnostic reports
-  - Database management
-  - Helpful command guidance for host operations
+To remove the application's data as well, see section 7 of the
+[installation guide](../operations/INSTALLATION_GUIDE.md): the uninstaller does not remove
+the volume either.
 
----
+## 6. Monitoring (optional)
 
-## 🚀 Common Operations
-
-### First-Time Setup
-
-```powershell
-# Run the installation command
-
-.\DOCKER.ps1 -Install
-
-# What it does:
-
-# ✅ Checks Docker availability (fails if not installed)
-# ✅ Creates .env files from templates
-
-# ✅ Syncs VERSION to docker-compose .env
-# ✅ Builds Docker images
-
-# ✅ Starts containers
-# ✅ Waits for services to be ready
-
-# ✅ Displays access URLs
-
-```text
-**Options:**
-
-- `.\DOCKER.ps1 -UpdateClean` - Force rebuild with `--no-cache`
-- `.\DOCKER.ps1 -Status` - Check container status
-- `.\DOCKER.ps1 -Help` - Show all available commands
-
----
+`.\DOCKER.ps1 -WithMonitoring` starts the application and then the stack of
+`docker-compose.monitoring.yml`: Grafana at `http://localhost:3000` (the script takes the
+next free port if 3000 is in use, and prints it; `-GrafanaPort` sets another) and Prometheus
+at `http://localhost:9090`. Grafana starts with the account `admin` / `admin`: change it
+before anybody else can reach the port. `-StopMonitoring` stops the two; `-Stop` asks "Stop
+monitoring stack too? (Y/n)" when they run.
 
 ## Updating to a new release
 
@@ -119,397 +170,35 @@ re-running the installer.
 1. Run the new `SMS_Installer_<version>.exe` on the host; it keeps the Docker edition.
 2. `.\DOCKER.ps1 -Update`
 
----
-
-### Daily Container Management
+### From a checkout of the repository
 
 ```powershell
-# Start containers (detached mode)
-
-.\DOCKER.ps1 -Start
-
-# View status (container health, ports, URLs)
-
-.\DOCKER.ps1 -Status
-
-# Stop all containers
-
-.\DOCKER.ps1 -Stop
-
-# Restart all containers
-
-.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start
-
-# View backend logs (follow mode)
-
-.\DOCKER.ps1 -Logs
-
-# Show help and available commands
-
-.\DOCKER.ps1 -Help
-
-```text
-**Interactive Mode:**
-
-```powershell
-# Run without parameters for help display
-
-.\DOCKER.ps1
-
-```text
----
-
-### Building and Updating
-
-#### Rebuild After Code Changes
-
-```powershell
-# Rebuild specific service
-
-docker compose build backend
-docker compose build frontend
-
-# Rebuild all services
-
-docker compose build
-
-# Rebuild without cache (clean build)
-
-docker compose build --no-cache
-
-# Rebuild and restart
-
-docker compose up -d --build
-
-```text
-#### Update After Pulling Changes
-
-```powershell
-# 1. Stop containers
-
-.\DOCKER.ps1 -Stop
-
-# 2. Rebuild images
-
-docker compose build
-
-# 3. Start containers
-
-.\DOCKER.ps1 -Start
-
-```text
----
-
-### Database Operations
-
-#### Backup Database
-
-**Via Control Panel:**
-
-1. Navigate to <http://localhost:8080> → Power Tab
-2. Go to Operations tab
-3. Click "Create Database Backup"
-4. Backup saved to `backups/` directory
-
-**Via Docker command:**
-
-```powershell
-docker compose exec backend python -c "from backend.db import backup_database; backup_database()"
-
-```text
-#### Restore Database
-
-**Via Control Panel:**
-
-1. Go to Operations tab
-2. View available backups
-3. Select backup to restore
-4. Confirm restoration
-
-**Note:** Database operations are Docker-safe and work from within containers.
-
----
-
-### Logs and Monitoring
-
-#### View Logs
-
-```powershell
-# Follow backend logs (live updates)
-
-.\DOCKER.ps1 -Logs
-
-# View specific number of lines
-
-docker logs sms-fullstack --tail 100
-
-# View all logs
-
-docker compose -f docker/docker-compose.yml logs -f
-
-```text
-#### Health Checks
-
-**Via Control Panel:**
-
-- Navigate to Diagnostics tab for comprehensive health checks
-- View system status, dependencies, configuration
-- Check database health and schema version
-
-**Via API:**
-
-```powershell
-# Basic health check
-
-curl http://localhost:8080/health
-
-# Readiness probe
-
-curl http://localhost:8080/health/ready
-
-# Liveness probe
-
-curl http://localhost:8080/health/live
-
-```text
----
-
-### Troubleshooting
-
-#### Container Won't Start
-
-```powershell
-# Check container status
-
-docker ps -a
-
-# View container logs
-
-docker logs student-management-system-backend-1
-docker logs student-management-system-frontend-1
-
-# Check Docker daemon
-
-docker info
-
-# Verify images exist
-
-docker images | findstr sms
-
-```text
-#### Port Conflicts
-
-```powershell
-# Check what's using port 8080
-
-netstat -ano | findstr ":8080"
-
-# Kill process by PID — operator guidance
-
-# Prefer operator tooling; request frontend stop via the control API helper:
-#   .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
-
-# Operator emergency (interactive, requires confirmation):
-#   .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
-
-# Or change port in docker-compose.yml:
-
-# ports:
-#   - "8081:80"  # Frontend now on 8081
-
-```text
-#### Database Issues
-
-**Via Control Panel:**
-
-1. Go to Diagnostics tab
-2. Check Database status
-3. View SMS Schema Version
-4. Run troubleshooting from Control Panel
-
-**Manual check:**
-
-```powershell
-# Access backend container
-
-docker compose exec backend bash
-
-# Check database file
-
-ls -lh /data/student_management.db
-
-# Run migrations
-
-cd /app/backend && alembic upgrade head
-
-```text
-#### Reset Everything
-
-```powershell
-# Stop and remove containers, networks, and volumes
-
-docker compose down -v
-
-# Remove images
-
-docker rmi sms-backend:1.3.8 sms-frontend:1.3.8
-
-# Fresh setup
-
-.\SMART_SETUP.ps1
-
-```text
----
-
-## 🔒 What You CANNOT Do From Control Panel (Docker Mode)
-
-These operations require **host-level access** and must be run from PowerShell:
-
-| Operation | Why It's Disabled | Alternative |
-|-----------|-------------------|-------------|
-| Install Dependencies | Built into Docker images | `docker compose build` |
-| Build Docker Images | Container can't build itself | `docker compose build` |
-| Stop Containers | Can't stop from inside | `.\DOCKER.ps1 -Stop` |
-| Update Volumes | Requires host Docker access | `docker volume` commands |
-| System Cleanup | Host filesystem operation | `.\DOCKER.ps1 -Prune` |
-| Restart System | Container lifecycle control | `.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start` |
-
-**Why this separation?**
-
-- **Security:** Containers shouldn't have Docker socket access
-- **Reliability:** Prevents container self-termination issues
-- **Clarity:** Clear boundary between app and infrastructure
-- **Best Practice:** Follows Docker principle of single responsibility
-
----
-
-## 📊 Container Details
-
-### Backend Container
-
-- **Image:** `sms-backend:1.3.8`
-- **Base:** `python:3.11-slim`
-- **Ports:** 8000 (internal only)
-- **Volumes:**
-  - `sms_data:/data` (database)
-  - `./backend:/app/backend` (dev only)
-- **Health Check:** `/health` endpoint
-- **Entry Point:** `entrypoint.py` (runs migrations, starts Uvicorn)
-
-### Frontend Container
-
-- **Image:** `sms-frontend:1.3.8`
-- **Base:** `nginx:alpine`
-- **Ports:** 8080 (host) → 80 (container)
-- **Content:** React SPA built files + nginx config
-- **Reverse Proxy:** Routes `/api/v1/*` to backend container
-
----
-
-## 🔄 Workflow Examples
-
-### Development Workflow
-
-```powershell
-# 1. Start system
-
-.\DOCKER.ps1 -Start
-
-# 2. Make code changes in your editor
-
-# 3. Rebuild affected service
-
-docker compose -f docker/docker-compose.yml build
-
-# 4. Restart containers
-
-.\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start
-
-# 5. Check logs for errors
-
-.\DOCKER.ps1 -Logs
-
-# 6. Test changes at http://localhost:8080
-
-```text
-### Production Deployment Workflow
-
-```powershell
-# 1. Pull latest code
-
-git pull origin main
-
-# 2. Stop current containers
-
-.\DOCKER.ps1 -Stop
-
-# 3. Rebuild images (no cache for production)
-
-.\DOCKER.ps1 -UpdateClean
-
-# 4. Verify health
-
-.\DOCKER.ps1 -Status
-# Or visit http://localhost:8080/health
-
-# 5. Check Control Panel diagnostics
-
-# http://localhost:8080 → Power Tab → Diagnostics
-
-```text
-### Backup Before Upgrade
-
-```powershell
-# 1. Create database backup via Control Panel
-
-# http://localhost:8080 → Power Tab → Operations → Create Database Backup
-
-# 2. Stop containers
-
-.\DOCKER.ps1 -Stop
-
-# 3. Backup entire data volume (optional)
-
-docker run --rm -v sms_data:/data -v ${PWD}/backups:/backup alpine tar czf /backup/sms_data_$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
-
-# 4. Pull new version
-
-git pull origin main
-
-# 5. Rebuild and start
-
-.\DOCKER.ps1 -Update
-
-```text
----
-
-## 📚 Additional Resources
-
-- **Quick Start Guide:** [QUICK_START_GUIDE.md](../user/QUICK_START_GUIDE.md)
-- **Architecture:** [ARCHITECTURE.md](../development/ARCHITECTURE.md)
-- **Deployment:** [DEPLOYMENT_GUIDE.md](../../DEPLOYMENT_GUIDE.md)
-- **DOCKER.ps1 Reference:** Run `.\DOCKER.ps1 -Help`
-
----
-
-## 💡 Tips
-
-1. **Always use `DOCKER.ps1`** for container management instead of raw `docker compose` commands - it provides better output and error handling
-
-2. **Check status frequently** with `.\DOCKER.ps1 -Status` to ensure containers are healthy
-
-3. **Use the Control Panel** for application operations (diagnostics, database, logs) - it's designed for Docker mode
-
-4. **Read the banner** in Control Panel - it shows helpful command examples for host operations
-
-5. **Keep Docker Desktop running** - all operations require Docker to be available
-
-6. **Version sync matters** - `DOCKER.ps1 -Install` automatically syncs VERSION file to docker-compose .env
-
-7. **Health checks are your friend** - FastAPI includes comprehensive health endpoints that Docker uses for container health
-
----
-
-**Last Updated:** December 2025
-**Version:** 1.9.3
-**Architecture:** Docker-First, Host/Container Separation
+git pull
+.\infra\scripts\dev\DOCKER.ps1 -Update        # or -UpdateClean
+```
+
+The cloud server does not use this script; its own steps are in
+[CLOUD_HOST_ORACLE.md](CLOUD_HOST_ORACLE.md).
+
+## What the container cannot do for itself
+
+Starting, stopping, building and cleaning up are done on the host, with this script: the
+container has no access to Docker. The one thing the Control Panel can set off on the host
+is the update above, and only by leaving a request that the host's own task reads.
+
+## What was never tried
+
+- Nothing in sections 1 to 6 was run for this reading: they are `DOCKER.ps1` as its text
+  stands, and the script itself was not run. The image it builds is built by CI on every
+  change; it was last run on the project's PC in the smoke test before v1.18.73, started by
+  the test's own commands and not by this script.
+- The PostgreSQL container of this PC (`sms-postgres`), the `split` layout and the monitoring
+  stack were not started.
+- `-Prune`, `-PruneAll` and `-DeepClean` were not run; what they remove is read from the Docker
+  commands in the script.
+- `-Backup` with a stopped container.
+
+More: [INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md),
+[BACKUP_AND_RESTORE.md](../admin/BACKUP_AND_RESTORE.md),
+[QUICK_START_GUIDE.md](../user/QUICK_START_GUIDE.md),
+[ARCHITECTURE.md](../development/ARCHITECTURE.md).

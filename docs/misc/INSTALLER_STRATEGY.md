@@ -5,6 +5,16 @@
 **Status:** Design Document  
 **Scope:** Docker and Native Lite Deployment Only
 
+> **Note of 19 November 2026.** This is a design of May 2026 and was not kept up with the
+> installer. The package it draws, with files such as `DOCKER_DEPLOYMENT_GUIDE.md`,
+> `LITE_DEPLOYMENT_GUIDE.md` and `INSTALLER_README.md`, was a plan: those three files were
+> never written. What the installer does today is in
+> [INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md); what is in the installer's
+> folder and how it is built, in
+> [infra/installer/windows/README.md](../../infra/installer/windows/README.md); the Docker
+> edition after it is installed, in [DOCKER_OPERATIONS.md](../deployment/DOCKER_OPERATIONS.md);
+> SMS Lite, in [LITE_EDITION_GUIDE.md](../deployment/LITE_EDITION_GUIDE.md).
+
 ---
 
 ## Executive Summary
