@@ -12,7 +12,7 @@ earlier text is in the repository's history.
 |---|---|---|
 | Download lists of records | Utils > **Export** > Export Center | administrators and teachers |
 | Add students or courses from files | Utils > **Imports** | administrators and teachers |
-| Move one whole semester | Utils > **Export** > Session Export/Import | administrators only |
+| Move one whole semester | Utils > **Export** > Session Export/Import | administrators and teachers |
 
 ## Exporting: Utils > Export
 
@@ -26,7 +26,7 @@ Templates**, closed when the tab opens; click a bar's name to open it (read from
 - Each file holds all the records of its kind. For a selection (one student, one course, a
   range of dates), build a report under Utils > **Reports**. **Reports & Templates** leads
   there.
-- **Session Export/Import** moves one whole semester in one file, for administrators only:
+- **Session Export/Import** moves one whole semester in one file, for administrators and teachers:
   [SESSION_EXPORT_IMPORT_GUIDE.md](SESSION_EXPORT_IMPORT_GUIDE.md).
 - Read from the code: the Export Center sends the language of the page with each request,
   and the server takes the language of the file from it ([LOCALIZATION.md](LOCALIZATION.md)).

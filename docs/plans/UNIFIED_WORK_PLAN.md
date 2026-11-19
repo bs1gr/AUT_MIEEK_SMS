@@ -301,6 +301,62 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.73 (unreleased)
 
+**2026-11-19: the owner's go-ahead for everything that waited** (one message, after the list
+of what waited for a word: "after getting finished with the tasks pending, you should proceed
+without stop until finish all suggested actions as of these you listed", and the list: the
+release of v1.18.74 and the update of the cloud VM; the nine local installer builds; *Clear*
+on the Attendance page; the database choice of the Docker wizard; the uninstaller's "Delete
+all user data"; the unique index on the permission keys; CLAUDE.md's release text; what
+identifies a grade in a session import; teachers and the session file; the Import/Export
+panel of todo 62; the unused tools and page parts). Where the list left a choice open ("delete
+or keep", "repair or take off the page") the entries below say which was taken and why; each
+is the assistant's choice and one change to undo.
+
+**2026-11-19: a semester's session file is the teacher's too, and an import knows a grade by
+its category as well** (PR 432; two of the things above).
+
+- **Teachers and the session file.** "Who may import: both teachers and admins" was read on
+  18 November as the import of students and courses (PR 425), and the session file stayed
+  with the administrator. The role teacher now holds `sessions:manage`: the seed gives it in
+  a new database, migration `9c41f7e2a6d3` in an existing one (data only: one grant for the
+  teacher, the same for the administrator beside the wildcard, the permission row if a
+  database lacks it; a database without roles is left to the seed; the downgrade takes the
+  teacher's grant away). **The shared database gets this migration at the first start of
+  this code.**
+- **Two things stay the administrator's**, both changed here because the grant would have
+  opened them:
+  - *Returning the whole database to a backup.* `POST /sessions/rollback` replaces the
+    database with the copy made before an import. It asked for `sessions:manage`; it asks for
+    `adminops:restore` now, as every other restore does. No page uses it.
+  - *Students' health information.* A session file can carry it, and an import stored it
+    whenever recording was on. A file imported by an account that is not an administrator's
+    is now imported without it, and what is stored stays as it is (the export already left
+    it out for such an account).
+- **What identifies a grade.** The session import (`routers_sessions.py`) and the older import
+  behind Control Panel > Import/Export (`import_export_service.py`) recognised a grade by
+  student, course and assignment name. The same assignment is kept under two categories on
+  purpose (the owner, 15 November: rows 141 and 146), and those two were one record to both:
+  with **Update Existing** the first record got the second row's category and mark and the
+  second kept its old mark. **The category is part of the match now** (chosen: name and
+  category, not the date as well, because a corrected date must not make a second grade). A
+  grade without a category is matched with one without. The older import also took a deleted
+  grade for the one meant; it no longer does. What this leaves: two grades of the same name
+  and category on two dates are still one record, and a category renamed since the file was
+  made gives a second grade.
+- **Texts.** The help's answer on the session file, the guides that said "administrators
+  only" (`SESSION_EXPORT_IMPORT_GUIDE.md`, the two import/export guides, the user guide in
+  both languages, `RBAC_GUIDE.md` and its Greek twin, `RBAC_ADMIN_GUIDE.md`), the permission
+  reference and matrix (26 permissions for the teacher, 53 grants in a new database; the
+  endpoint table written anew by the application's own script).
+- **Tests.** `test_teachers_session_file.py` (16): the migration (the grant and nothing
+  else; taken back and run again; a database that lacks the permission; one without roles),
+  a teacher's export and import, the return to a backup refused to a teacher and open to
+  the administrator, an account without a role, health information in a teacher's file, two
+  grades in two categories with "update" and with "skip", a grade without a category in four
+  spellings, a deleted grade, and the older import. Five of them fail on the code as it was.
+- **Not tried:** no page was opened as a teacher for this; the panel shows itself to whoever
+  the server answers, and its tests cover that.
+
 **2026-11-19: the `release-manager` agent and the `plan-review` skill run on a cheaper
 model** (asked for by the owner after `/usage`: which models the subagents use, and a
 cheaper one in the file that defines them where it fits the work. Each change was shown and
@@ -596,7 +652,7 @@ and correct as needed").
     second overwrites the first, with **Skip Existing** it is left out. Two grades of the
     same name and category on two dates collapse the same way. Read from the code, not
     tried; the guide warns. What identifies a grade (name and category, or the date too)
-    is a decision.
+    is a decision. **Done in PR 432: name and category.**
   - The older import path of the Control Panel's Import/Export panel (todo 62) marks a job
     "ready" also when rows have errors, recognises a student by the e-mail address among
     deleted ones too, and has no rollback, template or row limit, all of which its old
@@ -791,7 +847,7 @@ head of todo 63.)
   list as well". Point 1 as the import of students and courses from a file (Utils >
   Imports); a semester's session file (`sessions:manage`: grades and attendance of a whole
   semester in one file) stays with the administrator. If teachers are to have that too, it is
-  one more grant.
+  one more grant. **Granted on 19 November: PR 432.**
 - **What an account may do is what its rows say.** `backend/rbac.py` had a list of
   permissions for each word an account's Role column can hold, used when the account had no
   matching role row. It is gone, with the special case that let the word "admin" pass every
@@ -2689,7 +2745,9 @@ now** (todo 58).
       - *Not in the message, and waiting for the owner's word:* a release and the update of
         the cloud VM; whether teachers also get the session file; the four tools nothing runs
         and the two unused page parts (delete or keep); what identifies a grade when a
-        session file is imported (see the entry of PR 429).
+        session file is imported (see the entry of PR 429). **The owner's go-ahead for all
+        of them came on 19 November 2026** (the entry at the head of "On `main` since
+        v1.18.73"): teachers and the grade are done in PR 432.
     - *Repaired in PR 423 (2026-11-18), on the owner's note of that day:* revoking an
       account's only role took nothing away. Such an account is now left with nothing (Role
       column "No role"). The built-in list for an account without role rows went altogether

@@ -618,9 +618,10 @@ def test_026_teacher_has_expected_subset(db):
         "imports:preview",
         "imports:execute",
         "jobs:view",
+        "sessions:manage",  # a semester's session file, since 19 November 2026
     ):
         assert key in teacher, key
-    for key in ("*:*", "users:manage", "permissions:manage", "audit:view", "sessions:manage", "adminops:backup"):
+    for key in ("*:*", "users:manage", "permissions:manage", "audit:view", "adminops:restore", "adminops:backup"):
         assert key not in teacher, key
 
 

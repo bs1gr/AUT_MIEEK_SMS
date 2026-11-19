@@ -20,7 +20,7 @@ with the accounts that had one of the three.
 | Kind | How an account gets it | What it holds |
 |---|---|---|
 | **Administrator** (`admin`) | Role "Administrator" in **User Accounts**, or the role `admin` under **Assign Role to User** | Every permission (the wildcard `*:*`), and the things only the administrator role may do |
-| **Teacher** (`teacher`) | Role "Teacher" in **User Accounts**; every account that registers itself | 25 permissions: all of the school's records, reports, exports, imports, messages |
+| **Teacher** (`teacher`) | Role "Teacher" in **User Accounts**; every account that registers itself | 26 permissions: all of the school's records, reports, exports, imports, a semester's session file, messages |
 | **No role** (`none`) | "No role" under **Edit** in **User Accounts**, or every role of the account revoked under **Assign Role to User**; an account that was a Student, Viewer or Guest before the upgrade | Nothing |
 
 Both panels are under **System > Control Panel > Maintenance**.
@@ -59,9 +59,11 @@ the teachers keep, not somebody who signs in.
 
 Two rows deserve a second look:
 
-- **A semester's session file stays with the administrator.** A teacher imports students and
-  courses; the file that carries a whole semester, grades and attendance included, asks for
-  `sessions:manage`.
+- **A semester's session file is the teacher's too** (`sessions:manage`, since 19 November
+  2026): export, import and the list of the backups made before an import. Returning the
+  whole database to one of those backups (`POST /api/v1/sessions/rollback`) asks for
+  `adminops:restore` and stays with the administrator, and a file imported by a teacher is
+  imported without students' health information.
 - **The export jobs of Control Panel > Import/Export** are a separate, partly broken feature
   (plan todo 62) and are not in the table.
 
@@ -570,7 +572,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `GET /api/v1/sessions/export` | `sessions:manage` |
 | `POST /api/v1/sessions/export` | `sessions:manage` |
 | `POST /api/v1/sessions/import` | `sessions:manage` |
-| `POST /api/v1/sessions/rollback` | `sessions:manage` |
+| `POST /api/v1/sessions/rollback` | `adminops:restore` |
 | `GET /api/v1/sessions/semesters` | `sessions:manage` |
 
 #### `/api/v1/student-notes`

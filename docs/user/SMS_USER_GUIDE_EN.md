@@ -23,7 +23,7 @@ For installing and starting the application see [QUICK_START_GUIDE.md](QUICK_STA
 ## Still true, and not in the current guide
 
 **The two merge strategies of a session import** (Utils > Export > Session Export/Import, for
-administrators only):
+administrators and teachers):
 
 - **Update Existing:** update existing records and create new ones.
 - **Skip Existing:** only create new records, skip existing ones.

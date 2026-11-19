@@ -217,6 +217,8 @@ class ImportExportService:
             # Prepare grade data
             assignment_name = row.get("assignment", "Imported Grade")
             category = row.get("category", "General")
+            if pd.isna(category) or not str(category).strip():
+                category = "General"
             try:
                 grade_val = float(row.get("grade", 0))
                 max_grade = float(row.get("max_grade", 100))
@@ -224,14 +226,20 @@ class ImportExportService:
             except (ValueError, TypeError):
                 continue
 
-            # Check if grade exists
+            # The grade this row stands for: the same student, course, assignment name and
+            # category, and not a deleted one. The same assignment is kept under two categories
+            # on purpose, so the name alone does not say which grade is meant (as in the
+            # session import, routers_sessions._import_grades).
             grade = (
                 db.query(Grade)
                 .filter(
                     Grade.student_id == student.id,
                     Grade.course_id == course.id,
                     Grade.assignment_name == assignment_name,
+                    Grade.category == category,
+                    Grade.deleted_at.is_(None),
                 )
+                .order_by(Grade.id)
                 .first()
             )
 
@@ -239,7 +247,6 @@ class ImportExportService:
                 grade.grade = grade_val  # type: ignore[assignment]
                 grade.max_grade = max_grade  # type: ignore[assignment]
                 grade.weight = weight  # type: ignore[assignment]
-                grade.category = category  # type: ignore[assignment]
             else:
                 grade = Grade(
                     student_id=student.id,

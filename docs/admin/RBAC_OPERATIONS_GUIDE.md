@@ -19,7 +19,7 @@ Sign in as an administrator: **System** > **Show Control Panel** > **Maintenance
 
 - **RBAC Configuration** > **Overview** shows **Roles (2)** and **Permissions (44)** on an
   installation that nobody has added roles or permissions to. "Role-Permission Mappings" lists
-  51 grants: 26 for `admin` (`*:*` and the teacher's 25 by name) and 25 for `teacher`.
+  53 grants: 27 for `admin` (`*:*` and the teacher's 26 by name) and 26 for `teacher`.
 - **RBAC Configuration** > **Users** lists every account with its number, the word in its Role
   column and the roles it holds. An active Administrator or Teacher shows its role. "No RBAC
   roles assigned" belongs only to an account that is meant to have no role.
@@ -120,7 +120,7 @@ For a developer. A permission exists when an endpoint asks for it:
 2. Add the key to `PERMISSION_DEFS` in `src/backend/routers/routers_rbac.py`, and to
    `TEACHER_PERMISSIONS` if teachers are to hold it. These tests fail until it is there:
    `test_two_roles_model.py` and `test_permission_documents.py`. The first also states the
-   numbers (44 permissions, 51 grants), which change with it.
+   numbers (44 permissions, 53 grants), which change with it.
 3. Add its name to `permissionNames` in `src/frontend/src/locales/en/rbac.js` and `el/rbac.js`;
    `permissionNames.test.ts` fails until you do.
 4. Name it in [PERMISSION_REFERENCE.md](PERMISSION_REFERENCE.md), under one of its four

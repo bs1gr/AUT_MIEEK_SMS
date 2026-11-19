@@ -77,7 +77,7 @@ export default {
   helpWhatsNewInLatest: 'Which version am I using, and what is new in it?',
   helpWhatsNewAnswer: 'The version stands at the foot of every page. After a new version is installed, a banner and a notification in the bell tell every user what changed. Whoever looks after the installation checks for a newer version under "System" → "Show Control Panel" → "Updates".',
   helpSessionExportImport: 'What is Session Export/Import?',
-  helpSessionExportImportAnswer: 'It writes everything of one semester (courses, students, enrolments, grades, attendance, daily performance and the lesson log) into one JSON file, and reads such a file back, here or in another installation. It is for administrators: to any other account the panel says that the account may not use it.',
+  helpSessionExportImportAnswer: 'It writes everything of one semester (courses, students, enrolments, grades, attendance, daily performance and the lesson log) into one JSON file, and reads such a file back, here or in another installation. It is for administrators and teachers: to an account without a role the panel says that the account may not use it. A grade is recognised by its student, course, assignment name and category.',
   helpHowToExportSemester: 'How do I export a semester?',
   helpExportSemesterAnswer: '1. "Utils" → "Export" → "Session Export/Import"\n2. Choose the semester\n3. Click "Export Session": the file is downloaded',
   helpHowToImportSemester: 'How do I import a semester?',

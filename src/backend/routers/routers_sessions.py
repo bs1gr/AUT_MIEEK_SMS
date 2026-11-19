@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
@@ -340,9 +341,14 @@ async def import_session(
     merge_strategy: str = "update",  # "update" or "skip"
     dry_run: bool = False,  # Validate only, don't import
     db: Session = Depends(get_db),
+    health_allowed: bool = Depends(health_data_access),
 ):
     """
     Import session data package and merge with existing database.
+
+    Students' health information in the file is stored only when health recording is switched
+    on and the account is an administrator's (as in the export). From any other account the
+    file is imported without it, and what is stored stays as it is.
 
     Merge strategies:
     - "update": Update existing records, create new ones (default)
@@ -375,9 +381,14 @@ async def import_session(
         try:
             import_data = json.loads(content.decode("utf-8"))
         except json.JSONDecodeError:
-            raise http_error(
-                400, ErrorCode.IMPORT_INVALID_JSON, "Invalid JSON format", request
-            )
+            raise http_error(400, ErrorCode.IMPORT_INVALID_JSON, "Invalid JSON format", request)
+
+        # Health information is the administrator's alone. Since November 2026 teachers hold
+        # sessions:manage too, and a file could otherwise carry it in through this door.
+        if not health_allowed and isinstance(import_data, dict):
+            for student_row in import_data.get("students") or []:
+                if isinstance(student_row, dict):
+                    student_row.pop("health_issue", None)
 
         # PRE-VALIDATION: Check entire import package before touching database
         semester = import_data.get("metadata", {}).get("semester")
@@ -447,9 +458,9 @@ async def import_session(
 
                 if db_path.exists():
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    safe_semester = "".join(
-                        ch if ch in _ALLOWED_BACKUP_CHARS else "_" for ch in semester
-                    )[:64] or "unnamed"
+                    safe_semester = (
+                        "".join(ch if ch in _ALLOWED_BACKUP_CHARS else "_" for ch in semester)[:64] or "unnamed"
+                    )
                     backup_filename = f"pre_import_backup_{safe_semester}_{timestamp}.db"
                     if not is_safe_backup_filename(backup_filename):
                         raise ValueError(f"Refusing unsafe backup filename: {backup_filename!r}")
@@ -660,13 +671,17 @@ async def import_session(
 
 @router.post("/rollback")
 @limiter.limit(RATE_LIMIT_HEAVY)
-@require_permission("sessions:manage")
+@require_permission("adminops:restore")
 async def rollback_import(request: Request, backup_filename: str):
     """
     Rollback/restore database from a backup file created before session import.
 
     CRITICAL: This replaces the entire database with the backup.
     Only use if a session import caused problems.
+
+    It asks for adminops:restore, as every other restore of the database does, and not for
+    sessions:manage: teachers hold that one since November 2026, and replacing the whole
+    database is the administrator's.
 
     Parameters:
     - backup_filename: Name of backup file (e.g., "pre_import_backup_2024-2025_Fall_20250119_103000.db")
@@ -802,9 +817,7 @@ async def rollback_import(request: Request, backup_filename: str):
         raise
     except Exception:
         logger.exception("Rollback failed")
-        raise http_error(
-            500, ErrorCode.IMPORT_PROCESSING_FAILED, "Rollback operation failed", request
-        )
+        raise http_error(500, ErrorCode.IMPORT_PROCESSING_FAILED, "Rollback operation failed", request)
 
 
 @router.get("/backups")
@@ -842,9 +855,7 @@ async def list_backups(request: Request):
 
     except Exception as exc:
         logger.error(f"Failed to list backups: {exc}", exc_info=True)
-        raise http_error(
-            500, ErrorCode.EXPORT_FAILED, "Failed to list backup files", request
-        )
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Failed to list backup files", request)
 
 
 # Serialization helpers (_serialize_*) now live in backend.services.session_data_service,
@@ -915,8 +926,21 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
             results["summary"]["enrollments"]["errors"].append("Enrollment import failed")
 
 
+def _same_category(Grade, category):
+    """The filter for "a grade of this category".
+
+    A grade is one assignment in one category: the same assignment is kept under two
+    categories on purpose (the owner, 15 November 2026), so the category belongs to what
+    identifies a grade. A grade without a category matches one without, whether the column
+    holds nothing or an empty text.
+    """
+    if category is None or (isinstance(category, str) and not category.strip()):
+        return or_(Grade.category.is_(None), Grade.category == "")
+    return Grade.category == category
+
+
 def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results: Dict):
-    """Import grades"""
+    """Import grades. A grade is recognised by student, course, assignment name and category."""
     Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
 
     for grade_data in grades:
@@ -930,21 +954,24 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                 )
                 continue
 
-            # Check if grade exists (by student, course, and assignment name)
+            # The grade this row stands for: the same student, course, assignment name and
+            # category. Until November 2026 the category was left out, so the two grades of one
+            # assignment in two categories were one record here: the second overwrote the first.
             existing = (
                 db.query(Grade)
                 .filter(
                     Grade.student_id == student.id,
                     Grade.course_id == course.id,
                     Grade.assignment_name == grade_data.get("assignment_name"),
+                    _same_category(Grade, grade_data.get("category")),
                     Grade.deleted_at.is_(None),
                 )
+                .order_by(Grade.id)
                 .first()
             )
 
             if existing:
                 if merge_strategy == "update":
-                    existing.category = grade_data.get("category")
                     existing.grade = grade_data.get("grade")
                     existing.max_grade = grade_data.get("max_grade")
                     existing.weight = grade_data.get("weight")
