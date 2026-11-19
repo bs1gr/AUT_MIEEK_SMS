@@ -312,6 +312,66 @@ panel of todo 62; the unused tools and page parts). Where the list left a choice
 or keep", "repair or take off the page") the entries below say which was taken and why; each
 is the assistant's choice and one change to undo.
 
+**2026-11-19: the Import/Export panel of the Control Panel does what it offers** (PR 436;
+todo 62, the last of the things of the owner's go-ahead above that is code. The plan had
+left it open: "repair it as the Search page was repaired, or take the dialog off the page".
+It is repaired: nothing the owner sees goes away, and what it offered now works. Taking it
+off instead would be a smaller change: say so if that is wanted.)
+
+- **What was wrong, beyond what todo 62 listed.** Reading the code for the repair showed
+  more than the smoke test had seen:
+  - *The export.* Nine generators, one for each kind of record and format, written against
+    columns the models do not have (`Student.status`, `Course.code`, `Grade.points`): only
+    the Excel file of students could be made. A PDF used a font without Greek letters.
+  - *The import wizard never stored anything.* It sent the file, waited for the check, and
+    closed as if the import were done. No request asked for the rows to be stored.
+  - *The list* asked for the audit history and showed columns that history does not have.
+  - *The older import itself*, for whoever called it by hand: a file with faults was "ready"
+    all the same; a commit that failed half-way kept the rows before the failure; a student
+    was matched by e-mail address alone, also among deleted ones, and one that was there
+    was left as it was; a new student without a `student_id` column got a made-up number.
+- **What changes.**
+  - *Exports* (`async_export_service.py`, written anew): a kind of record is one table (the
+    same columns in every format) and a format is one writer. **Students, courses, grades
+    and attendance, each as Excel, CSV or PDF.** The file is in the format of the request's
+    body, the one the job is stored with; "excel" is read as xlsx; "dashboard", which
+    nothing ever wrote, is refused; a job whose file cannot be written ends as "failed" and
+    does not stay "processing". A CSV file has a byte order mark, so that Excel opens its
+    Greek names; a PDF uses the fonts of the other PDF files.
+  - *Who may see a job.* The state of a job and the list ask for `exports:view` or
+    `exports:generate`: whoever may start a job may see how it went. No grant was changed.
+  - *Imports* (`import_export_service.py`): a file with faults ends as "invalid" and cannot
+    be committed; the faults are listed under the row's number as a spreadsheet shows it; a
+    commit is all of the file or nothing of it; students and courses follow the rule of
+    Utils > Imports (the same student ID or e-mail address, the same course code; one that
+    is there is updated); a file of students needs the `student_id` column; a grade row is
+    checked for its student, its course and its numbers.
+  - *The page.* The three components go through the signed-in client. **Export Data** asks
+    what and in which format (the date range and "include headers", which the server never
+    looked at, are gone). The import wizard shows what the check found and has **Store the
+    rows**. **History** lists the import and export jobs with **Download**. New texts in
+    both languages.
+- **Tests.** `test_import_export_panel.py` (28): every kind in every format is the file it
+  is called, with its rows; the format of the request; "excel"; what nothing writes; a file
+  that cannot be written; a teacher's job; an account without a role; a file with faults; a
+  missing column; a checked file stored when committed and not before; a student who is
+  there; a commit that fails; courses; grades with their category; the order of the lists.
+  `ImportExportComponents.test.tsx` (11; the file held one test, which asserted that true is
+  true).
+- **Tried in a browser on a scratch copy, as an administrator.** The page opens with both
+  lists answered. All twelve exports were saved and are what their names say (Excel files,
+  PDF files with the Greek names in their text, CSV files with them). An import with a
+  fault names its row and offers nothing to store; one without is stored only after **Store
+  the rows**, and the students are then on the server. 85 requests of the panel, none
+  refused. The Greek page was looked at.
+- **Documents.** `docs/admin/IMPORT_EXPORT_GUIDE.md` says what the panel does now; the
+  permission reference and matrix; a dated note on `EXPORT_API_REFERENCE.md`, which
+  describes schedules, metrics and settings the application never had.
+- **What it leaves.** The panel stays for administrators (the Control Panel). No template
+  to download and no limit on rows. Exports made here are not in `GET /history`. The two
+  ways to import students and courses remain (this panel, and Utils > Imports, which shows
+  more and takes several files).
+
 **2026-11-19: the database chosen in the installer reaches a new installation, and the
 uninstaller says what it deletes** (PR 435; two of the things of the owner's go-ahead above.
 Both were read from the scripts on 18 November and not seen on an installation; **no
@@ -361,7 +421,9 @@ installer was run for this either**.)
 
 **2026-11-19: permission keys are unique in every database, the tools nothing ran and the
 unused page parts are gone, and CLAUDE.md's release text no longer ends with an upload by
-hand** (PR 434; three of the things of the owner's go-ahead above).
+hand** (PR 434, merged as `2f2f65a0d`; on the PR's commit CI's backend job passed 1,888 tests
+with 55 skipped and the frontend job 2,125, and the E2E job passed (its count could not be
+read: GitHub did not hand out the log). Three of the things of the owner's go-ahead above).
 
 - **The unique index on a permission's key** (migration `e2b7c9d4a1f6`). The model says
   unique. Read from the migrations: on PostgreSQL revision `3af743932574` already makes
@@ -2850,7 +2912,8 @@ now** (todo 58).
       `docs/admin/IMPORT_EXPORT_GUIDE.md` now says what the panel does and sends the reader
       to Utils > Imports and Utils > Export.
     - To do, on the owner's word: repair it as the Search page was repaired, or take the
-      dialog off the page.
+      dialog off the page. **Repaired in PR 436, on the owner's go-ahead of 19 November
+      2026: see its entry under "On `main` since v1.18.73". This todo is closed.**
 
 63. **Found on 2026-11-17 while the permission documents were checked against a running
     copy, and not changed** (each seen on a scratch server; the documents of PR 420 say what

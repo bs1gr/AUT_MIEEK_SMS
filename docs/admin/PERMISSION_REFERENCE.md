@@ -136,7 +136,7 @@ No role but `admin` holds these.
 | `adminops:backup` | `POST /api/v1/adminops/backup` |
 | `adminops:restore` | `POST /api/v1/adminops/restore`; returning the database to a backup made before a session import (`POST /api/v1/sessions/rollback`) |
 | `adminops:clear` | `POST /api/v1/adminops/clear` |
-| `exports:view` | The list of export jobs and one job. A teacher can start a job and download its file, and cannot look at it (plan todo 62). |
+| `exports:view` | The list of export jobs and one job. Not needed by whoever holds `exports:generate`: an account that may start a job may see how it went. |
 | `jobs:create` | Starting a background job by hand (`POST /api/v1/jobs/`) |
 | `jobs:manage` | Cancelling a background job |
 | `jobs:delete` | Deleting a background job |

@@ -75,7 +75,12 @@ class ImportExportService:
         return job
 
     def process_import_job(self, db: Session, job_id: int):
-        """Background task to process the import file."""
+        """Background task: read the uploaded file and say what is wrong with it.
+
+        A file without a fault ends as "ready" and can be committed. One with faults ends as
+        "invalid" and cannot: until November 2026 it was "ready" all the same, so the check
+        stopped nothing.
+        """
         job = db.query(ImportJob).filter(ImportJob.id == job_id).first()
         if not job:
             return
@@ -94,13 +99,7 @@ class ImportExportService:
             job.successful_rows = validation_results["valid_count"]  # type: ignore[assignment]
             job.failed_rows = validation_results["invalid_count"]  # type: ignore[assignment]
             job.validation_errors = validation_results["errors"]  # type: ignore[assignment]
-
-            if validation_results["invalid_count"] == 0:
-                job.status = "ready"  # type: ignore[assignment]  # Ready for commit
-            else:
-                # For now, we mark as ready even with errors, but UI should warn
-                # Or we could mark as 'review_required'
-                job.status = "ready"  # type: ignore[assignment]
+            job.status = "ready" if validation_results["invalid_count"] == 0 else "invalid"  # type: ignore[assignment]
 
             db.commit()
 
@@ -120,14 +119,21 @@ class ImportExportService:
 
         except Exception as e:
             logger.error(f"Import processing failed: {e}")
+            db.rollback()
             job.status = "failed"  # type: ignore[assignment]
             job.validation_errors = {"system_error": str(e)}  # type: ignore[assignment]
             db.commit()
 
     def commit_import_job(self, db: Session, job_id: int):
-        """Execute the import job (write to DB)."""
+        """Execute the import job (write to DB): all of the file, or nothing of it.
+
+        Only a job that was checked and found without a fault. When a row cannot be stored the
+        rows before it are taken back; they used to stay, with the job marked "failed".
+        """
         job = db.query(ImportJob).filter(ImportJob.id == job_id).first()
         if not job:
+            return
+        if str(job.status) not in ("ready", "importing"):
             return
 
         try:
@@ -137,12 +143,13 @@ class ImportExportService:
             # Parse file again (or retrieve from cache if we implemented caching)
             df = self._parse_file(str(job.file_path), str(job.file_type))
 
+            counts = {"created": 0, "updated": 0}
             if str(job.import_type) == "students":
-                self._import_students(db, df)
+                counts = self._import_students(db, df)
             elif str(job.import_type) == "courses":
-                self._import_courses(db, df)
+                counts = self._import_courses(db, df)
             elif str(job.import_type) == "grades":
-                self._import_grades(db, df)
+                counts = self._import_grades(db, df)
 
             job.status = "completed"  # type: ignore[assignment]
             job.completed_at = datetime.now(UTC)  # type: ignore[assignment]
@@ -155,76 +162,100 @@ class ImportExportService:
                 "commit",
                 int(job.imported_by) if job.imported_by is not None else None,
                 int(job.id) if job.id else 0,
-                {"count": int(job.successful_rows) if job.successful_rows else 0},
+                {"count": counts["created"] + counts["updated"], **counts},
             )
 
         except Exception as e:
             logger.error(f"Import commit failed: {e}")
-            job.status = "failed"  # type: ignore[assignment]
-            job.validation_errors = {"commit_error": str(e)}  # type: ignore[assignment]
-            db.commit()
+            db.rollback()
+            job = db.query(ImportJob).filter(ImportJob.id == job_id).first()
+            if job:
+                job.status = "failed"  # type: ignore[assignment]
+                job.validation_errors = {"commit_error": str(e)}  # type: ignore[assignment]
+                db.commit()
 
-    def _import_students(self, db: Session, df: pd.DataFrame):
-        for _, row in df.iterrows():
-            email = row.get("email")
-            if not email or pd.isna(email):
-                continue
+    @staticmethod
+    def _cell(row: Any, name: str) -> Optional[str]:
+        """A cell as text, None when it is empty. A number that Excel made of an ID ("12345.0")
+        is the ID again."""
+        if name not in row:
+            return None
+        value = row[name]
+        if value is None or (not isinstance(value, str) and pd.isna(value)):
+            return None
+        if isinstance(value, float) and value.is_integer():
+            value = int(value)
+        text = str(value).strip()
+        return text or None
 
-            student = db.query(Student).filter(Student.email == email).first()
-            if not student:
-                student = Student(
-                    first_name=row.get("first_name"),
-                    last_name=row.get("last_name"),
-                    email=email,
-                    student_id=row.get("student_id", f"S{datetime.now().timestamp()}"),
-                    enrollment_date=datetime.now(UTC),
-                )
-                db.add(student)
-        db.flush()
+    def _import_students(self, db: Session, df: pd.DataFrame) -> Dict[str, int]:
+        """With the rule of Utils > Imports: a student is the one with that student ID or that
+        e-mail address; one that is there is updated, a deleted one comes back."""
+        from backend.services.import_service import ImportService
 
-    def _import_courses(self, db: Session, df: pd.DataFrame):
-        for _, row in df.iterrows():
-            code = row.get("course_code")
-            if not code or pd.isna(code):
-                continue
+        counts = {"created": 0, "updated": 0}
+        for index, row in df.iterrows():
+            data = {
+                name: self._cell(row, name)
+                for name in ("student_id", "first_name", "last_name", "email", "study_year", "father_name", "phone")
+            }
+            data = {name: value for name, value in data.items() if value is not None}
+            created, error = ImportService.create_or_update_student(db, data)
+            if error:
+                raise ValueError(f"Row {int(index) + 2}: {error}")
+            counts["created" if created else "updated"] += 1
+            db.flush()
+        return counts
 
-            course = db.query(Course).filter(Course.course_code == code).first()
-            if not course:
-                course = Course(course_code=code, course_name=row.get("course_name"))
-                db.add(course)
-        db.flush()
+    def _import_courses(self, db: Session, df: pd.DataFrame) -> Dict[str, int]:
+        from backend.services.import_service import ImportService
 
-    def _import_grades(self, db: Session, df: pd.DataFrame):
-        for _, row in df.iterrows():
-            # Try to find student by ID or Email
-            student = None
-            if "student_id" in row and pd.notna(row["student_id"]):
-                student = db.query(Student).filter(Student.student_id == str(row["student_id"])).first()
-            if not student and "email" in row and pd.notna(row["email"]):
-                student = db.query(Student).filter(Student.email == str(row["email"])).first()
+        counts = {"created": 0, "updated": 0}
+        for index, row in df.iterrows():
+            data: Dict[str, Any] = {
+                name: self._cell(row, name) for name in ("course_code", "course_name", "semester", "description")
+            }
+            data = {name: value for name, value in data.items() if value is not None}
+            credits = self._cell(row, "credits")
+            if credits is not None:
+                data["credits"] = int(float(credits))
+            created, error = ImportService.create_or_update_course(db, data)
+            if error:
+                raise ValueError(f"Row {int(index) + 2}: {error}")
+            counts["created" if created else "updated"] += 1
+            db.flush()
+        return counts
 
-            if not student:
-                continue
+    def _student_of(self, db: Session, row: Any) -> Optional[Student]:
+        """The student a grade row is for: by student ID, else by e-mail address. Not a deleted one."""
+        student_id, email = self._cell(row, "student_id"), self._cell(row, "email")
+        student = None
+        if student_id:
+            student = (
+                db.query(Student).filter(Student.student_id == student_id, Student.deleted_at.is_(None)).first()
+            )
+        if student is None and email:
+            student = db.query(Student).filter(Student.email == email, Student.deleted_at.is_(None)).first()
+        return student
 
-            # Try to find course by Code
-            course = None
-            if "course_code" in row and pd.notna(row["course_code"]):
-                course = db.query(Course).filter(Course.course_code == str(row["course_code"])).first()
+    def _course_of(self, db: Session, row: Any) -> Optional[Course]:
+        code = self._cell(row, "course_code")
+        if not code:
+            return None
+        return db.query(Course).filter(Course.course_code == code, Course.deleted_at.is_(None)).first()
 
-            if not course:
-                continue
+    def _import_grades(self, db: Session, df: pd.DataFrame) -> Dict[str, int]:
+        counts = {"created": 0, "updated": 0}
+        for index, row in df.iterrows():
+            student, course = self._student_of(db, row), self._course_of(db, row)
+            if student is None or course is None:
+                raise ValueError(f"Row {int(index) + 2}: the student or the course is not there")
 
-            # Prepare grade data
-            assignment_name = row.get("assignment", "Imported Grade")
-            category = row.get("category", "General")
-            if pd.isna(category) or not str(category).strip():
-                category = "General"
-            try:
-                grade_val = float(row.get("grade", 0))
-                max_grade = float(row.get("max_grade", 100))
-                weight = float(row.get("weight", 1.0))
-            except (ValueError, TypeError):
-                continue
+            assignment_name = self._cell(row, "assignment") or "Imported Grade"
+            category = self._cell(row, "category") or "General"
+            grade_val = float(row.get("grade"))
+            max_grade = float(self._cell(row, "max_grade") or 100)
+            weight = float(self._cell(row, "weight") or 1.0)
 
             # The grade this row stands for: the same student, course, assignment name and
             # category, and not a deleted one. The same assignment is kept under two categories
@@ -247,6 +278,7 @@ class ImportExportService:
                 grade.grade = grade_val  # type: ignore[assignment]
                 grade.max_grade = max_grade  # type: ignore[assignment]
                 grade.weight = weight  # type: ignore[assignment]
+                counts["updated"] += 1
             else:
                 grade = Grade(
                     student_id=student.id,
@@ -259,7 +291,9 @@ class ImportExportService:
                     date_submitted=datetime.now(UTC),
                 )
                 db.add(grade)
-        db.flush()
+                counts["created"] += 1
+            db.flush()
+        return counts
 
     def _parse_file(self, file_path: str, file_type: str) -> pd.DataFrame:
         """Parse CSV or Excel file into DataFrame."""
@@ -271,21 +305,19 @@ class ImportExportService:
             raise ValueError(f"Unsupported file type: {file_type}")
 
     def _validate_data(self, df: pd.DataFrame, import_type: str, db: Session) -> Dict[str, Any]:
-        """Validate data based on import type."""
-        errors = {}
+        """What is wrong with the file, row by row (the first data row is row 2, as a
+        spreadsheet shows it)."""
+        errors: Dict[str, Any] = {}
         valid_count = 0
         invalid_count = 0
 
-        # Basic required columns mapping
         required_columns = {
-            "students": ["first_name", "last_name", "email"],
+            "students": ["student_id", "first_name", "last_name", "email"],
             "courses": ["course_code", "course_name"],
             "grades": ["student_id", "course_code", "grade"],
         }
-
         req_cols = required_columns.get(import_type, [])
 
-        # Check missing columns
         missing_cols = [col for col in req_cols if col not in df.columns]
         if missing_cols:
             return {
@@ -294,29 +326,57 @@ class ImportExportService:
                 "errors": {"global": f"Missing required columns: {', '.join(missing_cols)}"},
             }
 
-        # Row-by-row validation (simplified for MVP)
-        # In a real scenario, we would do bulk validation or more complex checks
+        seen: Dict[str, int] = {}
         for index, row in df.iterrows():
-            row_errors = []
+            row_number = int(index) + 2
+            row_errors: List[str] = []
 
-            # Generic checks
             for col in req_cols:
-                if pd.isna(row[col]) or str(row[col]).strip() == "":
+                if self._cell(row, col) is None:
                     row_errors.append(f"Missing {col}")
 
-            # Specific checks
             if import_type == "students":
-                if "email" in row and "@" not in str(row["email"]):
+                email = self._cell(row, "email")
+                if email is not None and "@" not in email:
                     row_errors.append("Invalid email format")
+                key = self._cell(row, "student_id")
+            elif import_type == "courses":
+                credits = self._cell(row, "credits")
+                if credits is not None:
+                    try:
+                        int(float(credits))
+                    except ValueError:
+                        row_errors.append("credits is not a number")
+                key = self._cell(row, "course_code")
+            else:
+                key = None
+                if self._cell(row, "student_id") is not None and self._student_of(db, row) is None:
+                    row_errors.append("No student with this student ID")
+                if self._cell(row, "course_code") is not None and self._course_of(db, row) is None:
+                    row_errors.append("No course with this course code")
+                for column in ("grade", "max_grade", "weight"):
+                    text = self._cell(row, column)
+                    if text is None:
+                        continue
+                    try:
+                        float(text)
+                    except ValueError:
+                        row_errors.append(f"{column} is not a number")
+
+            # The same student or course twice in one file: which row is to count?
+            if key is not None:
+                if key in seen:
+                    row_errors.append(f"The same {req_cols[0]} as row {seen[key]}")
+                else:
+                    seen[key] = row_number
 
             if row_errors:
-                errors[index] = row_errors
+                errors[str(row_number)] = row_errors
                 invalid_count += 1
             else:
                 valid_count += 1
 
         return {"valid_count": valid_count, "invalid_count": invalid_count, "errors": errors if errors else None}
-
     def create_export_job(
         self, db: Session, export_type: str, file_format: str, filters: Optional[Dict[str, Any]], user_id: Optional[int]
     ) -> ExportJob:

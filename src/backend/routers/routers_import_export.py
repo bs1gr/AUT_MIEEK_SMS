@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.models import ImportJob, ExportJob
-from backend.rbac import require_permission
+from backend.rbac import require_any_permission, require_permission
 from backend.security.current_user import get_current_user
 from backend.schemas import (
     APIResponse,
@@ -272,11 +272,11 @@ async def list_import_jobs(
     db: Session = Depends(get_db),
 ) -> APIResponse[dict]:
     """
-    List import jobs with optional filtering.
+    List import jobs with optional filtering, the newest first.
 
     **Permissions**: imports:view
     """
-    query = db.query(ImportJob)
+    query = db.query(ImportJob).order_by(ImportJob.id.desc())
 
     if import_type:
         query = query.filter(ImportJob.import_type == import_type)
@@ -371,7 +371,6 @@ async def create_export(
     request: Request,
     background_tasks: BackgroundTasks,
     export_request: ExportJobCreate,
-    export_format: str = Query("excel", pattern="^(excel|csv|pdf)$"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> APIResponse[ExportJobResponse]:
@@ -380,9 +379,13 @@ async def create_export(
 
     Returns immediately with job ID (< 100ms). Export processes in background.
 
-    - **export_type**: students, courses, grades, attendance, dashboard
-    - **export_format**: excel (default), csv, pdf
+    - **export_type**: students, courses, grades, attendance
+    - **file_format**: xlsx, csv, pdf ("excel" is read as xlsx)
     - **filters**: Optional filtering criteria
+
+    The format is the one in the request's body, the one the job is stored with. Until
+    November 2026 the file was written in the format of a query parameter the page never
+    sent, so every job was an Excel file whatever its name said.
 
     **Permissions**: exports:generate
 
@@ -402,7 +405,7 @@ async def create_export(
             async_export_service.process_export_task,
             job.id,
             export_request.export_type,
-            export_format,
+            export_request.file_format,
             export_request.filters,
             getattr(export_request, "limit", 10000),
         )
@@ -435,7 +438,7 @@ async def create_export(
 
 
 @router.get("/exports/{export_job_id}", response_model=APIResponse[ExportJobResponse])
-@require_permission("exports:view")
+@require_any_permission("exports:view", "exports:generate")
 async def get_export_job(
     export_job_id: int,
     request: Request,
@@ -444,7 +447,8 @@ async def get_export_job(
     """
     Retrieve export job details.
 
-    **Permissions**: exports:view
+    **Permissions**: exports:view, or exports:generate: whoever may start a job may see how it
+    went. (A teacher could start one and download its file, and was refused its state.)
     """
     job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
     if not job:
@@ -504,19 +508,22 @@ async def download_export(
         f"Downloading export {export_job_id} for user {request.state.user_id if hasattr(request.state, 'user_id') else 'unknown'}"
     )
 
-    # Return file
-    filename = f"{job.export_type}_export_{job.id}.{job.file_format}"
+    # Return file. Its name and type follow what was written, which is the job's format.
+    extension = os.path.splitext(job.file_path)[1].lstrip(".").lower() or str(job.file_format)
+    media_types = {
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "csv": "text/csv; charset=utf-8",
+        "pdf": "application/pdf",
+    }
     return FileResponse(
         path=job.file_path,
-        filename=filename,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        if job.file_format == "xlsx"
-        else "application/octet-stream",
+        filename=f"{job.export_type}_export_{job.id}.{extension}",
+        media_type=media_types.get(extension, "application/octet-stream"),
     )
 
 
 @router.get("/exports", response_model=APIResponse[dict])
-@require_permission("exports:view")
+@require_any_permission("exports:view", "exports:generate")
 async def list_exports(
     request: Request,
     export_type: Optional[str] = Query(None),
@@ -526,11 +533,11 @@ async def list_exports(
     db: Session = Depends(get_db),
 ) -> APIResponse[dict]:
     """
-    List export jobs with optional filtering.
+    List export jobs with optional filtering, the newest first.
 
-    **Permissions**: exports:view
+    **Permissions**: exports:view, or exports:generate
     """
-    query = db.query(ExportJob)
+    query = db.query(ExportJob).order_by(ExportJob.id.desc())
 
     if export_type:
         query = query.filter(ExportJob.export_type == export_type)
