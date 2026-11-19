@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import axios from 'axios';
+import { controlApiClient } from '@/api/api';
 import { UpdatesPanel } from '../UpdatesPanel';
 
-vi.mock('axios');
+// The panel talks to the Control API through controlApiClient (it carries the login token);
+// UpdatesPanel.auth.test.tsx proves the token really goes out.
+vi.mock('@/api/api', () => ({ controlApiClient: { get: vi.fn(), post: vi.fn() } }));
 vi.mock('../../../LanguageContext', () => ({ useLanguage: () => ({ t: (key: string) => key }) }));
 vi.mock('@/contexts/DateTimeSettingsContext', () => ({ useDateTimeFormatter: () => ({ formatTime: () => '10:00' }) }));
 
-const mockedAxios = axios as unknown as { get: ReturnType<typeof vi.fn>; post: ReturnType<typeof vi.fn>; isAxiosError: (e: unknown) => boolean };
+const mockedAxios = controlApiClient as unknown as { get: ReturnType<typeof vi.fn>; post: ReturnType<typeof vi.fn> };
 
 const check = (overrides: Record<string, unknown>) => ({
   current_version: '1.18.56',
@@ -29,7 +31,7 @@ const check = (overrides: Record<string, unknown>) => ({
 async function openWith(data: Record<string, unknown>) {
   mockedAxios.get.mockResolvedValue({ data });
   const user = userEvent.setup();
-  render(<UpdatesPanel controlApi="/control/api" />);
+  render(<UpdatesPanel />);
   await user.click(screen.getByRole('button', { name: /checkForUpdates/ }));
   await screen.findByTestId('update-mode-card');
   return user;
@@ -40,7 +42,6 @@ async function openWith(data: Record<string, unknown>) {
 describe('UpdatesPanel per deployment mode', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedAxios.isAxiosError = () => false;
   });
 
   it('SMS Lite: one-click update of SMS Lite itself', async () => {
@@ -53,7 +54,7 @@ describe('UpdatesPanel per deployment mode', () => {
     mockedAxios.post.mockResolvedValue({ data: { success: true, message: 'started', details: { job_id: 'a'.repeat(32) } } });
     mockedAxios.get.mockResolvedValue({ data: { job_id: 'a'.repeat(32), status: 'completed', phase: 'completed', progress_percent: 100, installer_launched: true, message: 'closing', phase_history: [] } });
     await user.click(button);
-    await waitFor(() => expect(mockedAxios.post).toHaveBeenCalledWith('/control/api/maintenance/updates/auto-install', expect.anything()));
+    await waitFor(() => expect(mockedAxios.post).toHaveBeenCalledWith('/maintenance/updates/auto-install', expect.anything()));
   });
 
   it('Docker with the host task running: one-click update on the host', async () => {

@@ -499,7 +499,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
 
         {/* Updates Tab */}
         {activeTab === 'updates' && (
-          <UpdatesPanel controlApi={CONTROL_API} />
+          <UpdatesPanel />
         )}
 
         {/* Diagnostics Tab */}

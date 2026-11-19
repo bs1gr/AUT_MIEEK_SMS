@@ -382,6 +382,36 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.74 (unreleased)
 
+**2026-11-19: the Updates tab of the Control Panel sends the login token, so the update check no
+longer answers 403 in the Docker edition** (the owner, with a screenshot of the Docker stack at
+`localhost:8080/#/power`: "on docker image running, the update check fails"; "Request failed
+with status code 403").
+
+- **Cause, read from the container's log.** `GET /control/api/maintenance/updates/check` was
+  refused with "Rejected control API call — non-loopback request without token"
+  (`control_auth.require_control_admin`), while every `GET /control/api/status` of the same
+  page was granted "via admin bearer token". `UpdatesPanel.tsx` called a bare `axios`, which
+  carries no login token; the token is put on `apiClient` and `controlApiClient` only. The
+  Control API lets a request in with an admin token, with the `X-ADMIN-TOKEN` header, or from
+  a loopback address. SMS Lite and a developer checkout are reached from the same machine
+  (loopback), so the missing token never showed there; in the Docker edition the browser
+  reaches the container from the Docker bridge (`172.17.0.1`), so the token is the only way
+  in. The panel's other two calls (start the update, ask its status) used the same bare
+  `axios` and would have been refused the same way; that is read from the code, not run.
+- **Repair.** `UpdatesPanel` calls `controlApiClient` (relative paths, the token, and the
+  Android server address) and no longer takes the unused `controlApi` property.
+- **Tests.** `UpdatesPanel.auth.test.tsx` renders the panel over the real client with a
+  recording adapter and asserts `Authorization: Bearer …` on the update check: it fails on the
+  old panel and passes on the new one. `UpdatesPanel.modes.test.tsx` (5) now mocks
+  `controlApiClient`.
+- **Verified:** the two test files (6 tests), ESLint and `tsc --noEmit` pass; the handler,
+  run inside the v1.18.74 image once the guard is passed, answers (latest release 1.18.74,
+  edition Docker, method host task), so nothing else was hiding behind the 403. **Not
+  verified:** the repaired page in a browser against a rebuilt Docker image (the owner's stack
+  was stopped during the session and no image is built on this PC) and whether the host updater
+  task is running on the owner's PC (`host_updater_ready`). A Docker stack runs this
+  repair only from the next release.
+
 **2026-11-19: after Docker's cleanup SMS comes back; every text of the wizard in both
 languages; the installer's older notes, two unused pages and a CI step** (PR 438, merged as `27adbfca3`; on the PR's commit CI's backend job passed 1,948 tests with 55 skipped, E2E 77 with none flaky, and the gate job on Ubuntu and Windows, its repaired page check included. The owner's
 answer to the report on PR 437, quoted in todo 64, which this closes).
