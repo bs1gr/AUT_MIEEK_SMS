@@ -382,7 +382,92 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.74 (unreleased)
 
-Only the record of the release in this document.
+**2026-11-19: the installer's information pages are right for both editions and in both
+languages, and the Docker guide and the installer's README are written anew** (PR 437; the
+owner's "continue" after the report on v1.18.74, which named this as what it would take up:
+the stale texts that PRs 431 and 435 had listed and left).
+
+- **What was wrong, read from the scripts.** The wizard shows one page before the files are
+  copied and one after, the same two whichever edition was chosen on "Installation Type".
+  Both were written for the Docker edition: somebody installing SMS Lite read "Docker Desktop
+  installed and running" among the requirements and then "The installer will now set up the
+  SMS Docker container. This may take 5-10 minutes". For the Docker edition the page said
+  "Docker container will be built and started": the wizard's next page builds the image
+  (`run_docker_install.cmd`: `DOCKER.ps1 -Install -Silent -NoShortcut`) and starts nothing.
+  The English pages were files written by hand and said "v1.18.30" through 44 releases. The
+  Greek pages were written at every build and said something else again ("the first start
+  takes 5-10 minutes (container download)", and a closing line with a misspelt
+  word). The last page of an SMS Lite installation was English text in the wizard's code,
+  in a Greek wizard too, and told the reader to "log in with admin account (see
+  documentation)", although the wizard itself asks for the administrator of a new local
+  database since v1.18.55.
+- **The pages.** `infra/scripts/diagnostics/fix_greek_encoding_permanent.py`, which the
+  installer build already ran for the Greek pages, now writes all four
+  (`installer_welcome.rtf`, `installer_complete.rtf` and their `_el` twins) from one set of
+  lines per language, with the version of the `VERSION` file. Each page has a part for the
+  Docker edition and a part for SMS Lite, under the names the page "Installation Type" uses.
+  Before the files: what each edition needs (for Lite: no Docker, nothing is built) and what
+  is installed. After the files: for Docker, that the next page builds the image, that the
+  wizard does not start the application, how to start it (the shortcut, 1, START,
+  `http://localhost:8080`) and where the first administrator's address and password are
+  (`config\.env`), or the existing account with the shared QNAP database; for Lite, the
+  shortcut and which account to sign in with. The published installer gets the pages from
+  this script: the tag's workflow runs the same build.
+- **The last page of SMS Lite** is the message `LiteFinishedText`, English in the script and
+  Greek in `Greek.isl`: how to start it, and which account (the one typed into the wizard,
+  or the existing one). The script's head comment no longer names v1.18.11 and its "latest
+  changes".
+- **`docs/deployment/DOCKER_OPERATIONS.md` is written anew against `DOCKER.ps1`.** It was the
+  guide of v1.9.3: two containers (`sms-backend`, `sms-frontend`) that have been one
+  (`sms-app` from the image `sms-fullstack`) for a long time, a script `SMART_SETUP.ps1`
+  that does not exist, a "Power Tab", `docker rmi sms-backend:1.3.8`, and a first-time setup
+  that "starts containers" where `-Install` asks first and the installer's call starts
+  nothing. Now: what runs and where its settings and data are, the three ways the database
+  can be set, every option of the script and what it does, how to see whether it is up, the
+  two kinds of backup (with PostgreSQL `-Backup` copies nothing and says so), the cleanup
+  options, monitoring, and the section on updating as it was (v1.18.57; it was right). **One
+  thing an administrator should know and the old guide did not say: `-Prune`, `-PruneAll`
+  and `-DeepClean` call Docker's own cleanup, which is not limited to SMS**: on a PC with
+  other containers they remove those containers' leftovers too (every stopped container,
+  with `-DeepClean` every unused image). They keep the volumes.
+- **`infra/installer/windows/README.md` is written anew** for whoever changes or builds the
+  installer: the two editions, which installer is the real one (the tag's; a local build is
+  for testing), the files of the folder and which are generated, where the wizard's texts
+  are and how they are kept in two languages, the build and a compile check without an
+  installer, the certificate (valid until 27 November 2028), the uninstaller's file name.
+  It was the README of v1.18.11 ("Fresh Install", an upgrade that "restores `.env` files",
+  `Uninstall_SMS_1.18.11.exe`, "25-30 MB").
+- **Smaller:** `docs/misc/INSTALLER_STRATEGY.md`, a design of May 2026, says at its head what
+  it is and where today's facts are (three of the files it draws were never written);
+  `docs/operations/INSTALLATION_GUIDE.md` names the new pages (sections 1 and 2).
+- **Tests:** `test_installer_info_pages.py` (10): the four files are the ones `[Languages]`
+  names; the tracked files are what the generator writes for this version (a page edited by
+  hand, or a version bumped without the generator, fails with the command to run); plain
+  ASCII RTF with the Greek letters as escapes; each page has a part for each edition in both
+  languages, under the wizard's own names for them; the two languages of a page are built
+  alike line for line, with the same addresses, setting names and numbers; SMS Lite's part
+  does not name Docker Desktop; and each thing the page after the files says is tied to the
+  text of the script it describes (the build page's place, the silent `-Install` that returns
+  before the start, the first line of the menu, the port, the two setting names, the folder,
+  the wizard's own sentences about the administrator). All ten fail on the tree before this
+  change (the test of the escapes only because the old function took no code page). The
+  existing check that every `CustomMessage` name exists in both languages covers the new one.
+- **Verified:** the generator's four files are byte for byte the same before and after the
+  linter's reformat of the script; the installer's script compiles with Inno Setup's
+  `ISCC /O-` with and without SMS Lite, and a copy with a missing bracket in the changed line
+  fails (exit 2). **A wrong message name does not fail the compile** (the name is looked up
+  when the wizard runs): the test above is what guards it. The three installer test files
+  pass together (30). Each of the four pages was loaded into a Windows rich-text control,
+  the kind of control the wizard shows them in: the text, the Greek letters and the bullets
+  come out as written. `GREEK_ENCODING_AUDIT.ps1 -Audit` and the installer input guard pass.
+- **Not verified, and it cannot be here: no wizard was run and no page was seen.** The
+  installer needs administrator rights, and its window cannot be driven from a test. What
+  the pages say is checked as text against the scripts; how they look, and whether the
+  Greek of the last page fits its place, is not. The Greek was written by the assistant and
+  read by nobody else.
+- **Found and not changed** (todo 64): about forty texts of the wizard are still English in
+  the code; two `.rtf` files that nothing shows; older notes in the installer's folder; a CI
+  step that looks for the generator where it is not.
 
 ### In v1.18.74
 
@@ -2552,7 +2637,10 @@ v1.18.70" and "In v1.18.71" at the top). **v1.18.73 of 2026-11-17 carries PRs 40
 the cloud VM was not updated to it.** **v1.18.74 of 2026-11-19 carries PRs 419 to 436, and
 the cloud VM runs it since that morning** (the owner's go-ahead of that day names both; the
 published files, the VM and the shared database after the update are at the head of this
-plan): a repair of two ways an account kept access it
+plan). **Since then `main` carries, unreleased, the installer's information pages made
+right for both editions and both languages, and the Docker guide and the installer's README
+written anew (the first entry under "On `main` since v1.18.74"); what that reading found
+and did not change is todo 64.** In v1.18.74: a repair of two ways an account kept access it
 should not have had (419), the permission documents and the user guide checked against the
 application (420, 421), the small page repairs of todo 63 (422), an account whose last role
 is revoked left with nothing (423), the in-app help read against the pages (424), the
@@ -3216,6 +3304,40 @@ now** (todo 58).
       import/export and rate-limiting guides, the two RBAC guides and a note on PDF
       conversion. There is no Greek version of the checked guide. Delete, or read and
       correct (the owner's OK).
+
+64. **Found on 2026-11-19 while the installer's pages were corrected, and not changed.**
+    - *About forty texts of the wizard are English in the code,* so a Greek wizard shows
+      them in English: the titles of "Prerequisites Check", "QNAP Database Configuration
+      (Optional)" and "Completing Installation"; the labels of the two database pages (host,
+      port, database name, user name, password, SSL mode, "Yes, I want to use QNAP
+      PostgreSQL", "No, use local SQLite database", "Browse..."); the five lines the Docker
+      build page can show; the message boxes "Credentials loaded from file", "File not
+      found", "Installation completed but SMS_Manager.exe is missing" and its twin for SMS
+      Lite; and the uninstaller's question "Do you want to remove Docker images?". Each
+      would become a message in both languages, as `LiteFinishedText` and the three of PR
+      435 did. Needs no decision, but nobody can see the result here: a Greek text longer
+      than its English may not fit a label of a fixed width, and the wizard cannot be run
+      from a test. Best done when somebody can click through the Greek wizard once
+      afterwards.
+    - *`installer_complete_lite.rtf` and `installer_complete_lite_el.rtf` are shown by
+      nothing* (no line of the script names them), and their text is the stale one ("Log in
+      with default admin account (see documentation)"). Delete (a tracked file: the owner's
+      word).
+    - *The other notes in `infra/installer/windows`* (`INSTALLER_TESTING_GUIDE.md` of
+      v1.18.3, `INSTALLER_CRITICAL_FIX_400_ERROR.md`, `INSTALLER_PARAMETER_UPDATE_COMPLETE.md`,
+      `INSTALLER_UPGRADE_FIX_ANALYSIS.md`, `INSTALLER_v1.17.7_DEPLOYMENT_UPDATE.md`,
+      `INSTALLER_v1.18.3_DEPLOYMENT_UPDATE.md`, `PARAMETER_AUDIT_v1.18.3.md`,
+      `SMS_MANAGER_IMPLEMENTATION_SUMMARY.md`, `INSTALLER_CHANGELOG.md`,
+      `INSTALLER_MODIFICATION_GUIDE.md`, `INSTALLER_TROUBLESHOOTING.md`,
+      `MANUAL_CLEANUP_GUIDE.md`) were not read. The new README calls them records of their
+      own day. Read and correct, archive, or leave (the owner's word).
+    - *`.github/workflows/commit-ready-smoke.yml` has a step "Prepare installer Greek text
+      assets"* that looks for the generator at the repository's root, where it has not been
+      since the folders were flattened: it always skips. Harmless (the installer build runs
+      the generator itself); remove the step or point it at the script.
+    - *`DOCKER.ps1`'s cleanup options are Docker-wide* (the entry of 19 November above; the
+      guide says so now). Whether `-Prune` should keep to SMS's own containers and images is
+      a change of behaviour: the owner's call.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):

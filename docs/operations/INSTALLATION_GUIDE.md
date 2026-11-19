@@ -7,6 +7,12 @@ a new installation (section 2), and the uninstaller's second question says what 
 (section 7). Both changes were tried on the scripts' parts and on the installer's script as
 text; no installer was run for them either.
 
+**Changed on 19 November 2026, after v1.18.74 (in the release that follows it):** the
+wizard's two information pages have a part for each edition, in English and in Greek, and no
+longer tell somebody who installs SMS Lite that Docker is required; the last page of an SMS
+Lite installation is in Greek too (sections 1 and 2). The pages were checked as text against
+the scripts, and the installer's script was compiled; no wizard was run.
+
 This file was the installation guide of version 1.9.8 (December 2025). It described downloading
 the project and running `DOCKER.ps1` from the extracted folder, and it no longer matched how the
 application is installed. The earlier text is in the repository's history.
@@ -34,9 +40,11 @@ Windows without Docker. Supports local SQLite and optional QNAP PostgreSQL integ
 Perfect for individual PCs." and Docker as "Full-featured production deployment with Docker
 containers. Includes all features, automatic updates, and containerized environment. Requires
 Docker Desktop." The README recommends Lite "for individual teachers". A new install preselects
-Docker; an update preselects the installed edition. The information page "Welcome to SMS
-Installation" lists for Docker: Windows 10/11 (64-bit), Docker Desktop installed and running,
-4 GB RAM minimum (8 GB recommended), 2 GB free disk space.
+Docker; an update preselects the installed edition. The information page "Before the files
+are copied" lists for Docker: Windows 10 or 11 (64-bit), Docker Desktop installed and running,
+4 GB RAM minimum (8 GB recommended), 2 GB free disk space; and for Lite: Windows 10 or 11
+(64-bit), no Docker. (Up to v1.18.74 the page was called "Welcome to SMS Installation",
+listed the Docker requirements only, and was shown for both editions.)
 
 The installer is signed with the project's own certificate, so Windows may show "Windows
 protected your PC" or block `SMS_Lite.exe` (Smart App Control); see
@@ -50,7 +58,8 @@ normally `C:\Program Files\SMS` (`DisableDirPage=yes`; `UNINSTALL_SMS_MANUALLY.p
 `C:\Program Files\SMS`). The pages, in the order the script creates them:
 
 1. Language, welcome and licence pages, and **Installation Type**. The information page of
-   section 1 is shown too.
+   section 1 is shown too: by the order in which Inno Setup shows its pages, after the
+   database pages below and before the tasks.
 2. **Docker edition, "Prerequisites Check".** Says whether Docker Desktop is installed ("Docker
    Desktop is NOT installed") and running, with a **Refresh** button and "First run will build
    the container (takes 5-10 minutes)". You can continue without Docker.
@@ -65,12 +74,17 @@ normally `C:\Program Files\SMS` (`DisableDirPage=yes`; `UNINSTALL_SMS_MANUALLY.p
    0-9, symbol):" and "Confirm password:". An existing local database is kept.
 5. **Tasks:** "Keep user data (database, backups, settings)", a desktop shortcut, and, if Docker
    is missing, "Open Docker Desktop download page". The folders `data`, `logs`, `backups` are made.
-6. **Docker edition, "Completing Installation".** The wizard runs `run_docker_install.cmd` in a
+6. **"The files are installed"**, the second information page, for both editions: what the
+   next step is, how to start the application and with which account to sign in (section 3).
+   Then, **Docker edition, "Completing Installation".** The wizard runs `run_docker_install.cmd` in a
    console window: `DOCKER.ps1 -Install -Silent -NoShortcut`, with PowerShell 7 if found,
    otherwise Windows PowerShell. It makes `config\.env` and the volume `sms_data` and builds the
    image ("Building SMS Docker container. This may take several minutes on first install.").
    It does not start the application.
 7. **Finish:** "Launch SMS after installation" (checked), "View README documentation" (not).
+   For SMS Lite the page says how to start it and with which account to sign in. (Up to
+   v1.18.74 that text was English in a Greek wizard too, and named an administrator account
+   "see documentation" although the wizard had just asked for it.)
 
 The Docker edition also gets the scheduled task **SMS Update Watcher** (section 6). The Start
 Menu group has **Student Management System**, **SMS Documentation**, the uninstaller and, for

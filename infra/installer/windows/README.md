@@ -1,333 +1,150 @@
-# SMS Installer - v1.18.24
+# SMS Installer (Inno Setup)
 
-> **Note of 19 November 2026.** This file describes the installer of v1.18.11 and was not read
-> against the script since. Known to be out of date: there is no "Fresh Install" choice (an
-> existing installation is always updated in place), a new installation uses this PC's own
-> SQLite database unless the wizard is told otherwise, and the uninstaller does not delete the
-> database. The guide that was read against the script is
-> [docs/operations/INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
->
-> **This directory is live, not legacy.** Despite the `-old` suffix, this is
-> the only Inno Setup installer configuration in the repository and is
-> actively used by `infra/scripts/release/INSTALLER_BUILDER.ps1`. Do not
-> delete or archive it as dead code — doing so breaks the release build. If
-> you rename it, update every path reference in `INSTALLER_BUILDER.ps1` in
-> the same change and verify a build still succeeds.
+**Read against the scripts:** 19 November 2026, `main` after v1.18.74. No installer was built
+or run for this reading; the last section says what that leaves open.
 
-This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
+This file described the installer of v1.18.11 until November 2026: a "Fresh Install" choice
+that does not exist, an upgrade that restores the `.env` files (it does not), an uninstaller
+file named `Uninstall_SMS_1.18.11.exe`, a 25-30 MB installer. The earlier text is in the
+repository's history.
 
-## Installation Types
+This folder holds the only Inno Setup configuration of the repository. It is live:
+`infra/scripts/release/INSTALLER_BUILDER.ps1` and the release workflow build from it, and a
+change of its path has to be made in that script in the same change.
 
-The installer supports **two editions**:
+**For the person who installs SMS**, what the wizard asks and does, where the data is, how to
+update and uninstall: [docs/operations/INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+The rest of this file is for whoever changes or builds the installer.
 
-### 1. **Lite Edition** (Recommended for individual teachers)
-- **Application:** SMS_Lite.exe (standalone, no Docker required)
-- **Database:** Local SQLite (default) or optional QNAP PostgreSQL
-- **File Size:** ~70 MB executable
-- **Setup Time:** ~2 minutes
-- **📖 Full Guide:** [LITE_EDITION_GUIDE.md](../../../docs/deployment/LITE_EDITION_GUIDE.md)
+## The two editions
 
-### 2. **Docker Edition** (Recommended for institutions)
-- **Application:** Docker container with SMS_Manager.exe control panel
-- **Database:** QNAP PostgreSQL (required)
-- **File Size:** ~25-30 MB installer
-- **Setup Time:** ~10-15 minutes (includes Docker build)
-- **📖 Deployment Guide:** [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md)
+One installer, `SMS_Installer_<version>.exe`, installs one of two editions, chosen on the
+wizard's page "Installation Type":
 
-## Recent Changes (v1.18.11)
+| | Native Lite Edition | Docker Production Edition |
+|---|---|---|
+| What is installed | `SMS_Lite.exe` with its `_internal` folder (built with PyInstaller) | The source of the application, `DOCKER.ps1` and `SMS_Manager.exe`; the Docker image is built on the PC |
+| Needs | Windows 10 or 11 | Windows 10 or 11, Docker Desktop |
+| Guide | [LITE_EDITION_GUIDE.md](../../../docs/deployment/LITE_EDITION_GUIDE.md) | [DOCKER_OPERATIONS.md](../../../docs/deployment/DOCKER_OPERATIONS.md) |
 
-**Major Updates:**
+An installation that is already there is updated in place and keeps its edition; there is no
+"fresh install" choice. Which database each edition uses, and what the uninstaller deletes
+and does not delete, are in the installation guide (sections 2, 5 and 7).
 
-- ✅ **Upgrade Profile-Drift Prevention**: Installer now preserves existing PostgreSQL configuration during upgrades (prevents silent switch to local SQLite)
-- ✅ **Release Build Alignment**: Greek installer info pages are regenerated as `.rtf` assets during installer builds for reliable CI compilation and correct CP1253 rendering
-- ✅ **Secure Profile Defaults**: Fresh installs default to QNAP PostgreSQL (remote-first) while local SQLite remains as fallback when remote is unreachable
-- ✅ **Control Panel Auto-Updater**: Threaded download with SHA256 verification and installer launch
-- ✅ **Database Management Panel**: Backup, diagnostics, and user admin consolidated in Control Panel
-- ✅ **Offline Support**: Centralized network status hook, offline banner, and reconnect sync queues
-- ✅ **Remote Database Credential Upload**: Validate & Connect / Test Only UI for remote PostgreSQL
-- ✅ **SQL Backup Support**: Encrypted and unencrypted backup modes
-- ✅ **Analytics Dashboard**: Comprehensive multi-chart visualization, predictive analytics, custom report builder
+## Which installer is the real one
 
-**Recent Features (v1.18.4-1.18.11):**
+The installer on a release is the one the tag's workflow builds from a clean checkout, signs
+and uploads (`.github/workflows/release-installer-with-sha.yml`). A build made on a
+developer's PC lands in `infra\installer\dist` and is for testing only: **never upload it or
+hand it out.** Until November 2026 such a build packed that PC's own settings and data.
 
-- Control Panel with auto-updater, database management, and release channel support
-- Offline queues for attendance, grades, and student updates on reconnect
-- Analytics revival (dashboard, predictive analytics, custom report builder, export)
-- Windows subprocess crash fix (`docker.exe 0xc0000142`)
-- Notification integration for update-available events
-- Environment repair helper for profile-drift incidents
-
-**Technical Improvements:**
-
-- All backend and frontend tests passing
-- PostgreSQL-only wiring enforced for data persistence
-- Docker volume persistence hardening with auto-migration
-- SMS_Manager.exe bundled native runtime for shortcuts
-- Release asset sanitization (installer-only artifacts)
-- ESLint warnings reduced, analytics types fully typed
-
-**What's Excluded from Installer:**
-
-- `frontend/node_modules/` - Built during Docker image creation
-- `frontend/dist/` - Built during Docker image creation
-- `backend/__pycache__/` - Python bytecode (regenerated)
-- `.env` files - Created/preserved per installation
-
-## Application Purpose
-
-This installer is for a **Student Management System** built for teachers at:
-
-**ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης**
-
-- Official Website: <https://www.mieek.ac.cy/index.php/el/>
-- Location: Limassol, Cyprus
-
-**Developer:** Independent teacher at ΜΙΕΕΚ
-
-- GitHub Repository: <https://github.com/bs1gr/AUT_MIEEK_SMS>
-
-## Database Configuration
-
-**One Database Rule:** All installations connect to a single shared QNAP PostgreSQL database for centralized data management.
-
-- **Default:** QNAP PostgreSQL (recommended for data sharing across multiple PCs)
-- **Fallback:** Local SQLite (when QNAP is unreachable)
-- **Migration:** Manual tools available for proactive data sync when needed
-
-**Fresh Installs:** Default to QNAP PostgreSQL with SQLite as fallback option.
-
-**Upgrades:** Preserve existing database configuration (no silent switches).
-
-### Central QNAP PostgreSQL (single-source policy)
-
-This project enforces a central QNAP PostgreSQL instance as the canonical production database. See the full policy and operational guidance:
-
-- `docs/deployment/QNAP_POSTGRES_SINGLE_SOURCE.md`
-
-Key behaviors:
-
-- If the operator selects the QNAP option, the installer loads a selected `.json`, `.env`, or `.txt` credential file and will NOT create new PostgreSQL databases on the QNAP host.
-- If QNAP connectivity cannot be verified, the installer warns the operator before continuing; switching to local SQLite remains an explicit manual choice on the profile page.
-
-See also the reconciliation runbook for approved manual sync and migration procedures:
-
-- `docs/deployment/QNAP_RECONCILE_RUNBOOK.md`
-
-Localization note
------------------
-Greek translations have been updated to recommend the QNAP remote-first option and explain the SQLite fallback; see `installer/Greek.isl` for details.
+Since then `SMS_Installer.iss` leaves out what a working copy holds besides the tracked
+files, and `scripts\validate_installer_release_inputs.ps1` (the commit gate's "Installer
+Input Guard", also run by the builder and by the workflow) fails when a wildcard line of
+`[Files]` would take a file that git does not track.
 
 ## Files
 
-| File | Description |
-|------|-------------|
-| `SMS_Installer.iss` | Inno Setup installer script |
-| `Greek.isl` | Greek language translations |
-| `AUT_MIEEK_CodeSign.cer` | Public certificate (distribute to users) |
-| `AUT_MIEEK_CodeSign.pfx` | Private key (⚠️ KEEP SECURE - not in git) |
-| `SIGN_INSTALLER.ps1` | Script to sign installer executables |
-| `INSTALL_CERTIFICATE.ps1` | Script to trust the certificate (run as Admin) |
-| `CREATE_CERTIFICATE.ps1` | Generate new code signing certificate |
-| `run_docker_install.cmd` | Helper for Docker installation |
-| `placeholder.txt` | Placeholder for data directory |
+| File | What it is |
+|---|---|
+| `SMS_Installer.iss` | The installer script. The version comes from the `VERSION` file. |
+| `Greek.isl` | The Greek messages: Inno Setup's own, and under `[CustomMessages]` the Greek of every `english.…` message in the script. UTF-8 with a byte order mark. |
+| `installer_welcome.rtf`, `installer_welcome_el.rtf` | The page shown before the files are copied. **Generated**, see below. |
+| `installer_complete.rtf`, `installer_complete_el.rtf` | The page shown after the files are copied. **Generated.** |
+| `installer_complete_lite.rtf`, `installer_complete_lite_el.rtf` | Named by nothing in the script; no page shows them. |
+| `LICENSE_EL.txt` | The licence page of the Greek wizard. |
+| `wizard_image.bmp`, `wizard_small.bmp` | The wizard's pictures, made by `create_wizard_images.ps1` at every build. |
+| `run_docker_install.cmd` | What the page "Completing Installation" runs for the Docker edition: `DOCKER.ps1 -Install -Silent -NoShortcut`. |
+| `SaveLiteEditionQnapCredentials.ps1` | Stores the QNAP settings typed into the wizard for SMS Lite. |
+| `SMS_Manager\`, `BUILD_SMS_MANAGER.cmd` | The source of `SMS_Manager.exe`, the console menu of the Docker edition (.NET, one self-contained file). |
+| `AUT_MIEEK_CodeSign.cer` | The public certificate the installer is signed with. |
+| `SIGN_INSTALLER.ps1`, `INSTALL_CERTIFICATE.ps1`, `CREATE_CERTIFICATE.ps1` | Signing, trusting the certificate on a PC, making a new certificate. |
+| `GREEK_ENCODING_AUDIT.ps1` | Checks the encoding of the Greek files; the builder runs it. |
+| `placeholder.txt` | Keeps the `data` folder of an installation from being empty. |
 
-## Building the Installer
+The other `.md` files of this folder (`INSTALLER_CHANGELOG.md`, `INSTALLER_TESTING_GUIDE.md`
+and the notes named after a version or a fix) are records of their own day. They were not
+read against the script for this file.
 
-1. **Build the installer:**
+## The wizard's texts
 
-   ```powershell
-   & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\SMS_Installer.iss"
-   ```
+- **Messages** (page titles, questions, labels): English as `english.Name=…` under
+  `[CustomMessages]` in `SMS_Installer.iss`, Greek as `Name=…` in `Greek.isl`. The code asks
+  for them with `CustomMessage('Name')`. A name that is missing in a language is not found
+  when the script is compiled, only when the wizard reaches that line; the test
+  `test_every_text_the_code_asks_for_is_there_in_both_languages` finds it. The `.iss` has no
+  byte order mark: keep its English texts to ASCII.
+- **The two information pages** are written at every build by
+  `infra\scripts\diagnostics\fix_greek_encoding_permanent.py`, in both languages, from the
+  lines in that script and with the version of the `VERSION` file. Change the lines there and
+  run it; a page edited by hand is overwritten by the next build, and
+  `src/backend/tests/test_installer_info_pages.py` fails until the pages and the script agree.
+  The wizard shows the same two pages for both editions, so each has a part for each.
+- **Still English only** in a Greek wizard, because the text is in the code: the titles of
+  the pages "Prerequisites Check", "QNAP Database Configuration (Optional)" and "Completing
+  Installation", the labels of the two database pages, the lines of the Docker build page,
+  several message boxes and the uninstaller's question about the Docker images (about forty
+  texts; see the work plan).
 
-2. **Sign the installer:**
-
-   ```powershell
-   .\installer\SIGN_INSTALLER.ps1
-   ```
-
-   Or manually (the password lives in the gitignored `AUT_MIEEK_CodeSign.pfx.password.txt`
-   generated by `CREATE_CERTIFICATE.ps1`, or `$env:SMS_CODESIGN_PFX_PASSWORD` in CI):
-
-   ```powershell
-   signtool sign /f "installer\AUT_MIEEK_CodeSign.pfx" /p (Get-Content "installer\AUT_MIEEK_CodeSign.pfx.password.txt" -Raw) /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "Student Management System" "dist\SMS_Installer_X.X.X.exe"
-   ```
-
-## Code Signing Certificate
-
-The installer is signed with a self-signed certificate for "AUT MIEEK".
-
-### For End Users
-
-To trust the installer and avoid "Unknown publisher" warnings, run as Administrator:
-
-```powershell
-.\installer\INSTALL_CERTIFICATE.ps1
-```
-
-Or manually:
+## Building
 
 ```powershell
-certutil -addstore Root "installer\AUT_MIEEK_CodeSign.cer"
-certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
+.\infra\scripts\release\INSTALLER_BUILDER.ps1 -Action build -Version "X.X.X"
 ```
 
-### Certificate Details
+In this order it: builds SMS Lite with PyInstaller (unless `-ReuseLiteBuild`), checks the
+installer's inputs, writes the information pages, checks the Greek encodings, builds
+`SMS_Manager.exe`, signs `SMS_Lite` and `SMS_Manager.exe`, makes the wizard's pictures, checks
+the inputs again, compiles `SMS_Installer.iss` with Inno Setup 6, signs the installer and runs
+its smoke test. The result is `infra\installer\dist\SMS_Installer_<version>.exe`.
+
+`-Action validate` checks without building, `-Action test` runs the smoke test on a built
+installer, `-SkipCodeSign` leaves the signing out. A release goes through
+`RELEASE_READY.ps1`, which calls this script; see the release workflow in `CLAUDE.md`.
+
+**A compile check without an installer** (after a change of the script or of a message):
+
+```powershell
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /O- /Q infra\installer\windows\SMS_Installer.iss
+```
+
+It needs a file `dist\SMS_Manager.exe` beside the script (any file will do for the check),
+and with `/DSMS_LITE_AVAILABLE` also a folder `dist\SMS_Lite`. It finds a mistake in the
+script's code; it does not find a message name that does not exist (above).
+
+## Signing
+
+The installer, its uninstaller, `SMS_Lite.exe` and `SMS_Manager.exe` are signed with the
+project's own certificate. There is no bought certificate, by the owner's decision.
 
 - **Subject:** CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY
-- **Valid Until:** November 2028
-- **Thumbprint:** (Updated after regeneration)
+- **Valid until:** 27 November 2028
+- **Thumbprint:** `2693C1B15C8A8E5E45614308489DC6F4268B075D`
 
-### Security Notes
+`AUT_MIEEK_CodeSign.cer` is the public part and is tracked. The private key
+(`AUT_MIEEK_CodeSign.pfx`) and its password file (`AUT_MIEEK_CodeSign.pfx.password.txt`) are
+ignored by git and must never be committed; CI has them as secrets.
 
-- ⚠️ The `.pfx` file contains the private key and should NEVER be committed to git
-- ⚠️ The password is generated fresh by `CREATE_CERTIFICATE.ps1` and saved only to the
-  gitignored `AUT_MIEEK_CodeSign.pfx.password.txt` — it is never hardcoded in a tracked file
-- The `.cer` file is the public certificate and is safe to distribute
+Because the certificate is the project's own, Windows shows "Unknown publisher" or "Windows
+protected your PC" on a PC that does not trust it, and Smart App Control may block
+`SMS_Lite.exe`. `INSTALL_CERTIFICATE.ps1`, run as administrator, puts the certificate into the
+PC's trusted root and trusted publisher stores. What to tell a user is in the Lite guide,
+"Problem: Windows blocks the installer or SMS_Lite.exe".
 
-## Installer Features
+## The uninstaller
 
-**Core Features:**
+Inno Setup names it `unins000.exe`; after the installation the script renames it to
+`unins<version>.exe` (for example `uninsv1.18.74.exe`) and points the entry under **Settings** >
+**Apps** at it. The two questions it asks, and what stays on the PC afterwards, are in the
+installation guide, section 7.
 
-- ✅ Bilingual: English and Greek (ISO-compliant translations)
-- ✅ Detects existing installations and offers upgrade vs fresh install
-- ✅ Creates desktop shortcut: Student Management System
-- ✅ Automatic Docker container build on first run
-- ✅ Preserves user data during upgrades/uninstall (optional)
+## What was not tried
 
-**Upgrade Intelligence:**
-
-- Detects previous version and offers:
-  - **Update/Overwrite:** Keep data, install over existing
-  - **Fresh Install:** Remove previous installation completely
-  - **Cancel:** Abort installation
-- Automatic backup before upgrade to `backups/pre_upgrade_{version}/`
-- Stops Docker containers gracefully before file updates
-- Restores `.env` files from backup after upgrade
-
-**Data Preservation:**
-
-- Database (`data/` folder)
-- Backups (`backups/` folder)
-- Logs (`logs/` folder)
-- Configuration files (`.env` files)
-- User can choose to keep or delete on uninstall
-
-**Dependency Handling:**
-
-- Frontend dependencies: Installed during Docker build (`npm ci`)
-- Backend dependencies: Installed during Docker build (`pip install`)
-- No `node_modules` or `__pycache__` in installer package
-- Clean separation: installer only contains source code
-
-## Output
-
-The built installer will be placed in:
-
-```
-dist\SMS_Installer_1.18.11.exe
-```
-
-**Installer Size**: ~25-30 MB (compressed)
-- Includes SMS_Manager.exe (28.51 MB self-contained .NET 5.0 runtime)
-- Full backend and frontend source code
-- Docker configuration files
-- Code signing certificate
-
-## Important Notes for v1.18.11
-
-### Database Profile Behavior
-
-Current installer builds default fresh installs to **QNAP PostgreSQL** (remote-first) while preserving the existing database profile during upgrades.
-
-**Upgrade Profile-Drift Prevention:**
-- Installer now detects existing PostgreSQL configuration in `.env` and preserves it
-- Prevents silent switch to local SQLite during unattended upgrades
-- Recovery helper available: `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1`
-
-**Database Configuration:**
-- `SMS_DATABASE_PROFILE=local` uses SQLite when the operator explicitly selects the local fallback profile
-- `SMS_DATABASE_PROFILE=remote` uses PostgreSQL with explicit `POSTGRES_*` credentials and is the default fresh-install selection
-- Existing remote and local installs are preserved and auto-inferred during upgrades
-
-### Uninstaller Behavior
-
-The uninstaller is renamed to include version: `Uninstall_SMS_1.18.11.exe`
-
-**During Uninstall:**
-
-1. Stops Docker container (`docker stop sms-app`)
-2. Removes container (`docker rm sms-app`)
-3. Asks user: "Delete all user data?"
-   - **YES:** Removes `data/`, `backups/`, `logs/`, `.env` files
-   - **NO:** Keeps data for future reinstallation
-4. Cleans up application files
-5. Removes empty directories
-
-**Preserved on "NO":**
-
-- Database: PostgreSQL data in Docker volume `sms_postgres_data`
-- Backups: `{app}\backups\*.sql` (or `.db.backup` for legacy SQLite)
-- Logs: `{app}\logs\*.log`
-- Config: `{app}\backend\.env`, `{app}\frontend\.env`
-
-### Upgrade Path Testing
-
-When upgrading from previous versions:
-
-1. Installer detects existing installation
-2. Shows version comparison dialog
-3. If "Update" chosen:
-   - Backs up data to `backups/pre_upgrade_1.18.9/`
-   - Backs up data to `backups/pre_upgrade_1.18.11/`
-   - Stops Docker container
-   - Updates files in place
-   - Migrates SQLite to PostgreSQL if needed
-   - Restores `.env` configuration
-4. First launch rebuilds Docker image with latest code
-
-### Testing Checklist
-
-- [ ] Fresh install on clean system
-- [ ] Upgrade from v1.18.8 with data preservation
-- [ ] Upgrade from v1.18.x with PostgreSQL data preserved
-- [ ] Uninstall with data preservation
-- [ ] Course auto-activation scheduler verification (daily 3:00 AM UTC)
-
-### Validation Checklist (Windows 10 & 11)
-
-Use this checklist when validating the installer on clean environments:
-
-1) **Fresh Install** (Win10 + Win11)
-   - Run installer as Admin
-   - Verify certificate prompt shows "AUT MIEEK"
-   - Confirm app installs to default path and launches
-
-2) **Shortcuts**
-   - Desktop shortcut created and launches app
-   - Start Menu entry present and launches app
-
-3) **Upgrade Scenario**
-   - Install v1.18.8 (or v1.18.x baseline)
-   - Run new v1.18.11 installer and choose **Update/Overwrite**
-   - Verify data preserved (`data/`, `backups/`, `logs/`, `.env`)
-   - Verify SQLite→PostgreSQL migration if upgrading from v1.17.x
-   - App launches successfully after upgrade
-
-4) **Uninstall**
-   - Run uninstaller
-   - Choose **Keep data** → confirm files remain
-   - Choose **Delete data** → confirm app dir + data removed
-
-5) **Post-Checks**
-   - Health check passes after install (`http://localhost:8000/health/live`)
-   - Docker container starts/stops cleanly (if using Docker mode)
-   - No leftover services/processes after uninstall
-
-6) **Document Results**
-   - Record OS version (Win10/Win11 build)
-   - Note any warnings/prompts
-   - Attach installer logs (if any) and screenshots of dialogs
-- [ ] Uninstall with complete removal
-- [ ] Docker container builds successfully (no symlink loops)
-- [ ] Desktop shortcut launches correctly
-- [ ] Bilingual UI (EN/EL) works correctly
+- No installer was built, installed or uninstalled for this reading, and no page of the wizard
+  was seen. After the change of 19 November 2026 (the information pages, the last page of an
+  SMS Lite installation) the script was compiled with and without SMS Lite; the pages
+  themselves were checked as text against the scripts they describe.
+- `INSTALL_CERTIFICATE.ps1`, `CREATE_CERTIFICATE.ps1` and the smoke test of the builder were
+  not run.
+- Whether a long Greek text fits its place on a wizard page cannot be seen without running the
+  wizard.
