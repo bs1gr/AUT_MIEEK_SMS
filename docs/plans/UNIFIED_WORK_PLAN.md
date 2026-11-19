@@ -383,9 +383,11 @@ the VM and the QNAP.
 ### On `main` since v1.18.74 (unreleased)
 
 **2026-11-19: the installer's information pages are right for both editions and in both
-languages, and the Docker guide and the installer's README are written anew** (PR 437; the
-owner's "continue" after the report on v1.18.74, which named this as what it would take up:
-the stale texts that PRs 431 and 435 had listed and left).
+languages, and the Docker guide and the installer's README are written anew** (PR 437,
+merged as `1edcb8283`; on the PR's commit CI's backend job passed 1,938 tests with 55
+skipped, the frontend job 2,135 and E2E 77, each at its first try, and the gate job passed on
+Ubuntu and Windows. The owner's "continue" after the report on v1.18.74, which named this as
+what it would take up: the stale texts that PRs 431 and 435 had listed and left).
 
 - **What was wrong, read from the scripts.** The wizard shows one page before the files are
   copied and one after, the same two whichever edition was chosen on "Installation Type".
