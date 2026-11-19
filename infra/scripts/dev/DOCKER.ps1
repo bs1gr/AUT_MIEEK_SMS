@@ -2725,6 +2725,10 @@ function Invoke-DockerCleanup {
                 return 0
             }
 
+            # SMS was running before the cleanup: it is brought back afterwards (see the end).
+            $smsBefore = Get-ContainerStatus
+            $script:SmsWasRunningBeforeCleanup = [bool]($smsBefore -and $smsBefore.IsRunning)
+
             Write-Info "Stopping all SMS containers..."
             docker stop $CONTAINER_NAME 2>$null | Out-Null
             docker rm $CONTAINER_NAME 2>$null | Out-Null
@@ -2759,6 +2763,21 @@ function Invoke-DockerCleanup {
             }
 
             Write-Success "Docker cleanup completed"
+        }
+
+        # The way back. These cleanups are Docker's own and reach every project on this PC; the
+        # SMS data in the volumes is kept. -Start builds the image again if it was removed and
+        # recreates the container; -Update first makes a backup and rebuilds from the files
+        # that are installed (the latest installed version).
+        Write-Host ""
+        Write-Info "Your data is kept (volume '$VOLUME_NAME'). To bring SMS back:"
+        Write-Host "  .\DOCKER.ps1 -Start     # recreate the container (builds the image if it was removed)" -ForegroundColor White
+        Write-Host "  .\DOCKER.ps1 -Update    # backup, rebuild from the installed version, start" -ForegroundColor White
+
+        if ($Deep -and $script:SmsWasRunningBeforeCleanup) {
+            Write-Host ""
+            Write-Info "SMS was running before the cleanup: rebuilding and starting it again..."
+            return Start-Application
         }
 
         return 0

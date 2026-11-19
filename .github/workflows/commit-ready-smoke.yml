@@ -168,14 +168,19 @@ jobs:
           npx vitest run --reporter=junit --outputFile.junit=vitest-results.xml
           Pop-Location
 
-      - name: Prepare installer Greek text assets
+      # The installer's information pages (English and Greek) are written by this script at
+      # every installer build. It looked for the script at the repository's root, where it has
+      # not been since the folders were flattened, and always skipped. Now it runs, and the
+      # step fails when the tracked pages are not what the script writes for this version.
+      - name: Check the installer's information pages
         shell: pwsh
         run: |
-          Write-Host "Ensuring installer Greek text assets are regenerated"
-          if (Test-Path "fix_greek_encoding_permanent.py") {
-            python "fix_greek_encoding_permanent.py"
-          } else {
-            Write-Host "Skipping fix_greek_encoding_permanent.py (file not found)"
+          python infra/scripts/diagnostics/fix_greek_encoding_permanent.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- infra/installer/windows/*.rtf
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::The installer's .rtf pages are out of date: run python infra/scripts/diagnostics/fix_greek_encoding_permanent.py and commit them."
+            exit 1
           }
 
       - name: Run COMMIT_READY quick smoke

@@ -124,8 +124,19 @@ runs other containers they remove those containers' leftovers too.
 | `-PruneAll` | the same, and unused networks |
 | `-DeepClean` | asks "Continue? (yes/no)"; then stops and removes `sms-app`, and removes all build cache, every stopped container, every unused image and unused networks |
 
-None of them removes a volume: the database in `sms_data` stays. After `-DeepClean` the
-next `-Start` builds the image from nothing.
+None of them removes a volume: the database in `sms_data` stays.
+
+**Bringing SMS back.** Every cleanup ends by printing the two commands for it:
+
+- `.\DOCKER.ps1 -Start` recreates the container and builds the image again if the cleanup
+  removed it (5-10 minutes);
+- `.\DOCKER.ps1 -Update` makes a backup, rebuilds the image from the version that is
+  installed, and starts it. After a new installer has been run, this is the update to that
+  version.
+
+`-DeepClean` stops SMS to clean up. **If SMS was running before, it is rebuilt and started
+again at the end** (since 19 November 2026; before, it stayed down and nothing said so).
+`-Prune` and `-PruneAll` do not touch a running SMS container.
 
 To remove the application's data as well, see section 7 of the
 [installation guide](../operations/INSTALLATION_GUIDE.md): the uninstaller does not remove
@@ -194,8 +205,10 @@ is the update above, and only by leaving a request that the host's own task read
   the test's own commands and not by this script.
 - The PostgreSQL container of this PC (`sms-postgres`), the `split` layout and the monitoring
   stack were not started.
-- `-Prune`, `-PruneAll` and `-DeepClean` were not run; what they remove is read from the Docker
-  commands in the script.
+- `-Prune`, `-PruneAll` and `-DeepClean` were not run against Docker; what they remove is read
+  from the Docker commands in the script. The cleanup function itself was run with Docker
+  replaced by stubs (`test_docker_cleanup_brings_sms_back.py`): the commands it gives, the
+  message about bringing SMS back, and the start after `-DeepClean`.
 - `-Backup` with a stopped container.
 
 More: [INSTALLATION_GUIDE.md](../operations/INSTALLATION_GUIDE.md),

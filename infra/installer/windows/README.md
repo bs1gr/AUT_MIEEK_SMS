@@ -51,7 +51,6 @@ Input Guard", also run by the builder and by the workflow) fails when a wildcard
 | `Greek.isl` | The Greek messages: Inno Setup's own, and under `[CustomMessages]` the Greek of every `english.…` message in the script. UTF-8 with a byte order mark. |
 | `installer_welcome.rtf`, `installer_welcome_el.rtf` | The page shown before the files are copied. **Generated**, see below. |
 | `installer_complete.rtf`, `installer_complete_el.rtf` | The page shown after the files are copied. **Generated.** |
-| `installer_complete_lite.rtf`, `installer_complete_lite_el.rtf` | Named by nothing in the script; no page shows them. |
 | `LICENSE_EL.txt` | The licence page of the Greek wizard. |
 | `wizard_image.bmp`, `wizard_small.bmp` | The wizard's pictures, made by `create_wizard_images.ps1` at every build. |
 | `run_docker_install.cmd` | What the page "Completing Installation" runs for the Docker edition: `DOCKER.ps1 -Install -Silent -NoShortcut`. |
@@ -62,9 +61,10 @@ Input Guard", also run by the builder and by the workflow) fails when a wildcard
 | `GREEK_ENCODING_AUDIT.ps1` | Checks the encoding of the Greek files; the builder runs it. |
 | `placeholder.txt` | Keeps the `data` folder of an installation from being empty. |
 
-The other `.md` files of this folder (`INSTALLER_CHANGELOG.md`, `INSTALLER_TESTING_GUIDE.md`
-and the notes named after a version or a fix) are records of their own day. They were not
-read against the script for this file.
+`INSTALLER_TROUBLESHOOTING.md` is a live guide, written anew on 19 November 2026. The other
+`.md` files of this folder (`INSTALLER_CHANGELOG.md`, `INSTALLER_TESTING_GUIDE.md`,
+`MANUAL_CLEANUP_GUIDE.md` and the notes named after a version or a fix) are records of their
+own day; each says so at its head and names what is different today.
 
 ## The wizard's texts
 
@@ -80,11 +80,11 @@ read against the script for this file.
   run it; a page edited by hand is overwritten by the next build, and
   `src/backend/tests/test_installer_info_pages.py` fails until the pages and the script agree.
   The wizard shows the same two pages for both editions, so each has a part for each.
-- **Still English only** in a Greek wizard, because the text is in the code: the titles of
-  the pages "Prerequisites Check", "QNAP Database Configuration (Optional)" and "Completing
-  Installation", the labels of the two database pages, the lines of the Docker build page,
-  several message boxes and the uninstaller's question about the Docker images (about forty
-  texts; see the work plan).
+- **No text the wizard or the uninstaller shows is written in the code** since 19 November
+  2026: page titles, labels, the lines of the Docker build page and the message boxes are all
+  messages (they were English text in the code, so a Greek wizard showed them in English).
+  `test_no_page_label_or_message_of_the_wizard_is_english_only` keeps it so; a message's
+  `%1` places must be the same in both languages.
 
 ## Building
 
@@ -141,9 +141,11 @@ installation guide, section 7.
 ## What was not tried
 
 - No installer was built, installed or uninstalled for this reading, and no page of the wizard
-  was seen. After the change of 19 November 2026 (the information pages, the last page of an
-  SMS Lite installation) the script was compiled with and without SMS Lite; the pages
-  themselves were checked as text against the scripts they describe.
+  was seen. After the changes of 19 November 2026 (the information pages, the last page of an
+  SMS Lite installation, the thirty-six texts moved out of the code) the script was compiled
+  with and without SMS Lite; the pages and messages were checked as text. **Whether every
+  Greek text fits its place on a page is not known**: Greek is often longer than the English,
+  and several labels have a fixed width. One click through the Greek wizard would show it.
 - `INSTALL_CERTIFICATE.ps1`, `CREATE_CERTIFICATE.ps1` and the smoke test of the builder were
   not run.
 - Whether a long Greek text fits its place on a wizard page cannot be seen without running the

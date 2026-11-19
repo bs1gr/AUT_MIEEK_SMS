@@ -1,5 +1,14 @@
 # CRITICAL FIX: Installer 400 Bad Request Error Resolution
 
+> **Note of 19 November 2026.** This is the record of a fix of 3 February 2026 (v1.17.7), kept
+> as history. Today's installer differs from it at least in this: there is no "Fresh Install"
+> choice (an installation that is there is updated in place); an update does not restore the
+> `.env` files; the uninstaller is `unins<version>.exe`; a new Docker installation runs on the
+> database chosen in the wizard (from v1.18.74); the wizard's pages and messages are in English
+> and Greek. The installer of today, its files and its build: [README.md](README.md).
+> Installing, updating and uninstalling:
+> [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+
 **Date**: February 3, 2026
 **Version**: v1.17.7
 **Status**: ✅ FIXED (commit e196120cc)

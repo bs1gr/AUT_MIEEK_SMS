@@ -1,5 +1,16 @@
 # SMS_Manager.exe Implementation Summary
 
+> **Note of 19 November 2026.** This is the record of the first build of `SMS_Manager.exe` (14
+> February 2026), kept as history. Today it is built from `SMS_Manager\` by
+> `INSTALLER_BUILDER.ps1` (.NET 10, one self-contained file); its menu is described in
+> [DOCKER_OPERATIONS.md](../../../docs/deployment/DOCKER_OPERATIONS.md). Today's installer
+> differs from it at least in this: there is no "Fresh Install" choice (an installation that is
+> there is updated in place); an update does not restore the `.env` files; the uninstaller is
+> `unins<version>.exe`; a new Docker installation runs on the database chosen in the wizard
+> (from v1.18.74); the wizard's pages and messages are in English and Greek. The installer of
+> today, its files and its build: [README.md](README.md). Installing, updating and
+> uninstalling: [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+
 **Date**: February 14, 2026
 **Status**: ✅ PHASE 1 COMPLETE - Executable Built & Ready for Integration
 **Version**: 1.0.0
