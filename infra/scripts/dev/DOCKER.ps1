@@ -1989,6 +1989,105 @@ function New-SecureRandomString {
     -join ($bytes | ForEach-Object { $Charset[$_ % $Charset.Length] })
 }
 
+function Sync-InstallerDatabaseChoice {
+    <#
+    .SYNOPSIS
+        Carries the database choice of the installer's wizard into config\.env.
+
+    .DESCRIPTION
+        The wizard writes its choice (this PC's own database, or a PostgreSQL server) to
+        "<installation folder>\.env" (SMS_Installer.iss, WritePostgresEnv). This script works
+        with "<installation folder>\config\.env" and never read the other file, so until
+        v1.18.73 a new installation ran on its own SQLite database whatever the wizard was told.
+
+        - A new installation (config\.env was made in this run): the wizard's choice is written
+          into config\.env. Outcome "applied".
+        - An installation that already has a config\.env keeps the database it runs on: its
+          records are there, and a switch would look as if they were gone. When the wizard's
+          file names another database, nothing is changed and the outcome is "differs", for
+          the caller to say so.
+        - The same database in both, no file of the wizard, or one without an engine it
+          knows: "same" or "none".
+
+        Takes the two paths and changes nothing else, so that it can be tried on a folder of
+        two files (src/backend/tests/test_installer_database_choice.py).
+    #>
+    param(
+        [Parameter(Mandatory)][string]$InstallerEnvPath,
+        [Parameter(Mandatory)][string]$ConfigEnvPath,
+        [switch]$FreshInstallation
+    )
+
+    $keys = @(
+        'SMS_DATABASE_PROFILE', 'DATABASE_ENGINE', 'DATABASE_URL',
+        'POSTGRES_HOST', 'POSTGRES_PORT', 'POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_SSLMODE'
+    )
+    $result = [pscustomobject]@{ Outcome = 'none'; Chosen = ''; Running = '' }
+    if (-not (Test-Path -LiteralPath $InstallerEnvPath) -or -not (Test-Path -LiteralPath $ConfigEnvPath)) {
+        return $result
+    }
+
+    $readChoice = {
+        param([string]$Path)
+        $found = [ordered]@{}
+        foreach ($line in @(Get-Content -LiteralPath $Path)) {
+            if ($line -match '^\s*([A-Z_]+)\s*=\s*(.*?)\s*$' -and $keys -contains $Matches[1]) {
+                $found[$Matches[1]] = $Matches[2]
+            }
+        }
+        return $found
+    }
+    $chosen = & $readChoice $InstallerEnvPath
+    $running = & $readChoice $ConfigEnvPath
+
+    $engine = "$($chosen['DATABASE_ENGINE'])".Trim().ToLower()
+    if ($engine -notin @('sqlite', 'postgresql')) {
+        return $result
+    }
+    $describe = {
+        param($settings)
+        $name = "$($settings['DATABASE_ENGINE'])".Trim().ToLower()
+        if ($name -eq 'postgresql') { return "PostgreSQL at $($settings['POSTGRES_HOST']):$($settings['POSTGRES_PORT'])/$($settings['POSTGRES_DB'])" }
+        if ($name -eq 'sqlite') { return 'this installation''s own SQLite database' }
+        return 'no database setting'
+    }
+    $result.Chosen = & $describe $chosen
+    $result.Running = & $describe $running
+
+    # The same choice: the same engine and, for PostgreSQL, the same server, database and user.
+    # The password is not compared: one that was changed in config\.env since is the newer.
+    $compared = if ($engine -eq 'postgresql') {
+        @('DATABASE_ENGINE', 'POSTGRES_HOST', 'POSTGRES_PORT', 'POSTGRES_DB', 'POSTGRES_USER')
+    } else {
+        @('DATABASE_ENGINE')
+    }
+    $same = $true
+    foreach ($key in $compared) {
+        if ("$($chosen[$key])".Trim().ToLower() -ne "$($running[$key])".Trim().ToLower()) { $same = $false }
+    }
+    if ($same) {
+        $result.Outcome = 'same'
+        return $result
+    }
+    if (-not $FreshInstallation) {
+        $result.Outcome = 'differs'
+        return $result
+    }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in @(Get-Content -LiteralPath $ConfigEnvPath)) { $lines.Add($line) }
+    foreach ($key in $chosen.Keys) {
+        $index = -1
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match "^\s*$key\s*=") { $index = $i; break }
+        }
+        if ($index -ge 0) { $lines[$index] = "$key=$($chosen[$key])" } else { $lines.Add("$key=$($chosen[$key])") }
+    }
+    Set-Content -LiteralPath $ConfigEnvPath -Value $lines
+    $result.Outcome = 'applied'
+    return $result
+}
+
 function Initialize-EnvironmentFiles {
     Write-Info "Checking environment configuration..."
 
@@ -2102,6 +2201,19 @@ DATABASE_URL=sqlite:////data/student_management.db
             }
         }
         # ====== END database policy ======
+    }
+
+    # The database the installer's wizard was told (an installed copy only; see the function).
+    if ($_isInstalledLayout) {
+        $wizard = Sync-InstallerDatabaseChoice -InstallerEnvPath (Join-Path $PROJECT_ROOT ".env") `
+            -ConfigEnvPath $ROOT_ENV -FreshInstallation:(-not $rootEnvExistedBefore)
+        if ($wizard.Outcome -eq 'applied') {
+            Write-Success "Database chosen in the installer: $($wizard.Chosen) (written to config\.env)"
+            $configured = $true
+        } elseif ($wizard.Outcome -eq 'differs') {
+            Write-Warning "The installer was told: $($wizard.Chosen). This installation runs on: $($wizard.Running)."
+            Write-Warning "Nothing was changed: its records are where it runs. To move to the other database, back up first, then set the database lines in config\.env and start again."
+        }
     }
 
     # Ensure DATABASE_URL is available/normalized for PostgreSQL deployments

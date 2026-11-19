@@ -2,6 +2,11 @@
 
 **Read against the installer and the scripts:** 18 November 2026, `main` after v1.18.73. Nothing was installed or run for this reading.
 
+**Changed on 19 November 2026 (in v1.18.74):** the database chosen in the Docker wizard reaches
+a new installation (section 2), and the uninstaller's second question says what it deletes
+(section 7). Both changes were tried on the scripts' parts and on the installer's script as
+text; no installer was run for them either.
+
 This file was the installation guide of version 1.9.8 (December 2025). It described downloading
 the project and running `DOCKER.ps1` from the extracted folder, and it no longer matched how the
 application is installed. The earlier text is in the repository's history.
@@ -77,13 +82,26 @@ Your data and settings will be preserved. Click YES to upgrade to version Y, or 
 "fresh install" choice.
 
 **The database choice of the Docker edition.** The wizard writes it to `.env` in the install
-folder (`SMS_Installer.iss:2209-2261`). `DOCKER.ps1`, which builds and starts the application,
-reads `config\.env` there (`DOCKER.ps1:166`), and no code that reads the other file was found.
-A new install therefore gets what `DOCKER.ps1` writes into `config\.env`: local SQLite
-(`DOCKER.ps1:2010-2013`). This was not checked on an installed copy. After the first start,
-**System** > **Show System Health** says which database is in use. `DOCKER.ps1` takes a QNAP
-setup from `SMS_DATABASE_PROFILE=remote` and the `POSTGRES_*` values in `config\.env`
-(`DOCKER.ps1:2203-2255`); see
+folder (`WritePostgresEnv` in `SMS_Installer.iss`). `DOCKER.ps1`, which builds and starts the
+application, works with `config\.env` there.
+
+- *Until v1.18.73* nothing carried the choice from the one file to the other: a new install
+  ran on local SQLite whatever the wizard was told (read from the two scripts; not seen on an
+  installed copy).
+- *From v1.18.74, a new installation:* when `DOCKER.ps1` has made `config\.env`, it writes the
+  wizard's choice into it (`Sync-InstallerDatabaseChoice`): the engine, the `POSTGRES_*`
+  values and `DATABASE_URL`.
+- *From v1.18.74, an installation that already has a `config\.env`* (an update, or a
+  reinstall that kept its settings) **keeps the database it runs on**: its records are there.
+  If the wizard's file names another database, `DOCKER.ps1` changes nothing and says so in its
+  output and in `DOCKER_INSTALL.log` ("The installer was told: … This installation runs on:
+  …"). To move such an installation to another database: back up, set the database lines in
+  `config\.env`, start again. On an update the wizard's database page now shows what
+  `config\.env` says, not what its own file of an earlier run said.
+
+After the first start, **System** > **Show System Health** says which database is in use.
+`DOCKER.ps1` takes a QNAP setup from `SMS_DATABASE_PROFILE=remote` and the `POSTGRES_*` values
+in `config\.env`; see
 [QNAP_POSTGRES_SINGLE_SOURCE.md](../deployment/QNAP_POSTGRES_SINGLE_SOURCE.md).
 
 ## 3. The first sign-in
@@ -193,9 +211,11 @@ Use **Settings** > **Apps** ("Student Management System" with the version) or th
 in the Start Menu group. For both editions it asks two questions:
 
 1. "Do you want to remove Docker images?" (`sms-fullstack` and `postgres`).
-2. "Do you want to delete all user data?" It lists the database (data folder), backups, logs and
-   configuration files (`.env`). **Yes** deletes the folders `data`, `backups`, `logs` and
-   `config` and the `.env` files; **No** keeps them.
+2. "Do you want to delete this installation's data folders?" (in Greek when the installer ran in
+   Greek). **Yes** deletes the folders `data`, `backups`, `logs` and `config` and the `.env`
+   files; **No** keeps them. The question says that the database itself is not deleted and
+   where it is. (Until v1.18.73 it asked "Do you want to delete all user data?" and listed
+   "Database (data folder)", which was not so.)
 
 It also removes the containers of SMS and, for the Docker edition, the task **SMS Update
 Watcher**. Nothing in the uninstaller or in `UNINSTALL_SMS_MANUALLY.ps1` removes the Docker
@@ -232,7 +252,9 @@ To use this computer's address from another computer, add it to `TRUSTED_HOSTS` 
   install, update or uninstall, no Update from the Control Panel in either edition, and no run
   of the **SMS Update Watcher** task.
 - Which database a new Docker install uses (section 2) and what the pre-update copy holds
-  (section 6) rest on reading two scripts against each other.
+  (section 6) rest on reading two scripts against each other. The part of `DOCKER.ps1` that
+  carries the wizard's choice over was run on folders of two files; the wizard's own code and
+  the two questions in both languages were compiled, not run.
 - Windows Firewall (section 8) and `docker volume rm sms_data` (section 7).
 - Other systems. The installer is for Windows. To start the application from the project files
   see [QUICK_START_GUIDE.md](../user/QUICK_START_GUIDE.md). `scripts/linux_env_check.sh` checks

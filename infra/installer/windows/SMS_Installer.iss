@@ -127,6 +127,10 @@ english.KeepUserData=Keep user data (database, backups, settings)
 english.RemoveOldVersion=Remove previous version before installing
 english.UpgradePrompt=Click YES to update/overwrite, NO for fresh install, or CANCEL to abort.
 english.KeepDataPrompt=Do you want to keep your data (database, backups, settings)?%n%nClick YES to keep data for future reinstall.%nClick NO to remove everything.
+; The two questions the wizard and the uninstaller really ask (they were English text in the code).
+english.ExistingSameVersionPrompt=Version %1 is already installed at:%n%2%n%nClick YES to reinstall/repair, or NO to cancel installation.
+english.ExistingUpgradePrompt=Version %1 is already installed at:%n%2%n%nYour data and settings will be preserved.%n%nClick YES to upgrade to version %3, or NO to cancel.
+english.UninstallDeleteData=Do you want to delete this installation's data folders?%n%nThis deletes, in the installation folder:%n  - data, backups and logs%n  - the settings (the config folder and the .env files)%n%nIt does not delete the database itself:%n  - Docker edition: the Docker volume sms_data (remove it with: docker volume rm sms_data), or the PostgreSQL server you chose%n  - SMS Lite: the folder AppData\Local\SMS_Native_Lite_Simple of your Windows account%n%nClick YES to delete the folders.%nClick NO to keep them for a reinstallation.
 english.ViewReadme=View README documentation
 english.DockerStatusTitle=Docker Desktop Check
 english.DockerRefreshButton=Refresh
@@ -1140,16 +1144,11 @@ begin
   // Build message based on version comparison
   if IsSameVersion then
   begin
-    Msg := 'Version {#MyAppVersion} is already installed at:' + #13#10 +
-           PreviousInstallPath + #13#10#13#10 +
-           'Click YES to reinstall/repair, or NO to cancel installation.';
+    Msg := FmtMessage(CustomMessage('ExistingSameVersionPrompt'), ['{#MyAppVersion}', PreviousInstallPath]);
   end
   else
   begin
-    Msg := 'Version ' + PreviousVersion + ' is already installed at:' + #13#10 +
-           PreviousInstallPath + #13#10#13#10 +
-           'Your data and settings will be preserved.' + #13#10#13#10 +
-           'Click YES to upgrade to version {#MyAppVersion}, or NO to cancel.';
+    Msg := FmtMessage(CustomMessage('ExistingUpgradePrompt'), [PreviousVersion, PreviousInstallPath, '{#MyAppVersion}']);
   end;
 
   // Show upgrade confirmation dialog
@@ -1907,7 +1906,12 @@ begin
   if InstallDir = '' then
     Exit;  // Installation directory not yet set
 
-  EnvPath := AddBackslash(InstallDir) + '.env';
+  // What an installation runs on is in config\.env (DOCKER.ps1 works with that file); the
+  // wizard's own file of an earlier run is the second choice. Until v1.18.73 only the wizard's
+  // file was read, which could name a database the installation never used.
+  EnvPath := AddBackslash(InstallDir) + 'config\.env';
+  if not FileExists(EnvPath) then
+    EnvPath := AddBackslash(InstallDir) + '.env';
   if not FileExists(EnvPath) then
   begin
     SelectedDatabaseProfile := 'local';
@@ -3144,16 +3148,10 @@ begin
   end;
 
   // Ask user if they want to delete user data
-  DeleteUserData := MsgBox(
-    'Do you want to delete all user data?' + #13#10 + #13#10 +
-    'This includes:' + #13#10 +
-    '  • Database (data folder)' + #13#10 +
-    '  • Backups (backups folder)' + #13#10 +
-    '  • Logs (logs folder)' + #13#10 +
-    '  • Configuration files (.env)' + #13#10 + #13#10 +
-    'Click YES to delete everything.' + #13#10 +
-    'Click NO to keep your data for reinstallation.',
-    mbConfirmation, MB_YESNO);
+  // The question says what YES deletes and what it does not: the database of either edition is
+  // outside these folders (the Docker volume, a PostgreSQL server, or the user's AppData for
+  // SMS Lite). It used to list "Database (data folder)" among what is deleted.
+  DeleteUserData := MsgBox(CustomMessage('UninstallDeleteData'), mbConfirmation, MB_YESNO);
 
   if DeleteUserData = IDYES then
   begin
