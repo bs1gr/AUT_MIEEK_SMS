@@ -184,6 +184,43 @@ english.LiteAdminPasswordShort=The administrator password needs at least 8 chara
 english.LiteAdminPasswordMismatch=The two passwords do not match.
 ; SMS Lite: the wizard's last page
 english.LiteFinishedText=SMS Lite is installed.%n%nStart it with the Student Management System shortcut. It opens in your browser.%n%nNew local database: sign in with the administrator account you entered in this wizard.%n%nShared QNAP database, or a local database that was already on this PC: sign in with your existing account.
+; The wizard's pages, labels and message boxes (they were English text in the code)
+english.WizPrereqTitle=Prerequisites Check
+english.WizPrereqSubtitle=Verifying Docker Desktop installation and status
+english.WizLiteQnapTitle=QNAP Database Configuration (Optional)
+english.WizLiteQnapSubtitle=Configure the connection to the QNAP PostgreSQL database
+english.WizLiteQnapIntro=SMS Lite uses a local SQLite database by default. If you have a QNAP NAS with PostgreSQL, you can configure it here.
+english.WizLiteQnapYes=Yes, I want to use QNAP PostgreSQL
+english.WizLiteQnapNo=No, use a local SQLite database
+english.WizLiteQnapFile=Select credentials file (.json or .env):
+english.WizOr=- or -
+english.WizLiteQnapManual=Or enter the credentials yourself:
+english.WizLiteQnapHost=QNAP IP or DNS name:
+english.WizPortColon=Port:
+english.WizDbNameColon=Database name:
+english.WizUserColon=Username:
+english.WizPasswordColon=Password:
+english.WizPgHost=Host (NAS IP or DNS name)
+english.WizPgPort=Port
+english.WizPgDb=Database name
+english.WizPgUser=Username
+english.WizPgPass=Password
+english.WizPgSsl=SSL mode
+english.WizBuildTitle=Completing Installation
+english.WizBuildSubtitle=Building the SMS Docker image. The first time this takes several minutes.
+english.WizBuildPreparing=Preparing the Docker image build...
+english.WizBuildBuilding=Building the SMS Docker image...
+english.WizBuildRunning=Building the SMS Docker image in the console window...
+english.WizBuildStatus=Building the SMS Docker image (this may take several minutes)...
+english.WizBuildDone=The SMS Docker image is built. Start SMS with the Student Management System shortcut (1, START).
+english.WizBuildFailed=The Docker image could not be built. Check that Docker Desktop is running, read DOCKER_INSTALL.log in the installation folder, then run DOCKER.ps1 -Install there.
+english.WizBuildNoStart=The Docker setup script could not be started.
+english.WizBuildNoScript=The Docker setup script (run_docker_install.cmd) was not found.
+english.WizBuildError=An error occurred while the Docker image was built.
+english.WizCredLoaded=Credentials loaded from file.%nPlease check the values before you continue.
+english.WizFileNotFound=File not found: %1
+english.WizExeMissing=Installation completed but %1 is missing.%nRun the installer again, or download the latest installer.
+english.UninstallRemoveImages=Do you want to remove the Docker images of SMS?%n%nThis removes:%n  - sms-fullstack%n  - postgres (the image of a database on this PC)%n%nYour data in the Docker volumes is not removed.%n%nClick YES to remove the images and free disk space.%nClick NO to keep them for a faster reinstallation.
 
 ; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
 
@@ -1260,8 +1297,8 @@ begin
   DevEnvDesc.Caption := CustomMessage('InstallLiteEditionDesc');
 
   // Create custom Docker Prerequisites page (after installation type selection)
-  DockerPage := CreateCustomPage(InstallTypeSelectionPage.ID, 'Prerequisites Check',
-    'Verifying Docker Desktop installation and status');
+  DockerPage := CreateCustomPage(InstallTypeSelectionPage.ID, CustomMessage('WizPrereqTitle'),
+    CustomMessage('WizPrereqSubtitle'));
 
   DockerStatusLabel := TLabel.Create(DockerPage);
   DockerStatusLabel.Parent := DockerPage.Surface;
@@ -1294,8 +1331,8 @@ begin
 
   // Lite Edition QNAP Configuration page (for Lite Edition users who want QNAP PostgreSQL)
   LiteQnapPage := CreateCustomPage(DockerPage.ID,
-    'QNAP Database Configuration (Optional)',
-    'Configure connection to QNAP PostgreSQL database');
+    CustomMessage('WizLiteQnapTitle'),
+    CustomMessage('WizLiteQnapSubtitle'));
 
   LiteQnapLabel := TLabel.Create(LiteQnapPage);
   LiteQnapLabel.Parent := LiteQnapPage.Surface;
@@ -1305,14 +1342,14 @@ begin
   LiteQnapLabel.Width := LiteQnapPage.SurfaceWidth;
   LiteQnapLabel.Height := 48;
   LiteQnapLabel.WordWrap := True;
-  LiteQnapLabel.Caption := 'SMS Lite Edition uses a local SQLite database by default. If you have a QNAP NAS with PostgreSQL, you can optionally configure it here.';
+  LiteQnapLabel.Caption := CustomMessage('WizLiteQnapIntro');
 
   LiteQnapYesRadio := TRadioButton.Create(LiteQnapPage);
   LiteQnapYesRadio.Parent := LiteQnapPage.Surface;
   LiteQnapYesRadio.Left := 0;
   LiteQnapYesRadio.Top := 60;
   LiteQnapYesRadio.Width := LiteQnapPage.SurfaceWidth;
-  LiteQnapYesRadio.Caption := 'Yes, I want to use QNAP PostgreSQL';
+  LiteQnapYesRadio.Caption := CustomMessage('WizLiteQnapYes');
   LiteQnapYesRadio.Checked := False;
   LiteQnapYesRadio.OnClick := @UpdateLiteQnapUI;
 
@@ -1321,7 +1358,7 @@ begin
   LiteQnapNoRadio.Left := 0;
   LiteQnapNoRadio.Top := 85;
   LiteQnapNoRadio.Width := LiteQnapPage.SurfaceWidth;
-  LiteQnapNoRadio.Caption := 'No, use local SQLite database';
+  LiteQnapNoRadio.Caption := CustomMessage('WizLiteQnapNo');
   LiteQnapNoRadio.Checked := True;
   LiteQnapNoRadio.OnClick := @UpdateLiteQnapUI;
 
@@ -1331,7 +1368,7 @@ begin
   LiteQnapFileLabel.Left := 0;
   LiteQnapFileLabel.Top := 120;
   LiteQnapFileLabel.Width := 280;
-  LiteQnapFileLabel.Caption := 'Select credentials file (.json or .env):';
+  LiteQnapFileLabel.Caption := CustomMessage('WizLiteQnapFile');
 
   LiteQnapFileEdit := TEdit.Create(LiteQnapPage);
   LiteQnapFileEdit.Parent := LiteQnapPage.Surface;
@@ -1346,7 +1383,7 @@ begin
   LiteQnapFileBrowseButton.Top := 138;
   LiteQnapFileBrowseButton.Width := 80;
   LiteQnapFileBrowseButton.Height := 23;
-  LiteQnapFileBrowseButton.Caption := 'Browse...';
+  LiteQnapFileBrowseButton.Caption := CustomMessage('DbBrowse');
   LiteQnapFileBrowseButton.OnClick := @BrowseLiteQnapCredentialsFile;
 
   // OR separator
@@ -1354,21 +1391,21 @@ begin
   LiteQnapOrLabel.Parent := LiteQnapPage.Surface;
   LiteQnapOrLabel.Left := 0;
   LiteQnapOrLabel.Top := 170;
-  LiteQnapOrLabel.Caption := '— OR —';
+  LiteQnapOrLabel.Caption := CustomMessage('WizOr');
 
   // Manual entry section
   LiteQnapManualLabel := TLabel.Create(LiteQnapPage);
   LiteQnapManualLabel.Parent := LiteQnapPage.Surface;
   LiteQnapManualLabel.Left := 0;
   LiteQnapManualLabel.Top := 190;
-  LiteQnapManualLabel.Caption := 'Or enter credentials manually:';
+  LiteQnapManualLabel.Caption := CustomMessage('WizLiteQnapManual');
 
   LiteQnapHostLabel := TLabel.Create(LiteQnapPage);
   LiteQnapHostLabel.Parent := LiteQnapPage.Surface;
   LiteQnapHostLabel.Left := 0;
   LiteQnapHostLabel.Top := 215;
   LiteQnapHostLabel.Width := 200;
-  LiteQnapHostLabel.Caption := 'QNAP IP or DNS name:';
+  LiteQnapHostLabel.Caption := CustomMessage('WizLiteQnapHost');
 
   LiteQnapHostEdit := TEdit.Create(LiteQnapPage);
   LiteQnapHostEdit.Parent := LiteQnapPage.Surface;
@@ -1382,7 +1419,7 @@ begin
   LiteQnapPortLabel.Left := 292;
   LiteQnapPortLabel.Top := 215;
   LiteQnapPortLabel.Width := 80;
-  LiteQnapPortLabel.Caption := 'Port:';
+  LiteQnapPortLabel.Caption := CustomMessage('WizPortColon');
 
   LiteQnapPortEdit := TEdit.Create(LiteQnapPage);
   LiteQnapPortEdit.Parent := LiteQnapPage.Surface;
@@ -1396,7 +1433,7 @@ begin
   LiteQnapDbLabel.Left := 0;
   LiteQnapDbLabel.Top := 265;
   LiteQnapDbLabel.Width := 200;
-  LiteQnapDbLabel.Caption := 'Database name:';
+  LiteQnapDbLabel.Caption := CustomMessage('WizDbNameColon');
 
   LiteQnapDbEdit := TEdit.Create(LiteQnapPage);
   LiteQnapDbEdit.Parent := LiteQnapPage.Surface;
@@ -1410,7 +1447,7 @@ begin
   LiteQnapUserLabel.Left := 0;
   LiteQnapUserLabel.Top := 315;
   LiteQnapUserLabel.Width := 200;
-  LiteQnapUserLabel.Caption := 'Username:';
+  LiteQnapUserLabel.Caption := CustomMessage('WizUserColon');
 
   LiteQnapUserEdit := TEdit.Create(LiteQnapPage);
   LiteQnapUserEdit.Parent := LiteQnapPage.Surface;
@@ -1423,7 +1460,7 @@ begin
   LiteQnapPassLabel.Left := 292;
   LiteQnapPassLabel.Top := 315;
   LiteQnapPassLabel.Width := 200;
-  LiteQnapPassLabel.Caption := 'Password:';
+  LiteQnapPassLabel.Caption := CustomMessage('WizPasswordColon');
 
   LiteQnapPassEdit := TEdit.Create(LiteQnapPage);
   LiteQnapPassEdit.Parent := LiteQnapPage.Surface;
@@ -1624,14 +1661,14 @@ begin
   PgHostLabel.Left := 0;
   PgHostLabel.Top := 196;
   PgHostLabel.Width := 280;
-  PgHostLabel.Caption := 'Host (NAS IP or DNS name)';
+  PgHostLabel.Caption := CustomMessage('WizPgHost');
 
   PgPortLabel := TLabel.Create(PostgresPage);
   PgPortLabel.Parent := PostgresPage.Surface;
   PgPortLabel.Left := 292;
   PgPortLabel.Top := 196;
   PgPortLabel.Width := 100;
-  PgPortLabel.Caption := 'Port';
+  PgPortLabel.Caption := CustomMessage('WizPgPort');
 
   PgHostEdit := TEdit.Create(PostgresPage);
   PgHostEdit.Parent := PostgresPage.Surface;
@@ -1652,14 +1689,14 @@ begin
   PgDbLabel.Left := 0;
   PgDbLabel.Top := 244;
   PgDbLabel.Width := 180;
-  PgDbLabel.Caption := 'Database name';
+  PgDbLabel.Caption := CustomMessage('WizPgDb');
 
   PgUserLabel := TLabel.Create(PostgresPage);
   PgUserLabel.Parent := PostgresPage.Surface;
   PgUserLabel.Left := 202;
   PgUserLabel.Top := 244;
   PgUserLabel.Width := 190;
-  PgUserLabel.Caption := 'Username';
+  PgUserLabel.Caption := CustomMessage('WizPgUser');
 
   PgDbEdit := TEdit.Create(PostgresPage);
   PgDbEdit.Parent := PostgresPage.Surface;
@@ -1680,7 +1717,7 @@ begin
   PgPassLabel.Left := 0;
   PgPassLabel.Top := 292;
   PgPassLabel.Width := 180;
-  PgPassLabel.Caption := 'Password';
+  PgPassLabel.Caption := CustomMessage('WizPgPass');
 
   PgPassEdit := TEdit.Create(PostgresPage);
   PgPassEdit.Parent := PostgresPage.Surface;
@@ -1694,7 +1731,7 @@ begin
   PgSslLabel.Left := 292;
   PgSslLabel.Top := 292;
   PgSslLabel.Width := 100;
-  PgSslLabel.Caption := 'SSL mode';
+  PgSslLabel.Caption := CustomMessage('WizPgSsl');
 
   PgSslEdit := TComboBox.Create(PostgresPage);
   PgSslEdit.Parent := PostgresPage.Surface;
@@ -1724,7 +1761,7 @@ begin
   UpdateDatabaseProfileUI(nil);
 
   // Create Docker build progress page (AFTER file copy, before finish)
-  DockerBuildPage := CreateCustomPage(wpInstalling + 1, 'Completing Installation', 'Building SMS Docker container. This may take several minutes on first install.');
+  DockerBuildPage := CreateCustomPage(wpInstalling + 1, CustomMessage('WizBuildTitle'), CustomMessage('WizBuildSubtitle'));
   DockerBuildStatusLabel := TLabel.Create(DockerBuildPage);
   DockerBuildStatusLabel.Parent := DockerBuildPage.Surface;
   DockerBuildStatusLabel.Left := 0;
@@ -1733,7 +1770,7 @@ begin
   DockerBuildStatusLabel.Height := 100;
   DockerBuildStatusLabel.WordWrap := True;
   DockerBuildStatusLabel.Font.Size := 10;
-  DockerBuildStatusLabel.Caption := 'Preparing Docker container build...';
+  DockerBuildStatusLabel.Caption := CustomMessage('WizBuildPreparing');
 end;
 
 function ReadEnvValue(FilePath, Key: String): String;
@@ -1980,7 +2017,7 @@ begin
     LiteQnapFileEdit.Text := SelectedFile;
     LoadLiteQnapCredentialsFromFile(SelectedFile);
     // Only here: the same loader prefills saved settings silently when the wizard starts
-    MsgBox('Credentials loaded from file.' + #13 + 'Please verify the values before continuing.', mbInformation, MB_OK);
+    MsgBox(CustomMessage('WizCredLoaded'), mbInformation, MB_OK);
   end;
 end;
 
@@ -1998,7 +2035,7 @@ var
 begin
   if not FileExists(FileName) then
   begin
-    MsgBox('File not found: ' + FileName, mbError, MB_OK);
+    MsgBox(FmtMessage(CustomMessage('WizFileNotFound'), [FileName]), mbError, MB_OK);
     Exit;
   end;
 
@@ -2288,28 +2325,28 @@ begin
   begin
     WritePostgresEnv;
     WizardForm.NextButton.Enabled := False;
-    DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
+    DockerBuildStatusLabel.Caption := CustomMessage('WizBuildBuilding');
     try
       InstallDir := GetInstallDirSafe;
       Cmd := AddBackslash(InstallDir) + 'run_docker_install.cmd';
       if FileExists(Cmd) then
       begin
-        DockerBuildStatusLabel.Caption := 'Running Docker container setup...';
-        WizardForm.StatusLabel.Caption := 'Setting up SMS Docker container (this may take several minutes)...';
+        DockerBuildStatusLabel.Caption := CustomMessage('WizBuildRunning');
+        WizardForm.StatusLabel.Caption := CustomMessage('WizBuildStatus');
         if Exec(Cmd, '', InstallDir, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
         begin
           if ResultCode = 0 then
-            DockerBuildStatusLabel.Caption := 'SMS Docker container setup completed successfully.'
+            DockerBuildStatusLabel.Caption := CustomMessage('WizBuildDone')
           else
-            DockerBuildStatusLabel.Caption := 'Docker container setup encountered an issue. Please check Docker Desktop and try again.';
+            DockerBuildStatusLabel.Caption := CustomMessage('WizBuildFailed');
         end
         else
-          DockerBuildStatusLabel.Caption := 'Failed to start Docker setup script.';
+          DockerBuildStatusLabel.Caption := CustomMessage('WizBuildNoStart');
       end
       else
-        DockerBuildStatusLabel.Caption := 'Docker setup script not found.';
+        DockerBuildStatusLabel.Caption := CustomMessage('WizBuildNoScript');
     except
-      DockerBuildStatusLabel.Caption := 'Error occurred during Docker container setup.';
+      DockerBuildStatusLabel.Caption := CustomMessage('WizBuildError');
     end;
     WizardForm.NextButton.Enabled := True;
   end;
@@ -2982,8 +3019,7 @@ begin
       if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
       begin
         Log('[ERROR] SMS_Manager.exe missing after Docker installation');
-        MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
-               'Please re-run the installer (Repair) or download the latest installer.',
+        MsgBox(FmtMessage(CustomMessage('WizExeMissing'), ['SMS_Manager.exe']),
                mbError, MB_OK);
       end;
     end
@@ -2992,8 +3028,7 @@ begin
       if not FileExists(ExpandConstant('{app}\SMS_Lite.exe')) then
       begin
         Log('[ERROR] SMS_Lite.exe missing after Lite installation');
-        MsgBox('Installation completed but SMS_Lite.exe is missing.' + #13#10 +
-               'Please re-run the installer (Repair) or download the latest installer.',
+        MsgBox(FmtMessage(CustomMessage('WizExeMissing'), ['SMS_Lite.exe']),
                mbError, MB_OK);
       end;
 
@@ -3113,12 +3148,7 @@ begin
 
   // Ask user if they want to delete production Docker images
   DeleteDockerImage := MsgBox(
-    'Do you want to remove Docker images?' + #13#10 + #13#10 +
-    'This removes production images used by SMS:' + #13#10 +
-    '  • sms-fullstack' + #13#10 +
-    '  • postgres (runtime DB image)' + #13#10 + #13#10 +
-    'Click YES to remove images and free disk space.' + #13#10 +
-    'Click NO to keep images for faster reinstallation.',
+    CustomMessage('UninstallRemoveImages'),
     mbConfirmation, MB_YESNO);
 
   if DeleteDockerImage = IDYES then

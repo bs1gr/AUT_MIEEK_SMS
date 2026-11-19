@@ -1,5 +1,17 @@
 # Manual Cleanup Guide - SMS Installation on Your PC
 
+> **Note of 19 November 2026.** This was written on 3 February 2026 for one PC after an upgrade
+> to v1.17.7, and is kept as history. Its step 4 told to remove Docker's unused volumes as
+> well: that deletes the database of the Docker edition (the volume `sms_data`) once the
+> container is stopped, as step 1 does. The command below no longer removes volumes. To remove
+> SMS from a PC today, use its uninstaller (installation guide, section 7). Today's installer
+> differs from it at least in this: there is no "Fresh Install" choice (an installation that is
+> there is updated in place); an update does not restore the `.env` files; the uninstaller is
+> `unins<version>.exe`; a new Docker installation runs on the database chosen in the wizard
+> (from v1.18.74); the wizard's pages and messages are in English and Greek. The installer of
+> today, its files and its build: [README.md](README.md). Installing, updating and
+> uninstalling: [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+
 **Date**: February 3, 2026
 **Issue**: Old files/images remain after upgrade to v1.17.7
 **Status**: Fixed in installer (v1.17.7 rebuild) + manual cleanup needed NOW
@@ -70,8 +82,9 @@ Write-Host "Next: Run the new SMS_Installer_1.17.7.exe"
 
 ### Step 4: Clean Docker System (Optional but Recommended)
 ```powershell
-# Remove dangling images and volumes
-docker system prune -a -f --volumes
+# Remove unused images and build cache. NOT --volumes: that would delete the database
+# volume sms_data, which no running container uses after step 1.
+docker system prune -a -f
 ```
 
 ---

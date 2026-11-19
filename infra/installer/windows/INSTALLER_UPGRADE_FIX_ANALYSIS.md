@@ -1,5 +1,14 @@
 # SMS Installer Upgrade Fix - Analysis & Solutions
 
+> **Note of 19 November 2026.** This is the analysis of February 2026 of upgrades that made
+> parallel installations, kept as history. Today's installer differs from it at least in this:
+> there is no "Fresh Install" choice (an installation that is there is updated in place); an
+> update does not restore the `.env` files; the uninstaller is `unins<version>.exe`; a new
+> Docker installation runs on the database chosen in the wizard (from v1.18.74); the wizard's
+> pages and messages are in English and Greek. The installer of today, its files and its build:
+> [README.md](README.md). Installing, updating and uninstalling:
+> [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+
 **Date**: February 3, 2026
 **Issue**: Installer creates parallel installations instead of upgrading in-place
 **Severity**: 🔴 CRITICAL - Affects production deployment and data integrity

@@ -1,5 +1,16 @@
 # SMS_Installer.iss Modification Guide
 
+> **Note of 19 November 2026.** This was a plan of February 2026 to replace
+> `docker_manager.bat` with `SMS_Manager.exe`. It was carried out: the installer starts the
+> Docker edition through `SMS_Manager.exe` and deletes an old `docker_manager.bat`. Kept as
+> history; do not apply its steps. Today's installer differs from it at least in this: there is
+> no "Fresh Install" choice (an installation that is there is updated in place); an update does
+> not restore the `.env` files; the uninstaller is `unins<version>.exe`; a new Docker
+> installation runs on the database chosen in the wizard (from v1.18.74); the wizard's pages
+> and messages are in English and Greek. The installer of today, its files and its build:
+> [README.md](README.md). Installing, updating and uninstalling:
+> [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+
 **Purpose**: Update the Inno Setup installer to use `SMS_Manager.exe` instead of `docker_manager.bat`
 
 **Status**: Ready to apply (6 small changes required)

@@ -1,5 +1,15 @@
 # Installer Changelog
 
+> **Note of 19 November 2026.** This changelog stopped at v1.18.11 (March 2026). The
+> installer's changes since are in the project's [CHANGELOG.md](../../../CHANGELOG.md). Today's
+> installer differs from it at least in this: there is no "Fresh Install" choice (an
+> installation that is there is updated in place); an update does not restore the `.env` files;
+> the uninstaller is `unins<version>.exe`; a new Docker installation runs on the database
+> chosen in the wizard (from v1.18.74); the wizard's pages and messages are in English and
+> Greek. The installer of today, its files and its build: [README.md](README.md). Installing,
+> updating and uninstalling:
+> [INSTALLATION_GUIDE.md](../../../docs/operations/INSTALLATION_GUIDE.md).
+
 ## [1.18.11] - 2026-03-09
 
 ### Changed

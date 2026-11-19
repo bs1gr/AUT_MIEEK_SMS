@@ -50,7 +50,7 @@ def _docker_script() -> str:
 
 def test_the_four_pages_are_the_ones_the_installer_shows():
     """One page before and one after, per language: the names in [Languages] are the names the
-    generator writes. (Two more files, installer_complete_lite*.rtf, are named by nothing.)"""
+    generator writes."""
     pages = _generator().PAGES
     languages = re.findall(
         r'(?m)^Name: "(\w+)";.*InfoBeforeFile: "([^"]+)"; InfoAfterFile: "([^"]+)"', _installer_script()
@@ -213,6 +213,44 @@ def test_how_to_start_and_where_to_sign_in_are_what_the_scripts_do():
     assert "the administrator account you entered in this wizard" in english
     assert "english.LiteAdminIntro=Administrator account for the new local database." in script
     assert "english.LiteAdminExistingDb=This PC already has a local SMS Lite database." in script
+
+
+def test_no_page_label_or_message_of_the_wizard_is_english_only():
+    """About forty texts were English in the wizard's code, so a Greek wizard showed them in
+    English: page titles, the labels of the two database pages, the Docker build page, message
+    boxes and the uninstaller's question about the images. Now every one is a message of both
+    languages."""
+    script = _installer_script()
+    code = script[script.index("[Code]") :]
+    shown = re.compile(r"(Caption\s*:=|MsgBox\(|CreateCustomPage\()[^;]*'[A-Za-z][^']*[ a-z]")
+    left = [
+        line.strip()
+        for line in code.splitlines()
+        if shown.search(line) and "CustomMessage" not in line and not line.strip().startswith("//")
+    ]
+    assert left == []
+    # The continuation lines of a page title or a message box, written as text.
+    for gone in (
+        "'Prerequisites Check'",
+        "'Completing Installation'",
+        "Do you want to remove Docker images?",
+        "'Port:'",
+        "Credentials loaded from file.'",
+        "is missing.' +",
+    ):
+        assert gone not in code, gone
+
+
+def test_the_placeholders_of_each_message_are_the_same_in_both_languages():
+    script = _installer_script()
+    english = dict(re.findall(r"(?m)^english\.(\w+)=(.*)$", script))
+    greek_file = (INSTALLER_DIR / "Greek.isl").read_text(encoding="utf-8-sig")
+    greek = dict(re.findall(r"(?m)^(\w+)=(.*)$", greek_file[greek_file.index("[CustomMessages]") :]))
+
+    for name, text in english.items():
+        assert name in greek, name
+        assert sorted(re.findall(r"%\d", text)) == sorted(re.findall(r"%\d", greek[name])), name
+        assert max(map(ord, text), default=0) < 127, name
 
 
 def test_the_last_page_of_sms_lite_is_a_text_of_both_languages():

@@ -382,6 +382,63 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.74 (unreleased)
 
+**2026-11-19: after Docker's cleanup SMS comes back; every text of the wizard in both
+languages; the installer's older notes, two unused pages and a CI step** (PR 438; the owner's
+answer to the report on PR 437, quoted in todo 64, which this closes).
+
+- **`DOCKER.ps1`'s cleanup.** `-Prune`, `-PruneAll` and `-DeepClean` stay Docker's own
+  cleanup (the owner's point 1 asks for the way back, not for a narrower cleanup). Read from
+  the script: `-Start` already rebuilt a removed image and recreated a removed container, and
+  `-Update` rebuilds from the installed version after a backup; but `-DeepClean` stopped and
+  removed the running SMS container and left SMS down, and no cleanup said how to get it
+  back. Now every cleanup ends with "Your data is kept (volume 'sms_data'). To bring SMS
+  back:" and the two commands, and **`-DeepClean` rebuilds and starts SMS again at the end
+  when it was running before**. `-Prune` and `-PruneAll` never touched a running container
+  and still do not. The Docker guide (section 5) says so.
+- **Every text the wizard and the uninstaller show is a message of both languages.** Thirty-
+  six texts moved out of the code into `[CustomMessages]` (English) and `Greek.isl` (Greek):
+  the titles and subtitles of the pages "Prerequisites Check", "QNAP Database Configuration
+  (Optional)" and "Completing Installation"; every label of SMS Lite's QNAP page and of the
+  Docker edition's database page (the Lite page's **Browse...** reuses the existing
+  `DbBrowse`); the eight lines the Docker build page can show; four message boxes; and the
+  uninstaller's question about the Docker images. Some English was corrected on the way: the
+  build page "builds the SMS Docker image" (it said "container"; it starts nothing), its
+  error line names `DOCKER_INSTALL.log` and `DOCKER.ps1 -Install`, its success line says how
+  to start SMS, and the uninstaller's question says that the data in the volumes is not
+  removed. The English stays ASCII (the `.iss` has no byte order mark; the "— OR —" label
+  is now "- or -").
+- **The two unused pages** `installer_complete_lite.rtf` and `installer_complete_lite_el.rtf`
+  are deleted: no line of the script named them, their text was the stale one, and SMS
+  Lite's last page is the message `LiteFinishedText` since PR 437. (A tracked deletion; `git
+  revert` of this PR's commit brings them back.)
+- **The installer's older notes.** `INSTALLER_TROUBLESHOOTING.md`, the one written as a live
+  guide, is written anew against the scripts (it named a log and a progress window the
+  installer no longer has). The other eleven are records of their day (a fix, a build, an
+  audit, a plan, the test plan of v1.18.3, a changelog that stopped at v1.18.11): their text
+  is kept as history, and each now says so at its head, names what is different today and
+  points to the README and the installation guide. **`MANUAL_CLEANUP_GUIDE.md` had a
+  dangerous step**: "Clean Docker System (Optional but Recommended)", `docker system prune
+  -a -f --volumes`, after a step that stops Docker. With the container stopped, the volume
+  `sms_data`, the database of the Docker edition, is unused, and `--volumes` deletes it. The
+  command no longer has `--volumes`, and the note says why.
+- **The CI step** of `commit-ready-smoke.yml` (Windows job) that looked for the page
+  generator at the repository's root and always skipped now runs
+  `infra/scripts/diagnostics/fix_greek_encoding_permanent.py` and fails when the tracked
+  `.rtf` pages differ from what it writes for this version.
+- **Tests:** `test_docker_cleanup_brings_sms_back.py` (8) takes `Invoke-DockerCleanup` out of
+  `DOCKER.ps1` and runs it with Docker replaced by stubs that record what is asked: each
+  cleanup prints the way back; `-DeepClean` starts SMS after the cleanup when it was running
+  and not when it was down; `-Prune` and `-PruneAll` leave the SMS container alone; nothing
+  prunes volumes; and `-Start`/`-Update` still rebuild and recreate. Two more in
+  `test_installer_info_pages.py`: no page title, label or message box of the wizard's code is
+  written as text, and every message has the same `%1` places in both languages and ASCII
+  English. Five of the new tests fail on `main`; with the other installer tests, 40 pass.
+- **Verified:** the installer's script compiles with and without SMS Lite; `DOCKER.ps1`
+  parses; the CI step's two commands were run here. **Not verified: no wizard was run, so
+  whether each Greek text fits its label is not known** (Greek is often longer, and several
+  labels have a fixed width). Nor was any cleanup run against Docker. The Greek was written
+  by the assistant and read by nobody else.
+
 **2026-11-19: the installer's information pages are right for both editions and in both
 languages, and the Docker guide and the installer's README are written anew** (PR 437,
 merged as `1edcb8283`; on the PR's commit CI's backend job passed 1,938 tests with 55
@@ -3307,39 +3364,16 @@ now** (todo 58).
       conversion. There is no Greek version of the checked guide. Delete, or read and
       correct (the owner's OK).
 
-64. **Found on 2026-11-19 while the installer's pages were corrected, and not changed.**
-    - *About forty texts of the wizard are English in the code,* so a Greek wizard shows
-      them in English: the titles of "Prerequisites Check", "QNAP Database Configuration
-      (Optional)" and "Completing Installation"; the labels of the two database pages (host,
-      port, database name, user name, password, SSL mode, "Yes, I want to use QNAP
-      PostgreSQL", "No, use local SQLite database", "Browse..."); the five lines the Docker
-      build page can show; the message boxes "Credentials loaded from file", "File not
-      found", "Installation completed but SMS_Manager.exe is missing" and its twin for SMS
-      Lite; and the uninstaller's question "Do you want to remove Docker images?". Each
-      would become a message in both languages, as `LiteFinishedText` and the three of PR
-      435 did. Needs no decision, but nobody can see the result here: a Greek text longer
-      than its English may not fit a label of a fixed width, and the wizard cannot be run
-      from a test. Best done when somebody can click through the Greek wizard once
-      afterwards.
-    - *`installer_complete_lite.rtf` and `installer_complete_lite_el.rtf` are shown by
-      nothing* (no line of the script names them), and their text is the stale one ("Log in
-      with default admin account (see documentation)"). Delete (a tracked file: the owner's
-      word).
-    - *The other notes in `infra/installer/windows`* (`INSTALLER_TESTING_GUIDE.md` of
-      v1.18.3, `INSTALLER_CRITICAL_FIX_400_ERROR.md`, `INSTALLER_PARAMETER_UPDATE_COMPLETE.md`,
-      `INSTALLER_UPGRADE_FIX_ANALYSIS.md`, `INSTALLER_v1.17.7_DEPLOYMENT_UPDATE.md`,
-      `INSTALLER_v1.18.3_DEPLOYMENT_UPDATE.md`, `PARAMETER_AUDIT_v1.18.3.md`,
-      `SMS_MANAGER_IMPLEMENTATION_SUMMARY.md`, `INSTALLER_CHANGELOG.md`,
-      `INSTALLER_MODIFICATION_GUIDE.md`, `INSTALLER_TROUBLESHOOTING.md`,
-      `MANUAL_CLEANUP_GUIDE.md`) were not read. The new README calls them records of their
-      own day. Read and correct, archive, or leave (the owner's word).
-    - *`.github/workflows/commit-ready-smoke.yml` has a step "Prepare installer Greek text
-      assets"* that looks for the generator at the repository's root, where it has not been
-      since the folders were flattened: it always skips. Harmless (the installer build runs
-      the generator itself); remove the step or point it at the script.
-    - *`DOCKER.ps1`'s cleanup options are Docker-wide* (the entry of 19 November above; the
-      guide says so now). Whether `-Prune` should keep to SMS's own containers and images is
-      a change of behaviour: the owner's call.
+64. **Found on 2026-11-19 while the installer's pages were corrected: done in PR 438.** The
+    owner's answer to the report on PR 437: "1. after l Docker's own cleanup for DOCKER.ps1
+    -Prune, -PruneAll and -DeepClean, should be bossible to recreate or update with the latest
+    updated version the sms container(s) . 2. set dual language in all forty texts of the
+    wizard are still English in the code (page titles, the database pages' labels, several
+    message boxes). review and fix the Two .rtf files that nothing shows, a dozen older notes
+    in the installer's folder, and a CI step that looks for the generator in the wrong place."
+    The assistant's reading: the cleanup stays Docker-wide, and SMS must be easy to bring back
+    after it; "fix" of two files nothing shows is their deletion. What was done is the entry
+    at the head of "On `main` since v1.18.74". This todo is closed.
 
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md)):
