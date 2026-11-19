@@ -28,20 +28,6 @@ Logs component render times in development mode to identify performance bottlene
 usePerformanceMonitor('ComponentName');
 
 ```text
-### `useVirtualScroll`
-
-**Location:** `src/hooks/useVirtualScroll.ts`
-
-Calculates visible items for large lists to improve rendering performance.
-
-```typescript
-const { startIndex, endIndex, offsetY, totalHeight } = useVirtualScroll({
-  itemHeight: 50,
-  containerHeight: 600,
-  itemsCount: 1000
-});
-
-```text
 ## Feature Hooks
 
 ### `useStudents`

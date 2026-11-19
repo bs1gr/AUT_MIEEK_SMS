@@ -125,10 +125,17 @@ Never call `Base.metadata.create_all()`. Never write raw `ALTER TABLE` or `CREAT
 <button>Save</button>
 <p>Student not found</p>
 
-// ✅ REQUIRED
-import { useTranslation } from 'react-i18next';
-const { t } = useTranslation();
+// ✅ REQUIRED: the project's hook, which reads 'namespace.key'
+import { useLanguage } from '@/LanguageContext';
+const { t } = useLanguage();
 return <button>{t('common.save')}</button>;
+
+// ✅ Also fine: react-i18next with the namespace named
+import { useTranslation } from 'react-i18next';
+const { t } = useTranslation('common');
+return <button>{t('save')}</button>;
+
+// ❌ Never resolves: useTranslation() with no namespace + 'common.save' shows "common.save"
 ```
 
 Add new keys to both `src/frontend/src/locales/en/` and `el/` translation modules (`.js` files).
