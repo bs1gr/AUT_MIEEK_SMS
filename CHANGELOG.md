@@ -49,6 +49,41 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.74] - 2026-11-19
+
+### Features
+- **sessions**: a semester's session file is the teacher's too, and an import knows a grade by its category as well (#432)
+- **audit**: the audit log names who made a change, has a line for every change of an account, a role or a permission, and a page shows it (#428)
+- **accounts**: every account changes its own password, an account without a role is told so, and the Quick Guide says what the pages do (#427)
+- **grades**: the Weight of a grade counts in the average of its category (#426)
+- **rbac**: two roles and "No role", a closed list of permissions, teachers import; the built-in permission list is gone (#425)
+
+### Bug Fixes
+- **import-export**: the Import/Export panel of the Control Panel does what it offers (#436)
+- **installer**: the database chosen in the wizard reaches a new installation, and the uninstaller says what it deletes (#435)
+- **attendance**: Clear takes saved marks off for good (#433)
+- **installer**: an installer built by hand takes tracked files only; the installation guide read against the installer (#431)
+- **attendance**: a mark is no longer lost when the server answers late or the sheet is left before the autosave (#430)
+- **rbac**: an account whose last role is revoked is left with nothing (#423)
+- **admin**: Save no longer turns an administrator into a teacher, the Permissions Catalog works for roles, and the small page repairs of todo 63 (#422)
+- **accounts**: an account changed to Student no longer keeps its old access, and a deleted account leaves nothing for the next one (#419)
+
+### Documentation
+- **plan**: #431 merged - an installer built by hand takes tracked files only
+- **plan**: #429 merged - the older documents read and corrected; the seven points of 18 November are done
+- **guides**: the 23 older admin and user documents read against the code and corrected, with the repairs the reading led to (#429)
+- **plan**: #422, #423 and #424 merged - the page repairs of todo 63, an account without a role left with nothing, the in-app help read against the pages
+- **help**: the answers of Utils > Help & Documentation say what the pages do (#424)
+- **plan**: #419, #420 and #421 merged - two access leaks repaired, the permission documents and the user guide checked against the application; todo 63
+- **user**: the user guide says what the application does (todo 59) (#421)
+- **permissions**: the three permission documents say what the application does, and a test keeps them to it (todo 59) (#420)
+- **plan**: v1.18.73 released - assets verified, the Docker build check used for the first time; the cloud VM is not updated
+
+### Chores
+- **cleanup**: permission keys are unique in every database, the tools nothing ran and the unused page parts are gone, CLAUDE.md's release text no longer ends with an upload by hand (#434)
+- **agents**: the release-manager agent and the plan-review skill run on Sonnet
+
 ## [1.18.73] - 2026-11-17
 
 ### Features
@@ -4988,6 +5023,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
