@@ -52,8 +52,8 @@ A new database gets two roles. This is what the application gives them at its fi
 
 | Role | Permissions |
 |---|---|
-| `admin` | `*:*`, and each of the teacher's 25 once more by name |
-| `teacher` | `students:view`, `students:create`, `students:edit`, `students:delete`, `courses:view`, `courses:create`, `courses:edit`, `courses:delete`, `grades:view`, `grades:edit`, `grades:delete`, `attendance:view`, `attendance:edit`, `attendance:delete`, `reports:view`, `reports:generate`, `reports:export`, `notifications:manage`, `exports:generate`, `exports:download`, `imports:preview`, `imports:execute`, `imports:create`, `imports:view`, `jobs:view` |
+| `admin` | `*:*`, and each of the teacher's 26 once more by name |
+| `teacher` | `students:view`, `students:create`, `students:edit`, `students:delete`, `courses:view`, `courses:create`, `courses:edit`, `courses:delete`, `grades:view`, `grades:edit`, `grades:delete`, `attendance:view`, `attendance:edit`, `attendance:delete`, `reports:view`, `reports:generate`, `reports:export`, `notifications:manage`, `exports:generate`, `exports:download`, `imports:preview`, `imports:execute`, `imports:create`, `imports:view`, `jobs:view`, `sessions:manage` |
 
 **The Role column of an account** holds `admin`, `teacher` or `none`. `none` ("No role" in User
 Accounts) is not a role: it is what the column holds when the account has neither of the two.
@@ -115,9 +115,12 @@ Enrolments have no permission of their own: reading them asks for `courses:view`
 | `imports:create` | Uploading a file to import (`/api/v1/imports/upload`, `/api/v1/imports/students`, `/api/v1/import-export/imports/...`) | admin, teacher |
 | `imports:view` | The list of import jobs and one job | admin, teacher |
 | `jobs:view` | The state of a background job. The Imports tab follows the import it started with it. | admin, teacher |
+| `sessions:manage` | A semester's session file (Utils > Export > Session Export/Import): export, import, the list of semesters and the list of the backups made before an import. Teachers hold it since 19 November 2026. | admin, teacher |
 
-A semester's session file (Utils > Export > Session Export/Import) is not among these: it asks
-for `sessions:manage`, which stays with the administrator.
+Returning the whole database to a backup made before a session import
+(`POST /api/v1/sessions/rollback`) is not among these: it asks for `adminops:restore`, which
+stays with the administrator. A session file imported by a teacher is imported without
+students' health information.
 
 ### Administration
 
@@ -131,9 +134,8 @@ No role but `admin` holds these.
 | `permissions:manage` | Assign and remove a role; grant and revoke a permission; create, change and delete roles and permissions; "Initialize RBAC Defaults" |
 | `audit:view` | The audit log (the panel **Audit Log** is shown to administrators; the API answers any account that holds the permission), the history of role and permission changes, the history of imports and exports |
 | `adminops:backup` | `POST /api/v1/adminops/backup` |
-| `adminops:restore` | `POST /api/v1/adminops/restore` |
+| `adminops:restore` | `POST /api/v1/adminops/restore`; returning the database to a backup made before a session import (`POST /api/v1/sessions/rollback`) |
 | `adminops:clear` | `POST /api/v1/adminops/clear` |
-| `sessions:manage` | Session export and import (Utils > Export > Session Export/Import) |
 | `exports:view` | The list of export jobs and one job. A teacher can start a job and download its file, and cannot look at it (plan todo 62). |
 | `jobs:create` | Starting a background job by hand (`POST /api/v1/jobs/`) |
 | `jobs:manage` | Cancelling a background job |

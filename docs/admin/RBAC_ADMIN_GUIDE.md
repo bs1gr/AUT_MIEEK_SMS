@@ -34,7 +34,7 @@ forms ask for that number, not for the name or the e-mail address.
 | Kind | Can |
 |---|---|
 | Administrator | Everything |
-| Teacher | All of the school's records: students, courses, enrolments, grades, attendance, the lesson log, reports, exports, imports of students and courses, messages to all users. Not accounts, roles, a semester's session file, backups. |
+| Teacher | All of the school's records: students, courses, enrolments, grades, attendance, the lesson log, reports, exports, imports of students and courses, a semester's session file, messages to all users. Not accounts, roles, backups. |
 | No role | Sign in, and nothing else of use: no page of records opens for it. What an account is after its last role was taken away. |
 
 Students have no accounts. A student is a record the teachers keep, not somebody who signs in.
@@ -307,7 +307,8 @@ The first start of the version that has two roles changes an existing installati
   Teacher or Administrator role beside one of the three keeps that role.
 - **Teachers can import.** **Utils** > **Imports** works for a teacher: students and courses
   from a file, with a check of the file before anything is stored. A semester's session file
-  (**Utils** > **Export** > **Session Export/Import**) stays with the administrator.
+  (**Utils** > **Export** > **Session Export/Import**) is the teacher's too since 19 November
+  2026; returning the whole database to a backup stays with the administrator.
 - **Every administrator and teacher keeps the access.** An account of an old installation that
   never had a role of its own in the role tables is given one at the start.
 - Changes you made to what the role Teacher holds, and permissions you granted to single

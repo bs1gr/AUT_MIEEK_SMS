@@ -1,10 +1,12 @@
 /**
  * What Utils > Export > Session Export/Import shows to an account the server refuses.
  *
- * Every request of the panel asks for a permission only an administrator holds. A teacher who
- * opened the section got a red message that was the name of a missing text
+ * Every request of the panel asks for one permission (sessions:manage). An account that did
+ * not hold it and opened the section got a red message that was the name of a missing text
  * ("failedToLoadSemesters"), the line "No semesters found in the system", which was not true,
- * and an import form whose every button the server would refuse (found on 18 November 2026).
+ * and an import form whose every button the server would refuse (found on 18 November 2026,
+ * when a teacher was such an account). Teachers hold the permission since 19 November 2026;
+ * an account without a role is refused as before.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';

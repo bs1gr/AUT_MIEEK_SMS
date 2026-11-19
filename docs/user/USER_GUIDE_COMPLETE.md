@@ -342,8 +342,8 @@ Six tabs.
   Enrollments, each with **Choose format**; and **Print Calendar**. The file's name carries
   the date and time.
 - *Session Export/Import:* everything of one semester in a file, and reading such a file
-  back. For administrators only: to a teacher the panel says that the account may not use
-  it.
+  back. For administrators and teachers; to an account without a role the panel says that
+  the account may not use it.
 - *Reports & Templates:* ways into the Reports tab.
 
 **Imports.** For administrators and teachers: students or courses from CSV or JSON files.
@@ -416,7 +416,7 @@ Utils > Export instead.
 | Account | In short |
 |---|---|
 | Administrator | Everything |
-| Teacher | Students, courses, enrolments, attendance, the lesson log, grades, reports, exports, imports of students and courses, messages to all users. Not accounts, a semester's session file, backups. |
+| Teacher | Students, courses, enrolments, attendance, the lesson log, grades, reports, exports, imports of students and courses, a semester's session file, messages to all users. Not accounts, backups. |
 | No role | Sign in. No page of records opens. An administrator took the account's roles away, or it was a Student, Viewer or Guest account before those three went (18 November 2026). |
 
 Students have no accounts: a student is a record the teachers keep, not somebody who signs in.

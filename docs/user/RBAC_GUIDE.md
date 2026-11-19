@@ -37,7 +37,7 @@ for production. The earlier text is in the repository's history. This is the mod
 | Send a message to all users or to a role; the feedback inbox | yes | yes | no |
 | Own notifications, saved searches, own dashboards, own password | yes | yes | yes |
 | Report templates: create, change, delete, import | yes | no | no |
-| Session export and import | yes | no | no |
+| Session export and import (**Utils** > **Export**) | yes | yes | no |
 | Accounts, roles and permissions, the **Audit Log** | yes | no | no |
 | Backup, restore and clear the database, the semester archive, e-mail settings, rate limits | yes | no | no |
 | A student's data export and erasure, the health field | yes | no | no |

@@ -3,7 +3,8 @@
 The owner's decisions of 18 November 2026:
 
 - teachers import students and courses from a file, as administrators do (a semester's
-  session file stays with the administrator);
+  session file stayed with the administrator that day; teachers have it since 19 November,
+  see test_teachers_session_file.py);
 - "Student" is not a role an account can have: nothing ever tied a student record to an
   account, so such an account could sign in and do nothing;
 - the roles Viewer and Guest go;
@@ -125,10 +126,15 @@ def test_what_the_two_roles_hold_in_a_new_database(db):
     teacher, admin = _held_by(db, "teacher"), _held_by(db, "admin")
 
     assert teacher == set(TEACHER_PERMISSIONS)
-    assert len(teacher) == 25
+    assert len(teacher) == 26
     assert TEACHER_IMPORTS <= teacher
+    # A semester's session file, since 19 November 2026.
+    assert "sessions:manage" in teacher
     # The administration stays with the administrator.
-    assert teacher & {"*:*", "users:manage", "permissions:manage", "audit:view", "sessions:manage", "jobs:create"} == set()
+    assert (
+        teacher & {"*:*", "users:manage", "permissions:manage", "audit:view", "adminops:restore", "jobs:create"}
+        == set()
+    )
     assert admin == teacher | {"*:*"}
 
 
@@ -139,7 +145,7 @@ def test_the_seed_can_run_again_and_adds_nothing(db):
     _seed_defaults(db)
 
     assert [db.query(model).count() for model in (models.Role, models.Permission, models.RolePermission)] == counts
-    assert counts == [2, 44, 51]
+    assert counts == [2, 44, 53]
 
 
 # --- the step at every start --------------------------------------------------------------------
@@ -360,7 +366,9 @@ def test_what_stays_with_the_administrator(client, db, strict_auth) -> None:
     admin = _headers(db, "head@example.com", "admin")
 
     answers = {
-        "a semester's session": client.get("/api/v1/sessions/semesters", headers=teacher).status_code,
+        "returning the database to a backup": client.post(
+            "/api/v1/sessions/rollback", params={"backup_filename": "no_such_backup.db"}, headers=teacher
+        ).status_code,
         "starting a job by hand": client.post(
             "/api/v1/jobs/", json={"job_type": "data_cleanup", "parameters": {}}, headers=teacher
         ).status_code,
@@ -371,7 +379,7 @@ def test_what_stays_with_the_administrator(client, db, strict_auth) -> None:
     }
 
     assert answers == dict.fromkeys(answers, 403)
-    assert client.get("/api/v1/sessions/semesters", headers=admin).status_code == 200
+    assert client.get("/api/v1/admin/users", headers=admin).status_code == 200
 
 
 def test_an_account_without_a_role_imports_nothing(school: tuple[TestClient, Headers]) -> None:  # noqa: F811
@@ -420,9 +428,7 @@ OLD_TEACHER = OLD_VIEWER | {
     "system:import",
     "system:export",
 }
-OLD_PERMISSIONS = (
-    OLD_TEACHER | UNUSED | {"*:*", "imports:preview", "imports:execute", "audit:view", "users:manage"}
-)
+OLD_PERMISSIONS = OLD_TEACHER | UNUSED | {"*:*", "imports:preview", "imports:execute", "audit:view", "users:manage"}
 
 
 @pytest.fixture
@@ -443,7 +449,9 @@ def old_database(tmp_path):
 def _fill_as_the_version_before(engine) -> dict[str, int]:
     """Roles, permissions, grants and one account of every kind. Returns the accounts' numbers."""
     with sessionmaker(bind=engine)() as db:
-        roles = {name: models.Role(name=name, description=name.title()) for name in ("admin", "teacher", "viewer", "guest")}
+        roles = {
+            name: models.Role(name=name, description=name.title()) for name in ("admin", "teacher", "viewer", "guest")
+        }
         permissions = {
             key: models.Permission(key=key, resource=key.split(":")[0], action=key.split(":")[1], is_active=True)
             for key in sorted(OLD_PERMISSIONS)

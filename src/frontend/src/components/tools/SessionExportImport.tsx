@@ -28,7 +28,8 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
   } = useSessionExportImport({ t, showToast });
 
   // The server refuses the whole panel to this account (export, validation and import ask for
-  // the same permission): say so, and do not offer forms that can only be refused.
+  // the same permission, which administrators and teachers hold): say so, and do not offer
+  // forms that can only be refused.
   if (semesterLoadError === 'refused') {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">

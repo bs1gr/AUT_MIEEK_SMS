@@ -595,13 +595,17 @@ TEACHER_PERMISSIONS: tuple[str, ...] = (
     "exports:generate",
     "exports:download",
     # Importing students and courses from a file (the owner, 18 November 2026: "both teachers
-    # and admins"). A semester's session file stays with the administrator (sessions:manage).
+    # and admins").
     "imports:preview",
     "imports:execute",
     "imports:create",
     "imports:view",
     # The Imports tab follows an import it started through GET /jobs/{id}.
     "jobs:view",
+    # A semester's session file: export, import, the backups made before an import and the
+    # return to one. With the administrator alone until 19 November 2026, when the owner asked
+    # for teachers to have it too (migration 9c41f7e2a6d3 grants it in an existing database).
+    "sessions:manage",
 )
 
 

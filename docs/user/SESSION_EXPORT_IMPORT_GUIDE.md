@@ -3,8 +3,11 @@
 **Checked against the application:** 18 November 2026, `main` after v1.18.73.
 
 The earlier text of this guide sent the reader to "Operations > Export Center", gave a file
-name the page does not produce, and did not say that the feature is for administrators only.
-This text corrects that. The earlier text is in the repository's history.
+name the page does not produce, and did not say who may use the feature. This text corrects
+that. The earlier text is in the repository's history.
+
+**Changed on 19 November 2026** (read from the code and its tests, not tried on a page):
+teachers may use the feature too, and a grade is recognised with its category.
 
 ## What it is
 
@@ -18,10 +21,11 @@ here or in another installation. It is useful for:
 
 ## Who may use it
 
-Administrators only. To any other account the panel says: "Your account may not export or
-import a session. Ask an administrator." (Teachers do not have the permission, as the user
-guide says: [USER_GUIDE_COMPLETE.md](USER_GUIDE_COMPLETE.md), sections 11 and 14.) A file
-made by an administrator can be read only by an administrator.
+Administrators and teachers (teachers since 19 November 2026). To an account without a role
+the panel says: "Your account may not export or import a session. Ask an administrator."
+Students' health information is the administrator's alone: a teacher's export never holds
+it, and a file imported by a teacher is imported without it, so that what is stored stays as
+it is.
 
 ## Where it is
 
@@ -102,9 +106,13 @@ Read from the code. Records that were deleted are never matched.
 - A student by the student ID, compared letter for letter: `S001` and `s001` are two
   students.
 - An enrolment by the student and the course.
-- A grade by the student, the course and the assignment name. The category is not part of the
-  match: two grades of one student in one course with the same assignment name, in two
-  categories, are one record to the import. This was not tried.
+- A grade by the student, the course, the assignment name and the category. The same
+  assignment in two categories is two grades, and each row of the file finds its own; a grade
+  without a category is matched with one without. (Until 19 November 2026 the category was
+  not part of the match, and the second of two such grades overwrote the first.) Two grades
+  of the same name and category on two dates are still one record to the import. A category
+  renamed since the file was made is a new grade to the import: it adds one and leaves the
+  old one.
 
 ### If the import stops
 
@@ -129,7 +137,8 @@ Read from the code, for a SQLite database: the copy is a file
 `pre_import_backup_<semester>_<date>_<time>.db` in the application's backups folder, made
 before anything is changed. If the copy cannot be made, the import goes on without it. The
 server has routes to list such copies and to go back to one (`/api/v1/sessions/backups` and
-`/api/v1/sessions/rollback`); no page uses them, and going back works only for SQLite.
+`/api/v1/sessions/rollback`); no page uses them, and going back works only for SQLite and
+only for an administrator (it asks for `adminops:restore`).
 
 ## Examples
 
@@ -159,4 +168,5 @@ import reads the parts in this order: courses, students, enrolments, grades, att
 daily performance, highlights, lesson logs.
 
 The source is `src/backend/routers/routers_sessions.py`. The permission is `sessions:manage`;
-only the administrator role has it ([PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md)).
+the roles administrator and teacher have it
+([PERMISSION_MATRIX.md](../admin/PERMISSION_MATRIX.md)).

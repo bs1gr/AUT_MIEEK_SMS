@@ -18,7 +18,7 @@ out, so the findings no longer applied. The earlier text is in the repository's 
 | The review found (8 January 2026) | Today |
 |---|---|
 | No endpoint uses `@require_permission`; 148 endpoints use `optional_require_role` | `@require_permission` is used 215 times in 26 router files. `optional_require_role` is used 21 times in 5 router files, for the checks that ask for the role `admin` (or `admin` and `teacher`), which a grant cannot open. The application has 344 endpoints (see [PERMISSION_MATRIX.md](PERMISSION_MATRIX.md)) |
-| The permission and role tables are empty; seed them with a script | A start seeds them when they are missing: two roles, 44 permissions, 51 grants. There is no seed script; the button is **Initialize RBAC Defaults** |
+| The permission and role tables are empty; seed them with a script | A start seeds them when they are missing: two roles, 44 permissions, 53 grants. There is no seed script; the button is **Initialize RBAC Defaults** |
 | Permissions come from three sources: grants to the account, roles, and the legacy rule "the word `admin` in the Role column holds everything" | Two sources, and the wildcard: grants to the account and the grants of its roles; `*:*` covers everything. The Role column no longer grants anything |
 | Roles admin, teacher, viewer; students reach their own data through self-access | Two roles, and "No role" for an account that holds neither. Students have no accounts. The self-access rule is still in `rbac.py`, on nine endpoints, and opens nothing |
 | `has_permission` uses raw SQL for role permissions | It uses the ORM. Raw SQL is left in `get_user_permissions` and in the grant, revoke and lookup requests of `routers_permissions.py` |

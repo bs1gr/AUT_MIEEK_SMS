@@ -20,7 +20,7 @@ earlier text is in the repository's history.
 |---|---|---|
 | Download lists of records | Utils > **Export** > Export Center | administrators and teachers |
 | Add students or courses from files | Utils > **Imports** | administrators and teachers |
-| Move one whole semester | Utils > **Export** > Session Export/Import | administrators |
+| Move one whole semester | Utils > **Export** > Session Export/Import | administrators and teachers |
 
 These were tried in a running copy and are described in
 [USER_GUIDE_COMPLETE.md](../user/USER_GUIDE_COMPLETE.md), section 11.
