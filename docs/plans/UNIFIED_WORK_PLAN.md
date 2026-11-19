@@ -3000,6 +3000,14 @@ Where the list left a choice open, the entry says which one the assistant took.
    measurement of stage 1; it stops at the first router whose tests fail for a reason that is
    not understood.
 
+**Steps 3 to 6 done, 2026-11-19/20:** step 3 as above; step 4 in PR 442 (`e7e730e8a`); step 5
+in PR 443 (`c44f0df40`), as one PR for the four routers rather than one per router; step 6 in
+PR 445 (`3750dc1bf`), as one rule applied by a script in one PR rather than 35 (the entry says
+why). Step 6's first suite run found that the rate-limit guard had never looked at `async def`
+endpoints; PR 444 (`190936bf7`) gave those 51 write endpoints their limit first. All four
+are under "On `main` since v1.18.75" and are unreleased. **Waiting for the owner's word:** a
+v1.18.76 release with them, the cloud VM update (it runs v1.18.74), and todo 52 stage 3.
+
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
     calls, the `require_permission` wrapper is `async` and calls the sync endpoints inline, and
