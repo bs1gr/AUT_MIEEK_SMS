@@ -1,165 +1,159 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { downloadBlob } from '@/utils/downloadFile';
+import { importExportApi, type ExportJob, type ImportJob } from '@/api/importExportApi';
 
 export type HistoryTableProps = Record<string, unknown>;
 
-interface ImportExportRecord {
-  id: string;
-  operation_type: 'import' | 'export';
-  entity_type: 'students' | 'courses' | 'grades';
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  record_count: number;
-  created_at: string;
-  created_by: string;
-  error_message?: string;
-  file_url?: string;
+interface Row {
+  key: string;
+  operation: 'import' | 'export';
+  kind: string;
+  file: string;
+  status: string;
+  records: number | null;
+  createdAt: string;
+  exportJob?: ExportJob;
 }
 
+const KIND_LABELS: Record<string, string> = {
+  students: 'ieKindStudents',
+  courses: 'ieKindCourses',
+  grades: 'ieKindGrades',
+  attendance: 'ieKindAttendance',
+};
+
+const STATUS_COLOURS: Record<string, string> = {
+  completed: 'bg-green-100 text-green-800',
+  ready: 'bg-blue-100 text-blue-800',
+  processing: 'bg-blue-100 text-blue-800',
+  importing: 'bg-blue-100 text-blue-800',
+  validating: 'bg-blue-100 text-blue-800',
+  invalid: 'bg-amber-100 text-amber-900',
+  failed: 'bg-red-100 text-red-800',
+};
+
+const statusKey = (status: string) => `ieStatus${status.charAt(0).toUpperCase()}${status.slice(1)}`;
+
+const importRow = (job: ImportJob): Row => ({
+  key: `import-${job.id}`,
+  operation: 'import',
+  kind: job.import_type,
+  file: job.file_name,
+  status: job.status,
+  records: job.total_rows ?? null,
+  createdAt: job.created_at,
+});
+
+const exportRow = (job: ExportJob): Row => ({
+  key: `export-${job.id}`,
+  operation: 'export',
+  kind: job.export_type,
+  file: (job.file_format || '').toUpperCase(),
+  status: job.status,
+  records: job.total_records ?? null,
+  createdAt: job.created_at,
+  exportJob: job,
+});
+
+/**
+ * The import and export jobs of the panel, the newest first, with the file of a finished
+ * export to download.
+ *
+ * It used to ask for the audit history, without a sign-in token (refused), and to show
+ * columns that history does not have (a state, a number of records, a file).
+ */
 export const HistoryTable: React.FC = () => {
   const { t } = useTranslation();
-  const [history, setHistory] = useState<ImportExportRecord[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
-
-  const fetchHistory = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/v1/import-export/history');
-      if (!response.ok) {
-        throw new Error('Failed to fetch history');
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [imports, exports] = await Promise.all([importExportApi.listImportJobs(), importExportApi.listExportJobs()]);
+        if (cancelled) return;
+        const merged = [...imports.map(importRow), ...exports.map(exportRow)];
+        merged.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
+        setRows(merged);
+      } catch {
+        if (cancelled) return;
+        setError(t('ieListFailed', { ns: 'export' }));
+        setRows([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      const data = await response.json();
-      const historyData = data.data?.history || data.history || [];
-      setHistory(Array.isArray(historyData) ? historyData : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-      setHistory([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [t]);
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'processing':
-        return 'bg-blue-100 text-blue-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getOperationLabel = (type: string) => {
-    return type === 'import' ? t('import', { ns: 'export' }) : t('export', { ns: 'export' });
-  };
-
-  const formatDate = (dateString: string) => {
+  const download = async (job: ExportJob) => {
     try {
-      return new Date(dateString).toLocaleString();
+      const blob = await importExportApi.downloadExport(job.id);
+      await downloadBlob(blob, `${job.export_type}-export.${job.file_format}`);
     } catch {
-      return dateString;
+      setError(t('ieExportFailed', { ns: 'export' }));
     }
+  };
+
+  const formatDate = (value: string) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-8">
-        <div className="text-gray-500">{t('loading', { ns: 'common' })}</div>
-      </div>
-    );
+    return (<div className="flex items-center justify-center py-12"><div className="text-gray-500">{t('loading', { ns: 'common' })}</div></div>);
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-800">{t('error', { ns: 'common' })}: {error}</p>
-      </div>
-    );
+    return (<div className="bg-red-50 border border-red-200 rounded-md p-4" role="alert"><p className="text-red-800">{error}</p></div>);
   }
 
-  if (history.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">{t('noData', { ns: 'common' })}</p>
-      </div>
-    );
+  if (rows.length === 0) {
+    return (<div className="text-center py-12"><p className="text-gray-500">{t('noData', { ns: 'common' })}</p></div>);
   }
+
+  const head = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+  const cell = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
 
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('type', { ns: 'export' })}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('entity', { ns: 'export' })}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('status', { ns: 'common' })}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('records', { ns: 'export' })}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('date', { ns: 'common' })}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('user', { ns: 'common' })}
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {t('actions', { ns: 'common' })}
-            </th>
+            <th scope="col" className={head}>{t('type', { ns: 'export' })}</th>
+            <th scope="col" className={head}>{t('entity', { ns: 'export' })}</th>
+            <th scope="col" className={head}>{t('ieFile', { ns: 'export' })}</th>
+            <th scope="col" className={head}>{t('status', { ns: 'common' })}</th>
+            <th scope="col" className={head}>{t('records', { ns: 'export' })}</th>
+            <th scope="col" className={head}>{t('date', { ns: 'common' })}</th>
+            <th scope="col" className={head}>{t('actions', { ns: 'common' })}</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {history.map((record) => (
-            <tr key={record.id} className="hover:bg-gray-50">
+          {rows.map((row) => (
+            <tr key={row.key} className="hover:bg-gray-50">
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {getOperationLabel(record.operation_type)}
+                {t(row.operation, { ns: 'export' })}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {record.entity_type}
-              </td>
+              <td className={cell}>{KIND_LABELS[row.kind] ? t(KIND_LABELS[row.kind], { ns: 'export' }) : row.kind}</td>
+              <td className={cell}>{row.file}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(record.status)}`}>
-                  {record.status}
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${STATUS_COLOURS[row.status] ?? 'bg-gray-100 text-gray-800'}`}>
+                  {t(statusKey(row.status), { ns: 'export', defaultValue: row.status })}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {record.record_count}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDate(record.created_at)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {record.created_by}
-              </td>
+              <td className={cell}>{row.records ?? ''}</td>
+              <td className={cell}>{formatDate(row.createdAt)}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm">
-                {record.status === 'completed' && record.file_url && (
-                  <a
-                    href={record.file_url}
-                    download
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
+                {row.exportJob && row.status === 'completed' && (
+                  <button type="button" onClick={() => download(row.exportJob as ExportJob)} className="text-blue-600 hover:text-blue-800">
                     {t('download', { ns: 'common' })}
-                  </a>
-                )}
-                {record.status === 'failed' && record.error_message && (
-                  <button
-                    className="text-red-600 hover:text-red-800 font-medium"
-                    title={record.error_message}
-                  >
-                    {t('viewError', { ns: 'export' })}
                   </button>
                 )}
               </td>

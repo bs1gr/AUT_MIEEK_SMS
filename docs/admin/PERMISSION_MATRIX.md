@@ -64,8 +64,9 @@ Two rows deserve a second look:
   whole database to one of those backups (`POST /api/v1/sessions/rollback`) asks for
   `adminops:restore` and stays with the administrator, and a file imported by a teacher is
   imported without students' health information.
-- **The export jobs of Control Panel > Import/Export** are a separate, partly broken feature
-  (plan todo 62) and are not in the table.
+- **The export jobs of Control Panel > Import/Export** are a second way to export, beside
+  Utils > Export. They work since v1.18.74 (plan todo 62): see
+  [IMPORT_EXPORT_GUIDE.md](IMPORT_EXPORT_GUIDE.md).
 
 ## What the pages show
 
@@ -424,9 +425,9 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 | Request | Asks for |
 |---|---|
-| `GET /api/v1/import-export/exports` | `exports:view` |
+| `GET /api/v1/import-export/exports` | `exports:view` or `exports:generate` |
 | `POST /api/v1/import-export/exports` | `exports:generate` |
-| `GET /api/v1/import-export/exports/{export_job_id}` | `exports:view` |
+| `GET /api/v1/import-export/exports/{export_job_id}` | `exports:view` or `exports:generate` |
 | `GET /api/v1/import-export/exports/{export_job_id}/download` | `exports:download` |
 | `GET /api/v1/import-export/history` | `audit:view` |
 | `GET /api/v1/import-export/imports` | `imports:view` |

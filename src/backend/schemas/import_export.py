@@ -10,7 +10,7 @@ Defines request/response models for:
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ========== IMPORT JOB SCHEMAS ==========
@@ -84,8 +84,18 @@ class ImportJobRollbackRequest(BaseModel):
 class ExportJobCreate(BaseModel):
     """Request to create a new export job."""
 
-    export_type: str = Field(..., pattern="^(students|courses|grades|attendance|dashboard)$")
+    # "dashboard" was accepted until November 2026; nothing ever wrote such a file, and the job
+    # stayed "processing" for ever.
+    export_type: str = Field(..., pattern="^(students|courses|grades|attendance)$")
     file_format: str = Field(..., pattern="^(csv|xlsx|pdf)$")
+
+    @field_validator("file_format", mode="before")
+    @classmethod
+    def _excel_is_xlsx(cls, value: Any) -> Any:
+        """The page's dialog said "excel" for an Excel file, and was refused."""
+        if isinstance(value, str) and value.strip().lower() == "excel":
+            return "xlsx"
+        return value.strip().lower() if isinstance(value, str) else value
     filters: Optional[dict[str, Any]] = Field(None, description="Optional filtering criteria")
     scheduled: bool = False
     schedule_frequency: Optional[str] = Field(None, pattern="^(daily|weekly|monthly)$")

@@ -4,6 +4,14 @@
 **Last Updated**: February 1, 2026
 **Status**: Production Ready
 
+> **Note of 19 November 2026.** This reference was written in February 2026 for a design
+> that was built in part. Of what it lists, the application has `POST /exports`,
+> `GET /exports`, `GET /exports/{id}` and `GET /exports/{id}/download`. It has no
+> schedules, no metrics, no settings and no `DELETE` of a job. The format of a job is
+> `file_format` in the request's body (xlsx, csv, pdf), not `export_format` in the address.
+> What the application does is in
+> [IMPORT_EXPORT_GUIDE.md](../admin/IMPORT_EXPORT_GUIDE.md).
+
 This document provides complete API reference for the export system, including all endpoints for job management, scheduling, performance monitoring, and configuration.
 
 ---
