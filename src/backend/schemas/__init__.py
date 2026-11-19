@@ -223,6 +223,7 @@ from .response import APIResponse as APIResponse
 from .response import ErrorDetail as ErrorDetail
 from .response import PaginatedData as PaginatedData
 from .response import ResponseMeta as ResponseMeta
+from .response import error_json as error_json
 from .response import error_response as error_response
 from .response import paginated_response as paginated_response
 from .response import success_response as success_response

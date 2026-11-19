@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from backend.dependencies import get_db
 from backend.security.current_user import get_current_user, require_auth_even_if_disabled
 from backend.routers.routers_auth import optional_require_role
-from backend.schemas.response import APIResponse, error_response, success_response
+from backend.schemas.response import APIResponse, error_json, success_response
 from backend.schemas.custom_reports import (
     BulkReportGenerationRequest,
     BulkReportGenerationResponse,
@@ -93,7 +93,7 @@ async def create_report_template(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error creating report template: {str(e)}")
-        return error_response(
+        return error_json(
             code="CREATE_ERROR",
             message="Failed to create report template",
             request_id=request.state.request_id,
@@ -126,7 +126,7 @@ async def list_report_templates(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error listing report templates: {str(e)}")
-        return error_response(
+        return error_json(
             code="LIST_ERROR",
             message="Failed to list report templates",
             request_id=request.state.request_id,
@@ -148,7 +148,7 @@ async def get_report_template(
         service = CustomReportService(db)
         template = service.get_template(template_id)
         if not template:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Template not found",
                 request_id=request.state.request_id,
@@ -157,7 +157,7 @@ async def get_report_template(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting report template {template_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="GET_ERROR",
             message="Failed to get report template",
             request_id=request.state.request_id,
@@ -180,7 +180,7 @@ async def update_report_template(
         service = CustomReportService(db)
         template = service.update_template(template_id, body)
         if not template:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Template not found",
                 request_id=request.state.request_id,
@@ -189,7 +189,7 @@ async def update_report_template(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error updating report template {template_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to update report template",
             request_id=request.state.request_id,
@@ -212,7 +212,7 @@ async def delete_report_template(
         service = CustomReportService(db)
         success = service.delete_template(template_id, hard_delete=hard_delete)
         if not success:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Template not found",
                 request_id=request.state.request_id,
@@ -223,7 +223,7 @@ async def delete_report_template(
         )
     except Exception as e:
         logger.error(f"Error deleting report template {template_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="DELETE_ERROR",
             message="Failed to delete report template",
             request_id=request.state.request_id,
@@ -250,7 +250,7 @@ async def import_default_templates(
         )
     except Exception as e:
         logger.error(f"Error importing default templates: {str(e)}")
-        return error_response(
+        return error_json(
             code="IMPORT_ERROR",
             message="Failed to import default templates",
             request_id=request.state.request_id,
@@ -281,7 +281,7 @@ async def create_custom_report(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error creating custom report: {str(e)}")
-        return error_response(
+        return error_json(
             code="CREATE_ERROR",
             message="Failed to create report",
             request_id=request.state.request_id,
@@ -314,7 +314,7 @@ async def list_custom_reports(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error listing custom reports: {str(e)}")
-        return error_response(
+        return error_json(
             code="LIST_ERROR",
             message="Failed to list reports",
             request_id=request.state.request_id,
@@ -339,7 +339,7 @@ async def get_report_statistics(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting report statistics: {str(e)}")
-        return error_response(
+        return error_json(
             code="STATS_ERROR",
             message="Failed to get report statistics",
             request_id=request.state.request_id,
@@ -362,7 +362,7 @@ async def get_custom_report(
         service = CustomReportService(db)
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to access this report",
                 request_id=request.state.request_id,
@@ -371,7 +371,7 @@ async def get_custom_report(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting custom report {report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="GET_ERROR",
             message="Failed to get report",
             request_id=request.state.request_id,
@@ -395,7 +395,7 @@ async def update_custom_report(
         service = CustomReportService(db)
         report = service.update_report(report_id, current_user.id, body)
         if not report:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to update this report",
                 request_id=request.state.request_id,
@@ -404,7 +404,7 @@ async def update_custom_report(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error updating custom report {report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to update report",
             request_id=request.state.request_id,
@@ -428,7 +428,7 @@ async def delete_custom_report(
         service = CustomReportService(db)
         success = service.delete_report(report_id, current_user.id, hard_delete=hard_delete)
         if not success:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to delete this report",
                 request_id=request.state.request_id,
@@ -439,7 +439,7 @@ async def delete_custom_report(
         )
     except Exception as e:
         logger.error(f"Error deleting custom report {report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="DELETE_ERROR",
             message="Failed to delete report",
             request_id=request.state.request_id,
@@ -469,7 +469,7 @@ async def generate_report(
         service = CustomReportService(db)
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to generate this report",
                 request_id=request.state.request_id,
@@ -516,7 +516,7 @@ async def generate_report(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error generating report {report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="GENERATE_ERROR",
             message="Failed to generate report",
             request_id=request.state.request_id,
@@ -544,7 +544,7 @@ async def list_generated_reports(
         service = CustomReportService(db)
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to access this report",
                 request_id=request.state.request_id,
@@ -560,7 +560,7 @@ async def list_generated_reports(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error listing generated reports {report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="LIST_ERROR",
             message="Failed to list generated reports",
             request_id=request.state.request_id,
@@ -585,7 +585,7 @@ async def update_generated_report(
         service = CustomReportService(db)
         updated = service.update_generated_report(report_id, generated_report_id, current_user.id, body)
         if not updated:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to update this report instance",
                 request_id=request.state.request_id,
@@ -594,7 +594,7 @@ async def update_generated_report(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error updating generated report {generated_report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to update generated report",
             request_id=request.state.request_id,
@@ -621,7 +621,7 @@ async def delete_generated_report(
         # Check if user owns this report
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Report not found",
                 request_id=request.state.request_id,
@@ -630,7 +630,7 @@ async def delete_generated_report(
         # Delete generated report
         success = service.delete_generated_report(report_id, generated_report_id, current_user.id)
         if not success:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Generated report not found",
                 request_id=request.state.request_id,
@@ -642,7 +642,7 @@ async def delete_generated_report(
         )
     except Exception as e:
         logger.error(f"Error deleting generated report {generated_report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="DELETE_ERROR",
             message="Failed to delete generated report",
             request_id=request.state.request_id,
@@ -670,7 +670,7 @@ async def download_generated_report(
         # Verify the user has permission to download this report
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Report not found",
                 request_id=request.state.request_id,
@@ -679,7 +679,7 @@ async def download_generated_report(
         # Get the generated report
         generated = service.get_generated_report(report_id, generated_report_id, current_user.id)
         if not generated:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Generated report not found",
                 request_id=request.state.request_id,
@@ -687,7 +687,7 @@ async def download_generated_report(
 
         # Check if file exists
         if not generated.file_path or not os.path.exists(generated.file_path):
-            return error_response(
+            return error_json(
                 code="FILE_NOT_FOUND",
                 message="Report file no longer exists",
                 request_id=request.state.request_id,
@@ -731,7 +731,7 @@ async def download_generated_report(
         return response
     except Exception as e:
         logger.error(f"Error downloading generated report {generated_report_id}: {str(e)}")
-        return error_response(
+        return error_json(
             code="DOWNLOAD_ERROR",
             message="Failed to download report",
             request_id=request.state.request_id,
@@ -798,7 +798,7 @@ async def bulk_generate_reports(
         return success_response(response.model_dump(), request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error bulk generating reports: {str(e)}")
-        return error_response(
+        return error_json(
             code="BULK_ERROR",
             message="Failed to generate reports",
             request_id=request.state.request_id,

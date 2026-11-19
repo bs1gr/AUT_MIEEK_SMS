@@ -367,6 +367,26 @@ describe('useSearch Hook', () => {
     expect(result.current.searchResults).toEqual([]);
   });
 
+  it('keeps the server\'s message when a search is refused with an HTTP error status', async () => {
+    // What the endpoint sends since v1.18.75: status 422 (or 500) and the same envelope.
+    mockApiClient.post.mockRejectedValue({
+      message: 'Request failed with status code 422',
+      response: {
+        status: 422,
+        data: { success: false, data: null, error: { code: 'INVALID_SORT', message: "Cannot sort courses by 'email'" } },
+      },
+    });
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setSearchQuery('John');
+    });
+
+    await waitFor(() => expect(result.current.error).toBeInstanceOf(Error));
+    expect((result.current.error as Error).message).toBe("Cannot sort courses by 'email'");
+    expect(result.current.searchResults).toEqual([]);
+  });
+
   it('goes back to the default order when the new kind of record does not have the current one', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 

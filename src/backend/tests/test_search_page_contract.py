@@ -33,9 +33,10 @@ def _student(db: Session, first: str, last: str, number: str, **extra) -> Studen
     return student
 
 
-def _search(client, headers, body: dict, address: str = "") -> dict:
+def _search(client, headers, body: dict, address: str = "", *, status: int = 200) -> dict:
+    """The answer of a search; `status` is the HTTP status it must have (a refusal is not a 200)."""
     response = client.post(ENDPOINT + address, json=body, headers=headers)
-    assert response.status_code == 200, response.text
+    assert response.status_code == status, response.text
     return response.json()
 
 
@@ -101,7 +102,7 @@ class TestPaging:
 
     @pytest.mark.parametrize("field,value", [("page_size", 0), ("page_size", 101), ("page_size", "ten"), ("page", -1)])
     def test_paging_that_cannot_be_is_refused(self, client, admin_headers, twelve_students, field, value):
-        payload = _search(client, admin_headers, {"entity": "students", "query": "Zzfamily", field: value})
+        payload = _search(client, admin_headers, {"entity": "students", "query": "Zzfamily", field: value}, status=422)
 
         assert payload["success"] is False
         assert payload["error"]["code"] == "INVALID_PAGINATION"
@@ -228,7 +229,7 @@ class TestOrder:
     def test_an_order_that_does_not_exist_is_refused_not_ignored(
         self, client, admin_headers, four_students, entity, sort
     ):
-        payload = _search(client, admin_headers, {"entity": entity, "query": "o", "sort": sort})
+        payload = _search(client, admin_headers, {"entity": entity, "query": "o", "sort": sort}, status=422)
 
         assert payload["success"] is False
         assert payload["error"]["code"] == "INVALID_SORT"
@@ -266,7 +267,9 @@ class TestFilters:
 
     def test_a_filter_value_that_means_nothing_is_refused(self, client, admin_headers, mixed_students):
         for filters in ({"status": "graduated"}, {"enrollment_type": "year_two"}, {"enrollment_year": "soon"}):
-            payload = _search(client, admin_headers, {"entity": "students", "query": "Filter", "filters": filters})
+            payload = _search(
+                client, admin_headers, {"entity": "students", "query": "Filter", "filters": filters}, status=422
+            )
             assert payload["success"] is False, filters
             assert payload["error"]["code"] == "INVALID_FILTER", filters
 
@@ -521,7 +524,7 @@ class TestTheServiceItself:
             raise RuntimeError("the database went away")
 
         monkeypatch.setattr(SearchService, "advanced_search_page", broken)
-        payload = _search(client, admin_headers, {"entity": "students", "query": "anything"})
+        payload = _search(client, admin_headers, {"entity": "students", "query": "anything"}, status=500)
 
         assert payload["success"] is False
         assert payload["error"]["code"] == "SEARCH_ERROR"

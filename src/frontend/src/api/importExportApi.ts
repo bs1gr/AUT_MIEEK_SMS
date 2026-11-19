@@ -54,39 +54,64 @@ const unwrap = <T,>(body: unknown): T => {
   return body as T;
 };
 
+/**
+ * A request the server could not serve is answered with a status of 400 or more and the
+ * server's own message in `error.message` of the body (a download's body is a Blob). The
+ * wizard and the dialogs show `Error.message`, so they get that text and not axios's
+ * "Request failed with status code 422".
+ */
+export const asServerError = async (err: unknown): Promise<never> => {
+  let body = (err as { response?: { data?: unknown } } | null)?.response?.data;
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    try {
+      body = JSON.parse(await body.text());
+    } catch {
+      body = undefined;
+    }
+  }
+  const message = (body as { error?: { message?: unknown } } | null | undefined)?.error?.message;
+  throw typeof message === 'string' && message ? new Error(message) : err;
+};
+
+const send = <T,>(request: Promise<{ data: T }>): Promise<{ data: T }> => request.catch(asServerError);
+
 const BASE = '/import-export';
 
 export const importExportApi = {
   uploadImportFile: async (kind: ImportKind, file: File): Promise<ImportJob> => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await apiClient.post(`${BASE}/imports/${kind}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await send(
+      apiClient.post(`${BASE}/imports/${kind}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+    );
     return unwrap<ImportJob>(response.data);
   },
 
   getImportJob: async (id: number): Promise<ImportJob> =>
-    unwrap<ImportJob>((await apiClient.get(`${BASE}/imports/${id}`)).data),
+    unwrap<ImportJob>((await send(apiClient.get(`${BASE}/imports/${id}`))).data),
 
   commitImportJob: async (id: number): Promise<ImportJob> =>
-    unwrap<ImportJob>((await apiClient.post(`${BASE}/imports/${id}/commit`)).data),
+    unwrap<ImportJob>((await send(apiClient.post(`${BASE}/imports/${id}/commit`))).data),
 
   listImportJobs: async (limit = 20): Promise<ImportJob[]> =>
-    unwrap<{ jobs?: ImportJob[] }>((await apiClient.get(`${BASE}/imports`, { params: { limit } })).data).jobs ?? [],
+    unwrap<{ jobs?: ImportJob[] }>((await send(apiClient.get(`${BASE}/imports`, { params: { limit } }))).data).jobs ??
+    [],
 
   createExport: async (kind: ExportKind, format: ExportFormat): Promise<ExportJob> =>
-    unwrap<ExportJob>((await apiClient.post(`${BASE}/exports`, { export_type: kind, file_format: format })).data),
+    unwrap<ExportJob>(
+      (await send(apiClient.post(`${BASE}/exports`, { export_type: kind, file_format: format }))).data,
+    ),
 
   getExportJob: async (id: number): Promise<ExportJob> =>
-    unwrap<ExportJob>((await apiClient.get(`${BASE}/exports/${id}`)).data),
+    unwrap<ExportJob>((await send(apiClient.get(`${BASE}/exports/${id}`))).data),
 
   listExportJobs: async (limit = 20): Promise<ExportJob[]> =>
-    unwrap<{ exports?: ExportJob[] }>((await apiClient.get(`${BASE}/exports`, { params: { limit } })).data).exports ?? [],
+    unwrap<{ exports?: ExportJob[] }>((await send(apiClient.get(`${BASE}/exports`, { params: { limit } }))).data)
+      .exports ?? [],
 
   /** The file of a finished export job, as it was written. */
   downloadExport: async (id: number): Promise<Blob> =>
-    (await apiClient.get(`${BASE}/exports/${id}/download`, { responseType: 'blob' })).data as Blob,
+    (await send(apiClient.get(`${BASE}/exports/${id}/download`, { responseType: 'blob' }))).data as Blob,
 };
 
 /** Asks for a job again and again until `done` says so, or gives up after `tries`. */

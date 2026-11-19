@@ -173,7 +173,12 @@ export const useSearch = () => {
         };
       } catch (err) {
         console.error('Search failed:', err);
-        throw err;
+        // A refused or failed search arrives as an HTTP error status (400 or more) with the
+        // server's own message in the body; keep that message instead of the generic
+        // "Request failed with status code 422".
+        const serverMessage = (err as { response?: { data?: { error?: { message?: unknown } } } } | null)?.response
+          ?.data?.error?.message;
+        throw typeof serverMessage === 'string' && serverMessage ? new Error(serverMessage) : err;
       }
     },
     enabled: Boolean(debouncedQuery || filters.length > 0),

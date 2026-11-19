@@ -72,6 +72,7 @@ class TestCreateAndList:
         assert first.json()["success"] is True
 
         second = _create(client, name="Dup")
+        assert second.status_code == 409
         body = second.json()
         assert body["success"] is False
         assert body["error"]["code"] == "DUPLICATE_ERROR"
@@ -100,9 +101,13 @@ class TestGetUpdateDelete:
 
     def test_get_dashboard_not_found(self, client, dashboard_user):
         response = client.get("/api/v1/dashboards/999999")
+        assert response.status_code == 404
         body = response.json()
         assert body["success"] is False
         assert body["error"]["code"] == "NOT_FOUND"
+        # The body keeps the envelope the pages read their message from.
+        assert body["error"]["message"] == "Dashboard not found"
+        assert body["meta"]["request_id"]
 
     def test_get_other_users_dashboard_forbidden(self, client, db, dashboard_user, other_user):
         dashboard_id = _create(client).json()["data"]["id"]
@@ -113,6 +118,7 @@ class TestGetUpdateDelete:
         finally:
             client.app.dependency_overrides[get_current_user] = lambda: dashboard_user
 
+        assert response.status_code == 403
         body = response.json()
         assert body["success"] is False
         assert body["error"]["code"] == "FORBIDDEN"
@@ -134,6 +140,7 @@ class TestGetUpdateDelete:
         finally:
             client.app.dependency_overrides[get_current_user] = lambda: dashboard_user
 
+        assert response.status_code == 404
         assert response.json()["error"]["code"] == "NOT_FOUND"
 
     def test_delete_dashboard(self, client, dashboard_user):
@@ -142,6 +149,7 @@ class TestGetUpdateDelete:
         assert response.json()["success"] is True
 
         follow_up = client.get(f"/api/v1/dashboards/{dashboard_id}")
+        assert follow_up.status_code == 404
         assert follow_up.json()["error"]["code"] == "NOT_FOUND"
 
 

@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
 from backend.schemas.dashboards import CreateDashboardRequest
-from backend.schemas.response import APIResponse, error_response, success_response
+from backend.schemas.response import APIResponse, error_json, success_response
 from backend.security.current_user import get_current_user
 from backend.services.dashboard_service import DashboardService
 
@@ -68,7 +68,7 @@ async def list_dashboards(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error listing dashboards: {str(e)}")
-        return error_response(
+        return error_json(
             code="LIST_ERROR",
             message="Failed to list dashboards",
             request_id=request.state.request_id,
@@ -94,7 +94,7 @@ async def create_dashboard(
     """
     try:
         if not current_user:
-            return error_response(
+            return error_json(
                 code="UNAUTHORIZED",
                 message="User not authenticated",
                 request_id=request.state.request_id,
@@ -122,14 +122,14 @@ async def create_dashboard(
         return success_response(result, request_id=request.state.request_id)
     except ValueError as e:
         logger.warning(f"Validation error creating dashboard: {str(e)}")
-        return error_response(
+        return error_json(
             code="VALIDATION_ERROR",
             message=str(e),
             request_id=request.state.request_id,
         )
     except ValidationError as e:
         logger.warning(f"Pydantic validation error creating dashboard: {str(e)}")
-        return error_response(
+        return error_json(
             code="VALIDATION_ERROR",
             message="Invalid request format",
             details={"errors": [err["msg"] for err in e.errors()]},
@@ -138,14 +138,14 @@ async def create_dashboard(
     except IntegrityError as e:
         logger.warning(f"Dashboard name already exists for user: {str(e)}")
         db.rollback()
-        return error_response(
+        return error_json(
             code="DUPLICATE_ERROR",
             message="A dashboard with this name already exists",
             request_id=request.state.request_id,
         )
     except Exception as e:
         logger.error(f"Error creating dashboard: {type(e).__name__}: {str(e)}", exc_info=True)
-        return error_response(
+        return error_json(
             code="CREATE_ERROR",
             message="Failed to create dashboard",
             request_id=request.state.request_id,
@@ -169,7 +169,7 @@ async def get_dashboard(
         dashboard = service.get_dashboard(dashboard_id)
 
         if not dashboard:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Dashboard not found",
                 request_id=request.state.request_id,
@@ -177,7 +177,7 @@ async def get_dashboard(
 
         # Permission check: user can only access their own dashboards
         if dashboard.user_id != current_user.id:
-            return error_response(
+            return error_json(
                 code="FORBIDDEN",
                 message="You do not have permission to access this dashboard",
                 request_id=request.state.request_id,
@@ -195,7 +195,7 @@ async def get_dashboard(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting dashboard: {str(e)}")
-        return error_response(
+        return error_json(
             code="GET_ERROR",
             message="Failed to get dashboard",
             request_id=request.state.request_id,
@@ -226,7 +226,7 @@ async def update_dashboard(
         )
 
         if not dashboard:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Dashboard not found or you don't have permission to update it",
                 request_id=request.state.request_id,
@@ -244,7 +244,7 @@ async def update_dashboard(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error updating dashboard: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to update dashboard",
             request_id=request.state.request_id,
@@ -268,7 +268,7 @@ async def delete_dashboard(
         deleted = service.delete_dashboard(dashboard_id, current_user.id)
 
         if not deleted:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Dashboard not found or you don't have permission to delete it",
                 request_id=request.state.request_id,
@@ -280,7 +280,7 @@ async def delete_dashboard(
         )
     except Exception as e:
         logger.error(f"Error deleting dashboard: {str(e)}")
-        return error_response(
+        return error_json(
             code="DELETE_ERROR",
             message="Failed to delete dashboard",
             request_id=request.state.request_id,
@@ -304,7 +304,7 @@ async def set_default_dashboard(
         dashboard = service.set_default_dashboard(dashboard_id, current_user.id)
 
         if not dashboard:
-            return error_response(
+            return error_json(
                 code="NOT_FOUND",
                 message="Dashboard not found or you don't have permission to set it as default",
                 request_id=request.state.request_id,
@@ -322,7 +322,7 @@ async def set_default_dashboard(
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error setting default dashboard: {str(e)}")
-        return error_response(
+        return error_json(
             code="UPDATE_ERROR",
             message="Failed to set default dashboard",
             request_id=request.state.request_id,

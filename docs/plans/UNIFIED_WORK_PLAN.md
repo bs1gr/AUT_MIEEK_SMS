@@ -450,6 +450,43 @@ and suggested, and continue").
   application was found to break. The opt-in therefore stays off by default; the fixtures
   are not changed here. The suite without the opt-in is CI's run on this PR.
 
+**2026-11-19: a request the server could not serve is no longer answered with 200** (todo 61;
+the owner, after the list of what waited: "create a suitable plan order to accomplish all
+pending tasks and suggested, and continue").
+
+- **What was wrong.** Four routers (search, custom reports, import and export, dashboards;
+  81 places after PR 439 removed two search endpoints) answered a refusal or a failure with
+  HTTP 200 and `{"success": false, "error": {...}}`. A caller that read only the status took
+  the failure for an answer: the custom reports list became an object that was not a list,
+  and the download of a report that was not there saved the JSON of the failure as a "PDF".
+- **The assistant's choice** (the entry said "a fix changes answers the pages rely on"): the
+  body is **unchanged**, the status is not. `error_json(...)` in `schemas/response.py` builds
+  the same envelope as `error_response(...)` and answers it with the status that goes with
+  the code: `UNAUTHORIZED` 401, `FORBIDDEN` 403, `NOT_FOUND` and `FILE_NOT_FOUND` 404,
+  `DUPLICATE_ERROR` 409, `VALIDATION_ERROR` and the `INVALID_*` codes 422, every other
+  `*_ERROR` 500. A caller that reads `error.message` from the body keeps working; one that
+  read the status as "it worked" was wrong before and sees the failure now. The helper is typed
+  `Any`: FastAPI refuses `-> APIResponse[...] | JSONResponse` as a return annotation, and the
+  whole router then fails to load with only a warning in the log (seen: every test of the
+  import/export panel errored at setup until the annotations were put back).
+- **The pages, read first.** Dashboards (`useDashboards.ts`) and custom reports
+  (`customReportsAPI.ts`) already caught an HTTP error and read `error.message` from the body
+  (they were written for this and never received it). The Search hook keeps the server's
+  message when the error arrives as a status (a test); the Import/Export client
+  (`importExportApi.ts`) did show `Error.message` in the wizard and the dialogs, which for an
+  HTTP error is axios's "Request failed with status code 422": a wrapper (`asServerError`)
+  now hands them the server's text, also from the Blob of a failed download (5 tests). The
+  old 200 answer is still read as a failure by both.
+- **Tests.** The dashboards, search-contract and search-endpoint tests that pinned the 200
+  now expect 404, 403, 409, 422 and 500 with the same envelope; `test_failures_are_not_
+  answered_with_200.py` (17) covers the status of each code, five "not there" answers, the
+  403 that the custom-report endpoint gives for a report that is missing or not the caller's
+  (as before), and the helper itself.
+- **Not changed:** the answers of the other routers (they raise `HTTPException`); the
+  endpoints' documented `responses` lists.
+- **The whole backend suite** (batch runner, in the clone): 1,980 passed, 1 failed, the
+  installer check that the clone's new files are not yet tracked.
+
 ### In v1.18.75
 
 **2026-11-19: the Updates tab of the Control Panel sends the login token, so the update check no

@@ -10,6 +10,7 @@ Part of Phase 1 v1.15.0 - API Response Standardization
 from datetime import datetime, timezone
 from typing import Any, Generic, Optional, TypeVar
 
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.version import get_version
@@ -229,6 +230,53 @@ def error_response(
         error=ErrorDetail(code=code, message=message, details=details, path=path),
         meta=ResponseMeta(request_id=request_id, timestamp=datetime.now(timezone.utc), version=version or get_version()),
     )
+
+
+# The HTTP status that goes with an error code of this envelope. A request that could not be
+# served has to be answered with a status of 400 or more: a page (or a script) that reads only
+# the status takes "200" for an answer. Codes that are not listed here are a server-side failure.
+_STATUS_BY_ERROR_CODE: dict[str, int] = {
+    "UNAUTHORIZED": 401,
+    "FORBIDDEN": 403,
+    "NOT_FOUND": 404,
+    "FILE_NOT_FOUND": 404,
+    "DUPLICATE_ERROR": 409,
+    "VALIDATION_ERROR": 422,
+    "INVALID_SORT": 422,
+    "INVALID_ENTITY": 422,
+    "INVALID_FILTER": 422,
+    "INVALID_PAGINATION": 422,
+}
+
+
+def error_status_for(code: str) -> int:
+    """The HTTP status for an error code: 4xx for what the caller did, 500 for the rest."""
+    return _STATUS_BY_ERROR_CODE.get(code, 500)
+
+
+def error_json(
+    code: str,
+    message: str,
+    request_id: str,
+    details: Optional[dict[str, Any]] = None,
+    path: Optional[str] = None,
+    version: Optional[str] = None,
+    status_code: Optional[int] = None,
+) -> Any:
+    """The envelope of `error_response`, answered with a real error status.
+
+    The body is the same as before (`success: false`, `error`, `meta`), so a caller that reads
+    `error.message` from the body keeps working; what changes is that the status is no longer
+    200. `status_code` overrides the status the code maps to.
+
+    Typed `Any` on purpose: the endpoints that return it are declared `-> APIResponse[...]`,
+    and FastAPI refuses a union of that with a Response class as a return annotation (the
+    whole router then fails to load, with only a warning in the log).
+    """
+    body = error_response(
+        code=code, message=message, request_id=request_id, details=details, path=path, version=version
+    ).model_dump(mode="json")
+    return JSONResponse(status_code=status_code or error_status_for(code), content=body)
 
 
 # Helper function to create paginated responses
