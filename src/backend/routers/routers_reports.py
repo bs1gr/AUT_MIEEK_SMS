@@ -423,7 +423,7 @@ def _build_student_report(
 @router.post("/student-performance", response_model=StudentPerformanceReport)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:generate")
-async def generate_student_performance_report(
+def generate_student_performance_report(
     request: Request,
     report_request: PerformanceReportRequest,
     db: Session = Depends(get_session),
@@ -491,14 +491,14 @@ async def generate_student_performance_report(
 
 @router.get("/formats", response_model=List[str])
 @require_permission("reports:generate")
-async def get_available_formats(request: Request):
+def get_available_formats(request: Request):
     """Get list of available report formats."""
     return [format.value for format in ReportFormat]
 
 
 @router.get("/periods", response_model=List[str])
 @require_permission("reports:generate")
-async def get_available_periods(request: Request):
+def get_available_periods(request: Request):
     """Get list of available report periods."""
     return [period.value for period in ReportPeriod]
 
@@ -506,7 +506,7 @@ async def get_available_periods(request: Request):
 @router.post("/student-performance/download")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:generate")
-async def download_student_performance_report(
+def download_student_performance_report(
     request: Request,
     report_request: PerformanceReportRequest,
     db: Session = Depends(get_session),
@@ -578,7 +578,7 @@ async def download_student_performance_report(
 @router.post("/bulk/student-performance")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:generate")
-async def generate_bulk_student_reports(
+def generate_bulk_student_reports(
     request: Request,
     bulk_request: BulkReportRequest,
     db: Session = Depends(get_session),
@@ -774,7 +774,7 @@ async def generate_bulk_student_reports(
 @router.delete("/cache/{student_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:generate")
-async def invalidate_student_report_cache(
+def invalidate_student_report_cache(
     student_id: int,
     request: Request,
     db: Session = Depends(get_session),
@@ -809,7 +809,7 @@ async def invalidate_student_report_cache(
 @router.delete("/cache")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:generate")
-async def invalidate_all_report_caches(request: Request):
+def invalidate_all_report_caches(request: Request):
     """
     Invalidate all cached student reports.
 

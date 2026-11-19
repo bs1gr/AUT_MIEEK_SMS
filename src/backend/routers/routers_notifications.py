@@ -159,7 +159,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
 # Put specific routes first to avoid ID matching
 @router.get("/unread-count", response_model=dict)
 @limiter.limit(RATE_LIMIT_READ)
-async def get_unread_count(
+def get_unread_count(
     request: Request,
     current_user: dict = Depends(get_current_user),
     service: NotificationService = Depends(get_notification_service),
@@ -192,7 +192,7 @@ async def get_release_announcement(
 
 @router.post("/read-all", response_model=dict)
 @limiter.limit(RATE_LIMIT_WRITE)
-async def mark_all_as_read(
+def mark_all_as_read(
     request: Request,
     current_user: dict = Depends(get_current_user),
     service: NotificationService = Depends(get_notification_service),
@@ -214,7 +214,7 @@ async def mark_all_as_read(
 # Preferences routes (specific paths before generic ID routes)
 @router.get("/preferences", response_model=NotificationPreferenceResponse)
 @limiter.limit(RATE_LIMIT_READ)
-async def get_preferences(
+def get_preferences(
     request: Request,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -235,7 +235,7 @@ async def get_preferences(
 
 @router.put("/preferences", response_model=NotificationPreferenceResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-async def update_preferences(
+def update_preferences(
     request: Request,
     updates: NotificationPreferenceUpdate,
     current_user: dict = Depends(get_current_user),
@@ -262,7 +262,7 @@ async def update_preferences(
 # Generic list route (after specific routes)
 @router.get("/", response_model=NotificationListResponse)
 @limiter.limit(RATE_LIMIT_READ)
-async def get_notifications(
+def get_notifications(
     request: Request,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -298,7 +298,7 @@ async def get_notifications(
 
 @router.put("/{notification_id}", response_model=NotificationResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-async def update_notification(
+def update_notification(
     request: Request,
     notification_id: int,
     update: NotificationUpdate,
@@ -340,7 +340,7 @@ async def update_notification(
 
 @router.post("/{notification_id}/read", response_model=NotificationResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
-async def mark_as_read(
+def mark_as_read(
     request: Request,
     notification_id: int,
     current_user: dict = Depends(get_current_user),
@@ -371,7 +371,7 @@ async def mark_as_read(
 
 @router.delete("/{notification_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def delete_notification(
+def delete_notification(
     request: Request,
     notification_id: int,
     current_user: dict = Depends(get_current_user),

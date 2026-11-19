@@ -46,7 +46,7 @@ router = APIRouter(
     response_model=APIResponse[List[Dict[str, Any]]],
     summary="List user dashboards",
 )
-async def list_dashboards(
+def list_dashboards(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
@@ -81,7 +81,7 @@ async def list_dashboards(
     summary="Create dashboard",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def create_dashboard(
+def create_dashboard(
     request: Request,
     body: CreateDashboardRequest,
     db: Session = Depends(get_db),
@@ -159,7 +159,7 @@ async def create_dashboard(
     response_model=APIResponse[Dict[str, Any]],
     summary="Get dashboard",
 )
-async def get_dashboard(
+def get_dashboard(
     request: Request,
     dashboard_id: int,
     db: Session = Depends(get_db),
@@ -210,7 +210,7 @@ async def get_dashboard(
     summary="Update dashboard",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def update_dashboard(
+def update_dashboard(
     request: Request,
     dashboard_id: int,
     body: Dict[str, Any],
@@ -260,7 +260,7 @@ async def update_dashboard(
     summary="Delete dashboard",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def delete_dashboard(
+def delete_dashboard(
     request: Request,
     dashboard_id: int,
     db: Session = Depends(get_db),
@@ -297,7 +297,7 @@ async def delete_dashboard(
     summary="Set dashboard as default",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def set_default_dashboard(
+def set_default_dashboard(
     request: Request,
     dashboard_id: int,
     db: Session = Depends(get_db),

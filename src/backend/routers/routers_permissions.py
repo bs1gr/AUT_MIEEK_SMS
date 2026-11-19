@@ -69,7 +69,7 @@ ADMIN_WILDCARD = "*:*"
 
 @router.get("/", response_model=list[PermissionListItem])
 @require_permission("permissions:view")
-async def list_permissions(
+def list_permissions(
     request: Request,
     resource: Optional[str] = Query(None, description="Filter by resource"),
     action: Optional[str] = Query(None, description="Filter by action"),
@@ -105,7 +105,7 @@ async def list_permissions(
 
 @router.get("/by-resource", response_model=list[PermissionsByResourceResponse])
 @require_permission("permissions:view")
-async def list_permissions_by_resource(
+def list_permissions_by_resource(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -135,7 +135,7 @@ async def list_permissions_by_resource(
 
 @router.get("/stats", response_model=PermissionStatsResponse)
 @require_permission("permissions:view")
-async def get_permission_stats(
+def get_permission_stats(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -182,7 +182,7 @@ async def get_permission_stats(
 
 @router.get("/{permission_id}", response_model=PermissionDetail)
 @require_permission("permissions:view")
-async def get_permission(
+def get_permission(
     request: Request,
     permission_id: int,
     current_user: User = Depends(get_current_user),
@@ -203,7 +203,7 @@ async def get_permission(
 @router.post("/", response_model=PermissionDetail, status_code=status.HTTP_201_CREATED)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def create_permission(
+def create_permission(
     request: Request,
     permission_data: PermissionCreate,
     current_user: User = Depends(get_current_user),
@@ -267,7 +267,7 @@ async def create_permission(
 @router.patch("/{permission_id}", response_model=PermissionDetail)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def update_permission(
+def update_permission(
     request: Request,
     permission_id: int,
     permission_update: PermissionUpdate,
@@ -321,7 +321,7 @@ async def update_permission(
 @router.delete("/{permission_id}", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def delete_permission(
+def delete_permission(
     request: Request,
     permission_id: int,
     current_user: User = Depends(get_current_user),
@@ -357,7 +357,7 @@ async def delete_permission(
 @router.post("/users/grant", status_code=status.HTTP_200_OK)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def grant_user_permission(
+def grant_user_permission(
     request: Request,
     grant: UserPermissionGrant,
     current_user: User = Depends(get_current_user),
@@ -416,7 +416,7 @@ async def grant_user_permission(
 @router.post("/users/revoke", status_code=status.HTTP_200_OK)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def revoke_user_permission(
+def revoke_user_permission(
     request: Request,
     revoke: UserPermissionRevoke,
     current_user: User = Depends(get_current_user),
@@ -458,7 +458,7 @@ async def revoke_user_permission(
 @router.post("/roles/grant", status_code=status.HTTP_200_OK)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def grant_role_permission(
+def grant_role_permission(
     request: Request,
     grant: RolePermissionGrant,
     current_user: User = Depends(get_current_user),
@@ -510,7 +510,7 @@ async def grant_role_permission(
 @router.post("/roles/revoke", status_code=status.HTTP_200_OK)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("permissions:manage")
-async def revoke_role_permission(
+def revoke_role_permission(
     request: Request,
     revoke: RolePermissionRevoke,
     current_user: User = Depends(get_current_user),
@@ -558,7 +558,7 @@ async def revoke_role_permission(
 
 
 @router.get("/users/{user_id}", response_model=UserPermissionsResponse)
-async def get_user_permissions_detail(
+def get_user_permissions_detail(
     request: Request,
     user_id: int,
     current_user: User = Depends(get_current_user),

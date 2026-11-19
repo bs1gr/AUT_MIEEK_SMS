@@ -66,7 +66,7 @@ def _normalize_date_range(start_date: Optional[date], end_date: Optional[date]) 
 @router.post("/", response_model=AttendanceResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("attendance:edit")
-async def create_attendance(
+def create_attendance(
     request: Request,
     attendance_data: AttendanceCreate,
     db: Session = Depends(get_db),
@@ -96,7 +96,7 @@ async def create_attendance(
 @router.post("/sheet", response_model=AttendanceSheetResult)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_all_permissions("attendance:edit", "students:edit")
-async def save_attendance_sheet_endpoint(
+def save_attendance_sheet_endpoint(
     request: Request,
     sheet: AttendanceSheetSave,
     db: Session = Depends(get_db),
@@ -123,7 +123,7 @@ async def save_attendance_sheet_endpoint(
 @router.get("/", response_model=PaginatedResponse[AttendanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("attendance:view")
-async def get_all_attendance(
+def get_all_attendance(
     request: Request,
     pagination: PaginationParams = Depends(),
     student_id: Optional[int] = None,
@@ -333,7 +333,7 @@ def get_attendance(request: Request, attendance_id: int, db: Session = Depends(g
 @router.put("/{attendance_id}", response_model=AttendanceResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("attendance:edit")
-async def update_attendance(
+def update_attendance(
     request: Request,
     attendance_id: int,
     attendance_data: AttendanceUpdate,
@@ -357,7 +357,7 @@ async def update_attendance(
 @router.delete("/{attendance_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("attendance:delete")
-async def delete_attendance(
+def delete_attendance(
     request: Request,
     attendance_id: int,
     db: Session = Depends(get_db),
@@ -426,7 +426,7 @@ def get_attendance_stats(request: Request, student_id: int, course_id: int, db: 
 @router.post("/bulk/create")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("attendance:edit")
-async def bulk_create_attendance(
+def bulk_create_attendance(
     request: Request,
     records: List[AttendanceCreate],
     db: Session = Depends(get_db),

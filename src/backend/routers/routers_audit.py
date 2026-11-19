@@ -20,7 +20,7 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 @router.get("/logs", response_model=AuditLogListResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("audit:view")
-async def list_audit_logs(
+def list_audit_logs(
     request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=500),
@@ -84,7 +84,7 @@ async def list_audit_logs(
 @router.get("/logs/{log_id}", response_model=AuditLogResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("audit:view")
-async def get_audit_log(
+def get_audit_log(
     log_id: int,
     request: Request,
     db: Session = Depends(get_db),
@@ -102,7 +102,7 @@ async def get_audit_log(
 @router.get("/logs/user/{user_id}", response_model=AuditLogListResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("audit:view")
-async def get_user_audit_logs(
+def get_user_audit_logs(
     user_id: int,
     request: Request,
     page: int = Query(1, ge=1),

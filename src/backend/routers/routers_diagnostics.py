@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/queries/summary")
 @require_permission("diagnostics:view")
-async def get_query_summary(request: Request, db: Session = Depends(get_session)):
+def get_query_summary(request: Request, db: Session = Depends(get_session)):
     """
     Get summary of database query profiling data.
 
@@ -55,7 +55,7 @@ async def get_query_summary(request: Request, db: Session = Depends(get_session)
 
 @router.get("/queries/slow")
 @require_permission("diagnostics:view")
-async def get_slow_queries(request: Request, limit: int = 20, db: Session = Depends(get_session)):
+def get_slow_queries(request: Request, limit: int = 20, db: Session = Depends(get_session)):
     """
     Get list of slow queries (over SQLALCHEMY_SLOW_QUERY_THRESHOLD_MS) among the newest
     queries the profiler keeps.
@@ -77,7 +77,7 @@ async def get_slow_queries(request: Request, limit: int = 20, db: Session = Depe
 
 @router.get("/queries/patterns")
 @require_permission("diagnostics:view")
-async def get_query_patterns(request: Request, db: Session = Depends(get_session)):
+def get_query_patterns(request: Request, db: Session = Depends(get_session)):
     """
     Get analysis of query patterns per table.
 
@@ -106,7 +106,7 @@ async def get_query_patterns(request: Request, db: Session = Depends(get_session
 @router.post("/queries/reset")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("diagnostics:manage")
-async def reset_profiler(request: Request, db: Session = Depends(get_session)):
+def reset_profiler(request: Request, db: Session = Depends(get_session)):
     """
     Reset query profiler statistics.
 
@@ -129,7 +129,7 @@ async def reset_profiler(request: Request, db: Session = Depends(get_session)):
 
 @router.get("/health/queries")
 @require_permission("diagnostics:view")
-async def health_check_queries(request: Request, db: Session = Depends(get_session)):
+def health_check_queries(request: Request, db: Session = Depends(get_session)):
     """
     Health check for database query performance.
 

@@ -301,7 +301,7 @@ def test_download_database_backup_rejects_traversal():
 
     async def _run():
         with pytest.raises(HTTPException) as excinfo:
-            await control.download_database_backup(request, "../outside.db")
+            control.download_database_backup(request, "../outside.db")
 
         assert excinfo.value.status_code == 400
         detail = excinfo.value.detail

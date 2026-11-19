@@ -76,7 +76,7 @@ def _build_restart_diagnostics(_: Optional[Request] = None) -> RestartDiagnostic
 
 
 @router.post("/operations/exit-all", response_model=OperationResult)
-async def exit_all(down: bool = False, _auth=Depends(require_control_admin)):
+def exit_all(down: bool = False, _auth=Depends(require_control_admin)):
     details: Dict[str, Any] = {}
     docker_performed = False
     if not in_docker_container() and check_docker_running():
@@ -106,7 +106,7 @@ async def exit_all(down: bool = False, _auth=Depends(require_control_admin)):
 
 
 @router.get("/restart", response_model=RestartDiagnostics)
-async def restart_diagnostics(request: Request):
+def restart_diagnostics(request: Request):
     # Intentionally unauthenticated: this diagnostic endpoint must remain reachable
     # even when ENABLE_CONTROL_API=0 so operators can see *why* restart is unavailable.
     # It only echoes non-sensitive environment/config flags (see RestartDiagnostics).

@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/logs/backend")
-async def get_backend_logs(request: Request, lines: int = 100, _auth=Depends(require_control_admin)):
+def get_backend_logs(request: Request, lines: int = 100, _auth=Depends(require_control_admin)):
     try:
         project_root = Path(__file__).resolve().parents[3]
         backend_root = project_root / "backend"

@@ -214,7 +214,7 @@ class ImportCredentialsResult(BaseModel):
 
 
 @router.get("/database/instances", response_model=List[InstanceInfo])
-async def list_instances(
+def list_instances(
     request: Request,
     _auth=Depends(require_control_admin),
 ):
@@ -228,7 +228,7 @@ async def list_instances(
 
 
 @router.get("/database/instances/{name}/status", response_model=InstanceInfo)
-async def get_instance_status(
+def get_instance_status(
     name: str,
     request: Request,
     _auth=Depends(require_control_admin),
@@ -247,7 +247,7 @@ async def get_instance_status(
 
 
 @router.get("/database/instances/{name}/stats", response_model=DatabaseStats)
-async def get_database_stats(
+def get_database_stats(
     name: str,
     request: Request,
     _auth=Depends(require_control_admin),
@@ -271,7 +271,7 @@ async def get_database_stats(
 
 
 @router.post("/database/instances/{name}/backup", response_model=BackupResult)
-async def create_instance_backup(
+def create_instance_backup(
     name: str,
     request: Request,
     compress: bool = Query(True, description="Compress backup with gzip"),
@@ -290,7 +290,7 @@ async def create_instance_backup(
 
 
 @router.get("/database/backups", response_model=List[BackupInfo])
-async def list_database_backups(
+def list_database_backups(
     request: Request,
     instance: Optional[str] = Query(None, description="Filter by instance name"),
     _auth=Depends(require_control_admin),
@@ -300,7 +300,7 @@ async def list_database_backups(
 
 
 @router.get("/database/backups/{filename}/download")
-async def download_backup(
+def download_backup(
     filename: str,
     request: Request,
     _auth=Depends(require_control_admin),
@@ -327,7 +327,7 @@ async def download_backup(
 
 
 @router.delete("/database/backups/{filename}")
-async def delete_database_backup(
+def delete_database_backup(
     filename: str,
     request: Request,
     _auth=Depends(require_control_admin),
@@ -350,7 +350,7 @@ async def delete_database_backup(
 
 
 @router.post("/database/backups/{filename}/restore")
-async def restore_database_backup(
+def restore_database_backup(
     filename: str,
     request: Request,
     instance_name: str = Query(..., description="Target instance name"),
@@ -385,7 +385,7 @@ async def restore_database_backup(
 
 
 @router.post("/database/test-connection", response_model=TestConnectionResult)
-async def test_database_connection(
+def test_database_connection(
     credentials: TestConnectionRequest,
     request: Request,
     _auth=Depends(require_control_admin),

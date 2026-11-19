@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 @router.get("/monitoring/environment")
-async def get_monitoring_environment(request: Request, _auth=Depends(require_control_admin)):
+def get_monitoring_environment(request: Request, _auth=Depends(require_control_admin)):
     in_container = in_docker_container()
     docker_running = check_docker_running()
     return {
@@ -160,7 +160,7 @@ async def get_monitoring_status(request: Request, _auth=Depends(require_control_
 
 @router.post("/monitoring/trigger")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def trigger_monitoring_from_container(request: Request, _auth=Depends(require_control_admin)):
+def trigger_monitoring_from_container(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)
@@ -169,7 +169,7 @@ async def trigger_monitoring_from_container(request: Request, _auth=Depends(requ
         extra={"action": "monitoring_trigger_requested", "request_id": getattr(request.state, "request_id", None)},
     )
     if not in_docker_container():
-        return await start_monitoring_stack(request)
+        return start_monitoring_stack(request)
 
     trigger_dir = Path("/app/data/.triggers")
     trigger_file = trigger_dir / "start_monitoring.ps1"
@@ -228,7 +228,7 @@ try {
 
 @router.post("/monitoring/start")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def start_monitoring_stack(request: Request, _auth=Depends(require_control_admin)):
+def start_monitoring_stack(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)
@@ -346,7 +346,7 @@ async def start_monitoring_stack(request: Request, _auth=Depends(require_control
 
 @router.post("/monitoring/stop")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def stop_monitoring_stack(request: Request, _auth=Depends(require_control_admin)):
+def stop_monitoring_stack(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)

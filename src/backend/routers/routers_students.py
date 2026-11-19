@@ -218,7 +218,7 @@ def deactivate_student(
 @router.post("/bulk/create")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:create")
-async def bulk_create_students(
+def bulk_create_students(
     request: Request,
     students_data: List[StudentCreate],
     db: Session = Depends(get_db),

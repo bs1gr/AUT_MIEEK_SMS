@@ -231,7 +231,7 @@ async def create_grade_import(
 
 @router.get("/imports/{import_job_id}", response_model=APIResponse[ImportJobResponse])
 @require_permission("imports:view")
-async def get_import_job(
+def get_import_job(
     import_job_id: int,
     request: Request,
     db: Session = Depends(get_db),
@@ -267,7 +267,7 @@ async def get_import_job(
 
 @router.get("/imports", response_model=APIResponse[dict])
 @require_permission("imports:view")
-async def list_import_jobs(
+def list_import_jobs(
     request: Request,
     import_type: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -445,7 +445,7 @@ async def create_export(
 
 @router.get("/exports/{export_job_id}", response_model=APIResponse[ExportJobResponse])
 @require_any_permission("exports:view", "exports:generate")
-async def get_export_job(
+def get_export_job(
     export_job_id: int,
     request: Request,
     db: Session = Depends(get_db),
@@ -482,7 +482,7 @@ async def get_export_job(
 
 @router.get("/exports/{export_job_id}/download")
 @require_permission("exports:download")
-async def download_export(
+def download_export(
     export_job_id: int,
     request: Request,
     db: Session = Depends(get_db),
@@ -530,7 +530,7 @@ async def download_export(
 
 @router.get("/exports", response_model=APIResponse[dict])
 @require_any_permission("exports:view", "exports:generate")
-async def list_exports(
+def list_exports(
     request: Request,
     export_type: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -586,7 +586,7 @@ async def list_exports(
 
 @router.get("/history", response_model=APIResponse[dict])
 @require_permission("audit:view")
-async def get_import_export_history(
+def get_import_export_history(
     request: Request,
     operation_type: Optional[str] = Query(None),
     resource_type: Optional[str] = Query(None),
@@ -634,7 +634,7 @@ from backend.services import smtp_override as _smtp  # noqa: E402
 
 
 @router.get("/settings/email")
-async def get_email_settings(
+def get_email_settings(
     request: Request,
     current_user: Any = Depends(optional_require_role("admin")),
 ) -> APIResponse[dict]:
@@ -657,7 +657,7 @@ async def get_email_settings(
 
 @router.put("/settings/email")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def update_email_settings(
+def update_email_settings(
     request: Request,
     payload: dict,
     current_user: Any = Depends(optional_require_role("admin")),
@@ -680,7 +680,7 @@ async def update_email_settings(
 
 @router.post("/settings/email/test")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def test_email_settings(
+def test_email_settings(
     request: Request,
     payload: dict,
     current_user: Any = Depends(optional_require_role("admin")),

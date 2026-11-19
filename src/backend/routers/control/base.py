@@ -152,7 +152,7 @@ async def get_system_status(request: Request, response: Response, _auth=Depends(
 
 
 @router.get("/diagnostics", response_model=List[DiagnosticResult])
-async def run_diagnostics(response: Response, _auth=Depends(require_control_admin)):
+def run_diagnostics(response: Response, _auth=Depends(require_control_admin)):
     cached = _cache_get("diagnostics", ttl_seconds=30)
     if cached:
         return cached
@@ -540,7 +540,7 @@ async def get_environment_info(
 
 
 @router.get("/troubleshoot", response_model=List[DiagnosticResult])
-async def run_troubleshooter(_auth=Depends(require_control_admin)):
+def run_troubleshooter(_auth=Depends(require_control_admin)):
     results: List[DiagnosticResult] = []
 
     for port in COMMON_DEV_PORTS:

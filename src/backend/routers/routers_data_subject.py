@@ -94,7 +94,7 @@ def _row(obj: Any, skip: tuple[str, ...] = ()) -> Dict[str, Any]:
 @router.get("/students/{student_id}/export")
 @limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("students:view")
-async def export_student_data(
+def export_student_data(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
@@ -154,7 +154,7 @@ async def export_student_data(
 @router.delete("/students/{student_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:delete")
-async def erase_student(
+def erase_student(
     request: Request,
     student_id: int,
     confirm: str = Query(..., description="The student's registry number (student_id), typed to confirm"),
