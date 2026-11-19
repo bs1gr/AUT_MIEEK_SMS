@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 @router.post("/", response_model=JobResponse, status_code=202)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("jobs:create")
-async def create_job(
+def create_job(
     request: Request,
     job_create: JobCreate,
     db: Session = Depends(get_session),
@@ -73,7 +73,7 @@ async def create_job(
 @router.get("/{job_id}", response_model=JobResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("jobs:view")
-async def get_job_status(
+def get_job_status(
     job_id: str,
     request: Request,
 ):
@@ -95,7 +95,7 @@ async def get_job_status(
 @router.get("/", response_model=JobListResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("jobs:view")
-async def list_jobs(
+def list_jobs(
     request: Request,
     status: Optional[JobStatus] = Query(None, description="Filter by status"),
     job_type: Optional[JobType] = Query(None, description="Filter by type"),
@@ -139,7 +139,7 @@ async def list_jobs(
 @router.post("/{job_id}/cancel", response_model=JobResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("jobs:manage")
-async def cancel_job(
+def cancel_job(
     job_id: str,
     request: Request,
 ):
@@ -171,7 +171,7 @@ async def cancel_job(
 @router.delete("/{job_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("jobs:delete")
-async def delete_job(
+def delete_job(
     job_id: str,
     request: Request,
 ):

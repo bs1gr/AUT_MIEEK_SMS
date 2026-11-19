@@ -192,7 +192,7 @@ def _calculate_periods_per_week(schedule: Any) -> int:
 @router.post("/", response_model=CourseResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:create")
-async def create_course(
+def create_course(
     request: Request,
     course: CourseCreate,
     db: Session = Depends(get_db),
@@ -244,7 +244,7 @@ async def create_course(
 @router.get("/", response_model=PaginatedResponse[CourseResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("courses:view")
-async def get_all_courses(
+def get_all_courses(
     request: Request,
     pagination: PaginationParams = Depends(),
     semester: Optional[str] = None,
@@ -279,7 +279,7 @@ async def get_all_courses(
 @router.get("/{course_id}", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("courses:view")
-async def get_course(
+def get_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
@@ -299,7 +299,7 @@ async def get_course(
 @router.put("/{course_id}", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:edit")
-async def update_course(
+def update_course(
     request: Request,
     course_id: int,
     course_data: CourseUpdate,
@@ -349,7 +349,7 @@ async def update_course(
 @router.post("/{course_id}/end", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:edit")
-async def end_course(
+def end_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
@@ -377,7 +377,7 @@ async def end_course(
 @router.post("/{course_id}/reactivate", response_model=CourseResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:edit")
-async def reactivate_course(
+def reactivate_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
@@ -414,7 +414,7 @@ async def reactivate_course(
 @router.delete("/{course_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:delete")
-async def delete_course(
+def delete_course(
     request: Request,
     course_id: int,
     db: Session = Depends(get_db),
@@ -455,7 +455,7 @@ def get_evaluation_rules(request: Request, course_id: int, db: Session = Depends
 @router.put("/{course_id}/evaluation-rules")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:edit")
-async def update_evaluation_rules(
+def update_evaluation_rules(
     request: Request,
     course_id: int,
     rules_data: Dict[str, Any] = Body(...),

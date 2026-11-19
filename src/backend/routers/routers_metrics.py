@@ -51,7 +51,7 @@ def _metrics_cache_set(key: str, value: object) -> None:
 @router.get("/students", response_model=StudentMetrics)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
-async def get_student_metrics(
+def get_student_metrics(
     request: Request,
     response: Response,
     semester: Optional[str] = None,
@@ -95,7 +95,7 @@ async def get_student_metrics(
 @router.get("/courses", response_model=CourseMetrics)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
-async def get_course_metrics(
+def get_course_metrics(
     request: Request,
     response: Response,
     db: Session = Depends(get_session),
@@ -136,7 +136,7 @@ async def get_course_metrics(
 @router.get("/grades", response_model=GradeMetrics)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
-async def get_grade_metrics(
+def get_grade_metrics(
     request: Request,
     response: Response,
     db: Session = Depends(get_session),
@@ -184,7 +184,7 @@ async def get_grade_metrics(
 @router.get("/attendance", response_model=AttendanceMetrics)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
-async def get_attendance_metrics(
+def get_attendance_metrics(
     request: Request,
     response: Response,
     db: Session = Depends(get_session),
@@ -226,7 +226,7 @@ async def get_attendance_metrics(
 @router.get("/dashboard", response_model=DashboardMetrics)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
-async def get_dashboard_metrics(
+def get_dashboard_metrics(
     request: Request,
     response: Response,
     db: Session = Depends(get_session),

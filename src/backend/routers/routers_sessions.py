@@ -205,7 +205,7 @@ def validate_import_data(import_data: Dict[str, Any]) -> tuple[bool, List[str]]:
 
 @router.get("/semesters")
 @require_permission("sessions:manage")
-async def list_semesters(request: Request, db: Session = Depends(get_db)):
+def list_semesters(request: Request, db: Session = Depends(get_db)):
     """
     List all unique semesters found in the system.
     Returns sorted list of semesters from courses.
@@ -230,7 +230,7 @@ async def list_semesters(request: Request, db: Session = Depends(get_db)):
 @router.post("/export")  # Legacy compatibility; prefer GET. POST will be removed in future release.
 @limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("sessions:manage")
-async def export_session(
+def export_session(
     request: Request,
     semester: str,
     include_health: bool = False,
@@ -672,7 +672,7 @@ async def import_session(
 @router.post("/rollback")
 @limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("adminops:restore")
-async def rollback_import(request: Request, backup_filename: str):
+def rollback_import(request: Request, backup_filename: str):
     """
     Rollback/restore database from a backup file created before session import.
 
@@ -822,7 +822,7 @@ async def rollback_import(request: Request, backup_filename: str):
 
 @router.get("/backups")
 @require_permission("sessions:manage")
-async def list_backups(request: Request):
+def list_backups(request: Request):
     """
     List available backup files for rollback.
 

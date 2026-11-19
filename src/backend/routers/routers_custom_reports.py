@@ -82,7 +82,7 @@ def _get_request_language(request: Request, override: Optional[str]) -> str:
     summary="Create report template",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def create_report_template(
+def create_report_template(
     request: Request,
     body: ReportTemplateCreate,
     db: Session = Depends(get_db),
@@ -108,7 +108,7 @@ async def create_report_template(
     summary="List report templates",
 )
 @require_permission("reports:view")
-async def list_report_templates(
+def list_report_templates(
     request: Request,
     category: Optional[str] = Query(None, description="Filter by template category"),
     report_type: Optional[str] = Query(None, description="Filter by report type"),
@@ -141,7 +141,7 @@ async def list_report_templates(
     summary="Get report template",
 )
 @require_permission("reports:view")
-async def get_report_template(
+def get_report_template(
     request: Request,
     template_id: int,
     db: Session = Depends(get_db),
@@ -172,7 +172,7 @@ async def get_report_template(
     summary="Update report template",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def update_report_template(
+def update_report_template(
     request: Request,
     template_id: int,
     body: ReportTemplateUpdate,
@@ -205,7 +205,7 @@ async def update_report_template(
     summary="Deactivate report template",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def delete_report_template(
+def delete_report_template(
     request: Request,
     template_id: int,
     hard_delete: bool = Query(False, description="Permanently delete template"),
@@ -240,7 +240,7 @@ async def delete_report_template(
     summary="Import default templates",
 )
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def import_default_templates(
+def import_default_templates(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Any = Depends(optional_require_role("admin")),
@@ -274,7 +274,7 @@ async def import_default_templates(
 )
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
-async def create_custom_report(
+def create_custom_report(
     request: Request,
     body: CustomReportCreate,
     db: Session = Depends(get_db),
@@ -300,7 +300,7 @@ async def create_custom_report(
     summary="List custom reports",
 )
 @require_permission("reports:view")
-async def list_custom_reports(
+def list_custom_reports(
     request: Request,
     report_type: Optional[str] = Query(None, description="Filter by report type"),
     include_deleted: bool = Query(False, description="Include soft-deleted reports"),
@@ -333,7 +333,7 @@ async def list_custom_reports(
     summary="Report statistics",
 )
 @require_permission("reports:view")
-async def get_report_statistics(
+def get_report_statistics(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
@@ -358,7 +358,7 @@ async def get_report_statistics(
     summary="Get custom report",
 )
 @require_permission("reports:view")
-async def get_custom_report(
+def get_custom_report(
     request: Request,
     report_id: int,
     db: Session = Depends(get_db),
@@ -391,7 +391,7 @@ async def get_custom_report(
 )
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
-async def update_custom_report(
+def update_custom_report(
     request: Request,
     report_id: int,
     body: CustomReportUpdate,
@@ -425,7 +425,7 @@ async def update_custom_report(
 )
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
-async def delete_custom_report(
+def delete_custom_report(
     request: Request,
     report_id: int,
     hard_delete: bool = Query(False, description="Permanently delete report"),
@@ -538,7 +538,7 @@ async def generate_report(
     summary="List generated reports",
 )
 @require_permission("reports:view")
-async def list_generated_reports(
+def list_generated_reports(
     request: Request,
     report_id: int,
     limit: int = Query(100, ge=1, le=500, description="Max generated reports to return"),
@@ -583,7 +583,7 @@ async def list_generated_reports(
 )
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
-async def update_generated_report(
+def update_generated_report(
     request: Request,
     report_id: int,
     generated_report_id: int,
@@ -618,7 +618,7 @@ async def update_generated_report(
 )
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("reports:view")
-async def delete_generated_report(
+def delete_generated_report(
     request: Request,
     report_id: int,
     generated_report_id: int,
@@ -667,7 +667,7 @@ async def delete_generated_report(
     response_model=None,
 )
 @require_permission("reports:generate")
-async def download_generated_report(
+def download_generated_report(
     request: Request,
     report_id: int,
     generated_report_id: int,

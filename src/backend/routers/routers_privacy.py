@@ -34,7 +34,7 @@ def _safe_url(value: object) -> str:
 
 @router.get("/info", response_model=PrivacyInfo)
 @limiter.limit(RATE_LIMIT_READ)
-async def privacy_info(request: Request):
+def privacy_info(request: Request):
     """The controller's name and contact points as configured for this installation."""
     controller = _clean(getattr(settings, "PRIVACY_CONTROLLER_NAME", ""))
     contact = _clean(getattr(settings, "PRIVACY_CONTACT", ""))

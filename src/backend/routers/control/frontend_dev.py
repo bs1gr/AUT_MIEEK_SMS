@@ -65,7 +65,7 @@ def _is_port_open_via_legacy(port: int) -> bool:
 
 
 @router.post("/start")
-async def control_start(_auth=Depends(require_control_admin)):
+def control_start(_auth=Depends(require_control_admin)):
     global FRONTEND_PROCESS
     try:
         if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):
@@ -222,7 +222,7 @@ async def control_start(_auth=Depends(require_control_admin)):
 
 
 @router.post("/stop-all")
-async def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
+def control_stop_all(request: Request, _auth=Depends(require_control_admin)):
     global FRONTEND_PROCESS
     logger.info("=== System Shutdown Initiated ===")
     try:
@@ -295,7 +295,7 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
 
 
 @router.post("/stop")
-async def control_stop(request: Request, _auth=Depends(require_control_admin)):
+def control_stop(request: Request, _auth=Depends(require_control_admin)):
     global FRONTEND_PROCESS
     try:
         stopped_any = False
@@ -360,7 +360,7 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
 
 
 @router.post("/stop-backend")
-async def control_stop_backend(request: Request, _auth=Depends(require_control_admin)):
+def control_stop_backend(request: Request, _auth=Depends(require_control_admin)):
     try:
         current_pid = os.getpid()
         parent_pid = os.getppid()

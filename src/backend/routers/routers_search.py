@@ -56,7 +56,7 @@ router = APIRouter(
     summary="Search students",
     description="Search for students by name, email, or enrollment number",
 )
-async def search_students(
+def search_students(
     request: Request,
     q: str = Query(..., min_length=1, max_length=255, description="Search query"),
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
@@ -101,7 +101,7 @@ async def search_students(
     summary="Search courses",
     description="Search for courses by name, code, or description",
 )
-async def search_courses(
+def search_courses(
     request: Request,
     q: str = Query(..., min_length=1, max_length=255, description="Search query"),
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
@@ -146,7 +146,7 @@ async def search_courses(
     summary="Search grades",
     description="Search for grades with optional text query and filtering",
 )
-async def search_grades(
+def search_grades(
     request: Request,
     q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
     grade_min: Optional[float] = Query(None, ge=0, le=100, description="Minimum grade"),
@@ -212,7 +212,7 @@ async def search_grades(
     description="Perform advanced search with complex filter combinations",
 )
 @limiter.limit(RATE_LIMIT_READ)
-async def advanced_search(
+def advanced_search(
     request: Request,
     body: Dict[str, Any],
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
@@ -398,7 +398,7 @@ async def advanced_search(
     summary="Get search suggestions",
     description="Get real-time search suggestions based on partial query",
 )
-async def get_suggestions(
+def get_suggestions(
     request: Request,
     q: str = Query(..., min_length=1, max_length=255, description="Partial query"),
     limit: int = Query(5, ge=1, le=20, description="Maximum suggestions"),
@@ -460,7 +460,7 @@ async def get_suggestions(
     summary="Get search statistics",
     description="Get system-wide statistics for searchable entities",
 )
-async def get_statistics(
+def get_statistics(
     request: Request,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(optional_require_permission(None)),
@@ -513,7 +513,7 @@ async def get_statistics(
     description="Save a search query for later reuse",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def create_saved_search(
+def create_saved_search(
     request: Request,
     body: Dict[str, Any],
     db: Session = Depends(get_db),
@@ -576,7 +576,7 @@ async def create_saved_search(
     summary="List saved searches",
     description="Get all saved searches for current user",
 )
-async def list_saved_searches(
+def list_saved_searches(
     request: Request,
     search_type: Optional[str] = Query(None, description="Filter by search type"),
     is_favorite: Optional[bool] = Query(None, description="Filter by favorite status"),
@@ -628,7 +628,7 @@ async def list_saved_searches(
     summary="Get saved search",
     description="Get details of a specific saved search",
 )
-async def get_saved_search(
+def get_saved_search(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
@@ -688,7 +688,7 @@ async def get_saved_search(
     description="Update a saved search",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def update_saved_search(
+def update_saved_search(
     request: Request,
     search_id: int,
     body: Dict[str, Any],
@@ -758,7 +758,7 @@ async def update_saved_search(
     description="Delete a saved search",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def delete_saved_search(
+def delete_saved_search(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
@@ -807,7 +807,7 @@ async def delete_saved_search(
     description="Toggle favorite status of a saved search",
 )
 @limiter.limit(RATE_LIMIT_WRITE)
-async def toggle_saved_search_favorite(
+def toggle_saved_search_favorite(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
@@ -865,7 +865,7 @@ async def toggle_saved_search_favorite(
     summary="Get student facets",
     description="Get faceted search results for students (status, enrollment type, enrollment year)",
 )
-async def get_student_facets(
+def get_student_facets(
     request: Request,
     q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
     db: Session = Depends(get_db),
@@ -915,7 +915,7 @@ async def get_student_facets(
     summary="Get course facets",
     description="Get faceted search results for courses (semester, credits, status)",
 )
-async def get_course_facets(
+def get_course_facets(
     request: Request,
     q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
     db: Session = Depends(get_db),

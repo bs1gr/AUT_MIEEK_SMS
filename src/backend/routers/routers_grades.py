@@ -76,7 +76,7 @@ def _normalize_date_range(
 @router.post("/", response_model=GradeResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("grades:edit")
-async def create_grade(
+def create_grade(
     request: Request,
     grade_data: GradeCreate,
     db: Session = Depends(get_db),
@@ -116,7 +116,7 @@ async def create_grade(
 @router.get("/", response_model=PaginatedResponse[GradeResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("grades:view")
-async def get_all_grades(
+def get_all_grades(
     request: Request,
     pagination: PaginationParams = Depends(),
     student_id: Optional[int] = None,
@@ -242,7 +242,7 @@ def get_grade(request: Request, grade_id: int, db: Session = Depends(get_db)):
 @router.put("/{grade_id}", response_model=GradeResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("grades:edit")
-async def update_grade(
+def update_grade(
     request: Request,
     grade_id: int,
     grade_data: GradeUpdate,
@@ -267,7 +267,7 @@ async def update_grade(
 @router.delete("/{grade_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("grades:delete")
-async def delete_grade(
+def delete_grade(
     request: Request,
     grade_id: int,
     db: Session = Depends(get_db),

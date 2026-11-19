@@ -547,7 +547,7 @@ def clear_course_analytics_cache(
 @router.post("/export/excel")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
-async def export_dashboard_excel(
+def export_dashboard_excel(
     request: Request,
     language: Optional[str] = Query(None),
     timezone: Optional[str] = Query("Europe/Athens"),
@@ -596,7 +596,7 @@ async def export_dashboard_excel(
 @router.post("/export/pdf")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
-async def export_dashboard_pdf(
+def export_dashboard_pdf(
     request: Request,
     language: Optional[str] = Query(None),
     timezone: Optional[str] = Query("Europe/Athens"),

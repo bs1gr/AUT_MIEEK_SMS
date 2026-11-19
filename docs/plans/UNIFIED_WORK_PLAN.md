@@ -407,6 +407,49 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.75 (unreleased)
 
+**2026-11-19: 230 endpoints that never await are plain `def`, so the server stops queueing
+behind them** (todo 52, stage 2; the owner, after the list of what waited: "create a suitable
+plan order to accomplish all pending tasks and suggested, and continue". The entry said it is
+a large change and asked first; it is 230 one-word changes and was done as one reviewable rule
+instead of router by router, which would have been 35 gates).
+
+- **The rule, applied by a script** (`async def` to `def` on a route function whose body has
+  no `await`, `async for` or `async with`): FastAPI runs a `def` endpoint in its worker
+  threads, so the database calls of the endpoint no longer hold the event loop. Skipped on
+  purpose, left `async def`: the seven whose body names `asyncio`, `anyio`,
+  `run_in_threadpool` or `BackgroundTasks` (`generate_report`, `bulk_generate_reports`,
+  `create_student_import`, `create_course_import`, `create_grade_import`,
+  `commit_import_job`, `create_export`). 230 changed in 35 router files; the decorators on
+  them (`require_permission` 144, `limiter.limit` 72, `require_any_permission` 2,
+  `require_all_permissions` 1) already handled plain `def` endpoints since stage 1 (PR 393).
+- **Two callers read from the code.** `start_monitoring_stack` was awaited by
+  `trigger_monitoring_from_container`; both are `def` now and the `await` is gone. A test
+  called `download_database_backup` with `await`; it calls it plainly. A search for `await`,
+  `asyncio.run`, `run_until_complete` and `iscoroutinefunction` on the 225 changed names found
+  nothing else.
+- **Measured** on a scratch server with a database made 65 ms slow per statement (the cloud
+  host's round trip), the same data, 20 authenticated GETs at once, `/health/live` asked
+  every 20 ms meanwhile:
+
+  | endpoint | before: 20 at once, worst `/health/live` | after |
+  |---|---|---|
+  | `GET /courses/` | 3.43 s, 3.16 s | 0.60 s, 0.15 s |
+  | `GET /grades/` | 3.30 s, 3.05 s | 0.54 s, 0.14 s |
+
+  (each run beside a commit gate, so the after figures are a little noisy). What is left of
+  the queueing: the dependencies that are awaited directly (`Depends(get_current_user)`,
+  `/health`) still do their database work on the loop, and stage 3 (the same measurement on
+  the cloud VM through `/metrics`) needs the VM on this code.
+- **What a server now does that it did not:** every one of these endpoints can overlap, so a
+  busy server uses more database connections at once (the pool allows 30 per process; stage
+  1's soak used 21). The QNAP's `max_connections` has not been looked up.
+- **The rate-limit guard.** The first whole-suite run failed one test,
+  `test_rate_limit_enforcement.py`: it had only ever looked at plain `def` endpoints, and 51
+  `async def` write endpoints had no limit. That was repaired on its own first (PR 444, the
+  entry above); this change was then made again by the same script on top of it (230 again,
+  the same as before apart from PR 444's lines). **Whole backend suite** (batch runner, in the
+  clone): 1,988 passed, none failed.
+
 **2026-11-20: 51 write endpoints that had no rate limit have one, and the guard test sees
 `async def`** (found while making todo 52 stage 2: the `def` change made the guard fail).
 

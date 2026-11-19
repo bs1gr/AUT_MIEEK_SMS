@@ -150,7 +150,7 @@ def _markup(line: str) -> str:
 
 
 @router.get("/user-guide/{language}")
-async def get_user_guide(language: str = "en"):
+def get_user_guide(language: str = "en"):
     """
     The Quick Guide as a PDF, in the language asked for.
 

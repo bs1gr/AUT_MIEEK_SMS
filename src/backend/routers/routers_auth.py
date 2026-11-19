@@ -346,7 +346,7 @@ def _reset_user_login_state(user: Any, db: Session) -> None:
 
 @router.get("/security/csrf")
 @limiter.limit(RATE_LIMIT_AUTH)
-async def fetch_csrf_token(request: Request, response: Response):
+def fetch_csrf_token(request: Request, response: Response):
     _ = request
     token = issue_csrf_cookie(response, include_header=True)
     response.headers["Cache-Control"] = "no-store, max-age=0"
@@ -686,14 +686,14 @@ def _registration_mode() -> str:
 
 @router.get("/auth/registration-mode")
 @limiter.limit(RATE_LIMIT_READ)
-async def get_registration_mode(request: Request):
+def get_registration_mode(request: Request):
     """Public: lets the login page hide self-registration where nobody could approve it."""
     return {"mode": _registration_mode()}
 
 
 @router.post("/auth/register", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
+def register_user(request: Request, payload: UserCreate = Body(...), db: Session = Depends(get_db)):
     try:
         existing = db.query(User).filter(User.email == payload.email).first()
         if existing:
@@ -753,7 +753,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
 
 @router.post("/auth/login", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def login(
+def login(
     request: Request,
     response: Response,
     payload: UserLogin = Body(...),
@@ -911,7 +911,7 @@ async def login(
 
 @router.get("/auth/me", response_model=UserResponse)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def me(request: Request, current_user: Any = Depends(get_current_user)):
+def me(request: Request, current_user: Any = Depends(get_current_user)):
     # Explicitly require authentication: if current_user is None or inactive, raise 401
     if current_user is None or not bool(getattr(current_user, "is_active", False)):
         raise http_error(
@@ -925,7 +925,7 @@ async def me(request: Request, current_user: Any = Depends(get_current_user)):
 
 @router.post("/auth/refresh", response_model=Token)
 @limiter.limit(RATE_LIMIT_AUTH)
-async def refresh(
+def refresh(
     request: Request,
     response: Response,
     payload: RefreshRequest = Body(None),
@@ -1040,7 +1040,7 @@ async def refresh(
 
 @router.post("/auth/logout")
 @limiter.limit(RATE_LIMIT_AUTH)
-async def logout(
+def logout(
     request: Request,
     response: Response,
     payload: LogoutRequest = Body(None),
@@ -1129,7 +1129,7 @@ async def logout(
 @router.get("/admin/users", response_model=list[UserResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("users:view")
-async def admin_list_users(
+def admin_list_users(
     request: Request,
     db: Session = Depends(get_db),
 ):
@@ -1148,7 +1148,7 @@ async def admin_list_users(
 @router.post("/admin/users", status_code=status.HTTP_201_CREATED)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("users:manage")
-async def admin_create_user(
+def admin_create_user(
     request: Request,
     payload: UserCreate = Body(...),
     db: Session = Depends(get_db),
@@ -1298,7 +1298,7 @@ async def admin_update_user(
 @router.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("users:manage")
-async def admin_delete_user(
+def admin_delete_user(
     request: Request,
     user_id: int,
     db: Session = Depends(get_db),
@@ -1368,7 +1368,7 @@ async def admin_delete_user(
 @router.post("/admin/users/{user_id}/reset-password")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("users:manage")
-async def admin_reset_password(
+def admin_reset_password(
     request: Request,
     user_id: int,
     payload: PasswordResetRequest = Body(...),
@@ -1407,7 +1407,7 @@ async def admin_reset_password(
 @router.post("/admin/users/{user_id}/unlock")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("users:manage")
-async def admin_unlock_account(
+def admin_unlock_account(
     request: Request,
     user_id: int,
     db: Session = Depends(get_db),
@@ -1445,7 +1445,7 @@ async def admin_unlock_account(
 
 @router.post("/auth/change-password")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def change_password(
+def change_password(
     request: Request,
     payload: PasswordChangeRequest = Body(...),
     db: Session = Depends(get_db),

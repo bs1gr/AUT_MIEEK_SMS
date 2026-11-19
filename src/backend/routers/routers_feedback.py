@@ -113,7 +113,7 @@ async def submit_feedback(
 
 
 @router.get("/entries")
-async def list_feedback_entries(
+def list_feedback_entries(
     request: Request,
     db: Session = Depends(get_session),
     source: Optional[str] = None,
@@ -148,7 +148,7 @@ async def list_feedback_entries(
 
 @router.post("/github/import", response_model=None, status_code=status.HTTP_201_CREATED)
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def import_github_feedback(
+def import_github_feedback(
     request: Request,
     payload: FeedbackImportRequest,
     db: Session = Depends(get_session),
@@ -197,7 +197,7 @@ async def import_github_feedback(
 
 @router.patch("/entries/{entry_id}/archive")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def archive_feedback_entry(
+def archive_feedback_entry(
     entry_id: int,
     request: Request,
     db: Session = Depends(get_session),
@@ -230,7 +230,7 @@ async def archive_feedback_entry(
 
 @router.patch("/entries/{entry_id}/unarchive")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def unarchive_feedback_entry(
+def unarchive_feedback_entry(
     entry_id: int,
     request: Request,
     db: Session = Depends(get_session),
@@ -265,7 +265,7 @@ async def unarchive_feedback_entry(
 
 @router.delete("/entries/{entry_id}")
 @limiter.limit(RATE_LIMIT_WRITE)
-async def delete_feedback_entry(
+def delete_feedback_entry(
     entry_id: int,
     request: Request,
     db: Session = Depends(get_session),

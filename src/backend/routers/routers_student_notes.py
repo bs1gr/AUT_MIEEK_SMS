@@ -53,7 +53,7 @@ def _owner_id(user) -> int:
 @router.get("/", response_model=StudentNotesResponse)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view")
-async def list_my_notes(
+def list_my_notes(
     request: Request,
     db: Session = Depends(get_db),
     user=Depends(optional_signed_in_user),
@@ -77,7 +77,7 @@ async def list_my_notes(
 @router.put("/{student_id}", response_model=StudentNoteResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:view")
-async def save_my_note(
+def save_my_note(
     request: Request,
     student_id: int,
     payload: StudentNoteUpdate,

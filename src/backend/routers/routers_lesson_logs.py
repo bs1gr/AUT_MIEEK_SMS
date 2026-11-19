@@ -34,7 +34,7 @@ router = APIRouter(prefix="/lesson-logs", tags=["Lesson logs"], responses={404: 
 @router.get("/", response_model=PaginatedResponse[LessonLogResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("attendance:edit")
-async def list_lesson_logs(
+def list_lesson_logs(
     request: Request,
     pagination: PaginationParams = Depends(),
     course_id: Optional[int] = None,
@@ -79,7 +79,7 @@ async def list_lesson_logs(
 @router.get("/export/{file_format}")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("attendance:edit")
-async def export_lesson_log(
+def export_lesson_log(
     request: Request,
     file_format: Literal["pdf", "excel"],
     course_id: int = Query(..., ge=1),
@@ -140,7 +140,7 @@ async def export_lesson_log(
 @router.put("/", response_model=LessonLogResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("attendance:edit")
-async def upsert_lesson_log(
+def upsert_lesson_log(
     request: Request,
     payload: LessonLogUpsert,
     db: Session = Depends(get_db),

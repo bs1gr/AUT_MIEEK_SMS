@@ -15,7 +15,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 @router.get("/users", response_model=list[UserResponse])
 @require_permission("users:view")
-async def list_users(
+def list_users(
     request: Request,
     db: Session = Depends(get_db),
 ):

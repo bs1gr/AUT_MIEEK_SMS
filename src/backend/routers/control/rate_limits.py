@@ -40,7 +40,7 @@ class RateLimitResponse(BaseModel):
 
 
 @router.get("/rate-limits", response_model=RateLimitResponse)
-async def get_rate_limits(request: Request, current_admin: str = Depends(optional_require_role("admin"))):
+def get_rate_limits(request: Request, current_admin: str = Depends(optional_require_role("admin"))):
     """Get current rate limit configuration (admin only)."""
     from datetime import datetime, timezone
 
@@ -54,7 +54,7 @@ async def get_rate_limits(request: Request, current_admin: str = Depends(optiona
 
 
 @router.post("/rate-limits/update")
-async def update_rate_limit(
+def update_rate_limit(
     request: Request,
     update: RateLimitUpdate,
     current_admin: str = Depends(optional_require_role("admin")),
@@ -93,7 +93,7 @@ async def update_rate_limit(
 
 
 @router.post("/rate-limits/bulk-update")
-async def bulk_update_rate_limits(
+def bulk_update_rate_limits(
     request: Request,
     bulk_update: RateLimitBulkUpdate,
     current_admin: str = Depends(optional_require_role("admin")),
@@ -131,7 +131,7 @@ async def bulk_update_rate_limits(
 
 
 @router.post("/rate-limits/reset")
-async def reset_rate_limits(
+def reset_rate_limits(
     request: Request,
     current_admin: str = Depends(optional_require_role("admin")),
 ):

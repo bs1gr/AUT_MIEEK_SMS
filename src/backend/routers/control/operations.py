@@ -37,7 +37,7 @@ class OperationResult(BaseModel):
 
 
 @router.post("/operations/install-frontend-deps", response_model=OperationResult)
-async def install_frontend_deps(request: Request, _auth=Depends(require_control_admin)):
+def install_frontend_deps(request: Request, _auth=Depends(require_control_admin)):
     # Resolve project root (repository root)
     project_root = Path(__file__).resolve().parents[3]
     frontend_dir = project_root / "frontend"
@@ -96,7 +96,7 @@ async def install_frontend_deps(request: Request, _auth=Depends(require_control_
 
 
 @router.post("/operations/install-backend-deps", response_model=OperationResult)
-async def install_backend_deps(request: Request, _auth=Depends(require_control_admin)):
+def install_backend_deps(request: Request, _auth=Depends(require_control_admin)):
     project_root = Path(__file__).resolve().parents[3]
     backend_dir = project_root / "backend"
     requirements_file = backend_dir / "requirements.txt"
@@ -139,7 +139,7 @@ async def install_backend_deps(request: Request, _auth=Depends(require_control_a
 
 
 @router.post("/operations/docker-build", response_model=OperationResult)
-async def docker_build(request: Request, _auth=Depends(require_control_admin)):
+def docker_build(request: Request, _auth=Depends(require_control_admin)):
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     try:
         import importlib
@@ -179,7 +179,7 @@ async def docker_build(request: Request, _auth=Depends(require_control_admin)):
 
 
 @router.post("/operations/database-upload", response_model=OperationResult)
-async def upload_database(request: Request, file: UploadFile = File(...), _auth=Depends(require_control_admin)):
+def upload_database(request: Request, file: UploadFile = File(...), _auth=Depends(require_control_admin)):
     if not file.filename or not file.filename.lower().endswith(".db"):
         raise http_error(
             400,
@@ -213,7 +213,7 @@ async def upload_database(request: Request, file: UploadFile = File(...), _auth=
 
 
 @router.post("/operations/docker-update-volume", response_model=OperationResult)
-async def docker_update_volume(request: Request, _auth=Depends(require_control_admin)):
+def docker_update_volume(request: Request, _auth=Depends(require_control_admin)):
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     try:
         import importlib
@@ -328,7 +328,7 @@ async def create_database_backup(
 
 
 @router.get("/operations/database-backups")
-async def list_database_backups(request: Request, _auth=Depends(require_control_admin)):
+def list_database_backups(request: Request, _auth=Depends(require_control_admin)):
     backup_dir = Path(get_settings().BACKUPS_DIR) / "database"
     # What the automatic backup is set to and when it last ran, for the same page.
     automatic = database_backup.automatic_backup_status(backup_dir)
@@ -355,7 +355,7 @@ async def list_database_backups(request: Request, _auth=Depends(require_control_
 
 
 @router.get("/operations/database-backups/{backup_filename:path}/download")
-async def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
+def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     # codeql[py/path-injection] validated against the allowed base directory in this function
     target_path = (backup_dir / backup_filename).resolve()
@@ -381,7 +381,7 @@ async def download_database_backup(request: Request, backup_filename: str, _auth
 
 
 @router.get("/operations/database-backups/archive.zip")
-async def download_backups_zip(request: Request, _auth=Depends(require_control_admin)):
+def download_backups_zip(request: Request, _auth=Depends(require_control_admin)):
     import io
     import zipfile
 
@@ -403,7 +403,7 @@ async def download_backups_zip(request: Request, _auth=Depends(require_control_a
 
 
 @router.post("/operations/database-backups/archive/save-to-path", response_model=OperationResult)
-async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _auth=Depends(require_control_admin)):
+def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _auth=Depends(require_control_admin)):
     import io
     import zipfile
 
@@ -457,7 +457,7 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
 
 
 @router.post("/operations/database-backups/archive/selected.zip")
-async def download_selected_backups_zip(
+def download_selected_backups_zip(
     request: Request, payload: ZipSelectedRequest, _auth=Depends(require_control_admin)
 ):
     import io
@@ -494,7 +494,7 @@ async def download_selected_backups_zip(
 
 
 @router.post("/operations/database-backups/archive/selected/save-to-path", response_model=OperationResult)
-async def save_selected_backups_zip_to_path(
+def save_selected_backups_zip_to_path(
     request: Request, payload: ZipSelectedSaveRequest, _auth=Depends(require_control_admin)
 ):
     import io
@@ -562,7 +562,7 @@ async def save_selected_backups_zip_to_path(
 
 
 @router.post("/operations/database-backups/delete-selected", response_model=OperationResult)
-async def delete_selected_backups(
+def delete_selected_backups(
     request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_control_admin)
 ):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
@@ -603,7 +603,7 @@ async def delete_selected_backups(
 
 
 @router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
-async def save_database_backup_to_path(
+def save_database_backup_to_path(
     request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_control_admin)
 ):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
@@ -779,7 +779,7 @@ def _restore_postgres_backup(request: Request, backup_path: Path, backup_filenam
 
 
 @router.post("/operations/database-restore", response_model=OperationResult)
-async def restore_database(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
+def restore_database(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
     import logging
     import shutil as _sh
 
