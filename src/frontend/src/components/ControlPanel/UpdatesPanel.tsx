@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { RefreshCw, Download, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
+// controlApiClient carries the login token (and the Android server address). A bare axios call
+// sends neither, so the Control API refused it whenever the browser was not on the server itself:
+// in the Docker edition every Updates request answered 403.
+import { controlApiClient } from '@/api/api';
 import { useLanguage } from '../../LanguageContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
@@ -28,10 +32,6 @@ interface UpdateCheckResponse {
 
 /** How long a Docker update may keep the app unreachable (installer + rebuild) before giving up. */
 const DOCKER_UPDATE_MAX_WAIT_MS = 20 * 60 * 1000;
-
-interface UpdatesPanelProps {
-  controlApi: string;
-}
 
 const UPDATER_TIMELINE_MODE_STORAGE_KEY = 'sms.controlPanel.updaterTimelineMode';
 
@@ -72,7 +72,7 @@ interface AutoUpdateStatusResponse {
   }>;
 }
 
-export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
+export const UpdatesPanel: React.FC = () => {
   const { t } = useLanguage();
   const { formatTime } = useDateTimeFormatter();
   const [updateInfo, setUpdateInfo] = useState<UpdateCheckResponse | null>(null);
@@ -159,8 +159,8 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   const fetchUpdaterStatus = useCallback(async (jobId: string) => {
     let status: AutoUpdateStatusResponse;
     try {
-      const response = await axios.get<AutoUpdateStatusResponse>(
-        `${controlApi}/maintenance/updates/auto-install/${jobId}/status`,
+      const response = await controlApiClient.get<AutoUpdateStatusResponse>(
+        `/maintenance/updates/auto-install/${jobId}/status`,
       );
       status = response.data;
     } catch {
@@ -186,7 +186,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
       setInstalling(false);
       setError(status.error || status.message || (t('updateInstallFailed') || 'Automatic update failed.'));
     }
-  }, [controlApi, stopUpdaterPolling, t, updateInfo?.deployment_mode]);
+  }, [stopUpdaterPolling, t, updateInfo?.deployment_mode]);
 
   const startUpdaterPolling = useCallback(async (jobId: string) => {
     stopUpdaterPolling();
@@ -201,7 +201,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${controlApi}/maintenance/updates/check`, {
+      const response = await controlApiClient.get('/maintenance/updates/check', {
         params: { channel },
       });
       const data: UpdateCheckResponse = response.data;
@@ -223,7 +223,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     } finally {
       setLoading(false);
     }
-  }, [controlApi, formatTime]);
+  }, [formatTime]);
 
   const installUpdate = useCallback(async () => {
     setInstalling(true);
@@ -232,7 +232,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     setUpdaterStatus(null);
 
     try {
-      const response = await axios.post<AutoInstallStartResponse>(`${controlApi}/maintenance/updates/auto-install`, {
+      const response = await controlApiClient.post<AutoInstallStartResponse>('/maintenance/updates/auto-install', {
         channel: releaseChannel,
         install_mode: 'silent',
       });
@@ -250,13 +250,13 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
         setInstalling(false);
       }
     } catch (err) {
-      const data = axios.isAxiosError(err)
+      const data = isAxiosError(err)
         ? (err.response?.data as { detail?: string; message?: string } | undefined)
         : undefined;
       setError(data?.message || data?.detail || (err instanceof Error ? err.message : '') || t('updateInstallFailed'));
       setInstalling(false);
     }
-  }, [controlApi, releaseChannel, startUpdaterPolling, t]);
+  }, [releaseChannel, startUpdaterPolling, t]);
 
   // No auto-check on mount — updates are only checked when the user clicks a button
 
