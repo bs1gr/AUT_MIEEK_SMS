@@ -6,6 +6,8 @@ export interface AttendanceSyncSnapshot {
   courseId: number;
   date: string;
   attendanceRecords: Record<string, string>;
+  /** Keys of marks the page took off since it last agreed with the server (Clear). */
+  attendanceDeletes?: string[];
   dailyPerformance: Record<string, number>;
   dailyPerformanceDeletes?: string[];
   enqueuedAt: string;
@@ -28,7 +30,9 @@ const parseQueue = (raw: string | null): AttendanceSyncSnapshot[] => {
         typeof (item as AttendanceSyncSnapshot).courseId === 'number' &&
         typeof (item as AttendanceSyncSnapshot).date === 'string' &&
         ((item as AttendanceSyncSnapshot).dailyPerformanceDeletes === undefined ||
-          Array.isArray((item as AttendanceSyncSnapshot).dailyPerformanceDeletes))
+          Array.isArray((item as AttendanceSyncSnapshot).dailyPerformanceDeletes)) &&
+        ((item as AttendanceSyncSnapshot).attendanceDeletes === undefined ||
+          Array.isArray((item as AttendanceSyncSnapshot).attendanceDeletes))
       );
     });
   } catch {
@@ -62,6 +66,9 @@ export const enqueueAttendanceSyncSnapshot = (
     dailyPerformanceDeletes: input.dailyPerformanceDeletes || [],
     enqueuedAt: new Date().toISOString(),
   };
+  if (input.attendanceDeletes?.length) {
+    snapshot.attendanceDeletes = [...input.attendanceDeletes];
+  }
 
   const duplicateIndex = queue.findIndex(
     (item) => item.courseId === snapshot.courseId && item.date === snapshot.date,

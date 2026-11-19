@@ -209,9 +209,11 @@ enrols the ticked ones. "Enrolled Students" lists who is in the course, each wit
 3. Mark the students under **Mark Attendance**.
 
 **Marking.** Each student has four buttons: Present, Absent, Late, Excused. **Quick
-Actions** above the list sets one status for everybody, and **Clear** takes the marks off
-that are not saved yet. A mark that is already saved comes back a moment after **Clear**:
-the page cannot remove a saved mark, so change it to the right status instead. For a day
+Actions** above the list sets one status for everybody, and **Clear** takes every mark of
+the day off, the saved ones too: the page asks first when saved marks are among them, and
+two seconds later they are deleted on the server as well. **Clear** beside a student's
+periods takes that student's marks off without asking. (Until v1.18.73 a saved mark came
+back a moment after **Clear**.) For a day
 with several periods, **Show per-period attendance** under a student opens the periods one
 by one ("Mark all periods absent" is there too).
 

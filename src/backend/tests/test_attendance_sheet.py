@@ -218,3 +218,115 @@ def test_an_empty_sheet_is_accepted_and_changes_nothing(client):
     response = client.post(SHEET_URL, json={"course_id": course_id, "date": TODAY})
     assert response.status_code == 200
     assert response.json()["attendance_created"] == 0
+
+# --- marks taken off the sheet (Clear on the Attendance page) ------------------------------------
+#
+# Until 19 November 2026 a sheet could only create and update. Clear emptied the page, the
+# autosave sent a sheet without those marks, the server kept its rows, and the refresh after
+# the save put the marks back on the page: Clear did nothing lasting to a saved mark.
+
+
+def _sheet(client, course_id: int, **parts):
+    return client.post(SHEET_URL, json={"course_id": course_id, "date": TODAY, **parts})
+
+
+def test_a_mark_taken_off_the_sheet_is_gone_and_the_others_stay(client):
+    course_id = _course(client)
+    first, second = _student(client, "CLR001"), _student(client, "CLR002")
+    marked = [
+        {"student_id": student_id, "period_number": period, "status": "Present"}
+        for student_id in (first, second)
+        for period in (1, 2)
+    ]
+    assert _sheet(client, course_id, attendance=marked).json()["attendance_created"] == 4
+
+    response = _sheet(client, course_id, attendance_deletes=[{"student_id": first, "period_number": 2}])
+
+    assert response.status_code == 200, response.text
+    assert response.json()["attendance_deleted"] == 1
+    assert set(_attendance(client, course_id)) == {(first, 1), (second, 1), (second, 2)}
+
+
+def test_clear_takes_the_whole_days_marks_off(client):
+    course_id = _course(client)
+    students = [_student(client, f"CLA{i:03d}") for i in range(4)]
+    marked = [{"student_id": student_id, "period_number": 1, "status": "Absent"} for student_id in students]
+    assert _sheet(client, course_id, attendance=marked).status_code == 200
+
+    response = _sheet(
+        client, course_id, attendance_deletes=[{"student_id": student_id} for student_id in students]
+    )
+
+    assert response.json()["attendance_deleted"] == 4
+    assert _attendance(client, course_id) == {}
+    # And the day can be marked again: the rows that were taken off are out of the way.
+    again = _sheet(client, course_id, attendance=marked[:1])
+    assert again.status_code == 200, again.text
+    assert again.json()["attendance_created"] == 1
+    assert set(_attendance(client, course_id)) == {(students[0], 1)}
+
+
+def test_a_slot_taken_off_and_marked_in_one_request_ends_with_the_new_mark(client):
+    course_id = _course(client)
+    student_id = _student(client, "CLB001")
+    assert _sheet(
+        client, course_id, attendance=[{"student_id": student_id, "period_number": 1, "status": "Absent"}]
+    ).status_code == 200
+
+    response = _sheet(
+        client,
+        course_id,
+        attendance=[{"student_id": student_id, "period_number": 1, "status": "Late"}],
+        attendance_deletes=[{"student_id": student_id, "period_number": 1}, {"student_id": student_id}],
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert (body["attendance_deleted"], body["attendance_created"]) == (1, 1)
+    saved = _attendance(client, course_id)
+    assert {slot: row["status"] for slot, row in saved.items()} == {(student_id, 1): "Late"}
+
+
+def test_taking_off_a_mark_that_is_not_there_changes_nothing(client):
+    course_id = _course(client)
+    student_id = _student(client, "CLC001")
+    assert _sheet(
+        client, course_id, attendance=[{"student_id": student_id, "period_number": 1, "status": "Present"}]
+    ).status_code == 200
+
+    response = _sheet(client, course_id, attendance_deletes=[{"student_id": student_id, "period_number": 3}])
+
+    assert response.status_code == 200, response.text
+    assert response.json()["attendance_deleted"] == 0
+    assert set(_attendance(client, course_id)) == {(student_id, 1)}
+
+
+def test_a_mark_is_taken_off_this_day_and_this_course_only(client):
+    course_id, other_course = _course(client), _course(client, "SHEET102")
+    student_id = _student(client, "CLD001")
+    yesterday = str(date.today() - timedelta(days=1))
+    mark = [{"student_id": student_id, "period_number": 1, "status": "Present"}]
+    for course, day in ((course_id, TODAY), (course_id, yesterday), (other_course, TODAY)):
+        assert client.post(SHEET_URL, json={"course_id": course, "date": day, "attendance": mark}).status_code == 200
+
+    assert _sheet(client, course_id, attendance_deletes=[{"student_id": student_id}]).json()["attendance_deleted"] == 1
+
+    assert _attendance(client, course_id) == {}
+    assert set(_attendance(client, course_id, yesterday)) == {(student_id, 1)}
+    assert set(_attendance(client, other_course)) == {(student_id, 1)}
+
+
+def test_a_mark_taken_off_is_kept_as_a_deleted_row(client, db):
+    from backend.models import Attendance
+
+    course_id = _course(client)
+    student_id = _student(client, "CLE001")
+    assert _sheet(
+        client, course_id, attendance=[{"student_id": student_id, "period_number": 1, "status": "Excused"}]
+    ).status_code == 200
+
+    assert _sheet(client, course_id, attendance_deletes=[{"student_id": student_id}]).status_code == 200
+
+    db.expire_all()
+    rows = db.query(Attendance).filter(Attendance.student_id == student_id).all()
+    assert [(row.status, row.deleted_at is not None) for row in rows] == [("Excused", True)]

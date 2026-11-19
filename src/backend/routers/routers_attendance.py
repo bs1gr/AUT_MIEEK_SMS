@@ -104,9 +104,12 @@ async def save_attendance_sheet_endpoint(
     """
     Save one course's attendance and daily performance for one date in a single request.
 
-    Rows that exist are updated, missing ones are created; `daily_performance_deletes` removes
-    scores. Needs both permissions the per-record endpoints need (attendance:edit for the
-    attendance rows, students:edit for the performance scores).
+    Rows that exist are updated, missing ones are created; `attendance_deletes` takes marks off
+    the sheet (Clear on the Attendance page) and `daily_performance_deletes` removes scores.
+    Needs both permissions the per-record endpoints need (attendance:edit for the attendance
+    rows, students:edit for the performance scores). Taking a mark off is part of editing the
+    sheet, as changing it is: it asks for nothing more. `DELETE /attendance/{id}` keeps its own
+    permission, attendance:delete.
     """
     try:
         return save_attendance_sheet(db, sheet, request)
