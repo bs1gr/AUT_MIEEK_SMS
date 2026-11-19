@@ -39,7 +39,7 @@ export const notificationsEL = {
   admin: {
     tabLabel: 'Ειδοποιήσεις',
     title: 'Αποστολή Ειδοποίησης',
-    description: 'Αποστολή μηνύματος σε όλους, σε ρόλο ή σε συγκεκριμένους χρήστες.',
+    description: 'Αποστολή μηνύματος σε όλους, στους χρήστες ενός ρόλου ή σε λογαριασμούς της επιλογής σας.',
     descriptionNoUsers: 'Αποστολή μηνύματος σε όλους τους χρήστες ή στους χρήστες ενός ρόλου.',
     typeLabel: 'Τύπος ειδοποίησης',
     targetLabel: 'Στόχος αποστολής',
@@ -47,9 +47,10 @@ export const notificationsEL = {
     targetRole: 'Ρόλος',
     targetUsers: 'Συγκεκριμένοι χρήστες',
     roleLabel: 'Ρόλος',
-    userIdsLabel: 'Αναγνωριστικά χρηστών',
-    userIdsPlaceholder: 'π.χ., 12, 24, 57',
-    userIdsHelp: 'Χωρίστε με κόμμα τα αριθμητικά ID χρηστών.',
+    userIdsLabel: 'Λογαριασμοί',
+    userIdsHelp: 'Επιλέξτε τους λογαριασμούς που θα λάβουν το μήνυμα. Κάθε αντίγραφο δείχνει το όνομά σας ως αποστολέα.',
+    recipientsLoading: 'Φόρτωση λογαριασμών...',
+    recipientsNone: 'Δεν ήταν δυνατή η φόρτωση ενεργών λογαριασμών.',
     titleLabel: 'Τίτλος',
     messageLabel: 'Μήνυμα',
     sendButton: 'Αποστολή ειδοποίησης',
@@ -59,7 +60,7 @@ export const notificationsEL = {
     notAuthorized: 'Ο λογαριασμός σας δεν επιτρέπεται να στέλνει ειδοποιήσεις.',
     validationTitle: 'Απαιτείται τίτλος.',
     validationMessage: 'Απαιτείται μήνυμα.',
-    validationUsers: 'Εισάγετε τουλάχιστον ένα έγκυρο ID χρήστη.',
+    validationUsers: 'Επιλέξτε τουλάχιστον έναν λογαριασμό.',
   },
 
   feedbackInbox: {
@@ -186,6 +187,7 @@ export const notificationsEL = {
   },
 
   // Time formats
+  sentBy: 'Από: {{name}}',
   time: {
     justNow: 'Μόλις τώρα',
     minutesAgo: 'Πριν {{count}} λεπτό(ά)',

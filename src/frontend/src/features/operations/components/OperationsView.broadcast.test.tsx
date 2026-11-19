@@ -102,14 +102,29 @@ describe('Utils > Notifications: the form that sends a message', () => {
     expect(screen.queryByPlaceholderText('e.g., 12, 24, 57')).not.toBeInTheDocument();
   });
 
-  it('offers an administrator all three targets, the accounts by number too', async () => {
+  it('offers an administrator all three targets, and the accounts by name, not by number', async () => {
+    get.mockImplementation(async (url: string) =>
+      url === '/admin/users'
+        ? {
+            data: [
+              { id: 24, full_name: 'Maria Ioannou', email: 'maria@example.com', is_active: true },
+              { id: 12, full_name: 'Andreas Georgiou', email: 'andreas@example.com', is_active: true },
+              { id: 30, full_name: 'Gone Away', email: 'gone@example.com', is_active: false },
+            ],
+          }
+        : { data: { success: true, data: { items: [], total: 0 } } }
+    );
     const user = await renderNotificationsTab('admin');
 
     expect(targets()).toEqual(['all', 'role', 'users']);
-    expect(screen.getByText('Broadcast a message to all users, a role, or specific user IDs.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Send a message to all users, to the users of one role, or to accounts you choose.')
+    ).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText('Target audience'), 'users');
-    await user.type(screen.getByPlaceholderText('e.g., 12, 24, 57'), '12, 24');
+    await user.click(await screen.findByRole('checkbox', { name: /Andreas Georgiou/ }));
+    await user.click(screen.getByRole('checkbox', { name: /Maria Ioannou/ }));
+    expect(screen.queryByRole('checkbox', { name: /Gone Away/ })).not.toBeInTheDocument();
     await user.type(screen.getByLabelText('Title'), 'Hello');
     await user.type(screen.getByLabelText('Message'), 'To two accounts.');
     await user.click(screen.getByRole('button', { name: 'Send notification' }));

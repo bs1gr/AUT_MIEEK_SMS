@@ -4,6 +4,7 @@ import { ShieldCheck } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
 import apiClient from '@/api/api';
+import { normalizeResponseToArray } from '@/utils/normalize';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
 import Toast from '@/components/ui/Toast';
@@ -19,7 +20,7 @@ import {
 import OperationsImportsTab from './OperationsImportsTab';
 import OperationsReportsTab from './OperationsReportsTab';
 import OperationsSettingsTab from './OperationsSettingsTab';
-import OperationsBroadcastPanel from './OperationsBroadcastPanel';
+import OperationsBroadcastPanel, { type BroadcastRecipient } from './OperationsBroadcastPanel';
 import OperationsFeedbackInbox, { type FeedbackSourceOption } from './OperationsFeedbackInbox';
 
 type OperationsViewProps = {
@@ -104,7 +105,8 @@ const OperationsView = (_props: OperationsViewProps) => {
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastTarget, setBroadcastTarget] = useState<'all' | 'role' | 'users'>('all');
   const [broadcastRole, setBroadcastRole] = useState('teacher');
-  const [broadcastUserIds, setBroadcastUserIds] = useState('');
+  const [broadcastUserIds, setBroadcastUserIds] = useState<number[]>([]);
+  const [broadcastRecipients, setBroadcastRecipients] = useState<BroadcastRecipient[] | null>(null);
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>([]);
   const [feedbackTotal, setFeedbackTotal] = useState(0);
@@ -218,6 +220,37 @@ const OperationsView = (_props: OperationsViewProps) => {
       .filter((item): item is FeedbackImportItem => Boolean(item));
   };
 
+  // "Specific users" lists the accounts by name: until November 2026 it asked for account
+  // numbers that no page shows. Loaded once, when an administrator first picks that target.
+  useEffect(() => {
+    if (!isAdmin || broadcastTarget !== 'users' || broadcastRecipients !== null) return undefined;
+    let cancelled = false;
+    apiClient
+      .get('/admin/users')
+      .then((response) => {
+        if (cancelled) return;
+        const accounts = normalizeResponseToArray<{ id: number; full_name?: string | null; email?: string; is_active?: boolean }>(
+          response.data
+        );
+        setBroadcastRecipients(
+          accounts
+            .filter((account) => account.is_active !== false)
+            .map((account) => ({
+              id: account.id,
+              name: account.full_name?.trim() || account.email || String(account.id),
+              email: account.email ?? '',
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setBroadcastRecipients([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, broadcastTarget, broadcastRecipients]);
+
   const handleSendNotification = async () => {
     if (!broadcastTitle.trim()) {
       setToast({ message: t('admin.validationTitle', { ns: 'notifications' }), type: 'error' });
@@ -234,18 +267,11 @@ const OperationsView = (_props: OperationsViewProps) => {
     if (broadcastTarget === 'role') {
       roleFilter = broadcastRole;
     } else if (broadcastTarget === 'users' && isAdmin) {
-      const parsed = broadcastUserIds
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .map((value) => Number(value))
-        .filter((value) => Number.isFinite(value) && value > 0);
-
-      if (!parsed.length) {
+      if (!broadcastUserIds.length) {
         setToast({ message: t('admin.validationUsers', { ns: 'notifications' }), type: 'error' });
         return;
       }
-      userIds = parsed;
+      userIds = [...broadcastUserIds];
     }
 
     setBroadcastSending(true);
@@ -261,7 +287,7 @@ const OperationsView = (_props: OperationsViewProps) => {
       setToast({ message: t('admin.success', { ns: 'notifications' }), type: 'success' });
       setBroadcastTitle('');
       setBroadcastMessage('');
-      setBroadcastUserIds('');
+      setBroadcastUserIds([]);
     } catch (error) {
       console.error('Failed to broadcast notification:', error);
       // An installation can take the permission from a role: the server's refusal is said as
@@ -469,6 +495,7 @@ const OperationsView = (_props: OperationsViewProps) => {
               broadcastRole={broadcastRole}
               setBroadcastRole={setBroadcastRole}
               broadcastUserIds={broadcastUserIds}
+              broadcastRecipients={broadcastRecipients}
               setBroadcastUserIds={setBroadcastUserIds}
               broadcastTitle={broadcastTitle}
               setBroadcastTitle={setBroadcastTitle}

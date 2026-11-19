@@ -3090,6 +3090,17 @@ now** (todo 58).
       WebSocket endpoint of todo 58 (the owner's call).
     - *Notifications are never removed.* "Delete" marks the row; no job deletes old or
       marked rows. The table is small today.
+    - **The four items above done on 2026-11-19 (the owner: "proceed with ... 4", the list of
+      older entries); my choices where the entry left one open:** the sender travels in the
+      notification's `data` (`sender_id`, `sender_name`: the full name, else the e-mail), set
+      by the server and never taken from the body, and the bell shows "From ..." (no
+      migration); "Specific users" is a list of the active accounts by name for an
+      administrator (a teacher still has no such target: the list of accounts is the
+      administrator's); a broadcast leaves out a receiver who switched in-app notifications
+      off (`should_notify`; the system's own notices, such as a failed backup, still reach
+      everyone); the preferences endpoints stay without a page; rows deleted in the bell are
+      removed 30 days later, at start and by the daily job (read and unread ones are kept:
+      no period is decided).
     - *`docs/user/USER_GUIDE_COMPLETE.md` has not been checked against the application.* The
       one sentence corrected in PR 414 stood next to others of the same kind (a "System
       Settings" list with "Email Notifications: Enable/disable", attendance thresholds of
@@ -3172,7 +3183,10 @@ now** (todo 58).
       for an answer, as the Search page did until PR 416.
     - *The search does not know a letter typed as two characters* (a vowel followed by a
       separate accent mark, as some keyboards and pasted texts give it). Names typed in the
-      application on a Greek keyboard are not written that way.
+      application on a Greek keyboard are not written that way. **Done on 2026-11-19 (the
+      owner: "proceed with ... 4"):** the search removes the separate tonos and dialytika marks
+      (U+0301, U+0308, U+0344) from the typed text and from what is stored, with the same
+      `translate()` it folds accents with, on PostgreSQL and SQLite.
 62. **The export jobs of the Import/Export page work in one case of many** (found on
     2026-11-17 by the smoke test before v1.18.73; each seen on a scratch server; none of it
     is new in that release).

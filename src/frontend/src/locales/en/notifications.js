@@ -39,7 +39,7 @@ export const notificationsEN = {
   admin: {
     tabLabel: 'Notifications',
     title: 'Send Notification',
-    description: 'Broadcast a message to all users, a role, or specific user IDs.',
+    description: 'Send a message to all users, to the users of one role, or to accounts you choose.',
     descriptionNoUsers: 'Send a message to all users or to the users of one role.',
     typeLabel: 'Notification type',
     targetLabel: 'Target audience',
@@ -47,9 +47,10 @@ export const notificationsEN = {
     targetRole: 'Role',
     targetUsers: 'Specific users',
     roleLabel: 'Role',
-    userIdsLabel: 'User IDs',
-    userIdsPlaceholder: 'e.g., 12, 24, 57',
-    userIdsHelp: 'Comma-separated numeric user IDs.',
+    userIdsLabel: 'Accounts',
+    userIdsHelp: 'Tick the accounts that get the message. Each copy shows your name as the sender.',
+    recipientsLoading: 'Loading the accounts...',
+    recipientsNone: 'No active accounts could be loaded.',
     titleLabel: 'Title',
     messageLabel: 'Message',
     sendButton: 'Send notification',
@@ -59,7 +60,7 @@ export const notificationsEN = {
     notAuthorized: 'Your account is not allowed to send notifications.',
     validationTitle: 'Title is required.',
     validationMessage: 'Message is required.',
-    validationUsers: 'Enter at least one valid user ID.',
+    validationUsers: 'Choose at least one account.',
   },
 
   feedbackInbox: {
@@ -186,6 +187,7 @@ export const notificationsEN = {
   },
 
   // Time formats
+  sentBy: 'From {{name}}',
   time: {
     justNow: 'Just now',
     minutesAgo: '{{count}} minute(s) ago',

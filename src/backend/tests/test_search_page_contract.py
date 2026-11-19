@@ -337,6 +337,23 @@ class TestTypedText:
         assert found("αισε") == ["GA3"]
         assert found("ΤΑΙΡ") == ["GA3"]
 
+    def test_a_letter_typed_as_vowel_and_separate_accent_is_found(self, client, admin_headers, db):
+        # Some keyboards and pasted texts give "ά" as "α" followed by U+0301 (and "ΐ" as "ι",
+        # U+0308, U+0301). Both the typed text and a name stored that way are found.
+        _student(db, "Γιάννης", "Παπαδόπουλος", "GD1")
+        _student(db, "Γιάννης", "Ταΐρ", "GD2")
+
+        def found(query: str) -> list[str]:
+            return sorted(
+                row["student_id"]
+                for row in _search(client, admin_headers, {"entity": "students", "query": query})["data"]["results"]
+            )
+
+        assert found("Γιάννης") == ["GD1", "GD2"]
+        assert found("Γιάννης") == ["GD1", "GD2"]
+        assert found("ταιρ") == ["GD2"]
+        assert found("Ταΐρ") == ["GD2"]
+
     def test_a_surname_in_capitals_is_found_when_typed_in_full(self, client, admin_headers, db):
         # PostgreSQL lowers the last letter of ΠΑΠΑΔΟΠΟΥΛΟΣ to "σ", Python lowers it to "ς":
         # on the shared database the whole surname, typed in any case, found nobody.

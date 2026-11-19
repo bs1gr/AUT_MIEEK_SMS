@@ -54,6 +54,12 @@ class MaintenanceScheduler:
 
         return purge_dead_refresh_tokens_in_own_session(SessionLocal)
 
+    def purge_deleted_notifications(self) -> int:
+        """Delete notifications their reader deleted more than 30 days ago."""
+        from backend.services.notification_cleanup import purge_deleted_notifications_in_own_session
+
+        return purge_deleted_notifications_in_own_session(SessionLocal)
+
     def cleanup_and_archive_old_exports(self, days_old: int = 30, archive_path: str = "data/exports/archive"):
         """Archive old export jobs instead of deleting them.
 
@@ -207,7 +213,15 @@ class MaintenanceScheduler:
                     replace_existing=True,
                 )
 
-                logger.info(f"Scheduled export cleanup and refresh-token purge ({frequency})")
+                self.export_scheduler.scheduler.add_job(
+                    self.purge_deleted_notifications,
+                    trigger=trigger,
+                    id=f"purge_deleted_notifications_{frequency}",
+                    name=f"Remove deleted notifications ({frequency})",
+                    replace_existing=True,
+                )
+
+                logger.info(f"Scheduled export cleanup, refresh-token and notification purge ({frequency})")
 
         except Exception as e:
             logger.error(f"Failed to schedule cleanup: {e}")

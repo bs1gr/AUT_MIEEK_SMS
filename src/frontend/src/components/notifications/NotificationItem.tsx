@@ -138,6 +138,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   };
 
   const { title, message } = getNotificationText(notification, t);
+  const senderName = (() => {
+    const value = (notification as Notification & { data?: Record<string, unknown> | null }).data?.sender_name;
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  })();
 
   const getPriorityClass = () => {
     switch (notification.priority) {
@@ -193,6 +197,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         <p className={`notification-item-message ${isExpanded ? 'notification-item-message-expanded' : ''}`}>
           {message}
         </p>
+
+        {/* A message one account sent to others says who sent it (the server sets the name). */}
+        {senderName && <p className="notification-item-sender text-xs text-slate-500">{t('sentBy', { name: senderName })}</p>}
 
         {/* Type Badge */}
         <span className={`notification-item-type notification-type-${notification.notification_type}`}>
