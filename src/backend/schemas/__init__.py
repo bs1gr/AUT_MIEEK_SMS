@@ -278,22 +278,6 @@ from .search import (
     UnifiedSearchResultSchema as UnifiedSearchResultSchema,
 )
 
-# Phase 4 Full-Text Search schemas
-from .search import (
-    FullTextSearchRequest as FullTextSearchRequest,
-)
-from .search import (
-    AdvancedSearchRequest as AdvancedSearchRequest,
-)
-from .search import (
-    StudentFullTextSearchResult as StudentFullTextSearchResult,
-)
-from .search import (
-    FullTextSearchResponse as FullTextSearchResponse,
-)
-from .search import (
-    AdvancedSearchResponse as AdvancedSearchResponse,
-)
 from .search import (
     SearchFilterRequest as SearchFilterRequest,
 )

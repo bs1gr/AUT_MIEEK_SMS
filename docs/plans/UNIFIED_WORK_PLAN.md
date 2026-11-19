@@ -3131,7 +3131,7 @@ now** (todo 58).
       what the first look at a running copy added (a Greek name was not found; the counts
       answered without a sign-in). The details are under "In v1.18.73".
 61. **Found on 2026-11-17 while the Search page was repaired, and not changed.**
-    - *Two search endpoints that cannot answer.* `POST /search/students/full-text` calls a
+    - *Two search endpoints that cannot answer (removed, see below).* `POST /search/students/full-text` calls a
       method the search service does not have, and `POST /search/students/advanced` filters
       and orders by a status and two dates that a student record does not have. Both answer
       every request with `SEARCH_ERROR` (seen on a scratch server). No page calls them.
@@ -3148,6 +3148,13 @@ now** (todo 58).
       `run-full-regression.ps1`) start one or two spec files each, and the third calls the
       result "ready for release"; nothing uses them but a deployment checklist of v1.17.3.
       Delete (the owner's OK).
+    - **The three items above done on 2026-11-19 (the owner: "proceed with ... 4", the list of
+      older entries):** the two search endpoints, their five schemas and
+      `SearchService.advanced_student_search` removed (my choice: remove, not repair, since no
+      page calls them); `hooks/useSearch.ts`, `hooks/useSearchFacets.ts`, `useVirtualScroll`
+      with both tests, the two `StudentRow.tsx` and the three runner scripts deleted. The same
+      PR corrects CLAUDE.md's i18n example: `useTranslation()` with `t('common.save')` shows
+      "common.save"; the project's `useLanguage()` reads it.
     - *SQLite does not enforce foreign keys.* `init_db` switches them on for one connection
       at start, and the engine opens a new connection for every use: on the connections the
       application works with, `PRAGMA foreign_keys` answers 0 (seen with the application's

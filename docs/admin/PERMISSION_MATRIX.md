@@ -143,7 +143,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 <!-- endpoint-requirements:start -->
 
-344 endpoints.
+342 endpoints.
 
 #### `/api/v1/admin`
 
@@ -544,9 +544,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `POST /api/v1/search/saved/{search_id}/favorite` | signed in |
 | `GET /api/v1/search/statistics` | signed in |
 | `GET /api/v1/search/students` | `students:view` |
-| `POST /api/v1/search/students/advanced` | `students:view` |
 | `GET /api/v1/search/students/facets` | `students:view` |
-| `POST /api/v1/search/students/full-text` | `students:view` |
 | `GET /api/v1/search/suggestions` | signed in |
 
 #### `/api/v1/security`
