@@ -10,9 +10,6 @@ Provides shared utilities for importing, validation, conversion, and system diag
 
 ```
 utils/
-├── validators/              # Input and system validation
-│   ├── import_checker.py   # Unified import validator
-│   └── schema_validator.py # Database schema validation
 ├── converters/             # Data format converters + sample inputs
 │   ├── convert_mieek_to_import.py
 │   ├── convert_pdf_to_import.py
@@ -21,41 +18,12 @@ utils/
 ├── lint/                   # Linting and formatting tools (markdown, mypy helper)
 ├── ci/                     # CI helpers (issue monitors, quick listings)
 ├── backups/                # Backup utility helpers
-├── tests/                  # Test utilities
 ├── post_register.py        # Post-registration hooks
 ├── release.py              # Release utilities
 └── README.md              # This file
 ```
 
 ## Available Utilities
-
-### Validators
-
-#### import_checker.py (Unified Import Validator)
-
-**Purpose:** Validate Python import consistency across the project
-
-Legacy entry points in `tools/` have been removed. Use the consolidated script
-directly in CI and local workflows.
-
-**Usage:**
-
-```bash
-# Check all import types
-python scripts/utils/validators/import_checker.py
-
-# Check specific mode
-python scripts/utils/validators/import_checker.py --mode requirements
-python scripts/utils/validators/import_checker.py --mode backend
-python scripts/utils/validators/import_checker.py --mode package
-```
-
-**Modes:**
-
-- `requirements` - Validate requirements.txt coverage
-- `backend` - Validate backend.db imports
-- `package` - Validate package imports
-- `all` - Check everything (default)
 
 ### Converters
 
@@ -89,10 +57,6 @@ Located in `installer/` subdirectory - utilities for installer creation and vali
 
 Located in `lint/` subdirectory - utilities for code quality and formatting.
 
-### Test Utilities
-
-Located in `tests/` subdirectory - helper utilities for testing and validation.
-
 ## Consolidation Notes
 
 This directory was created as part of workspace consolidation in v1.10.1 to unify
@@ -108,9 +72,10 @@ migrated here with backward-compatible stubs left in `tools/`.
 
 ### Backward Compatibility
 
-The legacy `tools/` entry points have been retired. Use
-`scripts/utils/validators/import_checker.py` for import validation going
-forward.
+The legacy `tools/` entry points have been retired. The import validator
+(`validators/import_checker.py`) was removed in November 2026: it scanned a
+`backend/` folder that has not existed since the June 2026 flatten, and nothing
+ran it.
 
 ## Usage in Scripts
 
@@ -120,11 +85,9 @@ To use utilities from scripts:
 import sys
 sys.path.insert(0, 'scripts/utils')
 
-from validators.import_checker import validate_imports
 from converters.convert_mieek_to_import import convert_mieek
 
 # Use utilities
-validate_imports()
 convert_mieek('data.xlsx', 'output.json')
 ```
 
@@ -132,11 +95,11 @@ convert_mieek('data.xlsx', 'output.json')
 
 When adding new utilities:
 
-1. Choose appropriate subdirectory (validators/, converters/, etc.)
+1. Choose appropriate subdirectory (converters/, ci/, etc.)
 2. Follow naming convention: `tool_name.py`
 3. Include docstring with purpose and usage
 4. Add entry to this README.md
-5. Include unit tests in `tests/` if applicable
+5. Add unit tests under `src/backend/tests/` if applicable (the batch runner finds them there)
 
 Example structure for new utility:
 

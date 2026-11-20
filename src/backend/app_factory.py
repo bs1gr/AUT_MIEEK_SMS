@@ -170,8 +170,11 @@ def create_app() -> FastAPI:
 def _register_health_endpoints(app: FastAPI):
     """Register health check endpoints."""
 
+    # `/health` and `/health/ready` are plain `def`: they only do blocking database work, and
+    # an `async def` would run all of it on the event loop (about 0.7 s per call on the cloud
+    # host, where Docker asks every 30 s), so every other request waited behind it.
     @app.get("/health")
-    async def health_check(db: Session = Depends(get_session)):
+    def health_check(db: Session = Depends(get_session)):
         """Comprehensive health check endpoint."""
         from backend.import_resolver import import_names
 
@@ -203,7 +206,7 @@ def _register_health_endpoints(app: FastAPI):
             return result
 
     @app.get("/health/ready")
-    async def readiness_check(db: Session = Depends(get_session)):
+    def readiness_check(db: Session = Depends(get_session)):
         """Readiness probe endpoint for Kubernetes/orchestration."""
         from backend.import_resolver import import_names
 
