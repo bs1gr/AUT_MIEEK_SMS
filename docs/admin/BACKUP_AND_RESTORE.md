@@ -36,6 +36,26 @@ server log the lines start with `Automatic database backup` (`created`, `skipped
 | `BACKUPS_DIR` | per edition, below | the folder that holds `database/` |
 | `BACKUP_KEYS_DIR` | per edition, below | the folder that holds the key, `master.key` |
 
+## Before an update changes the database
+
+From the release after v1.18.77. When a server starts with a release that brings database
+changes (Alembic migrations), it first makes one more encrypted backup,
+`pre_migration_<date>_<time>.enc`, and only then changes the database. That backup is at the
+version **before** the update, so it restores with the earlier release: together they undo the
+update without losing anything.
+
+- No such backup is made for a new, empty database, for a database that is already up to date,
+  or for one that a newer release has changed (an older release does not change it either).
+- **If that backup fails, the database is not changed.** The server log says
+  `The backup before migrating … FAILED, so the database is NOT migrated`, and every active
+  administrator gets a notice in the bell. Find the cause (the folder, the key, the database
+  connection) and start again. If you have a backup of your own and must go ahead, start once
+  with `SMS_SKIP_MIGRATION_BACKUP=1` and remove it afterwards.
+- These backups are listed with the others and are kept like one made by hand: the automatic
+  clean-up never deletes them. Delete them yourself when the update has proved itself.
+- On a shared database the first server that starts with the new release makes it (and changes
+  the database); the others find it up to date.
+
 ## When a backup fails
 
 From v1.18.72.
@@ -111,8 +131,8 @@ count and the same content checksum in every table.
 
 - A PostgreSQL backup restores into a database whose tables are at the **same version** as when
   the backup was made. After an update that changed the database, an older backup is refused
-  with a message that names both versions; it restores with the release that made it. Make a
-  backup right after such an update.
+  with a message that names both versions; it restores with the release that made it. The
+  server makes one right before the update (above); make one right after it as well.
 - A `pg_dump` script (the `backup_*.sql` / `.enc` files a Docker install made before this
   release, or one made by hand) creates the tables itself, so it only goes into an **empty**
   database. Into a database that has the tables the application refuses it and changes nothing.

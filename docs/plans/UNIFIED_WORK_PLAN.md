@@ -473,9 +473,32 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
+**2026-11-20: a backup right before a migration changes the database** (this PR; todo 58,
+taken up on the owner's "continue", which asked for best practices).
+
+- `services/pre_migration_backup.py`, called by both migration runners before `upgrade head`:
+  when migrations are pending it makes an encrypted `pre_migration_<timestamp>.enc` in
+  `<BACKUPS_DIR>/database`, of the very database the runner migrates (the runner's Alembic URL,
+  by the rule of `migrations/env.py`, not merely `DATABASE_URL`; `create_database_backup` takes
+  a `db_url` for it).
+- **No backup** for a new empty database, one already at head, or one at a revision this code
+  does not know (a newer release migrated it; this code does not migrate it either).
+- **A failed backup stops the migration** (the usual rule for an upgrade that changes data): the
+  runner reports failure, the log names `SMS_SKIP_MIGRATION_BACKUP=1` for an operator who has a
+  backup of their own, and the administrators get a bell notice. A database the backup cannot
+  handle at all (in-memory, an unsupported engine) is not a failure.
+- These backups are listed and restored like any other and are never pruned by the automatic
+  retention. `docs/admin/BACKUP_AND_RESTORE.md` has a section "Before an update changes the
+  database".
+- Tests: `test_pre_migration_backup.py` (a backup that restores the row and the old revision;
+  the three cases without one; a failed backup leaves the database at its old revision and tells
+  the administrators; the skip setting; both runners back up, then migrate). The three runner
+  tests fail on the runners without the step (checked). On SQLite; the PostgreSQL path is the
+  automatic backup's own, proven in the restore drill.
+
 **2026-11-20: the sign-in settings, credential import and update install need a signed-in
-administrator too** (this PR; the owner's "yes" to the three actions PR 449 left on the
-same-machine rule).
+administrator too** (PR 450, merged as `f9c6815f3`, CI green, the E2E run dispatched by hand
+passed; the owner's "yes" to the three actions PR 449 left on the same-machine rule).
 
 - `require_signed_in_control_admin` now also guards `GET`/`POST
   /control/api/maintenance/auth-settings` (the settings can switch sign-in off), `POST
@@ -3557,10 +3580,11 @@ word: the next release.
       - *Two backup folders.* The Database panel keeps its own backups in
         `BACKUPS_DIR/postgres` (`pg_dump --clean` where it is installed), apart from Manage
         Backups (`BACKUPS_DIR/database`); the automatic backup's retention does not look there.
-      - *No backup before a migration.* An update that changes the database leaves every
+      - ~~*No backup before a migration.* An update that changes the database leaves every
         earlier PostgreSQL backup restorable only with the earlier release. A backup made by
         the application right before it applies a migration would close that gap (the rows
-        the v1.18.70 migration changed were saved by hand).
+        the v1.18.70 migration changed were saved by hand).~~ **Done 2026-11-20** (under "On
+        `main` since v1.18.77"): both runners make one, and a failed one stops the migration.
       - ~~*`/admin/restore-encrypted-backup` has no caller any more* (the page restored through
         it until #407). Remove it or keep it (the owner's call).~~ **Removed** (owner
         2026-11-20).
@@ -3642,7 +3666,14 @@ word: the next release.
       - *Two migration runners that are near copies.* `backend/run_migrations.py` (the Docker
         entrypoint, the command-line tools) and `backend/scripts/migrate/runner.py` (the
         server, SMS Lite) differ in a few lines. PR 412 gave them one function for the log
-        folder; the rest is still twice.
+        folder; the rest is still twice. **Read again on 2026-11-20, not merged:** one
+        difference is meaningful. The entrypoint's runner takes "can't locate revision" (a
+        database a newer release migrated) as success, so a Docker container still starts on
+        the shared database after a rollback or beside a newer install. The server's runner
+        reports it as a failure, and the lifespan then skips seeding the role defaults, which
+        keeps older code from writing old roles back into a newer database. A merge needs a
+        result with three outcomes (applied, database newer, failed) and each caller's choice
+        kept; it touches the start of every edition, so it waits for a release cycle of its own.
       - *A test run writes into the `logs/` of the tree it runs in.* The tests that run the
         migrations append to `logs/migrations.log` (104 KB in a clone after five test
         files). The same class as the backups folder that PR 409 moved to a temporary one.
