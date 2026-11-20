@@ -51,6 +51,24 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.76] - 2026-11-20
+
+### Features
+- **android**: the app keeps its sign-in and uses the phone's saved passwords (#446)
+
+### Bug Fixes
+- **security**: 51 async write endpoints get the rate limit the guard never checked (#444)
+- **api**: a request the server could not serve is no longer answered with 200 (#443)
+- **db**: SQLite enforces foreign keys where its data allows it (#442)
+
+### Performance
+- **api**: 230 endpoints that never await are plain def (todo 52 stage 2) (#445)
+
+### Documentation
+- **plan**: PRs 442 to 445 merged; steps 3 to 6 of the order of work done
+- **plan**: v1.18.75 released and verified
+
 ## [1.18.75] - 2026-11-19
 
 ### Bug Fixes
@@ -5042,6 +5060,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
