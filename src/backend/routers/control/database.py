@@ -19,17 +19,13 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from backend.control_auth import require_control_admin, require_signed_in_control_admin
+from backend.services import database_panel_backups
+from backend.services.database_backup import DatabaseBackupError
 from backend.services.database_manager import (
-    _validate_backup_filename,
     _find_instance,
     check_instance_health,
-    create_backup,
-    delete_backup,
-    get_backup_path,
     get_configured_instances,
     get_instance_stats,
-    list_backups,
-    restore_backup,
 )
 
 router = APIRouter()
@@ -128,7 +124,8 @@ class BackupInfo(BaseModel):
     created_at: str
     instance: str = "unknown"
     method: str = "unknown"
-    compressed: bool = True
+    compressed: bool = False
+    encrypted: bool = True
 
 
 class BackupResult(BaseModel):
@@ -138,6 +135,7 @@ class BackupResult(BaseModel):
     size_human: Optional[str] = None
     method: Optional[str] = None
     compressed: Optional[bool] = None
+    encrypted: Optional[bool] = None
     timestamp: Optional[str] = None
     error: Optional[str] = None
     # False for any file the app cannot restore, with `warning` saying why, for the UI to
@@ -268,22 +266,29 @@ def get_database_stats(
 # ---------------------------------------------------------------------------
 # Backup endpoints
 # ---------------------------------------------------------------------------
+#
+# Since November 2026 these are the application's encrypted backups (AES-256-GCM, in
+# <BACKUPS_DIR>/database), the same as Manage Backups and the automatic backup make; the panel
+# used to write plain pg_dump/COPY files of its own. See services/database_panel_backups.py.
 
 
 @router.post("/database/instances/{name}/backup", response_model=BackupResult)
 def create_instance_backup(
     name: str,
     request: Request,
-    compress: bool = Query(True, description="Compress backup with gzip"),
+    compress: bool = Query(True, description="Ignored: backups are encrypted (kept for older pages)"),
     _auth=Depends(require_signed_in_control_admin),
 ):
-    """Create a backup of a database instance."""
+    """Make an encrypted backup of a database instance."""
     try:
         inst = _find_instance(name)
-        result = create_backup(inst, compress=compress)
-        return BackupResult(**result)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+    try:
+        return BackupResult(**database_panel_backups.make_backup(inst))
+    except DatabaseBackupError as exc:
+        logger.error("Backup creation failed: %s", exc.message)
+        return BackupResult(success=False, error=exc.message)
     except Exception as exc:
         logger.error("Backup creation failed: %s", exc)
         return BackupResult(success=False, error=str(exc))
@@ -295,8 +300,9 @@ def list_database_backups(
     instance: Optional[str] = Query(None, description="Filter by instance name"),
     _auth=Depends(require_signed_in_control_admin),
 ):
-    """List all available database backups."""
-    return [BackupInfo(**b) for b in list_backups(instance)]
+    """List the encrypted PostgreSQL backups."""
+    rows = database_panel_backups.list_backups(get_configured_instances(), instance)
+    return [BackupInfo(**row) for row in rows]
 
 
 @router.get("/database/backups/{filename}/download")
@@ -305,25 +311,14 @@ def download_backup(
     request: Request,
     _auth=Depends(require_signed_in_control_admin),
 ):
-    """Download a backup file."""
-    # CodeQL [python/path-injection]: Safe - validate route input before any
-    # filesystem lookup and rely on service-side path containment checks.
+    """Download an encrypted backup file (it opens only with this installation's key)."""
     try:
-        safe_filename = _validate_backup_filename(filename)
+        path = database_panel_backups.find_backup(filename)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-
-    path = get_backup_path(safe_filename)
     if path is None:
         raise HTTPException(status_code=404, detail="Backup file not found")
-
-    resolved_name = path.name
-    media_type = "application/gzip" if resolved_name.endswith(".gz") else "application/sql"
-    return FileResponse(
-        path=str(path),
-        filename=resolved_name,
-        media_type=media_type,
-    )
+    return FileResponse(path=str(path), filename=path.name, media_type="application/octet-stream")
 
 
 @router.delete("/database/backups/{filename}")
@@ -332,21 +327,14 @@ def delete_database_backup(
     request: Request,
     _auth=Depends(require_signed_in_control_admin),
 ):
-    """Delete a backup file."""
-    # CodeQL [python/path-injection]: Safe - validate route input before any
-    # filesystem lookup and rely on service-side path containment checks.
+    """Delete an encrypted backup and its metadata."""
     try:
-        safe_filename = _validate_backup_filename(filename)
+        deleted = database_panel_backups.delete_backup(filename)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-
-    try:
-        deleted = delete_backup(safe_filename)
-        if not deleted:
-            raise HTTPException(status_code=404, detail="Backup file not found")
-        return {"success": True, "message": f"Backup '{safe_filename}' deleted"}
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Backup file not found")
+    return {"success": True, "message": f"Backup '{filename}' deleted"}
 
 
 @router.post("/database/backups/{filename}/restore")
@@ -356,20 +344,13 @@ def restore_database_backup(
     instance_name: str = Query(..., description="Target instance name"),
     _auth=Depends(require_signed_in_control_admin),
 ):
-    """Restore a backup to a database instance."""
-    # CodeQL [python/path-injection]: Safe - validate route input before any
-    # filesystem lookup and rely on service-side path containment checks.
-    try:
-        safe_filename = _validate_backup_filename(filename)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-
+    """Restore an encrypted backup into a database instance."""
     try:
         inst = _find_instance(instance_name)
-        result = restore_backup(inst, safe_filename)
-        return RestoreResult(**result)
-    except HTTPException:
-        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    try:
+        return RestoreResult(**database_panel_backups.restore_backup(inst, filename))
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     except ValueError as exc:
@@ -377,7 +358,6 @@ def restore_database_backup(
     except Exception as exc:
         logger.error("Restore failed: %s", exc)
         return RestoreResult(success=False, error=str(exc))
-
 
 # ---------------------------------------------------------------------------
 # Connection testing and credential import endpoints

@@ -556,7 +556,9 @@ export default {
     backupNotRestorable:
       'This file cannot be restored by the app. Keep it only as a data export, not as a restore point.',
     backupDataOnly:
-      'Data-only backup: it holds table data, not the schema, which migrations own. Restore it into a database at the same migration revision. It can be restored here or with psql.',
+      'Data-only backup: it holds table data, not the schema, which migrations own. Restore it into a database at the same migration revision. It is encrypted with this installation\'s key, so restore it here (or in Manage Backups).',
+    encrypted: 'Encrypted',
+    encryptedHint: 'Encrypted (AES-256) with this installation\'s key; a downloaded copy opens only with that key.',
     backupDeleted: 'Backup deleted',
     confirmDelete: 'Delete backup',
     confirmRestore: 'Restore backup to',
