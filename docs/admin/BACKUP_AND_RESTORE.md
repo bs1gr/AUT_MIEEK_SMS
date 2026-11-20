@@ -21,6 +21,9 @@ Every running server makes its own backup of the database it uses:
   night are never up at "02:00", and a server that restarts often does not make a backup at
   every start.
 - A test run, and a start with `DISABLE_STARTUP_TASKS`, make no backup.
+- At each check it also deletes a readable `<name>.db` that stands beside an encrypted
+  `<name>.enc` of the same name: copies that versions up to v1.18.70 left on Windows, with the
+  whole database in the clear. A backup made unencrypted on purpose has no such twin and stays.
 
 Where to see it: **System → Control Panel → Maintenance → System Operations → Manage Backups**.
 The box at the top says how often the server backs itself up, when it last did, and, if the

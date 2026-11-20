@@ -473,7 +473,19 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
-**2026-11-20: a test run writes no log files into the checkout** (this PR; todo 58).
+**2026-11-20: the readable copies older builds left beside encrypted backups are removed**
+(this PR; todo 58).
+
+- `database_backup.remove_readable_leftovers()`, at every automatic backup check (the first a
+  minute after the start; also when the automatic backup is switched off): a `<name>.db` in
+  `<BACKUPS_DIR>/database` is deleted only when a non-empty `<name>.enc` stands beside it, which
+  is how builds up to v1.18.70 left them on Windows (the whole SQLite database in the clear). A
+  backup made unencrypted on purpose has no twin and stays; nothing else is touched. The log
+  names what was removed. The v1.18.71 notes asked people to delete them by hand.
+- Tests: `test_readable_backup_leftovers.py` (removed beside a twin; kept without one, with an
+  empty twin, and for other files; no folder; done by the check even when switched off).
+
+**2026-11-20: a test run writes no log files into the checkout** (PR 452; todo 58).
 
 - One setting, `SMS_LOG_DIR` (`backend.logging_config.log_dir_override`), moves every log file
   the server writes by default: `app.log` (the app factory), `migrations.log` (both runners,
@@ -487,8 +499,9 @@ the VM and the QNAP.
   folders are byte for byte the same after the affected test files ran (5,845,439 bytes).
 - Tests: `test_log_dir_setting.py`; the default-folder test clears the setting.
 
-**2026-11-20: a backup right before a migration changes the database** (this PR; todo 58,
-taken up on the owner's "continue", which asked for best practices).
+**2026-11-20: a backup right before a migration changes the database** (PR 451, merged as
+`df41a31fc`, CI green: 38 checks passed; todo 58, taken up on the owner's "continue", which
+asked for best practices).
 
 - `services/pre_migration_backup.py`, called by both migration runners before `upgrade head`:
   when migrations are pending it makes an encrypted `pre_migration_<timestamp>.enc` in
@@ -3620,10 +3633,12 @@ word: the next release.
         report the collation `en_US.utf8`, and they sort text differently (seen in the restore
         drill). The data restores identically; lists sorted by name would come out in another
         order.
-      - *Readable copies left by older builds.* Nothing removes the `backup_….db` files that
+      - ~~*Readable copies left by older builds.* Nothing removes the `backup_….db` files that
         builds up to v1.18.70 left next to encrypted SQLite backups on Windows (see "In
         v1.18.71"). A clean-up at startup would have to be sure a file is such a leftover (it
-        has an `.enc` twin of the same name) before deleting it.
+        has an `.enc` twin of the same name) before deleting it.~~ **Done 2026-11-20** (under
+        "On `main` since v1.18.77"; on this PC they had already gone with the pre-13-November
+        copies).
     - *Found on 2026-11-16 with #409, and not fixed:*
       - **The shared database's PostgreSQL is past its end of life (the owner's call).** The
         PostgreSQL project supports a major version for five years; 14 came out on 2021-09-30

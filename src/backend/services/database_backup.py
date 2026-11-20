@@ -399,6 +399,38 @@ def _remove_interrupted_leftovers(backup_dir: Path) -> None:
                 logger.warning("Could not remove the unfinished automatic backup file %s: %s", leftover.name, exc)
 
 
+def remove_readable_leftovers(backup_dir: Path | None = None) -> list[str]:
+    """Delete the readable copies that builds up to v1.18.70 left beside encrypted backups.
+
+    On Windows an encrypted backup of a SQLite database left its unencrypted ``<name>.db`` next
+    to ``<name>.enc``: the temporary copy was still open when it should have been deleted (fixed
+    in v1.18.71). Those files hold the whole database in the clear. A ``.db`` is removed only
+    when an ``.enc`` of the same name, not empty, stands beside it, which is how the fault left
+    them; a backup somebody made unencrypted on purpose has no such twin and stays. Never
+    raises; returns the names it removed.
+    """
+    backup_dir = backup_dir or database_backup_dir()
+    removed: list[str] = []
+    if not backup_dir.is_dir():
+        return removed
+    for readable in backup_dir.glob("*.db"):
+        twin = readable.with_suffix(".enc")
+        try:
+            if not readable.is_file() or not twin.is_file() or twin.stat().st_size == 0:
+                continue
+            readable.unlink()
+            removed.append(readable.name)
+        except OSError as exc:
+            logger.warning("Could not remove the readable copy %s of an encrypted backup: %s", readable.name, exc)
+    if removed:
+        logger.info(
+            "Removed %d readable copy/copies that older versions left beside encrypted backups: %s",
+            len(removed),
+            ", ".join(sorted(removed)),
+        )
+    return removed
+
+
 def run_automatic_backup(*, force: bool = False) -> dict[str, Any]:
     """Make the automatic backup if one is due. Called by the scheduler; never raises.
 
@@ -406,6 +438,9 @@ def run_automatic_backup(*, force: bool = False) -> dict[str, Any]:
     "failed", ...}``.
     """
     enabled, interval_hours, keep = _automatic_settings()
+    # At every check, due, switched off or not: the first check comes a minute after the
+    # server starts. Never raises.
+    remove_readable_leftovers()
     if not enabled and not force:
         return {"status": "disabled"}
 
