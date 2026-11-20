@@ -140,6 +140,14 @@ def run_migrations(verbose: bool = False) -> bool:
             print(f"[run_migrations] Logging setup failed: {log_ex}", flush=True)
             logger.warning(f"[run_migrations] Logging setup failed: {log_ex}")
 
+        # A backup right before the database changes (services/pre_migration_backup.py). When it
+        # fails, nothing is migrated.
+        from backend.services.pre_migration_backup import backup_before_migrating
+
+        if backup_before_migrating(cfg)["status"] == "failed":
+            print("[run_migrations] backup before migrating failed; database NOT migrated", flush=True)
+            return False
+
         try:
             command.upgrade(cfg, "head")
         except Exception as e:

@@ -289,15 +289,20 @@ def _backup_sqlite(db_url: str, backup_dir: Path, timestamp: str, encrypt: bool,
     }
 
 
-def create_database_backup(*, encrypt: bool = True, prefix: str = MANUAL_PREFIX) -> dict[str, Any]:
+def create_database_backup(
+    *, encrypt: bool = True, prefix: str = MANUAL_PREFIX, db_url: str | None = None
+) -> dict[str, Any]:
     """Back up the configured database into ``<BACKUPS_DIR>/database``.
 
     PostgreSQL: the data-only COPY-format backup the application restores itself. SQLite: a
     consistent snapshot of the file. Returns ``{"message": ..., "details": {...}}``; raises
     ``DatabaseBackupError`` for a database that cannot be backed up this way.
+
+    ``db_url`` names another database than ``DATABASE_URL``: the backup before a migration
+    takes the very database the migration runner was given.
     """
     settings = get_settings()
-    db_url = settings.DATABASE_URL
+    db_url = db_url or settings.DATABASE_URL
 
     backup_dir = Path(settings.BACKUPS_DIR) / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
