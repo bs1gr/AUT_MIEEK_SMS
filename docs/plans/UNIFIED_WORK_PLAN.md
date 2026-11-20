@@ -1,6 +1,6 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.75
+**Current Version**: 1.18.76
 **Last Updated**: November 19, 2026
 **Status**: ✅ **v1.18.75 released 2026-11-19** (tag on `92201ca8e`, run by the assistant; the
 owner, after the list of what waited: "create a suitable plan order to accomplish all pending
@@ -405,7 +405,11 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.75 (unreleased)
+### On `main` since v1.18.76 (unreleased)
+
+Nothing yet.
+
+### In v1.18.76
 
 **2026-11-20: the Android app keeps its sign-in, offers to save the password, and signs in from
 the phone's password manager with one tap** (the owner, with Google's page on Android autofill:
