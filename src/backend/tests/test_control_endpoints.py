@@ -236,7 +236,7 @@ def test_docker_update_volume_when_docker_not_running(monkeypatch, client):
     assert detail["error_id"] == ErrorCode.CONTROL_DOCKER_NOT_RUNNING.value
 
 
-def test_download_database_backup_success(tmp_path, client):
+def test_download_database_backup_success(tmp_path, client, control_admin_headers):
     backup_dir = Path(settings.BACKUPS_DIR) / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -245,7 +245,7 @@ def test_download_database_backup_success(tmp_path, client):
     backup_path.write_bytes(b"fake-backup")
 
     try:
-        resp = client.get(f"/control/api/operations/database-backups/{filename}/download")
+        resp = client.get(f"/control/api/operations/database-backups/{filename}/download", headers=control_admin_headers)
         assert resp.status_code == 200
         assert resp.content == b"fake-backup"
         assert resp.headers["content-type"] == "application/octet-stream"
@@ -254,7 +254,7 @@ def test_download_database_backup_success(tmp_path, client):
         backup_path.unlink(missing_ok=True)
 
 
-def test_list_database_backups_includes_sql(client):
+def test_list_database_backups_includes_sql(client, control_admin_headers):
     backup_dir = Path(settings.BACKUPS_DIR) / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
 
@@ -263,7 +263,7 @@ def test_list_database_backups_includes_sql(client):
     backup_path.write_text("-- test backup", encoding="utf-8")
 
     try:
-        resp = client.get("/control/api/operations/database-backups")
+        resp = client.get("/control/api/operations/database-backups", headers=control_admin_headers)
         assert resp.status_code == 200
         data = resp.json()
         listed = [item.get("filename") for item in data.get("backups", [])]
@@ -272,9 +272,9 @@ def test_list_database_backups_includes_sql(client):
         backup_path.unlink(missing_ok=True)
 
 
-def test_download_database_backup_not_found(client):
+def test_download_database_backup_not_found(client, control_admin_headers):
     missing = f"missing_backup_{uuid.uuid4().hex}.db"
-    resp = client.get(f"/control/api/operations/database-backups/{missing}/download")
+    resp = client.get(f"/control/api/operations/database-backups/{missing}/download", headers=control_admin_headers)
     assert resp.status_code == 404
     detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_BACKUP_NOT_FOUND.value

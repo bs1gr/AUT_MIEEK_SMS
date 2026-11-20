@@ -10,7 +10,7 @@ databases for integration testing.
 from unittest.mock import patch
 
 
-def test_create_encrypted_backup_default(client, admin_token, tmp_path):
+def test_create_encrypted_backup_default(client, control_admin_headers, tmp_path):
     """Test encrypted backup endpoint with default encryption=True."""
     from sqlalchemy import create_engine
 
@@ -32,7 +32,7 @@ def test_create_encrypted_backup_default(client, admin_token, tmp_path):
 
         # Create encrypted backup (default encrypt=True)
         response = client.post(
-            "/control/api/operations/database-backup", headers={"Authorization": f"Bearer {admin_token}"}
+            "/control/api/operations/database-backup", headers=control_admin_headers
         )
 
     assert response.status_code == 200
@@ -44,7 +44,7 @@ def test_create_encrypted_backup_default(client, admin_token, tmp_path):
     assert data["details"]["encrypted_size"] > 0
 
 
-def test_create_unencrypted_backup(client, admin_token, tmp_path):
+def test_create_unencrypted_backup(client, control_admin_headers, tmp_path):
     """Test creating an unencrypted backup (legacy mode).
 
     This test uses a temporary file-based database since legacy backups
@@ -72,7 +72,7 @@ def test_create_unencrypted_backup(client, admin_token, tmp_path):
         response = client.post(
             "/control/api/operations/database-backup",
             params={"encrypt": False},
-            headers={"Authorization": f"Bearer {admin_token}"},
+            headers=control_admin_headers,
         )
 
     assert response.status_code == 200
@@ -81,7 +81,7 @@ def test_create_unencrypted_backup(client, admin_token, tmp_path):
     assert data["details"]["encryption"] is None  # encryption: None for unencrypted backups
 
 
-def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
+def test_backup_with_explicit_encryption_true(client, control_admin_headers, tmp_path):
     """Test explicit encryption=True parameter."""
     from sqlalchemy import create_engine
 
@@ -104,7 +104,7 @@ def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
         response = client.post(
             "/control/api/operations/database-backup",
             params={"encrypt": True},
-            headers={"Authorization": f"Bearer {admin_token}"},
+            headers=control_admin_headers,
         )
 
     assert response.status_code == 200
@@ -113,7 +113,7 @@ def test_backup_with_explicit_encryption_true(client, admin_token, tmp_path):
     assert data["details"]["encryption"] == "AES-256-GCM"
 
 
-def test_backup_encryption_details(client, admin_token, tmp_path):
+def test_backup_encryption_details(client, control_admin_headers, tmp_path):
     """Test that encrypted backups have proper encryption details."""
     from sqlalchemy import create_engine
 
@@ -136,7 +136,7 @@ def test_backup_encryption_details(client, admin_token, tmp_path):
         response = client.post(
             "/control/api/operations/database-backup",
             params={"encrypt": True},
-            headers={"Authorization": f"Bearer {admin_token}"},
+            headers=control_admin_headers,
         )
 
     assert response.status_code == 200
@@ -150,7 +150,7 @@ def test_backup_encryption_details(client, admin_token, tmp_path):
     )  # Encrypted files are often larger than originals (overhead from encryption headers/padding)
 
 
-def test_unencrypted_backup_no_encryption_details(client, admin_token, tmp_path):
+def test_unencrypted_backup_no_encryption_details(client, control_admin_headers, tmp_path):
     """Test that unencrypted backups have encryption: None."""
     from sqlalchemy import create_engine
 
@@ -173,7 +173,7 @@ def test_unencrypted_backup_no_encryption_details(client, admin_token, tmp_path)
         response = client.post(
             "/control/api/operations/database-backup",
             params={"encrypt": False},
-            headers={"Authorization": f"Bearer {admin_token}"},
+            headers=control_admin_headers,
         )
 
     assert response.status_code == 200
@@ -185,14 +185,13 @@ def test_unencrypted_backup_no_encryption_details(client, admin_token, tmp_path)
 
 
 def test_backup_requires_authentication(client):
-    """Test backup endpoint requires authentication."""
-    response = client.post("/control/api/operations/database-backup")
+    """A backup needs an administrator's sign-in, also from the server's own machine.
 
-    # 200 OK: TestClient is treated as loopback and allowed (control_auth permits loopback)
-    # 400 Bad Request (missing body), 401 Unauthorized, or 404 if control API is disabled
-    # 500: pg_dump not found when DATABASE_URL points to PostgreSQL but client tools missing
-    # NOTE: To properly test auth rejection, mock request.client to be non-loopback or set ADMIN_SHUTDOWN_TOKEN
-    assert response.status_code in (200, 400, 401, 404, 500)
+    The test client counts as that machine. Until November 2026 it was let through (any of
+    200, 400, 401, 404 and 500 passed this test); see test_control_backups_need_admin.py.
+    """
+    response = client.post("/control/api/operations/database-backup")
+    assert response.status_code == 403
 
 
 import pytest
@@ -200,7 +199,7 @@ import pytest
 
 @pytest.mark.parametrize("pg_dump_installed", [False, True])
 def test_a_postgres_backup_is_data_only_with_or_without_pg_dump(
-    client, admin_token, tmp_path, monkeypatch, pg_dump_installed
+    client, control_admin_headers, tmp_path, monkeypatch, pg_dump_installed
 ):
     """The application's PostgreSQL backups are in the format it restores itself.
 
@@ -242,7 +241,7 @@ def test_a_postgres_backup_is_data_only_with_or_without_pg_dump(
     response = client.post(
         "/control/api/operations/database-backup",
         params={"encrypt": False},
-        headers={"Authorization": f"Bearer {admin_token}"},
+        headers=control_admin_headers,
     )
 
     assert response.status_code == 200

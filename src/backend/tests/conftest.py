@@ -461,14 +461,36 @@ class _ClientProxy:
         return self._call("patch", *args, **kwargs)
 
 
+class _SameSession:
+    """Stands in for a sessionmaker: hands out the test's own session and leaves it open.
+
+    A second session that closes would roll back the test's uncommitted rows (the test
+    database is one shared connection), so the Control API's check of an administrator's token
+    reads through the test's session instead.
+    """
+
+    def __init__(self, session):
+        self._session = session
+
+    def __call__(self):
+        return self
+
+    def __enter__(self):
+        return self._session
+
+    def __exit__(self, *exc):
+        return False
+
+
 @pytest.fixture(scope="function")
-def client(db):
+def client(db, monkeypatch):
     """
     Get a TestClient instance that uses the test database.
     Accepts add_auth kw to align with test expectations (no-op for now).
     """
     from types import SimpleNamespace
 
+    import backend.control_auth
     from backend.config import settings as cfg
     from backend.db import get_session
     from backend.dependencies import get_db
@@ -481,6 +503,10 @@ def client(db):
 
     app.dependency_overrides[get_session] = _override_session
     app.dependency_overrides[get_db] = _override_session  # Also override get_db for routers using it
+    # control_auth opens its own session to check an administrator's token. Before this it
+    # looked in another database, found nobody, and the Control API passed tests only because
+    # the test client counts as the server's own machine.
+    monkeypatch.setattr(backend.control_auth, "SessionLocal", _SameSession(db))
 
     async def _override_current_user(request: Request, token: str | None = None, db=Depends(get_session)):
         from backend.errors import ErrorCode, http_error
@@ -600,6 +626,24 @@ def mock_db_engine(monkeypatch):
 def admin_headers(admin_token: str) -> dict[str, str]:
     """Return headers with admin authentication."""
     return {"Authorization": f"Bearer {admin_token}"}
+
+
+@pytest.fixture(scope="function")
+def control_admin_headers(client, db) -> dict[str, str]:
+    """An administrator's access token, for the Control API's backups and restore.
+
+    `admin_token` registers through the API, and registration never grants the role admin:
+    that account is a teacher. The Control API checks the role in the database, so this
+    account is written there as an active administrator who needs no password change.
+    """
+    from backend.models import User
+    from backend.routers.routers_auth import create_access_token
+
+    email = "control-admin@example.com"
+    if db.query(User).filter(User.email == email).first() is None:
+        db.add(User(email=email, hashed_password="x", role="admin", is_active=True, full_name="Control Admin"))
+        db.commit()
+    return {"Authorization": f"Bearer {create_access_token(subject=email, role='admin')}"}
 
 
 @pytest.fixture(scope="function", autouse=True)

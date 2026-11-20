@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.config import get_settings
-from backend.control_auth import require_control_admin
+from backend.control_auth import require_control_admin, require_signed_in_control_admin
 from backend.errors import ErrorCode, http_error
 from backend.services import database_backup
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
@@ -179,7 +179,7 @@ def docker_build(request: Request, _auth=Depends(require_control_admin)):
 
 
 @router.post("/operations/database-upload", response_model=OperationResult)
-def upload_database(request: Request, file: UploadFile = File(...), _auth=Depends(require_control_admin)):
+def upload_database(request: Request, file: UploadFile = File(...), _auth=Depends(require_signed_in_control_admin)):
     if not file.filename or not file.filename.lower().endswith(".db"):
         raise http_error(
             400,
@@ -289,7 +289,7 @@ def _list_backup_files(backup_dir: Path) -> List[Path]:
 async def create_database_backup(
     request: Request,
     encrypt: bool = Query(True, description="Enable AES-256 encryption for backup"),
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """
     Create a new database backup.
@@ -328,7 +328,7 @@ async def create_database_backup(
 
 
 @router.get("/operations/database-backups")
-def list_database_backups(request: Request, _auth=Depends(require_control_admin)):
+def list_database_backups(request: Request, _auth=Depends(require_signed_in_control_admin)):
     backup_dir = Path(get_settings().BACKUPS_DIR) / "database"
     # What the automatic backup is set to and when it last ran, for the same page.
     automatic = database_backup.automatic_backup_status(backup_dir)
@@ -355,7 +355,7 @@ def list_database_backups(request: Request, _auth=Depends(require_control_admin)
 
 
 @router.get("/operations/database-backups/{backup_filename:path}/download")
-def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
+def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_signed_in_control_admin)):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     # codeql[py/path-injection] validated against the allowed base directory in this function
     target_path = (backup_dir / backup_filename).resolve()
@@ -381,7 +381,7 @@ def download_database_backup(request: Request, backup_filename: str, _auth=Depen
 
 
 @router.get("/operations/database-backups/archive.zip")
-def download_backups_zip(request: Request, _auth=Depends(require_control_admin)):
+def download_backups_zip(request: Request, _auth=Depends(require_signed_in_control_admin)):
     import io
     import zipfile
 
@@ -403,7 +403,7 @@ def download_backups_zip(request: Request, _auth=Depends(require_control_admin))
 
 
 @router.post("/operations/database-backups/archive/save-to-path", response_model=OperationResult)
-def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _auth=Depends(require_control_admin)):
+def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _auth=Depends(require_signed_in_control_admin)):
     import io
     import zipfile
 
@@ -458,7 +458,7 @@ def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _auth=De
 
 @router.post("/operations/database-backups/archive/selected.zip")
 def download_selected_backups_zip(
-    request: Request, payload: ZipSelectedRequest, _auth=Depends(require_control_admin)
+    request: Request, payload: ZipSelectedRequest, _auth=Depends(require_signed_in_control_admin)
 ):
     import io
     import zipfile
@@ -495,7 +495,7 @@ def download_selected_backups_zip(
 
 @router.post("/operations/database-backups/archive/selected/save-to-path", response_model=OperationResult)
 def save_selected_backups_zip_to_path(
-    request: Request, payload: ZipSelectedSaveRequest, _auth=Depends(require_control_admin)
+    request: Request, payload: ZipSelectedSaveRequest, _auth=Depends(require_signed_in_control_admin)
 ):
     import io
     import zipfile
@@ -563,7 +563,7 @@ def save_selected_backups_zip_to_path(
 
 @router.post("/operations/database-backups/delete-selected", response_model=OperationResult)
 def delete_selected_backups(
-    request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_control_admin)
+    request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_signed_in_control_admin)
 ):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     if not backup_dir.exists():
@@ -604,7 +604,7 @@ def delete_selected_backups(
 
 @router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
 def save_database_backup_to_path(
-    request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_control_admin)
+    request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_signed_in_control_admin)
 ):
     backup_dir = (Path(get_settings().BACKUPS_DIR) / "database").resolve()
     # Reject any path traversal attempts outright and require a simple backup filename
@@ -779,7 +779,7 @@ def _restore_postgres_backup(request: Request, backup_path: Path, backup_filenam
 
 
 @router.post("/operations/database-restore", response_model=OperationResult)
-def restore_database(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
+def restore_database(request: Request, backup_filename: str, _auth=Depends(require_signed_in_control_admin)):
     import logging
     import shutil as _sh
 

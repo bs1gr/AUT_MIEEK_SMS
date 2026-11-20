@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Upl
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from backend.control_auth import require_control_admin
+from backend.control_auth import require_control_admin, require_signed_in_control_admin
 from backend.services.database_manager import (
     _validate_backup_filename,
     _find_instance,
@@ -275,7 +275,7 @@ def create_instance_backup(
     name: str,
     request: Request,
     compress: bool = Query(True, description="Compress backup with gzip"),
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """Create a backup of a database instance."""
     try:
@@ -293,7 +293,7 @@ def create_instance_backup(
 def list_database_backups(
     request: Request,
     instance: Optional[str] = Query(None, description="Filter by instance name"),
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """List all available database backups."""
     return [BackupInfo(**b) for b in list_backups(instance)]
@@ -303,7 +303,7 @@ def list_database_backups(
 def download_backup(
     filename: str,
     request: Request,
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """Download a backup file."""
     # CodeQL [python/path-injection]: Safe - validate route input before any
@@ -330,7 +330,7 @@ def download_backup(
 def delete_database_backup(
     filename: str,
     request: Request,
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """Delete a backup file."""
     # CodeQL [python/path-injection]: Safe - validate route input before any
@@ -354,7 +354,7 @@ def restore_database_backup(
     filename: str,
     request: Request,
     instance_name: str = Query(..., description="Target instance name"),
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """Restore a backup to a database instance."""
     # CodeQL [python/path-injection]: Safe - validate route input before any

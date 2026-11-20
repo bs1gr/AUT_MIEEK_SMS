@@ -35,6 +35,7 @@ KEY_IN_CODE_FONT = re.compile(r"`((?:[a-z][a-z_.]*|\*):[a-z_*]+)`")
 SIGNED_IN = "signed in"
 OPEN = "nothing"
 CONTROL = "Control API rules"
+CONTROL_SIGNED_IN = "Control API, signed-in administrator"
 
 # Checks an endpoint makes in its own body, which no route object shows. Each was read in the
 # code and tried against a running copy; the test fails if one of these endpoints disappears.
@@ -135,6 +136,8 @@ def _requirement(route: Any) -> tuple[str, tuple[str, ...]]:
         facts = _closure(call)
         if module == "backend.control_auth" and name == "require_control_admin":
             parts.append(CONTROL)
+        elif module == "backend.control_auth" and name == "require_signed_in_control_admin":
+            parts.append(CONTROL_SIGNED_IN)
         elif module == "backend.routers.routers_auth" and name.endswith("require_role.<locals>._dep"):
             roles = [str(role) for role in facts.get("roles", ()) if role]
             if roles:

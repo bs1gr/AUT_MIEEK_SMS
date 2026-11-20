@@ -131,6 +131,55 @@ def _admin_from_bearer(request: Request) -> bool:
         return False
 
 
+def _raise_if_disabled() -> None:
+    if not _control_enabled():
+        logger.debug("Control API disabled via ENABLE_CONTROL_API")
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail={
+                "error": "control_api_disabled",
+                "message": ("Control API endpoints are hidden until ENABLE_CONTROL_API=1 is set."),
+                "hint": (
+                    "Edit backend/.env (or your process manager) to set "
+                    "ENABLE_CONTROL_API=1 and restart the backend service."
+                ),
+                "env": {"ENABLE_CONTROL_API": os.environ.get("ENABLE_CONTROL_API", "<unset>")},
+            },
+        )
+
+
+SIGNED_IN_ADMIN_REQUIRED = "Backups and restore need a signed-in administrator."
+
+
+async def require_signed_in_control_admin(request: Request) -> None:
+    """Backups and restore: a signed-in administrator, also on the PC the server runs on.
+
+    `require_control_admin` lets any request from the server's own machine through when no
+    `ADMIN_SHUTDOWN_TOKEN` is set, which the PC's own tools rely on for start, stop and
+    restart. With SMS Lite, or a server run from source, the browser is on that machine too,
+    so anyone at the PC (a teacher, or nobody signed in) could list, make, download and restore
+    backups, and restore over a shared database. The owner decided on 2026-11-20 (plan todo
+    58) that these need an administrator's sign-in wherever the request comes from.
+
+    Passes: an administrator's access token (the pages send it), or the operator's
+    `X-ADMIN-TOKEN` when `ADMIN_SHUTDOWN_TOKEN` is set. Nothing else, not even loopback.
+    """
+    _raise_if_disabled()
+
+    client_host = getattr(request.client, "host", None) if request.client else None
+    if _admin_from_bearer(request):
+        logger.info("Control API backup access granted via admin bearer token", extra={"client": client_host})
+        return
+
+    env_token = _get_env_token()
+    if env_token and _const_time_eq(request.headers.get("x-admin-token"), env_token):
+        logger.info("Control API backup access granted via ADMIN_SHUTDOWN_TOKEN", extra={"client": client_host})
+        return
+
+    logger.warning("Rejected backup/restore call without an administrator's sign-in", extra={"client": client_host})
+    raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail=SIGNED_IN_ADMIN_REQUIRED)
+
+
 async def require_control_admin(request: Request) -> None:
     """FastAPI dependency that enforces control endpoint access rules.
 
@@ -147,20 +196,7 @@ async def require_control_admin(request: Request) -> None:
     """
 
     # Allow non-test runs only when control API enabled
-    if not _control_enabled():
-        logger.debug("Control API disabled via ENABLE_CONTROL_API")
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail={
-                "error": "control_api_disabled",
-                "message": ("Control API endpoints are hidden until ENABLE_CONTROL_API=1 is set."),
-                "hint": (
-                    "Edit backend/.env (or your process manager) to set "
-                    "ENABLE_CONTROL_API=1 and restart the backend service."
-                ),
-                "env": {"ENABLE_CONTROL_API": os.environ.get("ENABLE_CONTROL_API", "<unset>")},
-            },
-        )
+    _raise_if_disabled()
 
     env_token = _get_env_token()
     header_token = request.headers.get("x-admin-token")
