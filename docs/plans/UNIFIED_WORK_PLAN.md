@@ -473,8 +473,12 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
-**2026-11-20: the Database panel's backups are the application's encrypted backups** (this PR;
-the owner: "make that panel use the same encrypted backup as everything else").
+**2026-11-20: the Database panel's backups are the application's encrypted backups** (PR 454,
+merged as `a16769ce7`, CI green: 38 checks passed, CodeQL clean after its two alerts were
+repaired; todo 58; the owner: "make that panel use the same encrypted backup as everything
+else"). The one plain panel backup on the VM
+(`/data/backups/postgres/primary_student_management_20261116_184624.sql.gz`) is encrypted by
+the first automatic check after the VM runs a release with this change.
 
 - **Found:** Control Panel > Maintenance > Database Management wrote its own backups (pg_dump
   scripts or data-only COPY files, some gzipped) **in the clear** into
