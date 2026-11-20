@@ -2,7 +2,47 @@
 
 **Current Version**: 1.18.76
 **Last Updated**: November 19, 2026
-**Status**: ✅ **v1.18.75 released 2026-11-19** (tag on `92201ca8e`, run by the assistant; the
+**Status**: ✅ **v1.18.76 released 2026-11-20** (tag on `46dbfa7ee`, run by the assistant; the
+owner: "do all three ... They would then ship in the next release. A v1.18.76 release with PRs
+442 to 445. and also Update the cloud VM, which still runs v1.18.74"). It carries PRs 442 to 446,
+under "In v1.18.76" below: **the Android app keeps its sign-in** (it lost it on every restart and
+every 30 minutes) **and signs in from the phone's password manager**, 230 endpoints that never
+wait are plain `def` (todo 52 stage 2), failures answered with their real status instead of 200,
+rate limits on 51 write endpoints that had none, SQLite foreign keys where the data allows. **No
+database change** (the shared database stays at `e2b7c9d4a1f6`).
+
+- **Before the tag:** `RELEASE_READY` (no `-TagRelease`): exit 0, backend 1,991 passed, 43
+  skipped, 0 failed, the frontend suite passed. `DOCKER_BUILD_CHECK.ps1 -Version 1.18.76` on
+  `46dbfa7ee` (the commit with the hand-written notes): the image builds for amd64 and arm64
+  (5.7 min); CI/CD and E2E green on the same commit; the tag's release, installer and APK
+  workflows succeeded.
+- **Verified on the published assets:** `SMS_Installer_1.18.76.exe` 87,450,992 bytes, SHA-256
+  `e29a5aef…36e3` = GitHub's digest, Authenticode Valid, CN=AUT MIEEK, thumbprint
+  `2693C1B1…075D`, timestamped, file version v1.18.76, not the local build (90,216,592 bytes);
+  `SMS_Android_1.18.76.apk` 4,636,097 bytes, SHA-256 `a9708c40…97ad` = GitHub's digest,
+  `versionCode 118076`, signer `686fb6ed…d2ea` as before; its web bundle carries the app's
+  session header and its code the `SavedLoginPlugin`. The release has the hand-written text and
+  those two files only.
+- **The cloud VM runs v1.18.76** (2026-11-20, 03:20 to 03:23 UTC, over SSH, on the same word):
+  `git checkout v1.18.76`, `docker compose up -d --build` (106 s), healthy after 127 s;
+  `/health` v1.18.76 with the database connected, on the VM and through the tailnet; no ERROR
+  line, no traceback (one WARNING, the standing CSRF notice); the five backups and the key on
+  the volume; the student list answers 401 without a sign-in; a preflight from
+  `https://localhost` with the app's header is allowed, a renewal without a token answers 401.
+  No backup was forced first (no database change; a forced one moves the daily hour, which is
+  15:19 UTC again).
+- **On the owner's phone** (Galaxy A55, the published APK installed over Wi-Fi debugging with
+  `adb install -r`, updated in place, owner's go-ahead): signed in once, then the app closed
+  and reopened from the PC: **still on the Dashboard**, and the cloud server's log shows
+  `POST /auth/refresh` 200 at that moment (v1.18.75 never sent one). The sign-in itself went
+  through the new sheet: the phone's log shows Android's `CredentialSelectorActivity` for
+  `cy.mieek.sms`, Samsung Pass's Credential Manager service answering, the owner's fingerprint,
+  the entry selected. The owner's words: "It was already saved since an older try, so I just tap
+  fingerprint". **Not seen:** the offer to save a password not yet saved (the owner's was saved
+  already). The phone also has a Samsung "Dual App" copy of SMS (Android user 95) that was never
+  set up; it shares the code, not the settings.
+
+**Before that: v1.18.75 released 2026-11-19** (tag on `92201ca8e`, run by the assistant; the
 owner, after the list of what waited: "create a suitable plan order to accomplish all pending
 tasks and suggested, and continue"; step 2 of the order of work in "Next todos"). It carries
 PRs 437 to 441 only, under "In v1.18.75" below: a message names its sender and "Specific
