@@ -9,6 +9,8 @@ import { UpdatesPanel } from '../UpdatesPanel';
 vi.mock('@/api/api', () => ({ controlApiClient: { get: vi.fn(), post: vi.fn() } }));
 vi.mock('../../../LanguageContext', () => ({ useLanguage: () => ({ t: (key: string) => key }) }));
 vi.mock('@/contexts/DateTimeSettingsContext', () => ({ useDateTimeFormatter: () => ({ formatTime: () => '10:00' }) }));
+const auth = vi.hoisted(() => ({ role: 'admin' }));
+vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 1, role: auth.role } }) }));
 
 const mockedAxios = controlApiClient as unknown as { get: ReturnType<typeof vi.fn>; post: ReturnType<typeof vi.fn> };
 
@@ -42,6 +44,22 @@ async function openWith(data: Record<string, unknown>) {
 describe('UpdatesPanel per deployment mode', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    auth.role = 'admin';
+  });
+
+  // Since 2026-11-20 the server installs an update for a signed-in administrator only, also on
+  // the PC itself; the page says so instead of offering a button that would be refused.
+  it('a teacher may check, but the install button is off and says why', async () => {
+    auth.role = 'teacher';
+    await openWith(check({ deployment_mode: 'lite', update_method: 'installer' }));
+    expect(screen.getByTestId('update-now')).toBeDisabled();
+    expect(screen.getByTestId('update-now')).toHaveAttribute('title', 'updateNeedsAdmin');
+    expect(screen.getByTestId('update-needs-admin')).toBeInTheDocument();
+  });
+
+  it('an administrator is not shown the note', async () => {
+    await openWith(check({ deployment_mode: 'lite', update_method: 'installer' }));
+    expect(screen.queryByTestId('update-needs-admin')).not.toBeInTheDocument();
   });
 
   it('SMS Lite: one-click update of SMS Lite itself', async () => {

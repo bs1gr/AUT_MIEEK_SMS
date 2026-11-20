@@ -12,9 +12,9 @@ from backend.environment import RuntimeContext, RuntimeEnvironment
 from backend.routers.control import maintenance
 
 
-def test_get_auth_settings(client):
+def test_get_auth_settings(client, control_admin_headers):
     """Test retrieving current auth settings."""
-    resp = client.get("/control/api/maintenance/auth-settings")
+    resp = client.get("/control/api/maintenance/auth-settings", headers=control_admin_headers)
     assert resp.status_code == 200
 
     data = resp.json()
@@ -66,18 +66,21 @@ def sandbox_env_file(tmp_path, monkeypatch):
     return env_file
 
 
-def test_update_auth_settings_with_auth_mode(client, sandbox_env_file):
+def test_update_auth_settings_with_auth_mode(client, sandbox_env_file, control_admin_headers):
     """Updating AUTH_MODE rewrites the active .env."""
-    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_mode": "strict"})
+    resp = client.post(
+        "/control/api/maintenance/auth-settings", headers=control_admin_headers, json={"auth_mode": "strict"}
+    )
 
     assert resp.status_code == 200, resp.text
     assert "AUTH_MODE=strict" in sandbox_env_file.read_text(encoding="utf-8").splitlines()
 
 
-def test_update_auth_settings_multiple_values(client, sandbox_env_file):
+def test_update_auth_settings_multiple_values(client, sandbox_env_file, control_admin_headers):
     """Updating several auth settings at once writes all of them."""
     resp = client.post(
         "/control/api/maintenance/auth-settings",
+        headers=control_admin_headers,
         json={"auth_enabled": True, "auth_mode": "permissive", "auth_login_max_attempts": 10},
     )
 
@@ -89,14 +92,18 @@ def test_update_auth_settings_multiple_values(client, sandbox_env_file):
     assert "AUTH_LOGIN_MAX_ATTEMPTS=10" in lines
 
 
-def test_update_auth_settings_validation(client):
+def test_update_auth_settings_validation(client, control_admin_headers):
     """Test validation of auth settings."""
     # Invalid auth_mode
-    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_mode": "invalid_mode"})
+    resp = client.post(
+        "/control/api/maintenance/auth-settings", headers=control_admin_headers, json={"auth_mode": "invalid_mode"}
+    )
     assert resp.status_code == 422  # Validation error
 
     # Invalid auth_login_max_attempts (too high)
-    resp = client.post("/control/api/maintenance/auth-settings", json={"auth_login_max_attempts": 999})
+    resp = client.post(
+        "/control/api/maintenance/auth-settings", headers=control_admin_headers, json={"auth_login_max_attempts": 999}
+    )
     assert resp.status_code == 422  # Validation error
 
 
@@ -179,7 +186,7 @@ def test_updates_check_docker_mode_returns_manual_instructions(client, monkeypat
     assert "SMS_Installer" in data["update_instructions"]
 
 
-def test_auto_install_update_docker_mode_blocked(client, monkeypatch):
+def test_auto_install_update_docker_mode_blocked(client, monkeypatch, control_admin_headers):
     """Auto-installer must be blocked in Docker deployments."""
     import backend.environment as environment_module
 
@@ -197,6 +204,7 @@ def test_auto_install_update_docker_mode_blocked(client, monkeypatch):
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
+        headers=control_admin_headers,
         json={"channel": "stable", "install_mode": "silent"},
     )
     assert resp.status_code == 200
@@ -228,7 +236,9 @@ def _heartbeat(trigger_dir: Path, age_seconds: float = 0.0) -> None:
     os.utime(beat, (stamp, stamp))
 
 
-def test_docker_update_is_refused_when_the_host_task_is_not_running(client, monkeypatch, tmp_path):
+def test_docker_update_is_refused_when_the_host_task_is_not_running(
+    client, monkeypatch, tmp_path, control_admin_headers
+):
     # A writable trigger directory with nobody watching it used to accept the request, which then
     # waited forever. Without a recent heartbeat from the host task the update is refused.
     _docker_context(monkeypatch)
@@ -236,13 +246,15 @@ def test_docker_update_is_refused_when_the_host_task_is_not_running(client, monk
     monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
     _heartbeat(tmp_path, age_seconds=600)  # a task that stopped ten minutes ago
 
-    data = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()
+    data = client.post(
+        "/control/api/maintenance/updates/auto-install", headers=control_admin_headers, json={"channel": "stable"}
+    ).json()
     assert data["success"] is False
     assert data["message_key"] == "maintenance.update.auto_install_docker_blocked"
     assert not list(tmp_path.glob("update_request_*.json"))
 
 
-def test_docker_status_survives_the_container_rebuild(client, monkeypatch, tmp_path):
+def test_docker_status_survives_the_container_rebuild(client, monkeypatch, tmp_path, control_admin_headers):
     # The update rebuilds the container, so the job held in memory is gone when the app returns;
     # the host task's status file still says how it ended.
     from backend.routers.control import maintenance
@@ -252,17 +264,27 @@ def test_docker_status_survives_the_container_rebuild(client, monkeypatch, tmp_p
     monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
     job_id = "ab" * 16
     (tmp_path / f"update_status_{job_id}.json").write_text(
-        json.dumps({"job_id": job_id, "status": "completed", "phase": "bridge_completed",
-                    "progress_percent": 100, "message": "Updated to 1.18.57.", "target_version": "1.18.57"}),
+        json.dumps(
+            {
+                "job_id": job_id,
+                "status": "completed",
+                "phase": "bridge_completed",
+                "progress_percent": 100,
+                "message": "Updated to 1.18.57.",
+                "target_version": "1.18.57",
+            }
+        ),
         encoding="utf-8",
     )
     assert maintenance._get_auto_update_job(job_id) is None
 
-    data = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status").json()
+    data = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    ).json()
     assert (data["status"], data["phase"], data["target_version"]) == ("completed", "bridge_completed", "1.18.57")
 
 
-def test_native_checkout_is_never_updated_with_the_installer(client, monkeypatch):
+def test_native_checkout_is_never_updated_with_the_installer(client, monkeypatch, control_admin_headers):
     # A developer's checkout (NATIVE.ps1) used to download and run the full installer over itself.
     from backend.routers.control import maintenance
     import backend.environment as environment_module
@@ -276,18 +298,22 @@ def test_native_checkout_is_never_updated_with_the_installer(client, monkeypatch
     started = []
     monkeypatch.setattr(maintenance, "_start_auto_update_job", lambda *args: started.append(args))
 
-    data = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()
+    data = client.post(
+        "/control/api/maintenance/updates/auto-install", headers=control_admin_headers, json={"channel": "stable"}
+    ).json()
     assert data["success"] is False
     assert data["message_key"] == "maintenance.update.auto_install_native_manual"
     assert started == []
 
-    monkeypatch.setattr(maintenance, "_fetch_github_release", lambda channel="stable": {"tag_name": "v9.9.9", "assets": []})
+    monkeypatch.setattr(
+        maintenance, "_fetch_github_release", lambda channel="stable": {"tag_name": "v9.9.9", "assets": []}
+    )
     check = client.get("/control/api/maintenance/updates/check").json()
     assert (check["deployment_mode"], check["update_method"]) == ("native", "manual")
     assert "git pull --ff-only" in check["update_instructions"]
 
 
-def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, tmp_path):
+def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, tmp_path, control_admin_headers):
     """Docker mode should queue host-bridge update when enabled."""
     from backend.routers.control import maintenance
     import backend.environment as environment_module
@@ -309,6 +335,7 @@ def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, 
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
+        headers=control_admin_headers,
         json={"channel": "stable", "install_mode": "silent"},
     )
     assert resp.status_code == 200
@@ -325,7 +352,7 @@ def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, 
     assert "command" not in trigger_payload  # the host task never runs a command from the container
 
 
-def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeypatch, tmp_path):
+def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeypatch, tmp_path, control_admin_headers):
     """Status endpoint should reflect bridge watcher status payload updates."""
     from backend.routers.control import maintenance
     import backend.environment as environment_module
@@ -347,6 +374,7 @@ def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeyp
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
+        headers=control_admin_headers,
         json={"channel": "stable", "install_mode": "silent"},
     )
     assert resp.status_code == 200
@@ -368,7 +396,9 @@ def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeyp
         encoding="utf-8",
     )
 
-    status_resp = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status")
+    status_resp = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    )
     assert status_resp.status_code == 200
     status_data = status_resp.json()
     assert status_data["status"] == "completed"
@@ -390,17 +420,23 @@ def _lite_launch_mocks(monkeypatch):
     monkeypatch.setenv("SMS_DEPLOYMENT_MODE", "lite")
     monkeypatch.setattr(maintenance, "_is_native_windows", lambda: True)
     calls = {"launched": [], "exits": 0}
-    monkeypatch.setattr(maintenance, "_launch_installer_elevated", lambda path, args: calls["launched"].append((path, args)))
+    monkeypatch.setattr(
+        maintenance, "_launch_installer_elevated", lambda path, args: calls["launched"].append((path, args))
+    )
 
     def _exit():
         calls["exits"] += 1
 
     monkeypatch.setattr(maintenance, "_schedule_lite_exit", _exit)
-    monkeypatch.setattr(maintenance, "_start_auto_update_job", lambda job_id, payload, current: maintenance._run_auto_update_job(job_id, payload, current))
+    monkeypatch.setattr(
+        maintenance,
+        "_start_auto_update_job",
+        lambda job_id, payload, current: maintenance._run_auto_update_job(job_id, payload, current),
+    )
     return calls
 
 
-def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypatch, tmp_path):
+def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypatch, tmp_path, control_admin_headers):
     """SMS Lite: download, verify, start the installer elevated with the Lite-only switches, exit."""
     from backend.routers.control import maintenance
 
@@ -434,6 +470,7 @@ def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypa
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
+        headers=control_admin_headers,
         json={"channel": "stable", "install_mode": "silent"},
     )
     assert resp.status_code == 200
@@ -448,7 +485,9 @@ def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypa
         assert switch in maintenance.LITE_INSTALLER_ARGS
     assert calls["exits"] == 1
 
-    status_resp = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status")
+    status_resp = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    )
     assert status_resp.status_code == 200
     status_data = status_resp.json()
     assert status_data["status"] == "completed"
@@ -465,9 +504,11 @@ def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypa
     assert all(entry.get("timestamp") for entry in history)
 
 
-def test_auto_install_status_not_found(client):
+def test_auto_install_status_not_found(client, control_admin_headers):
     """Unknown updater jobs should return not_found status payload."""
-    resp = client.get("/control/api/maintenance/updates/auto-install/does-not-exist/status")
+    resp = client.get(
+        "/control/api/maintenance/updates/auto-install/does-not-exist/status", headers=control_admin_headers
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "not_found"
@@ -475,9 +516,11 @@ def test_auto_install_status_not_found(client):
     assert data["phase_history"] == []
 
 
-def test_auto_install_status_invalid_job_id_returns_not_found(client):
+def test_auto_install_status_invalid_job_id_returns_not_found(client, control_admin_headers):
     """Invalid job ids must not be used to build filesystem paths."""
-    resp = client.get("/control/api/maintenance/updates/auto-install/not-a-valid-job-id/status")
+    resp = client.get(
+        "/control/api/maintenance/updates/auto-install/not-a-valid-job-id/status", headers=control_admin_headers
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "not_found"
@@ -525,7 +568,7 @@ def test_updates_check_native_uses_asset_digest_without_sha_sidecar(client, monk
     assert data["installer_hash"] == ("deadbeef" * 8)
 
 
-def test_lite_update_uses_the_asset_digest(client, monkeypatch, tmp_path):
+def test_lite_update_uses_the_asset_digest(client, monkeypatch, tmp_path, control_admin_headers):
     """The installer's SHA-256 can come from the asset's digest when no sidecar exists."""
     from backend.routers.control import maintenance
 
@@ -558,13 +601,16 @@ def test_lite_update_uses_the_asset_digest(client, monkeypatch, tmp_path):
 
     resp = client.post(
         "/control/api/maintenance/updates/auto-install",
+        headers=control_admin_headers,
         json={"channel": "stable", "install_mode": "silent"},
     )
     assert resp.status_code == 200
     data = resp.json()
     job_id = data["details"]["job_id"]
 
-    status_resp = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status")
+    status_resp = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    )
     assert status_resp.status_code == 200
     status_data = status_resp.json()
     assert status_data["status"] == "completed"
@@ -575,7 +621,9 @@ def _lite_release(monkeypatch, assets):
     from backend.routers.control import maintenance
 
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
-    monkeypatch.setattr(maintenance, "_fetch_github_release", lambda channel="stable": {"tag_name": "v1.0.1", "assets": assets})
+    monkeypatch.setattr(
+        maintenance, "_fetch_github_release", lambda channel="stable": {"tag_name": "v1.0.1", "assets": assets}
+    )
 
     def _download(_url, destination, progress_callback=None):
         destination.write_bytes(b"x")
@@ -584,13 +632,21 @@ def _lite_release(monkeypatch, assets):
     monkeypatch.setattr(maintenance, "_download_file", _download)
 
 
-def test_lite_update_declined_at_uac_keeps_sms_lite_running(client, monkeypatch, tmp_path):
+def test_lite_update_declined_at_uac_keeps_sms_lite_running(client, monkeypatch, tmp_path, control_admin_headers):
     from backend.routers.control import maintenance
 
     calls = _lite_launch_mocks(monkeypatch)
     monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
-    _lite_release(monkeypatch, [{"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/s.exe",
-                                 "digest": "sha256:" + "deadbeef" * 8}])
+    _lite_release(
+        monkeypatch,
+        [
+            {
+                "name": "SMS_Installer_1.0.1.exe",
+                "browser_download_url": "https://example.invalid/s.exe",
+                "digest": "sha256:" + "deadbeef" * 8,
+            }
+        ],
+    )
 
     def _declined(path, args):
         err = OSError("The operation was canceled by the user.")
@@ -598,23 +654,35 @@ def test_lite_update_declined_at_uac_keeps_sms_lite_running(client, monkeypatch,
         raise err
 
     monkeypatch.setattr(maintenance, "_launch_installer_elevated", _declined)
-    job_id = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()["details"]["job_id"]
+    job_id = client.post(
+        "/control/api/maintenance/updates/auto-install", headers=control_admin_headers, json={"channel": "stable"}
+    ).json()["details"]["job_id"]
 
-    status = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status").json()
+    status = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    ).json()
     assert status["status"] == "failed"
     assert "cancelled at the Windows security prompt" in status["message"]
     assert calls["exits"] == 0  # SMS Lite keeps running
 
 
-def test_lite_update_refuses_an_installer_without_a_published_hash(client, monkeypatch, tmp_path):
+def test_lite_update_refuses_an_installer_without_a_published_hash(
+    client, monkeypatch, tmp_path, control_admin_headers
+):
     from backend.routers.control import maintenance
 
     calls = _lite_launch_mocks(monkeypatch)
     monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
-    _lite_release(monkeypatch, [{"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/s.exe"}])
+    _lite_release(
+        monkeypatch, [{"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/s.exe"}]
+    )
 
-    job_id = client.post("/control/api/maintenance/updates/auto-install", json={"channel": "stable"}).json()["details"]["job_id"]
-    status = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status").json()
+    job_id = client.post(
+        "/control/api/maintenance/updates/auto-install", headers=control_admin_headers, json={"channel": "stable"}
+    ).json()["details"]["job_id"]
+    status = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    ).json()
     assert status["status"] == "failed"
     assert "no SHA-256" in status["message"]
     assert calls["launched"] == [] and calls["exits"] == 0
@@ -624,11 +692,16 @@ def test_lite_update_refuses_an_installer_without_a_published_hash(client, monke
 def test_installer_asset_is_chosen_by_name():
     from backend.routers.control import maintenance
 
-    url, digest = maintenance._pick_installer_asset([
-        {"name": "helper-tool.exe", "browser_download_url": "https://example.invalid/helper.exe"},
-        {"name": "SMS_Installer_1.0.1.exe", "browser_download_url": "https://example.invalid/sms.exe",
-         "digest": "sha256:" + "ab" * 32},
-    ])
+    url, digest = maintenance._pick_installer_asset(
+        [
+            {"name": "helper-tool.exe", "browser_download_url": "https://example.invalid/helper.exe"},
+            {
+                "name": "SMS_Installer_1.0.1.exe",
+                "browser_download_url": "https://example.invalid/sms.exe",
+                "digest": "sha256:" + "ab" * 32,
+            },
+        ]
+    )
     assert url == "https://example.invalid/sms.exe"
     assert digest == "ab" * 32
 

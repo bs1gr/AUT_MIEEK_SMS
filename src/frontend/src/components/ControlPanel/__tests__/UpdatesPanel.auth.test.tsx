@@ -8,6 +8,7 @@ import { UpdatesPanel } from '../UpdatesPanel';
 
 vi.mock('../../../LanguageContext', () => ({ useLanguage: () => ({ t: (key: string) => key }) }));
 vi.mock('@/contexts/DateTimeSettingsContext', () => ({ useDateTimeFormatter: () => ({ formatTime: () => '10:00' }) }));
+vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 1, role: 'admin' } }) }));
 
 // The Control API (control_auth.require_control_admin) lets a request in only with an admin
 // login token, a loopback address or the admin token header. In the Docker edition the browser

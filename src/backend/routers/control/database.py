@@ -433,7 +433,7 @@ def test_database_connection(
 async def import_database_credentials(
     file: UploadFile = File(...),
     auto_connect: bool = Query(True, description="Apply credentials and set as active profile"),
-    _auth=Depends(require_control_admin),
+    _auth=Depends(require_signed_in_control_admin),
 ):
     """Import database credentials from file and optionally auto-connect.
 

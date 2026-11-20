@@ -473,6 +473,23 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
+**2026-11-20: the sign-in settings, credential import and update install need a signed-in
+administrator too** (this PR; the owner's "yes" to the three actions PR 449 left on the
+same-machine rule).
+
+- `require_signed_in_control_admin` now also guards `GET`/`POST
+  /control/api/maintenance/auth-settings` (the settings can switch sign-in off), `POST
+  /control/api/database/import-credentials` (it points the server at another database), `POST
+  /control/api/maintenance/updates/auto-install` and its `…/{job_id}/status`. Its refusal says
+  "This needs a signed-in administrator." The update check stays open to anyone at the PC.
+- **The page:** Control Panel > Updates keeps the check for everyone, but for an account that
+  is not an administrator the install button is off, with a note that says why (EN/EL key
+  `updateNeedsAdmin`), instead of a button the server refuses.
+- Tests: `test_control_backups_need_admin.py` is now `test_control_admin_only.py` and covers
+  the five addresses as well; the tests of these endpoints sign in as a real administrator
+  (`control_admin_headers`); two Vitest cases for the Updates panel by role.
+  `PERMISSION_MATRIX.md` regenerated (5 rows) and its text names the new members.
+
 **2026-11-20: backups, restore and the database's contents need a signed-in administrator,
 also on the PC itself** (PR 449, merged as `32e9e019e`, CI green: 38 checks passed, none
 failed; the server side of the same decision as PR 448). Neither PR changes the database;
@@ -488,10 +505,11 @@ the cloud VM and the home installs get both with the next release.
   belong to the same family and passed with no sign-in from the PC. Start, stop, restart and
   the status keep the same-machine rule that the PC's own tools rely on. No script or tool
   called the guarded endpoints; both pages send the signed-in user's token.
-- **Not changed, and worth a look (same-machine rule still applies):**
+- ~~**Not changed, and worth a look (same-machine rule still applies):**
   `POST /control/api/maintenance/auth-settings` (it can set `AUTH_MODE`),
   `POST /control/api/database/import-credentials` (it can point the server at another
-  database) and `POST /control/api/maintenance/updates/auto-install`.
+  database) and `POST /control/api/maintenance/updates/auto-install`.~~ **Done the same day
+  on the owner's "yes"** (the entry above).
 - **Found in the tests:** the `admin_token` fixture is a teacher (registration never grants
   `admin`), and `control_auth` looked up tokens in another database than the test's. Every
   Control API test passed only because the test client counts as the same machine. The
