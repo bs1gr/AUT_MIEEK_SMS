@@ -103,8 +103,11 @@ GET /health/live
 ### Logging
 
 - **Application Logs**: `backend/logs/app.log` (native) or container logs (Docker)
+- **Migration Log**: `logs/migrations.log` in the project folder (SMS Lite: in the user's profile)
 - **Structured Logs**: `backend/logs/structured.json`
 - **Access Logs**: Uvicorn logs
+- **Moving them:** `SMS_LOG_DIR=<folder>` puts `app.log`, `migrations.log` and the Control
+  Panel's development-frontend logs into that folder instead (the test suite uses it).
 
 View logs:
 

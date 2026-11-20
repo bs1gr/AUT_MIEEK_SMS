@@ -473,6 +473,20 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
+**2026-11-20: a test run writes no log files into the checkout** (this PR; todo 58).
+
+- One setting, `SMS_LOG_DIR` (`backend.logging_config.log_dir_override`), moves every log file
+  the server writes by default: `app.log` (the app factory), `migrations.log` (both runners,
+  through `migrations_log_dir`) and the log of a development frontend started from the
+  Control Panel. The Control Panel's log viewer reads `app.log` from there too. Unset, nothing
+  changes. An explicit `log_dir` passed to `initialize_logging` still wins.
+- `conftest.py` sets it to a temporary folder for the run, as it does for `BACKUPS_DIR`. Before,
+  every run added to the checkout's `logs/migrations.log` (900 KB in a clone),
+  `src/backend/logs/app.log` (rotating, a few MB) and left an empty `src/logs/frontend-*.log`
+  per Control API start test (about forty in a clone). Measured: the checkout's three log
+  folders are byte for byte the same after the affected test files ran (5,845,439 bytes).
+- Tests: `test_log_dir_setting.py`; the default-folder test clears the setting.
+
 **2026-11-20: a backup right before a migration changes the database** (this PR; todo 58,
 taken up on the owner's "continue", which asked for best practices).
 
@@ -3674,9 +3688,11 @@ word: the next release.
         keeps older code from writing old roles back into a newer database. A merge needs a
         result with three outcomes (applied, database newer, failed) and each caller's choice
         kept; it touches the start of every edition, so it waits for a release cycle of its own.
-      - *A test run writes into the `logs/` of the tree it runs in.* The tests that run the
+      - ~~*A test run writes into the `logs/` of the tree it runs in.* The tests that run the
         migrations append to `logs/migrations.log` (104 KB in a clone after five test
-        files). The same class as the backups folder that PR 409 moved to a temporary one.
+        files). The same class as the backups folder that PR 409 moved to a temporary one.~~
+        **Done 2026-11-20** (`SMS_LOG_DIR`, under "On `main` since v1.18.77"; it was also
+        `app.log` and the frontend logs).
       - *SMS Lite's last resort was never seen working in a packaged build.* Since PR 412 it
         stops whatever holds port 8000 again when that does not answer Lite's shutdown
         request, which is what the code was written to do; on the dev PC that includes a

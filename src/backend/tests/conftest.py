@@ -70,6 +70,13 @@ TEST_BACKUPS_DIR = os.path.realpath(tempfile.mkdtemp(prefix="sms-test-backups-")
 os.environ["BACKUPS_DIR"] = TEST_BACKUPS_DIR
 atexit.register(shutil.rmtree, TEST_BACKUPS_DIR, ignore_errors=True)
 
+# The same for the log files (backend.logging_config.SMS_LOG_DIR): every test run used to add to
+# the checkout's logs/migrations.log (900 KB in a clone), src/backend/logs/app.log (rotating, a few
+# MB) and an empty src/logs/frontend-*.log per Control API start test.
+TEST_LOG_DIR = os.path.realpath(tempfile.mkdtemp(prefix="sms-test-logs-"))
+os.environ["SMS_LOG_DIR"] = TEST_LOG_DIR
+atexit.register(shutil.rmtree, TEST_LOG_DIR, ignore_errors=True)
+
 import pytest
 from fastapi import Depends, Request
 from fastapi.testclient import TestClient

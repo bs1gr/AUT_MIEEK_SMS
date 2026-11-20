@@ -74,8 +74,14 @@ def project_root(start: Path) -> Path:
 
 
 def migrations_log_dir() -> Path:
-    """Where migrations.log is written: the project's `logs/`; for the packaged SMS Lite,
-    the user's profile (the program folder may be read-only)."""
+    """Where migrations.log is written: ``SMS_LOG_DIR`` when set (a test run sets it); else the
+    project's `logs/`; for the packaged SMS Lite, the user's profile (the program folder may be
+    read-only)."""
+    from backend.logging_config import log_dir_override
+
+    override = log_dir_override()
+    if override is not None:
+        return override
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         return Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'logs'
     backend_dir = Path(__file__).resolve().parent.parent.parent

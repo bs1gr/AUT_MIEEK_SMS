@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.control_auth import require_control_admin
 from backend.errors import ErrorCode, http_error
+from backend.logging_config import log_dir_override
 
 router = APIRouter()
 
@@ -22,7 +23,10 @@ def get_backend_logs(request: Request, lines: int = 100, _auth=Depends(require_c
         if not env_log_path.is_absolute():
             env_log_path = backend_root / env_log_path
 
+        moved = log_dir_override()
         candidate_paths = [
+            # Where the server writes app.log when SMS_LOG_DIR moves its logs.
+            *([moved / "app.log"] if moved is not None else []),
             env_log_path,
             backend_root / "logs" / "structured.json",
             backend_root / "logs" / "app.log",
