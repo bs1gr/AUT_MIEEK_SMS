@@ -30,7 +30,9 @@ database change** (the shared database stays at `e2b7c9d4a1f6`).
   the volume; the student list answers 401 without a sign-in; a preflight from
   `https://localhost` with the app's header is allowed, a renewal without a token answers 401.
   No backup was forced first (no database change; a forced one moves the daily hour, which is
-  15:19 UTC again).
+  15:19 UTC again). **Since 07:54 UTC the same day the VM runs `main` at `4c4694367`** (PR 447,
+  the `/health` fix, unreleased; it still reports v1.18.76): numbers under "On `main` since
+  v1.18.76".
 - **On the owner's phone** (Galaxy A55, the published APK installed over Wi-Fi debugging with
   `adb install -r`, updated in place, owner's go-ahead): signed in once, then the app closed
   and reopened from the PC: **still on the Dashboard**, and the cloud server's log shows
@@ -447,8 +449,9 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.76 (unreleased)
 
-**2026-11-20: `/health` no longer holds the event loop, and a dead tool is gone** (PR 447;
-the owner: "do all suggested", after the report that todo 52 stage 3 was the one step left).
+**2026-11-20: `/health` no longer holds the event loop, and a dead tool is gone** (PR 447,
+merged as `4c4694367`, CI green: 39 checks passed, none failed; the owner: "do all
+suggested", after the report that todo 52 stage 3 was the one step left).
 
 - **Stage 3 measured on the cloud VM** (read only: `/metrics` read from inside the container
   and a probe against `127.0.0.1` from the VM itself; no sign-in, nothing written; container
@@ -473,8 +476,27 @@ the owner: "do all suggested", after the report that todo 52 stage 3 was the one
   actions in `admin_routes.py` (reset, performance, restore, list backups, sample data, debug
   processes, shutdown), the static-file routes and the root of `app_factory.py`,
   `/metrics` (CPU only) and SMS Lite's own routes. None is called on a timer.
-- **Not on the VM yet:** it gets this with its next update (the owner's word). The same
-  probe afterwards should show 15 calls at once in about 1 s and `/health/live` at 4 ms.
+- **On the cloud VM since 2026-11-20, 07:54 UTC** (the owner: "add the fix", on the report that
+  the VM still lacked it): `git checkout 4c4694367` (a `main` commit, not a tag, as on
+  2026-11-16; it still reports v1.18.76 because `VERSION` is unchanged), `docker compose up
+  -d --build` (9 s from the layer cache), healthy after 29 s; `/health` answers with the
+  database connected; no ERROR line, no traceback (one WARNING, the standing CSRF notice);
+  the five backups and the key are on the volume; no database change, no forced backup (the
+  daily one stays at 15:19 UTC). Rolling back is `git checkout v1.18.76` and the same
+  rebuild. **The same probe afterwards** (from the VM, 15 `/health` calls at once and
+  `/health/live` asked 30 times meanwhile; two warm rounds):
+
+  | | before (v1.18.76) | after (`4c4694367`) |
+  |---|---|---|
+  | `/health` alone | 0.60 to 0.72 s | 0.60 to 0.63 s |
+  | 15 `/health` at once | 2.7 s to 13.6 s | 1.3 s to 1.9 s |
+  | `/health/live` meanwhile, worst | 12.95 s | 0.15 s to 0.33 s |
+
+  The loop is free: `/health/live` answers in a fraction of a second while 15 health checks
+  run. One check still takes 0.6 s, which is its own database work (about nine round trips
+  at 65 ms), and 15 of them at once take three times that on one CPU; my forecast of "about
+  1 s" was too low (not measured further). Docker's one call every 30 s no longer holds
+  anything up.
 - **The unused import validator is deleted** (todo 56): `scripts/utils/validators/` and its
   one test, which scanned a `backend/` folder that has not existed since the June flatten.
   The two READMEs, `CONSOLIDATION_MAP.md` and the example in `scripts/run_in_venv.py` no longer
@@ -3138,8 +3160,9 @@ why). Step 6's first suite run found that the rate-limit guard had never looked 
 endpoints; PR 444 (`190936bf7`) gave those 51 write endpoints their limit first. All four
 are under "In v1.18.76". **All of it was released and put on the cloud VM on 2026-11-20 (the
 owner: "do all three ... A v1.18.76 release with PRs 442 to 445. and also Update the cloud
-VM"); stage 3 was measured the same day (PR 447, top of this plan).** What waits for the
-owner's word: the update of the VM with PR 447, and the next release.
+VM"); stage 3 was measured the same day, and PR 447 (the `/health` fix it found) is on the VM
+since 07:54 UTC (the owner: "add the fix"; top of this plan).** What waits for the owner's
+word: the next release.
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -3160,12 +3183,13 @@ owner's word: the update of the VM with PR 447, and the next release.
     VM through `/metrics`.~~ **Stage (2) done in PR 445** (230 endpoints, released in
     v1.18.76); **stage (3) done 2026-11-20** (PR 447, top of this plan): on the VM `/health`
     was 96 per cent of all request time and held the loop for 0.7 s every 30 s, and it is
-    plain `def` since PR 447 (it reaches the VM with its next update; the same probe after it
-    is the last check). **Still on the loop, by design of the stages so far:**
-    `Depends(get_current_user)` where an endpoint takes it directly (a user lookup of a few
-    round trips), and the seven endpoints that name `asyncio` or a thread pool. **Todo 52 is
-    closed when the probe after the VM's update shows 15 `/health` calls at once in about a
-    second.**
+    plain `def` since PR 447, which is on the VM since 2026-11-20 07:54 UTC; the same probe
+    afterwards: 15 `/health` at once 1.3 to 1.9 s instead of 2.7 to 13.6 s, `/health/live`
+    meanwhile 0.15 to 0.33 s instead of 12.95 s. **Still on the loop, by design of the stages
+    so far:** `Depends(get_current_user)` where an endpoint takes it directly (a user lookup
+    of a few round trips), and the seven endpoints that name `asyncio` or a thread pool.
+    **Todo 52 is closed** (three stages done, measured on the VM); a faster `/health` itself
+    (0.6 s, about nine round trips) would be a new, small entry if it is ever wanted.
 53. **20 of 81 E2E tests never run** (CI on `main`, `72f079ae8`: 61 passed, 20 skipped; it was
     60 and 36 of 96 on 2026-11-15 in the morning). Six suites are `describe.skip`: advanced
     search (13 tests), student resilience (2), and one test each in `student-list`,
@@ -3256,7 +3280,17 @@ owner's word: the update of the VM with PR 447, and the next release.
       PC and there; the note beside it holds its checksum and the way to restore, and no
       secret.
     - **Left:** (a) the owner's: now and then a newer backup taken off the VM (the runbook has
-      the commands; the copy on the dev PC is of 16 November and does not renew itself).
+      the commands; **a copy of 2026-11-20 is on the dev PC**, see below; it does not renew
+      itself). **Done 2026-11-20 (the owner: "treat the backup as well"):** the VM's newest
+      backup, `auto_backup_20261119_151908.enc` (made 15:19 UTC on 19 November after the
+      v1.18.74 migration: 30 tables, 2,361 rows), is in the owner's confidential folder
+      beside the one of 16 November. Its SHA-256 on the VM and on the PC are equal
+      (`75a11fb2…3387`); the VM's key was only hashed, not copied (equal to the checksum in
+      the note, `25cd8be0…0809`), and it opens the file (decrypted in memory, header and
+      length agree, nothing written out); the temporary copy on the VM is deleted; the note
+      `READ-ME-restore.txt` lists both. Not restored into a database: that shows the key and
+      the format, not that the file restores (the drill of 2026-11-19 did that for the
+      backup of that morning).
       ~~(b) Whether the key next to the code on the dev PC still opens the 22 older encrypted
       backups there is not known.~~ **Done 2026-11-19 (the owner: "accomplish all pending
       tasks"):** the key `src/.keys/master.key` opens all 24 encrypted files in
