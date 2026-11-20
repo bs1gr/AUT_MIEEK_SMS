@@ -106,9 +106,9 @@ So that nobody looks for it:
 - **No per-user settings.** The API has `GET` and `PUT /api/v1/notifications/preferences`
   and stores what is sent to them, but no page uses them and nothing reads them when a
   notification is created. Quiet hours, digests and per-type switches do not exist.
-- **No push channel.** The Socket.IO channel was removed after v1.18.70; it never carried a
-  notification. The server still has a WebSocket endpoint
-  (`/api/v1/notifications/ws`), but no page of the application connects to it.
+- **No push channel.** The pages fetch notifications over HTTP. The Socket.IO channel was
+  removed after v1.18.70 (it never carried a notification), and the WebSocket endpoint
+  `/api/v1/notifications/ws`, which no page connected to, after v1.18.77.
 - **No separate log files.** There is no `notifications.log` or `email.log`; what the
   server writes about notifications is in its ordinary log.
 

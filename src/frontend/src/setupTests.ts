@@ -16,7 +16,6 @@ const shouldSuppressTestLog = (message: string) => {
 		message.startsWith('[Performance]') ||
 		message.startsWith('[API Client]') ||
 		message.startsWith('[API]') ||
-		message.startsWith('[WebSocket]') ||
 		message.startsWith('[useAutosave]') ||
 		message.startsWith('Failed to fetch notifications') ||
 		message.startsWith('Failed to mark notification as read') ||

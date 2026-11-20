@@ -143,13 +143,12 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 <!-- endpoint-requirements:start -->
 
-342 endpoints.
+337 endpoints.
 
 #### `/api/v1/admin`
 
 | Request | Asks for |
 |---|---|
-| `GET /api/v1/admin/debug-processes` | Control API rules |
 | `GET /api/v1/admin/health` | Control API rules |
 | `GET /api/v1/admin/list-encrypted-backups` | Control API rules |
 | `GET /api/v1/admin/performance` | Control API rules |
@@ -170,7 +169,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `PUT /api/v1/admin/rbac/roles/{role_id}` | `permissions:manage` |
 | `GET /api/v1/admin/rbac/summary` | `permissions:view` |
 | `POST /api/v1/admin/reset-database` | Control API rules |
-| `POST /api/v1/admin/restore-encrypted-backup` | Control API rules |
 | `POST /api/v1/admin/sample-data` | Control API rules |
 | `POST /api/v1/admin/shutdown` | Control API rules |
 | `GET /api/v1/admin/users` | `users:view` |
@@ -197,7 +195,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `DELETE /api/v1/analytics/cache/course/{course_id}` | `admin:manage` |
 | `DELETE /api/v1/analytics/cache/student/{student_id}` | `admin:manage` |
 | `GET /api/v1/analytics/course/{course_id}/grade-distribution` | `reports:generate` |
-| `GET /api/v1/analytics/course/{course_id}/students-comparison` | `reports:generate` |
 | `GET /api/v1/analytics/dashboard` | `reports:generate` |
 | `POST /api/v1/analytics/export/excel` | `analytics:export` or `reports:export` or `reports:generate` |
 | `POST /api/v1/analytics/export/pdf` | `analytics:export` or `reports:export` or `reports:generate` |
@@ -206,7 +203,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `GET /api/v1/analytics/predictive/student` | `reports:view` |
 | `POST /api/v1/analytics/reports/custom` | `reports:create` |
 | `GET /api/v1/analytics/reports/custom/{report_id}` | `reports:view` |
-| `GET /api/v1/analytics/reports/templates` | nothing |
 | `GET /api/v1/analytics/student/{student_id}/all-courses-summary` | `reports:generate` |
 | `GET /api/v1/analytics/student/{student_id}/attendance` | `reports:generate` |
 | `GET /api/v1/analytics/student/{student_id}/course/{course_id}/final-grade` | `reports:generate` |
@@ -488,7 +484,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `POST /api/v1/notifications/read-all` | signed in |
 | `GET /api/v1/notifications/release-announcement` | signed in |
 | `GET /api/v1/notifications/unread-count` | signed in |
-| `WEBSOCKET /api/v1/notifications/ws` | signed in (the token travels in the address) |
 | `DELETE /api/v1/notifications/{notification_id}` | signed in |
 | `PUT /api/v1/notifications/{notification_id}` | signed in |
 | `POST /api/v1/notifications/{notification_id}/read` | signed in |

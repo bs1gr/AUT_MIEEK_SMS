@@ -392,25 +392,6 @@ def get_student_trends(
         raise internal_server_error("Student trends failed", request)
 
 
-@router.get("/course/{course_id}/students-comparison")
-@limiter.limit(RATE_LIMIT_READ)
-@require_permission("reports:generate")
-def get_students_comparison(
-    request: Request,
-    course_id: int,
-    limit: int = 50,
-    service: AnalyticsService = Depends(get_analytics_service),
-):
-    """Get comparison data for all students in a course."""
-    try:
-        return service.get_students_comparison(course_id, limit)
-    except HTTPException:
-        raise
-    except Exception as exc:
-        logger.error("Students comparison failed: %s", exc, exc_info=True)
-        raise internal_server_error("Students comparison failed", request)
-
-
 @router.get("/student/{student_id}/attendance")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
@@ -835,36 +816,3 @@ def get_custom_report(
     except Exception as exc:
         logger.error("Failed to retrieve custom report: %s", exc, exc_info=True)
         raise internal_server_error("Failed to retrieve custom report", request)
-
-
-@router.get("/reports/templates")
-@limiter.limit(RATE_LIMIT_READ)
-def get_report_templates(request: Request, db: Session = Depends(get_db)):
-    """List available report templates.
-
-    **Rate limit**: 60 requests per minute (read limit)
-
-    Returns:
-        JSON array with template list
-    """
-    try:
-        from backend.models import ReportTemplate
-
-        templates = db.query(ReportTemplate).filter(ReportTemplate.is_active).all()
-
-        result = [
-            {
-                "id": t.id,
-                "name": t.name,
-                "description": t.description,
-                "category": t.category,
-                "reportType": t.report_type,
-            }
-            for t in templates
-        ]
-
-        logger.info("Retrieved %d report templates (request %s)", len(result), request.state.request_id)
-        return {"templates": result}
-    except Exception as exc:
-        logger.error("Failed to retrieve report templates: %s", exc, exc_info=True)
-        raise internal_server_error("Failed to retrieve report templates", request)

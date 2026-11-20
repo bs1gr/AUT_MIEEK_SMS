@@ -49,7 +49,6 @@ INSIDE: dict[tuple[str, str], str] = {
     ("GET", "/api/v1/students/{student_id}/health"): "`students:view` and role `admin`",
     ("PUT", "/api/v1/students/{student_id}/health"): "`students:edit` and role `admin`",
     ("POST", "/control/api/restart"): CONTROL,
-    ("WEBSOCKET", "/api/v1/notifications/ws"): "signed in (the token travels in the address)",
 }
 
 

@@ -473,7 +473,34 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
-Nothing yet.
+**2026-11-20: unused endpoints removed, backups and restore hidden from teachers** (this PR;
+the owner: "do recommended", after a review of todos 58 and 63 with a recommendation for each).
+
+- **Removed, nothing called them:**
+  - The notification WebSocket: `/api/v1/notifications/ws`, `services/websocket_manager.py`,
+    and the frontend's `services/notificationWebSocket.ts` with its test. The broadcast
+    endpoint no longer pushes anything; it stores one notification per receiver as before,
+    and it is a plain `def` now (no `await` left).
+  - `POST /api/v1/admin/restore-encrypted-backup` with its file-name check;
+    `GET /api/v1/admin/debug-processes`.
+  - `GET /api/v1/analytics/course/{id}/students-comparison` and its service method. It read
+    the grades once per student (the one N+1 the detector found), and its plain average
+    ignored the course's evaluation rules, so its figures disagreed with the final grades.
+  - `GET /api/v1/analytics/reports/templates`, which answered without a sign-in; the pages
+    use `/api/v1/custom-reports/templates`.
+- **The E2E suite no longer starts a backend.** Outside CI, with nothing answering at the API
+  address, `playwright-global-setup.ts` stops with a message that names
+  `RUN_E2E_ISOLATED.ps1`. The E2E guide's advice to start a backend from the checkout (which
+  would have used the shared database) is replaced by the same.
+- **Control Panel > Maintenance: System Operations and Database Management are for
+  administrators only.** Both offer backup and restore through the Control API, which trusts
+  the PC itself (todo 58), so a teacher at an SMS Lite PC could use them. The server side of
+  that rule is a separate change.
+- Not changed, by the same decision: `GET /control/api/restart` stays open (it only says
+  whether a restart is possible), and the in-app User Guide stays the one-page leaflet.
+- Tests: `test_removed_endpoints.py` (the five addresses answer 404; no WebSocket route), and a
+  Vitest test of the Maintenance tab by role, which fails on the old Control Panel.
+  `PERMISSION_MATRIX.md` regenerated: 337 endpoints, 342 before.
 
 ### In v1.18.77
 
@@ -3417,9 +3444,10 @@ word: the next release.
       events were meant to keep them in step; nothing ever sent one.) A shared store or context
       would.~~ **Closed by PR 411** (one state in the hook's module; the "View all" window
       included).
-    - *The native WebSocket endpoint has no client.* `/api/v1/notifications/ws` and
+    - ~~*The native WebSocket endpoint has no client.* `/api/v1/notifications/ws` and
       `services/websocket_manager.py` work and are tested; `services/notificationWebSocket.ts`
-      in the frontend is used by nothing but its own test. Use it or remove both (owner's call).
+      in the frontend is used by nothing but its own test. Use it or remove both (owner's call).~~
+      **Removed, both sides** (owner 2026-11-20: "do recommended"; under "On `main` since v1.18.77").
     - ~~*Both notification guides describe things the application does not have* (an
       administration panel, WebSocket settings, delivery dashboards). #391 corrected the
       delivery description at the top of each; the rest is as written in January 2026.~~
@@ -3438,7 +3466,8 @@ word: the next release.
       life of the process (read by the diagnostics router, emptied only by its reset endpoint).
       On a server that stays up for weeks that is a slow leak; it should keep the last few
       thousand.~~ **Closed by #409** (the VM gets it with its next update).
-    - *The E2E auto-start cannot start a backend, and leaves a dead process behind.* Outside
+    - **Removed** (owner 2026-11-20: "do recommended"; the setup now stops with a message
+      naming `RUN_E2E_ISOLATED.ps1`). As it was: ~~*The E2E auto-start cannot start a backend, and leaves a dead process behind.* Outside
       CI, when nothing answers at the API address, `playwright-global-setup.ts` starts
       `python -m uvicorn backend.main:app --port <port> --reload` detached, with the frontend
       folder as its working directory. `backend` cannot be imported from there (it lives under
@@ -3450,7 +3479,7 @@ word: the next release.
       started from the main checkout's `src`, the backend would read `backend/.env`, which on
       the dev PC points at the shared database, and the E2E suite would create its accounts
       there. Better to remove the auto-start and fail with a message that says how to start
-      an isolated backend (the owner's call).
+      an isolated backend (the owner's call).~~
     - ~~*The gate's Markdown auto-fix can turn text into a heading without saying so.* A wrapped
       line that begins with a PR number (`#378, …`) is "corrected" by `markdownlint --fix`
       (rule MD018, no space after the hash) to `# 378, …`, a level-1 heading. It happened to
@@ -3476,8 +3505,9 @@ word: the next release.
         earlier PostgreSQL backup restorable only with the earlier release. A backup made by
         the application right before it applies a migration would close that gap (the rows
         the v1.18.70 migration changed were saved by hand).
-      - *`/admin/restore-encrypted-backup` has no caller any more* (the page restored through
-        it until #407). Remove it or keep it (the owner's call).
+      - ~~*`/admin/restore-encrypted-backup` has no caller any more* (the page restored through
+        it until #407). Remove it or keep it (the owner's call).~~ **Removed** (owner
+        2026-11-20).
       - *The Control API trusts the machine the server runs on* (`control_auth`, rule 3: with
         no `ADMIN_SHUTDOWN_TOKEN`, a request from the same machine needs no login). That is by
         design for a PC's own tools, and through Docker and on the cloud VM every request
@@ -3486,7 +3516,11 @@ word: the next release.
         at that PC can list, make and restore backups, signed in as a teacher or not at all.
         On a PC that uses the shared database, that includes restoring over it. Such a PC
         also holds the database password, so this is not a new way in; whether Lite should
-        ask for an administrator there is the owner's call.
+        ask for an administrator there is the owner's call. **Decided 2026-11-20 ("do
+        recommended"):** backup, restore and the backup list ask for a signed-in
+        administrator also from the PC itself; start, stop and restart keep the PC's trust
+        for its own tools. The page side (the two sections hidden from teachers) is under "On
+        `main` since v1.18.77"; the server side is a PR of its own.
       - *A replacement PostgreSQL should be of the same kind as the lost one.* The shared
         database runs a Debian-based server, the scratch ones here are Alpine-based: both
         report the collation `en_US.utf8`, and they sort text differently (seen in the restore
@@ -3538,16 +3572,17 @@ word: the next release.
         count per request.~~ **Closed by PR 412** (it counts per request, and writes no
         warning).
     - *Found on 2026-11-17 with PR 412, and not fixed:*
-      - *One real N+1, in an endpoint no page calls.*
+      - **Removed, endpoint and service method** (owner 2026-11-20; its average also ignored
+        the course's evaluation rules). As it was: *One real N+1, in an endpoint no page calls.*
         `GET /analytics/course/{id}/students-comparison` reads `grades` once per enrolled
         student, and `students` once per student who has grades (15 and 0 on the scratch
         server; a class of 25 on the cloud VM would be 25 to 50 round trips of 65 ms). The
         frontend has no caller. One query for each would do, or the endpoint goes (the
         owner's call). It is the only entry the new detector gave over all 102 `GET`
         endpoints, with 15 students.
-      - *`GET /admin/debug-processes` has no caller either.* It lists what the old
+      - ~~*`GET /admin/debug-processes` has no caller either.* It lists what the old
         "stop the dev server" control would kill. It answers again since PR 412; whether it
-        stays is the owner's call.
+        stays is the owner's call.~~ **Removed** (owner 2026-11-20).
       - *Two migration runners that are near copies.* `backend/run_migrations.py` (the Docker
         entrypoint, the command-line tools) and `backend/scripts/migrate/runner.py` (the
         server, SMS Lite) differ in a few lines. PR 412 gave them one function for the log
@@ -3826,10 +3861,13 @@ word: the next release.
       for it, which is the larger part of that work.
     - *Two addresses answer without a sign-in that probably should not:*
       `GET /api/v1/analytics/reports/templates` (an empty list on the scratch copy) and
-      `GET /control/api/restart` (whether a restart is possible here).
+      `GET /control/api/restart` (whether a restart is possible here). **Decided 2026-11-20
+      ("do recommended"):** the first is removed (no page called it); the second stays open
+      (it says only whether a restart is possible).
     - *The "User Guide" of Utils > Help & Documentation ("Complete reference guide", "Download
       English PDF") is a leaflet of one page* that the server composes itself
-      (`routers_help.py`). `USER_GUIDE_COMPLETE.md` is not in the application.
+      (`routers_help.py`). `USER_GUIDE_COMPLETE.md` is not in the application. **Decided
+      2026-11-20: left as it is.**
     - *Older documents and tools of the same kind* (the owner, 2026-11-18, on the
       documents: "read and correct as needed"). **The documents: done in PR 429**, these
       nine and fourteen more. The tools below are still as they were. As it was: `docs/admin/`
@@ -3869,7 +3907,9 @@ word: the next release.
       fail. As it was: it sees
       "Error loading analytics data", "Failed to load data" and the like. One sentence at
       the top ("Your account has no role…") would say it.
-    - *Not tried from end to end:* a scheduled report and a report sent by e-mail.
+    - *Not tried from end to end:* a scheduled report and a report sent by e-mail. **The
+      owner's OK came on 2026-11-20 ("do recommended"):** a test on an isolated copy that mails
+      only to the owner's own address.
     - *Repaired in PR 425:* the privacy notice of the application said "A student account
       sees its own records only". It says now that students have no accounts.
     - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
@@ -3885,7 +3925,9 @@ word: the next release.
       sign-in, there). So on a shared PC with SMS Lite a teacher could restore another
       database; that was not tried. It is the Control API's rule as designed
       (`PERMISSION_MATRIX.md`); whether the panel should be shown to a teacher is the
-      owner's call.
+      owner's call. **Done 2026-11-20 ("do recommended"):** System Operations and Database
+      Management (which has its own backup and restore) are shown to administrators only;
+      under "On `main` since v1.18.77".
     - ~~*Fifteen older user documents were not read* (the owner, 2026-11-18: "read and correct
       as needed"; open) (listed in `docs/user/INDEX.md`): two
       quick-start guides, three older user guides (one of v1.9.7), the theme, localization,

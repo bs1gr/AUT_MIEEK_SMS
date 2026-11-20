@@ -181,112 +181,6 @@ class TestGetStudentTrends:
         assert isinstance(result["moving_average"], (int, float))
 
 
-# Test: get_students_comparison
-class TestGetStudentsComparison:
-    """Tests for get_students_comparison method."""
-
-    def test_comparison_with_students(self, analytics_service, db, sample_course):
-        """Test class comparison with multiple students."""
-        # Create 3 students with different performance levels
-        students = []
-        for i in range(3):
-            student = Student(
-                student_id=f"STU00{i + 1}",
-                first_name=f"Student{i}",
-                last_name="Test",
-                email=f"student{i}@test.com",
-                enrollment_date=(datetime.now() - timedelta(days=180)).date(),
-                is_active=True,
-            )
-            db.add(student)
-            students.append(student)
-        db.commit()
-
-        # Enroll all students in the course
-        for student in students:
-            enrollment = CourseEnrollment(
-                student_id=student.id,
-                course_id=sample_course.id,
-                enrolled_at=(datetime.now() - timedelta(days=180)).date(),
-            )
-            db.add(enrollment)
-        db.commit()
-
-        # Add grades for each student
-        for i, student in enumerate(students):
-            grade = Grade(
-                student_id=student.id,
-                course_id=sample_course.id,
-                assignment_name="Assignment 1",
-                category="Assignment",
-                grade=70.0 + (i * 10.0),  # 70, 80, 90
-                max_grade=100.0,
-                weight=10.0,
-                date_assigned=(datetime.now() - timedelta(days=1)).date(),
-                date_submitted=datetime.now().date(),
-            )
-            db.add(grade)
-        db.commit()
-
-        result = analytics_service.get_students_comparison(sample_course.id, limit=50)
-
-        assert "class_statistics" in result
-        assert "students" in result
-        assert len(result["students"]) == 3
-
-        # Check that students are sorted by average descending (highest to lowest)
-        assert result["students"][0]["average_percentage"] == 90.0  # Student2
-        assert result["students"][1]["average_percentage"] == 80.0  # Student1
-        assert result["students"][2]["average_percentage"] == 70.0  # Student0
-
-    def test_comparison_class_statistics(self, analytics_service, db, sample_course):
-        """Test that class statistics are calculated correctly."""
-        # Create student with grade
-        student = Student(
-            student_id="STU001",
-            first_name="Test",
-            last_name="Student",
-            email="student@test.com",
-            enrollment_date=date.today(),
-            is_active=True,
-        )
-        db.add(student)
-        db.commit()
-
-        # Enroll student
-        enrollment = CourseEnrollment(student_id=student.id, course_id=sample_course.id, enrolled_at=date.today())
-        db.add(enrollment)
-        db.commit()
-
-        # Add grade
-        grade = Grade(
-            student_id=student.id,
-            course_id=sample_course.id,
-            assignment_name="Test Assignment",
-            category="Assignment",
-            grade=85.0,
-            max_grade=100.0,
-            weight=10.0,
-            date_assigned=date.today(),
-            date_submitted=date.today(),
-        )
-        db.add(grade)
-        db.commit()
-
-        result = analytics_service.get_students_comparison(sample_course.id, limit=50)
-
-        assert "class_statistics" in result
-        assert "average" in result["class_statistics"]
-
-    def test_comparison_no_students(self, analytics_service, sample_course):
-        """Test comparison when course has no enrolled students."""
-        result = analytics_service.get_students_comparison(sample_course.id, limit=50)
-
-        assert "students" in result
-        assert len(result["students"]) == 0
-
-
-# Test: get_attendance_summary
 class TestGetAttendanceSummary:
     """Tests for get_attendance_summary method."""
 
@@ -438,5 +332,5 @@ class TestErrorHandling:
 
         # Should raise 404 error
         with pytest.raises(HTTPException) as exc:
-            analytics_service.get_students_comparison(99999, limit=50)
+            analytics_service.get_grade_distribution(99999)
         assert exc.value.status_code == 404

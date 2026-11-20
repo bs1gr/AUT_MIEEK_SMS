@@ -950,6 +950,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
               </div>
             )}
 
+            {/* System Operations and Database Management (backups, restore, clear): admins only.
+                The server refuses most of it to a teacher, but with SMS Lite or a server run from
+                source the Control API trusts the PC itself, so a teacher there could back up
+                and restore (owner's decision, 2026-11-20, plan todos 58 and 63). */}
+            {user?.role === 'admin' && (
+            <>
             {/* DevTools Panel - Collapsible */}
             <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
               <button
@@ -975,14 +981,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                     showLegacyDatabaseTools
                     onToast={handleToast}
                   />
-                  {user?.role === 'admin' && (
-                    <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                      <h4 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
-                        {t('semesterArchiveHeading') || 'Semester Archive'}
-                      </h4>
-                      <SemesterArchivePage />
-                    </div>
-                  )}
+                  <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h4 className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
+                      {t('semesterArchiveHeading') || 'Semester Archive'}
+                    </h4>
+                    <SemesterArchivePage />
+                  </div>
                 </div>
               )}
             </div>
@@ -1010,6 +1014,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                 </div>
               )}
             </div>
+            </>
+            )}
 
           </div>
         )}

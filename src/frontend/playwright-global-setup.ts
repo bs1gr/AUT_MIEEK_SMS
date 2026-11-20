@@ -1,50 +1,42 @@
-import { spawn, exec } from 'child_process';
 import * as http from 'http';
 import * as https from 'https';
 import { getApiBase } from './tests/e2e/helpers';
 
 // The backend the specs talk to: PLAYWRIGHT_API_BASE_URL when it is set, otherwise the native
-// default on :8000 (the same rule the specs and the teardown use). This used to be hard-coded to
-// :8000, so an isolated run against another port still health-checked, and if nothing answered
-// there even started, a server on whatever :8000 was.
+// default on :8000 (the same rule the specs and the teardown use).
 const BACKEND_URL = getApiBase();
 const BACKEND = new URL(BACKEND_URL);
-const BACKEND_PORT = Number(BACKEND.port) || (BACKEND.protocol === 'https:' ? 443 : 80);
 const BACKEND_HEALTH_CHECK_URL = `${BACKEND_URL}/health`;
-// Only a backend on this machine can be started from here.
-const BACKEND_IS_LOCAL = ['127.0.0.1', 'localhost', '::1', '[::1]'].includes(BACKEND.hostname);
-const HEALTH_CHECK_TIMEOUT = 60000; // 60 seconds
+// A backend that is still starting gets this long to answer.
+const HEALTH_CHECK_TIMEOUT = 20000;
 
 /**
- * Check if backend is healthy by making a request to /health endpoint
+ * Whether the backend answers /health with 200 within HEALTH_CHECK_TIMEOUT.
  */
 async function isBackendHealthy(): Promise<boolean> {
   return new Promise((resolve) => {
     const startTime = Date.now();
     const client = BACKEND.protocol === 'https:' ? https : http;
 
+    const retryOrGiveUp = () => {
+      if (Date.now() - startTime < HEALTH_CHECK_TIMEOUT) {
+        setTimeout(checkHealth, 500);
+      } else {
+        resolve(false);
+      }
+    };
+
     const checkHealth = () => {
       const req = client.get(BACKEND_HEALTH_CHECK_URL, (res) => {
+        res.resume();
         if (res.statusCode === 200) {
           resolve(true);
         } else {
-          if (Date.now() - startTime < HEALTH_CHECK_TIMEOUT) {
-            setTimeout(checkHealth, 500);
-          } else {
-            resolve(false);
-          }
+          retryOrGiveUp();
         }
       });
-
-      req.on('error', () => {
-        if (Date.now() - startTime < HEALTH_CHECK_TIMEOUT) {
-          setTimeout(checkHealth, 500);
-        } else {
-          resolve(false);
-        }
-      });
-
-      req.setTimeout(5000);
+      req.on('error', retryOrGiveUp);
+      req.setTimeout(5000, () => req.destroy());
     };
 
     checkHealth();
@@ -52,73 +44,37 @@ async function isBackendHealthy(): Promise<boolean> {
 }
 
 /**
- * Start the backend server using uvicorn
- */
-async function startBackend(): Promise<void> {
-  console.log(`🚀 Starting backend server on port ${BACKEND_PORT}...`);
-
-  try {
-    // Determine the correct Python command
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
-    if (process.platform === 'win32') {
-      // On Windows, use spawn to run in background
-      spawn(pythonCmd, [
-        '-m', 'uvicorn',
-        'backend.main:app',
-        '--host', '127.0.0.1',
-        '--port', String(BACKEND_PORT),
-        '--reload'
-      ], {
-        detached: true,
-        stdio: 'ignore',
-        cwd: process.cwd()
-      }).unref();
-    } else {
-      // On Unix-like systems
-      const backendCommand = `${pythonCmd} -m uvicorn backend.main:app --host 127.0.0.1 --port ${BACKEND_PORT} --reload`;
-      exec(`nohup ${backendCommand} > /tmp/backend.log 2>&1 &`, {
-        cwd: process.cwd()
-      });
-    }
-
-    console.log('⏳ Waiting for backend to become healthy...');
-    const isHealthy = await isBackendHealthy();
-
-    if (isHealthy) {
-      console.log('✅ Backend is running and healthy!');
-    } else {
-      console.warn('⚠️  Backend health check failed, but proceeding with tests.');
-      console.warn('   Tests will fail loudly if backend is unavailable.');
-    }
-  } catch (error) {
-    console.warn('⚠️  Failed to start backend:', error instanceof Error ? error.message : String(error));
-    console.warn('   Tests will fail loudly if backend is unavailable.');
-  }
-}
-
-/**
- * Global setup: Run once before all tests
+ * Global setup: run once before all tests.
+ *
+ * This setup no longer starts a backend itself (owner's decision, 2026-11-20, plan todo 58).
+ * It used to start `uvicorn backend.main:app --reload` from the frontend folder, where `backend`
+ * cannot be imported: the reloader then held the port for ever with nothing serving. Started
+ * from the right folder it would have been worse: the backend reads `backend/.env`, which on the
+ * development PC points at the shared database, and the suite would have created its accounts
+ * there. So a run without a backend now stops at once and says how to get an isolated one.
  */
 async function globalSetup() {
-  // Only auto-start backend if not in CI (CI has its own setup)
-  if (!process.env.CI) {
-    const backendHealthy = await isBackendHealthy();
-
-    if (!backendHealthy) {
-      if (!BACKEND_IS_LOCAL) {
-        // Nothing can be started on another machine from here.
-        console.warn(`\n⚠️  No healthy backend at ${BACKEND_URL}; it is not local, so it will not be started.\n`);
-        return;
-      }
-      console.log(`\n📝 Backend not detected at ${BACKEND_URL}. Attempting to auto-start...\n`);
-      await startBackend();
-    } else {
-      console.log(`✅ Backend already running at ${BACKEND_URL}\n`);
-    }
-  } else {
-    console.log('✅ CI environment detected: backend will be started by workflow\n');
+  if (process.env.CI) {
+    console.log('✅ CI environment detected: the workflow starts the backend\n');
+    return;
   }
+
+  if (await isBackendHealthy()) {
+    console.log(`✅ Backend answering at ${BACKEND_URL}\n`);
+    return;
+  }
+
+  throw new Error(
+    [
+      `No backend answers at ${BACKEND_HEALTH_CHECK_URL}.`,
+      'The E2E suite does not start one itself: a backend started from this checkout would use',
+      'backend/.env, which on the development PC is the shared database.',
+      'Run the suite against a throwaway database instead, from the repository root:',
+      '  .\\infra\\scripts\\testing\\RUN_E2E_ISOLATED.ps1',
+      '  .\\infra\\scripts\\testing\\RUN_E2E_ISOLATED.ps1 -Spec tests/e2e/<file>.spec.ts',
+      'or start an isolated backend yourself and set PLAYWRIGHT_API_BASE_URL to its address.',
+    ].join('\n'),
+  );
 }
 
 export default globalSetup;
