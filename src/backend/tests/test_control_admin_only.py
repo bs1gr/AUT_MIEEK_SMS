@@ -1,11 +1,13 @@
-"""Backups, restore and the database's contents need a signed-in administrator.
+"""Backups, restore, the database's contents and the server's settings need a signed-in administrator.
 
 The Control API lets a request from the server's own machine through when no
 ADMIN_SHUTDOWN_TOKEN is set, for the PC's own tools. With SMS Lite, or a server run from source,
 the browser is on that machine as well, so anyone at the PC could list, make, download and
 restore backups, or empty the database, signed in as a teacher or not at all. The owner decided
 on 2026-11-20 (plan todo 58) that these need an administrator's sign-in wherever the request
-comes from. The test client counts as the same machine here, as it does for the rule itself.
+comes from; the same day, the sign-in settings, the import of database credentials and an
+update's install joined them. The test client counts as the same machine here, as it does for
+the rule itself.
 """
 
 from __future__ import annotations
@@ -29,6 +31,11 @@ GUARDED = [
     ("get", "/api/v1/admin/list-encrypted-backups"),
     ("post", "/api/v1/admin/reset-database"),
     ("post", "/api/v1/admin/sample-data"),
+    ("get", "/control/api/maintenance/auth-settings"),
+    ("post", "/control/api/maintenance/auth-settings"),
+    ("post", "/control/api/database/import-credentials"),
+    ("post", "/control/api/maintenance/updates/auto-install"),
+    ("get", "/control/api/maintenance/updates/auto-install/x/status"),
 ]
 
 

@@ -7,6 +7,7 @@ import { isAxiosError } from 'axios';
 import { controlApiClient } from '@/api/api';
 import { useLanguage } from '../../LanguageContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UpdateCheckResponse {
   current_version: string;
@@ -75,6 +76,10 @@ interface AutoUpdateStatusResponse {
 export const UpdatesPanel: React.FC = () => {
   const { t } = useLanguage();
   const { formatTime } = useDateTimeFormatter();
+  const { user } = useAuth();
+  // The server installs an update for a signed-in administrator only (also on the PC itself,
+  // since 2026-11-20); anyone else may still check what is available.
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
   const [updateInfo, setUpdateInfo] = useState<UpdateCheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [installing, setInstalling] = useState(false);
@@ -275,13 +280,15 @@ export const UpdatesPanel: React.FC = () => {
   const isDevCheckout = mode === 'native';
   const hostTaskReady = Boolean(updateInfo?.host_updater_ready);
   // Each edition updates itself in its own way; a developer checkout is updated with git.
-  const canUseUpdateButton = hasAvailableUpdate && (
+  const canUseUpdateButton = isAdmin && hasAvailableUpdate && (
     (isLiteMode && Boolean(updateInfo?.installer_url)) || (isDockerMode && hostTaskReady)
   );
   const updateButtonLabel = isLiteMode ? t('updateLiteNow') : isDockerMode ? t('updateDockerNow') : t('updateNow');
   const updateButtonTitle = !hasAvailableUpdate
     ? t('upToDateDescription')
-    : isDockerMode && !hostTaskReady
+    : !isAdmin
+      ? t('updateNeedsAdmin')
+      : isDockerMode && !hostTaskReady
       ? t('updateHostTaskMissing')
       : isLiteMode && !updateInfo?.installer_url
         ? t('updateInstallerMissing')
@@ -342,6 +349,11 @@ export const UpdatesPanel: React.FC = () => {
           {isDockerMode && !hostTaskReady && (
             <p className="mt-2 text-amber-700 dark:text-amber-400" data-testid="host-task-missing">
               {t('updateHostTaskMissing')}
+            </p>
+          )}
+          {!isAdmin && !isDevCheckout && (
+            <p className="mt-2 text-amber-700 dark:text-amber-400" data-testid="update-needs-admin">
+              {t('updateNeedsAdmin')}
             </p>
           )}
         </div>

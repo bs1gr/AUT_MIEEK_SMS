@@ -468,6 +468,7 @@ export default {
   updateModeDev: 'This installation: developer checkout',
   updateModeDevHint: 'Updated with git, not with the installer: stop it with NATIVE.ps1 -Stop, run git pull --ff-only, then NATIVE.ps1 -Setup and NATIVE.ps1 -Start.',
   updateHostTaskMissing: 'The host updater task is not running, so Update cannot start from here. Run the installer again on the host (it sets the task up), or follow the steps below.',
+  updateNeedsAdmin: 'Only a signed-in administrator can install an update. You can still check what is available.',
   updateWaitingForRestart: 'Updating: the app is restarting. This page continues when it is back.',
   updateInstallingNow: 'Preparing installer...',
   updateInstallStarted: 'Installer launched. Follow installer prompts to complete the update.',

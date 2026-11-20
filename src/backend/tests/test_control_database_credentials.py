@@ -34,7 +34,7 @@ def test_database_test_connection_success(client, monkeypatch):
     assert data["version"] == "PostgreSQL 14"
 
 
-def test_import_credentials_json_test_only(client, monkeypatch):
+def test_import_credentials_json_test_only(client, monkeypatch, control_admin_headers):
     from backend.routers.control import database as db_router
 
     monkeypatch.setattr(
@@ -66,7 +66,9 @@ def test_import_credentials_json_test_only(client, monkeypatch):
         )
     }
 
-    resp = client.post("/control/api/database/import-credentials?auto_connect=false", files=files)
+    resp = client.post(
+        "/control/api/database/import-credentials?auto_connect=false", headers=control_admin_headers, files=files
+    )
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["success"] is True
@@ -74,7 +76,7 @@ def test_import_credentials_json_test_only(client, monkeypatch):
     assert data["connection_test"]["success"] is True
 
 
-def test_import_credentials_json_auto_connect_updates_env(client, monkeypatch, tmp_path):
+def test_import_credentials_json_auto_connect_updates_env(client, monkeypatch, tmp_path, control_admin_headers):
     from backend.routers.control import database as db_router
 
     monkeypatch.setattr(
@@ -109,7 +111,9 @@ def test_import_credentials_json_auto_connect_updates_env(client, monkeypatch, t
         )
     }
 
-    resp = client.post("/control/api/database/import-credentials?auto_connect=true", files=files)
+    resp = client.post(
+        "/control/api/database/import-credentials?auto_connect=true", headers=control_admin_headers, files=files
+    )
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["success"] is True
@@ -126,7 +130,7 @@ def test_import_credentials_json_auto_connect_updates_env(client, monkeypatch, t
     assert "DATABASE_URL=postgresql://sms_user:P%40ss%21@10.0.0.10:55433/student_management?sslmode=disable" in env_text
 
 
-def test_import_credentials_txt_aliases_auto_connect_updates_env(client, monkeypatch, tmp_path):
+def test_import_credentials_txt_aliases_auto_connect_updates_env(client, monkeypatch, tmp_path, control_admin_headers):
     from backend.routers.control import database as db_router
 
     monkeypatch.setattr(
@@ -163,7 +167,9 @@ def test_import_credentials_txt_aliases_auto_connect_updates_env(client, monkeyp
         )
     }
 
-    resp = client.post("/control/api/database/import-credentials?auto_connect=true", files=files)
+    resp = client.post(
+        "/control/api/database/import-credentials?auto_connect=true", headers=control_admin_headers, files=files
+    )
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["success"] is True
@@ -179,7 +185,7 @@ def test_import_credentials_txt_aliases_auto_connect_updates_env(client, monkeyp
     assert "DATABASE_URL=postgresql://sms_app:P%40ss%21@10.0.0.11:55433/sms_central?sslmode=require" in env_text
 
 
-def test_import_credentials_requires_explicit_db_and_user(client):
+def test_import_credentials_requires_explicit_db_and_user(client, control_admin_headers):
     payload = {
         "host": "127.0.0.1",
         "port": 5432,
@@ -194,7 +200,9 @@ def test_import_credentials_requires_explicit_db_and_user(client):
         )
     }
 
-    resp = client.post("/control/api/database/import-credentials?auto_connect=false", files=files)
+    resp = client.post(
+        "/control/api/database/import-credentials?auto_connect=false", headers=control_admin_headers, files=files
+    )
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["success"] is False
@@ -202,7 +210,7 @@ def test_import_credentials_requires_explicit_db_and_user(client):
     assert "dbname, user" in data["message"]
 
 
-def test_import_credentials_unsupported_format(client):
+def test_import_credentials_unsupported_format(client, control_admin_headers):
     files = {
         "file": (
             "credentials.ini",
@@ -211,7 +219,9 @@ def test_import_credentials_unsupported_format(client):
         )
     }
 
-    resp = client.post("/control/api/database/import-credentials?auto_connect=false", files=files)
+    resp = client.post(
+        "/control/api/database/import-credentials?auto_connect=false", headers=control_admin_headers, files=files
+    )
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["success"] is False

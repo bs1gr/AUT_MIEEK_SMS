@@ -22,7 +22,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
-from backend.control_auth import require_control_admin
+from backend.control_auth import require_control_admin, require_signed_in_control_admin
 from backend.security.path_validation import validate_filename
 from backend.version import get_version
 
@@ -249,7 +249,9 @@ def _pick_installer_asset(assets: list[Dict[str, Any]]) -> tuple[Optional[str], 
         sidecar = next(
             (a for a in assets if a.get("name") == f"{chosen.get('name')}.sha256" and a.get("browser_download_url")),
             None,
-        ) or next((a for a in assets if str(a.get("name", "")).endswith(".sha256") and a.get("browser_download_url")), None)
+        ) or next(
+            (a for a in assets if str(a.get("name", "")).endswith(".sha256") and a.get("browser_download_url")), None
+        )
         if sidecar:
             installer_hash = _download_text(sidecar["browser_download_url"])
     return chosen["browser_download_url"], installer_hash
@@ -605,7 +607,7 @@ def _resolve_env_file() -> tuple[Path, str]:
 
 
 @router.get("/maintenance/auth-settings", response_model=AuthSettingsResponse)
-def get_auth_settings(_request: Request, _auth=Depends(require_control_admin)):
+def get_auth_settings(_request: Request, _auth=Depends(require_signed_in_control_admin)):
     """Get current authentication and authorization settings.
 
     Returns the effective configuration including AUTH_ENABLED and AUTH_MODE.
@@ -643,7 +645,9 @@ def get_auth_settings(_request: Request, _auth=Depends(require_control_admin)):
 
 
 @router.post("/maintenance/auth-settings", response_model=OperationResult)
-def update_auth_settings(payload: AuthSettingsUpdate, _request: Request, _auth=Depends(require_control_admin)):
+def update_auth_settings(
+    payload: AuthSettingsUpdate, _request: Request, _auth=Depends(require_signed_in_control_admin)
+):
     """Update authentication settings by modifying .env file.
 
     ⚠️ Requires application restart to take effect.
@@ -939,7 +943,7 @@ def check_for_updates(
 
 
 @router.post("/maintenance/updates/auto-install", response_model=OperationResult)
-def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Depends(require_control_admin)):
+def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Depends(require_signed_in_control_admin)):
     """Update this instance in place, the way its edition updates.
 
     - SMS Lite: download the installer, verify it, and install only the Lite edition (UAC).
@@ -1062,7 +1066,7 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
 
 
 @router.get("/maintenance/updates/auto-install/{job_id}/status", response_model=AutoUpdateStatusResponse)
-def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends(require_control_admin)):
+def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends(require_signed_in_control_admin)):
     """Get smart updater job progress and installer launch state."""
     try:
         safe_job_id = _validate_auto_update_job_id(job_id)

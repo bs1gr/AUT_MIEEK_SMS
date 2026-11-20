@@ -112,12 +112,14 @@ Rule 4 means that on a PC that runs the application itself, any program on that 
 account signed in at that PC, reaches the Control API. The PC's own tools rely on it for
 start, stop and restart.
 
-**Backups, restore and the database's contents are the exception** (marked "Control API,
-signed-in administrator" below, since 2026-11-20). There rule 4 does not apply: only rules 1
-to 3 do, so a signed-in administrator, or the `X-ADMIN-TOKEN`, is needed even on the PC
-itself. Before that, anyone at a PC with SMS Lite could list, make, download and restore
-backups, restore over a shared database, or empty it, signed in as a teacher or not at all.
-The System page shows those sections to administrators only.
+**Backups, restore, the database's contents and the server's settings are the exception**
+(marked "Control API, signed-in administrator" below, since 2026-11-20). There rule 4 does not
+apply: only rules 1 to 3 do, so a signed-in administrator, or the `X-ADMIN-TOKEN`, is needed
+even on the PC itself. That covers every backup and restore address, emptying the database,
+the sign-in settings (which can switch sign-in off), the import of database credentials (which
+points the server at another database) and an update's install. Before that, anyone at a PC
+with SMS Lite could do all of it, signed in as a teacher or not at all. The System page shows
+the backup sections to administrators only.
 
 One address is outside the rules: `GET /control/api/restart` only says whether a restart is
 possible here, and answers anyone.
@@ -608,7 +610,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `DELETE /control/api/database/backups/{filename}` | Control API, signed-in administrator |
 | `GET /control/api/database/backups/{filename}/download` | Control API, signed-in administrator |
 | `POST /control/api/database/backups/{filename}/restore` | Control API, signed-in administrator |
-| `POST /control/api/database/import-credentials` | Control API rules |
+| `POST /control/api/database/import-credentials` | Control API, signed-in administrator |
 | `GET /control/api/database/instances` | Control API rules |
 | `POST /control/api/database/instances/{name}/backup` | Control API, signed-in administrator |
 | `GET /control/api/database/instances/{name}/stats` | Control API rules |
@@ -618,10 +620,10 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `GET /control/api/environment` | Control API rules |
 | `GET /control/api/logs/backend` | Control API rules |
 | `GET /control/api/maintenance/auth-policy-guide` | Control API rules |
-| `GET /control/api/maintenance/auth-settings` | Control API rules |
-| `POST /control/api/maintenance/auth-settings` | Control API rules |
-| `POST /control/api/maintenance/updates/auto-install` | Control API rules |
-| `GET /control/api/maintenance/updates/auto-install/{job_id}/status` | Control API rules |
+| `GET /control/api/maintenance/auth-settings` | Control API, signed-in administrator |
+| `POST /control/api/maintenance/auth-settings` | Control API, signed-in administrator |
+| `POST /control/api/maintenance/updates/auto-install` | Control API, signed-in administrator |
+| `GET /control/api/maintenance/updates/auto-install/{job_id}/status` | Control API, signed-in administrator |
 | `GET /control/api/maintenance/updates/check` | Control API rules |
 | `GET /control/api/monitoring/environment` | Control API rules |
 | `GET /control/api/monitoring/prometheus/query` | Control API rules |
