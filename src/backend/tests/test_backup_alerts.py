@@ -185,7 +185,7 @@ def test_a_database_that_cannot_be_backed_up_this_way_is_not_a_failure_to_report
     assert told == []
 
 
-def test_the_backups_page_still_answers_when_the_backups_folder_is_unusable(client, admin_token, tmp_path, monkeypatch):
+def test_the_backups_page_still_answers_when_the_backups_folder_is_unusable(client, control_admin_headers, tmp_path, monkeypatch):
     # The notice sends the administrator to this page. With the folder broken (here a file
     # stands in its place) the list answered 500 instead of showing why the backup failed.
     (tmp_path / "database").write_text("not a folder", encoding="utf-8")
@@ -195,7 +195,7 @@ def test_the_backups_page_still_answers_when_the_backups_folder_is_unusable(clie
     database_backup._last_attempt.update(at="2026-11-16T18:06:28+02:00", status="failed", error="cannot create the folder")
 
     response = client.get(
-        "/control/api/operations/database-backups", headers={"Authorization": f"Bearer {admin_token}"}
+        "/control/api/operations/database-backups", headers=control_admin_headers
     )
 
     assert response.status_code == 200

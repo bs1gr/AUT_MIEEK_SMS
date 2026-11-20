@@ -40,18 +40,18 @@ def _write_backup(tmp_path, name: str, content: str):
     return name
 
 
-def _restore(client, admin_token, tmp_path, filename: str, database_url: str = PG_URL):
+def _restore(client, control_admin_headers, tmp_path, filename: str, database_url: str = PG_URL):
     with patch("backend.config.settings") as mock_settings:
         mock_settings.DATABASE_URL = database_url
         mock_settings.BACKUPS_DIR = str(tmp_path)
         return client.post(
             "/control/api/operations/database-restore",
             params={"backup_filename": filename},
-            headers={"Authorization": f"Bearer {admin_token}"},
+            headers=control_admin_headers,
         )
 
 
-def test_postgres_data_only_backup_is_routed_to_the_restore_engine(client, admin_token, tmp_path):
+def test_postgres_data_only_backup_is_routed_to_the_restore_engine(client, control_admin_headers, tmp_path):
     name = _write_backup(tmp_path, "backup_20260917_120000.sql", DATA_ONLY_BACKUP)
     captured = {}
 
@@ -61,7 +61,7 @@ def test_postgres_data_only_backup_is_routed_to_the_restore_engine(client, admin
         return {"success": True, "method": "psycopg_copy", "tables": 1, "rows": 1, "alembic_version": "abc123"}
 
     with patch("backend.services.database_manager.restore_sql_content", _fake_restore):
-        response = _restore(client, admin_token, tmp_path, name)
+        response = _restore(client, control_admin_headers, tmp_path, name)
 
     assert response.status_code == 200, response.text
     data = response.json()
@@ -75,20 +75,20 @@ def test_postgres_data_only_backup_is_routed_to_the_restore_engine(client, admin
     assert captured["content"] == DATA_ONLY_BACKUP
 
 
-def test_a_failed_postgres_restore_is_reported_as_a_failure(client, admin_token, tmp_path):
+def test_a_failed_postgres_restore_is_reported_as_a_failure(client, control_admin_headers, tmp_path):
     name = _write_backup(tmp_path, "backup_20260917_130000.sql", DATA_ONLY_BACKUP)
 
     def _fake_restore(_instance, _content):
         return {"success": False, "error": "Restore failed and was rolled back; nothing was changed."}
 
     with patch("backend.services.database_manager.restore_sql_content", _fake_restore):
-        response = _restore(client, admin_token, tmp_path, name)
+        response = _restore(client, control_admin_headers, tmp_path, name)
 
     assert response.status_code == 500
     assert "nothing was changed" in response.text.lower()
 
 
-def test_legacy_csv_export_is_refused_by_the_dev_tools_restore(client, admin_token, tmp_path):
+def test_legacy_csv_export_is_refused_by_the_dev_tools_restore(client, control_admin_headers, tmp_path):
     """The unrestorable CSV exports must be refused here too, not executed."""
     name = _write_backup(tmp_path, "backup_20260917_140000.sql", LEGACY_CSV_EXPORT)
 
@@ -96,27 +96,27 @@ def test_legacy_csv_export_is_refused_by_the_dev_tools_restore(client, admin_tok
         raise AssertionError("restore reached the database for an unrestorable export")
 
     with patch("psycopg.connect", _must_not_run):
-        response = _restore(client, admin_token, tmp_path, name)
+        response = _restore(client, control_admin_headers, tmp_path, name)
 
     assert response.status_code == 400
     assert "CSV data export" in response.text
 
 
-def test_postgres_backup_is_refused_on_a_sqlite_deployment(client, admin_token, tmp_path):
+def test_postgres_backup_is_refused_on_a_sqlite_deployment(client, control_admin_headers, tmp_path):
     name = _write_backup(tmp_path, "backup_20260917_150000.sql", DATA_ONLY_BACKUP)
 
-    response = _restore(client, admin_token, tmp_path, name, database_url="sqlite:///./sms.db")
+    response = _restore(client, control_admin_headers, tmp_path, name, database_url="sqlite:///./sms.db")
 
     assert response.status_code == 400
     assert "Nothing was changed" in response.text
 
 
-def test_a_file_that_is_neither_sqlite_nor_readable_text_is_refused(client, admin_token, tmp_path):
+def test_a_file_that_is_neither_sqlite_nor_readable_text_is_refused(client, control_admin_headers, tmp_path):
     backup_dir = tmp_path / "database"
     backup_dir.mkdir(parents=True, exist_ok=True)
     (backup_dir / "backup_binary.sql").write_bytes(b"\x89PNG\r\n\x1a\n\xff\xfe\xfd binary junk")
 
-    response = _restore(client, admin_token, tmp_path, "backup_binary.sql")
+    response = _restore(client, control_admin_headers, tmp_path, "backup_binary.sql")
 
     assert response.status_code == 400
     assert "Nothing was changed" in response.text

@@ -310,7 +310,7 @@ def test_status_names_the_newest_automatic_backup(install):
     assert status["last_attempt_status"] == "created"
 
 
-def test_the_backups_list_carries_the_automatic_status(client, admin_token, tmp_path, monkeypatch):
+def test_the_backups_list_carries_the_automatic_status(client, control_admin_headers, tmp_path, monkeypatch):
     folder = tmp_path / "database"
     _fake_backup(folder, "auto_backup_20260101_000000.enc", hours_old=3)
     _fake_backup(folder, "backup_20260101_000000.enc", hours_old=1)
@@ -319,7 +319,7 @@ def test_the_backups_list_carries_the_automatic_status(client, admin_token, tmp_
     monkeypatch.setattr(database_backup, "get_settings", lambda: settings)
 
     response = client.get(
-        "/control/api/operations/database-backups", headers={"Authorization": f"Bearer {admin_token}"}
+        "/control/api/operations/database-backups", headers=control_admin_headers
     )
 
     assert response.status_code == 200
@@ -541,7 +541,7 @@ def test_psql_is_told_to_stop_at_the_first_error_and_to_use_one_transaction(monk
     assert 'relation "users" already exists' in result["error"]
 
 
-def test_a_psql_restore_that_failed_is_answered_as_a_failure(client, admin_token, tmp_path, monkeypatch):
+def test_a_psql_restore_that_failed_is_answered_as_a_failure(client, control_admin_headers, tmp_path, monkeypatch):
     from unittest.mock import patch
 
     folder = tmp_path / "database"
@@ -562,7 +562,7 @@ def test_a_psql_restore_that_failed_is_answered_as_a_failure(client, admin_token
         response = client.post(
             "/control/api/operations/database-restore",
             params={"backup_filename": "backup_20260101_000000.sql"},
-            headers={"Authorization": f"Bearer {admin_token}"},
+            headers=control_admin_headers,
         )
 
     assert response.status_code == 500

@@ -218,7 +218,7 @@ def test_import_credentials_unsupported_format(client):
     assert "Unsupported file format" in data["message"]
 
 
-def test_download_backup_rejects_traversal_filename(client):
-    resp = client.get("/control/api/database/backups/..%5Cevil.sql/download")
+def test_download_backup_rejects_traversal_filename(client, control_admin_headers):
+    resp = client.get("/control/api/database/backups/..%5Cevil.sql/download", headers=control_admin_headers)
     assert resp.status_code == 400
     assert "Invalid character/pattern in filename" in resp.text

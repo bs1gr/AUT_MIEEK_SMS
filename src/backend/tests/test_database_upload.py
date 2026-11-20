@@ -7,12 +7,12 @@ from backend.errors import ErrorCode
 from backend.tests.conftest import get_error_detail
 
 
-def test_database_upload_valid(client):
+def test_database_upload_valid(client, control_admin_headers):
     # Create a valid SQLite file in memory
     sqlite_header = b"SQLite format 3\x00" + b"\x00" * 8
     file_content = sqlite_header + b"testdata"
     files = {"file": ("test.db", io.BytesIO(file_content), "application/octet-stream")}
-    resp = client.post("/control/api/operations/database-upload", files=files)
+    resp = client.post("/control/api/operations/database-upload", headers=control_admin_headers, files=files)
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["success"] is True
@@ -23,15 +23,15 @@ def test_database_upload_valid(client):
         uploaded.unlink()
 
 
-def test_database_upload_invalid_extension(client):
+def test_database_upload_invalid_extension(client, control_admin_headers):
     files = {"file": ("test.txt", io.BytesIO(b"not a db"), "application/octet-stream")}
-    resp = client.post("/control/api/operations/database-upload", files=files)
+    resp = client.post("/control/api/operations/database-upload", headers=control_admin_headers, files=files)
     assert resp.status_code == 400
     detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_INVALID_FILE_TYPE.value
 
 
-def test_database_upload_invalid_magic(client):
+def test_database_upload_invalid_magic(client, control_admin_headers):
     files = {
         "file": (
             "test.db",
@@ -39,13 +39,13 @@ def test_database_upload_invalid_magic(client):
             "application/octet-stream",
         )
     }
-    resp = client.post("/control/api/operations/database-upload", files=files)
+    resp = client.post("/control/api/operations/database-upload", headers=control_admin_headers, files=files)
     assert resp.status_code == 400
     detail = get_error_detail(resp.json())
     assert detail["error_id"] == ErrorCode.CONTROL_INVALID_FILE_TYPE.value
 
 
-def test_database_restore_auto_migrates_on_postgres(client, monkeypatch):
+def test_database_restore_auto_migrates_on_postgres(client, monkeypatch, control_admin_headers):
     monkeypatch.setattr(
         backend_config.settings,
         "DATABASE_URL",
@@ -62,7 +62,7 @@ def test_database_restore_auto_migrates_on_postgres(client, monkeypatch):
     monkeypatch.setattr(sqlite_to_pg, "main", lambda argv: 0, raising=False)
 
     try:
-        resp = client.post(f"/control/api/operations/database-restore?backup_filename={backup_name}")
+        resp = client.post(f"/control/api/operations/database-restore?backup_filename={backup_name}", headers=control_admin_headers)
         assert resp.status_code == 200, resp.text
         data = resp.json()
         assert data["success"] is True
@@ -71,7 +71,7 @@ def test_database_restore_auto_migrates_on_postgres(client, monkeypatch):
         backup_path.unlink(missing_ok=True)
 
 
-def test_database_restore_returns_error_when_migration_fails(client, monkeypatch):
+def test_database_restore_returns_error_when_migration_fails(client, monkeypatch, control_admin_headers):
     monkeypatch.setattr(
         backend_config.settings,
         "DATABASE_URL",
@@ -88,7 +88,7 @@ def test_database_restore_returns_error_when_migration_fails(client, monkeypatch
     monkeypatch.setattr(sqlite_to_pg, "main", lambda argv: 3, raising=False)
 
     try:
-        resp = client.post(f"/control/api/operations/database-restore?backup_filename={backup_name}")
+        resp = client.post(f"/control/api/operations/database-restore?backup_filename={backup_name}", headers=control_admin_headers)
         assert resp.status_code == 500
         detail = get_error_detail(resp.json())
         assert detail["error_id"] == ErrorCode.CONTROL_RESTORE_FAILED.value

@@ -42,11 +42,11 @@ def test_the_modules_that_read_the_folder_when_imported_have_it_too():
     assert not database_manager._get_backup_dir().resolve().is_relative_to(PROJECT_ROOT)
 
 
-def test_a_backup_file_written_through_the_api_lands_in_the_own_folder(client):
+def test_a_backup_file_written_through_the_api_lands_in_the_own_folder(client, control_admin_headers):
     content = b"SQLite format 3\x00" + b"\x00" * 8 + b"own-folder"
     files = {"file": ("own_folder_check.db", io.BytesIO(content), "application/octet-stream")}
 
-    resp = client.post("/control/api/operations/database-upload", files=files)
+    resp = client.post("/control/api/operations/database-upload", headers=control_admin_headers, files=files)
 
     assert resp.status_code == 200, resp.text
     filename = resp.json()["details"]["filename"]
@@ -55,7 +55,7 @@ def test_a_backup_file_written_through_the_api_lands_in_the_own_folder(client):
         assert written.read_bytes() == content
         assert not (REAL_BACKUPS_DIR / "database" / filename).exists()
 
-        listed = client.get("/control/api/operations/database-backups").json()["backups"]
+        listed = client.get("/control/api/operations/database-backups", headers=control_admin_headers).json()["backups"]
         assert filename in [item["filename"] for item in listed]
     finally:
         written.unlink(missing_ok=True)

@@ -58,11 +58,11 @@ logger = logging.getLogger(__name__)
 # Control API dependency to protect admin-only endpoints
 try:
     # Prefer package import when available
-    from backend.control_auth import require_control_admin
+    from backend.control_auth import require_control_admin, require_signed_in_control_admin
     from backend.services.backup_service_encrypted import BackupServiceEncrypted
 except Exception:
     # Fallback for tests or alternate import paths
-    from control_auth import require_control_admin  # type: ignore
+    from control_auth import require_control_admin, require_signed_in_control_admin  # type: ignore
     from services.backup_service_encrypted import BackupServiceEncrypted  # type: ignore
 
 
@@ -121,7 +121,7 @@ def health_check(db: Session = Depends(get_db), _auth=Depends(require_control_ad
 
 
 @router.post("/reset-database")
-async def reset_database(_auth=Depends(require_control_admin)):
+async def reset_database(_auth=Depends(require_signed_in_control_admin)):
     """Drop all tables and recreate the schema via Alembic (WARNING: Deletes all data!)"""
     try:
         # Close all connections
@@ -200,7 +200,7 @@ async def get_performance(limit: int = 50, _auth=Depends(require_control_admin))
 
 
 @router.get("/list-encrypted-backups")
-async def list_encrypted_backups(_auth=Depends(require_control_admin)):
+async def list_encrypted_backups(_auth=Depends(require_signed_in_control_admin)):
     """
     List all available encrypted backups.
 
@@ -221,7 +221,7 @@ async def list_encrypted_backups(_auth=Depends(require_control_admin)):
 
 
 @router.post("/sample-data")
-async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_control_admin)):
+async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_signed_in_control_admin)):
     """Add sample data for testing"""
     try:
         # Check if data already exists
