@@ -3135,8 +3135,9 @@ account into "No role" (migration `5189ab647b5a`). What the readings found
 and did not change is todo 63. Older entries that are still open, further
 down: 40 (a real Update
 install; the Android offer was confirmed on a phone on 2026-11-19, the Lite installer through
-UAC and the Docker host task are not), 44 (the cloud host: ΜΙΕΕΚ's policy, the free account's
-order record, watching for idle reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
+UAC and the Docker host task are not), 44 (the cloud host: the free account's order record and
+watching for idle reclamation; ΜΙΕΕΚ's policy was settled by the owner on 2026-11-20, no
+approval needed while the database stays private) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
 a message is settled in PR 417: the page offers it) and todo 61 (found while the Search page
@@ -3948,10 +3949,17 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
       or trial accounts; both rule out regulated health data, which is off), the owner's phone
       runs against the cloud address, Tailscale key expiry is disabled for the VM and the
       QNAP, and the VM runs a release tag (v1.18.76 since 2026-11-20), not hand-copied files.
-      **Still open, the owner's:** ΜΙΕΕΚ's policy for student data on the host, and the free
-      account's own order record, which could not be read (Oracle's pages refuse an automated
-      reader); and, as a standing chore, watching for idle reclamation (the runbook says what
-      to look for).
+      ~~**Still open, the owner's:** ΜΙΕΕΚ's policy for student data on the host~~ **Decided
+      by the owner 2026-11-20:** "There is a EU policy and directives about the data for
+      educational purposes that Cyprus ministry of education follows, so there is no need of
+      any required acceptance order from MIEEK, if the database stays private." No ΜΙΕΕΚ
+      approval is sought. **The condition is that the data stays private:** the app is
+      published to the tailnet only, the database port is never opened on a public address
+      (neither the VM's nor the home one), and any change that would expose either reopens
+      this question. **Still open, the owner's:** the free account's own order record, which
+      could not be read (Oracle's pages refuse an automated reader; only the owner can open it
+      in the console); and, as a standing chore, watching for idle reclamation (the runbook
+      `docs/deployment/CLOUD_HOST_ORACLE.md` says what to look for).
     - ~~**Still open:** the two confirmations (Oracle's data-processing agreement for Always Free;
       ΜΙΕΕΚ policy); the phone pointed at the cloud address; idle reclamation; Tailscale key
       expiry for the VM and the QNAP; the VM still runs files copied by hand for todo 49 and

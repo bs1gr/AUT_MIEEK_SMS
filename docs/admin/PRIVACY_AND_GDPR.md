@@ -145,7 +145,11 @@ the decision itself is the institution's and is not recorded anywhere in the pro
    console and was not read, so a written confirmation from Oracle (one question in the console
    chat) is the only thing that would add certainty. A free account has no uptime promise and
    Oracle's liability is capped at the fees paid, which is nothing; the home installation stays
-   as the backup. Confirm that the institution's policy allows the hosting.
+   as the backup. Institution approval for the hosting: decided by the system owner on
+   2026-11-20 as not required, because the Cyprus Ministry of Education follows the EU rules
+   on data for educational purposes, **on condition that the database stays private** (the
+   app reachable only on the private tailnet, the database port never on a public address).
+   Exposing either reopens the question.
 5. **Records and requests.** Keep the record of processing activities, and have a way to answer
    access, correction and deletion requests.
 6. **The notice text.** Review the wording of the Privacy page and supply the contact details.
