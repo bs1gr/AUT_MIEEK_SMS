@@ -118,7 +118,14 @@ def _encrypt_and_remove_plaintext(
     return backup_info
 
 
-def _backup_postgresql(db_url: str, backup_dir: Path, timestamp: str, encrypt: bool, prefix: str) -> dict[str, Any]:
+def _backup_postgresql(
+    db_url: str,
+    backup_dir: Path,
+    timestamp: str,
+    encrypt: bool,
+    prefix: str,
+    instance: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """A PostgreSQL backup in the application's own data-only format, on every edition.
 
     Until November 2026 this ran ``pg_dump`` where the client tools were installed (the Docker
@@ -128,15 +135,26 @@ def _backup_postgresql(db_url: str, backup_dir: Path, timestamp: str, encrypt: b
     success (seen on PostgreSQL 14, 2026-11-16). The data-only format is the one the
     application restores itself, in one transaction, and the one its round-trip tests cover.
     """
-    parsed = urlparse(db_url)
+    if instance is None:
+        parsed = urlparse(db_url)
+        pg_user = unquote(parsed.username) if parsed.username else None
+        instance = {
+            "name": "primary",
+            "host": parsed.hostname or "localhost",
+            "port": parsed.port or 5432,
+            "user": pg_user,
+            "password": unquote(parsed.password) if parsed.password else "",
+            "dbname": parsed.path.lstrip("/"),
+            "sslmode": dict(item.split("=", 1) for item in (parsed.query or "").split("&") if "=" in item).get(
+                "sslmode", "prefer"
+            ),
+        }
+    # Only these two go into the metadata written beside the backup; the credentials stay in
+    # the instance and are used for the connection only.
+    pg_host = str(instance.get("host") or "localhost")
+    pg_database = str(instance.get("dbname") or "")
 
-    pg_host = parsed.hostname or "localhost"
-    pg_port = parsed.port or 5432
-    pg_user = unquote(parsed.username) if parsed.username else None
-    pg_password = unquote(parsed.password) if parsed.password else None
-    pg_database = parsed.path.lstrip("/")
-
-    if not pg_user:
+    if not instance.get("user"):
         raise DatabaseBackupError("PostgreSQL username missing in DATABASE_URL", 400)
 
     backup_name = f"{prefix}_{timestamp}"
@@ -145,20 +163,7 @@ def _backup_postgresql(db_url: str, backup_dir: Path, timestamp: str, encrypt: b
 
     from backend.services.database_manager import create_data_only_backup, get_backup_path
 
-    made = create_data_only_backup(
-        {
-            "name": "primary",
-            "host": pg_host,
-            "port": pg_port,
-            "user": pg_user,
-            "password": pg_password or "",
-            "dbname": pg_database,
-            "sslmode": dict(item.split("=", 1) for item in (parsed.query or "").split("&") if "=" in item).get(
-                "sslmode", "prefer"
-            ),
-        },
-        compress=False,
-    )
+    made = create_data_only_backup(instance, compress=False)
     made_filename = str(made.get("filename", ""))
     made_path = get_backup_path(made_filename) if made_filename else None
     if made_path is None or not made_path.exists():
@@ -290,7 +295,11 @@ def _backup_sqlite(db_url: str, backup_dir: Path, timestamp: str, encrypt: bool,
 
 
 def create_database_backup(
-    *, encrypt: bool = True, prefix: str = MANUAL_PREFIX, db_url: str | None = None
+    *,
+    encrypt: bool = True,
+    prefix: str = MANUAL_PREFIX,
+    db_url: str | None = None,
+    instance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Back up the configured database into ``<BACKUPS_DIR>/database``.
 
@@ -299,7 +308,9 @@ def create_database_backup(
     ``DatabaseBackupError`` for a database that cannot be backed up this way.
 
     ``db_url`` names another database than ``DATABASE_URL``: the backup before a migration
-    takes the very database the migration runner was given.
+    takes the very database the migration runner was given. ``instance`` names another
+    PostgreSQL database by its settings (host, port, user, password, dbname, sslmode), as the
+    Database panel knows its extra instances; the credentials are used for the connection only.
     """
     settings = get_settings()
     db_url = db_url or settings.DATABASE_URL
@@ -309,6 +320,8 @@ def create_database_backup(
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+    if instance is not None:
+        return _backup_postgresql("", backup_dir, timestamp, encrypt, prefix, instance=instance)
     if db_url.startswith("postgresql"):
         return _backup_postgresql(db_url, backup_dir, timestamp, encrypt, prefix)
     if db_url.startswith("sqlite"):

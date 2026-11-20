@@ -27,7 +27,6 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
 
 from backend.config import get_settings
 from backend.services import database_backup
@@ -50,17 +49,8 @@ def _legacy_dir() -> Path:
     return Path(get_settings().BACKUPS_DIR) / "postgres"
 
 
-def instance_url(instance: dict[str, Any]) -> str:
-    """The SQLAlchemy URL of a configured instance; the primary is ``DATABASE_URL`` itself."""
-    if instance.get("is_primary") or instance.get("name") == "primary":
-        return str(get_settings().DATABASE_URL)
-    user = quote(str(instance.get("user") or ""), safe="")
-    password = quote(str(instance.get("password") or ""), safe="")
-    host = str(instance.get("host") or "localhost")
-    port = int(instance.get("port") or 5432)
-    dbname = quote(str(instance.get("dbname") or ""), safe="")
-    sslmode = quote(str(instance.get("sslmode") or "prefer"), safe="")
-    return f"postgresql://{user}:{password}@{host}:{port}/{dbname}?sslmode={sslmode}"
+def _is_primary(instance: dict[str, Any]) -> bool:
+    return bool(instance.get("is_primary")) or instance.get("name") == "primary"
 
 
 def _human_size(size: int) -> str:
@@ -77,9 +67,15 @@ def make_backup(instance: dict[str, Any]) -> dict[str, Any]:
 
     Returns the fields of the panel's ``BackupResult``; raises ``DatabaseBackupError``.
     """
-    result = database_backup.create_database_backup(
-        encrypt=True, prefix=database_backup.MANUAL_PREFIX, db_url=instance_url(instance)
-    )
+    if _is_primary(instance):
+        # The configured DATABASE_URL, as for every other backup of the application.
+        result = database_backup.create_database_backup(encrypt=True, prefix=database_backup.MANUAL_PREFIX)
+    else:
+        # An extra instance (EXTRA_DB_INSTANCES) by its own settings; no address is built from
+        # its credentials.
+        result = database_backup.create_database_backup(
+            encrypt=True, prefix=database_backup.MANUAL_PREFIX, instance=instance
+        )
     details = result.get("details", {})
     size = int(details.get("encrypted_size") or 0)
     return {
@@ -151,14 +147,19 @@ def list_backups(instances: list[dict[str, Any]], instance_name: str | None = No
 
 def find_backup(filename: str) -> Path | None:
     """The encrypted backup of that name in ``<BACKUPS_DIR>/database``; raises ValueError for a
-    name that is not a plain ``*.enc`` file name."""
-    if not _ENC_NAME.match(filename or "") or Path(filename).name != filename:
+    name that is not a plain ``*.enc`` file name.
+
+    The path returned is one the folder listing gave, never one built from the request.
+    """
+    if not _ENC_NAME.match(filename or ""):
         raise ValueError("Invalid backup filename")
-    folder = _backup_dir().resolve()
-    candidate = (folder / filename).resolve()
-    if candidate.parent != folder or not candidate.is_file():
+    folder = _backup_dir()
+    if not folder.is_dir():
         return None
-    return candidate
+    for candidate in folder.iterdir():
+        if candidate.name == filename and candidate.is_file():
+            return candidate
+    return None
 
 
 def delete_backup(filename: str) -> bool:

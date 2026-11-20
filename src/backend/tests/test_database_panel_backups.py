@@ -87,8 +87,8 @@ def _old(path: Path, seconds: float = 3600) -> None:
 def test_a_backup_from_the_panel_is_encrypted_into_the_common_folder(place, monkeypatch):
     seen = {}
 
-    def _fake(*, encrypt, prefix, db_url):
-        seen.update(encrypt=encrypt, db_url=db_url)
+    def _fake(*, encrypt, prefix, instance=None):
+        seen.update(encrypt=encrypt, instance=instance)
         return {
             "details": {
                 "filename": "backup_x.enc",
@@ -104,14 +104,38 @@ def test_a_backup_from_the_panel_is_encrypted_into_the_common_folder(place, monk
     monkeypatch.setattr(database_backup, "create_database_backup", _fake)
     result = database_panel_backups.make_backup(PRIMARY)
 
-    assert seen == {"encrypt": True, "db_url": "postgresql://u:p@db:5432/sms"}
+    # The primary instance: the configured DATABASE_URL, like every other backup.
+    assert seen == {"encrypt": True, "instance": None}
     assert result["encrypted"] is True and result["filename"] == "backup_x.enc"
     assert result["size_human"] == "2.0 KB"
 
 
-def test_an_extra_instance_is_backed_up_by_its_own_address():
-    extra = {"name": "other", "host": "h", "port": 6543, "dbname": "d b", "user": "a@b", "password": "p:w"}
-    assert database_panel_backups.instance_url(extra) == "postgresql://a%40b:p%3Aw@h:6543/d%20b?sslmode=prefer"
+def test_an_extra_instance_is_backed_up_by_its_own_settings(place, monkeypatch):
+    extra = {"name": "other", "host": "h", "port": 6543, "dbname": "d", "user": "a", "password": "p"}
+    made = {}
+
+    def _data_only(instance, compress=False):
+        made.update(instance)
+        path = place.tmp_path / "backups" / "postgres" / "other_1.sql"
+        path.write_bytes(DATA_ONLY.encode("utf-8"))
+        return {"filename": path.name, "method": "psycopg_copy", "tables": 1, "rows": 1}
+
+    monkeypatch.setattr("backend.services.database_manager.create_data_only_backup", _data_only)
+    monkeypatch.setattr(
+        "backend.services.database_manager.get_backup_path",
+        lambda name: place.tmp_path / "backups" / "postgres" / name,
+    )
+
+    result = database_panel_backups.make_backup(extra)
+
+    assert made["host"] == "h" and made["dbname"] == "d" and made["password"] == "p"
+    enc = place.database / result["filename"]
+    assert enc.suffix == ".enc" and "Μαρία".encode() not in enc.read_bytes()
+    meta = json.loads((place.database / ".metadata" / f"{enc.stem}.json").read_text(encoding="utf-8"))
+    # Host and database name are recorded, the credentials are not.
+    assert meta["database_host"] == "h" and meta["database_name"] == "d"
+    assert "p" not in (meta.get("password"), meta.get("user"))
+    assert database_panel_backups.list_backups([extra])[0]["instance"] == "other"
 
 
 # --- the list, download, delete ----------------------------------------------------------------

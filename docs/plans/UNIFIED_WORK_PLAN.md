@@ -481,7 +481,9 @@ the owner: "make that panel use the same encrypted backup as everything else").
   `<BACKUPS_DIR>/postgres`, with a list of its own; every other backup was encrypted in
   `<BACKUPS_DIR>/database`.
 - **Now** (`services/database_panel_backups.py`, the panel's endpoints): Backup makes the same
-  encrypted backup as Manage Backups (`create_database_backup`, the chosen instance's address);
+  encrypted backup as Manage Backups (`create_database_backup`: the configured `DATABASE_URL`
+  for the primary, an extra instance by its own settings, never through an address built from
+  its password);
   the list shows the encrypted PostgreSQL backups of that folder (automatic, manual,
   pre-migration), each matched to its instance by host and database name; Download serves the
   `.enc` file; Delete removes it with its metadata; Restore decrypts in a private temporary
