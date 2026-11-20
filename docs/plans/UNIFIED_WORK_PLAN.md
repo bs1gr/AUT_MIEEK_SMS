@@ -1,6 +1,6 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.76
+**Current Version**: 1.18.77
 **Last Updated**: November 20, 2026
 **Status**: ✅ **v1.18.76 released 2026-11-20** (tag on `46dbfa7ee`, run by the assistant; the
 owner: "do all three ... They would then ship in the next release. A v1.18.76 release with PRs
@@ -447,7 +447,17 @@ deleted and switched off. The order record of the free account was not visible t
 owner's phone runs the app against the cloud address; Tailscale key expiry is disabled for
 the VM and the QNAP.
 
-### On `main` since v1.18.76 (unreleased)
+### On `main` since v1.18.77 (unreleased)
+
+Nothing yet.
+
+### In v1.18.77
+
+Release commit `da95ba89e` (`RELEASE_READY -ReleaseVersion 1.18.77`, no `-TagRelease`, run by
+the assistant on the owner's word "prepare a new release so to include all the changes
+accordingly"): exit 0, backend 1,997 passed, 43 skipped, 0 failed, the frontend suite passed,
+the local test installer built and signed (never uploaded). Tag pending at the time of this
+entry.
 
 **2026-11-20: `/health` no longer holds the event loop, and a dead tool is gone** (PR 447,
 merged as `4c4694367`, CI green: 39 checks passed, none failed; the owner: "do all
