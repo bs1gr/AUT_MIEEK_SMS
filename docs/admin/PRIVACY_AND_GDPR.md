@@ -120,6 +120,21 @@ otherwise. They are proposals, not legal advice, and none of them is enforced au
 | Hosting | Inside the EU, with a written data-processing agreement (see below). |
 | Privacy notice | The built-in page, with the four `PRIVACY_*` settings filled in. |
 
+### Decided for the ΜΙΕΕΚ installation (system owner, 2026-11-20)
+
+- **Lawful basis:** Article 6(1)(e), a task in the public interest (education under the Cyprus
+  Ministry of Education, which follows the EU rules on data for educational purposes), with
+  6(1)(c) where a law requires the record. Not consent. Health data is not recorded, so no
+  Article 9 condition is needed.
+- **Retention:** the periods in the table above are adopted as the rule: audit log two years;
+  backups one year; semester archives and the academic record as long as the archive rules
+  require; staff private notes cleared at the end of each academic year; semester export files
+  deleted once imported elsewhere. They are applied by hand. Nothing deletes them automatically,
+  and building that would be a separate decision.
+- **Controller on the Privacy page:** the system owner, the teacher who runs this installation,
+  is named in `PRIVACY_CONTROLLER_NAME` and `PRIVACY_CONTACT`. These settings are set on each
+  server, not in this repository.
+
 ## What the institution must do
 
 The software cannot do these. The table above gives the default this document assumes for each;

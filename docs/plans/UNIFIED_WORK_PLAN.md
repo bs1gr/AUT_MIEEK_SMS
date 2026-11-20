@@ -4029,6 +4029,25 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
       (the v1.18.68 paragraph at the head of this plan: the Cyprus Cloud Services Agreement of
       22 June 2023 and the Data Processing Agreement of 14 August 2025 exclude neither free
       nor trial accounts); only the free account's order record could not be read.
+    - **The owner's decisions, 2026-11-20** (recorded in `docs/admin/PRIVACY_AND_GDPR.md`,
+      "Decided for the ΜΙΕΕΚ installation"):
+      - **Lawful basis:** Article 6(1)(e), public task (plus 6(1)(c) where a law requires the record).
+      - **Retention:** the proposed periods are adopted, written down only. No automatic deletion
+        is built; that would need a new decision.
+      - **Controller on the Privacy page:** the owner, as the teacher.
+      - **Older copies, done 2026-11-20 (owner: "do suggested"):** files on the dev PC written
+        on or before 13 November that copy the current database went to the Recycle Bin, none
+        of them opened. That was 246 files, 12.7 MB, all git-ignored, under `backups\database`
+        (with `.metadata`), `backups\postgres`, `backups\semester_archives` and
+        `src\backend\exports` (165 near-empty `export_1_*.xlsx`). Nothing in Downloads,
+        Desktop, Documents or OneDrive matched. The VM's backups start on 16 November and are
+        clean, as are the copies in the owner's confidential folder.
+      - **Kept as the owner's own archives:** the older installations' files in other folders
+        on the dev PC (2025 to June 2026). Under the adopted one-year backup rule they can go
+        when the owner chooses.
+      - **Out of reach:** snapshots on the QNAP itself, and files already sent to others.
+      - **Still open:** the controller's name and contact for the `PRIVACY_*` settings (supplied
+        by the owner, set in the servers' `.env`, never in the repository).
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
