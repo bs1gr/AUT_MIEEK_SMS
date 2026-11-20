@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.76
-**Last Updated**: November 19, 2026
+**Last Updated**: November 20, 2026
 **Status**: ✅ **v1.18.76 released 2026-11-20** (tag on `46dbfa7ee`, run by the assistant; the
 owner: "do all three ... They would then ship in the next release. A v1.18.76 release with PRs
 442 to 445. and also Update the cloud VM, which still runs v1.18.74"). It carries PRs 442 to 446,
@@ -447,7 +447,41 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.76 (unreleased)
 
-Nothing yet.
+**2026-11-20: `/health` no longer holds the event loop, and a dead tool is gone** (PR 447;
+the owner: "do all suggested", after the report that todo 52 stage 3 was the one step left).
+
+- **Stage 3 measured on the cloud VM** (read only: `/metrics` read from inside the container
+  and a probe against `127.0.0.1` from the VM itself; no sign-in, nothing written; container
+  v1.18.76, up 3 h 44 min). `GET /health` was **440 of the 501 requests** the container had
+  answered and **322.7 of their 336.4 seconds** (96 per cent), mean 0.73 s per call: Docker's
+  check every 30 s. The probe: `/health` alone 0.60 to 0.72 s; **15 at once took 2.7 s to
+  13.6 s**, one after another, and `/health/live` asked 30 times meanwhile answered in 4 ms
+  except once, **12.95 s**. So the server still stalled for 0.7 s every 30 s, and 15 health
+  calls at once stalled it for 13 s. The real requests of those hours were three of each
+  kind from the owner's phone check (students list 0.91 s, analytics overview 0.90 s, courses
+  0.66 s, unread count 0.13 s); they are too few, and the container's counters start with the
+  container, so no before and after of stage 2 can be read from them.
+- **Cause.** `GET /health` and `GET /health/ready` (`app_factory.py`) and the Control API's
+  `GET /health` (`admin_routes.py`) were `async def` with only blocking database work and no
+  `await`: the shape stage 2 fixed, but stage 2's script walked the router files only. They
+  are plain `def` now; `/health/live` stays `async def` (no database). Answers unchanged.
+- **Tests** (`test_health_endpoints_off_the_loop.py`, 6): a database stand-in that takes 0.4 s
+  per call; the loop's longest stall (4 of the 6 fail on the old code: 0.40 s held, five
+  calls 2.01 s), the answer's shape, and a guard that no `async def` endpoint in `routers/`
+  never awaits except the seven left on purpose in stage 2.
+- **Left `async def` with no `await`, outside `routers/`, on purpose:** seven rare admin
+  actions in `admin_routes.py` (reset, performance, restore, list backups, sample data, debug
+  processes, shutdown), the static-file routes and the root of `app_factory.py`,
+  `/metrics` (CPU only) and SMS Lite's own routes. None is called on a timer.
+- **Not on the VM yet:** it gets this with its next update (the owner's word). The same
+  probe afterwards should show 15 calls at once in about 1 s and `/health/live` at 4 ms.
+- **The unused import validator is deleted** (todo 56): `scripts/utils/validators/` and its
+  one test, which scanned a `backend/` folder that has not existed since the June flatten.
+  The two READMEs, `CONSOLIDATION_MAP.md` and the example in `scripts/run_in_venv.py` no longer
+  name it.
+- **Plan text corrected** (todos 44, 50, 52, 56, 61, 63 and the lists that cite them): see the
+  entries; the Oracle agreement, the phone and the key expiry were recorded as done at the
+  head of this plan (the v1.18.68 paragraph) and still stood as open in todos 44 and 50.
 
 ### In v1.18.76
 
@@ -3045,8 +3079,8 @@ account into "No role" (migration `5189ab647b5a`). What the readings found
 and did not change is todo 63. Older entries that are still open, further
 down: 40 (a real Update
 install; the Android offer was confirmed on a phone on 2026-11-19, the Lite installer through
-UAC and the Docker host task are not), 44 (the cloud host: the Oracle agreement accepted at sign-up still to be read, idle
-reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
+UAC and the Docker host task are not), 44 (the cloud host: ΜΙΕΕΚ's policy, the free account's
+order record, watching for idle reclamation) and 50 (the owner's side of the privacy round). Todo 48 (the build-only Docker
 run in the release flow) is closed by PR 413. **Found on 2026-11-17 and waiting for the
 owner's word:** todo 59 (four smaller things about notifications; that a teacher can send
 a message is settled in PR 417: the page offers it) and todo 61 (found while the Search page
@@ -3102,8 +3136,10 @@ in PR 443 (`c44f0df40`), as one PR for the four routers rather than one per rout
 PR 445 (`3750dc1bf`), as one rule applied by a script in one PR rather than 35 (the entry says
 why). Step 6's first suite run found that the rate-limit guard had never looked at `async def`
 endpoints; PR 444 (`190936bf7`) gave those 51 write endpoints their limit first. All four
-are under "On `main` since v1.18.75" and are unreleased. **Waiting for the owner's word:** a
-v1.18.76 release with them, the cloud VM update (it runs v1.18.74), and todo 52 stage 3.
+are under "In v1.18.76". **All of it was released and put on the cloud VM on 2026-11-20 (the
+owner: "do all three ... A v1.18.76 release with PRs 442 to 445. and also Update the cloud
+VM"); stage 3 was measured the same day (PR 447, top of this plan).** What waits for the
+owner's word: the update of the VM with PR 447, and the next release.
 
 52. **The server handles one request at a time** (the "not done" note of todo 51, read from the
     code, not measured). About 270 of 350 endpoints are `async def` around blocking database
@@ -3116,12 +3152,20 @@ v1.18.76 release with them, the cloud VM update (it runs v1.18.74), and todo 52 
     router by router (a script can find them); (3) measured on the VM through `/metrics`.
     #386 was the precondition: that queueing was the only thing keeping two saves of one slot
     apart inside a process. **The owner's go-ahead of 2026-11-15 covers stage (1) only**, measured
-    before and after: **done in #393** (numbers under "In v1.18.71"). **Left, each
+    before and after: **done in #393** (numbers under "In v1.18.71"). ~~**Left, each
     waiting for a go-ahead:** stage (2), the 160 `async def` endpoints behind the decorators
     whose own database calls still hold the loop (20 at once still take 1.8 s instead of 0.65 s,
     and `/health/live` waits up to 1.4 s meanwhile), plus the dependencies that are awaited
     directly (`Depends(get_current_user)`, `/health`); stage (3), the same measurement on the
-    VM through `/metrics`.
+    VM through `/metrics`.~~ **Stage (2) done in PR 445** (230 endpoints, released in
+    v1.18.76); **stage (3) done 2026-11-20** (PR 447, top of this plan): on the VM `/health`
+    was 96 per cent of all request time and held the loop for 0.7 s every 30 s, and it is
+    plain `def` since PR 447 (it reaches the VM with its next update; the same probe after it
+    is the last check). **Still on the loop, by design of the stages so far:**
+    `Depends(get_current_user)` where an endpoint takes it directly (a user lookup of a few
+    round trips), and the seven endpoints that name `asyncio` or a thread pool. **Todo 52 is
+    closed when the probe after the VM's update shows 15 `/health` calls at once in about a
+    second.**
 53. **20 of 81 E2E tests never run** (CI on `main`, `72f079ae8`: 61 passed, 20 skipped; it was
     60 and 36 of 96 on 2026-11-15 in the morning). Six suites are `describe.skip`: advanced
     search (13 tests), student resilience (2), and one test each in `student-list`,
@@ -3248,8 +3292,10 @@ v1.18.76 release with them, the cloud VM update (it runs v1.18.74), and todo 52 
       (#386).~~ **Closed 2026-11-15 by the owner: intended.** The same assignment is graded in
       two categories (ids 141 and 146); nothing is removed, and grades get no uniqueness rule
       by assignment name.
-    - *A dead tool:* `scripts/utils/validators/import_checker.py` scans `<root>/backend`, which
-      has not existed since the June flatten; nothing runs it or its test. Delete (owner's OK).
+    - ~~*A dead tool:* `scripts/utils/validators/import_checker.py` scans `<root>/backend`, which
+      has not existed since the June flatten; nothing runs it or its test. Delete (owner's OK).~~
+      **Deleted in PR 447** (the owner: "do all suggested"), with its test and the lines of two
+      READMEs, `CONSOLIDATION_MAP.md` and `scripts/run_in_venv.py` that named it.
     - ~~*`migrations.log`* is written to `src/logs/`, not `logs/`: the runner takes `src` for the
       repository root.~~ **Closed by PR 412** (the folder that holds `VERSION`).
     - ~~*Log noise, now that logging works (#387):* a refused login is logged with a full
@@ -3553,11 +3599,14 @@ v1.18.76 release with them, the cloud VM update (it runs v1.18.74), and todo 52 
       notifications stayed, and the next account, which SQLite gives the same number, had
       them. Deleting and creating an account now clear those rows themselves. The setting is
       as it was, and other deletions (a student, a course) were not looked at for the same
-      effect.
-    - *Failures answered with HTTP 200.* Four routers (search, custom reports, import and
+      effect. **Done in PR 442 (2026-11-19, released in v1.18.76):** each start looks at its
+      own database; with no row without a parent every new connection enforces foreign keys,
+      otherwise nothing changes and a warning names the tables (entry under "In v1.18.76").
+    - ~~*Failures answered with HTTP 200.* Four routers (search, custom reports, import and
       export, dashboards; 83 places) answer a request they could not serve with status 200
       and `success: false` in the body. A page that reads only the status takes a failure
-      for an answer, as the Search page did until PR 416.
+      for an answer, as the Search page did until PR 416.~~ **Done in PR 443 (2026-11-19,
+      released in v1.18.76):** the body is unchanged, the status is the real one.
     - *The search does not know a letter typed as two characters* (a vowel followed by a
       separate accent mark, as some keyboards and pasted texts give it). Names typed in the
       application on a Greek keyboard are not written that way. **Done on 2026-11-19 (the
@@ -3755,12 +3804,14 @@ v1.18.76 release with them, the cloud VM update (it runs v1.18.74), and todo 52 
       database; that was not tried. It is the Control API's rule as designed
       (`PERMISSION_MATRIX.md`); whether the panel should be shown to a teacher is the
       owner's call.
-    - *Fifteen older user documents were not read* (the owner, 2026-11-18: "read and correct
+    - ~~*Fifteen older user documents were not read* (the owner, 2026-11-18: "read and correct
       as needed"; open) (listed in `docs/user/INDEX.md`): two
       quick-start guides, three older user guides (one of v1.9.7), the theme, localization,
       import/export and rate-limiting guides, the two RBAC guides and a note on PDF
       conversion. There is no Greek version of the checked guide. Delete, or read and
-      correct (the owner's OK).
+      correct (the owner's OK).~~ **Done in PR 429:** they are among the 22 documents that
+      entry read and corrected (see "In v1.18.74"), and the Greek guide
+      `ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md` is in `docs/user/`.
 
 64. **Found on 2026-11-19 while the installer's pages were corrected: done in PR 438.** The
     owner's answer to the report on PR 437: "1. after l Docker's own cleanup for DOCKER.ps1
@@ -3823,10 +3874,20 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
       address on port 55433. Before that it went through the dev PC `REC`'s subnet route, which
       only works while that PC is on. The database port is not reachable on the home public
       address (checked from the VM).
-    - **Still open:** the two confirmations (Oracle's data-processing agreement for Always Free;
+    - **Corrected 2026-11-20 from the record at the head of this plan (the v1.18.68
+      paragraph): done since 2026-11-13** — Oracle's Data Processing Agreement (14 August 2025)
+      and the Cyprus Cloud Services Agreement (22 June 2023) were read (neither excludes free
+      or trial accounts; both rule out regulated health data, which is off), the owner's phone
+      runs against the cloud address, Tailscale key expiry is disabled for the VM and the
+      QNAP, and the VM runs a release tag (v1.18.76 since 2026-11-20), not hand-copied files.
+      **Still open, the owner's:** ΜΙΕΕΚ's policy for student data on the host, and the free
+      account's own order record, which could not be read (Oracle's pages refuse an automated
+      reader); and, as a standing chore, watching for idle reclamation (the runbook says what
+      to look for).
+    - ~~**Still open:** the two confirmations (Oracle's data-processing agreement for Always Free;
       ΜΙΕΕΚ policy); the phone pointed at the cloud address; idle reclamation; Tailscale key
       expiry for the VM and the QNAP; the VM still runs files copied by hand for todo 49 and
-      must be moved to the merged commit. The runbook lists the rest.
+      must be moved to the merged commit. The runbook lists the rest.~~
 
 <!-- -->
 
@@ -3887,8 +3948,11 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
       `HEALTH_DATA_ENABLED` (default false) now keeps the app from storing, importing, showing
       or exporting it, with a guard on the model itself; the cloud compose file fixes it to
       false. **Not reached:** database backups, semester archives and export files made before
-      that day may still contain the text. **Still open:** read the Oracle Cloud Services
-      Agreement accepted at sign-up for how it treats a free account.
+      that day may still contain the text. ~~**Still open:** read the Oracle Cloud Services
+      Agreement accepted at sign-up for how it treats a free account.~~ **Read the same day**
+      (the v1.18.68 paragraph at the head of this plan: the Cyprus Cloud Services Agreement of
+      22 June 2023 and the Data Processing Agreement of 14 August 2025 exclude neither free
+      nor trial accounts); only the free account's order record could not be read.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
