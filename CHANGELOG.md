@@ -52,6 +52,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.77] - 2026-11-20
+
+### Performance
+- **api**: /health no longer holds the event loop; remove the dead import validator (#447)
+
+### Documentation
+- **plan**: #447 merged and on the cloud VM; todo 52 closed; a newer backup copied off the VM
+- **plan**: v1.18.76 released, verified, on the cloud VM and on the owner's phone
+
 ## [1.18.76] - 2026-11-20
 
 ### Features
@@ -5060,6 +5070,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
