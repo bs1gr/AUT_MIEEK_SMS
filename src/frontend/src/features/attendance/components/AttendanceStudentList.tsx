@@ -57,7 +57,7 @@ const AttendanceStudentList = ({
     <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1 w-full sm:w-auto">
       <button
         onClick={() => setAttendance(studentId, 'Present', period)}
-        className={`px-2 py-1 rounded text-xs ${periodStatus === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}
+        className={`px-2 py-1 rounded text-xs ${periodStatus === 'Present' ? 'bg-green-700 text-white' : 'bg-green-50 text-green-700'}`}
         aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('present') || 'Present'}`}
       >
         <CheckCircle size={12} />
@@ -71,7 +71,7 @@ const AttendanceStudentList = ({
       </button>
       <button
         onClick={() => setAttendance(studentId, 'Late', period)}
-        className={`px-2 py-1 rounded text-xs ${periodStatus === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}
+        className={`px-2 py-1 rounded text-xs ${periodStatus === 'Late' ? 'bg-yellow-400 text-slate-950' : 'bg-yellow-50 text-yellow-700'}`}
         aria-label={`${t('periodLabel', { number: period }) || `Period ${period}`} • ${t('late') || 'Late'}`}
       >
         <Clock size={12} />
@@ -118,9 +118,9 @@ const AttendanceStudentList = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
-                  <button onClick={() => setAttendance(s.id, 'Present')} aria-label={`${t('present') || 'Present'} - ${s.first_name} ${s.last_name}`} title={t('present') || 'Present'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Present' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700'}`}><CheckCircle size={14} /></button>
+                  <button onClick={() => setAttendance(s.id, 'Present')} aria-label={`${t('present') || 'Present'} - ${s.first_name} ${s.last_name}`} title={t('present') || 'Present'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Present' ? 'bg-green-700 text-white' : 'bg-green-50 text-green-700'}`}><CheckCircle size={14} /></button>
                   <button onClick={() => setAttendance(s.id, 'Absent')} aria-label={`${t('absent') || 'Absent'} - ${s.first_name} ${s.last_name}`} title={t('absent') || 'Absent'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Absent' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700'}`}><XCircle size={14} /></button>
-                  <button onClick={() => setAttendance(s.id, 'Late')} aria-label={`${t('late') || 'Late'} - ${s.first_name} ${s.last_name}`} title={t('late') || 'Late'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Late' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700'}`}><Clock size={14} /></button>
+                  <button onClick={() => setAttendance(s.id, 'Late')} aria-label={`${t('late') || 'Late'} - ${s.first_name} ${s.last_name}`} title={t('late') || 'Late'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Late' ? 'bg-yellow-400 text-slate-950' : 'bg-yellow-50 text-yellow-700'}`}><Clock size={14} /></button>
                   <button onClick={() => setAttendance(s.id, 'Excused')} aria-label={`${t('excused') || 'Excused'} - ${s.first_name} ${s.last_name}`} title={t('excused') || 'Excused'} className={`px-3 py-1 rounded text-sm ${uniformStatus === 'Excused' ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-700'}`}><AlertCircle size={14} /></button>
                   {aggregatedStatus.isMixed && (
                     <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wide">

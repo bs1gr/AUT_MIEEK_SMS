@@ -473,6 +473,27 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
+**2026-11-20: the four contrast design calls of 2026-10-07 are fixed** (this PR; the owner,
+going through the open todos before a release: "Fix all four").
+
+- **Measured, not guessed:** the frontend was built and the four elements were placed in a page
+  with their real wrapper classes and the compiled CSS, then measured (text against its
+  composited background, every stop of a gradient, transitions switched off) in all 32
+  combinations of theme (light, dark, relaxing, fancy) and appearance (default and the seven
+  named ones). Before, at their worst: Present 2.28:1, Late 1.67, the footer 2.47, the small
+  Dashboard text 2.12 to 2.47, the Dashboard card hints 1.61 to 3.35. After, at their worst:
+  5.02, 13.17, 5.70, 6.28 and 5.68; every one of the 32 is at least 4.5:1 (WCAG AA for small
+  text).
+- **What changed:** Present is `bg-green-700` with white text, Late `bg-yellow-400` with
+  `text-slate-950` (on the Quick Actions and on each student's row); the footer takes the
+  appearance's own muted text colour (`--appearance-muted-text`, grey-600 where an appearance
+  sets none), which also fixed a dark theme combined with a light appearance; the semester,
+  "+N more" and year-percentage lines of the Dashboard are `text-slate-600`; the hint of a
+  Dashboard card is `text-slate-600` instead of its accent colour (darker accents still failed
+  on the dark appearances; the card's icon keeps the accent).
+- Test: `src/__tests__/contrastDesignCalls.test.ts` (the pairs that failed must not come back;
+  its three tests fail on the old code, as checked).
+
 **2026-11-20: the Database panel's backups are the application's encrypted backups** (PR 454,
 merged as `a16769ce7`, CI green: 38 checks passed, CodeQL clean after its two alerts were
 repaired; todo 58; the owner: "make that panel use the same encrypted backup as everything
@@ -4263,10 +4284,12 @@ stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./U
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
 
-- **Still below 3:1 in every theme (design calls, owner's decision):** white text on the
+- ~~**Still below 3:1 in every theme (design calls, owner's decision):** white text on the
   Attendance Quick Actions "Present" (green-500, 2.3:1) and "Late" (yellow-500, 1.9:1)
   buttons; the light footer (`text-gray-400`, 2.5:1); small `text-slate-400` and
-  `text-emerald-500` text on the dashboard (2.3–2.6:1). Not issues: greyed calendar days
+  `text-emerald-500` text on the dashboard (2.3–2.6:1).~~ **Fixed 2026-11-20 (the owner:
+  "Fix all four"):** at least 4.5:1 in all 32 combinations of theme and appearance (under "On
+  `main` since v1.18.77"). Not issues: greyed calendar days
   (disabled), the Operations section headings (audit false positive, checked visually);
   the Semester Archive "Preview" button looks like a dimmed disabled button (not checked).
 

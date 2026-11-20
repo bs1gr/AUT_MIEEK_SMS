@@ -87,9 +87,11 @@ describe('useLanguage() keys', () => {
     expect([...list![1].matchAll(/'(\w+)'/g)].map((m) => m[1])).toEqual(FALLBACKS);
   });
 
+  // A synchronous scan of every source file: about 2 s alone, 7.5 s with six test workers at once
+  // (a commit gate on 2026-11-20), so the default 5 s is too tight.
   it('resolve in EN and EL for every literal t() call', () => {
     expect(Object.fromEntries(unresolvedCalls())).toEqual({});
-  });
+  }, 30_000);
 
   it('finds a broken call in a real file (positive control)', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'i18n-language-scan-'));

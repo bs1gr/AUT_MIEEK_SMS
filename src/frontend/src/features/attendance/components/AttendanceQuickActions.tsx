@@ -14,9 +14,9 @@ const AttendanceQuickActions = ({ t, selectAllAttendance, clearAllAttendance }: 
         <h4 className="font-semibold dark:text-gray-800">{t('quickActions') || 'Quick Actions'}</h4>
       </div>
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-        <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-green-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><CheckCircle size={14} className="shrink-0" /> {t('present') || 'Present'}</button>
+        <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-green-700 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><CheckCircle size={14} className="shrink-0" /> {t('present') || 'Present'}</button>
         <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><XCircle size={14} className="shrink-0" /> {t('absent') || 'Absent'}</button>
-        <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><Clock size={14} className="shrink-0" /> {t('late') || 'Late'}</button>
+        <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-yellow-400 text-slate-950 flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><Clock size={14} className="shrink-0" /> {t('late') || 'Late'}</button>
         <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><AlertCircle size={14} className="shrink-0" /> {t('excused') || 'Excused'}</button>
         <button onClick={clearAllAttendance} className="w-full sm:w-auto col-span-2 sm:col-span-1 px-2 py-1.5 text-xs sm:text-sm rounded bg-gray-700 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2 hover:bg-gray-800">{t('clear') || 'Clear'}</button>
       </div>
