@@ -49,6 +49,23 @@ from backend.security.password_hash import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# The Android app (Capacitor) is served from https://localhost and talks to the server at another
+# address, so its WebView neither stores nor sends the SameSite=Lax refresh cookie: until 2026-11
+# the app lost its session on every restart and whenever the 30-minute access token ran out.
+# The app asks for the refresh token in the body instead and keeps it in its private storage.
+# Only the app's own origin gets it: a page on any web origin cannot pose as that origin
+# (browsers set Origin), and browsers keep relying on the HttpOnly cookie alone.
+NATIVE_SESSION_HEADER = "X-SMS-Native-Session"
+NATIVE_APP_ORIGINS = frozenset({"https://localhost", "capacitor://localhost"})
+
+
+def _native_session_requested(request: Request) -> bool:
+    """True when the Android app asks for the refresh token in the response body."""
+    return (
+        request.headers.get(NATIVE_SESSION_HEADER) == "1"
+        and request.headers.get("origin", "").rstrip("/") in NATIVE_APP_ORIGINS
+    )
+
 
 def _get_client_identifier(request: Request) -> Optional[str]:
     """Extract a client identifier (IP address) from the request for throttling/lockout purposes.
@@ -849,6 +866,7 @@ def login(
 
         access_token = create_access_token(subject=str(getattr(user, "email", "")), role=str(getattr(user, "role", "")))
         # Also issue a refresh token and set it as HttpOnly cookie when possible
+        refresh_token = None
         try:
             refresh_token = create_refresh_token_for_user(db, user)
             # Set cookie for refresh token (HttpOnly, Secure when configured)
@@ -877,7 +895,10 @@ def login(
             logger.exception("Failed to set refresh token cookie")
 
         issue_csrf_cookie(response, include_header=True)
-        # Do NOT include refresh_token in JSON responses; clients must rely on HttpOnly cookie
+        # Browsers rely on the HttpOnly cookie alone; only the Android app gets the refresh token
+        # in the body (see _native_session_requested).
+        if refresh_token and _native_session_requested(request):
+            return Token(access_token=access_token, refresh_token=refresh_token)
         return Token(access_token=access_token)
     except HTTPException as exc:
         # A refused login (wrong password, lockout, inactive account) is an answer, not an
@@ -1023,6 +1044,9 @@ def refresh(
                 domain=cookie_domain,
             )
             issue_csrf_cookie(response, include_header=True)
+        # The app sent the old token in the body and rotates to the new one the same way.
+        if _native_session_requested(request):
+            return Token(access_token=new_access, refresh_token=new_refresh)
         return Token(access_token=new_access)
     except HTTPException:
         raise

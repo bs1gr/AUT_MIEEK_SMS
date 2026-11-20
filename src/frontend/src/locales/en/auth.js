@@ -5,6 +5,8 @@ export default {
   emailRequired: 'Please enter your email address.',
   passwordRequired: 'Please enter your password.',
   emailInvalid: 'This is not an email address. Check it and try again.',
+  useSavedLogin: 'Sign in with a saved password',
+  savedLoginFailed: 'The saved password was not accepted. Type it, or update it in your phone\'s password manager.',
   registerTitle: 'Create account',
   registerDescription: 'Provide your details to request access to the student management system.',
   registerSuccess: 'Account created successfully. You are now signed in.',

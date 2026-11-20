@@ -407,6 +407,59 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.75 (unreleased)
 
+**2026-11-20: the Android app keeps its sign-in, offers to save the password, and signs in from
+the phone's password manager with one tap** (the owner, with Google's page on Android autofill:
+"if I log in with my credentials from my mobile, I should rather keep them saved and re enter
+the login by my built in Autofill service"; then "do all three: check on your phone over Wi-Fi
+debugging whether the session survives, change the field to username, and add the Credential
+Manager piece").
+
+- **Checked on the owner's phone first** (Galaxy A55, Android 17, app v1.18.75, paired over
+  Wi-Fi with a QR code made on the PC): signed in on the Dashboard, the app closed and reopened
+  from the PC: **back on the sign-in page**. The cloud server's log had four sign-ins from the
+  app since its restart on 19 November and **not one renewal request**.
+- **Two causes, read from the code.** (1) `authService.refreshAccessToken` posted to a bare
+  `/api/v1/auth/refresh`; inside the app that is the app's own files (`https://localhost`), not
+  the server the owner chose, so no renewal ever reached a server. (2) Even there, the 30-day
+  renewal token lives only in an HttpOnly `SameSite=Lax` cookie, which the app's WebView
+  neither keeps nor sends for a server at another address. So the app lost its session on
+  every restart and whenever the 30-minute access token ran out.
+- **Repair.** The renewal goes to the chosen server (`getApiBaseUrl()`, the same address as
+  every other request). The app (only the app: header `X-SMS-Native-Session: 1` **and** origin
+  `https://localhost` or `capacitor://localhost`, which a web page cannot claim) gets the
+  renewal token in the body of the sign-in and of each renewal, keeps it in its private storage
+  (Capacitor Preferences; the app's backups are off) and sends it in the body. A refused token
+  is forgotten; one that met an unreachable server is kept. Signing out sends it, so the server
+  revokes it, and forgets it; a failed renewal neither revokes nor forgets it. Browsers and SMS
+  Lite are unchanged: the cookie stays the only copy and the body never carries the token.
+- **Saved sign-ins (the assistant's design).** The e-mail field is `autocomplete="username"`
+  (it was `email`; password managers pair username + current-password as one sign-in). A local
+  plugin, `SavedLoginPlugin.java` (`androidx.credentials` 1.5.0, with the Play services
+  provider for Android before 14), uses Android's Credential Manager: after a typed sign-in the
+  server accepted, the phone's password manager offers to save it; when the sign-in page opens
+  (once per run of the app, not right after a sign-out), the phone's sheet of saved sign-ins
+  opens, and a pick signs in at once; a button "Sign in with a saved password" opens it again.
+  A saved password the server refuses says so (`auth.savedLoginFailed`).
+- **Tests.** Server: `test_native_app_session.py` (3): the app gets the token and renews with
+  it alone, rotation, sign-out revokes; five browser-like requests (no header, a web origin
+  asking for it, the app's origin without asking, another port, `http://localhost`) never get
+  it in the body. App: `authService.native.test.ts` (6), `AuthContext.native.test.tsx` (3),
+  `LoginWidget.savedLogin.test.tsx` (7); the earlier auth tests pass unchanged.
+- **Seen in the Android emulator** (Android 16, a debug build of this branch, a scratch server
+  from the branch): signed in as a teacher, closed and reopened the app: **still on the
+  Dashboard** (`POST /auth/refresh` 200 in the server's log); with a 1-minute access token,
+  a search after it ran out answered 401, the app renewed and repeated it (200), the page
+  stayed; sign-out: all three of the teacher's tokens revoked, the app back on the sign-in page
+  after a restart; the saved-password button reached Google's credential service, which had
+  nothing saved on the emulator, and the page went on. **Not seen:** saving and picking a real
+  saved password (the emulator has no Google account); that is the owner's phone after the
+  release.
+- **Found on the way:** the keystore on this PC (`C:\Users\Vasilis\.android\sms-release.jks`,
+  `CN=SMS App`) is **not** the key of the published APKs (`CN=MIEEK SMS`, SHA-256
+  `686fb6ed…d2ea`, kept only in the repository's secrets), so a build made here cannot update
+  the app on a phone; a test build would need the app uninstalled first (its server setting
+  and any unsent offline changes would be lost), which was not done.
+
 **2026-11-19: 230 endpoints that never await are plain `def`, so the server stops queueing
 behind them** (todo 52, stage 2; the owner, after the list of what waited: "create a suitable
 plan order to accomplish all pending tasks and suggested, and continue". The entry said it is

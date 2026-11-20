@@ -12,6 +12,8 @@ public class MainActivity extends BridgeActivity {
         // Local plugin: the web app paints the system-bar strips in its own theme colours.
         // Must be registered before super.onCreate, which creates the bridge.
         registerPlugin(WindowChromePlugin.class);
+        // Local plugin: saved sign-ins through Android's Credential Manager.
+        registerPlugin(SavedLoginPlugin.class);
         super.onCreate(savedInstanceState);
         // AFTER super.onCreate, never before: BridgeActivity.onCreate swaps the launch (splash)
         // theme for AppTheme.NoActionBar. EdgeToEdge.enable touches the window decor, so calling
