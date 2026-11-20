@@ -3664,11 +3664,12 @@ word: the next release.
         administrator also from the PC itself; start, stop and restart keep the PC's trust
         for its own tools. The page side (the two sections hidden from teachers) is under "On
         `main` since v1.18.77"; the server side is the entry above it there (19 endpoints).
-      - *A replacement PostgreSQL should be of the same kind as the lost one.* The shared
+      - ~~*A replacement PostgreSQL should be of the same kind as the lost one.* The shared
         database runs a Debian-based server, the scratch ones here are Alpine-based: both
         report the collation `en_US.utf8`, and they sort text differently (seen in the restore
         drill). The data restores identically; lists sorted by name would come out in another
-        order.
+        order.~~ **Closed 2026-11-20:** nothing to change in the code; the restore guide
+        (`docs/admin/BACKUP_AND_RESTORE.md`, "Restoring") says it.
       - ~~*Readable copies left by older builds.* Nothing removes the `backup_….db` files that
         builds up to v1.18.70 left next to encrypted SQLite backups on Windows (see "In
         v1.18.71"). A clean-up at startup would have to be sure a file is such a leftover (it
@@ -4024,7 +4025,8 @@ word: the next release.
       2026-11-20: left as it is.**
     - *Older documents and tools of the same kind* (the owner, 2026-11-18, on the
       documents: "read and correct as needed"). **The documents: done in PR 429**, these
-      nine and fourteen more. The tools below are still as they were. As it was: `docs/admin/`
+      nine and fourteen more; the tools below were deleted in PR 434. This entry is closed. As it
+      was: `docs/admin/`
       `PERMISSION_MANAGEMENT_GUIDE.md` (930 lines), `RBAC_OPERATIONS_GUIDE.md` (1,184),
       `RBAC_CODEBASE_REVIEW.md`, `RBAC_ENDPOINT_AUDIT.md`, `RBAC_DATABASE_SCHEMA.md`,
       `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`; `docs/user/RBAC_GUIDE.md` and its Greek twin;
