@@ -25,6 +25,8 @@ const KNOWN_KEYS = [
   'sms_attendance_offline_queue_v1',
   'sms_students_offline_update_queue_v1',
   'sms_local_mode',
+  // The Android app's refresh token (services/nativeSession.ts): it must survive a restart.
+  'sms_native_refresh_v1',
 ] as const;
 
 const cache: Record<string, string> = {};

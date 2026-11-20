@@ -5,6 +5,13 @@ import { getItem, setItem, removeItem } from '@/utils/appStorage';
 import { useLiteHeartbeat } from '@/hooks/useLiteHeartbeat';
 import { resetNotifications } from '@/hooks/useNotifications';
 import { isLiteLocalPage } from '@/utils/serverUrl';
+import {
+  forgetNativeRefreshToken,
+  getNativeRefreshToken,
+  nativeSessionHeaders,
+  rememberNativeRefreshToken,
+} from '@/services/nativeSession';
+import { markAutoOfferDone } from '@/utils/savedLogin';
 
 // Clean up legacy localStorage token keys from older versions.
 authService.clearLegacyTokens?.();
@@ -223,8 +230,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const url = '/auth/login';
-    const resp = await apiClient.post(url, { email, password }, { withCredentials: true });
+    const resp = await apiClient.post(url, { email, password }, {
+      withCredentials: true,
+      headers: nativeSessionHeaders(),
+    });
     const data = resp.data || {};
+    // The Android app keeps its own refresh token (the WebView cannot keep the cookie).
+    rememberNativeRefreshToken(data);
 
     if (!data.access_token) {
       throw new Error((data && (data.detail || data.message)) || 'Login failed');
@@ -275,11 +287,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const endSession = async (userClickedLogout: boolean) => {
     try {
-      await apiClient.post('/auth/logout', {}, { withCredentials: true });
+      // On a sign-out the app names its own refresh token, so the server revokes it (it has no
+      // cookie). Not after a failed renewal: the server may only have been out of reach, and
+      // the stored token must then survive for the next try.
+      const nativeRefresh = userClickedLogout ? getNativeRefreshToken() : null;
+      await apiClient.post('/auth/logout', nativeRefresh ? { refresh_token: nativeRefresh } : {}, { withCredentials: true });
     } catch {
       // ignore errors
     }
     authService.clearAccessToken();
+    if (userClickedLogout) {
+      forgetNativeRefreshToken();
+      // After a sign-out the sign-in page waits for the button instead of opening the
+      // phone's sheet of saved sign-ins: the owner may want another account.
+      markAutoOfferDone();
+    }
     // The notification list is one state for the page: the next account must not see it.
     resetNotifications();
     setAccessTokenState(null);

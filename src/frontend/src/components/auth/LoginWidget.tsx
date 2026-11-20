@@ -14,6 +14,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { getApiErrorCode, getErrorMessage, isServerUnreachable } from '@/utils/errorMessage';
+import { usesNativeSession } from '@/services/nativeSession';
+import {
+  markAutoOfferDone,
+  offerToSaveLogin,
+  pickSavedLogin,
+  shouldAutoOfferSavedLogin,
+} from '@/utils/savedLogin';
 
 type LoginWidgetVariant = 'dialog' | 'inline';
 
@@ -45,29 +52,20 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
     }
   }, [open, variant]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const showForm = variant === 'inline' || open;
+  const savedLoginAvailable = usesNativeSession();
+
+  // `fromSaved`: the email and password came from the phone's password manager. Such a sign-in
+  // is not offered for saving again, and a refusal says the saved password is the wrong one.
+  const performLogin = async (actualEmail: string, actualPassword: string, fromSaved: boolean) => {
     setLoading(true);
     setError(null);
-
-    // Read from DOM to catch Android autofill that bypasses onChange
-    const actualEmail = (emailRef.current?.value ?? email).trim();
-    const actualPassword = passwordRef.current?.value ?? password;
-
-
-    if (!actualEmail) {
-      setError(t('auth.emailRequired'));
-      setLoading(false);
-      return;
-    }
-    if (!actualPassword) {
-      setError(t('auth.passwordRequired'));
-      setLoading(false);
-      return;
-    }
-
     try {
       await login(actualEmail, actualPassword);
+      if (!fromSaved) {
+        // The phone's password manager asks the owner itself; nothing waits for the answer.
+        void offerToSaveLogin(actualEmail, actualPassword);
+      }
       if (variant === 'dialog') {
         setOpen(false);
       }
@@ -75,6 +73,10 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
         onLoginSuccess();
       }
     } catch (err: unknown) {
+      if (fromSaved && (err as { response?: { status?: number } })?.response?.status === 401) {
+        setError(t('auth.savedLoginFailed'));
+        return;
+      }
       const errObj = err as { response?: { status?: number; data?: { error?: { details?: { errors?: Array<{ loc?: unknown[]; msg?: string }> } } } } };
       if (errObj?.response?.status === 422) {
         const validationErrors = errObj.response?.data?.error?.details?.errors;
@@ -100,6 +102,43 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
     }
   };
 
+  const signInWithSavedLogin = async () => {
+    const picked = await pickSavedLogin();
+    if (!picked.found) return;
+    setEmail(picked.id);
+    setPassword(picked.password);
+    await performLogin(picked.id.trim(), picked.password, true);
+  };
+
+  // In the Android app the phone's sheet of saved sign-ins opens with the page, once per run
+  // of the app (not again after it was dismissed, nor right after a sign-out).
+  useEffect(() => {
+    if (!showForm || !shouldAutoOfferSavedLogin()) return;
+    markAutoOfferDone();
+    void signInWithSavedLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showForm]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Read from DOM to catch Android autofill that bypasses onChange
+    const actualEmail = (emailRef.current?.value ?? email).trim();
+    const actualPassword = passwordRef.current?.value ?? password;
+
+    if (!actualEmail) {
+      setError(t('auth.emailRequired'));
+      return;
+    }
+    if (!actualPassword) {
+      setError(t('auth.passwordRequired'));
+      return;
+    }
+
+    await performLogin(actualEmail, actualPassword, false);
+  };
+
   const form = (
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-2">
@@ -110,7 +149,9 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
           name="email"
           data-testid="auth-login-email"
           type="email"
-          autoComplete="email"
+          // "username", not "email": password managers pair username + current-password as
+          // one saved sign-in (Android's autofill guidance; the field is still an email).
+          autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
@@ -145,6 +186,18 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? t('common.loading') : t('common.login')}
       </Button>
+      {savedLoginAvailable && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          disabled={loading}
+          data-testid="auth-login-saved"
+          onClick={() => { void signInWithSavedLogin(); }}
+        >
+          {t('auth.useSavedLogin')}
+        </Button>
+      )}
     </form>
   );
 
