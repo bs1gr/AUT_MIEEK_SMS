@@ -2,7 +2,31 @@
 
 **Current Version**: 1.18.77
 **Last Updated**: November 20, 2026
-**Status**: ✅ **v1.18.76 released 2026-11-20** (tag on `46dbfa7ee`, run by the assistant; the
+**Status**: ✅ **v1.18.77 released 2026-11-20** (tag on `09c7c0d3a`, run by the assistant; the
+owner: "review current state and if all todos are covered, prepare a new release so to include
+all the changes accordingly"; every open todo waits for the owner, so it carries what `main`
+had). It carries PR 447 only, under "In v1.18.77" below: **`/health` no longer holds the event
+loop** (todo 52 stage 3) and the dead import validator is gone (todo 56). **No database
+change** (the shared database stays at `e2b7c9d4a1f6`).
+
+- **Before the tag:** `RELEASE_READY` (no `-TagRelease`, release commit `da95ba89e`): exit 0,
+  backend 1,997 passed, 43 skipped, 0 failed, the frontend suite passed; the local test
+  installer built and its smoke and frozen-Lite checks passed (never uploaded). The hand-written
+  notes commit `09c7c0d3a` passed `COMMIT_READY -Quick`; `DOCKER_BUILD_CHECK.ps1 -Version
+  1.18.77` on it: the image builds for amd64 and arm64 (0.7 min, from the cache of the run on
+  `da95ba89e` 15 minutes earlier, 5.6 min; only docs differ); CI/CD and E2E green on the same
+  commit; the tag's release, installer and APK workflows succeeded.
+- **Verified on the published assets:** `SMS_Installer_1.18.77.exe` 87,421,360 bytes, SHA-256
+  `89b11646…f337` = GitHub's digest, Authenticode Valid, CN=AUT MIEEK, thumbprint
+  `2693C1B1…075D`, timestamped, file version v1.18.77, not the local build (90,217,600 bytes);
+  `SMS_Android_1.18.77.apk` 4,636,109 bytes, SHA-256 `58bd79f5…a214` = GitHub's digest,
+  `versionCode 118077`, signer `686fb6ed…d2ea` as before. The release has the hand-written text
+  (identical to `.github/RELEASE_NOTES_v1.18.77.md`) and those two files only.
+- **The cloud VM was not moved onto the tag.** It runs `main` at `4c4694367` since 07:54 UTC
+  (the same code, still reporting v1.18.76); moving it to `v1.18.77` changes only the version
+  number and needs the owner's word.
+
+**Before that: v1.18.76 released 2026-11-20** (tag on `46dbfa7ee`, run by the assistant; the
 owner: "do all three ... They would then ship in the next release. A v1.18.76 release with PRs
 442 to 445. and also Update the cloud VM, which still runs v1.18.74"). It carries PRs 442 to 446,
 under "In v1.18.76" below: **the Android app keeps its sign-in** (it lost it on every restart and
@@ -456,8 +480,8 @@ Nothing yet.
 Release commit `da95ba89e` (`RELEASE_READY -ReleaseVersion 1.18.77`, no `-TagRelease`, run by
 the assistant on the owner's word "prepare a new release so to include all the changes
 accordingly"): exit 0, backend 1,997 passed, 43 skipped, 0 failed, the frontend suite passed,
-the local test installer built and signed (never uploaded). Tag pending at the time of this
-entry.
+the local test installer built and signed (never uploaded). Tagged on `09c7c0d3a` (the
+hand-written notes) and verified: see the status block at the head of this plan.
 
 **2026-11-20: `/health` no longer holds the event loop, and a dead tool is gone** (PR 447,
 merged as `4c4694367`, CI green: 39 checks passed, none failed; the owner: "do all
