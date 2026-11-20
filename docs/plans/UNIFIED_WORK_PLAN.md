@@ -474,7 +474,7 @@ the VM and the QNAP.
 ### On `main` since v1.18.77 (unreleased)
 
 **2026-11-20: the readable copies older builds left beside encrypted backups are removed**
-(this PR; todo 58).
+(PR 453, merged as `1011c4e93`, CI green: 38 checks passed; todo 58).
 
 - `database_backup.remove_readable_leftovers()`, at every automatic backup check (the first a
   minute after the start; also when the automatic backup is switched off): a `<name>.db` in
@@ -485,7 +485,8 @@ the VM and the QNAP.
 - Tests: `test_readable_backup_leftovers.py` (removed beside a twin; kept without one, with an
   empty twin, and for other files; no folder; done by the check even when switched off).
 
-**2026-11-20: a test run writes no log files into the checkout** (PR 452; todo 58).
+**2026-11-20: a test run writes no log files into the checkout** (PR 452, merged as
+`84317544a`, CI green: 38 checks passed; todo 58).
 
 - One setting, `SMS_LOG_DIR` (`backend.logging_config.log_dir_override`), moves every log file
   the server writes by default: `app.log` (the app factory), `migrations.log` (both runners,
