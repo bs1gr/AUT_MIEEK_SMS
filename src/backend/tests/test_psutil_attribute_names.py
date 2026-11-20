@@ -6,14 +6,14 @@ used it, and both swallowed the error:
 
 - SMS Lite's last resort at startup, when port 8000 is held by something that does not answer
   its shutdown request: nothing was ever stopped, and Lite went on to fail on the busy port.
-- `GET /admin/debug-processes`: every call answered "Process diagnostics unavailable".
+- `GET /admin/debug-processes`: every call answered "Process diagnostics unavailable" (the
+  endpoint itself was removed in November 2026; nothing called it).
 """
 
 from __future__ import annotations
 
 import ast
 import importlib
-import logging
 import os
 import socket
 import subprocess
@@ -59,7 +59,8 @@ def _attribute_lists():
 
 def test_every_attribute_name_given_to_psutil_exists():
     lists = _attribute_lists()
-    assert len(lists) >= 4, "the scan no longer finds the calls"
+    # The call of SMS Lite's last resort must be among them, or the scan no longer finds calls.
+    assert any(where.startswith("lite_simple_entrypoint.py:") for where, _ in lists), lists
 
     known = set(psutil.Process().as_dict().keys())
     unknown = [f"{where}: {name}" for where, names in lists for name in names if name not in known]
@@ -144,14 +145,3 @@ def test_lite_never_stops_itself(lite_module):
         assert lite_module._stop_whatever_listens_on(port) == []
 
     time.sleep(0)  # still running
-
-
-def test_the_process_diagnostics_endpoint_answers(client, caplog):
-    with caplog.at_level(logging.ERROR, logger="backend.admin_routes"):
-        response = client.get("/api/v1/admin/debug-processes")
-
-    assert response.status_code == 200, response.text
-    body = response.json()
-    assert "error" not in body
-    assert body["backend_process"]["pid"] == os.getpid()
-    assert [r for r in caplog.records if r.name == "backend.admin_routes"] == []

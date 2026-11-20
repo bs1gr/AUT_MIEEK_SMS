@@ -22,7 +22,7 @@ import subprocess
 import threading
 import time
 from datetime import datetime
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Iterable, Tuple
 
 
 def _hidden_window_kwargs() -> dict:
@@ -50,7 +50,7 @@ except Exception as e:
     psutil = None
     _PSUTIL_IMPORT_ERROR = e
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -95,30 +95,6 @@ Student, Course, Grade, Base = _import_from_possible_locations("models", ["Stude
 # Create router
 router = APIRouter()
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
-
-_ALLOWED_RESTORE_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
-_MAX_RESTORE_FILENAME_LENGTH = 128
-
-
-def _validate_restore_filename(output_filename: str) -> str:
-    """Validate a restore filename to prevent path traversal and unsafe characters."""
-    if not output_filename:
-        raise HTTPException(status_code=400, detail="Invalid output filename")
-
-    if len(output_filename) > _MAX_RESTORE_FILENAME_LENGTH:
-        raise HTTPException(status_code=400, detail="Output filename too long")
-
-    if ".." in output_filename or "/" in output_filename or "\\" in output_filename:
-        raise HTTPException(status_code=400, detail="Invalid output filename: path traversal characters not allowed")
-
-    if pathlib.Path(output_filename).name != output_filename:
-        raise HTTPException(status_code=400, detail="Invalid output filename: contains path components")
-
-    if any(ch not in _ALLOWED_RESTORE_CHARS for ch in output_filename):
-        raise HTTPException(status_code=400, detail="Invalid output filename: contains invalid characters")
-
-    return output_filename
-
 
 _server_start_time = time.time()
 
@@ -221,60 +197,6 @@ async def get_performance(limit: int = 50, _auth=Depends(require_control_admin))
     except Exception:
         logger.exception("Failed to retrieve performance data")
         raise HTTPException(status_code=500, detail="Failed to retrieve performance data")
-
-
-@router.post("/restore-encrypted-backup")
-async def restore_encrypted_backup(
-    backup_name: str, output_filename: str = "restored_database.db", _auth=Depends(require_control_admin)
-):
-    """
-    Restore an encrypted backup file.
-
-    Args:
-        backup_name: Name of the backup (without .enc extension)
-        output_filename: Name for the restored file (default: restored_database.db)
-
-    Returns:
-        Decrypted database file
-    """
-    try:
-        # Validate output_filename before path construction to prevent path traversal
-        safe_output_filename = _validate_restore_filename(output_filename)
-
-        # Use database subdirectory where encrypted backups are actually stored
-        backup_root = (pathlib.Path(settings.BACKUPS_DIR) / "database").resolve()
-        backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
-
-        # Create temporary output directory
-        restore_dir = (backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}").resolve()
-        restore_dir.mkdir(parents=True, exist_ok=True)
-        # Use a system-generated path for the actual file operation (no user input in path).
-        # safe_output_filename is only used as the browser download name, not for file access.
-        restore_file_path = restore_dir / "restored_database.db"
-
-        # Decrypt and restore backup
-        restore_info = backup_service.restore_encrypted_backup(
-            backup_name=backup_name,
-            output_path=restore_file_path,
-            allowed_base_dir=restore_dir,
-        )
-
-        # Return restored file
-        return FileResponse(
-            str(restore_file_path),
-            media_type="application/x-sqlite3",
-            filename=safe_output_filename,
-            headers={
-                "X-Backup-Decrypted": "true",
-                "X-Original-Backup": backup_name,
-                "X-Restored-Size": str(restore_info["restored_size"]),
-            },
-        )
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception:
-        logger.exception("Failed to restore backup")
-        raise HTTPException(status_code=500, detail="Failed to restore backup")
 
 
 @router.get("/list-encrypted-backups")
@@ -407,106 +329,6 @@ async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_c
         db.rollback()
         logger.exception("Failed to add sample data")
         raise HTTPException(status_code=500, detail="Failed to add sample data")
-
-
-@router.get("/debug-processes")
-async def debug_processes(_auth=Depends(require_control_admin)):
-    """Debug endpoint to see what processes will be killed"""
-    if psutil is None:
-        detail = "psutil is not available; process diagnostics require psutil"
-        if _PSUTIL_IMPORT_ERROR is not None:
-            detail = f"{detail} ({_PSUTIL_IMPORT_ERROR})"
-        raise HTTPException(status_code=503, detail=detail)
-
-    # Explicit typing to satisfy strict type checkers: values are lists or dicts
-    processes_info: Dict[str, Any] = {
-        "frontend_on_port_5173": [],
-        "vite_node_processes": [],
-        "npm_shell_processes": [],
-        "backend_process": {},
-        "all_node_processes": [],
-    }
-
-    try:
-        # Check port 5173. The attribute is `net_connections` since psutil 6, and psutil 7
-        # refuses the older `connections`: with it every call ended in the `except` at the
-        # bottom ("Process diagnostics unavailable", and an ERROR with a traceback in the log).
-        for proc in psutil.process_iter(["pid", "name", "cmdline", "net_connections"]):
-            try:
-                connections = proc.net_connections()
-                for conn in connections:
-                    if hasattr(conn, "laddr") and conn.laddr.port == 5173:
-                        processes_info["frontend_on_port_5173"].append(
-                            {
-                                "pid": proc.pid,
-                                "name": proc.name(),
-                                "cmdline": proc.cmdline(),
-                            }
-                        )
-            except Exception as e:
-                # Log and continue
-                import logging
-
-                logging.getLogger(__name__).debug(f"Error checking frontend port 5173: {e}")
-
-        # Check vite node processes
-        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-            try:
-                if proc.name() in ["node.exe", "node"]:
-                    cmdline_str = " ".join(proc.cmdline())
-                    processes_info["all_node_processes"].append(
-                        {
-                            "pid": proc.pid,
-                            "name": proc.name(),
-                            "cmdline": cmdline_str[:200],
-                        }
-                    )
-                    if "vite" in cmdline_str.lower():
-                        processes_info["vite_node_processes"].append(
-                            {
-                                "pid": proc.pid,
-                                "name": proc.name(),
-                                "cmdline": cmdline_str[:200],
-                            }
-                        )
-            except Exception as e:
-                import logging
-
-                logging.getLogger(__name__).debug(f"Error checking vite node processes: {e}")
-
-        # Check shell processes
-        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
-            try:
-                if proc.name() in ["cmd.exe", "powershell.exe", "pwsh.exe"]:
-                    cmdline_str = " ".join(proc.cmdline()).lower()
-                    if "npm" in cmdline_str and "dev" in cmdline_str:
-                        processes_info["npm_shell_processes"].append(
-                            {
-                                "pid": proc.pid,
-                                "name": proc.name(),
-                                "cmdline": cmdline_str[:200],
-                            }
-                        )
-            except Exception as e:
-                import logging
-
-                logging.getLogger(__name__).debug(f"Error checking shell processes: {e}")
-
-        # Backend process info
-        current = psutil.Process(os.getpid())
-        parent = current.parent()
-        processes_info["backend_process"] = {
-            "pid": current.pid,
-            "name": current.name(),
-            "parent_pid": parent.pid if parent else None,
-            "parent_name": parent.name() if parent else None,
-        }
-
-    except Exception:
-        logger.exception("Failed to collect process diagnostics")
-        processes_info["error"] = "Process diagnostics unavailable"
-
-    return processes_info
 
 
 @router.post("/shutdown")

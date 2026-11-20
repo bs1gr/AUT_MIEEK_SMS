@@ -172,14 +172,3 @@ def test_registering_with_a_role_does_not_take_an_admins_refresh_token(db):
     found = _active_admin_from_bearer(request_with(access), db)
     assert found is not None and found.email == "reg-admin@example.com"
     assert _active_admin_from_bearer(request_with(refresh), db) is None
-
-
-def test_the_notification_websocket_does_not_take_a_refresh_token(client):
-    from starlette.websockets import WebSocketDisconnect
-
-    _, refresh = _login(client)
-
-    with pytest.raises(WebSocketDisconnect) as closed:
-        with client._inner.websocket_connect(f"/api/v1/notifications/ws?token={refresh}"):
-            pass
-    assert closed.value.code == 1008

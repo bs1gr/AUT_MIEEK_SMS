@@ -298,13 +298,12 @@ Failed to load resource: net::ERR_CONNECTION_REFUSED
 netstat -ano | findstr ":8000"  # Windows
 lsof -i :8000                   # macOS/Linux
 
-# Start backend if not running
+# Run the suite against a throwaway database (starts and stops its own backend).
+# A backend started from the checkout reads backend/.env, which on the development PC is
+# the shared database; the suite would create its accounts there. Since November 2026 the
+# global setup stops with this advice instead of starting one.
 
-cd src/backend && python -m uvicorn backend.main:app --reload
-
-# Or with Docker
-
-docker-compose -f docker/docker-compose.yml up backend redis
+.\infra\scripts\testing\RUN_E2E_ISOLATED.ps1
 
 # Verify health endpoint
 

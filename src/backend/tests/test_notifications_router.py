@@ -75,24 +75,6 @@ def make_notification_in_db(db: Session, user_id: int, **kwargs) -> Notification
     return notification
 
 
-# ==================== WebSocket Tests ====================
-
-
-def test_websocket_missing_token(client):
-    """Test WebSocket endpoint rejects missing authentication token."""
-    # TestClient doesn't fully support WebSocket connections
-    # This is a placeholder for E2E WebSocket testing
-    # Real WebSocket testing requires websockets library
-    pass
-
-
-def test_websocket_invalid_token(client):
-    """Test WebSocket endpoint rejects invalid token."""
-    # This would require websockets library for proper testing
-    # Real WebSocket integration tests should be in e2e tests
-    pass
-
-
 # ==================== List Notifications Tests ====================
 
 

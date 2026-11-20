@@ -5,11 +5,11 @@ Handles getting, managing, and broadcasting notifications.
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 
-from backend.db import SessionLocal, get_session as get_db
+from backend.db import get_session as get_db
 from backend.models import User
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
@@ -25,8 +25,6 @@ from backend.schemas import (
 from backend.dependencies import get_notification_service
 from backend.services import release_announcement
 from backend.services.notification_service import NotificationPreferenceService, NotificationService
-from backend.services.websocket_manager import broadcast_notification, manager
-from backend.security.current_user import decode_access_token
 
 logger = logging.getLogger(__name__)
 
@@ -61,96 +59,6 @@ def _not_yours(exc: PermissionError) -> HTTPException:
     2026 with two real accounts; the tests gave the notification to the requesting account).
     """
     return HTTPException(status_code=403, detail=str(exc))
-
-
-# ==================== Notification WebSocket ====================
-
-
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):
-    """WebSocket endpoint for real-time notifications.
-
-    Requires authentication via JWT token in query string.
-
-    Query Parameters:
-        token: JWT authentication token
-
-    Events:
-        - Client connects → joins room for their user ID
-        - Server sends notifications → client receives in real-time
-        - Client disconnects → leaves room
-
-    Example (frontend):
-        const ws = new WebSocket('ws://localhost:8000/api/v1/notifications/ws?token=JWT_TOKEN');
-        ws.onmessage = (event) => {
-            const notification = JSON.parse(event.data);
-            console.log('Notification:', notification);
-        };
-    """
-    user_id = None
-    db = None
-    try:
-        # Verify token
-        if not token:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Missing authentication token")
-            return
-
-        try:
-            payload = decode_access_token(token)
-        except Exception:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
-            return
-
-        subject = payload.get("sub")
-        if not subject:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
-            return
-
-        db = SessionLocal()
-
-        # Resolve subject to a real, active user
-        user = None
-        try:
-            if isinstance(subject, int) or (isinstance(subject, str) and subject.isdigit()):
-                user = db.get(User, int(subject))
-            if user is None and isinstance(subject, str):
-                user = db.query(User).filter(User.email == subject).first()
-        except Exception:
-            user = None
-
-        if not user or not getattr(user, "is_active", False):
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="User not found or inactive")
-            return
-
-        user_id = int(user.id)
-
-        # Connect and add to manager
-        await manager.connect(user_id, websocket)
-        logger.info(f"User {user_id} connected to WebSocket notifications")
-
-        try:
-            while True:
-                # Keep connection alive and listen for any messages from client
-                # Client can send keep-alive pings
-                data = await websocket.receive_text()
-                logger.debug(f"Received from user {user_id}: {data}")
-
-        except WebSocketDisconnect:
-            await manager.disconnect(user_id, websocket)
-            logger.info(f"User {user_id} disconnected from WebSocket")
-
-    except Exception as e:
-        logger.error(f"WebSocket error for user {user_id}: {e}", exc_info=True)
-        try:
-            await websocket.close(code=status.WS_1011_SERVER_ERROR, reason="Internal server error")
-        except Exception:
-            pass
-    finally:
-        if db:
-            try:
-                db.close()
-            except Exception:
-                pass
 
 
 # ==================== Notification Management ====================
@@ -406,7 +314,7 @@ def delete_notification(
 @router.post("/broadcast", response_model=dict)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("notifications:manage")
-async def broadcast_notification_endpoint(
+def broadcast_notification_endpoint(
     request: Request,
     broadcast: BroadcastNotificationCreate,
     db: Session = Depends(get_db),
@@ -445,7 +353,7 @@ async def broadcast_notification_endpoint(
         data["sender_id"] = sender.id
         data["sender_name"] = sender.full_name or sender.email
 
-    # Create notifications in database and broadcast via WebSocket
+    # One stored notification per receiver; the pages fetch them (bell and list).
     sent_count = 0
     skipped_count = 0
     for user_id in user_ids:
@@ -462,16 +370,6 @@ async def broadcast_notification_endpoint(
                 message=broadcast.message,
                 data=data or None,
             )
-
-            # Broadcast via WebSocket
-            await broadcast_notification(
-                user_id=user_id,
-                notification_type=broadcast.notification_type,
-                title=broadcast.title,
-                message=broadcast.message,
-                data=data or None,
-            )
-
             sent_count += 1
         except Exception as e:
             logger.error(f"Failed to broadcast to user {user_id}: {e}")
