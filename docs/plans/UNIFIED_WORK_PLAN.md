@@ -474,7 +474,9 @@ the VM and the QNAP.
 ### On `main` since v1.18.77 (unreleased)
 
 **2026-11-20: backups, restore and the database's contents need a signed-in administrator,
-also on the PC itself** (this PR; the server side of the same decision as PR 448).
+also on the PC itself** (PR 449, merged as `32e9e019e`, CI green: 38 checks passed, none
+failed; the server side of the same decision as PR 448). Neither PR changes the database;
+the cloud VM and the home installs get both with the next release.
 
 - **The rule:** `require_signed_in_control_admin` in `control_auth.py` passes an
   administrator's access token or the operator's `X-ADMIN-TOKEN`, and nothing else; the
