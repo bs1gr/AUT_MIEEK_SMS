@@ -27,6 +27,8 @@ def test_run_migrations_writes_log(tmp_path, monkeypatch):
     # wrote src/logs/migrations.log, and the test looked for it there.
     repo_root = Path(__file__).resolve().parents[3]
     assert (repo_root / "VERSION").is_file()
+    # The test run moves its logs elsewhere (SMS_LOG_DIR, conftest); this is about the default.
+    monkeypatch.delenv("SMS_LOG_DIR", raising=False)
     assert rm.migrations_log_dir() == repo_root / "logs"
 
     # The run itself writes into a temporary folder. This test used to delete the tree's own

@@ -20,7 +20,9 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = BACKEND_DIR.parents[1]
 
 
-def test_in_a_checkout_it_is_the_repository_root():
+def test_in_a_checkout_it_is_the_repository_root(monkeypatch):
+    # The test run moves its logs elsewhere (SMS_LOG_DIR, conftest); this is about the default.
+    monkeypatch.delenv("SMS_LOG_DIR", raising=False)
     assert (REPOSITORY_ROOT / "VERSION").is_file(), "this test assumes the layout <root>/src/backend"
 
     assert runner.project_root(BACKEND_DIR) == REPOSITORY_ROOT

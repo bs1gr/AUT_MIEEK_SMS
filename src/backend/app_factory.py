@@ -19,7 +19,7 @@ from backend.db import engine, get_session
 from backend.environment import get_runtime_context
 from backend.error_handlers import register_error_handlers
 from backend.lifespan import get_lifespan
-from backend.logging_config import initialize_logging
+from backend.logging_config import initialize_logging, log_dir_override
 from backend.middleware_config import register_middlewares
 from backend.router_registry import register_routers
 from backend.tracing import setup_tracing
@@ -98,7 +98,7 @@ def create_app() -> FastAPI:
                  error handlers, routers, and endpoints registered.
     """
     # Initialize logging first
-    initialize_logging(log_dir="logs", log_level="INFO")
+    initialize_logging(log_dir=str(log_dir_override() or "logs"), log_level="INFO")
 
     VERSION = get_version()
 

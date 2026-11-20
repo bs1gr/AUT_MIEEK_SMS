@@ -1,9 +1,22 @@
 from __future__ import annotations
 
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
+
+# One setting moves every log file the server writes by default: app.log, migrations.log and
+# the log of a development frontend started from the Control Panel. A test run sets it to a
+# folder of its own; before that, every run wrote megabytes into the checkout's `logs/`,
+# `src/logs/` and `src/backend/logs/`.
+LOG_DIR_ENV = "SMS_LOG_DIR"
+
+
+def log_dir_override() -> Path | None:
+    """The folder named by ``SMS_LOG_DIR``, or None when it is not set."""
+    value = os.environ.get(LOG_DIR_ENV, "").strip()
+    return Path(value) if value else None
 
 
 def sanitize_for_logging(value: Any) -> str:

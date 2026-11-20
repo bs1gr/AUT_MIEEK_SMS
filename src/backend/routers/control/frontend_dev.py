@@ -11,6 +11,8 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
+from backend.logging_config import log_dir_override
+
 from .common import (
     FRONTEND_PORT_CANDIDATES,
     FRONTEND_PORT_PREFERRED,
@@ -165,7 +167,7 @@ def control_start(_auth=Depends(require_control_admin)):
         ]
         try:
             close_fds = sys.platform != "win32"
-            logs_dir = PROJECT_ROOT / "logs"
+            logs_dir = log_dir_override() or PROJECT_ROOT / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             frontend_log_path = logs_dir / f"frontend-{timestamp}.log"
