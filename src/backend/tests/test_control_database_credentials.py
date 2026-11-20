@@ -1,6 +1,8 @@
 import io
 import json
 
+import pytest
+
 
 def test_database_test_connection_success(client, monkeypatch):
     from backend.routers.control import database as db_router
@@ -228,7 +230,9 @@ def test_import_credentials_unsupported_format(client, control_admin_headers):
     assert "Unsupported file format" in data["message"]
 
 
-def test_download_backup_rejects_traversal_filename(client, control_admin_headers):
-    resp = client.get("/control/api/database/backups/..%5Cevil.sql/download", headers=control_admin_headers)
+@pytest.mark.parametrize("name", ["..%5Cevil.enc", "..%5Cevil.sql", "evil.sql"])
+def test_download_backup_rejects_traversal_filename(client, control_admin_headers, name):
+    # Since November 2026 the panel serves the encrypted backups only: plain `*.enc` names.
+    resp = client.get(f"/control/api/database/backups/{name}/download", headers=control_admin_headers)
     assert resp.status_code == 400
-    assert "Invalid character/pattern in filename" in resp.text
+    assert "Invalid backup filename" in resp.text

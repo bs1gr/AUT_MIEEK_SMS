@@ -473,7 +473,33 @@ the VM and the QNAP.
 
 ### On `main` since v1.18.77 (unreleased)
 
-**2026-11-20: the readable copies older builds left beside encrypted backups are removed**
+**2026-11-20: the Database panel's backups are the application's encrypted backups** (this PR;
+the owner: "make that panel use the same encrypted backup as everything else").
+
+- **Found:** Control Panel > Maintenance > Database Management wrote its own backups (pg_dump
+  scripts or data-only COPY files, some gzipped) **in the clear** into
+  `<BACKUPS_DIR>/postgres`, with a list of its own; every other backup was encrypted in
+  `<BACKUPS_DIR>/database`.
+- **Now** (`services/database_panel_backups.py`, the panel's endpoints): Backup makes the same
+  encrypted backup as Manage Backups (`create_database_backup`, the chosen instance's address);
+  the list shows the encrypted PostgreSQL backups of that folder (automatic, manual,
+  pre-migration), each matched to its instance by host and database name; Download serves the
+  `.enc` file; Delete removes it with its metadata; Restore decrypts in a private temporary
+  folder and hands the content to the same engine as before (`restore_sql_content`). Only plain
+  `*.enc` names are accepted. A SQLite backup is left to Manage Backups.
+- **The old plain files** are encrypted where they lie at every automatic backup check
+  (`encrypt_legacy_plaintext`): SQL unzipped, encrypted as `<name>.enc`, decrypted again and
+  compared byte for byte, and only then the plain file and its `.meta.json` deleted. A file
+  younger than ten minutes waits (a backup in progress passes through that folder).
+- **The page:** each backup carries an "Encrypted" label (EN/EL, with a hint that a downloaded
+  copy opens only with the installation's key); the data-only notice no longer says "or with
+  psql"; the Backup request drops the gzip option the server now ignores.
+- Tests: `test_database_panel_backups.py` (backup, address of an extra instance, the list,
+  names, delete, restore through the same engine, SQLite refused, legacy files encrypted and
+  checked, a young file waits, a mismatch keeps the plain file, the automatic check does it,
+  the endpoints end to end; two of them fail on the old router and check, as checked); the
+  traversal test of the download accepts only `*.enc` names; a Vitest test of the panel.
+
 (PR 453, merged as `1011c4e93`, CI green: 38 checks passed; todo 58).
 
 - `database_backup.remove_readable_leftovers()`, at every automatic backup check (the first a
@@ -3605,9 +3631,12 @@ word: the next release.
         "visible"; the Control Panel passes it and gets them shown, which is what the page
         needs. The name is the wrong way round.~~ **Closed by PR 411**
         (`showLegacyDatabaseTools`).
-      - *Two backup folders.* The Database panel keeps its own backups in
+      - ~~*Two backup folders.* The Database panel keeps its own backups in
         `BACKUPS_DIR/postgres` (`pg_dump --clean` where it is installed), apart from Manage
-        Backups (`BACKUPS_DIR/database`); the automatic backup's retention does not look there.
+        Backups (`BACKUPS_DIR/database`); the automatic backup's retention does not look there.~~
+        **Done 2026-11-20 on the owner's word** ("make that panel use the same encrypted backup
+        as everything else"): the files there were also unencrypted. Under "On `main` since
+        v1.18.77".
       - ~~*No backup before a migration.* An update that changes the database leaves every
         earlier PostgreSQL backup restorable only with the earlier release. A backup made by
         the application right before it applies a migration would close that gap (the rows

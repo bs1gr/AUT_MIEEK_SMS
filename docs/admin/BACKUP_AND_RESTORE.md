@@ -87,6 +87,14 @@ machine that holds the database.
 | SMS Lite (installed) | `backups\database` in the install folder | `%LOCALAPPDATA%\SMS_Native_Lite_Simple\local-secrets\backup-keys` |
 | From source (`NATIVE.ps1`) | `backups/database` in the checkout | `src/.keys` in the checkout |
 
+**Database Management** (System → Control Panel → Maintenance) makes, lists, downloads and
+restores the same encrypted backups, in the same folder, from the release after v1.18.77.
+Before that it wrote plain `.sql` / `.sql.gz` files of its own into `backups/postgres`, with all
+data readable. A server of the new release encrypts those files into `backups/database` at its
+first backup check (a minute after it starts): each encrypted copy is decrypted again and
+compared with the original, and only then is the plain file deleted. A file younger than ten
+minutes waits for the next check.
+
 ## What a backup contains
 
 - **SQLite**: the whole database file, as one consistent snapshot.

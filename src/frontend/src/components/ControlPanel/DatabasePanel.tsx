@@ -13,6 +13,7 @@ import {
   Activity,
   FileText,
   Cpu,
+  Lock,
 } from 'lucide-react';
 import { controlApiClient } from '@/api/api';
 import { useLanguage } from '../../LanguageContext';
@@ -45,6 +46,8 @@ interface BackupInfo {
   instance: string;
   method: string;
   compressed: boolean;
+  /** Since November 2026 every backup the panel lists is the application's encrypted backup. */
+  encrypted?: boolean;
 }
 
 interface BackupResult {
@@ -177,7 +180,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
     setError(null);
     try {
       const res = await controlApiClient.post<BackupResult>(
-        `/database/instances/${encodeURIComponent(name)}/backup?compress=true`,
+        `/database/instances/${encodeURIComponent(name)}/backup`,
       );
       if (res.data.success) {
         flash(`${t('db.backupCreated') || 'Backup created'}: ${res.data.filename ?? ''}`);
@@ -608,6 +611,18 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
                     {bk.size_human}
                     <span className="text-gray-300">•</span>
                     {bk.instance}
+                    {bk.encrypted && (
+                      <>
+                        <span className="text-gray-300">•</span>
+                        <span
+                          className="inline-flex items-center gap-1 text-emerald-700"
+                          title={t('db.encryptedHint')}
+                          data-testid="backup-encrypted"
+                        >
+                          <Lock size={10} aria-hidden="true" /> {t('db.encrypted')}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
 

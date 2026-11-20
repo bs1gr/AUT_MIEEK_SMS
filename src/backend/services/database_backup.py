@@ -439,8 +439,11 @@ def run_automatic_backup(*, force: bool = False) -> dict[str, Any]:
     """
     enabled, interval_hours, keep = _automatic_settings()
     # At every check, due, switched off or not: the first check comes a minute after the
-    # server starts. Never raises.
+    # server starts. Neither raises.
     remove_readable_leftovers()
+    from backend.services.database_panel_backups import encrypt_legacy_plaintext
+
+    encrypt_legacy_plaintext()
     if not enabled and not force:
         return {"status": "disabled"}
 
