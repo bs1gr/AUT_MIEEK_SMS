@@ -3267,13 +3267,26 @@ word: the next release.
       The owner confirmed in screenshots: the check up, period 1 hour and grace 1 hour, and
       the service's test mail received (the top of this document).
       The integration is assigned to the check ("1 of 1").
-    - **Left:** (a) nothing to set up; a real alarm was not tried. (b) The five manual-only
+    - **Done 2026-11-20 (owner: "fix 54 (c)" and "try it with my email account"):**
+      - **(c) Mail on the VM:** the home Brevo settings were copied into the VM's data volume
+        through `smtp_override.save()` inside the container, so the password was re-encrypted
+        with the VM's `SECRET_KEY`; it was never shown. The container was restarted and logged
+        "SMTP override settings loaded".
+      - The first test was refused by Brevo (`525 Unauthorized IP address`). The account only
+        accepts authorised IPs, and the owner authorised the VM's `141.147.0.14` from Brevo's
+        "Verify a new IP" e-mail. The second test was sent through
+        `EmailNotificationService.send_email`, and the owner received it.
+      - **(a) Real alarm:** a fail signal sent from the VM at 12:36 UTC and the ping at
+        12:38 UTC each brought an e-mail (DOWN, then UP); the owner received both.
+      - The runbook `docs/deployment/CLOUD_HOST_ORACLE.md` has a "Mail" section. It notes that
+        the ephemeral public IP now matters for mail: if it changes, the new address must be
+        authorised in Brevo.
+    - ~~**Left:** (a) nothing to set up; a real alarm was not tried.~~ (b) The five manual-only
       workflows without a run on record stay, by the owner's choice: `reset-workflows.yml`,
       `archive-legacy-releases.yml`, `fetch-code-scanning-sarif.yml`, `upload-sarif.yml`,
-      `sync-installer-artifact.yml`. (c) No mail is configured on the VM: the activation
+      `sync-installer-artifact.yml`. ~~(c) No mail is configured on the VM: the activation
       email of an approved account cannot be sent from there (the administrator gets the
-      notice "Activation email not sent"). Entering the settings under Control Panel > Email
-      on the VM works, and from #408 on they last.
+      notice "Activation email not sent").~~ Done 2026-11-20 (above).
 55. **Nothing backs up the QNAP database on a schedule, and the application says it does.**
     Asked what backs it up, the owner answered on 2026-11-15: "the back up happens each and
     everytime a session occurs"; shown that the newest backup file on the dev PC is from

@@ -19,10 +19,16 @@ marked "First run".
 It does not remove the dependency on home: the QNAP and the home internet line must be up. It
 removes the dependency on a home *PC* being switched on.
 
-## Still to confirm (owner)
+## Confirmations (owner)
 
-1. That Oracle's data-processing agreement covers Always Free accounts.
-2. That ΜΙΕΕΚ policy allows student data to be processed on that provider.
+1. Oracle's Data Processing Agreement (14 August 2025) and the Cyprus Cloud Services Agreement
+   (22 June 2023) were read on 2026-11-13. Neither excludes free accounts; both rule out
+   regulated health data, which the app does not record. The free account's own order record
+   cannot be read by automation; only the owner can open it in the console.
+2. ΜΙΕΕΚ policy: decided by the owner on 2026-11-20. No approval from the institution is needed,
+   because the Cyprus Ministry of Education follows the EU rules on data for educational
+   purposes, **as long as the database stays private**: the app only on the tailnet, the
+   database port never on a public address. Exposing either reopens the question.
 
 Both were open when the VM went live; the owner chose to connect the real database straight
 away. The data itself is stored only on the QNAP; the VM processes it in memory.
@@ -227,6 +233,26 @@ one a day). The address is a secret of sorts: whoever has it can send the signal
 to match.
 
 To try the alarm: `sudo docker stop sms-cloud`, wait for the email, `sudo docker start sms-cloud`.
+A quicker test that keeps the app up: send one request to `MONITOR_FAIL_URL` from the VM. The
+check turns DOWN and the e-mail comes at once. Then send one to `MONITOR_PING_URL`, and the
+check turns UP again with a second e-mail. Tried on 2026-11-20 (DOWN at 12:36 UTC, UP at
+12:38 UTC); the owner received both e-mails.
+
+## Mail
+
+The activation e-mail for an approved account, and the other notices, go through the SMTP
+settings saved under Control Panel > Email. In the Docker edition they are kept on the data
+volume (`/data/smtp_override.json`), so they survive an update. The password in that file is
+encrypted with the VM's `SECRET_KEY`: a copy from another machine cannot be read, so enter the
+settings on the VM itself, or save them through the application's own `smtp_override.save()`
+inside the container. A saved file is loaded when the app starts.
+
+The VM uses the same Brevo relay as the home installation (`smtp-relay.brevo.com:587`), set
+up on 2026-11-20. Brevo only accepts SMTP logins from authorised IP addresses. A new address
+is refused with `525 5.7.1 Unauthorized IP address`, and Brevo e-mails the account owner a
+"Verify a new IP" alert with a button to authorise it. The VM's public address
+`141.147.0.14` is authorised. If that address ever changes (see "Open points"), mail stops
+until the new one is authorised under Brevo > Security > Authorised IPs.
 
 ## Updating the VM
 
@@ -237,17 +263,19 @@ cd infra/docker/cloud && sudo docker compose -f docker-compose.cloud.yml up -d -
 
 ## Open points
 
-- The two confirmations under "Still to confirm".
+- The free account's order record (under "Confirmations"), which only the owner can read.
 - Idle reclamation: Oracle reclaims an Always Free instance whose CPU, network and (on A1)
   memory all stay under 20 % for 7 days. Whether real usage keeps this VM above that, and
   whether a Pay As You Go upgrade (the resources stay free) exempts it, is not known yet.
 - The public address is "ephemeral": Oracle can release it (certainly when the instance is
-  terminated or the address is unassigned; it survived a reboot on 2026-11-13). Only SSH uses
-  it; reach the VM as `ubuntu@sms-cloud` over the tailnet instead.
+  terminated or the address is unassigned; it survived a reboot on 2026-11-13). SSH can reach
+  the VM over the tailnet as `ubuntu@sms-cloud` instead. Outgoing mail cannot avoid it: Brevo
+  sees the mail coming from this address and only accepts it while the address is authorised
+  (see "Mail"). A reserved public IP in Oracle would remove that risk.
 - Restart test, 2026-11-13: after `sudo systemctl reboot` (new kernel) the container, Tailscale
   and the HTTPS address were back within about a minute with no manual step.
-- The Tailscale node key expires after about six months unless key expiry is disabled for the
-  VM and the QNAP in the Tailscale admin console.
+- ~~The Tailscale node key expires after about six months unless key expiry is disabled for
+  the VM and the QNAP in the Tailscale admin console.~~ Disabled for both.
 - Whether Tailscale's free Personal plan (licensed for non-commercial use) fits a college's app.
 - If the speed is still not enough: PostgreSQL on the VM with the QNAP as the backup target.
   That stores the data at the provider and needs a nightly `pg_dump` and a tested restore first.
