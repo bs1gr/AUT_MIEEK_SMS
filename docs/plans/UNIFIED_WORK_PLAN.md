@@ -218,6 +218,30 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
+**2026-11-21: the Control Panel on the System page reads in the dark theme** (this PR; todo 66;
+the owner: "fix the dark theme container too"). In the dark theme of the default appearance
+the app shows white cards on a dark page (the Dashboard's, the System page's own), and the
+Control Panel's container there stayed white too. But its text turned light and its tabs'
+`dark:` colours (dark backgrounds, pale text) still applied, so every tab had unreadable parts.
+Instead of redrawing eight tabs in dark colours, the embedded Control Panel is now a "light
+island":
+- `index.css` defines the dark variant as `&:is(.dark *):not(:where(.light-island,
+  .light-island *))`; `:where` adds no specificity, so the cascade elsewhere is unchanged.
+- The two hand-written `dark:divide-*` rules of `styles/tailwind3-compat.css` got the same
+  exclusion (they bypassed the variant: the Ports dividers stayed dark).
+- The container carries the class, and its `dark:text-gray-100` is gone.
+
+Inside it the light colours apply in both themes, like the page's other cards; the standalone
+layout and every other page are unchanged. The tabs' other dark-only colours got light partners,
+as the Updates panel did in PR 462: Diagnostics' status pills and subtitles, the Ports pills and
+dividers, the log text, the Environment labels and button, the Rate Limits banner, the Docker
+status line. Seen in a browser on a scratch server: the System page and all eight tabs, light
+and dark, before and after (inside the island the two themes now render alike, within 0.3 % in
+file size); also the dark theme with the `mieek-dark` appearance (its own dark remapping
+applies, readable) and with `modern-dark` (a light island, readable). `lightIsland.test.ts`
+reads the sources (the variant, every hand-written `:is(.dark *)` rule of the CSS files, the
+container's class); its three tests fail on the old code.
+
 **2026-11-21: the rest of the Updates panel reads in the light theme** (PR 462, merged as
 `e8e6aed3d`; todo 66; the owner: "continue with suggested"; CI green: backend 2,073 passed and
 56 skipped, frontend 2,097, E2E 77 passed, started by hand). Every colour in `UpdatesPanel.tsx` that was written for a
@@ -2196,8 +2220,9 @@ Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on
 found that the Update of an installed SMS Lite could never save its download, fixed under "On
 `main` since v1.18.78"); todos 65 to 68, found by that test: 65 (the uninstall entry in
 Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed on `main` and
-proven only at the next release's updates, 66's other colours of the Updates panel left, 67 (SMS
-Lite stopping under a page in the background) the owner's call; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
+proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
+but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
+background) the owner's call; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2774,6 +2799,10 @@ and 44 and 48 in its part 5):
       after the change above. The standalone layout of the same component has its dark
       variants. Suggested: dark variants for the embedded container, header, main area and
       cards, then every tab looked at in both themes (screenshots).
+    - **Done 2026-11-21 another way** (the owner: "fix the dark theme container too"; the entry
+      under "On `main` since v1.18.78"): in the dark theme the rest of the app shows white
+      cards, so the Control Panel became a light island that matches them, rather than a dark
+      panel inside a white card. Every tab was looked at in both themes.
 
 <!-- -->
 

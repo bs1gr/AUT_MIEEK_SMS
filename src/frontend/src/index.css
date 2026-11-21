@@ -23,8 +23,12 @@
 
 @plugin 'tailwindcss-animate';
 
-/* Tailwind 3's darkMode: 'class' — descendants of .dark, same specificity as `.dark .x`. */
-@custom-variant dark (&:is(.dark *));
+/* Tailwind 3's darkMode: 'class' — descendants of .dark, same specificity as `.dark .x`.
+   Except inside .light-island: a card that keeps its light colours in the dark theme, as the
+   cards of the default appearance do (the Dashboard's, the System page's). The Control Panel on
+   the System page is one: its tabs' dark: colours used to land on its white card (plan todo 66).
+   :where() adds no specificity, so the cascade everywhere else is what it was. */
+@custom-variant dark (&:is(.dark *):not(:where(.light-island, .light-island *)));
 
 @theme {
   /* From the Tailwind 3 config (shadcn/ui tokens). --radius is set below; the colour

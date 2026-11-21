@@ -208,7 +208,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
       case 'ok':
         return <CheckCircle className="text-green-500" size={20} />;
       case 'warning':
-        return <AlertTriangle className="text-yellow-500" size={20} />;
+        return <AlertTriangle className="text-yellow-700 dark:text-yellow-500" size={20} />;
       case 'error':
         return <XCircle className="text-red-500" size={20} />;
       default:
@@ -217,8 +217,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   };
 
   const isEmbedded = variant === 'embedded';
+  // Embedded (the System page): a white card in either theme, like the page's other cards. In the
+  // dark theme its text turned light on the white card and its tabs' dark: colours landed on it;
+  // light-island keeps dark: variants out of it (index.css; plan todo 66).
   const containerClass = isEmbedded
-    ? 'w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl text-slate-900 dark:text-gray-100'
+    ? 'light-island w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl text-slate-900'
     : 'min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100';
   const cardBaseClass = isEmbedded
     ? 'rounded-2xl border border-slate-200 bg-white shadow-xs'
@@ -228,7 +231,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
     : 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4';
   const modeBannerClass = isEmbedded
     ? 'mt-4 px-4 py-3 rounded-xl border border-indigo-100 bg-indigo-50 flex items-start gap-3 text-indigo-900'
-    : 'mt-4 px-4 py-3 bg-blue-900/20 border border-blue-700/50 rounded-lg flex items-center gap-3';
+    : 'mt-4 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg flex items-center gap-3';
   const tabBarWrapperClass = isEmbedded
     ? 'px-6 pt-4 border-b border-slate-100 bg-white'
     : 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700';
@@ -243,8 +246,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
         }`
       : `flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
           activeTab === tabId
-            ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
-            : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
+            ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-gray-50 dark:bg-gray-900/50'
+            : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
         }`
   );
   const mainClass = isEmbedded ? 'space-y-6 px-6 py-6 bg-white' : 'p-6 max-w-7xl mx-auto';
@@ -287,10 +290,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                       'bg-slate-50 text-slate-700 border border-slate-200'
                     }`
                   : `px-4 py-2 rounded-lg border ${
-                      operationStatus.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-400' :
-                      operationStatus.type === 'error' ? 'bg-red-900/30 border-red-700 text-red-400' :
-                      operationStatus.type === 'warning' ? 'bg-yellow-900/30 border-yellow-700 text-yellow-400' :
-                      'bg-blue-900/30 border-blue-700 text-blue-400'
+                      operationStatus.type === 'success' ? 'bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400' :
+                      operationStatus.type === 'error' ? 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-400' :
+                      operationStatus.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400' :
+                      'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400'
                     }`
               }>
                 {operationStatus.message}
@@ -301,12 +304,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
 
         {environment?.environment_mode === 'docker' && (
           <div className={modeBannerClass}>
-            <Container size={20} className={isEmbedded ? 'text-indigo-500' : 'text-blue-400'} />
+            <Container size={20} className={isEmbedded ? 'text-indigo-500' : 'text-blue-700 dark:text-blue-400'} />
             <div className="flex-1">
-              <p className={isEmbedded ? 'text-sm font-semibold text-indigo-900' : 'text-sm font-semibold text-blue-300'}>
+              <p className={isEmbedded ? 'text-sm font-semibold text-indigo-900' : 'text-sm font-semibold text-blue-800 dark:text-blue-300'}>
                 {t('runningIn')}: {t('dockerContainer')}
               </p>
-              <p className={isEmbedded ? 'text-xs text-indigo-700 mt-1' : 'text-xs text-blue-400 mt-1'}>
+              <p className={isEmbedded ? 'text-xs text-indigo-700 mt-1' : 'text-xs text-blue-700 dark:text-blue-400 mt-1'}>
                 {t('nativeOpsHidden')}
               </p>
             </div>
@@ -352,12 +355,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
         {activeTab === 'operations' && (
           <div className="space-y-6">
             {environment?.environment_mode === 'docker' && (
-              <div className={`${isEmbedded ? 'rounded-2xl border border-indigo-100 bg-linear-to-r/srgb from-indigo-50 to-blue-50 text-slate-700' : 'bg-linear-to-r/srgb from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg text-blue-200'} p-6`}>
+              <div className={`${isEmbedded ? 'rounded-2xl border border-indigo-100 bg-linear-to-r/srgb from-indigo-50 to-blue-50 text-slate-700' : 'bg-linear-to-r/srgb from-blue-900/20 to-indigo-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg text-blue-800 dark:text-blue-200'} p-6`}>
                 <div className="flex items-start gap-4">
-                  <Container size={24} className={isEmbedded ? 'text-indigo-500 shrink-0 mt-1' : 'text-blue-400 shrink-0 mt-1'} />
+                  <Container size={24} className={isEmbedded ? 'text-indigo-500 shrink-0 mt-1' : 'text-blue-700 dark:text-blue-400 shrink-0 mt-1'} />
                   <div className="flex-1">
-                    <h2 className={`text-lg font-semibold mb-2 ${isEmbedded ? 'text-slate-900' : 'text-blue-300'}`}>{t('dockerContainer')}</h2>
-                    <p className={`text-sm mb-4 ${isEmbedded ? 'text-slate-700' : 'text-blue-200'}`}>
+                    <h2 className={`text-lg font-semibold mb-2 ${isEmbedded ? 'text-slate-900' : 'text-blue-800 dark:text-blue-300'}`}>{t('dockerContainer')}</h2>
+                    <p className={`text-sm mb-4 ${isEmbedded ? 'text-slate-700' : 'text-blue-800 dark:text-blue-200'}`}>
                       {t('operationsRequireHost')}
                     </p>
 
@@ -370,7 +373,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                       ].map((block, index) => (
                         <div
                           key={block.title}
-                          className={isEmbedded ? 'rounded-xl border border-slate-200 bg-white/70 p-3 text-slate-600' : 'bg-gray-900/50 rounded p-3 border border-gray-700'}
+                          className={isEmbedded ? 'rounded-xl border border-slate-200 bg-white/70 p-3 text-slate-600' : 'bg-gray-50 dark:bg-gray-900/50 rounded p-3 border border-gray-200 dark:border-gray-700'}
                         >
                           <div className="text-xs font-semibold text-slate-500 mb-1">{block.title}</div>
                           {block.lines.map((line, lineIndex) => (
@@ -382,7 +385,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                       ))}
                     </div>
 
-                    <div className={isEmbedded ? 'flex items-start gap-2 text-xs text-slate-700 bg-white/70 rounded-xl p-3 border border-slate-200' : 'flex items-start gap-2 text-xs text-blue-300 bg-blue-900/20 rounded p-3 border border-blue-800/30'}>
+                    <div className={isEmbedded ? 'flex items-start gap-2 text-xs text-slate-700 bg-white/70 rounded-xl p-3 border border-slate-200' : 'flex items-start gap-2 text-xs text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 rounded p-3 border border-blue-200 dark:border-blue-800/30'}>
                       <span className="text-lg">💡</span>
                       <p>
                         <strong>{t('whyLabel')}</strong> {t('whyExplanation')}
@@ -487,7 +490,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                   <Container size={18} />
                 </button>
                 {!status?.docker && (
-                  <p className="text-sm text-yellow-400">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
                     {t('dockerStatus')}: {t('offline')}
                   </p>
                 )}
@@ -525,17 +528,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">{diag.category}</h3>
                       <span className={`text-xs px-2 py-1 rounded-full ${
-                        diag.status === 'ok' ? 'bg-green-900/30 text-green-400' :
-                        diag.status === 'warning' ? 'bg-yellow-900/30 text-yellow-400' :
-                        'bg-red-900/30 text-red-400'
+                        diag.status === 'ok' ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                        diag.status === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                        'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
                         {diag.status.toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-400 mt-1">{diag.message}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{diag.message}</p>
                       {/* Show SMS Schema Version if present in DB health check */}
                       {diag.category === 'Database' && diag.details && diag.details.sms_schema_version && (
-                        <p className="text-sm mt-2"><span className="text-gray-400">{t('smsSchemaVersion') || 'SMS Schema Version'}:</span> <span className="ml-2 font-mono">{diag.details.sms_schema_version}</span></p>
+                        <p className="text-sm mt-2"><span className="text-gray-600 dark:text-gray-400">{t('smsSchemaVersion') || 'SMS Schema Version'}:</span> <span className="ml-2 font-mono">{diag.details.sms_schema_version}</span></p>
                       )}
                     {diag.details && Object.keys(diag.details).length > 0 && (
                       <pre className="mt-2 text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto">
@@ -571,11 +574,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
             )}
 
             {tabLoading.ports && ports.length === 0 ? (
-              <div className={`${cardBaseClass} p-4 text-center text-gray-400`}>
+              <div className={`${cardBaseClass} p-4 text-center text-gray-600 dark:text-gray-400`}>
                 {t('loading') || 'Loading'}...
               </div>
             ) : ports.length === 0 ? (
-              <div className={`${cardBaseClass} p-4 text-center text-gray-400`}>
+              <div className={`${cardBaseClass} p-4 text-center text-gray-600 dark:text-gray-400`}>
                 {t('noPortsAvailable') || 'No ports available'}
               </div>
             ) : (
@@ -589,15 +592,15 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                       <th className="px-4 py-3 text-left text-sm font-medium">{t('pid')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-700">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {ports.map((port) => (
-                      <tr key={port.port} className="hover:bg-gray-700/50">
+                      <tr key={port.port} className="hover:bg-gray-100 dark:hover:bg-gray-700/50">
                         <td className="px-4 py-3 font-mono">{port.port}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full ${
                             port.in_use
-                              ? 'bg-green-900/30 text-green-400'
-                              : 'bg-gray-700 text-gray-400'
+                              ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                           }`}>
                             {port.in_use ? t('inUse') : t('available')}
                           </span>
@@ -644,21 +647,21 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                   try {
                     const logData = JSON.parse(log);
                     const levelColor =
-                      logData.level === 'ERROR' ? 'text-red-400' :
-                      logData.level === 'WARNING' ? 'text-yellow-400' :
-                      logData.level === 'INFO' ? 'text-blue-400' :
-                      'text-gray-400';
+                      logData.level === 'ERROR' ? 'text-red-700 dark:text-red-400' :
+                      logData.level === 'WARNING' ? 'text-yellow-700 dark:text-yellow-400' :
+                      logData.level === 'INFO' ? 'text-blue-700 dark:text-blue-400' :
+                      'text-gray-600 dark:text-gray-400';
 
                     return (
-                      <div key={index} className="py-1 border-b border-gray-800">
+                      <div key={index} className="py-1 border-b border-gray-200 dark:border-gray-800">
                         <span className="text-gray-500">{logData.timestamp}</span>
                         <span className={`ml-2 ${levelColor}`}>[{logData.level}]</span>
-                        <span className="ml-2 text-gray-300">{logData.message}</span>
+                        <span className="ml-2 text-gray-700 dark:text-gray-300">{logData.message}</span>
                       </div>
                     );
                   } catch {
                     return (
-                      <div key={index} className="py-1 text-gray-400">
+                      <div key={index} className="py-1 text-gray-600 dark:text-gray-400">
                         {log}
                       </div>
                     );
@@ -684,7 +687,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
                   }
                 }}
                 disabled={tabLoading.environment}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600/60 rounded-md border border-gray-600"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-100/60 dark:disabled:bg-gray-600/60 rounded-md border border-gray-300 dark:border-gray-600"
               >
                 {showRuntimeDetails ? t('hideRuntimeDetails') : t('showRuntimeDetails')}
               </button>
@@ -711,70 +714,70 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
             <div className={`${cardBaseClass} p-6`}>
               <div className="space-y-4">
                 {environment.environment_mode === 'docker' && (
-                  <div className="text-xs text-blue-300 bg-blue-900/20 border border-blue-700/50 rounded-md px-3 py-2">
+                  <div className="text-xs text-blue-800 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-md px-3 py-2">
                     {t('dockerContainer')}
                   </div>
                 )}
                 {/* Application Info */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-400 mb-2">{t('appInfo')}</h3>
+                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('appInfo')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {environment.app_version && (
-                      <p className="text-sm"><span className="text-gray-400">{t('appVersion')}:</span> <span className="ml-2 font-mono">{environment.app_version}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('appVersion')}:</span> <span className="ml-2 font-mono">{environment.app_version}</span></p>
                     )}
                     {environment.api_version && (
-                      <p className="text-sm"><span className="text-gray-400">{t('apiVersion')}:</span> <span className="ml-2 font-mono">{environment.api_version}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('apiVersion')}:</span> <span className="ml-2 font-mono">{environment.api_version}</span></p>
                     )}
                     {environment.frontend_version && (
-                      <p className="text-sm"><span className="text-gray-400">{t('frontendVersion')}:</span> <span className="ml-2 font-mono">{environment.frontend_version}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('frontendVersion')}:</span> <span className="ml-2 font-mono">{environment.frontend_version}</span></p>
                     )}
                     {environment.git_revision && (
-                      <p className="text-sm"><span className="text-gray-400">{t('gitRevision')}:</span> <span className="ml-2 font-mono">{environment.git_revision}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('gitRevision')}:</span> <span className="ml-2 font-mono">{environment.git_revision}</span></p>
                     )}
                     {environment.environment_mode && (
-                      <p className="text-sm"><span className="text-gray-400">{t('runningIn')}:</span> <span className="ml-2 font-mono">{environment.environment_mode === 'docker' ? t('dockerContainer') : t('nativeMode')}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('runningIn')}:</span> <span className="ml-2 font-mono">{environment.environment_mode === 'docker' ? t('dockerContainer') : t('nativeMode')}</span></p>
                     )}
                       {environment.sms_schema_version && (
-                        <p className="text-sm"><span className="text-gray-400">{t('smsSchemaVersion') || 'SMS Schema Version'}:</span> <span className="ml-2 font-mono">{environment.sms_schema_version}</span></p>
+                        <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('smsSchemaVersion') || 'SMS Schema Version'}:</span> <span className="ml-2 font-mono">{environment.sms_schema_version}</span></p>
                       )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('python')}</h3>
-                    <p className="text-sm"><span className="text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.python_version || t('notInstalled')}</span></p>
-                    <p className="text-sm"><span className="text-gray-400">{t('path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.python_path || '-'}</span></p>
-                    <p className="text-sm"><span className="text-gray-400">{t('virtualEnv')}:</span> <span className="ml-2">{environment.venv_active ? t('yes') : t('no')}</span></p>
+                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('python')}</h3>
+                    <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.python_version || t('notInstalled')}</span></p>
+                    <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.python_path || '-'}</span></p>
+                    <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('virtualEnv')}:</span> <span className="ml-2">{environment.venv_active ? t('yes') : t('no')}</span></p>
                   </div>
 
                   {environment.environment_mode !== 'docker' && (
                     <div>
-                          <h3 className="text-sm font-medium text-gray-400 mb-2">{t('nodejs')}</h3>
-                      <p className="text-sm"><span className="text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.node_version || t('notInstalled')}</span></p>
-                      <p className="text-sm"><span className="text-gray-400">{t('npm')}:</span> <span className="ml-2 font-mono">{environment.npm_version || t('notInstalled')}</span></p>
-                      <p className="text-sm"><span className="text-gray-400">{t('path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.node_path || '-'}</span></p>
+                          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('nodejs')}</h3>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.node_version || t('notInstalled')}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('npm')}:</span> <span className="ml-2 font-mono">{environment.npm_version || t('notInstalled')}</span></p>
+                      <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.node_path || '-'}</span></p>
                     </div>
                   )}
 
                   <div>
-                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('docker')}</h3>
-                    <p className="text-sm"><span className="text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.docker_version || t('notInstalled')}</span></p>
+                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('docker')}</h3>
+                    <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.docker_version || t('notInstalled')}</span></p>
                   </div>
 
                   <div>
-                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('system')}</h3>
-                    <p className="text-sm"><span className="text-gray-400">{t('platform')}:</span> <span className="ml-2 font-mono">{environment.platform || '-'}</span></p>
-                    <p className="text-sm"><span className="text-gray-400">{t('workingDir')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.cwd || '-'}</span></p>
+                        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('system')}</h3>
+                    <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('platform')}:</span> <span className="ml-2 font-mono">{environment.platform || '-'}</span></p>
+                    <p className="text-sm"><span className="text-gray-600 dark:text-gray-400">{t('workingDir')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.cwd || '-'}</span></p>
                   </div>
                   {showRuntimeDetails && environment.python_packages && (
                     <div className="md:col-span-2">
-                      <h3 className="text-sm font-medium text-gray-400 mb-2">{t('runtimeDetails')}</h3>
+                      <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('runtimeDetails')}</h3>
                       <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-3 overflow-x-auto">
-                        <div className="text-xs text-gray-400 mb-2">{t('pythonPackages')}</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">{t('pythonPackages')}</div>
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="text-gray-400">
+                            <tr className="text-gray-600 dark:text-gray-400">
                               <th className="text-left py-1 pr-4">{t('package')}</th>
                               <th className="text-left py-1">{t('version')}</th>
                             </tr>
@@ -1023,12 +1026,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
         {/* Rate Limits Tab */}
         {activeTab === 'rate-limits' && user?.role === 'admin' && (
           <div className="space-y-6">
-            <div className="bg-linear-to-r/srgb from-yellow-900/20 to-orange-900/20 border border-yellow-700/50 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-yellow-300">
+            <div className="bg-linear-to-r/srgb from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-6">
+              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
                 <Activity size={20} />
                 {t('rateLimitsTitle') || 'Rate Limiting Configuration'}
               </h2>
-              <p className="text-sm text-yellow-200">{t('rateLimitsSubtitle')}</p>
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">{t('rateLimitsSubtitle')}</p>
             </div>
 
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
