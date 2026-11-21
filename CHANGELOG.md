@@ -54,6 +54,32 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.79] - 2026-11-21
+
+### Bug Fixes
+- **ui**: the Control Panel on the System page reads in the dark theme (#463)
+- **updates**: the rest of the Updates panel reads in the light theme (#462)
+- **installer**: the code uses the uninstall entry Inno Setup creates; No keeps the settings (#461)
+- **lite**: after its own Update, SMS Lite starts again with the user's own rights (#460)
+- **updates**: the Updates panel says what failed, in the page's language (#458)
+- **lite**: Update saves the downloaded installer in the user's profile (#457)
+- **release**: the release-notes generator keeps Greek commit subjects intact (#456)
+
+### Documentation
+- **plan**: #463 merged
+- **plan**: #459 to #462 merged
+- **plan**: todo 40's Docker test install put back; todo 68 found
+- **plan**: #457 and #458 merged
+- **plan**: the plan-review's three small corrections
+- **plan**: todo 63 closed and archived; todo 58's note on older installs corrected
+- **plan**: #456 merged
+- **plan**: todo 40, the owner's Docker test install updated to v1.18.78 through UAC
+- **plan**: v1.18.78 released and verified, the cloud VM on the tag
+
+### CI/CD
+- **deps**: the dependency review checks an allow list of licences (#459)
+
 ## [1.18.78] - 2026-11-21
 
 ### Features
@@ -5100,6 +5126,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
