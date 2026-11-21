@@ -9,10 +9,10 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="w-full text-center text-xs text-gray-400 py-4">
+    <footer className="w-full text-center text-xs text-[color:var(--appearance-muted-text,#4b5563)] py-4">
       <span className="select-none">{t('footerCredits', { year, version })}</span>
       {' · '}
-      <Link to="/privacy" className="underline hover:text-gray-600" data-testid="footer-privacy-link">
+      <Link to="/privacy" className="underline hover:text-[color:var(--appearance-text,#1f2937)]" data-testid="footer-privacy-link">
         {t('privacyLink')}
       </Link>
     </footer>

@@ -60,22 +60,22 @@ const accentStyles: Record<AccentColor, { iconBg: string; border: string; label:
   indigo: {
     iconBg: 'bg-indigo-100 text-indigo-600',
     border: 'border-indigo-100',
-    label: 'text-indigo-500',
+    label: 'text-slate-600',
   },
   emerald: {
     iconBg: 'bg-emerald-100 text-emerald-600',
     border: 'border-emerald-100',
-    label: 'text-emerald-500',
+    label: 'text-slate-600',
   },
   amber: {
     iconBg: 'bg-amber-100 text-amber-600',
     border: 'border-amber-100',
-    label: 'text-amber-500',
+    label: 'text-slate-600',
   },
   violet: {
     iconBg: 'bg-violet-100 text-violet-600',
     border: 'border-violet-100',
-    label: 'text-violet-500',
+    label: 'text-slate-600',
   },
 };
 
@@ -398,7 +398,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                           <p className="font-semibold text-slate-900">{course.course_code}</p>
                           <p className="text-sm text-slate-600">{course.course_name}</p>
                           {course.semester && (
-                            <p className="mt-1 text-xs text-slate-400">{course.semester}</p>
+                            <p className="mt-1 text-xs text-slate-600">{course.semester}</p>
                           )}
                         </div>
                         <span className="rounded-full bg-indigo-600 px-3 py-1 text-sm font-semibold text-white">
@@ -437,7 +437,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                               })}
                             </div>
                             {course.evaluation_rules.length > 6 && (
-                              <p className="mt-1 text-[11px] text-slate-400">
+                              <p className="mt-1 text-[11px] text-slate-600">
                                 +{course.evaluation_rules.length - 6} {t('moreLabel')}
                               </p>
                             )}
@@ -479,7 +479,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                   <div key={`${label}-${index}`} className={`rounded-xl border ${bucketStyle} p-4`}>
                     <p className="text-sm font-medium text-slate-500">{label}</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-900">{count}</p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-slate-600">
                       {activeStudentsCount > 0 ? ((count / activeStudentsCount) * 100).toFixed(1) : '0.0'}% {t('dashboard.ofActiveStudents')}
                     </p>
                   </div>

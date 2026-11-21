@@ -581,7 +581,7 @@ test.describe('Attendance Tracking', () => {
     );
 
     await presentButton.click();
-    await expect(presentButton).toHaveClass(/bg-green-500/);
+    await expect(presentButton).toHaveClass(/bg-green-700/);
 
     const sheetResponse = await sheetSaved;
     expect(sheetResponse.status()).toBe(200);
@@ -707,7 +707,7 @@ test.describe('Attendance on a slow server', () => {
     await expect(button('Present', first.name)).toBeVisible({ timeout: 15000 });
     await button('Present', first.name).click();
     await expect.poll(stored, { timeout: 20000 }).toEqual([`${first.id}: Present`]);
-    await expect(button('Present', first.name)).toHaveClass(/bg-green-500/);
+    await expect(button('Present', first.name)).toHaveClass(/bg-green-700/);
     test.skip(held.day === 0, 'The request for the day did not pass through page.route: nothing was held back.');
 
     // 2. A save takes two and a half seconds to answer. The first student is changed to Late,
@@ -726,8 +726,8 @@ test.describe('Attendance on a slow server', () => {
     await button('Present', second.name).click();
 
     await expect.poll(stored, { timeout: 30000 }).toEqual([`${first.id}: Late`, `${second.id}: Present`].sort());
-    await expect(button('Late', first.name)).toHaveClass(/bg-yellow-500/);
-    await expect(button('Present', second.name)).toHaveClass(/bg-green-500/);
+    await expect(button('Late', first.name)).toHaveClass(/bg-yellow-400/);
+    await expect(button('Present', second.name)).toHaveClass(/bg-green-700/);
   });
 });
 
