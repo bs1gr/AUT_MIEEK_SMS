@@ -218,6 +218,21 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
+**2026-11-21: the installer reads and writes the uninstall entry that Inno Setup creates** (this
+PR; todo 65; the owner: "continue with suggested"). `SMS_Installer.iss` now names the key Inno
+registers, `…\Uninstall\{B5A1E2F3-…}}_is1` (define `MyAppUninstallKey`), in all 18 places its
+code used the one-brace key. So the renamed uninstaller (`unins<version>.exe`) reaches the
+entry that Settings → Apps runs, and an existing installation is found by its entry. Nothing is
+written to HKCU any more. After installing, the two-value key that older versions left in HKLM
+and HKCU is removed, only when it has no `DisplayName`. **The uninstaller keeps the settings
+when the answer is "keep the data":** the three `.env` files and `config\lang.txt` left
+`[UninstallDelete]`, which ran whatever the answer; Yes still deletes them in
+`InitializeUninstall`. The AppId itself is unchanged (every installation is registered under
+it). Checks: the script compiles with ISCC (`/O-`, with an empty stand-in for the built
+`SMS_Manager.exe`); `test_installer_uninstall_entry.py` reads the script, and its five tests fail
+on the old one. The registry side is proven only by an installer built from this, installed
+over an installation: the next release's update of the Docker test install (todo 40) shows it.
+
 **2026-11-21: after its own Update, SMS Lite starts again with the user's own rights** (this PR;
 todo 68; the owner: "continue with suggested"). SMS Lite no longer asks the installer to start
 it again (`/RESTARTLITE=1`): started through "runas", the installer runs elevated and cannot go
@@ -2163,9 +2178,10 @@ The owner's Docker test install on the dev PC was updated to it by hand through 
 40); it was replaced for todo 40's SMS Lite test on 2026-11-21 and put back the same day.
 Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on 2026-11-21 and
 found that the Update of an installed SMS Lite could never save its download, fixed under "On
-`main` since v1.18.78"); todos 65 to 68, found by that test (the uninstall entry in Settings →
-Apps, the Updates panel (its messages fixed, its other colours left), SMS Lite stopping under a
-page in the background, SMS Lite running elevated after its own Update); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
+`main` since v1.18.78"); todos 65 to 68, found by that test: 65 (the uninstall entry in
+Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed on `main` and
+proven only at the next release's updates, 66's other colours of the Updates panel left, 67 (SMS
+Lite stopping under a page in the background) the owner's call; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2707,6 +2723,11 @@ and 44 and 48 in its part 5):
       and those run whatever the answer, while the question says No keeps "the settings (the
       config folder and the .env files)". Read in the script, not seen: on 2026-11-21 the
       answer was Yes.
+    - **Done 2026-11-21** (the entry under "On `main` since v1.18.78"): the code uses the key
+      Inno writes, HKCU is left alone, the old two-value keys are removed, and No keeps the
+      settings. **Left:** seeing it on a real installation, at the next release's update of the
+      Docker test install (todo 40): Settings → Apps should then show the entry with
+      `uninsv<version>.exe`, and no `{…}_is1` key should remain.
 
 <!-- -->
 
