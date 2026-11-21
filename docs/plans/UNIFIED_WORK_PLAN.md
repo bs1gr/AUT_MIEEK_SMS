@@ -218,7 +218,10 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
-**2026-11-21: the Updates panel says what failed, in the page's language** (this PR; todo 66).
+**2026-11-21: the Updates panel says what failed, in the page's language** (PR 458, merged as
+`fc339907b`; todo 66). CI green on the PR: backend 2,066 passed and 55 skipped, frontend 2,097
+passed (four more than before), E2E 77 passed (started by hand: a PR opened without the
+`requires:e2e` label skips it).
 A failed install is titled "Automatic update failed…" instead of "Error checking for updates",
 and the note that the update started goes when it fails (the page used to say both). The start
 of an update and SMS Lite closing for the installer are told with translated texts
@@ -228,8 +231,9 @@ English sentences. The two boxes have light-theme colours beside the dark ones. 
 failed check under its own title.
 
 **2026-11-21: SMS Lite's Update saves the installer it downloads in the user's profile** (PR
-457; found the same day by todo 40's Lite test). Until now it saved it beside its code, in
-`C:\Program Files\SMS\_internal\artifacts\updates`. SMS Lite runs without administrator rights
+457, merged as `a3c7d580e`; found the same day by todo 40's Lite test). CI green on the PR:
+backend 2,066 passed and 55 skipped, frontend 2,093 passed, E2E 77 passed (started by hand).
+Until now it saved it beside its code, in `C:\Program Files\SMS\_internal\artifacts\updates`. SMS Lite runs without administrator rights
 and cannot write there, so the Update of every installed SMS Lite stopped with "[WinError 5]
 Access is denied" before the Windows security prompt. The tests never saw it: each one replaced
 that folder with a temporary one. The entrypoint now names
@@ -2551,7 +2555,7 @@ and 44 and 48 in its part 5):
         the first start) and one marker student with a Greek name. Its update check offered
         v1.18.78 (`update_method: installer`, the published SHA-256).
       - *First Update* (the owner, from the Control Panel): "[WinError 5] … `_internal\artifacts`"
-        before the security prompt; fixed by the entry under "On `main` since v1.18.78".
+        before the security prompt; fixed in PR 457 (under "On `main` since v1.18.78").
       - *Second Update,* after the owner created `_internal\artifacts` by hand and gave Users
         write access to it (test only; the assistant's permission check refused to do it): the
         installer started at 15:29:32 (UAC, the owner), SMS Lite exited at 15:29:39, the
@@ -2671,7 +2675,7 @@ and 44 and 48 in its part 5):
     translated `updateInstallStarted`, and it stays beside the red one after the job fails.
     Both boxes use dark-theme colours only (`text-red-300`, `text-green-300` on a 30 % tint)
     and are hard to read in the light theme.
-    - **Done 2026-11-21** (the entry under "On `main` since v1.18.78"): the title says what
+    - **Done 2026-11-21** in PR 458 (under "On `main` since v1.18.78"): the title says what
       failed, the "started" note goes on a failure, the start and SMS Lite's closing are
       translated, and both boxes have light-theme colours.
     - **Left:** the rest of the panel (the "Update Available" banner, the release card, the
