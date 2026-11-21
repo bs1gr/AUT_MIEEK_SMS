@@ -216,7 +216,7 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
-**2026-11-21: the release-notes generator keeps Greek text intact** (this PR; the
+**2026-11-21: the release-notes generator keeps Greek text intact** (PR 456, merged as `7bf7a7132`, CI green: 38 checks passed, the new test ran on Linux too; the
 owner: "if all ok, continue with next"). `GENERATE_RELEASE_DOCS.ps1` now decodes its `git
 log` as UTF-8 (`[Console]::OutputEncoding` set for that one call and put back in a `finally`,
 and `i18n.logOutputEncoding=UTF-8`), whatever the console's code page. Test:
