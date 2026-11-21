@@ -325,12 +325,12 @@ export const UpdatesPanel: React.FC = () => {
           {t('updates') || 'System Updates'}
         </h2>
         <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-400 flex items-center gap-2">
+          <label className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             {t('updateChannel') || 'Channel'}
             <select
               value={releaseChannel}
               onChange={(e) => setReleaseChannel(e.target.value as 'stable' | 'preview')}
-              className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-gray-200"
+              className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-2 py-1 text-sm text-gray-900 dark:text-gray-200"
             >
               <option value="stable">{t('updateChannelStable') || 'Stable'}</option>
               <option value="preview">{t('updateChannelPreview') || 'Preview'}</option>
@@ -383,7 +383,7 @@ export const UpdatesPanel: React.FC = () => {
 
       {/* Last Checked */}
       {lastChecked && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-600 dark:text-gray-400">
           {t('lastChecked') || 'Last checked'}: {lastChecked}
         </p>
       )}
@@ -421,22 +421,22 @@ export const UpdatesPanel: React.FC = () => {
       )}
 
       {updaterStatus && (
-        <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-4 space-y-3">
+        <div className="bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-200">{t('updaterTimelineTitle') || 'Smart Updater Timeline'}</h3>
-            <span className="text-xs text-gray-400">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-200">{t('updaterTimelineTitle') || 'Smart Updater Timeline'}</h3>
+            <span className="text-xs text-gray-600 dark:text-gray-400">
               {(t('updaterPhase') || 'Phase')}: {updaterStatus.phase}
             </span>
           </div>
 
-          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
             <div
               className={`h-2 transition-all duration-300 ${updaterStatus.status === 'failed' ? 'bg-red-500' : 'bg-green-500'}`}
               style={{ width: `${Math.max(0, Math.min(100, updaterStatus.progress_percent || 0))}%` }}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-300">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-700 dark:text-gray-300">
             <p>{t('updaterProgress') || 'Progress'}: {updaterStatus.progress_percent}%</p>
             <p>{t('updaterInstallerState') || 'Installer'}: {updaterStatus.installer_launched ? (t('updaterInstallerLaunched') || 'Launched') : (t('updaterInstallerPending') || 'Pending')}</p>
             {typeof updaterStatus.bytes_downloaded === 'number' && (
@@ -451,25 +451,25 @@ export const UpdatesPanel: React.FC = () => {
           </div>
 
           {updaterStatus.message && (
-            <p className="text-xs text-gray-300">{updaterStatus.message}</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300">{updaterStatus.message}</p>
           )}
 
           {displayedPhaseHistory.length > 0 && (
-            <div className="pt-2 border-t border-gray-700">
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-2 gap-2">
-                <p className="text-xs font-semibold text-gray-300">{t('updaterAuditTrail') || 'Audit trail'}</p>
-                <div className="inline-flex rounded border border-gray-600 overflow-hidden">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{t('updaterAuditTrail') || 'Audit trail'}</p>
+                <div className="inline-flex rounded border border-gray-300 dark:border-gray-600 overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setTimelineMode('grouped')}
-                    className={`px-2 py-1 text-xs ${timelineMode === 'grouped' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                    className={`px-2 py-1 text-xs ${timelineMode === 'grouped' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                   >
                     {t('updaterModeGrouped') || 'Grouped'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setTimelineMode('raw')}
-                    className={`px-2 py-1 text-xs border-l border-gray-600 ${timelineMode === 'raw' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+                    className={`px-2 py-1 text-xs border-l border-gray-300 dark:border-gray-600 ${timelineMode === 'raw' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                   >
                     {t('updaterModeRaw') || 'Raw'}
                   </button>
@@ -477,13 +477,13 @@ export const UpdatesPanel: React.FC = () => {
               </div>
               <ul className="space-y-1 max-h-40 overflow-y-auto pr-1">
                 {displayedPhaseHistory.map((entry, index) => (
-                  <li key={`${entry.phase}-${entry.timestamp}-${index}`} className="text-xs text-gray-400 flex flex-wrap gap-2">
-                    <span className="text-gray-300">[{new Date(entry.timestamp).toLocaleTimeString()}]</span>
+                  <li key={`${entry.phase}-${entry.timestamp}-${index}`} className="text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-2">
+                    <span className="text-gray-700 dark:text-gray-300">[{new Date(entry.timestamp).toLocaleTimeString()}]</span>
                     <span>{entry.phase}</span>
-                    <span className="text-gray-500">({entry.status})</span>
+                    <span className="text-gray-600 dark:text-gray-400">({entry.status})</span>
                     {typeof entry.progress_percent === 'number' && <span>{entry.progress_percent}%</span>}
-                    {timelineMode === 'grouped' && entry.occurrences > 1 && <span className="text-gray-500">{t('updaterOccurrences', { count: entry.occurrences }) || `${entry.occurrences}x`}</span>}
-                    {entry.message && <span className="text-gray-500">- {entry.message}</span>}
+                    {timelineMode === 'grouped' && entry.occurrences > 1 && <span className="text-gray-600 dark:text-gray-400">{t('updaterOccurrences', { count: entry.occurrences }) || `${entry.occurrences}x`}</span>}
+                    {entry.message && <span className="text-gray-600 dark:text-gray-400">- {entry.message}</span>}
                   </li>
                 ))}
               </ul>
@@ -499,13 +499,13 @@ export const UpdatesPanel: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-gray-400 mb-1">{t('currentVersion') || 'Current Version'}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('currentVersion') || 'Current Version'}</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{updateInfo.current_version}</p>
               </div>
               {updateInfo.latest_version && (
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">{t('latestVersion') || 'Latest Version'}</p>
-                  <p className="text-2xl font-bold text-indigo-400">{updateInfo.latest_version}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('latestVersion') || 'Latest Version'}</p>
+                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{updateInfo.latest_version}</p>
                 </div>
               )}
             </div>
@@ -513,13 +513,13 @@ export const UpdatesPanel: React.FC = () => {
 
           {/* Update Status Banner */}
           {updateInfo.update_available ? (
-            <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-6 flex items-start gap-4">
-              <CheckCircle size={24} className="text-green-400 shrink-0 mt-0.5" />
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/50 rounded-lg p-6 flex items-start gap-4">
+              <CheckCircle size={24} className="text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-green-300 mb-2">
+                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-2">
                   {t('updateAvailable') || 'Update Available'}
                 </h3>
-                <p className="text-sm text-green-200 mb-4">
+                <p className="text-sm text-green-700 dark:text-green-200 mb-4">
                   {t('updateAvailableDescription') || 'A new version is available. Review the changes and follow the instructions below to update.'}
                 </p>
               </div>
@@ -547,7 +547,7 @@ export const UpdatesPanel: React.FC = () => {
               </h3>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">{t('releaseName') || 'Release Name'}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('releaseName') || 'Release Name'}</p>
                   <p className="text-gray-900 dark:text-white">{updateInfo.release_name || `v${updateInfo.latest_version || updateInfo.current_version}`}</p>
                 </div>
                 {updateInfo.release_url && (
@@ -555,16 +555,16 @@ export const UpdatesPanel: React.FC = () => {
                     href={updateInfo.release_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
+                    className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
                   >
                     <ExternalLink size={16} />
                     {t('viewOnGitHub') || 'View on GitHub'}
                   </a>
                 )}
                 {updateInfo.release_body && (
-                  <div className="mt-3 pt-3 border-t border-gray-700">
-                    <p className="text-sm text-gray-400 mb-2">{t('changelog') || 'Changelog'}</p>
-                    <pre className="text-xs bg-gray-900 p-3 rounded border border-gray-700 overflow-x-auto max-h-64 overflow-y-auto text-gray-300">
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{t('changelog') || 'Changelog'}</p>
+                    <pre className="text-xs bg-gray-50 dark:bg-gray-900 p-3 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto max-h-64 overflow-y-auto text-gray-700 dark:text-gray-300">
                       {updateInfo.release_body}
                     </pre>
                   </div>
@@ -582,20 +582,20 @@ export const UpdatesPanel: React.FC = () => {
               </h3>
               <div className="space-y-3">
                 {updateInfo.installer_url && (
-                  <div className="bg-gray-900/50 p-4 rounded border border-gray-700">
+                  <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded border border-gray-200 dark:border-gray-700">
                     <div className="flex items-start justify-between mb-2">
-                      <p className="font-semibold text-blue-300">{t('windowsInstaller') || 'Windows Installer'}</p>
+                      <p className="font-semibold text-blue-800 dark:text-blue-300">{t('windowsInstaller') || 'Windows Installer'}</p>
                     </div>
                     <a
                       href={updateInfo.installer_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors break-all"
+                      className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors break-all"
                     >
                       {updateInfo.installer_url.split('/').pop()}
                     </a>
                     {updateInfo.installer_hash && (
-                      <p className="text-xs text-gray-400 mt-2 font-mono break-all">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-mono break-all">
                         {t('sha256')}: {updateInfo.installer_hash}
                       </p>
                     )}
@@ -606,11 +606,11 @@ export const UpdatesPanel: React.FC = () => {
           )}
 
           {/* Update Instructions */}
-          <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-300 mb-3">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-3">
               {t('updateInstructions') || 'Update Instructions'}
             </h3>
-            <pre className="text-sm bg-gray-900 p-4 rounded border border-gray-700 overflow-x-auto text-blue-300 whitespace-pre-wrap">
+            <pre className="text-sm bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto text-blue-800 dark:text-blue-300 whitespace-pre-wrap">
               {updateInfo.update_instructions}
             </pre>
           </div>
@@ -620,8 +620,8 @@ export const UpdatesPanel: React.FC = () => {
       {/* Loading State */}
       {loading && !updateInfo && (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-8 flex items-center justify-center">
-          <RefreshCw className="animate-spin text-indigo-400" size={24} />
-          <span className="ml-3 text-gray-400">{t('checkingForUpdates') || 'Checking for updates...'}</span>
+          <RefreshCw className="animate-spin text-indigo-600 dark:text-indigo-400" size={24} />
+          <span className="ml-3 text-gray-600 dark:text-gray-400">{t('checkingForUpdates') || 'Checking for updates...'}</span>
         </div>
       )}
     </div>
