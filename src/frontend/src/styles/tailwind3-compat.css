@@ -223,12 +223,12 @@
   border-color: #374151;
 }
 
-/* dark:divide-gray-700 */
-.dark\:divide-gray-700:is(.dark *) > :not([hidden]) ~ :not([hidden]) {
+/* dark:divide-gray-700 (as the dark variant in index.css: not inside a .light-island) */
+.dark\:divide-gray-700:is(.dark *):not(:where(.light-island, .light-island *)) > :not([hidden]) ~ :not([hidden]) {
   border-color: #374151;
 }
 
 /* dark:divide-gray-800 */
-.dark\:divide-gray-800:is(.dark *) > :not([hidden]) ~ :not([hidden]) {
+.dark\:divide-gray-800:is(.dark *):not(:where(.light-island, .light-island *)) > :not([hidden]) ~ :not([hidden]) {
   border-color: #1f2937;
 }
