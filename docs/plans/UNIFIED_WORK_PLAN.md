@@ -36,8 +36,8 @@ erased on 2026-11-20 was a data change by hand, under "In v1.18.78").
   UTC, "Encrypted 1 old plain backup(s)…"): `/data/backups/postgres` is empty and
   `primary_student_management_20261116_184624.enc` is in `/data/backups/database`. No
   backup was forced (no database change); the daily one stays at about 15:36 UTC.
-- **Next:** todo 40's Lite update through UAC on the dev PC (v1.18.77 to v1.18.78; the owner
-  clicks Yes).
+- **The owner's Docker test install on the dev PC runs v1.18.78** (2026-11-21, the installer
+  run by hand through UAC; todo 40 says why not from the page, and what is still untested).
 
 **Before that: v1.18.77 released 2026-11-20** (tag on `09c7c0d3a`, run by the assistant; the
 owner: "review current state and if all todos are covered, prepare a new release so to include
@@ -2090,8 +2090,8 @@ tree as evidence that GitHub is clear.
 **Open work as of 2026-11-21** (after the owner went through every open todo on 2026-11-20;
 the answers are under "In v1.18.78"). v1.18.78 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
-Next, on the same go-ahead: the Lite update through UAC on the dev PC (todo 40). Still open
-after that: todo 40's Docker host task; todo 50's owner side; todo 55's copy
+The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
+40). Still open: todo 40's Docker host task (with v1.18.79) and its Lite half; todo 50's owner side; todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items; todo 63's remaining readings. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2642,6 +2642,29 @@ and 44 and 48 in its part 5):
     - **The owner, 2026-11-20 ("Test Lite after release"):** once v1.18.78 is published, Lite
       v1.18.77 is installed on the dev PC into a folder of its own and updated from the app;
       the owner clicks Yes at the UAC prompt. The Docker host task stays open.
+    - **Not possible as planned (2026-11-21):** the installer has one AppId, `DisableDirPage`
+      and `UsePreviousAppDir`, so a second install cannot have a folder of its own; on the dev
+      PC it would have replaced the owner's Docker test install (`C:\Program Files\SMS`,
+      v1.18.74, on a local SQLite file). Windows Sandbox is not installed. **The owner chose to
+      update that Docker install instead:**
+      - *The Control Panel's Update answered 403* (the owner, signed in as admin): v1.18.74's
+        Updates tab did not send the login token, and the Docker edition sees the browser on
+        the bridge address, so the Control API refused it. That is PR 441, released in
+        v1.18.75; a v1.18.74 Docker install cannot update itself from the page. The only other
+        way to start the host task is to write its request file, which the assistant's
+        permission check refused; the owner chose the installer by hand.
+      - *By hand, through UAC (the owner):* the published `SMS_Installer_1.18.78.exe` (digest
+        and signature checked first) over the Docker install: the UAC prompt named AUT MIEEK,
+        the wizard kept the Docker edition, and the installer rebuilt and started the
+        container itself. After: `install_metadata.txt` v1.18.78 from v1.18.74, image
+        `sms-fullstack:v1.18.78`, healthy, the same SQLite data, no ERROR line; the scheduled
+        task "SMS Update Watcher" registered again and running. In the browser the Updates tab
+        says "up to date, v1.18.78" with no 403; the log: "Control API access granted via
+        admin bearer token", the update check 200.
+      - **Still never exercised:** the host task itself (download, digest, signature, silent
+        install, rebuild from the page's request) and the Lite installer through UAC. The
+        Docker half can be done when v1.18.79 is out: that test install is now on a version
+        whose Update button works.
 
 <!-- -->
 
