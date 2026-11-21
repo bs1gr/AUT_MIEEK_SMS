@@ -218,6 +218,17 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
+**2026-11-21: the rest of the Updates panel reads in the light theme** (this PR; todo 66; the
+owner: "continue with suggested"). Every colour in `UpdatesPanel.tsx` that was written for a
+dark background only now has a light partner: `light-class dark:dark-class`, as the panel's
+notices already were. That covers the "Update Available" banner, the Windows installer box, the
+"Update Instructions" box, the release card's labels and links, the timeline, the channel
+selector and the small grey labels. Seen in a browser (a scratch server from the clone, its
+`VERSION` set one release back for the check so that every box shows; screenshots before and
+after in both themes): in the light theme the banner, the installer box and the instructions'
+heading were unreadable before and read well after. In the dark theme nothing changed, for the
+reason under todo 66.
+
 **2026-11-21: the installer reads and writes the uninstall entry that Inno Setup creates** (this
 PR; todo 65; the owner: "continue with suggested"). `SMS_Installer.iss` now names the key Inno
 registers, `…\Uninstall\{B5A1E2F3-…}}_is1` (define `MyAppUninstallKey`), in all 18 places its
@@ -2741,11 +2752,23 @@ and 44 and 48 in its part 5):
     - **Done 2026-11-21** in PR 458 (under "On `main` since v1.18.78"): the title says what
       failed, the "started" note goes on a failure, the start and SMS Lite's closing are
       translated, and both boxes have light-theme colours.
-    - **Left:** the rest of the panel (the "Update Available" banner, the release card, the
-      instructions) still uses dark-theme colours only. The body of a failure is the server's
-      English text: the job's failures have no message keys. The Docker host task's status
-      texts are shown as they come; they are seen for the first time when todo 40's Docker
-      half runs.
+    - ~~**Left:** the rest of the panel (the "Update Available" banner, the release card, the
+      instructions) still uses dark-theme colours only.~~ **Done 2026-11-21** for the light
+      theme (the entry under "On `main` since v1.18.78"). Still left: the body of a failure is
+      the server's English text (the job's failures have no message keys); the Docker host
+      task's status texts are shown as they come, seen for the first time when todo 40's
+      Docker half runs.
+    - **Found while checking it, 2026-11-21 (the owner's word needed: it touches every tab of
+      the Control Panel):** on the System page the Control Panel is shown "embedded", and its
+      container there is `bg-white … text-slate-900 dark:text-gray-100` (`ControlPanel.tsx`,
+      `containerClass`; also `headerClass`, `mainClass`, `cardBaseClass`). Its background stays
+      white in the dark theme while its text turns light. So in the dark theme, any text
+      without its own colour is pale on white, and every `dark:` variant of the tabs assumes a
+      dark background that is not there: in the Updates tab the "Update Available" and "Update
+      Instructions" boxes and two card headings stay unreadable in the dark theme, before and
+      after the change above. The standalone layout of the same component has its dark
+      variants. Suggested: dark variants for the embedded container, header, main area and
+      cards, then every tab looked at in both themes (screenshots).
 
 <!-- -->
 
