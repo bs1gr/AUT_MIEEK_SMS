@@ -3,6 +3,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-reac
 import { adminUsersAPI, auditAPI, type AuditLogEntry } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
+import { extractScheduleEntries } from '@/components/tools/printableSchedule';
 import type { UserAccount } from '@/types';
 
 /**
@@ -64,6 +65,7 @@ const OPERATIONS = new Set([
   'activate_permission',
   'deactivate_permission',
   'delete_permission',
+  'update_course',
 ]);
 
 // Changes to a role or to what it holds: they are about the role, not about an account.
@@ -86,8 +88,27 @@ const ABOUT_A_PERMISSION = new Set([
   'delete_permission',
 ]);
 
-// Details the sentence already says, or that say nothing to a reader.
-const SAID = new Set(['operation', 'success', 'role', 'from', 'permission', 'email']);
+// Details the sentence already says, or that say nothing to a reader. A course change's
+// `fields` are shown with their values instead (see `changes`).
+const SAID = new Set(['operation', 'success', 'role', 'from', 'permission', 'email', 'course', 'fields']);
+
+// The fields of a course that have a label of their own (plan todo 70).
+const COURSE_FIELDS = new Set([
+  'course_code',
+  'course_name',
+  'semester',
+  'credits',
+  'description',
+  'evaluation_rules',
+  'absence_penalty',
+  'absence_limit_percent',
+  'participation_limit_percent',
+  'hours_per_week',
+  'periods_per_week',
+  'teaching_schedule',
+]);
+
+type Change = { field: string; label: string; before: string; after: string };
 
 type LoadError = 'refused' | 'failed' | null;
 
@@ -168,10 +189,53 @@ const AuditLogPanel: React.FC = () => {
         from: roleName(details.from),
         permission: asText(details.permission),
         email: asText(details.email),
+        course: asText(details.course),
       });
     }
     return text(`actions.${entry.action}`);
   }, [roleName, text]);
+
+  // A value of a course field as a reader knows it: a schedule as its days, times and periods,
+  // rules as their categories and weights.
+  const courseValue = useCallback((field: string, value: unknown): string => {
+    if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) {
+      return text('nothing');
+    }
+    if (field === 'teaching_schedule') {
+      const days = extractScheduleEntries(value).map(({ day, data }) => {
+        const slot = (data ?? {}) as { start_time?: unknown; periods?: unknown };
+        const key = `common.${day.toLowerCase()}`;
+        const name = t(key);
+        const label = name && name !== key ? name : day;
+        const start = asText(slot.start_time);
+        return `${label}${start ? ` ${start}` : ''} ×${asText(slot.periods) || '0'}`;
+      });
+      return days.length > 0 ? days.join(', ') : text('nothing');
+    }
+    if (field === 'evaluation_rules' && Array.isArray(value)) {
+      return value
+        .map((rule) => {
+          const { category, weight } = (rule ?? {}) as { category?: unknown; weight?: unknown };
+          return `${asText(category)} ${asText(weight)}%`;
+        })
+        .join(', ');
+    }
+    return asText(value);
+  }, [t, text]);
+
+  const changes = useCallback((entry: AuditLogEntry): Change[] => {
+    if (entry.resource !== 'course' || !entry.old_values || !entry.new_values) return [];
+    const before = entry.old_values;
+    const after = entry.new_values;
+    return Object.keys(after)
+      .filter((field) => field in before)
+      .map((field) => ({
+        field,
+        label: COURSE_FIELDS.has(field) ? text(`courseFields.${field}`) : field,
+        before: courseValue(field, before[field]),
+        after: courseValue(field, after[field]),
+      }));
+  }, [courseValue, text]);
 
   const about = useCallback((entry: AuditLogEntry): string => {
     const details = entry.details ?? {};
@@ -296,6 +360,15 @@ const AuditLogPanel: React.FC = () => {
                   </td>
                   <td className="px-3 py-2 text-gray-800 dark:text-gray-100">
                     <div data-testid={`audit-what-${entry.id}`}>{describe(entry)}</div>
+                    {changes(entry).length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-xs text-gray-700 dark:text-gray-200" data-testid={`audit-changes-${entry.id}`}>
+                        {changes(entry).map((change) => (
+                          <li key={change.field} data-testid={`audit-change-${entry.id}-${change.field}`}>
+                            <span className="font-medium">{change.label}:</span> {change.before} → {change.after}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {rest(entry).length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1 text-xs text-gray-600 dark:text-gray-300">
                         {rest(entry).map(([key, value]) => (

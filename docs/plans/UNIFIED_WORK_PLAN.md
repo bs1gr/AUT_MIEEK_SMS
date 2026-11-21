@@ -256,6 +256,20 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
+**2026-11-22: a change to a course is in the audit log, with what was there before** (this PR;
+todo 70, which needed no decision). `PUT /courses/{id}` and `PUT /courses/{id}/evaluation-rules`
+wrote no entry, so a teacher's new schedule (which sets every student's absence limits) left no
+trace of the old one or of who saved it. Each change now writes one entry (`update`, resource
+`course`, operation `update_course`) with the changed fields and their old and new values; the
+Edit Course dialog sends the whole course back, so the fields whose value did not change are
+left out, and a save that changes nothing writes no entry. A failure to write the entry never
+fails the save. The Audit Log page shows such an entry as "Changed the course AUD101" with one
+line per field, before → after: a schedule by day, time and periods ("Monday 08:00 ×2,
+Thursday 10:00 ×1"), rules by category and weight, in both languages. Tests:
+`test_course_change_audit.py` (4; all fail on the old router: no entry is written), a new test
+in `AuditLogPanel.test.tsx` (fails on the old page), and the page's check that every operation
+the server writes has its sentence now reads `routers_courses.py` too.
+
 **2026-11-21: every backup of the cloud VM is also copied to Oracle Object Storage** (PR 465,
 merged as `94f2b9cfc`; todo 55, now in part 5 of the archive; the owner: "set up the backup
 copies to Object Storage"; CI green, the six tests of the script passed on Ubuntu). In the console the owner
@@ -2291,7 +2305,7 @@ tree as evidence that GitHub is clear.
 *(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
 *What is left is below.*
 
-**Open work as of 2026-11-21** (after the owner went through every open todo on 2026-11-20;
+**Open work as of 2026-11-22** (after the owner went through every open todo on 2026-11-20;
 the answers are under "In v1.18.78"). v1.18.79 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
 The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
@@ -2304,9 +2318,11 @@ entry in Settings → Apps) and 68 (SMS Lite running elevated after its own Upda
 v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
-background) the owner's call; todos 69 to 72 on changing a course's teaching schedule (a
-warning before a change in periods is saved, an audit entry, frozen totals for weeks already
-taught, absences in a period that no longer exists; 71 needs the owner's choice of approach); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+background; the owner chose the fix on 2026-11-22: a page in the background counts as open
+for up to 5 hours); todos 69, 71 and 72 on changing a course's teaching schedule (a warning
+before a change in periods is saved, frozen totals for weeks already taught, absences in a
+period that no longer exists; the owner chose 71's approach on 2026-11-22), to be built in
+the order 69, 71, 72, then 67 (70, the audit entry, done 2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -2844,6 +2860,19 @@ and 44 and 48 in its part 5):
     so a page left behind another window can let Lite stop under the user, who then finds the
     page dead. Not reproduced yet. The rule is the owner's: a change (a longer wait, or a
     heartbeat that a sleeping tab still sends) is the owner's decision.
+    - **The owner's choice, 2026-11-22** ("for todo 67, set 5 hours open"): neither of those (a
+      frozen page runs no code, its workers included, so it sends nothing however long Lite
+      waits). Instead **the page says when it goes into the background and when it is really
+      closed.** On going hidden it sends one beat marked hidden, and Lite then waits up to
+      **5 hours**; the 10 s beats resume when it comes back. On a real close (the tab or the
+      browser) it sends "closed", and Lite exits 30 s later unless another page beats. The
+      90 s rule stays for the rest (a visible page whose browser crashed, a lost network). If
+      Lite is gone all the same, the page says so ("start SMS Lite again from its icon")
+      instead of failing silently. Start by reproducing the freeze in Edge, to see the hidden
+      beat arrive before it. **Logout is unchanged** (the owner asked): a Logout on the Lite PC
+      still makes Lite exit 30 s later, whatever pages are open or in the background; a new
+      sign-in within those 30 s cancels it; a Logout from a phone or another PC does not stop
+      Lite (`schedule-shutdown` answers only the Lite PC itself).
 
 <!-- -->
 
@@ -2901,6 +2930,9 @@ of periods recalculates every student's limits for the whole semester, past week
     teacher holds `courses:edit` and courses have no teacher field, so any teacher can change
     any course's schedule. Suggested: an audit entry with the old and new `teaching_schedule` and
     `periods_per_week` (and the other changed fields) on every course update. No decision needed.
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"): every course change and
+      every change of its evaluation rules, with the changed fields before and after, shown on
+      the Audit Log page.
 
 <!-- -->
 
@@ -2911,6 +2943,22 @@ of periods recalculates every student's limits for the whole semester, past week
     effect), with the total counted week by week from the schedule that applied then; needs a
     semester start date and an additive migration. **Needs the owner's choice of approach before
     it is built** (a larger change; it touches the absence limits and the final grades).
+    - **The owner's choice, 2026-11-22** ("go with your recommendation for 71"): not the dated
+      history, but **one stored total per course, set by a question at the moment of change.**
+      A new nullable column, "periods in the semester", empty for every course (an additive
+      migration); while it is empty today's rule applies (periods per week × 14), so no course
+      changes until someone changes a schedule. When the period count of a course that already
+      has attendance changes, todo 69's warning asks: "it was wrong from the start" (a
+      correction: the whole semester is counted again, as today, and the stored total is
+      cleared) or "it changes from week N on" (the total becomes the weeks before N at the old
+      count plus the rest at the new one: 2 → 3 from week 8 gives 7 × 2 + 7 × 3 = 35, where
+      today it jumps to 42). N is filled in from the course's first recorded lesson and can be
+      corrected. An administrator can also type the total in Edit Course, where the
+      curriculum fixes a course's hours. Todo 70's audit entry is the record of what changed
+      when. Why not the history: a correction and a real change cannot be told apart without
+      asking, so the question is needed either way, and once it is asked one number is enough;
+      the history needs a new table, a semester start date (none exists) and a week-by-week
+      count in every absence calculation. Built after 69, whose dialog it uses.
 
 <!-- -->
 
