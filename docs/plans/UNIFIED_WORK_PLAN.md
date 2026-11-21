@@ -218,6 +218,18 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
+**2026-11-21: the dependency review checks an allow list of licences** (this PR; the owner,
+after the deprecation notice that `actions/dependency-review-action` posted on PR 458: "Allow
+today's licences"). Its `deny-licenses` option (here GPL-3.0 and AGPL-3.0) is deprecated, with
+possible removal in the action's next major version; the maintainers' reason (their issue 997)
+is that a deny list lets through every licence nobody thought to list. `allow-licenses` now
+names the 21 licence identifiers that GitHub's dependency graph showed on 2026-11-21, checked
+against its SBOM (none missing, none extra); GPL-3.0 and AGPL-3.0 are not among them, LGPL-3.0
+and MPL-2.0 are (about 29 packages use them). A new dependency with another licence fails the
+review until its licence is added there or the package is named in `allow-dependencies-licenses`;
+a licence GitHub cannot detect only warns. The first real test is the next Dependabot PR that
+brings in a new package.
+
 **2026-11-21: the Updates panel says what failed, in the page's language** (PR 458, merged as
 `fc339907b`; todo 66). CI green on the PR: backend 2,066 passed and 55 skipped, frontend 2,097
 passed (four more than before), E2E 77 passed (started by hand: a PR opened without the

@@ -20,6 +20,15 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: always
-          # Allow specific packages with known issues if needed
-          # allow-licenses: MIT, Apache-2.0, BSD-3-Clause
-          deny-licenses: GPL-3.0, AGPL-3.0
+          # An allow list, not a deny list: `deny-licenses` is deprecated (possible removal in the
+          # action's next major version) and lets through every licence nobody thought to list.
+          # These are the licences GitHub's dependency graph showed on 2026-11-21 (the owner:
+          # "Allow today's licences"); GPL-3.0 and AGPL-3.0, the old deny list, are not among them.
+          # A dependency with another licence fails the review until it is checked and either
+          # its licence added here or the package named in allow-dependencies-licenses (purl).
+          # A licence GitHub cannot detect only warns.
+          allow-licenses: >-
+            0BSD, Apache-2.0, BlueOak-1.0.0, BSD-2-Clause, BSD-2-Clause-Views, BSD-3-Clause,
+            CC-BY-4.0, CC0-1.0, ISC, LGPL-2.0-or-later, LGPL-3.0-only, LGPL-3.0-or-later,
+            LicenseRef-scancode-protobuf, LicenseRef-scancode-public-domain,
+            LicenseRef-scancode-unicode, MIT, MIT-0, MPL-2.0, PSF-2.0, Python-2.0, Unlicense
