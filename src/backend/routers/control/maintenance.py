@@ -6,15 +6,18 @@ authentication and authorization policies.
 
 from __future__ import annotations
 
+import base64
 import json
 import hashlib
 import logging
 import os
 import re
+import subprocess
+import sys
 import threading
 import urllib.request
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, Callable, Dict, Literal, Optional, cast
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -49,9 +52,15 @@ def _deployment_mode(context: Any) -> DeploymentMode:
 
 
 # Installer switches for updating SMS Lite in place (SMS_Installer.iss): only the Lite edition's
-# files, then start SMS Lite again; the installer first waits for this SMS Lite to exit.
-LITE_INSTALLER_ARGS = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /EDITION=lite /RESTARTLITE=1 /WAITLITE=1"
+# files; the installer first waits for this SMS Lite to exit. The installer does not start SMS
+# Lite again: started through "runas", it runs elevated, and Inno Setup's runasoriginaluser cannot
+# go back to the user's own rights from there, so SMS Lite came back as administrator (plan todo
+# 68, 2026-11-21). A helper with this user's own rights starts it instead (_start_lite_restarter).
+LITE_INSTALLER_ARGS = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /EDITION=lite /WAITLITE=1"
+# Only when that helper cannot be started: the installer starts SMS Lite again, elevated as before.
+LITE_INSTALLER_RESTART_ARG = "/RESTARTLITE=1"
 LITE_EXIT_DELAY_SECONDS = 3.0
+LITE_RESTART_MAX_WAIT_MINUTES = 30
 HOST_UPDATER_HEARTBEAT_MAX_AGE_SECONDS = 90
 
 
@@ -263,6 +272,71 @@ def _launch_installer_elevated(installer_path: Path, arguments: str) -> None:
     "runas" shows the UAC prompt. Raises OSError (winerror 1223) if the user declines it."""
     startfile = getattr(os, "startfile")  # Windows only
     startfile(str(installer_path), "runas", arguments)
+
+
+def _lite_executable() -> Optional[Path]:
+    """SMS_Lite.exe of this installation, or None when SMS Lite runs from source."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable)
+    return None
+
+
+def _ps_quote(value: str) -> str:
+    """A PowerShell single-quoted string literal."""
+    return "'" + value.replace("'", "''") + "'"
+
+
+def _lite_restarter_script(lite_pid: int, installer_name: str, lite_exe: PurePath, log_path: PurePath) -> str:
+    """PowerShell that waits for this SMS Lite to exit and for the installer to finish, then starts
+    SMS Lite again, writing each step to log_path. The installer's processes are found by name
+    ("SMS_Installer_1.18.79" and its ".tmp"), which a process without administrator rights can see.
+    It stops waiting after LITE_RESTART_MAX_WAIT_MINUTES and starts SMS Lite anyway."""
+    log = _ps_quote(str(log_path))
+    return "; ".join(
+        [
+            "$ErrorActionPreference = 'SilentlyContinue'",
+            "function Write-Step($text) { Add-Content -LiteralPath "
+            + log
+            + " -Value ((Get-Date -Format 'yyyy-MM-ddTHH:mm:ss.fff') + ' ' + $text) }",
+            f"$deadline = (Get-Date).AddMinutes({LITE_RESTART_MAX_WAIT_MINUTES})",
+            f"Write-Step {_ps_quote(f'waiting for SMS Lite (process {int(lite_pid)}) to exit')}",
+            f"while ((Get-Date) -lt $deadline -and (Get-Process -Id {int(lite_pid)})) {{ Start-Sleep -Seconds 1 }}",
+            f"Write-Step {_ps_quote(f'waiting for the installer ({installer_name}) to finish')}",
+            f"while ((Get-Date) -lt $deadline -and (Get-Process -Name {_ps_quote(installer_name + '*')})) "
+            "{ Start-Sleep -Seconds 2 }",
+            f"Write-Step {_ps_quote(f'starting {lite_exe}')}",
+            f"Start-Process -FilePath {_ps_quote(str(lite_exe))} -WorkingDirectory {_ps_quote(str(lite_exe.parent))}",
+        ]
+    )
+
+
+def _run_hidden_powershell(script: str) -> subprocess.Popen:
+    """Start a PowerShell script detached and without a window; it outlives this process."""
+    encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
+    flags = getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    return subprocess.Popen(
+        ["powershell.exe", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-EncodedCommand", encoded],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        close_fds=True,
+        creationflags=flags,
+    )
+
+
+def _start_lite_restarter(installer_path: Path) -> Optional[subprocess.Popen]:
+    """Start the helper that starts SMS Lite again after the update, with this user's own rights.
+
+    It is a child of this SMS Lite, which runs without administrator rights, so SMS Lite comes back
+    as the same user, with that user's data folder, even when someone else typed an administrator's
+    password at the UAC prompt. Its steps go to lite-restart.log beside the downloaded installer.
+    Returns None when SMS Lite runs from source (nothing to restart).
+    """
+    lite_exe = _lite_executable()
+    if lite_exe is None:
+        return None
+    log_path = installer_path.parent / "lite-restart.log"
+    return _run_hidden_powershell(_lite_restarter_script(os.getpid(), installer_path.stem, lite_exe, log_path))
 
 
 def _schedule_lite_exit(delay_seconds: float = LITE_EXIT_DELAY_SECONDS) -> None:
@@ -543,9 +617,24 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
             progress_percent=95,
             message="Waiting for the Windows security prompt (UAC).",
         )
+        # The helper that starts SMS Lite again with this user's own rights: started first, so it
+        # can wait for this very process to exit. Without it the installer restarts SMS Lite
+        # itself, elevated, as before.
+        restarter: Optional[subprocess.Popen] = None
         try:
-            _launch_installer_elevated(installer_path, LITE_INSTALLER_ARGS)
+            restarter = _start_lite_restarter(installer_path)
+        except Exception as exc:
+            logger.warning("SMS Lite restart helper could not be started (%s); the installer restarts it", exc)
+        if restarter is not None:
+            installer_args = LITE_INSTALLER_ARGS
+        else:
+            installer_args = f"{LITE_INSTALLER_ARGS} {LITE_INSTALLER_RESTART_ARG}"
+        try:
+            _launch_installer_elevated(installer_path, installer_args)
         except OSError as exc:
+            if restarter is not None:
+                # SMS Lite keeps running: nothing to start again
+                restarter.kill()
             declined = getattr(exc, "winerror", None) == 1223
             _mark_auto_update_failed(
                 job_id,

@@ -218,7 +218,24 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
-**2026-11-21: the dependency review checks an allow list of licences** (this PR; the owner,
+**2026-11-21: after its own Update, SMS Lite starts again with the user's own rights** (this PR;
+todo 68; the owner: "continue with suggested"). SMS Lite no longer asks the installer to start
+it again (`/RESTARTLITE=1`): started through "runas", the installer runs elevated and cannot go
+back to the user's rights. Before it starts the installer, SMS Lite now starts a small hidden
+PowerShell helper as its own child, so with the same user's rights. The helper waits for this
+SMS Lite to exit, then for the installer's processes to finish (found by the installer's file
+name, which a process without administrator rights can see), then starts `SMS_Lite.exe`. Each
+step goes to `lite-restart.log` beside the downloaded installer, in the user's profile. A No at
+the UAC prompt stops the helper (SMS Lite keeps running, as before); if the helper cannot be
+started, the installer restarts SMS Lite as before. The installer itself is unchanged, so an
+older SMS Lite that still passes `/RESTARTLITE=1` behaves as before. "runas" stays: the comment
+saying CreateProcess failed did not need re-checking for this way. Tests: the order (helper
+first, then the installer, without `/RESTARTLITE`), the helper stopped after a No, the fallback,
+the script's quoting, and the real script under Windows PowerShell with stand-in processes (it
+starts SMS Lite only after both are gone). The restart itself is proven only by a real update
+from a release that carries this.
+
+**2026-11-21: the dependency review checks an allow list of licences** (PR 459; the owner,
 after the deprecation notice that `actions/dependency-review-action` posted on PR 458: "Allow
 today's licences"). Its `deny-licenses` option (here GPL-3.0 and AGPL-3.0) is deprecated, with
 possible removal in the action's next major version; the maintainers' reason (their issue 997)
@@ -2740,6 +2757,11 @@ and 44 and 48 in its part 5):
       rights and keeps the user's for `runasoriginaluser`. Suggested: start it with "open".
       First re-check the comment in `maintenance.py` that CreateProcess failed with
       ERROR_ELEVATION_REQUIRED, then check the restart in a real update.
+    - **Done 2026-11-21 another way** (the entry under "On `main` since v1.18.78"): "open"
+      would show the UAC prompt only after SMS Lite had already set its exit, so a No would
+      leave SMS Lite closed. Instead "runas" stays, and a helper with the user's own rights
+      starts SMS Lite again once the installer has finished. **Left:** seeing it in a real
+      update (a release that carries it, updated to a later one).
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
