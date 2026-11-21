@@ -218,8 +218,17 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
-**2026-11-21: SMS Lite's Update saves the installer it downloads in the user's profile** (this
-PR; found the same day by todo 40's Lite test). Until now it saved it beside its code, in
+**2026-11-21: the Updates panel says what failed, in the page's language** (this PR; todo 66).
+A failed install is titled "Automatic update failed…" instead of "Error checking for updates",
+and the note that the update started goes when it fails (the page used to say both). The start
+of an update and SMS Lite closing for the installer are told with translated texts
+(`updateLiteStarted`, `updateDockerStarted`, `updateLiteRestarting`) instead of the server's
+English sentences. The two boxes have light-theme colours beside the dark ones. Tests in
+`UpdatesPanel.modes.test.tsx`: three fail on the old panel, one per defect; the fourth keeps a
+failed check under its own title.
+
+**2026-11-21: SMS Lite's Update saves the installer it downloads in the user's profile** (PR
+457; found the same day by todo 40's Lite test). Until now it saved it beside its code, in
 `C:\Program Files\SMS\_internal\artifacts\updates`. SMS Lite runs without administrator rights
 and cannot write there, so the Update of every installed SMS Lite stopped with "[WinError 5]
 Access is denied" before the Windows security prompt. The tests never saw it: each one replaced
@@ -2121,8 +2130,8 @@ The owner's Docker test install on the dev PC was updated to it by hand through 
 40), and is replaced for a while by todo 40's SMS Lite test (2026-11-21). Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on
 2026-11-21 and found that the Update of an installed SMS Lite could never save its download,
 fixed under "On `main` since v1.18.78"); todos 65 to 67, found by that test (the uninstall entry
-in Settings → Apps, the Updates panel's messages, SMS Lite stopping under a page in the
-background); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
+in Settings → Apps, the Updates panel (its messages fixed, its other colours left), SMS Lite
+stopping under a page in the background); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2662,6 +2671,14 @@ and 44 and 48 in its part 5):
     translated `updateInstallStarted`, and it stays beside the red one after the job fails.
     Both boxes use dark-theme colours only (`text-red-300`, `text-green-300` on a 30 % tint)
     and are hard to read in the light theme.
+    - **Done 2026-11-21** (the entry under "On `main` since v1.18.78"): the title says what
+      failed, the "started" note goes on a failure, the start and SMS Lite's closing are
+      translated, and both boxes have light-theme colours.
+    - **Left:** the rest of the panel (the "Update Available" banner, the release card, the
+      instructions) still uses dark-theme colours only. The body of a failure is the server's
+      English text: the job's failures have no message keys. The Docker host task's status
+      texts are shown as they come; they are seen for the first time when todo 40's Docker
+      half runs.
 
 <!-- -->
 

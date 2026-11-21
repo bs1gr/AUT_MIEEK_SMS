@@ -84,6 +84,9 @@ export const UpdatesPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // What failed: the check or the install. Every error used to be titled "Error checking for
+  // updates", a failed SMS Lite update too (2026-11-21).
+  const [errorKind, setErrorKind] = useState<'check' | 'install'>('check');
   const [installMessage, setInstallMessage] = useState<string | null>(null);
   const [updaterStatus, setUpdaterStatus] = useState<AutoUpdateStatusResponse | null>(null);
   const [timelineMode, setTimelineMode] = useState<'grouped' | 'raw'>(() => {
@@ -161,6 +164,14 @@ export const UpdatesPanel: React.FC = () => {
     }
   }, []);
 
+  // A failed install: titled as such, and the note that it started goes (it stayed beside the
+  // error, so the page said both "started" and "failed").
+  const failInstall = useCallback((message: string) => {
+    setErrorKind('install');
+    setInstallMessage(null);
+    setError(message);
+  }, []);
+
   const fetchUpdaterStatus = useCallback(async (jobId: string) => {
     let status: AutoUpdateStatusResponse;
     try {
@@ -177,7 +188,7 @@ export const UpdatesPanel: React.FC = () => {
       }
       stopUpdaterPolling();
       setInstalling(false);
-      setError(t('updateInstallFailed'));
+      failInstall(t('updateInstallFailed'));
       return;
     }
     setUpdaterStatus(status);
@@ -185,13 +196,19 @@ export const UpdatesPanel: React.FC = () => {
     if (status.status === 'completed') {
       stopUpdaterPolling();
       setInstalling(false);
-      setInstallMessage(status.message || (t('updateInstallStarted') || 'Installer launched successfully.'));
+      // SMS Lite's own words, not the server's English sentence. The Docker host task's status
+      // text is shown as it comes (todo 66: not yet seen in a real Docker update).
+      setInstallMessage(
+        updateInfo?.deployment_mode === 'lite'
+          ? t('updateLiteRestarting')
+          : status.message || (t('updateInstallStarted') || 'Installer launched successfully.'),
+      );
     } else if (status.status === 'failed' || status.status === 'not_found') {
       stopUpdaterPolling();
       setInstalling(false);
-      setError(status.error || status.message || (t('updateInstallFailed') || 'Automatic update failed.'));
+      failInstall(status.error || status.message || (t('updateInstallFailed') || 'Automatic update failed.'));
     }
-  }, [stopUpdaterPolling, t, updateInfo?.deployment_mode]);
+  }, [failInstall, stopUpdaterPolling, t, updateInfo?.deployment_mode]);
 
   const startUpdaterPolling = useCallback(async (jobId: string) => {
     stopUpdaterPolling();
@@ -224,11 +241,14 @@ export const UpdatesPanel: React.FC = () => {
       }
       window.dispatchEvent(new Event('sms:update-status'));
     } catch (err) {
+      setErrorKind('check');
       setError(err instanceof Error ? err.message : 'Failed to check for updates');
     } finally {
       setLoading(false);
     }
   }, [formatTime]);
+
+  const deploymentMode = updateInfo?.deployment_mode;
 
   const installUpdate = useCallback(async () => {
     setInstalling(true);
@@ -243,11 +263,13 @@ export const UpdatesPanel: React.FC = () => {
       });
       if (response?.data?.success === false) {
         // e.g. Docker without the host task, or a developer checkout: the message says what to do
-        setError(response.data.message || t('updateInstallFailed'));
+        failInstall(response.data.message || t('updateInstallFailed'));
         setInstalling(false);
         return;
       }
-      setInstallMessage(response?.data?.message || t('updateInstallStarted'));
+      // In the page's language: the server's sentence ("Smart updater started. Track progress
+      // from the updater timeline.") is English only.
+      setInstallMessage(deploymentMode === 'docker' ? t('updateDockerStarted') : t('updateLiteStarted'));
       const jobId = response?.data?.details?.job_id;
       if (jobId) {
         await startUpdaterPolling(jobId);
@@ -258,10 +280,10 @@ export const UpdatesPanel: React.FC = () => {
       const data = isAxiosError(err)
         ? (err.response?.data as { detail?: string; message?: string } | undefined)
         : undefined;
-      setError(data?.message || data?.detail || (err instanceof Error ? err.message : '') || t('updateInstallFailed'));
+      failInstall(data?.message || data?.detail || (err instanceof Error ? err.message : '') || t('updateInstallFailed'));
       setInstalling(false);
     }
-  }, [releaseChannel, startUpdaterPolling, t]);
+  }, [deploymentMode, failInstall, releaseChannel, startUpdaterPolling, t]);
 
   // No auto-check on mount — updates are only checked when the user clicks a button
 
@@ -366,21 +388,35 @@ export const UpdatesPanel: React.FC = () => {
         </p>
       )}
 
-      {/* Error Message */}
+      {/* Error Message: light and dark colours (the dark ones alone were barely readable in the
+          light theme) */}
       {error && (
-        <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle size={20} className="text-red-400 shrink-0 mt-0.5" />
+        <div
+          className="bg-red-50 border border-red-200 dark:bg-red-900/30 dark:border-red-700 rounded-lg p-4 flex items-start gap-3"
+          role="alert"
+          data-testid="update-error"
+        >
+          <AlertCircle size={20} className="text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
           <div>
-            <p className="text-red-300 font-semibold">{t('updateCheckError') || 'Error checking for updates'}</p>
-            <p className="text-red-400 text-sm mt-1">{error}</p>
+            <p className="text-red-800 dark:text-red-300 font-semibold">
+              {errorKind === 'install'
+                ? t('updateInstallFailed') || 'Automatic update failed.'
+                : t('updateCheckError') || 'Error checking for updates'}
+            </p>
+            {!(errorKind === 'install' && error === t('updateInstallFailed')) && (
+              <p className="text-red-700 dark:text-red-400 text-sm mt-1">{error}</p>
+            )}
           </div>
         </div>
       )}
 
       {installMessage && (
-        <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 flex items-start gap-3">
-          <CheckCircle size={20} className="text-green-400 shrink-0 mt-0.5" />
-          <p className="text-green-300 text-sm">{installMessage}</p>
+        <div
+          className="bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-700 rounded-lg p-4 flex items-start gap-3"
+          data-testid="update-install-message"
+        >
+          <CheckCircle size={20} className="text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+          <p className="text-green-800 dark:text-green-300 text-sm">{installMessage}</p>
         </div>
       )}
 

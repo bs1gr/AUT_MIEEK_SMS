@@ -103,3 +103,75 @@ describe('UpdatesPanel per deployment mode', () => {
     expect(await screen.findByText(/supported on Windows only/)).toBeInTheDocument();
   });
 });
+
+// The owner's screenshot of a failed SMS Lite update (2026-11-21): the failure was titled "Error
+// checking for updates", and the server's English "Smart updater started…" stayed beside it on a
+// Greek page.
+describe('UpdatesPanel messages while updating', () => {
+  const jobId = 'b'.repeat(32);
+  const started = {
+    data: { success: true, message: 'Smart updater started. Track progress from the updater timeline.', details: { job_id: jobId } },
+  };
+  const job = (overrides: Record<string, unknown>) => ({
+    data: { job_id: jobId, phase: 'downloading', progress_percent: 10, installer_launched: false, message: null, error: null, phase_history: [], ...overrides },
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    auth.role = 'admin';
+  });
+
+  it('a failed install is titled as a failed update, and the note that it started goes', async () => {
+    const user = await openWith(check({ deployment_mode: 'lite', update_method: 'installer' }));
+    mockedAxios.post.mockResolvedValue(started);
+    mockedAxios.get.mockResolvedValue(job({
+      status: 'failed',
+      phase: 'failed',
+      message: 'Updater job failed unexpectedly.',
+      error: "[WinError 5] Access is denied: 'C:\\Program Files\\SMS\\_internal\\artifacts'",
+    }));
+    await user.click(screen.getByTestId('update-now'));
+
+    expect(await screen.findByText(/WinError 5/)).toBeInTheDocument();
+    expect(screen.getByText('updateInstallFailed')).toBeInTheDocument();
+    expect(screen.queryByText('updateCheckError')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Smart updater started/)).not.toBeInTheDocument();
+    expect(screen.queryByText('updateLiteStarted')).not.toBeInTheDocument();
+  });
+
+  it('the start of an update is told in the page language, not in the server English', async () => {
+    const user = await openWith(check({ deployment_mode: 'lite', update_method: 'installer' }));
+    mockedAxios.post.mockResolvedValue(started);
+    mockedAxios.get.mockResolvedValue(job({ status: 'running' }));
+    await user.click(screen.getByTestId('update-now'));
+
+    expect(await screen.findByText('updateLiteStarted')).toBeInTheDocument();
+    expect(screen.queryByText(/Smart updater started/)).not.toBeInTheDocument();
+  });
+
+  it('SMS Lite closing for the installer is told in the page language', async () => {
+    const user = await openWith(check({ deployment_mode: 'lite', update_method: 'installer' }));
+    mockedAxios.post.mockResolvedValue(started);
+    mockedAxios.get.mockResolvedValue(job({
+      status: 'completed',
+      phase: 'completed',
+      progress_percent: 100,
+      installer_launched: true,
+      message: 'SMS Lite is closing to update and will start again in about a minute.',
+    }));
+    await user.click(screen.getByTestId('update-now'));
+
+    expect(await screen.findByText('updateLiteRestarting')).toBeInTheDocument();
+  });
+
+  it('a failed check keeps the check title', async () => {
+    mockedAxios.get.mockRejectedValue(new Error('Network Error'));
+    const user = userEvent.setup();
+    render(<UpdatesPanel />);
+    await user.click(screen.getByRole('button', { name: /checkForUpdates/ }));
+
+    expect(await screen.findByText('updateCheckError')).toBeInTheDocument();
+    expect(screen.getByText('Network Error')).toBeInTheDocument();
+    expect(screen.queryByText('updateInstallFailed')).not.toBeInTheDocument();
+  });
+});
