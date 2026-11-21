@@ -174,7 +174,8 @@ is written per slow statement (`Slow query detected (… ms)`), so a warning in
 The VM makes one encrypted backup of the shared database a day and keeps the newest 30
 ([what it does and how to restore](../admin/BACKUP_AND_RESTORE.md)). Backups and their key are on
 the data volume, so they outlive a rebuild of the image. This is the copy of the database that
-is not on the NAS; it is also only on the VM until somebody fetches one.
+is not on the NAS; since 2026-11-21 each backup is also copied off the VM, to Object Storage
+(below).
 
 ```bash
 # What is there, and what the server said about it
@@ -188,6 +189,49 @@ sudo docker cp sms-cloud:/data/.keys/master.key ./sms-master.key
 
 Keep the key apart from the backups. `AUTO_BACKUP_ENABLED=false` in `.env` switches the backup
 off (the page then says so).
+
+### Copies in Oracle Object Storage
+
+Since 2026-11-21 every backup also goes to the bucket `sms-backups` (Always Free Object Storage,
+20 GB; a backup is about 0.6 MB). A systemd timer on the VM runs
+`/usr/local/bin/sms-offsite-backup` every 6 hours (00:30, 06:30, 12:30, 18:30 UTC). It sends each
+`*.enc` of the backup folder that it has not sent before, as `sms-cloud/<file name>`, with a
+`Content-MD5` header that Object Storage checks; what it sent is listed in
+`/var/lib/sms-offsite-backup/uploaded.txt`. **The key is never sent:** a copy is only of use with
+the key kept elsewhere (the owner's vault, the dev PC).
+
+- **The bucket** (owner, in the console): private, Standard tier, Oracle-managed encryption. A
+  **write-only pre-authenticated request** (target the bucket, "Permit object writes", no
+  listing) lets the VM add files and nothing else: it cannot read, list or delete. A
+  **retention rule** (`keep-one-year`, 365 days, not locked) keeps anyone, also someone holding
+  that address, from overwriting or deleting a copy for a year. Sending a file again that the
+  bucket holds gets HTTP 403 `RetentionRuleViolation` (tried once, 2026-11-21); the script then
+  counts the file as "already there", so a lost list (a rebuilt VM) raises no alarm. Nothing
+  deletes a copy after the year: at about 0.6 MB a day the 20 GB last for decades.
+- **The settings** are in `/etc/sms-offsite-backup.env` (root, 600, never in the repository):
+  `OFFSITE_PAR_URL` (the request's address, ending in `/o/`) and `OFFSITE_PING_URL` (a
+  healthchecks.io check "sms offsite backup": period 1 day, grace 12 hours). After a run without
+  failures the script pings the check, after a failed upload its `/fail` address; a failed file
+  is tried again on the next run. No ping for a day and a half means an e-mail.
+- **When the request expires** (on 31 December 2027), every upload fails and the check says so:
+  before then, make a new pre-authenticated request and put its address in the settings file.
+- **To restore from a copy:** download the object in the console (bucket → Objects →
+  `sms-cloud/`), then restore it as any encrypted backup, with the key
+  ([BACKUP_AND_RESTORE](../admin/BACKUP_AND_RESTORE.md)).
+
+The script, its two systemd units and an example settings file are in
+`infra/docker/cloud/offsite-backup/`. They are installed by hand, because the VM's checkout
+follows the release tags:
+
+```bash
+sudo install -m 755 sms-offsite-backup.sh /usr/local/bin/sms-offsite-backup
+sudo install -m 644 sms-offsite-backup.service sms-offsite-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now sms-offsite-backup.timer
+# A run now, and what it did
+sudo systemctl start sms-offsite-backup.service
+sudo journalctl -u sms-offsite-backup.service -n 20 --no-pager -o cat
+systemctl list-timers sms-offsite-backup.timer
+```
 
 ## Watching the server
 

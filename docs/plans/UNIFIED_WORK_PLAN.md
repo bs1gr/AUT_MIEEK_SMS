@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.79
-**Last Updated**: November 21, 2026
+**Last Updated**: November 22, 2026
 **Status**: ✅ **v1.18.79 released 2026-11-21** (tag on `0d3554c3b`, run by the assistant; the
 owner: "release v1.18.79 and update the VM"). It carries PRs 456 to 463, under "In v1.18.79"
 below: SMS Lite's Update saves its download in the user's profile and starts SMS Lite again with
@@ -36,6 +36,9 @@ by hand (the release text says so).
   time, with Update in the Control Panel: todo 40's Docker half). The host task installed the
   release, then its rebuild failed with exit code 64; the owner started SMS from SMS Manager.
   The fix is under "On `main` since v1.18.79".
+- **The cloud VM's backups are also copied off the VM since 2026-11-21**, to a bucket in
+  Oracle Object Storage every 6 hours, watched by a second healthchecks.io check (todo 55; the
+  owner: "set up the backup copies to Object Storage"). Under "On `main` since v1.18.79".
 
 **Before that: v1.18.78 released 2026-11-21** (tag on `1ea198829`, run by the assistant; the
 owner's go-ahead of 2026-11-20, after going through every open todo: "Release + update VM").
@@ -253,8 +256,29 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
-**2026-11-21: the Docker host task's rebuild starts from "C:\Program Files\SMS"** (this PR; todo
-40; the owner: "continue with the fix PR"). Found by the first update from the page (todo 40):
+**2026-11-21: every backup of the cloud VM is also copied to Oracle Object Storage** (this PR;
+todo 55; the owner: "set up the backup copies to Object Storage"). In the console the owner
+made a private bucket `sms-backups` (Always Free, 20 GB), a write-only pre-authenticated
+request for it (it can add files, not read, list or delete them; it expires on 31 December
+2027), a retention rule `keep-one-year` (365 days, not locked) and a healthchecks.io check
+"sms offsite backup" (period 1 day, grace 12 hours). The new
+`infra/docker/cloud/offsite-backup/sms-offsite-backup.sh`, run every 6 hours by a systemd timer,
+sends each `*.enc` backup it has not sent before with a `Content-MD5` header, lists what it
+sent in `/var/lib/sms-offsite-backup/uploaded.txt`, and pings the check, or its `/fail`
+address after a failed upload (that file is tried again next time). The backup key is never
+sent. The request's address and the ping address are only in `/etc/sms-offsite-backup.env` on
+the VM (root, 600), never in the repository. Installed by hand on the VM the same night (its
+checkout follows the release tags): the first run copied the 8 backups there, none failed,
+and the check went green. Sent again once after the retention rule existed, a copied backup
+got HTTP 403 `RetentionRuleViolation`; the script counts that answer as "already there", so
+a lost list (a rebuilt VM) raises no alarm, and any other refusal stays a failure with
+Oracle's message in the log. Tests: `test_cloud_offsite_backup_sh.py`, Linux only (CI); run
+on the VM with a stand-in for pytest: 6 passed, and the 2 tests of the refusal fail on the
+first version. Runbook: "Copies in Oracle Object Storage" in
+`docs/deployment/CLOUD_HOST_ORACLE.md`.
+
+**2026-11-21: the Docker host task's rebuild starts from "C:\Program Files\SMS"** (PR 464,
+merged as `4a2e8274a`; todo 40; the owner: "continue with the fix PR"; CI green). Found by the first update from the page (todo 40):
 the task ran the v1.18.79 installer, then `DOCKER.ps1 -Update` exited with code 64.
 `update-watcher.ps1` handed script paths to `Start-Process -ArgumentList` unquoted, and
 `Start-Process` joins that list with spaces and quotes nothing, so
@@ -2280,23 +2304,24 @@ proven only at the next release's updates, 66 (the Control Panel's colours, both
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
 background) the owner's call; todos 69 to 72 on changing a course's teaching schedule (a
 warning before a change in periods is saved, an audit entry, frozen totals for weeks already
-taught, absences in a period that no longer exists; 71 needs the owner's choice of approach); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
-of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
-stays on 14.18 for now) and its smaller items. Closed on
+taught, absences in a period that no longer exists; 71 needs the owner's choice of approach); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+stays on 14.18 for now) and its smaller items. Todo 55's copy of a newer backup taken off the
+VM now and then is automatic since 2026-11-21 (Object Storage), and nothing of todo 55 is left. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
 part 5 of the archive). Moot: `viewer` and `guest` getting 403 on the Dashboard
 overview, since those roles no longer exist (PR 425 turned them into "No role").
 
-**First in line: what only the owner can do, in todos 55 and 54.** Since v1.18.71 the cloud
+**The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
 since v1.18.72 it reports to a monitoring service, and a failed backup puts a notice in the
 administrators' bell; the owner set the service up and its test mail arrived. Since the
 night of 2026-11-16 the VM's backup key and one backup are also on the dev PC, and since
 2026-11-17 the key is in a third place: the owner put it, with a note on how to check a copy
 and how to restore, into the vault of their own cloud storage, which opens only after a
-second identity check. Left for the owner: a copy of a newer backup taken off the VM now and
-then (todo 55). **The shared database's PostgreSQL 14 reached its
+second identity check. Since 2026-11-21 every backup is also copied off the VM, to Oracle
+Object Storage every 6 hours, watched by a second check (todo 55): the copy by hand now and
+then is no longer needed. **The shared database's PostgreSQL 14 reached its
 end of life on 2026-11-12, and no newer image runs on the NAS; the owner stays on 14.18 for
 now** (todo 58).
 
@@ -2415,9 +2440,14 @@ word: the next release.
       confirmed that the key and the note are in it. The key now exists on the VM, on the dev
       PC and there; the note beside it holds its checksum and the way to restore, and no
       secret.
-    - **Left:** (a) the owner's: now and then a newer backup taken off the VM (the runbook has
+    - **Left:** ~~(a) the owner's: now and then a newer backup taken off the VM (the runbook has
       the commands; **a copy of 2026-11-20 is on the dev PC**, see below; it does not renew
-      itself). **Done 2026-11-20 (the owner: "treat the backup as well"):** the VM's newest
+      itself).~~ **Automatic since 2026-11-21 (the owner: "set up the backup copies to Object
+      Storage"):** every backup the VM makes is copied every 6 hours to the bucket
+      `sms-backups` in Oracle Object Storage, kept there at least a year by a retention rule,
+      and a second healthchecks.io check watches the copies (the entry under "On `main` since
+      v1.18.79"; the runbook's "Copies in Oracle Object Storage"). The key is not in the
+      bucket: it stays on the VM, on the dev PC and in the owner's vault. **Done 2026-11-20 (the owner: "treat the backup as well"):** the VM's newest
       backup, `auto_backup_20261119_151908.enc` (made 15:19 UTC on 19 November after the
       v1.18.74 migration: 30 tables, 2,361 rows), is in the owner's confidential folder
       beside the one of 16 November. Its SHA-256 on the VM and on the PC are equal
