@@ -6,13 +6,16 @@ plan, in this order. Nothing here describes the current state of the application
 see the plan and `CHANGELOG.md`. Earlier history is in
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H1.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H1.md).
 
-Three parts:
+Five parts (parts 1 to 3 moved on 2026-11-15, parts 4 and 5 on 2026-11-20, with todo 63
+added to part 5 on 2026-11-21):
 
-1. Releases v1.18.65 down to v1.18.51 and the work between them (the plan keeps v1.18.66 and
-   later).
+1. Releases v1.18.65 down to v1.18.51 and the work between them.
 2. The closed entries and dated notes of the plan's "Next todos" section. Entries that were
    still open on 2026-11-15 stayed in the plan; a line in italics marks where each one stood.
 3. The dated sections, from September 29 back to June 15, 2026.
+4. Releases v1.18.73 back to v1.18.66: the status records from the head of the plan and the
+   "In v1.18.x" sections (the plan keeps v1.18.74 and later).
+5. Closed todos moved from the plan's "Next todos" (44, 48, 52, 53, 56, 57, 59 to 64).
 
 ---
 

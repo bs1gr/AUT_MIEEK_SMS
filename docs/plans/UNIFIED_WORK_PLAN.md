@@ -211,7 +211,7 @@ Two things the update brought to light, neither changed:
   opens both, so nothing is refused: only the list of what the role holds, in the Permissions
   Catalog, is two lines shorter than on a new installation.
 
-The status records of v1.18.73 back to v1.18.67 are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
+The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
@@ -2101,7 +2101,7 @@ tree as evidence that GitHub is clear.
 the answers are under "In v1.18.78"). v1.18.78 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
 The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
-40). Still open: todo 40's Docker host task (with v1.18.79) and its Lite half; todo 50's owner side; todo 55's copy
+40). Still open: todo 40's Docker host task (with v1.18.79) and its Lite half; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2568,12 +2568,15 @@ and 44 and 48 in its part 5):
         on the dev PC (2025 to June 2026). Under the adopted one-year backup rule they can go
         when the owner chooses.
       - **Out of reach:** snapshots on the QNAP itself, and files already sent to others.
-      - **Still open:** the controller's name and contact for the `PRIVACY_*` settings (supplied
-        by the owner, set in the servers' `.env`, never in the repository). **The owner,
+      - ~~**Still open:** the controller's name and contact for the `PRIVACY_*` settings (supplied
+        by the owner, set in the servers' `.env`, never in the repository).~~ **The owner,
         2026-11-20 ("Set them at the VM update"):** asked for when the VM is moved onto
         v1.18.78, and written into the VM's `.env` only. **Done 2026-11-21 on the VM** (the
-        owner typed them; the Privacy page answers `configured: true`). A home install that
-        should show them needs the same two settings in its own `.env`.
+        owner typed them; the Privacy page answers `configured: true`).
+      - **Left, both optional and the owner's (as of 2026-11-21):** the older installations'
+        archives above, removable under the one-year rule whenever the owner chooses; and the
+        same two `PRIVACY_*` settings in the `.env` of a home install, only if that install
+        should show them. Nothing in the code is open here.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
