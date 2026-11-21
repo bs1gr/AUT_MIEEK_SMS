@@ -1,8 +1,42 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.78
+**Current Version**: 1.18.79
 **Last Updated**: November 21, 2026
-**Status**: ✅ **v1.18.78 released 2026-11-21** (tag on `1ea198829`, run by the assistant; the
+**Status**: ✅ **v1.18.79 released 2026-11-21** (tag on `0d3554c3b`, run by the assistant; the
+owner: "release v1.18.79 and update the VM"). It carries PRs 456 to 463, under "In v1.18.79"
+below: SMS Lite's Update saves its download in the user's profile and starts SMS Lite again with
+the user's own rights, the uninstall entry in Settings → Apps works and No keeps the settings,
+the Updates panel says what failed in the page's language, the Control Panel reads in both
+themes, the release notes keep Greek text intact, and the dependency review checks an allow
+list of licences. **No database change** (the shared database stays at `e2b7c9d4a1f6`). **SMS
+Lite up to v1.18.78 cannot install this version by itself:** it takes the installer once, run
+by hand (the release text says so).
+
+- **Before the tag:** `RELEASE_READY` (no `-TagRelease`, release commit `ff70a5352`, 69 min
+  under the memory watchdog, never under 7.0 GB free): exit 0, backend 2,086 passed, 43
+  skipped, 0 failed, the frontend suite passed; the local test installer built (never
+  uploaded). The hand-written notes commit `0d3554c3b` passed `COMMIT_READY -Quick`;
+  `DOCKER_BUILD_CHECK.ps1 -Version 1.18.79` on it: the image builds for amd64 and arm64 (5 min;
+  the release commit's own run passed too); CI/CD (backend 2,073 passed and 56 skipped,
+  frontend 2,100) and E2E (77 passed) green on the same commit; the tag's release, installer
+  and APK workflows succeeded.
+- **Verified on the published assets:** `SMS_Installer_1.18.79.exe` 87,434,424 bytes, SHA-256
+  `82ee4de9…290f` = GitHub's digest, Authenticode Valid, CN=AUT MIEEK, thumbprint
+  `2693C1B1…075D`, timestamped, file version v1.18.79, not the local build (90,222,784 bytes);
+  `SMS_Android_1.18.79.apk` 4,637,277 bytes, SHA-256 `36874ca9…f2fc` = GitHub's digest,
+  `versionCode 118079`, signer `686fb6ed…d2ea` as before. The release has the hand-written text
+  (identical to `.github/RELEASE_NOTES_v1.18.79.md`) and those two files only.
+- **The cloud VM runs v1.18.79** (2026-11-21, 20:57 to 20:59 UTC, over SSH, on the same word):
+  `git checkout v1.18.79`, `docker compose up -d --build` (107 s), healthy 128 s after the
+  build began. `/health` v1.18.79 with the database connected and the migrations at head, on
+  the VM and through the tailnet; the student list answers 401 without a sign-in; the Privacy
+  page answers `configured: true`; no ERROR line, no traceback (one WARNING, the standing CSRF
+  notice). No backup was forced (no database change); the daily one stays at about 15:36 UTC.
+- **The owner's Docker test install on the dev PC** is still on v1.18.78; Docker Desktop was
+  stopped for the release run, as it was when the session began. Todo 40's Docker half (the
+  Update from the page, v1.18.78 to v1.18.79) waits for the owner.
+
+**Before that: v1.18.78 released 2026-11-21** (tag on `1ea198829`, run by the assistant; the
 owner's go-ahead of 2026-11-20, after going through every open todo: "Release + update VM").
 It carries PRs 448 to 455, under "In v1.18.78" below: backups, restore and the other
 dangerous Control Panel actions need a signed-in administrator also on the PC itself (448 to
@@ -2213,13 +2247,15 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Open work as of 2026-11-21** (after the owner went through every open todo on 2026-11-20;
-the answers are under "In v1.18.78"). v1.18.78 is released and the cloud VM runs it, with
+the answers are under "In v1.18.78"). v1.18.79 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
-The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
-40); it was replaced for todo 40's SMS Lite test on 2026-11-21 and put back the same day.
-Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on 2026-11-21 and
-found that the Update of an installed SMS Lite could never save its download, fixed under "In v1.18.79"); todos 65 to 68, found by that test: 65 (the uninstall entry in
-Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed on `main` and
+The owner's Docker test install on the dev PC runs v1.18.78 (updated by hand through UAC; it
+was replaced for todo 40's SMS Lite test on 2026-11-21 and put back the same day). Still open:
+todo 40's Docker host task (the Update from the page, v1.18.78 to v1.18.79, now possible; its
+Lite half was done on 2026-11-21 and found that the Update of an installed SMS Lite could never
+save its download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninstall
+entry in Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed in
+v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
 background) the owner's call; todos 69 to 72 on changing a course's teaching schedule (a
