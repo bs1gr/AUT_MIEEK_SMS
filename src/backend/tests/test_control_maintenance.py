@@ -4,6 +4,8 @@ Tests authentication settings management via /control/api/maintenance/*.
 """
 
 import json
+import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -419,10 +421,23 @@ def _lite_launch_mocks(monkeypatch):
     )
     monkeypatch.setenv("SMS_DEPLOYMENT_MODE", "lite")
     monkeypatch.setattr(maintenance, "_is_native_windows", lambda: True)
-    calls = {"launched": [], "exits": 0}
+    calls = {"launched": [], "exits": 0, "order": [], "restarters": [], "killed": 0}
     monkeypatch.setattr(
-        maintenance, "_launch_installer_elevated", lambda path, args: calls["launched"].append((path, args))
+        maintenance,
+        "_launch_installer_elevated",
+        lambda path, args: (calls["order"].append("launch"), calls["launched"].append((path, args))),
     )
+
+    class _Restarter:
+        def kill(self):
+            calls["killed"] += 1
+
+    def _restarter(installer_path):
+        calls["order"].append("restarter")
+        calls["restarters"].append(installer_path)
+        return _Restarter()
+
+    monkeypatch.setattr(maintenance, "_start_lite_restarter", _restarter)
 
     def _exit():
         calls["exits"] += 1
@@ -479,10 +494,13 @@ def test_lite_update_installs_only_the_lite_edition_through_uac(client, monkeypa
     job_id = data["details"]["job_id"]
     assert isinstance(job_id, str) and len(job_id) > 8
 
-    # Only the Lite edition, restarted afterwards, after this SMS Lite has exited
+    # Only the Lite edition, after this SMS Lite has exited. SMS Lite is started again by the
+    # helper with the user's own rights, not by the elevated installer (plan todo 68).
     assert calls["launched"] == [(tmp_path / "sms.exe", maintenance.LITE_INSTALLER_ARGS)]
-    for switch in ("/VERYSILENT", "/EDITION=lite", "/RESTARTLITE=1", "/WAITLITE=1"):
+    for switch in ("/VERYSILENT", "/EDITION=lite", "/WAITLITE=1"):
         assert switch in maintenance.LITE_INSTALLER_ARGS
+    assert "/RESTARTLITE" not in maintenance.LITE_INSTALLER_ARGS
+    assert calls["order"] == ["restarter", "launch"] and calls["restarters"] == [tmp_path / "sms.exe"]
     assert calls["exits"] == 1
 
     status_resp = client.get(
@@ -664,6 +682,7 @@ def test_lite_update_declined_at_uac_keeps_sms_lite_running(client, monkeypatch,
     assert status["status"] == "failed"
     assert "cancelled at the Windows security prompt" in status["message"]
     assert calls["exits"] == 0  # SMS Lite keeps running
+    assert calls["killed"] == 1  # and the helper that would have started it again is stopped
 
 
 def test_lite_update_refuses_an_installer_without_a_published_hash(
@@ -721,6 +740,112 @@ def test_lite_update_saves_the_installer_in_the_folder_sms_lite_names(
     assert status["status"] == "completed", status
     assert calls["launched"] == [(profile_updates / "s.exe", maintenance.LITE_INSTALLER_ARGS)]
     assert (profile_updates / "s.exe").is_file()  # the folder did not exist before
+
+
+def test_lite_update_lets_the_installer_restart_sms_lite_when_the_helper_cannot_start(
+    client, monkeypatch, tmp_path, control_admin_headers
+):
+    # Without the helper SMS Lite would stay closed after the update: the installer then starts it
+    # again itself, elevated, as before plan todo 68.
+    from backend.routers.control import maintenance
+
+    calls = _lite_launch_mocks(monkeypatch)
+    monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
+
+    def _no_helper(installer_path):
+        raise OSError("powershell.exe not found")
+
+    monkeypatch.setattr(maintenance, "_start_lite_restarter", _no_helper)
+    _lite_release(
+        monkeypatch,
+        [
+            {
+                "name": "SMS_Installer_1.0.1.exe",
+                "browser_download_url": "https://example.invalid/s.exe",
+                "digest": "sha256:" + "deadbeef" * 8,
+            }
+        ],
+    )
+
+    job_id = client.post(
+        "/control/api/maintenance/updates/auto-install", headers=control_admin_headers, json={"channel": "stable"}
+    ).json()["details"]["job_id"]
+    status = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    ).json()
+
+    assert status["status"] == "completed", status
+    assert calls["launched"] == [(tmp_path / "s.exe", f"{maintenance.LITE_INSTALLER_ARGS} /RESTARTLITE=1")]
+    assert calls["exits"] == 1
+
+
+def test_lite_restart_helper_script_waits_for_sms_lite_then_the_installer():
+    from pathlib import PureWindowsPath
+
+    from backend.routers.control import maintenance
+
+    script = maintenance._lite_restarter_script(
+        4321,
+        "SMS_Installer_1.18.79",
+        PureWindowsPath(r"C:\Program Files\SMS\SMS_Lite.exe"),
+        PureWindowsPath(r"C:\Users\o'neil\AppData\Local\SMS_Native_Lite_Simple\updates\lite-restart.log"),
+    )
+
+    assert "Get-Process -Id 4321" in script
+    assert "Get-Process -Name 'SMS_Installer_1.18.79*'" in script
+    assert (
+        r"Start-Process -FilePath 'C:\Program Files\SMS\SMS_Lite.exe' -WorkingDirectory 'C:\Program Files\SMS'"
+        in script
+    )
+    assert r"'C:\Users\o''neil\AppData" in script  # a quote in a path is doubled, not the string's end
+    assert script.index("-Id 4321") < script.index("-Name 'SMS_Installer") < script.index("Start-Process")
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="runs the helper with Windows PowerShell")
+def test_lite_restart_helper_runs_on_windows(tmp_path):
+    # The real script, run by Windows PowerShell with stand-ins: it gets to "starting" only after
+    # the stand-in for SMS Lite (2 s) and a process named like the installer (about 5 s) are gone.
+    import base64
+    import shutil
+    import subprocess
+    import uuid
+    from datetime import datetime
+
+    from backend.routers.control import maintenance
+
+    name = f"SMS_Installer_t{uuid.uuid4().hex[:8]}"
+    stand_in = tmp_path / f"{name}.exe"
+    shutil.copy(Path(os.environ["SystemRoot"]) / "System32" / "PING.EXE", stand_in)
+    no_window = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    began = datetime.now()
+    lite = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(2)"], creationflags=no_window)
+    installer = subprocess.Popen(
+        [str(stand_in), "-n", "6", "127.0.0.1"], stdout=subprocess.DEVNULL, creationflags=no_window
+    )
+    log = tmp_path / "lite-restart.log"
+    try:
+        script = maintenance._lite_restarter_script(lite.pid, name, tmp_path / "absent" / "SMS_Lite.exe", log)
+        encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
+        subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
+            timeout=120,
+            creationflags=no_window,
+            check=False,
+        )
+        assert lite.poll() is not None and installer.poll() is not None
+    finally:
+        for process in (lite, installer):
+            if process.poll() is None:
+                process.kill()
+
+    lines = log.read_text(encoding="utf-8").splitlines()
+    assert [line.split(" ", 1)[1].split(" (")[0] for line in lines] == [
+        "waiting for SMS Lite",
+        "waiting for the installer",
+        f"starting {tmp_path / 'absent' / 'SMS_Lite.exe'}",
+    ]
+    started_at = datetime.strptime(lines[2].split(" ", 1)[0], "%Y-%m-%dT%H:%M:%S.%f")
+    assert (started_at - began).total_seconds() >= 4.5  # it waited for the installer's stand-in
 
 
 def test_installer_asset_is_chosen_by_name():
