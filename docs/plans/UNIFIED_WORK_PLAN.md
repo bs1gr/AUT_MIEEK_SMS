@@ -2103,9 +2103,10 @@ the privacy controller's name and contact in its `.env` (2026-11-21, the top of 
 The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
 40). Still open: todo 40's Docker host task (with v1.18.79) and its Lite half; todo 50's owner side; todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
-stays on 14.18 for now) and its smaller items; todo 63's remaining readings. Closed on
+stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
-in the shared database (todo 56). Moot: `viewer` and `guest` getting 403 on the Dashboard
+in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
+part 5 of the archive). Moot: `viewer` and `guest` getting 403 on the Dashboard
 overview, since those roles no longer exist (PR 425 turned them into "No role").
 
 **First in line: what only the owner can do, in todos 55 and 54.** Since v1.18.71 the cloud
@@ -2298,8 +2299,11 @@ word: the next release.
       **Closed by PR 414:** both rewritten from the code and checked in a running copy.
     - ~~*`schedule_cleanup_task("hourly")` would run every minute* (`"*/1"` in the minute field of
       `maintenance_scheduler.py`). Only `"daily"` is ever asked for.~~ **Closed by #409.**
-    - *Installs older than v1.18.70 on the shared database:* see the note at the top of this
-      document. The owner's stopped `sms-app` container is v1.18.63.
+    - *Installs older than v1.18.70 on the shared database:* such a build answers with an
+      error when it saves a second rating for a slot that has one (the note is now in the
+      status record of v1.18.70, part 4 of the archive). The owner's `sms-app` container on
+      the dev PC is not one of them: it is a test install on a local SQLite file, on v1.18.78
+      since 2026-11-21 (todo 40).
     - ~~*"Slow query" warnings on the cloud host.* `db/query_profiler.py` warns about every
       statement over 100 ms; the database is 65 ms away, so the health check's own catalogue
       query warns every 30 seconds (13 of the 15 warnings in the VM's first five minutes on
@@ -2463,180 +2467,6 @@ word: the next release.
         the gate run again. To fix: the changed tests alone only when every changed backend
         file is a test file, otherwise the whole suite; and a pattern that means what it says.~~
         **Closed by #410**, for the frontend as well, where the same rule was live.
-63. **Found on 2026-11-17 while the permission documents were checked against a running
-    copy, and not changed** (each seen on a scratch server; the documents of PR 420 say what
-    the application does today, these entries included).
-    - **The owner's decisions of 2026-11-18, on what this entry had collected** (one
-      message, after the report on PRs 422 to 424): "1. Who may import: both teachers and
-      admins. 2. Student accounts: Remove "Student" from the role boxes. 3. Viewer and Guest:
-      Remove both considering Removing the built-in permission list for accounts that never
-      got a role row, which the note also asks for. It is a larger change: a start-up step,
-      and most test fixtures. 4. A teacher has no page for changing their own password, should
-      have access there. 5. Fix The audit log does not say who changed a role, and no page
-      shows it. 6. About twenty-five older documents (admin and user) were not read: read and
-      correct as needed . 7The Weight box of a grade: make it count. Also take up: audit log
-      entries that do not say who changed a role; the registration form's message that appears
-      in two languages at once; a sentence telling an account without access why its pages
-      fail; the text of the one-page PDF behind the help."
-      - *Points 1 to 3: done in PR 425* (see its entry: two roles, "No role", the closed list
-        of 44 permissions, teachers import).
-      - *Point 7: done in PR 426* (the Weight of a grade counts).
-      - *Point 4 and three of the four smaller ones: done in PR 427* (every account changes
-        its own password; the line for an account without a role; the sign-in form's
-        messages; the Quick Guide).
-      - *Point 5 and the fourth of the smaller ones: done in PR 428* (the audit log names
-        the author, has an entry for every change of an account, a role or a permission,
-        and a page shows it).
-      - *Point 6: done in PR 429* (twenty-three older documents read against the code and
-        corrected, none deleted; and what the reading found in the code). **All seven
-        points and the four smaller ones are done.**
-      - *Not in the message, and waiting for the owner's word:* a release and the update of
-        the cloud VM; whether teachers also get the session file; the four tools nothing runs
-        and the two unused page parts (delete or keep); what identifies a grade when a
-        session file is imported (see the entry of PR 429). **The owner's go-ahead for all
-        of them came on 19 November 2026** (the entry "the owner's go-ahead for everything that waited" under "In
-        v1.18.74"): teachers and the grade are done in PR 432.
-    - *Repaired in PR 423 (2026-11-18), on the owner's note of that day:* revoking an
-      account's only role took nothing away. Such an account is now left with nothing (Role
-      column "No role"). The built-in list for an account without role rows went altogether
-      in PR 425.
-    - **The owner's note of 2026-11-18 on the three decisions below** (who may import, student
-      accounts, Viewer and Guest) gives a direction for each and leaves the choice open:
-      a permission that opens nothing is wired up or deleted, and one the code asks for is
-      in the database or the button goes; a student account is tied to a student record when
-      it is created, or "Student" leaves the choices (the note calls that the right
-      fallback while no link exists), and student accounts without a record are disabled; a
-      Viewer gets one purpose that can be said in a sentence, with exports no wider than
-      what it can see, or the role goes. What each choice means in this application is in
-      the three entries marked with the note below.
-    - *Repaired in PR 422 (2026-11-18):* the Permissions Catalog's empty role boxes; the
-      requests that could take `*:*` from the administrators; the blank permission names of
-      the Overview tab and the invented names of the Users tab; saving a Viewer or Guest
-      account from Edit. (The two roles are gone since PR 425.)
-    - *Done in PR 427 (the owner, 2026-11-18: "should have access there"):* a teacher had no
-      page for changing the own password. As it was: the form is in User Accounts,
-      which answers "Access Denied" to everybody but an administrator. A teacher asks an
-      administrator for a reset.
-    - *Done in PR 428 (the owner, 2026-11-18: "Fix"):* the audit log did not say who made
-      a role or permission change. As it was: `user_id` and
-      `user_email` are empty in those entries. And no page shows the audit log; only the API
-      answers.
-    - *Decided and done in PR 425 ("both teachers and admins"; the list is closed):*
-      thirteen permissions the code asked for were not in the database, and eight in the
-      database opened nothing. As it was: not in the database, so that only an administrator passes:
-      `imports:create` and `imports:view` (a teacher cannot import, although the role holds
-      `system:import`), `sessions:manage` (session export and import), `exports:view` (todo
-      62), the four `jobs:` ones, the two `diagnostics:` ones, `admin:manage`,
-      `reports:create`, `analytics:export`. In the database and asked for by no endpoint:
-      `analytics:view`, `enrollments:view`, `enrollments:manage`, `system:import`,
-      `system:export` and the three `.self:read`. And the built-in list for `viewer` lacks
-      the two `exports:` permissions that the role's rows have. To decide: who should import,
-      and whether the list is tidied. *With the note:* the choice is "administrators only"
-      (the Imports tab and the session panel are then not offered to others, and
-      `system:import` goes) or "teachers too" (the import permissions are added to the
-      database and given to the role teacher). Either way, by the note: the thirteen keys get
-      rows, so that the Permissions Catalog can grant them; each of the eight that open
-      nothing is put on the endpoints it names or removed by a migration; and a test fails
-      when an endpoint asks for a key that has no row.
-    - *Decided and done in PR 425 ("Remove "Student" from the role boxes"; existing ones
-      became "No role"):* a student account could do nothing. As it was: the code lets it read the student record that
-      belongs to its account; nothing in the application ever ties a student record to an
-      account (`students.user_id` is never set). Build that, or take "Student" off the role
-      choices; today its one use is as the role without access. *With the note:* "No role"
-      (PR 423) is now the state without access, so "Student" can leave the two role boxes
-      without a gap; existing Student accounts would become "No role" by a migration, which
-      changes nothing for them. Building the link instead is a feature of its own: a way to
-      tie a record to an account, the student's own pages, and the privacy notice.
-    - *Decided and done in PR 425 ("Remove both"):* a viewer exported everything and saw no
-      figures. As it was: the viewer and guest roles hold
-      `exports:generate` and `exports:download` (every list, and the ZIP of all data) and not
-      `reports:generate`, so the Dashboard and the Analytics page open empty with refused
-      requests. And every page shows a viewer its "Add" and "Save" buttons, which the server
-      refuses. Whether read-only accounts are wanted at all is the owner's call. *With the
-      note:* "remove Viewer and Guest" (their accounts become "No role", the roles and their
-      grants go by a migration), or "one read-only role" that sees the figures
-      (`reports:generate`), exports nothing, and is offered in User Accounts; the pages'
-      "Add" and "Save" buttons would then still show and be refused, unless they are hidden
-      for it, which is the larger part of that work.
-    - *Two addresses answer without a sign-in that probably should not:*
-      `GET /api/v1/analytics/reports/templates` (an empty list on the scratch copy) and
-      `GET /control/api/restart` (whether a restart is possible here). **Decided 2026-11-20
-      ("do recommended"):** the first is removed (no page called it); the second stays open
-      (it says only whether a restart is possible).
-    - *The "User Guide" of Utils > Help & Documentation ("Complete reference guide", "Download
-      English PDF") is a leaflet of one page* that the server composes itself
-      (`routers_help.py`). `USER_GUIDE_COMPLETE.md` is not in the application. **Decided
-      2026-11-20: left as it is.**
-    - *Older documents and tools of the same kind* (the owner, 2026-11-18, on the
-      documents: "read and correct as needed"). **The documents: done in PR 429**, these
-      nine and fourteen more; the tools below were deleted in PR 434. This entry is closed. As it
-      was: `docs/admin/`
-      `PERMISSION_MANAGEMENT_GUIDE.md` (930 lines), `RBAC_OPERATIONS_GUIDE.md` (1,184),
-      `RBAC_CODEBASE_REVIEW.md`, `RBAC_ENDPOINT_AUDIT.md`, `RBAC_DATABASE_SCHEMA.md`,
-      `PERMISSION_MATRIX_ENDPOINT_MAPPING.md`; `docs/user/RBAC_GUIDE.md` and its Greek twin;
-      `src/backend/API_PERMISSIONS_REFERENCE.md`. Most are from the design months and likely
-      wrong in the same ways. And tools nothing runs (**deleted in PR 434**): `src/backend/scripts/seed_permissions.py`
-      ("53 permissions", a second seed beside the one the application uses), and
-      `scripts/audit_router_permissions.py`, `validate_rbac_decorators.py` and
-      `rbac_monitor.py`, which look for `backend/routers` where it was before the folders
-      were moved. Delete, or read and correct (the owner's OK).
-    - *Seen once and not explained:* a scratch server on port 8013 stopped, without a line in
-      its log, while the commit gate ran its first backend batches in the same clone. It did
-      not happen during the next two gates.
-    - **Added by the reading for the user guide (PR 421), none of it changed:**
-    - *Repaired in PR 422:* the two names of texts ("currentRules:",
-      "failedToLoadSemesters"), with a test that finds such keys; the session panel tells a
-      refused account that it may not use it.
-    - *Done in PR 424 (2026-11-18):* the help of Utils > Help & Documentation, read against
-      the pages and written anew in both languages.
-    - **Added by the reading of the help (PR 424), none of it changed:**
-    - *Done in PR 426 (the owner, 2026-11-18: "make it count"):* the "Weight" of a grade
-      changed nothing. As it was: Grades > Grade Entry has the box, with the
-      hint "Higher weight = more important (1.0 is normal)", and Grade History shows it
-      ("×1"). The final grade takes the plain average of a category's grades (tried: 20/20
-      with weight 1 and 0/20 with weight 3 give 50%). Make it count within its category, or
-      take the box away: the owner's call. Until then the help and the guide say that it
-      does nothing.
-    - *Two things nothing uses* (**deleted in PR 434**)*:* `components/tools/DevTools.tsx` (a panel with "Add Sample
-      Data") is imported by no page, and `adminOpsAPI.generateSampleData` is called by
-      nothing; the server's `POST /adminops/generate-sample-data` is therefore reachable
-      only by hand. Delete, or put the button on a page (the owner's OK).
-    - *Done in PR 427:* the one-page PDF of the help ("Quick Guide"), composed by
-      `routers_help.py`, was read against the pages and written anew.
-    - *Done in PR 427:* an account without access (No role) was not told why its pages
-      fail. As it was: it sees
-      "Error loading analytics data", "Failed to load data" and the like. One sentence at
-      the top ("Your account has no role…") would say it.
-    - ~~*Not tried from end to end:* a scheduled report and a report sent by e-mail.~~ **Tried
-      2026-11-20 on an isolated copy (the owner's OK: "do recommended"): both work, and the
-      owner received both e-mails with their PDF** (under "In v1.18.78").
-    - *Repaired in PR 425:* the privacy notice of the application said "A student account
-      sees its own records only". It says now that students have no accounts.
-    - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
-      The "N/A" dates of "Recent Grades" were narrower than written here: only a grade
-      without a "date submitted" (see the entry of PR 422).
-    - *Done in PR 427 (it was the sign-in form):* an empty address was answered in two
-      languages at once: "Παρακαλώ
-      εισάγετε τη διεύθυνση email σας. / Please enter your email."
-    - *A teacher is shown System > Control Panel > Maintenance > System Operations* with
-      Backup Database, Restore DB and Clear DB. Clear is refused by the server. Backup and
-      restore go through the Control API, which passes any request from the computer the
-      application runs on (seen: its status answers a teacher, and a request without a
-      sign-in, there). So on a shared PC with SMS Lite a teacher could restore another
-      database; that was not tried. It is the Control API's rule as designed
-      (`PERMISSION_MATRIX.md`); whether the panel should be shown to a teacher is the
-      owner's call. **Done 2026-11-20 ("do recommended"):** System Operations and Database
-      Management (which has its own backup and restore) are shown to administrators only;
-      under "In v1.18.78".
-    - ~~*Fifteen older user documents were not read* (the owner, 2026-11-18: "read and correct
-      as needed"; open) (listed in `docs/user/INDEX.md`): two
-      quick-start guides, three older user guides (one of v1.9.7), the theme, localization,
-      import/export and rate-limiting guides, the two RBAC guides and a note on PDF
-      conversion. There is no Greek version of the checked guide. Delete, or read and
-      correct (the owner's OK).~~ **Done in PR 429:** they are among the 22 documents that
-      entry read and corrected (see "In v1.18.74"), and the Greek guide
-      `ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md` is in `docs/user/`.
-
 **Older entries that are still open** (they keep their numbers; the closed entries that
 stood between them are in part 2 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md),
 and 44 and 48 in its part 5):
@@ -2761,7 +2591,7 @@ stood between them (the Tailwind 4 migration, the dependency rounds, the Septemb
 follow-ups) and the dated sections from September 29 back to June 15, 2026 are in
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for word. A section this plan names and
 does not contain is there.
-On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4.
+On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done.
 
 ## 🗄️ Historical Archive (Feb–Aug 2026)
 
