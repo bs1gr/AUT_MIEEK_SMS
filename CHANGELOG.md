@@ -53,6 +53,36 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.78] - 2026-11-21
+
+### Features
+- **backup**: a backup right before a migration changes the database (#451)
+
+### Bug Fixes
+- **ui**: readable Present/Late buttons, footer and Dashboard small text (#455)
+- **backup**: the Database panel's backups are the application's encrypted backups (#454)
+- **backup**: remove the readable copies older builds left beside encrypted backups (#453)
+- **control**: sign-in settings, credential import and update install need a signed-in admin (#450)
+- **control**: backups and restore need a signed-in administrator, also on the PC itself (#449)
+
+### Documentation
+- **plan**: #455 merged; the owner's walkthrough answers, todo 56 erasure, closed records archived
+- **plan**: close two todo 58/63 entries that were already done
+- **plan**: #454 merged
+- **plan**: #452 and #453 merged
+- **plan**: #449 merged
+- **plan**: todo 54 (a) and (c) done, mail on the cloud VM and a real alarm
+- **plan**: todo 50, the owner's privacy decisions; old copies removed
+- **plan**: todo 44, the owner settles the ╬ε╬β╬Χ╬Χ╬γ policy question
+- **plan**: v1.18.77 released and verified
+
+### Tests
+- a test run writes no log files into the checkout (SMS_LOG_DIR) (#452)
+
+### Chores
+- remove unused endpoints; backups and restore hidden from teachers (#448)
+
 ## [1.18.77] - 2026-11-20
 
 ### Performance
@@ -5070,6 +5100,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
