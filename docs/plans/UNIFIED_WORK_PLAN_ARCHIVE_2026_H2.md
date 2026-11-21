@@ -6343,7 +6343,7 @@ The records of v1.18.65 down to v1.18.51, and of the work between them, are in p
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), unchanged.
 
 
-## Part 5: closed todos (moved from the plan's "Next todos" on 2026-11-20; 63 on 2026-11-21)
+## Part 5: closed todos (moved from the plan's "Next todos" on 2026-11-20; 63 on 2026-11-21; 55 on 2026-11-22)
 
 44. **Cloud host: deploy the backend on Oracle Always Free, keeping today's setup as the backup**
     (owner approved todo 19's proposal on 2026-11-12) — Oracle Always Free, home region
@@ -6477,6 +6477,89 @@ The records of v1.18.65 down to v1.18.51, and of the work between them, are in p
       state of the Students page (`student-resilience.spec.ts`).~~ **Done in PR 416:** all
       four run, and a fifth is new; a local run of the whole suite gives 76 passed and 6
       skipped. The six that are left are the six above.
+
+55. **Nothing backs up the QNAP database on a schedule, and the application says it does.**
+    Asked what backs it up, the owner answered on 2026-11-15: "the back up happens each and
+    everytime a session occurs"; shown that the newest backup file on the dev PC is from
+    6 November: "I thought the app does it".
+    - *What the application tells its users.* The in-app help answers "Automated backups happen
+      daily" (`helpBackupAnswer`) and, under lost data, "See daily automatic backups"
+      (`helpDataLossAnswer`, English; the Greek text says "daily copies" too). The PDF guide
+      lists "Auto-Save & Data Backup" among the features (`routers_help.py`).
+    - *What exists.* No code makes a backup on a schedule. A backup is made when someone asks
+      for one in the application, and automatically only before a session import, before a
+      restore and as part of a semester archive. `DOCKER.ps1 -Update` copies the SQLite file of
+      the Docker volume, which is not where the shared database is.
+    - *What is on the dev PC.* `backups/database` holds 22 encrypted backups, dated from
+      3 September to 6 November; the newest is `backup_20261106_152510.enc`. None from 12 to
+      15 November, the day of the v1.18.70 migration included (the six rows that migration
+      changed were saved separately, see the top of this document). What is on the NAS itself
+      is not known here. No restore drill since 2026-09-17. The database is 15 MB.
+    - *To do, on the owner's word* (2026-11-15: "nothing more now"): a daily backup of the QNAP
+      database that is kept off the NAS, one restore test, and the help made true, or corrected
+      until it is. Until then a backup exists only when someone creates one in the
+      application.
+    - **Done in #407 (2026-11-16, unreleased; the owner: "proceed according to plan"):** the
+      automatic backup, the help made true, and what the restore test found (a PostgreSQL
+      backup could not be restored through the application; the key was lost at an update).
+      The details are under "In v1.18.71" and in
+      `docs/admin/BACKUP_AND_RESTORE.md`.
+    - **Done 2026-11-16 with v1.18.71 (the owner chose both):** the release and the update of
+      the cloud VM, which made the first backup of the shared database a minute after its
+      start; and a restore of that backup into a scratch database, identical to the live one
+      table by table (the top of this document).
+    - **Done 2026-11-16, night (the owner: "Yes, copy both"):** the VM's key and its newest
+      backup (`auto_backup_20261116_150613.enc`) are on the dev PC, in the owner's confidential
+      folder outside the repository; checksums equal, and the key opens the backup.
+    - **Done 2026-11-17 by the owner: the key is in a third place.** The steps first given
+      (a USB stick, or a password manager by way of PowerShell commands) were too complicated;
+      the owner asked for something "like the Two-factor authentication". The vault of their
+      own cloud storage is that: it opens only after a second identity check. The owner
+      confirmed that the key and the note are in it. The key now exists on the VM, on the dev
+      PC and there; the note beside it holds its checksum and the way to restore, and no
+      secret.
+    - **Left:** ~~(a) the owner's: now and then a newer backup taken off the VM (the runbook has
+      the commands; **a copy of 2026-11-20 is on the dev PC**, see below; it does not renew
+      itself).~~ **Automatic since 2026-11-21 (the owner: "set up the backup copies to Object
+      Storage"):** every backup the VM makes is copied every 6 hours to the bucket
+      `sms-backups` in Oracle Object Storage, kept there at least a year by a retention rule,
+      and a second healthchecks.io check watches the copies (the entry under "On `main` since
+      v1.18.79"; the runbook's "Copies in Oracle Object Storage"). The key is not in the
+      bucket: it stays on the VM, on the dev PC and in the owner's vault. **Done 2026-11-20 (the owner: "treat the backup as well"):** the VM's newest
+      backup, `auto_backup_20261119_151908.enc` (made 15:19 UTC on 19 November after the
+      v1.18.74 migration: 30 tables, 2,361 rows), is in the owner's confidential folder
+      beside the one of 16 November. Its SHA-256 on the VM and on the PC are equal
+      (`75a11fb2…3387`); the VM's key was only hashed, not copied (equal to the checksum in
+      the note, `25cd8be0…0809`), and it opens the file (decrypted in memory, header and
+      length agree, nothing written out); the temporary copy on the VM is deleted; the note
+      `READ-ME-restore.txt` lists both. Not restored into a database: that shows the key and
+      the format, not that the file restores (the drill of 2026-11-19 did that for the
+      backup of that morning).
+      ~~(b) Whether the key next to the code on the dev PC still opens the 22 older encrypted
+      backups there is not known.~~ **Done 2026-11-19 (the owner: "accomplish all pending
+      tasks"):** the key `src/.keys/master.key` opens all 24 encrypted files in
+      `backups/database` (22 made by hand, from 3 September to 6 November, and the dev PC's own
+      two automatic ones of 16 and 17 November): each decrypted in memory, its header and
+      length agree, and each is a data-only SQL text of 80 KB to 810 KB; nothing was written
+      out. That shows the key and the format, not that each file restores.
+      ~~(c) The drill is one drill: after a release that changes the database, it is worth
+      repeating.~~ **Repeated 2026-11-19, after v1.18.74 had changed the shared database:** the
+      newest backup on the VM (`auto_backup_20261119_041110.enc`, made by the VM just before its
+      update, so at revision `a7d4e9c2b5f8`: 30 tables, 2,371 rows) and the VM's key were copied
+      to a scratch folder (the VM's copies deleted at once), decrypted in memory, and restored
+      by `database_manager.restore_sql_content` into a scratch PostgreSQL 14 built to that
+      revision by the tag's migrations; then upgraded to `e2b7c9d4a1f6`, the way an update
+      does. Against the live shared database, read-only, table by table (row count and a
+      checksum of every row): **28 of 31 tables identical**; `refresh_tokens` has one row less
+      (a sign-in since 04:11); `permissions` and `role_permissions` differ in the
+      `created_at`/`updated_at` that the migrations stamp when they run, and are identical in
+      id, key and every other column (checksum without the timestamps equal on both sides).
+      The scratch database, the backup, the key and the files were deleted afterwards.
+    - **Closed 2026-11-22 (the owner: "yes, archive todo 55"):** every point is done: the
+      daily backup on the VM and a restore of it proven (v1.18.71; repeated after v1.18.74),
+      the help made true, the key in three places, the older backups on the dev PC checked,
+      and since 2026-11-21 every backup copied off the VM to Oracle Object Storage (PR 465,
+      merged as `94f2b9cfc`).
 
 56. **Small things from the same review.**
     - ~~*The Socket.IO channel carries nothing.* `send_notification_to_user`,
