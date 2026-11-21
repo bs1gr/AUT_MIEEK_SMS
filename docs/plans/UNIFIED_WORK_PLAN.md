@@ -492,7 +492,8 @@ going through the open todos before a release: "Fix all four").
   Dashboard card is `text-slate-600` instead of its accent colour (darker accents still failed
   on the dark appearances; the card's icon keeps the accent).
 - Test: `src/__tests__/contrastDesignCalls.test.ts` (the pairs that failed must not come back;
-  its three tests fail on the old code, as checked).
+  its three tests fail on the old code, as checked). The two Attendance E2E tests that check a
+  marked button's colour (`student-management.spec.ts`) look for the new classes.
 
 **2026-11-20: the Database panel's backups are the application's encrypted backups** (PR 454,
 merged as `a16769ce7`, CI green: 38 checks passed, CodeQL clean after its two alerts were
