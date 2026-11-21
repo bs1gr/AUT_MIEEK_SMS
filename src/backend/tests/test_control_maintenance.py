@@ -689,6 +689,40 @@ def test_lite_update_refuses_an_installer_without_a_published_hash(
     assert not (tmp_path / "s.exe").exists()
 
 
+def test_lite_update_saves_the_installer_in_the_folder_sms_lite_names(
+    client, monkeypatch, tmp_path, control_admin_headers
+):
+    # An installed SMS Lite is under "Program Files", which it cannot write to: saving the
+    # installer beside the code failed with WinError 5 before the UAC prompt (2026-11-21). The
+    # entrypoint names a folder in the user's profile instead (test_lite_db.py checks that).
+    from backend.routers.control import maintenance
+
+    calls = _lite_launch_mocks(monkeypatch)
+    profile_updates = tmp_path / "AppData" / "Local" / "SMS_Native_Lite_Simple" / "updates"
+    monkeypatch.setenv("SMS_UPDATES_DIR", str(profile_updates))
+    _lite_release(
+        monkeypatch,
+        [
+            {
+                "name": "SMS_Installer_1.0.1.exe",
+                "browser_download_url": "https://example.invalid/s.exe",
+                "digest": "sha256:" + "deadbeef" * 8,
+            }
+        ],
+    )
+
+    job_id = client.post(
+        "/control/api/maintenance/updates/auto-install", headers=control_admin_headers, json={"channel": "stable"}
+    ).json()["details"]["job_id"]
+    status = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    ).json()
+
+    assert status["status"] == "completed", status
+    assert calls["launched"] == [(profile_updates / "s.exe", maintenance.LITE_INSTALLER_ARGS)]
+    assert (profile_updates / "s.exe").is_file()  # the folder did not exist before
+
+
 def test_installer_asset_is_chosen_by_name():
     from backend.routers.control import maintenance
 

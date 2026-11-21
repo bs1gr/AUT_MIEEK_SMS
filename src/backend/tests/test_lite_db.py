@@ -186,6 +186,26 @@ def test_registration_is_off_on_a_local_sqlite_install(monkeypatch, qnap_credent
         sys.modules.pop("backend.lite_simple_entrypoint", None)
 
 
+def test_installed_lite_saves_update_downloads_in_the_users_profile(monkeypatch, tmp_path):
+    # The program folder of an installed SMS Lite is under "Program Files", which it cannot write
+    # to, so Update failed there before the UAC prompt (2026-11-21, WinError 5).
+    from pathlib import Path
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path / "_internal"), raising=False)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    saved = dict(os.environ)
+    try:
+        os.environ.pop("SMS_UPDATES_DIR", None)
+        _import_entrypoint(monkeypatch, qnap_credentials=False)
+        expected = tmp_path / "AppData" / "Local" / "SMS_Native_Lite_Simple" / "updates"
+        assert os.environ.get("SMS_UPDATES_DIR") == str(expected)
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
+        sys.modules.pop("backend.lite_simple_entrypoint", None)
+
+
 def test_refused_password_asks_for_the_current_one_and_saves_it(tmp_path):
     creds_file = _creds_file(tmp_path, dict(CREDS, password="old-password"))
     tried = []
