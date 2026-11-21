@@ -38,8 +38,8 @@ erased on 2026-11-20 was a data change by hand, under "In v1.18.78").
   backup was forced (no database change); the daily one stays at about 15:36 UTC.
 - **The owner's Docker test install on the dev PC runs v1.18.78** (2026-11-21, the installer
   run by hand through UAC; todo 40 says why not from the page, and what is still untested).
-  **Since 15:10 the same day it is replaced, for a while, by todo 40's SMS Lite test** (the
-  owner's word); it is put back from a copy kept outside the repository.
+  Replaced from 15:10 to 17:01 the same day by todo 40's SMS Lite test (the owner's word), then
+  put back: v1.18.78, Docker edition, the same `.env` and the same SQLite data (todo 40).
 
 **Before that: v1.18.77 released 2026-11-20** (tag on `09c7c0d3a`, run by the assistant; the
 owner: "review current state and if all todos are covered, prepare a new release so to include
@@ -2131,11 +2131,12 @@ tree as evidence that GitHub is clear.
 the answers are under "In v1.18.78"). v1.18.78 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
 The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
-40), and is replaced for a while by todo 40's SMS Lite test (2026-11-21). Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on
-2026-11-21 and found that the Update of an installed SMS Lite could never save its download,
-fixed under "On `main` since v1.18.78"); todos 65 to 67, found by that test (the uninstall entry
-in Settings → Apps, the Updates panel (its messages fixed, its other colours left), SMS Lite
-stopping under a page in the background); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
+40); it was replaced for todo 40's SMS Lite test on 2026-11-21 and put back the same day.
+Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on 2026-11-21 and
+found that the Update of an installed SMS Lite could never save its download, fixed under "On
+`main` since v1.18.78"); todos 65 to 68, found by that test (the uninstall entry in Settings →
+Apps, the Updates panel (its messages fixed, its other colours left), SMS Lite stopping under a
+page in the background, SMS Lite running elevated after its own Update); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2564,9 +2565,21 @@ and 44 and 48 in its part 5):
         downloaded file is the published one (87,426,656 bytes, `e94ccc4d…ffdb`, signature
         Valid).
       - **Left:** the corrected download folder is proven by its tests only, until a release
-        that carries it updates to a later one; the Docker host task (with v1.18.79); the
-        owner's Docker test install, to be put back from the copy (the owner: commits first).
-        Found on the way: todos 65 to 67.
+        that carries it updates to a later one; the Docker host task (with v1.18.79). Found on
+        the way: todos 65 to 68.
+      - **The owner's Docker test install put back the same day** (after PRs 457 and 458, the
+        owner: "commits first"). SMS Lite uninstalled (UAC, the owner, the data folders kept);
+        the copy's `data`, `backups` and `logs` put back by the assistant, `.env` and `config`
+        by the owner in Explorer (the install folder needs administrator rights); then the
+        published v1.18.78 installer, Docker edition, Local SQLite. The `.env` came out
+        byte-identical (its secret key kept) and the image was built from the cache. **A new
+        Docker install builds the image but does not start it** (its log: "Run .\DOCKER.ps1
+        -Start to launch"), and `DOCKER.ps1 -Start` needs administrator rights (it writes
+        `backend\.env`): the owner started it from SMS Manager. Healthy at 17:01:50 on v1.18.78
+        with `/data/student_management.db` from the `sms_data` volume (1 student, 26 courses),
+        migrations at head, no ERROR in its log, the host updater task running with a fresh
+        heartbeat. The owner's own SMS Lite folder was renamed back, unchanged; the copy that
+        held the `.env` was deleted.
 
 <!-- -->
 
@@ -2694,6 +2707,27 @@ and 44 and 48 in its part 5):
     so a page left behind another window can let Lite stop under the user, who then finds the
     page dead. Not reproduced yet. The rule is the owner's: a change (a longer wait, or a
     heartbeat that a sleeping tab still sends) is the owner's decision.
+
+<!-- -->
+
+68. **After its own Update, SMS Lite probably runs with administrator rights** (found
+    2026-11-21 during todo 40's Lite test).
+    - SMS Lite starts the installer with ShellExecute "runas" (`_launch_installer_elevated` in
+      `maintenance.py`), so Setup starts elevated. The installer then starts SMS Lite again
+      with `runasoriginaluser`. Inno Setup cannot honour that flag when another process
+      started Setup elevated: the program then runs as the elevated user.
+    - Evidence: the SMS Lite that the installer started at 15:30:28 created
+      `_internal\backend\exports` under "Program Files". The two earlier starts without
+      administrator rights (15:12 and 15:28) did not. The process's own elevation was not
+      read before it was removed.
+    - What it means: on an administrator's own account, a server on port 8000 with
+      administrator rights until the next start. On a standard account where someone typed an
+      administrator's password at UAC, SMS Lite would come back as that administrator, with
+      that account's empty data folder.
+    - The installer's manifest is `asInvoker`: started without "runas", Setup raises its own
+      rights and keeps the user's for `runasoriginaluser`. Suggested: start it with "open".
+      First re-check the comment in `maintenance.py` that CreateProcess failed with
+      ERROR_ELEVATION_REQUIRED, then check the restart in a real update.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
