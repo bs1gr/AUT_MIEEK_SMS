@@ -32,9 +32,10 @@ by hand (the release text says so).
   the VM and through the tailnet; the student list answers 401 without a sign-in; the Privacy
   page answers `configured: true`; no ERROR line, no traceback (one WARNING, the standing CSRF
   notice). No backup was forced (no database change); the daily one stays at about 15:36 UTC.
-- **The owner's Docker test install on the dev PC** is still on v1.18.78; Docker Desktop was
-  stopped for the release run, as it was when the session began. Todo 40's Docker half (the
-  Update from the page, v1.18.78 to v1.18.79) waits for the owner.
+- **The owner's Docker test install on the dev PC runs v1.18.79** (the owner, 23:02 local
+  time, with Update in the Control Panel: todo 40's Docker half). The host task installed the
+  release, then its rebuild failed with exit code 64; the owner started SMS from SMS Manager.
+  The fix is under "On `main` since v1.18.79".
 
 **Before that: v1.18.78 released 2026-11-21** (tag on `1ea198829`, run by the assistant; the
 owner's go-ahead of 2026-11-20, after going through every open todo: "Release + update VM").
@@ -249,6 +250,24 @@ Two things the update brought to light, neither changed:
 
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
+
+### On `main` since v1.18.79 (unreleased)
+
+**2026-11-21: the Docker host task's rebuild starts from "C:\Program Files\SMS"** (this PR; todo
+40; the owner: "continue with the fix PR"). Found by the first update from the page (todo 40):
+the task ran the v1.18.79 installer, then `DOCKER.ps1 -Update` exited with code 64.
+`update-watcher.ps1` handed script paths to `Start-Process -ArgumentList` unquoted, and
+`Start-Process` joins that list with spaces and quotes nothing, so
+`C:\Program Files\SMS\DOCKER.ps1` reached PowerShell as `-File C:\Program` (reproduced with
+Windows PowerShell 5.1 and pwsh 7.7: 64 unquoted, 0 quoted). The same unquoted path restarted
+the watcher after an update and started it (`-Start`). All three are quoted now
+(`ConvertTo-QuotedArgument`). Tests: `test_rebuild_runs_from_a_folder_with_a_space_in_its_name`
+really starts a stand-in `DOCKER.ps1` from `…\Program Files\SMS` and fails on the old script
+with the same `bridge_failed`; `test_every_script_path_handed_to_start_process_is_quoted`; the
+existing test had pinned the unquoted form. **The next update from the page (v1.18.79 to
+v1.18.80) still stops at the rebuild:** the task that runs it is the v1.18.79 copy already in
+memory, so SMS is then started from SMS Manager, as on 2026-11-21. From v1.18.80 on, the task
+finishes by itself.
 
 ### In v1.18.79
 
@@ -2249,11 +2268,12 @@ tree as evidence that GitHub is clear.
 **Open work as of 2026-11-21** (after the owner went through every open todo on 2026-11-20;
 the answers are under "In v1.18.78"). v1.18.79 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
-The owner's Docker test install on the dev PC runs v1.18.78 (updated by hand through UAC; it
-was replaced for todo 40's SMS Lite test on 2026-11-21 and put back the same day). Still open:
-todo 40's Docker host task (the Update from the page, v1.18.78 to v1.18.79, now possible; its
-Lite half was done on 2026-11-21 and found that the Update of an installed SMS Lite could never
-save its download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninstall
+The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
+Docker half, 2026-11-21: the install worked, the rebuild failed on an unquoted path and SMS
+was started from SMS Manager; fixed under "On `main` since v1.18.79"). Still open: todo 40's
+last step, an update from the page that finishes by itself (from v1.18.80 on; its Lite half
+was done on 2026-11-21 and found that the Update of an installed SMS Lite could never save its
+download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninstall
 entry in Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed in
 v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
@@ -2704,6 +2724,22 @@ and 44 and 48 in its part 5):
         migrations at head, no ERROR in its log, the host updater task running with a fresh
         heartbeat. The owner's own SMS Lite folder was renamed back, unchanged; the copy that
         held the `.env` was deleted.
+    - **Docker half run 2026-11-21** (the owner, from Control Panel → Updates on the test
+      install, v1.18.78 to v1.18.79):
+      - *The install worked.* The host task took the request at 23:02:39, downloaded the
+        release, checked its SHA-256 and signature and ran the installer silently as the Docker
+        edition (`install_metadata.txt` v1.18.79 from v1.18.78 at 23:03:45); the installer
+        registered and started the task again (23:03:52).
+      - *The rebuild did not:* `DOCKER.ps1 -Update` exited with code 64 at 23:03:53 and the
+        job's status file says `failed`; fixed in the entry under "On `main` since v1.18.79".
+        The owner started SMS from SMS Manager (23:05:10), which built `sms-fullstack:v1.18.79`
+        from the cache and started it (23:06:38): healthy, `/health` v1.18.79, the same SQLite
+        data (1 student, 26 courses), migrations at `e2b7c9d4a1f6`, the task's heartbeat fresh.
+      - *Todo 65 seen on this install:* the entry Settings → Apps runs is "Student Management
+        System v1.18.79" with `uninsv1.18.79.exe` (the file is there), and the setup log says
+        "Removed the old two-value uninstall key" for HKLM and HKCU (both gone).
+      - **Left:** an update from the page that finishes by itself (from v1.18.80 to a later
+        one).
 
 <!-- -->
 
@@ -2804,9 +2840,10 @@ and 44 and 48 in its part 5):
       answer was Yes.
     - **Done 2026-11-21** (the entry under "In v1.18.79"): the code uses the key
       Inno writes, HKCU is left alone, the old two-value keys are removed, and No keeps the
-      settings. **Left:** seeing it on a real installation, at the next release's update of the
-      Docker test install (todo 40): Settings → Apps should then show the entry with
-      `uninsv<version>.exe`, and no `{…}_is1` key should remain.
+      settings. ~~**Left:** seeing it on a real installation, at the next release's update of
+      the Docker test install (todo 40).~~ **Seen 2026-11-21** at that update (v1.18.78 to
+      v1.18.79, todo 40): the entry names `uninsv1.18.79.exe`, which exists, and both
+      two-value keys are gone. Not seen: No keeping the `.env` files (no uninstall since).
 
 <!-- -->
 
