@@ -1,0 +1,11 @@
+[Unit]
+Description=Copy the SMS cloud backups to Oracle Object Storage every 6 hours
+
+[Timer]
+# 00:30, 06:30, 12:30 and 18:30 UTC; the daily backup is made in the afternoon (UTC)
+OnCalendar=*-*-* 00/6:30:00
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
