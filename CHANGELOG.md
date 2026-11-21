@@ -74,7 +74,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **plan**: #449 merged
 - **plan**: todo 54 (a) and (c) done, mail on the cloud VM and a real alarm
 - **plan**: todo 50, the owner's privacy decisions; old copies removed
-- **plan**: todo 44, the owner settles the ╬ε╬β╬Χ╬Χ╬γ policy question
+- **plan**: todo 44, the owner settles the ΜΙΕΕΚ policy question
 - **plan**: v1.18.77 released and verified
 
 ### Tests

@@ -24,7 +24,7 @@
 - **plan**: #449 merged [c22bf2b]
 - **plan**: todo 54 (a) and (c) done, mail on the cloud VM and a real alarm [1b8a6d7]
 - **plan**: todo 50, the owner's privacy decisions; old copies removed [022a00e]
-- **plan**: todo 44, the owner settles the ╬ε╬β╬Χ╬Χ╬γ policy question [2848b2b]
+- **plan**: todo 44, the owner settles the ΜΙΕΕΚ policy question [2848b2b]
 - **plan**: v1.18.77 released and verified [252f665]
 
 ## ✅ Tests

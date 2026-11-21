@@ -177,7 +177,14 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67 are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
-### On `main` since v1.18.77 (unreleased)
+### In v1.18.78
+
+**Found while releasing v1.18.78 (2026-11-21), not changed:** `GENERATE_RELEASE_DOCS.ps1`
+reads `git log` through the console's code page (737 on the dev PC), so a Greek word in a
+commit subject reached `CHANGELOG.md` and `docs/releases/RELEASE_NOTES_v1.18.78.md` garbled
+("ΜΙΕΕΚ" in the subject of `2848b2be3`). Corrected by hand in both files. The script needs
+`[Console]::OutputEncoding` set to UTF-8 around its `git log` (the same trap as the memory
+note on code page 737).
 
 **2026-11-20: the owner went through every open todo before a release** (the owner: "help me
 go through all todos one by one before a release"). The answers, each recorded in its todo:
@@ -265,6 +272,7 @@ the first automatic check after the VM runs a release with this change.
   the endpoints end to end; two of them fail on the old router and check, as checked); the
   traversal test of the download accepts only `*.enc` names; a Vitest test of the panel.
 
+**2026-11-20: the readable copies older builds left beside encrypted backups are removed**
 (PR 453, merged as `1011c4e93`, CI green: 38 checks passed; todo 58).
 
 - `database_backup.remove_readable_leftovers()`, at every automatic backup check (the first a
@@ -2043,7 +2051,7 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Open work as of 2026-11-21** (after the owner went through every open todo on 2026-11-20;
-the answers are under "On `main` since v1.18.77"). Every release up to v1.18.77 is recorded
+the answers are under "In v1.18.78"). Every release up to v1.18.77 is recorded
 at the top, and the cloud VM runs `main` at `4c4694367`. Next, on the owner's go-ahead of
 2026-11-20: the v1.18.78 release, the VM moved onto it with the privacy controller's name and
 contact set in its `.env` (todo 50), then the Lite update through UAC on the dev PC (todo
@@ -2237,7 +2245,7 @@ word: the next release.
     - ~~*The native WebSocket endpoint has no client.* `/api/v1/notifications/ws` and
       `services/websocket_manager.py` work and are tested; `services/notificationWebSocket.ts`
       in the frontend is used by nothing but its own test. Use it or remove both (owner's call).~~
-      **Removed, both sides** (owner 2026-11-20: "do recommended"; under "On `main` since v1.18.77").
+      **Removed, both sides** (owner 2026-11-20: "do recommended"; under "In v1.18.78").
     - ~~*Both notification guides describe things the application does not have* (an
       administration panel, WebSocket settings, delivery dashboards). #391 corrected the
       delivery description at the top of each; the rest is as written in January 2026.~~
@@ -2292,13 +2300,11 @@ word: the next release.
         `BACKUPS_DIR/postgres` (`pg_dump --clean` where it is installed), apart from Manage
         Backups (`BACKUPS_DIR/database`); the automatic backup's retention does not look there.~~
         **Done 2026-11-20 on the owner's word** ("make that panel use the same encrypted backup
-        as everything else"): the files there were also unencrypted. Under "On `main` since
-        v1.18.77".
+        as everything else"): the files there were also unencrypted. Under "In v1.18.78".
       - ~~*No backup before a migration.* An update that changes the database leaves every
         earlier PostgreSQL backup restorable only with the earlier release. A backup made by
         the application right before it applies a migration would close that gap (the rows
-        the v1.18.70 migration changed were saved by hand).~~ **Done 2026-11-20** (under "On
-        `main` since v1.18.77"): both runners make one, and a failed one stops the migration.
+        the v1.18.70 migration changed were saved by hand).~~ **Done 2026-11-20** (under "In v1.18.78"): both runners make one, and a failed one stops the migration.
       - ~~*`/admin/restore-encrypted-backup` has no caller any more* (the page restored through
         it until #407). Remove it or keep it (the owner's call).~~ **Removed** (owner
         2026-11-20).
@@ -2313,8 +2319,7 @@ word: the next release.
         ask for an administrator there is the owner's call. **Decided 2026-11-20 ("do
         recommended"):** backup, restore and the backup list ask for a signed-in
         administrator also from the PC itself; start, stop and restart keep the PC's trust
-        for its own tools. The page side (the two sections hidden from teachers) is under "On
-        `main` since v1.18.77"; the server side is the entry above it there (19 endpoints).
+        for its own tools. The page side (the two sections hidden from teachers) is under "In v1.18.78"; the server side is the entry above it there (19 endpoints).
       - ~~*A replacement PostgreSQL should be of the same kind as the lost one.* The shared
         database runs a Debian-based server, the scratch ones here are Alpine-based: both
         report the collation `en_US.utf8`, and they sort text differently (seen in the restore
@@ -2325,7 +2330,7 @@ word: the next release.
         builds up to v1.18.70 left next to encrypted SQLite backups on Windows (see "In
         v1.18.71"). A clean-up at startup would have to be sure a file is such a leftover (it
         has an `.enc` twin of the same name) before deleting it.~~ **Done 2026-11-20** (under
-        "On `main` since v1.18.77"; on this PC they had already gone with the pre-13-November
+        "In v1.18.78"; on this PC they had already gone with the pre-13-November
         copies).
     - *Found on 2026-11-16 with #409, and not fixed:*
       - **The shared database's PostgreSQL is past its end of life (the owner's call).** The
@@ -2395,7 +2400,7 @@ word: the next release.
       - ~~*A test run writes into the `logs/` of the tree it runs in.* The tests that run the
         migrations append to `logs/migrations.log` (104 KB in a clone after five test
         files). The same class as the backups folder that PR 409 moved to a temporary one.~~
-        **Done 2026-11-20** (`SMS_LOG_DIR`, under "On `main` since v1.18.77"; it was also
+        **Done 2026-11-20** (`SMS_LOG_DIR`, under "In v1.18.78"; it was also
         `app.log` and the frontend logs).
       - *SMS Lite's last resort was never seen working in a packaged build.* Since PR 412 it
         stops whatever holds port 8000 again when that does not answer Lite's shutdown
@@ -2558,7 +2563,7 @@ word: the next release.
       the top ("Your account has no role…") would say it.
     - ~~*Not tried from end to end:* a scheduled report and a report sent by e-mail.~~ **Tried
       2026-11-20 on an isolated copy (the owner's OK: "do recommended"): both work, and the
-      owner received both e-mails with their PDF** (under "On `main` since v1.18.77").
+      owner received both e-mails with their PDF** (under "In v1.18.78").
     - *Repaired in PR 425:* the privacy notice of the application said "A student account
       sees its own records only". It says now that students have no accounts.
     - *Repaired in PR 422:* the label "Courses" for a date of enrolment on a student's page.
@@ -2576,7 +2581,7 @@ word: the next release.
       (`PERMISSION_MATRIX.md`); whether the panel should be shown to a teacher is the
       owner's call. **Done 2026-11-20 ("do recommended"):** System Operations and Database
       Management (which has its own backup and restore) are shown to administrators only;
-      under "On `main` since v1.18.77".
+      under "In v1.18.78".
     - ~~*Fifteen older user documents were not read* (the owner, 2026-11-18: "read and correct
       as needed"; open) (listed in `docs/user/INDEX.md`): two
       quick-start guides, three older user guides (one of v1.9.7), the theme, localization,
@@ -2676,8 +2681,7 @@ that entry is in part 2 of the archive):
   Attendance Quick Actions "Present" (green-500, 2.3:1) and "Late" (yellow-500, 1.9:1)
   buttons; the light footer (`text-gray-400`, 2.5:1); small `text-slate-400` and
   `text-emerald-500` text on the dashboard (2.3–2.6:1).~~ **Fixed 2026-11-20 (the owner:
-  "Fix all four"):** at least 4.5:1 in all 32 combinations of theme and appearance (under "On
-  `main` since v1.18.77"). Not issues: greyed calendar days
+  "Fix all four"):** at least 4.5:1 in all 32 combinations of theme and appearance (under "In v1.18.78"). Not issues: greyed calendar days
   (disabled), the Operations section headings (audit false positive, checked visually);
   the Semester Archive "Preview" button looks like a dimmed disabled button (not checked).
 
