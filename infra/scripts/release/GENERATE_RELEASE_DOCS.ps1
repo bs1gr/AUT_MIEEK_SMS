@@ -174,8 +174,17 @@ $commits = @()
 # '|' inside it cannot shift the other fields) and records are separated by a marker
 # that cannot occur in a message, so bodies may span as many lines as they like.
 $RecordSep = '@@SMS-COMMIT-RECORD@@'
+# git writes the log in UTF-8, but PowerShell decodes a native command's output with
+# [Console]::OutputEncoding, which is the console's code page (737 on the dev PC): a Greek
+# subject reached CHANGELOG.md garbled in v1.18.78. Decode as UTF-8 for this call only.
+$previousOutputEncoding = [Console]::OutputEncoding
 try {
-    $gitLog = (git log "$Since..HEAD" --pretty=format:"%H|%s|%an|%ae|%ad|%b$RecordSep" --date=short 2>$null) -join "`n"
+    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    try {
+        $gitLog = (git -c i18n.logOutputEncoding=UTF-8 log "$Since..HEAD" --pretty=format:"%H|%s|%an|%ae|%ad|%b$RecordSep" --date=short 2>$null) -join "`n"
+    } finally {
+        [Console]::OutputEncoding = $previousOutputEncoding
+    }
     if (-not $gitLog) {
         Write-Warning "No commits found since $Since"
         $commits = @()
