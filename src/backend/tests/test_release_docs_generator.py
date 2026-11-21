@@ -51,9 +51,18 @@ def _make_release_repo(tmp_path: Path, subjects: list[str]) -> Path:
     return repo
 
 
-def _generate(repo: Path) -> subprocess.CompletedProcess:
+def _generate(repo: Path, console_code_page: int | None = None) -> subprocess.CompletedProcess:
+    if console_code_page is None:
+        command = ["-File", str(GENERATOR), "-Version", "1.0.1"]
+    else:
+        # The console the release runs in on the dev PC decodes with its OEM code page.
+        command = [
+            "-Command",
+            f"[Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding({console_code_page}); "
+            f"& '{GENERATOR}' -Version 1.0.1; exit $LASTEXITCODE",
+        ]
     return subprocess.run(
-        [PWSH, "-NoProfile", "-NonInteractive", "-File", str(GENERATOR), "-Version", "1.0.1"],
+        [PWSH, "-NoProfile", "-NonInteractive", *command],
         cwd=repo,
         capture_output=True,
         text=True,
@@ -117,6 +126,22 @@ def test_a_release_of_only_dependency_updates_does_not_publish_an_empty_section(
     assert "**1 dependency update**" in included  # singular
     assert included.strip(), "the What's Included section must not be empty"
     assert "- bump @types/node from 24.19.2 to 25.9.9 in /src/frontend (#361)" in _read(repo, "CHANGELOG.md")
+
+
+def test_greek_in_a_commit_subject_reaches_the_documents_intact(tmp_path):
+    # v1.18.78: "ΜΙΕΕΚ" in a subject came out as "╬ε╬β╬Χ╬Χ╬γ" in CHANGELOG.md and the release
+    # notes. The generator read `git log` (UTF-8) through the console's code page, 737 on the
+    # owner's PC.
+    subject = "docs(plan): todo 44, the owner settles the ΜΙΕΕΚ policy question"
+    repo = _make_release_repo(tmp_path, ["feat(attendance): lesson log", subject])
+
+    result = _generate(repo, console_code_page=737)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    for document in ("CHANGELOG.md", "docs/releases/RELEASE_NOTES_v1.0.1.md"):
+        text = _read(repo, document)
+        assert "the owner settles the ΜΙΕΕΚ policy question" in text, document
+        assert "╬" not in text, document
 
 
 def test_a_release_with_nothing_user_facing_says_so(tmp_path):

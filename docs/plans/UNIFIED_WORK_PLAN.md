@@ -214,9 +214,19 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67 are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
+### On `main` since v1.18.78 (unreleased)
+
+**2026-11-21: the release-notes generator keeps Greek text intact** (this PR; the
+owner: "if all ok, continue with next"). `GENERATE_RELEASE_DOCS.ps1` now decodes its `git
+log` as UTF-8 (`[Console]::OutputEncoding` set for that one call and put back in a `finally`,
+and `i18n.logOutputEncoding=UTF-8`), whatever the console's code page. Test:
+`test_release_docs_generator.py::test_greek_in_a_commit_subject_reaches_the_documents_intact`
+runs the real generator with the console at code page 737 and a subject with "ΜΙΕΕΚ"; it
+fails on the old script (the CHANGELOG line garbled, as in v1.18.78) and passes on the new one.
+
 ### In v1.18.78
 
-**Found while releasing v1.18.78 (2026-11-21), not changed:** `GENERATE_RELEASE_DOCS.ps1`
+**Found while releasing v1.18.78 (2026-11-21), fixed after it (above):** `GENERATE_RELEASE_DOCS.ps1`
 reads `git log` through the console's code page (737 on the dev PC), so a Greek word in a
 commit subject reached `CHANGELOG.md` and `docs/releases/RELEASE_NOTES_v1.18.78.md` garbled
 ("ΜΙΕΕΚ" in the subject of `2848b2be3`). Corrected by hand in both files. The script needs
