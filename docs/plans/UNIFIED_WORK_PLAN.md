@@ -218,8 +218,9 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
-**2026-11-21: the rest of the Updates panel reads in the light theme** (this PR; todo 66; the
-owner: "continue with suggested"). Every colour in `UpdatesPanel.tsx` that was written for a
+**2026-11-21: the rest of the Updates panel reads in the light theme** (PR 462, merged as
+`e8e6aed3d`; todo 66; the owner: "continue with suggested"; CI green: backend 2,073 passed and
+56 skipped, frontend 2,097, E2E 77 passed, started by hand). Every colour in `UpdatesPanel.tsx` that was written for a
 dark background only now has a light partner: `light-class dark:dark-class`, as the panel's
 notices already were. That covers the "Update Available" banner, the Windows installer box, the
 "Update Instructions" box, the release card's labels and links, the timeline, the channel
@@ -229,8 +230,9 @@ after in both themes): in the light theme the banner, the installer box and the 
 heading were unreadable before and read well after. In the dark theme nothing changed, for the
 reason under todo 66.
 
-**2026-11-21: the installer reads and writes the uninstall entry that Inno Setup creates** (this
-PR; todo 65; the owner: "continue with suggested"). `SMS_Installer.iss` now names the key Inno
+**2026-11-21: the installer reads and writes the uninstall entry that Inno Setup creates** (PR
+461, merged as `e38de9f90`; todo 65; the owner: "continue with suggested"; CI green: backend
+2,073 passed and 56 skipped, frontend 2,097; no E2E, nothing in the application changed). `SMS_Installer.iss` now names the key Inno
 registers, `…\Uninstall\{B5A1E2F3-…}}_is1` (define `MyAppUninstallKey`), in all 18 places its
 code used the one-brace key. So the renamed uninstaller (`unins<version>.exe`) reaches the
 entry that Settings → Apps runs, and an existing installation is found by its entry. Nothing is
@@ -244,8 +246,10 @@ it). Checks: the script compiles with ISCC (`/O-`, with an empty stand-in for th
 on the old one. The registry side is proven only by an installer built from this, installed
 over an installation: the next release's update of the Docker test install (todo 40) shows it.
 
-**2026-11-21: after its own Update, SMS Lite starts again with the user's own rights** (this PR;
-todo 68; the owner: "continue with suggested"). SMS Lite no longer asks the installer to start
+**2026-11-21: after its own Update, SMS Lite starts again with the user's own rights** (PR 460,
+merged as `beb10d533`; todo 68; the owner: "continue with suggested"; CI green: backend 2,068
+passed and 56 skipped, the Windows-only test among the skipped on Linux; frontend 2,097; E2E 77
+passed, started by hand). SMS Lite no longer asks the installer to start
 it again (`/RESTARTLITE=1`): started through "runas", the installer runs elevated and cannot go
 back to the user's rights. Before it starts the installer, SMS Lite now starts a small hidden
 PowerShell helper as its own child, so with the same user's rights. The helper waits for this
@@ -261,7 +265,8 @@ the script's quoting, and the real script under Windows PowerShell with stand-in
 starts SMS Lite only after both are gone). The restart itself is proven only by a real update
 from a release that carries this.
 
-**2026-11-21: the dependency review checks an allow list of licences** (PR 459; the owner,
+**2026-11-21: the dependency review checks an allow list of licences** (PR 459, merged as
+`b14a60b9f`, CI green with the new list accepted by the action; the owner,
 after the deprecation notice that `actions/dependency-review-action` posted on PR 458: "Allow
 today's licences"). Its `deny-licenses` option (here GPL-3.0 and AGPL-3.0) is deprecated, with
 possible removal in the action's next major version; the maintainers' reason (their issue 997)
