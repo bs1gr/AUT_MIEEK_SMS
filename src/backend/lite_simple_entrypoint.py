@@ -180,6 +180,13 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         except OSError as e:
             print(f"WARNING: could not bring the saved mail settings along ({e})", file=sys.stderr)
         os.environ['SMTP_OVERRIDE_PATH'] = str(_smtp_settings)
+    # Update saves the installer it downloads here (routers/control/maintenance.py). Beside the
+    # code it went under "Program Files", where SMS Lite cannot write: every Update failed there,
+    # before the Windows security prompt (2026-11-21).
+    os.environ.setdefault(
+        'SMS_UPDATES_DIR',
+        str(Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'updates'),
+    )
 
 
 # ---------------------------------------------------------------------------

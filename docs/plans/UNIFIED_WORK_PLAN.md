@@ -38,6 +38,8 @@ erased on 2026-11-20 was a data change by hand, under "In v1.18.78").
   backup was forced (no database change); the daily one stays at about 15:36 UTC.
 - **The owner's Docker test install on the dev PC runs v1.18.78** (2026-11-21, the installer
   run by hand through UAC; todo 40 says why not from the page, and what is still untested).
+  **Since 15:10 the same day it is replaced, for a while, by todo 40's SMS Lite test** (the
+  owner's word); it is put back from a copy kept outside the repository.
 
 **Before that: v1.18.77 released 2026-11-20** (tag on `09c7c0d3a`, run by the assistant; the
 owner: "review current state and if all todos are covered, prepare a new release so to include
@@ -215,6 +217,21 @@ The status records of v1.18.73 back to v1.18.67, and the release record of v1.18
 word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
+
+**2026-11-21: SMS Lite's Update saves the installer it downloads in the user's profile** (this
+PR; found the same day by todo 40's Lite test). Until now it saved it beside its code, in
+`C:\Program Files\SMS\_internal\artifacts\updates`. SMS Lite runs without administrator rights
+and cannot write there, so the Update of every installed SMS Lite stopped with "[WinError 5]
+Access is denied" before the Windows security prompt. The tests never saw it: each one replaced
+that folder with a temporary one. The entrypoint now names
+`%LOCALAPPDATA%\SMS_Native_Lite_Simple\updates` (`SMS_UPDATES_DIR`, beside the backup key and the
+mail settings it already keeps there), and `_get_updates_download_dir()` uses it. Tests:
+`test_lite_db.py::test_installed_lite_saves_update_downloads_in_the_users_profile` and
+`test_control_maintenance.py::test_lite_update_saves_the_installer_in_the_folder_sms_lite_names`
+(through the real endpoint, the folder not replaced); both fail on the old code. **An SMS Lite
+up to v1.18.78 cannot update itself from the app** (unless it runs with administrator rights):
+it takes the next installer once, run by hand. From the release that carries this on, Update
+works; the release notes must say so.
 
 **2026-11-21: the release-notes generator keeps Greek text intact** (PR 456, merged as `7bf7a7132`, CI green: 38 checks passed, the new test ran on Linux too; the
 owner: "if all ok, continue with next"). `GENERATE_RELEASE_DOCS.ps1` now decodes its `git
@@ -2101,7 +2118,11 @@ tree as evidence that GitHub is clear.
 the answers are under "In v1.18.78"). v1.18.78 is released and the cloud VM runs it, with
 the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
 The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
-40). Still open: todo 40's Docker host task (with v1.18.79) and its Lite half; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
+40), and is replaced for a while by todo 40's SMS Lite test (2026-11-21). Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on
+2026-11-21 and found that the Update of an installed SMS Lite could never save its download,
+fixed under "On `main` since v1.18.78"); todos 65 to 67, found by that test (the uninstall entry
+in Settings → Apps, the Updates panel's messages, SMS Lite stopping under a page in the
+background); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2505,6 +2526,34 @@ and 44 and 48 in its part 5):
         install, rebuild from the page's request) and the Lite installer through UAC. The
         Docker half can be done when v1.18.79 is out: that test install is now on a version
         whose Update button works.
+    - **Lite half done 2026-11-21** (the owner: "replace the Docker test install at
+      C:\Program Files\SMS for a while", then "I'll open the folder by hand"), on the dev PC:
+      - *Before:* the Docker test install's `data`, `backups`, `config`, `logs` and `.env` were
+        copied to `D:\tmp\sms-lite-uac-test`, outside the repository (counts, sizes and the
+        `.env` hash checked). The owner's own SMS Lite folder in `AppData\Local` was renamed
+        aside, to be put back: its QNAP credentials file would have put a test install on the
+        shared database.
+      - *The Docker edition uninstalled* (UAC, the owner). At "delete the data folders?" the
+        answer was Yes: `data`, `backups`, `logs`, `config` and `.env` went (all of them are in
+        the copy). The database is in the `sms_data` volume, which an uninstall does not touch.
+      - *Lite v1.18.77 installed* from the published installer (digest = GitHub's, Authenticode
+        Valid, `2693C1B1…075D`), silently with `/EDITION=lite`: a fresh install in 23 s, on a
+        new local SQLite file, with a test administrator from `initial-admin.json` (removed at
+        the first start) and one marker student with a Greek name. Its update check offered
+        v1.18.78 (`update_method: installer`, the published SHA-256).
+      - *First Update* (the owner, from the Control Panel): "[WinError 5] … `_internal\artifacts`"
+        before the security prompt; fixed by the entry under "On `main` since v1.18.78".
+      - *Second Update,* after the owner created `_internal\artifacts` by hand and gave Users
+        write access to it (test only; the assistant's permission check refused to do it): the
+        installer started at 15:29:32 (UAC, the owner), SMS Lite exited at 15:29:39, the
+        installer started it again at 15:30:28, and it answered as v1.18.78 at 15:30:35. Same
+        database file, migrations at head, the marker student intact, no other account. The
+        downloaded file is the published one (87,426,656 bytes, `e94ccc4d…ffdb`, signature
+        Valid).
+      - **Left:** the corrected download folder is proven by its tests only, until a release
+        that carries it updates to a later one; the Docker host task (with v1.18.79); the
+        owner's Docker test install, to be put back from the copy (the owner: commits first).
+        Found on the way: todos 65 to 67.
 
 <!-- -->
 
@@ -2577,6 +2626,53 @@ and 44 and 48 in its part 5):
         archives above, removable under the one-year rule whenever the owner chooses; and the
         same two `PRIVACY_*` settings in the `.env` of a home install, only if that install
         should show them. Nothing in the code is open here.
+
+<!-- -->
+
+65. **Uninstalling from Settings → Apps finds no uninstaller** (found 2026-11-21 by todo 40's
+    Lite test). The script says `AppId={{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}}`. In Inno Setup
+    `{{` is a literal `{` but `}}` stays `}}`, so Inno registers every installation under
+    `…\Uninstall\{B5A1E2F3-…-EF0123456789}}_is1` (its log: "Creating new uninstall key:
+    …}}_is1"). The script's own code uses `{#MyAppId}_is1`, with one brace: another key.
+    - Every lookup there (an existing installation's place, its version, its uninstall command)
+      reads a key Inno never wrote.
+    - The step that renames `unins000.exe` to `unins<version>.exe` writes the new name into that
+      other key, in HKLM and in HKCU. The real entry, the one Settings → Apps runs, keeps
+      `"C:\Program Files\SMS\unins000.exe"`, a file that is gone after the rename. Seen on the
+      dev PC after a fresh v1.18.77 install and its update to v1.18.78. The uninstall of the
+      owner's Docker install the same day worked only because it was started from
+      `uninsv1.18.78.exe` directly.
+    - **Not to be changed:** the AppId itself (every installation is registered under it).
+      Suggested: the code uses the key Inno writes (`{#MyAppId}}_is1`), only in the root Inno
+      uses, and removes the two-value leftovers of the other key. Proven only by an installer
+      built from it and installed over an existing installation; the v1.18.79 update of the
+      Docker test install (todo 40) shows it, if it ships in v1.18.79.
+    - **Also in the uninstaller:** it deletes the `.env` files even when the answer is "keep
+      the data". `[UninstallDelete]` lists `{app}\.env`, `backend\.env` and `frontend\.env`,
+      and those run whatever the answer, while the question says No keeps "the settings (the
+      config folder and the .env files)". Read in the script, not seen: on 2026-11-21 the
+      answer was Yes.
+
+<!-- -->
+
+66. **The Updates panel's messages** (found 2026-11-21 in the owner's screenshot of the failed
+    Lite Update). Every error, a failed install too, appears under "Error checking for updates"
+    (`UpdatesPanel.tsx`). The green box shows the server's English sentence ("Smart updater
+    started. Track progress from the updater timeline.") on a Greek page instead of the
+    translated `updateInstallStarted`, and it stays beside the red one after the job fails.
+    Both boxes use dark-theme colours only (`text-red-300`, `text-green-300` on a 30 % tint)
+    and are hard to read in the light theme.
+
+<!-- -->
+
+67. **SMS Lite shut down under a page that was still open** (2026-11-21, 15:25:35, its log:
+    "Auto-shutdown: no SMS page open for 90 s"; the owner: the tab was still open, in the
+    background, while they worked in Explorer for a few minutes). Every SMS page sends a
+    heartbeat every 10 s, and Lite exits 90 s after the last one (the owner's rule of
+    2026-10-13). A browser can slow down or freeze a page in the background (Edge does both),
+    so a page left behind another window can let Lite stop under the user, who then finds the
+    page dead. Not reproduced yet. The rule is the owner's: a change (a longer wait, or a
+    heartbeat that a sleeping tab still sends) is the owner's decision.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):

@@ -1164,6 +1164,17 @@ def _asset_sha256(asset: Dict[str, Any]) -> Optional[str]:
 
 
 def _get_updates_download_dir() -> Path:
+    """Where Update saves the installer it downloads.
+
+    SMS Lite names a folder in the user's profile (SMS_UPDATES_DIR, set by its entrypoint). The
+    folder next to the code is under "Program Files" there, and SMS Lite runs without
+    administrator rights, so saving into it failed with "[WinError 5] Access is denied" before
+    the Windows security prompt: the Update of every installed SMS Lite stopped there (found
+    2026-11-21, plan todo 40).
+    """
+    configured = os.environ.get("SMS_UPDATES_DIR", "").strip()
+    if configured:
+        return Path(configured)
     return Path(__file__).resolve().parents[3] / "artifacts" / "updates"
 
 
