@@ -20,6 +20,13 @@
 #define MyAppGitHubURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
 #define MyAppExeName "SMS_Manager.exe"
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
+; The key Inno Setup registers an installation under: the AppId of [Setup] with "_is1" added. In
+; that value "{{" stands for "{" but "}}" stays "}}", so the key ends in "}}_is1". Until 2026-11-21
+; the code below added "_is1" to MyAppId, which gives one brace: a key Inno never wrote, so every
+; lookup found nothing and the renamed uninstaller never reached the real entry (plan todo 65).
+#define MyAppUninstallKey "Software\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}}_is1"
+; That other key, which the old code created in HKLM and HKCU with two values only.
+#define MyAppStubUninstallKey "Software\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}_is1"
 
 ; Read version from VERSION file (may include "v" prefix per Policy 2)
 #define VersionFile FileOpen("..\..\..\VERSION")
@@ -324,10 +331,10 @@ Type: filesandordirs; Name: "{app}\backend\logs"
 Type: filesandordirs; Name: "{app}\backend\.venv"
 Type: filesandordirs; Name: "{app}\frontend\node_modules"
 Type: filesandordirs; Name: "{app}\frontend\dist"
-Type: files; Name: "{app}\backend\.env"
-Type: files; Name: "{app}\frontend\.env"
-Type: files; Name: "{app}\.env"
-Type: files; Name: "{app}\config\lang.txt"
+; Not the settings (the .env files, config\lang.txt): entries here run whatever the answer to
+; "delete this installation's data folders?", and No promises to keep "the settings (the config
+; folder and the .env files)" for a reinstallation. Yes deletes them in InitializeUninstall.
+; Until 2026-11-21 the three .env files were listed here and went either way (plan todo 65).
 ; Legacy launcher cleanup
 Type: files; Name: "{app}\docker_manager.bat"
 Type: files; Name: "{app}\docker_manager.cmd"
@@ -803,10 +810,10 @@ var
   UninstallStr: String;
 begin
   Result := '';
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+  if RegQueryStringValue(HKLM, '{#MyAppUninstallKey}',
      'UninstallString', UninstallStr) then
     Result := UninstallStr
-  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+  else if RegQueryStringValue(HKCU, '{#MyAppUninstallKey}',
      'UninstallString', UninstallStr) then
     Result := UninstallStr;
 end;
@@ -856,10 +863,10 @@ var
   Version: String;
 begin
   Result := '';
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+  if RegQueryStringValue(HKLM, '{#MyAppUninstallKey}',
      'DisplayVersion', Version) then
     Result := Version
-  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+  else if RegQueryStringValue(HKCU, '{#MyAppUninstallKey}',
      'DisplayVersion', Version) then
     Result := Version;
 end;
@@ -869,10 +876,10 @@ var
   Path: String;
 begin
   Result := '';
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+  if RegQueryStringValue(HKLM, '{#MyAppUninstallKey}',
      'InstallLocation', Path) then
     Result := Path
-  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+  else if RegQueryStringValue(HKCU, '{#MyAppUninstallKey}',
      'InstallLocation', Path) then
     Result := Path;
 end;
@@ -998,6 +1005,20 @@ begin
   end;
 end;
 
+// The two-value key that versions up to v1.18.78 wrote beside the real uninstall entry (see
+// MyAppStubUninstallKey). Removed only when it has no DisplayName: then it is not an entry.
+procedure RemoveStubUninstallKey(RootKey: Integer);
+begin
+  if RegKeyExists(RootKey, '{#MyAppStubUninstallKey}') and
+     not RegValueExists(RootKey, '{#MyAppStubUninstallKey}', 'DisplayName') then
+  begin
+    if RegDeleteKeyIncludingSubkeys(RootKey, '{#MyAppStubUninstallKey}') then
+      Log('Removed the old two-value uninstall key')
+    else
+      Log('[WARN] Could not remove the old two-value uninstall key');
+  end;
+end;
+
 procedure LogAndRenameUninstallerSidecar(const OldPath, NewPath, LabelName: String);
 begin
   if FileExists(OldPath) then
@@ -1081,12 +1102,12 @@ begin
   OutPath := '';
 
   // Check 1: Registry HKLM
-  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'InstallLocation', RegPath) then
+  if RegQueryStringValue(HKLM, '{#MyAppUninstallKey}', 'InstallLocation', RegPath) then
   begin
     if AppExistsOnDisk(RegPath) then
     begin
       OutPath := RegPath;
-      RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
+      RegQueryStringValue(HKLM, '{#MyAppUninstallKey}', 'DisplayVersion', RegistryVersion);
       OutVersion := RegistryVersion;
       if OutVersion = '' then
         OutVersion := ReadVersionFromDirectory(OutPath);
@@ -1097,12 +1118,12 @@ begin
   end;
 
   // Check 2: Registry HKCU
-  if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'InstallLocation', RegPath) then
+  if RegQueryStringValue(HKCU, '{#MyAppUninstallKey}', 'InstallLocation', RegPath) then
   begin
     if AppExistsOnDisk(RegPath) then
     begin
       OutPath := RegPath;
-      RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
+      RegQueryStringValue(HKCU, '{#MyAppUninstallKey}', 'DisplayVersion', RegistryVersion);
       OutVersion := RegistryVersion;
       if OutVersion = '' then
         OutVersion := ReadVersionFromDirectory(OutPath);
@@ -2979,14 +3000,11 @@ begin
         // Keep companion files (.dat/.msg) aligned with the executable name
         LogAndRenameUninstallerSidecar(OldUninstallerDat, NewUninstallerDat, 'Uninstaller DAT');
         LogAndRenameUninstallerSidecar(OldUninstallerMsg, NewUninstallerMsg, 'Uninstaller MSG');
-        // Update the uninstall registry entry to point to the renamed file
-        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        // Update the uninstall entry (the one Settings > Apps runs) to the renamed file. An
+        // administrative install has its entry in HKLM only; nothing is written to HKCU.
+        RegWriteStringValue(HKLM, '{#MyAppUninstallKey}',
           'UninstallString', '"' + NewUninstaller + '"');
-        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
-          'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
-        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
-          'UninstallString', '"' + NewUninstaller + '"');
-        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        RegWriteStringValue(HKLM, '{#MyAppUninstallKey}',
           'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
         Log('  Registry entries updated successfully');
       end
@@ -2995,9 +3013,9 @@ begin
         Log('  [WARN] Could not rename uninstaller (may be locked by system)');
         // Fallback: Update registry to point to unins000.exe
         Log('  Fallback: Using unins000.exe for uninstaller registry entries');
-        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        RegWriteStringValue(HKLM, '{#MyAppUninstallKey}',
           'UninstallString', '"' + OldUninstaller + '"');
-        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        RegWriteStringValue(HKLM, '{#MyAppUninstallKey}',
           'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
       end;
     end
@@ -3007,11 +3025,15 @@ begin
       Log('  [WARN] Inno Setup may not have created the uninstaller executable');
       Log('  Attempting to ensure uninstaller registry entries are set...');
       // Ensure registry entries point to unins000.exe even if file doesn''t exist (will be created later)
-      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+      RegWriteStringValue(HKLM, '{#MyAppUninstallKey}',
         'UninstallString', '"' + OldUninstaller + '"');
-      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+      RegWriteStringValue(HKLM, '{#MyAppUninstallKey}',
         'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
     end;
+
+    // The two-value key that older versions wrote in HKLM and HKCU (plan todo 65)
+    RemoveStubUninstallKey(HKLM);
+    RemoveStubUninstallKey(HKCU);
 
     // Post-install validation: ensure correct executable exists based on edition
     if IsDockerInstall then
