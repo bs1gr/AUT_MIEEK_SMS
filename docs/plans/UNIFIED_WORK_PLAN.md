@@ -1,8 +1,45 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.77
-**Last Updated**: November 20, 2026
-**Status**: ✅ **v1.18.77 released 2026-11-20** (tag on `09c7c0d3a`, run by the assistant; the
+**Current Version**: 1.18.78
+**Last Updated**: November 21, 2026
+**Status**: ✅ **v1.18.78 released 2026-11-21** (tag on `1ea198829`, run by the assistant; the
+owner's go-ahead of 2026-11-20, after going through every open todo: "Release + update VM").
+It carries PRs 448 to 455, under "In v1.18.78" below: backups, restore and the other
+dangerous Control Panel actions need a signed-in administrator also on the PC itself (448 to
+450), a backup right before a migration (451), no log files written into the checkout by a
+test run (452), readable leftovers beside encrypted backups removed (453), the Database
+panel's backups encrypted (454), readable Present/Late buttons, footer and Dashboard text
+(455). **No database change** (the shared database stays at `e2b7c9d4a1f6`; the test data
+erased on 2026-11-20 was a data change by hand, under "In v1.18.78").
+
+- **Before the tag:** `RELEASE_READY` (no `-TagRelease`, release commit `41aa010ff`, 93 min
+  under a memory watchdog, never under 4.4 GB free): exit 0, backend 2,075 passed, 43 skipped,
+  0 failed, the frontend suite passed; the local test installer built and its checks passed
+  (never uploaded). The hand-written notes commit `1ea198829` passed `COMMIT_READY -Quick`;
+  `DOCKER_BUILD_CHECK.ps1 -Version 1.18.78` on it: the image builds for amd64 and arm64 (4.7
+  min; the release commit's own run passed too); CI/CD and E2E green on the same commit; the
+  tag's release, installer and APK workflows succeeded.
+- **Verified on the published assets:** `SMS_Installer_1.18.78.exe` 87,426,656 bytes, SHA-256
+  `e94ccc4d…ffdb` = GitHub's digest, Authenticode Valid, CN=AUT MIEEK, thumbprint
+  `2693C1B1…075D`, timestamped, file version v1.18.78, not the local build (90,215,520 bytes);
+  `SMS_Android_1.18.78.apk` 4,636,637 bytes, SHA-256 `a94dfa37…2d2e` = GitHub's digest,
+  `versionCode 118078`, signer `686fb6ed…d2ea` as before. The release has the hand-written text
+  (identical to `.github/RELEASE_NOTES_v1.18.78.md`) and those two files only.
+- **The cloud VM runs v1.18.78** (2026-11-21, 07:22 to 07:25 UTC, over SSH, on the same
+  go-ahead): `.env` copied to `~/env.cloud.backup.20261121`, the privacy controller's name and
+  contact added to it (the owner's values, typed in the session; not recorded here, todo 50),
+  `git checkout v1.18.78`, `docker compose up -d --build` (106 s), healthy 19 s later. `/health`
+  v1.18.78 with the database connected, on the VM and through the tailnet; the student list
+  answers 401 without a sign-in; `/api/v1/privacy/info` answers `configured: true` with the
+  owner's values; no ERROR line, no traceback (one WARNING, the standing CSRF notice). **The
+  plain panel backup of 16 November was encrypted at the first automatic check** (07:26:00
+  UTC, "Encrypted 1 old plain backup(s)…"): `/data/backups/postgres` is empty and
+  `primary_student_management_20261116_184624.enc` is in `/data/backups/database`. No
+  backup was forced (no database change); the daily one stays at about 15:36 UTC.
+- **Next:** todo 40's Lite update through UAC on the dev PC (v1.18.77 to v1.18.78; the owner
+  clicks Yes).
+
+**Before that: v1.18.77 released 2026-11-20** (tag on `09c7c0d3a`, run by the assistant; the
 owner: "review current state and if all todos are covered, prepare a new release so to include
 all the changes accordingly"; every open todo waits for the owner, so it carries what `main`
 had). It carries PR 447 only, under "In v1.18.77" below: **`/health` no longer holds the event
@@ -2051,11 +2088,10 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Open work as of 2026-11-21** (after the owner went through every open todo on 2026-11-20;
-the answers are under "In v1.18.78"). Every release up to v1.18.77 is recorded
-at the top, and the cloud VM runs `main` at `4c4694367`. Next, on the owner's go-ahead of
-2026-11-20: the v1.18.78 release, the VM moved onto it with the privacy controller's name and
-contact set in its `.env` (todo 50), then the Lite update through UAC on the dev PC (todo
-40). Still open after that: todo 40's Docker host task; todo 50's owner side; todo 55's copy
+the answers are under "In v1.18.78"). v1.18.78 is released and the cloud VM runs it, with
+the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
+Next, on the same go-ahead: the Lite update through UAC on the dev PC (todo 40). Still open
+after that: todo 40's Docker host task; todo 50's owner side; todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items; todo 63's remaining readings. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2672,7 +2708,9 @@ and 44 and 48 in its part 5):
       - **Still open:** the controller's name and contact for the `PRIVACY_*` settings (supplied
         by the owner, set in the servers' `.env`, never in the repository). **The owner,
         2026-11-20 ("Set them at the VM update"):** asked for when the VM is moved onto
-        v1.18.78, and written into the VM's `.env` only.
+        v1.18.78, and written into the VM's `.env` only. **Done 2026-11-21 on the VM** (the
+        owner typed them; the Privacy page answers `configured: true`). A home install that
+        should show them needs the same two settings in its own `.env`.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
