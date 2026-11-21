@@ -216,7 +216,7 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
-### On `main` since v1.18.78 (unreleased)
+### In v1.18.79
 
 **2026-11-21: the Control Panel on the System page reads in the dark theme** (PR 463, merged as
 `b0254d674`; todo 66; the owner: "fix the dark theme container too"; CI green: backend 2,073
@@ -2218,12 +2218,13 @@ the privacy controller's name and contact in its `.env` (2026-11-21, the top of 
 The owner's Docker test install on the dev PC was updated to it by hand through UAC (todo
 40); it was replaced for todo 40's SMS Lite test on 2026-11-21 and put back the same day.
 Still open: todo 40's Docker host task (with v1.18.79; its Lite half was done on 2026-11-21 and
-found that the Update of an installed SMS Lite could never save its download, fixed under "On
-`main` since v1.18.78"); todos 65 to 68, found by that test: 65 (the uninstall entry in
+found that the Update of an installed SMS Lite could never save its download, fixed under "In v1.18.79"); todos 65 to 68, found by that test: 65 (the uninstall entry in
 Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed on `main` and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
-background) the owner's call; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
+background) the owner's call; todos 69 to 72 on changing a course's teaching schedule (a
+warning before a change in periods is saved, an audit entry, frozen totals for weeks already
+taught, absences in a period that no longer exists; 71 needs the owner's choice of approach); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 55's copy
 of a newer backup taken off the VM now and then; todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
@@ -2643,7 +2644,7 @@ and 44 and 48 in its part 5):
         the first start) and one marker student with a Greek name. Its update check offered
         v1.18.78 (`update_method: installer`, the published SHA-256).
       - *First Update* (the owner, from the Control Panel): "[WinError 5] … `_internal\artifacts`"
-        before the security prompt; fixed in PR 457 (under "On `main` since v1.18.78").
+        before the security prompt; fixed in PR 457 (under "In v1.18.79").
       - *Second Update,* after the owner created `_internal\artifacts` by hand and gave Users
         write access to it (test only; the assistant's permission check refused to do it): the
         installer started at 15:29:32 (UAC, the owner), SMS Lite exited at 15:29:39, the
@@ -2765,7 +2766,7 @@ and 44 and 48 in its part 5):
       and those run whatever the answer, while the question says No keeps "the settings (the
       config folder and the .env files)". Read in the script, not seen: on 2026-11-21 the
       answer was Yes.
-    - **Done 2026-11-21** (the entry under "On `main` since v1.18.78"): the code uses the key
+    - **Done 2026-11-21** (the entry under "In v1.18.79"): the code uses the key
       Inno writes, HKCU is left alone, the old two-value keys are removed, and No keeps the
       settings. **Left:** seeing it on a real installation, at the next release's update of the
       Docker test install (todo 40): Settings → Apps should then show the entry with
@@ -2780,12 +2781,12 @@ and 44 and 48 in its part 5):
     translated `updateInstallStarted`, and it stays beside the red one after the job fails.
     Both boxes use dark-theme colours only (`text-red-300`, `text-green-300` on a 30 % tint)
     and are hard to read in the light theme.
-    - **Done 2026-11-21** in PR 458 (under "On `main` since v1.18.78"): the title says what
+    - **Done 2026-11-21** in PR 458 (under "In v1.18.79"): the title says what
       failed, the "started" note goes on a failure, the start and SMS Lite's closing are
       translated, and both boxes have light-theme colours.
     - ~~**Left:** the rest of the panel (the "Update Available" banner, the release card, the
       instructions) still uses dark-theme colours only.~~ **Done 2026-11-21** for the light
-      theme (the entry under "On `main` since v1.18.78"). Still left: the body of a failure is
+      theme (the entry under "In v1.18.79"). Still left: the body of a failure is
       the server's English text (the job's failures have no message keys); the Docker host
       task's status texts are shown as they come, seen for the first time when todo 40's
       Docker half runs.
@@ -2801,7 +2802,7 @@ and 44 and 48 in its part 5):
       variants. Suggested: dark variants for the embedded container, header, main area and
       cards, then every tab looked at in both themes (screenshots).
     - **Done 2026-11-21 another way** (the owner: "fix the dark theme container too"; the entry
-      under "On `main` since v1.18.78"): in the dark theme the rest of the app shows white
+      under "In v1.18.79"): in the dark theme the rest of the app shows white
       cards, so the Control Panel became a light island that matches them, rather than a dark
       panel inside a white card. Every tab was looked at in both themes.
 
@@ -2836,11 +2837,62 @@ and 44 and 48 in its part 5):
       rights and keeps the user's for `runasoriginaluser`. Suggested: start it with "open".
       First re-check the comment in `maintenance.py` that CreateProcess failed with
       ERROR_ELEVATION_REQUIRED, then check the restart in a real update.
-    - **Done 2026-11-21 another way** (the entry under "On `main` since v1.18.78"): "open"
+    - **Done 2026-11-21 another way** (the entry under "In v1.18.79"): "open"
       would show the UAC prompt only after SMS Lite had already set its exit, so a No would
       leave SMS Lite closed. Instead "runas" stays, and a helper with the user's own rights
       starts SMS Lite again once the installer has finished. **Left:** seeing it in a real
       update (a release that carries it, updated to a later one).
+
+<!-- -->
+
+**Todos 69 to 72: changing a course's teaching schedule** (the owner, 2026-11-21, after asking
+what happens when a teacher swaps courses or sets them at other hours: "add all four to the plan
+as todos"). Read in the code the same day (`absence_limit_service.py`, `routers_courses.py`,
+`AttendanceView.tsx`, `CoursesView.tsx`). The schedule is edited under Courses → Teaching
+Schedule; the Calendar page only shows it. A course's absence total is its *current*
+`periods_per_week` × `SEMESTER_WEEKS` (14, one global setting), and the absences counted are all
+of its Absent and Excused rows, whatever their date or period. Moving a course to other days or
+hours with the same number of periods changes no record and no percentage. Changing the number
+of periods recalculates every student's limits for the whole semester, past weeks included.
+
+69. **A warning before a change in periods per week is saved, showing its effect on absences.**
+    Example: going from 2 to 3 periods a week raises the total from 28 to 42, allowed absences
+    from 8 to 12 and the participation limit from 2 to 4; going down pushes students over the
+    30 % (fail) or 10 % (participation) limits and can change final grades (participation
+    counts 0 when forfeited). Today nothing is shown. Suggested: when the Teaching Schedule's
+    period count changes, list the students whose status would change (fail, participation)
+    before saving, with Save / Cancel. Also not covered by today's soft conflict warning: the
+    Edit Course dialog (it re-sends the whole course) and course imports. No decision needed
+    beyond the wording.
+
+<!-- -->
+
+70. **An audit entry for schedule changes.** `PUT /courses/{id}` (`update_course`, permission
+    `courses:edit`) writes no audit entry, so an overwritten schedule leaves no trace of the old
+    one or of who changed it. `CourseService`, which does audit, is used by no router. Every
+    teacher holds `courses:edit` and courses have no teacher field, so any teacher can change
+    any course's schedule. Suggested: an audit entry with the old and new `teaching_schedule` and
+    `periods_per_week` (and the other changed fields) on every course update. No decision needed.
+
+<!-- -->
+
+71. **Freezing the totals for weeks already taught.** The total uses today's schedule for all 14
+    weeks, so a change mid-semester rewrites the past. Nothing in the data marks when a semester
+    starts or which schedule was in force in which week (`Course.semester` is free text, the 14
+    weeks are global). Suggested: a dated schedule history (each change with the date it takes
+    effect), with the total counted week by week from the schedule that applied then; needs a
+    semester start date and an additive migration. **Needs the owner's choice of approach before
+    it is built** (a larger change; it touches the absence limits and the final grades).
+
+<!-- -->
+
+72. **Showing absences recorded in a period that no longer exists.** The Attendance sheet shows
+    only the periods today's schedule gives a date, so when a day loses a period, the absences
+    already recorded in it vanish from the sheet but still count in the limits; and past dates on
+    a weekday the course no longer has are greyed out in the Attendance calendar, although their
+    records are there. Suggested: show such periods, marked as outside the schedule, whenever
+    they hold records, and let a past date with records be opened. No decision needed beyond the
+    wording.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
