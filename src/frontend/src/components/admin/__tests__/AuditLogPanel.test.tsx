@@ -176,12 +176,12 @@ describe('AuditLogPanel', () => {
   });
 
   it('has a sentence in both languages for everything the server says was done', async () => {
-    // What the server writes into an entry's details as the operation, read from the three
+    // What the server writes into an entry's details as the operation, read from the four
     // modules that write them. One without a sentence was shown as "Role changed" alone, and
     // without the role: an operation added to the server has to get its sentence here.
     const here = path.dirname(fileURLToPath(import.meta.url));
     const written = new Set<string>();
-    for (const name of ['routers_auth.py', 'routers_rbac.py', 'routers_permissions.py']) {
+    for (const name of ['routers_auth.py', 'routers_rbac.py', 'routers_permissions.py', 'routers_courses.py']) {
       const source = fs.readFileSync(path.resolve(here, '../../../../../backend/routers', name), 'utf8');
       for (const match of source.matchAll(/"operation"\]?\s*[:=]\s*"(\w+)"(?:\s+if\s+[^\n]*?\s+else\s+"(\w+)")?/g)) {
         written.add(match[1]);
@@ -205,6 +205,68 @@ describe('AuditLogPanel', () => {
         `controlPanel.auditLog.operations.${operation} `
       );
     });
+  });
+
+  it('shows what a course change replaced: the periods, the schedule day by day and the rules', async () => {
+    // Plan todo 70: a changed schedule changes every student's absence limits, and the page
+    // has to show what was there before, not only that something changed.
+    const monday = { day: 'Monday', start_time: '08:00', periods: 2, duration: 45 };
+    const thursday = { day: 'Thursday', start_time: '10:00', periods: 1, duration: 45 };
+    vi.mocked(auditAPI.list).mockResolvedValue(
+      page([
+        entry(10, {
+          action: 'update',
+          resource: 'course',
+          resource_id: '12',
+          details: { operation: 'update_course', course: 'AUD101', fields: 'teaching_schedule, periods_per_week, evaluation_rules' },
+          old_values: { teaching_schedule: [monday], periods_per_week: 2, evaluation_rules: null },
+          new_values: {
+            teaching_schedule: [monday, thursday],
+            periods_per_week: 3,
+            evaluation_rules: [{ category: 'Midterm', weight: 40 }, { category: 'Final Exam', weight: 60 }],
+          },
+        }),
+      ]) as never
+    );
+
+    render(<AuditLogPanel />);
+
+    const what = await screen.findByTestId('audit-what-10');
+    expect(what).toHaveTextContent('controlPanel.auditLog.operations.update_course');
+    expect(what).toHaveTextContent('"course":"AUD101"');
+    expect(screen.getByTestId('audit-change-10-periods_per_week')).toHaveTextContent(
+      'controlPanel.auditLog.courseFields.periods_per_week: 2 → 3'
+    );
+    expect(screen.getByTestId('audit-change-10-teaching_schedule')).toHaveTextContent(
+      'Monday 08:00 ×2 → Monday 08:00 ×2, Thursday 10:00 ×1'
+    );
+    expect(screen.getByTestId('audit-change-10-evaluation_rules')).toHaveTextContent(
+      'controlPanel.auditLog.nothing → Midterm 40%, Final Exam 60%'
+    );
+    const row = screen.getByTestId('audit-entry-10');
+    expect(row).not.toHaveTextContent('fields:'); // shown with their values, not as a raw list
+    expect(row).toHaveTextContent('controlPanel.auditLog.resources.course 12');
+
+    // Every field gets its label in both languages.
+    const fieldsOf = (table: unknown) =>
+      Object.keys((table as { auditLog: { courseFields: Record<string, string> } }).auditLog.courseFields).sort();
+    expect(fieldsOf(controlPanelEl)).toEqual(fieldsOf(controlPanelEn));
+    expect(fieldsOf(controlPanelEn)).toEqual(
+      [
+        'absence_limit_percent',
+        'absence_penalty',
+        'course_code',
+        'course_name',
+        'credits',
+        'description',
+        'evaluation_rules',
+        'hours_per_week',
+        'participation_limit_percent',
+        'periods_per_week',
+        'semester',
+        'teaching_schedule',
+      ]
+    );
   });
 
   it('says so when an entry names nobody, and when what was tried failed', async () => {

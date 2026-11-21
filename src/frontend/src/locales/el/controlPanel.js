@@ -339,8 +339,25 @@ export default {
       update_permission: 'Άλλαξε το δικαίωμα {{permission}}',
       activate_permission: 'Ενεργοποίησε το δικαίωμα {{permission}}',
       deactivate_permission: 'Απενεργοποίησε το δικαίωμα {{permission}}',
-      delete_permission: 'Διέγραψε το δικαίωμα {{permission}}'
+      delete_permission: 'Διέγραψε το δικαίωμα {{permission}}',
+      update_course: 'Άλλαξε το μάθημα {{course}}'
     },
+    // Τα πεδία ενός μαθήματος που αναφέρει μια αλλαγή, με την τιμή πριν και μετά.
+    courseFields: {
+      course_code: 'Κωδικός μαθήματος',
+      course_name: 'Όνομα μαθήματος',
+      semester: 'Εξάμηνο',
+      credits: 'Πιστωτικές μονάδες',
+      description: 'Περιγραφή',
+      evaluation_rules: 'Κανόνες αξιολόγησης',
+      absence_penalty: 'Ποινή απουσίας',
+      absence_limit_percent: 'Όριο απουσιών (%)',
+      participation_limit_percent: 'Όριο συμμετοχής (%)',
+      hours_per_week: 'Ώρες επαφής ανά εβδομάδα',
+      periods_per_week: 'Περίοδοι ανά εβδομάδα',
+      teaching_schedule: 'Πρόγραμμα διδασκαλίας'
+    },
+    nothing: 'κανένα',
     resources: {
       user: 'Λογαριασμός',
       student: 'Σπουδαστής',

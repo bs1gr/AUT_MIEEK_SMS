@@ -1173,6 +1173,9 @@ export interface AuditLogEntry {
   user_id?: number | null;
   user_email?: string | null;
   details?: Record<string, unknown> | null;
+  /** For a change: the changed fields' values before and after it (a course change writes them). */
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
   success: boolean;
   error_message?: string | null;
   timestamp: string;

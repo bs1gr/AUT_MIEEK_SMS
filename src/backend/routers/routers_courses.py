@@ -1,5 +1,6 @@
 """Course management API router."""
 
+import copy
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -12,12 +13,59 @@ from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
+from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
 from backend.services import course_activation
+from backend.services.audit_service import get_audit_logger
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})
+
+
+def _course_values(course: Any, fields: Iterable[str]) -> Dict[str, Any]:
+    """The course's current values of these fields, copied, with its rules in their normal form."""
+    values = {field: copy.deepcopy(getattr(course, field, None)) for field in fields}
+    if "evaluation_rules" in values:
+        values["evaluation_rules"] = _normalize_evaluation_rules(values["evaluation_rules"])
+    return values
+
+
+def _record_course_change(request: Request, db: Session, course: Any, before: Dict[str, Any]) -> None:
+    """Write what a request changed in a course to the audit log (plan todo 70).
+
+    A course's schedule sets every student's absence limits (periods per week times the
+    semester's weeks), and every teacher may edit every course, so an overwritten schedule left
+    no trace of the old one or of who changed it. Called after the change is committed, with the
+    values the request was about to replace. The Edit Course dialog sends the whole course, so
+    only the fields whose value changed go into the entry, and none is written when nothing
+    changed. A failure to write the entry is logged and never fails the request.
+    """
+    after = _course_values(course, before)
+    changed = [field for field in before if before[field] != after[field]]
+    if not changed:
+        return
+    course_id = course.id
+    try:
+        get_audit_logger(db).log_from_request(
+            request,
+            action=AuditAction.UPDATE,
+            resource=AuditResource.COURSE,
+            resource_id=str(course_id),
+            details={"operation": "update_course", "course": course.course_code, "fields": ", ".join(changed)},
+            old_values={field: before[field] for field in changed},
+            new_values={field: after[field] for field in changed},
+        )
+    except Exception as exc:
+        # The change itself is committed. A failed flush of the entry leaves the session
+        # unusable until a rollback (is_active is False then); anything else needs none.
+        if not db.is_active:
+            try:
+                db.rollback()
+            except Exception:
+                pass
+        logger.warning("Could not write the audit entry for the change of course %s: %s", course_id, exc)
+
 
 def _coerce_weight(value: Any) -> Optional[float]:
     if value is None:
@@ -309,6 +357,11 @@ def update_course(
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
         update_data = course_data.model_dump(exclude_unset=True)
+        # What the request may replace, for the audit entry; a schedule also sets periods_per_week.
+        tracked = [field for field in update_data if field != "is_active"]
+        if "teaching_schedule" in update_data and "periods_per_week" not in tracked:
+            tracked.append("periods_per_week")
+        before = _course_values(course, tracked)
 
         if "evaluation_rules" in update_data:
             normalized = _normalize_evaluation_rules(update_data["evaluation_rules"])
@@ -336,6 +389,7 @@ def update_course(
             db.flush()
             db.refresh(course)
 
+        _record_course_change(request, db, course, before)
         course.evaluation_rules = _normalize_evaluation_rules(course.evaluation_rules)
         return course
 
@@ -464,6 +518,7 @@ def update_evaluation_rules(
     try:
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
+        before = _course_values(course, ["evaluation_rules"])
         normalized = _normalize_evaluation_rules(rules_data.get("evaluation_rules"))
 
         if normalized:
@@ -481,6 +536,7 @@ def update_evaluation_rules(
             db.flush()
             db.refresh(course)
 
+        _record_course_change(request, db, course, before)
         return {
             "course_id": course_id,
             "evaluation_rules": _normalize_evaluation_rules(course.evaluation_rules),

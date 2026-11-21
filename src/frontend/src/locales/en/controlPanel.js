@@ -339,8 +339,25 @@ export default {
       update_permission: 'Changed the permission {{permission}}',
       activate_permission: 'Switched the permission {{permission}} on',
       deactivate_permission: 'Switched the permission {{permission}} off',
-      delete_permission: 'Deleted the permission {{permission}}'
+      delete_permission: 'Deleted the permission {{permission}}',
+      update_course: 'Changed the course {{course}}'
     },
+    // The fields of a course that a change names, with what was there before and after.
+    courseFields: {
+      course_code: 'Course code',
+      course_name: 'Course name',
+      semester: 'Semester',
+      credits: 'Credits',
+      description: 'Description',
+      evaluation_rules: 'Evaluation rules',
+      absence_penalty: 'Absence penalty',
+      absence_limit_percent: 'Absence limit (%)',
+      participation_limit_percent: 'Participation limit (%)',
+      hours_per_week: 'Contact hours per week',
+      periods_per_week: 'Periods per week',
+      teaching_schedule: 'Teaching schedule'
+    },
+    nothing: 'none',
     resources: {
       user: 'Account',
       student: 'Student',
