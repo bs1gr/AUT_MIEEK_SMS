@@ -24,7 +24,7 @@ removes the dependency on a home *PC* being switched on.
 1. Oracle's Data Processing Agreement (14 August 2025) and the Cyprus Cloud Services Agreement
    (22 June 2023) were read on 2026-11-13. Neither excludes free accounts; both rule out
    regulated health data, which the app does not record. The free account's own order record
-   cannot be read by automation; only the owner can open it in the console.
+   cannot be read by automation; the owner decided on 2026-11-20 that it is not needed.
 2. ΜΙΕΕΚ policy: decided by the owner on 2026-11-20. No approval from the institution is needed,
    because the Cyprus Ministry of Education follows the EU rules on data for educational
    purposes, **as long as the database stays private**: the app only on the tailnet, the
@@ -261,17 +261,28 @@ cd ~/sms && git fetch --tags origin && git checkout <commit or tag>
 cd infra/docker/cloud && sudo docker compose -f docker-compose.cloud.yml up -d --build
 ```
 
+## Standing chore: idle reclamation
+
+Oracle reclaims an Always Free instance whose CPU, network and (on A1) memory all stay under
+20 % for 7 days. Whether real use keeps this VM above that is not known, and a paid upgrade
+is not an option (the owner: no payment). So, now and then and after any quiet week (a
+holiday): open the instance in the Oracle console, look at its CPU, network and memory
+charts for the last 7 days, and read any e-mail from Oracle about an idle instance. If the
+VM was stopped, start it again from the console; the container, Tailscale and the HTTPS
+address come back on their own (see the restart test below), and the phones can use the home
+address meanwhile ("Switching back" under "5. Phones"). Settled by the owner on 2026-11-20 (work plan
+todo 44): a chore, not an open task.
+
 ## Open points
 
-- The free account's order record (under "Confirmations"), which only the owner can read.
-- Idle reclamation: Oracle reclaims an Always Free instance whose CPU, network and (on A1)
-  memory all stay under 20 % for 7 days. Whether real usage keeps this VM above that, and
-  whether a Pay As You Go upgrade (the resources stay free) exempts it, is not known yet.
+- ~~The free account's order record (under "Confirmations"), which only the owner can read.~~
+  Not needed (the owner, 2026-11-20).
 - The public address is "ephemeral": Oracle can release it (certainly when the instance is
   terminated or the address is unassigned; it survived a reboot on 2026-11-13). SSH can reach
   the VM over the tailnet as `ubuntu@sms-cloud` instead. Outgoing mail cannot avoid it: Brevo
   sees the mail coming from this address and only accepts it while the address is authorised
-  (see "Mail"). A reserved public IP in Oracle would remove that risk.
+  (see "Mail"). A reserved public IP in Oracle would remove that risk; the owner chose not to
+  reserve one (2026-11-20): if the address changes, authorise the new one in Brevo.
 - Restart test, 2026-11-13: after `sudo systemctl reboot` (new kernel) the container, Tailscale
   and the HTTPS address were back within about a minute with no manual step.
 - ~~The Tailscale node key expires after about six months unless key expiry is disabled for
