@@ -218,8 +218,9 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.78 (unreleased)
 
-**2026-11-21: the Control Panel on the System page reads in the dark theme** (this PR; todo 66;
-the owner: "fix the dark theme container too"). In the dark theme of the default appearance
+**2026-11-21: the Control Panel on the System page reads in the dark theme** (PR 463, merged as
+`b0254d674`; todo 66; the owner: "fix the dark theme container too"; CI green: backend 2,073
+passed and 56 skipped, frontend 2,100, E2E 77 passed, started by hand). In the dark theme of the default appearance
 the app shows white cards on a dark page (the Dashboard's, the System page's own), and the
 Control Panel's container there stayed white too. But its text turned light and its tabs'
 `dark:` colours (dark backgrounds, pale text) still applied, so every tab had unreadable parts.
