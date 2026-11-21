@@ -92,6 +92,15 @@ function Get-InstalledVersion {
     return '0.0.0'
 }
 
+# Start-Process joins -ArgumentList with spaces and quotes nothing, so a path with a space
+# ("C:\Program Files\SMS\...", where every installation lives) reached PowerShell split in two:
+# "-File C:\Program", exit code 64. On 2026-11-21, the first update from the page, the installer
+# ran and the rebuild (DOCKER.ps1 -Update) never did (plan todo 40).
+function ConvertTo-QuotedArgument {
+    param([string]$Value)
+    return '"' + $Value + '"'
+}
+
 function Get-PowerShellForDocker {
     $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
     if ($pwsh) { return $pwsh.Source }
@@ -144,7 +153,7 @@ function Install-LatestRelease {
 
     Write-StatusFile -JobId $JobId -Status "running" -Phase "rebuilding" -Progress 75 -Message "Rebuilding and starting the container." -TargetVersion $target
     $docker = Start-Process -FilePath (Get-PowerShellForDocker) -Wait -PassThru -WorkingDirectory $PROJECT_ROOT -ArgumentList @(
-        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PROJECT_ROOT 'DOCKER.ps1'), '-Update'
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (ConvertTo-QuotedArgument (Join-Path $PROJECT_ROOT 'DOCKER.ps1')), '-Update'
     )
     if ($docker.ExitCode -ne 0) { throw "DOCKER.ps1 -Update exited with code $($docker.ExitCode)." }
 
@@ -194,7 +203,7 @@ function Invoke-WatcherLoop {
                     Write-Log "Restarting the watcher after the update"
                     $mutex.ReleaseMutex()
                     Start-Process -FilePath (Get-Command powershell).Source -WindowStyle Hidden -ArgumentList @(
-                        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $SELF_PATH, '-RunLoop'
+                        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (ConvertTo-QuotedArgument $SELF_PATH), '-RunLoop'
                     ) | Out-Null
                     return
                 }
@@ -255,7 +264,7 @@ if ($RunLoop) { Invoke-WatcherLoop; exit 0 }
 if ($Start) {
     if (Get-RunningWatcherProcess) { Write-Log "Update watcher already running" "WARN"; exit 0 }
     $proc = Start-Process -FilePath (Get-Command powershell).Source -WindowStyle Hidden -PassThru -ArgumentList @(
-        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $SELF_PATH, '-RunLoop', '-PollInterval', $PollInterval
+        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (ConvertTo-QuotedArgument $SELF_PATH), '-RunLoop', '-PollInterval', $PollInterval
     )
     $proc.Id | Set-Content $PID_FILE
     Write-Log "Update watcher started (PID: $($proc.Id))"

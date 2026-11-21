@@ -11,6 +11,7 @@ Start-Process replaced by recorders.
 
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -34,7 +35,7 @@ param([string]$Watcher, [string]$Root, [string]$Scenario, [string]$ResultFile)
 $ErrorActionPreference = 'Stop'
 $tokens = $null; $errs = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile($Watcher, [ref]$tokens, [ref]$errs)
-$wanted = 'Write-Log', 'Write-StatusFile', 'Get-InstalledVersion', 'Get-PowerShellForDocker', 'Install-LatestRelease', 'Process-UpdateRequests'
+$wanted = 'Write-Log', 'Write-StatusFile', 'Get-InstalledVersion', 'ConvertTo-QuotedArgument', 'Get-PowerShellForDocker', 'Install-LatestRelease', 'Process-UpdateRequests'
 foreach ($def in $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $wanted -contains $n.Name }, $true)) {
     . ([scriptblock]::Create($def.Extent.Text))
 }
@@ -58,6 +59,11 @@ function Get-AuthenticodeSignature { param($FilePath)
     [pscustomobject]@{ Status = $cfg.sigStatus; SignerCertificate = [pscustomobject]@{ Subject = $cfg.signer } } }
 function Start-Process { param($FilePath, [switch]$Wait, [switch]$PassThru, $ArgumentList, $WorkingDirectory, $WindowStyle)
     $script:started += , (@([string]$FilePath) + @($ArgumentList | ForEach-Object { [string]$_ }))
+    # realRebuild: the rebuild really starts (a stand-in DOCKER.ps1), with the arguments as given
+    if ($cfg.realRebuild -and ([string]$FilePath) -notlike '*SMS_Installer*') {
+        return Microsoft.PowerShell.Management\Start-Process -FilePath $FilePath -Wait -PassThru -WindowStyle Hidden `
+            -ArgumentList $ArgumentList -WorkingDirectory $WorkingDirectory
+    }
     [pscustomobject]@{ ExitCode = 0 } }
 function Write-Host { }
 
@@ -77,19 +83,27 @@ if (Test-Path $statusFile) { $status = Get-Content $statusFile -Raw | ConvertFro
 
 
 def _run(tmp_path, *, job=JOB, tag="v9.9.9", digest=f"sha256:{GOOD_DIGEST}", payload=INSTALLER_BYTES,
-         sig_status="Valid", signer="CN=AUT MIEEK, O=AUT MIEEK, C=CY", installed="v1.18.56"):
+         sig_status="Valid", signer="CN=AUT MIEEK, O=AUT MIEEK, C=CY", installed="v1.18.56",
+         root_name="app", real_rebuild=False):
     import base64
 
-    root = tmp_path / "app"
+    root = tmp_path / root_name
     (root / "data" / ".triggers").mkdir(parents=True)
     (root / "logs").mkdir()
     (root / "VERSION").write_text(installed, encoding="utf-8")
     (root / "data" / ".triggers" / f"update_request_{job}.json").write_text(
         json.dumps({"job_id": job, "command": "Remove-Item C:\\ -Recurse"}), encoding="utf-8"
     )
+    if real_rebuild:
+        (root / "DOCKER.ps1").write_text(
+            "param([switch]$Update)\n"
+            "if ($Update) { Set-Content -Path (Join-Path $PSScriptRoot 'rebuilt.txt') -Value 'ok' }\n"
+            "exit 0\n",
+            encoding="utf-8",
+        )
     (root / "scenario.json").write_text(json.dumps({
         "job": job, "tag": tag, "digest": digest, "payload": base64.b64encode(payload).decode(),
-        "sigStatus": sig_status, "signer": signer,
+        "sigStatus": sig_status, "signer": signer, "realRebuild": real_rebuild,
     }), encoding="utf-8")
     harness = tmp_path / "harness.ps1"
     harness.write_text(HARNESS, encoding="utf-8")
@@ -110,10 +124,27 @@ def test_verified_release_is_installed_as_docker_edition_then_rebuilt(tmp_path):
     assert installer.split()[0].endswith("SMS_Installer_9.9.9.exe")
     for switch in ("/VERYSILENT", "/SUPPRESSMSGBOXES", "/EDITION=docker"):
         assert switch in installer
-    assert rebuild.endswith("DOCKER.ps1 -Update")
+    assert rebuild.endswith('DOCKER.ps1" -Update')  # the path quoted (see the test below)
     assert (out["status"]["status"], out["status"]["target_version"]) == ("completed", "9.9.9")
     assert out["requests_left"] == 0
     assert "Remove-Item" not in " ".join(out["started"])  # nothing from the request is run
+
+
+def test_rebuild_runs_from_a_folder_with_a_space_in_its_name(tmp_path):
+    # Every installation is in "C:\Program Files\SMS". Start-Process quotes nothing, so the
+    # unquoted path reached PowerShell as "-File C:\Program" and the rebuild exited with 64: on
+    # 2026-11-21 the first update from the page installed the release but never rebuilt.
+    out = _run(tmp_path, root_name="Program Files\\SMS", real_rebuild=True)
+    assert out["status"]["status"] == "completed", out["status"]
+    assert (tmp_path / "Program Files" / "SMS" / "rebuilt.txt").is_file()
+
+
+def test_every_script_path_handed_to_start_process_is_quoted():
+    # The same unquoted -File argument also restarted the watcher and started it (-Start).
+    text = WATCHER.read_text(encoding="utf-8")
+    assert "'-File', (ConvertTo-QuotedArgument " in text
+    assert not re.search(r"'-File',\s*(\$|\(Join-Path)", text), "a -File path is not quoted"
+    assert text.count("'-File', (ConvertTo-QuotedArgument ") == 3
 
 
 def test_sha256_mismatch_installs_nothing(tmp_path):
