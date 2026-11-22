@@ -73,6 +73,7 @@ export default {
   // Backend Connectivity Status
   backendUnavailable: 'Backend server unavailable',
   backendReconnecting: 'Attempting to reconnect...',
+  backendLiteStopped: 'SMS Lite is not answering. If it was closed, start it again from its icon; this page reconnects by itself.',
   backendConnected: 'Connection restored',
   backendCheckFailed: 'Unable to reach backend API',
   // Common Actions

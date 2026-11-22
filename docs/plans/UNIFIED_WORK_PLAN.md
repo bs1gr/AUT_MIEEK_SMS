@@ -256,6 +256,26 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
+**2026-11-22: SMS Lite counts a page in the background as open, for up to 5 hours** (this PR;
+todo 67, the owner's choice of that day: "set 5 hours open"). Every page beat every 10 s and Lite
+exited 90 s after the last beat; a browser can slow down or freeze a page in the background
+(Edge does both), and a frozen page sends nothing, so Lite stopped under a page that was still
+open (2026-11-21, 15:25:35). Now each beat carries the page's own id and its state: the page
+beats "hidden" at once as it goes into the background (with `keepalive`, so it arrives even if
+the browser freezes the page right after; also on the browser's `freeze` event), and "closed"
+when the tab or the browser is closed (not when it is kept for Back). Lite keeps a deadline per
+page: 90 s for a visible one, 5 hours for one in the background; a known page that closes ends
+there, and Lite exits 30 s later unless another page beats (a reload beats in time). A page of
+an older version (no id) keeps the 90 s rule, a "closed" for an id Lite does not know changes
+nothing (the endpoint answers the LAN without a sign-in), and Logout's 30 s exit is untouched.
+When Lite stops answering all the same, the connection banner says "SMS Lite is not answering.
+If it was closed, start it again from its icon; this page reconnects by itself." The endpoints
+and the middleware moved out of `main()` into `_add_lite_lifecycle(app)` so tests can mount
+them. Not reproduced: an Edge driven by Playwright keeps every page visible and never freezes
+it, even minimized; there, the "closed" beat of a closing page arrived. Tests:
+`test_lite_background_pages.py` (7), `useLiteHeartbeat.test.ts` (4 new) and
+`BackendStatusBanner.test.tsx` (2); they fail on the old code.
+
 **2026-11-22: attendance recorded where the schedule no longer has a lesson is shown** (this
 PR; todo 72, which needed no decision beyond the wording). The Attendance sheet showed only the
 periods today's schedule gives a date, so when a day lost a period, the absences already
@@ -270,7 +290,8 @@ in the legend. A day without lessons and without records stays closed. The logic
 fail on the old components).
 
 **2026-11-22: a schedule changed in the middle of a semester keeps the weeks already taught**
-(this PR; todo 71, the owner's choice of that day: "go with your recommendation for 71";
+(PR 468, merged as `604fbc12c`, CI green and E2E 77 passed; todo 71, the owner's choice of that
+day: "go with your recommendation for 71";
 **migration `f4c2a8d6e1b3`**, additive: one nullable column). A course's absence total was always
 its periods per week × 14, so going from 2 to 3 periods in week 8 made it 42 for the whole
 semester. A course now keeps its own total, `courses.semester_periods`, empty for every course
@@ -2369,9 +2390,9 @@ download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninst
 entry in Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed in
 v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
-but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
-background; the owner chose the fix on 2026-11-22: a page in the background counts as open
-for up to 5 hours; next in line); todos 69 to 72 on changing a course's teaching schedule
+but for the English bodies of the updater's failures (next in line), 67 (SMS Lite stopping
+under a page in the background) done 2026-11-22 as the owner chose (a page in the background
+counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
 done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
 71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
@@ -2924,6 +2945,8 @@ and 44 and 48 in its part 5):
       still makes Lite exit 30 s later, whatever pages are open or in the background; a new
       sign-in within those 30 s cancels it; a Logout from a phone or another PC does not stop
       Lite (`schedule-shutdown` answers only the Lite PC itself).
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"), as chosen; the freeze
+      could not be reproduced with an automated Edge (it keeps every page visible).
 
 <!-- -->
 
