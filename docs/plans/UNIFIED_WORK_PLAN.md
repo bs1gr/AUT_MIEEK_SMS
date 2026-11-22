@@ -12,9 +12,9 @@ the middle of a semester keeps the weeks already taught (468, todo 71), attendan
 where the schedule has no lesson shown (469, todo 72), SMS Lite and a page in the background
 (470, todo 67), the Updates panel's failures in the page's language (471, the rest of todo 66).
 **One database change:** migration `f4c2a8d6e1b3`, additive (a nullable
-`courses.semester_periods`, empty for every course). The shared database stays at
-`e2b7c9d4a1f6` until a v1.18.80 server on it starts (the cloud VM's update waits for the
-owner's word). **A v1.18.79 server keeps working on a database that has it** (tried
+`courses.semester_periods`, empty for every course). **The shared database is at
+`f4c2a8d6e1b3` since 2026-11-22, 06:32 UTC** (the cloud VM's first start on v1.18.80, below).
+**A v1.18.79 server keeps working on a database that has it** (tried
 2026-11-22 with the v1.18.79 Lite on a profile the new build had migrated: `/health` healthy,
 only its migration check "degraded" (`at_head: false`); it read the courses and students,
 made a course (the new column empty) and edited one; its startup log says "Can't locate
@@ -43,6 +43,16 @@ revision identified by 'f4c2a8d6e1b3'" and nothing else changes).
   4,644,761 bytes, SHA-256 `c929da7d…8984` = GitHub's digest, `versionCode 118080`, signer
   `686fb6ed…d2ea` as before. The release has the hand-written text (identical to
   `.github/RELEASE_NOTES_v1.18.80.md`) and those two files only, and is the latest release.
+- **The cloud VM runs v1.18.80** (2026-11-22, 06:30 to 06:33 UTC, over SSH; the owner: "update
+  the VM to v1.18.80"): `git checkout v1.18.80` (`ce5d07cc1`), `docker compose up -d --build`
+  (107 s), healthy 137 s after the build began. Its first start made the backup before
+  migrating, `pre_migration_20261122_063245.enc` (520,402 bytes, encrypted), then ran
+  `e2b7c9d4a1f6 -> f4c2a8d6e1b3` on the shared database. `/health` v1.18.80, the database
+  connected, the migrations at head; the student list answers 401 without a sign-in; the
+  Privacy page answers `configured: true`; no ERROR line, no traceback (one WARNING, the
+  standing CSRF notice). The off-site copy's next run (06:34 UTC) sent that backup to Object
+  Storage (1 copied, 0 failed). No backup was forced: the daily one counts only the
+  `auto_backup_*` files, so it stays at about 15:26 UTC.
 - Found while releasing, not this release's doing: the CI load tests fail every request
   without failing the job (todo 73).
 
@@ -2445,9 +2455,9 @@ tree as evidence that GitHub is clear.
 
 **Open work as of 2026-11-22** (after the owner went through every open todo on 2026-11-20;
 the answers are under "In v1.18.78"). v1.18.80 is released (2026-11-22, the top of this
-plan); **the cloud VM still runs v1.18.79** (with the privacy controller's name and contact in
-its `.env`): its update to v1.18.80, which also migrates the shared database, waits for the
-owner's word. The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
+plan) and the cloud VM runs it (the same day, on the owner's word "update the VM to
+v1.18.80"; its first start migrated the shared database to `f4c2a8d6e1b3`), with the privacy
+controller's name and contact in its `.env`. The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
 Docker half, 2026-11-21: the install worked, the rebuild failed on an unquoted path and SMS
 was started from SMS Manager; fixed in v1.18.80, under "In v1.18.80"; its update to v1.18.80
 from the page still stops at the rebuild once). Still open: todo 40's
@@ -2462,7 +2472,8 @@ under a page in the background) done 2026-11-22 as the owner chose (a page in th
 counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
 done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
 71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo
-73, the CI load tests that fail every request (found 2026-11-22, no decision needed); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+73, the CI load tests that fail every request, and todo 74, a startup stage the status script
+can skip on a busy PC (both found 2026-11-22, no decision needed); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -3131,6 +3142,17 @@ of periods recalculates every student's limits for the whole semester, past week
     job's environment, and let the job fail (or at least say so in its summary) when the failure
     rate is over its 2 % threshold. No decision needed; not urgent (the job proves nothing
     today, and nothing depends on it).
+
+74. **`STARTUP_STATUS.ps1` can skip a startup stage when the PC is busy** (found 2026-11-22: it
+    failed the gate of a plan-only commit, with 4 to 6 GB of memory free).
+    `test_slow_start_is_reported_stage_by_stage_until_health_answers` failed once in the gate and
+    once in two runs of its file alone, then passed: "Assembling the application" was missing
+    from the output, the other four stages were there in order and the backend answered. The
+    stand-in backend writes a stage every 1.5 s, and the script looks every 400 ms; a busy PC
+    makes one look longer than 1.5 s, and the script prints only the stage it finds at that
+    moment, so a stage passed in between is never shown. Suggested: print every stage whose
+    marker is in the log since the start, in order, not only the newest one; the test then
+    holds on a busy PC too. No decision needed.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
