@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { preflightAPI } from '../../api/api';
 import { isLocalMode } from '../../utils/serverUrl';
+import { isLiteServer } from '../../hooks/useLiteHeartbeat';
 
 /**
  * BackendStatusBanner - Lightweight connectivity monitor
@@ -121,8 +122,10 @@ const BackendStatusBanner = () => {
               {isReconnected && t('backendConnected')}
             </p>
             {isDisconnected && (
-              <p className="text-sm opacity-90">
-                {t('backendReconnecting')}
+              <p className="text-sm opacity-90" data-testid="backend-status-detail">
+                {/* Plan todo 67: SMS Lite stopped, for instance after its 5 hours with the page
+                    in the background: say how to start it again. */}
+                {isLiteServer() ? t('backendLiteStopped') : t('backendReconnecting')}
               </p>
             )}
           </div>

@@ -202,6 +202,95 @@ _last_api_request: float = time.time()  # updated by middleware on every /api/* 
 # about one a minute, and a tab left in the background must not lose its server.
 INACTIVITY_TIMEOUT_SECS = 90
 
+# Plan todo 67 (the owner, 2026-11-22: "set 5 hours open"): a browser can slow down or freeze
+# a page in the background (Edge does both), and a frozen page sends nothing, so Lite stopped
+# under a page that was still open. Each page now says which it is and when it goes into the
+# background or is closed: a page in the background counts as open for up to 5 hours; a page
+# that is closed counts no longer, and Lite exits 30 s later unless another page beats. A page
+# of an older version (no page id) keeps the 90 s rule; Logout keeps its 30 s exit.
+HIDDEN_PAGE_TIMEOUT_SECS = 5 * 60 * 60
+CLOSED_PAGE_GRACE_SECS = 30
+_MAX_PAGES = 200
+_pages: dict[str, float] = {}  # page id -> the time until which that page counts as open
+
+
+def _note_heartbeat(page: str | None, state: str | None, now: float) -> None:
+    """Record a page's beat (call with _shutdown_lock held)."""
+    global _last_api_request
+    if not page:
+        _last_api_request = now  # an older page: every beat keeps Lite up for 90 s, as before
+        return
+    page = page[:64]
+    if state == 'closed':
+        if _pages.pop(page, None) is not None:
+            # The tab or the browser was closed. Other requests of the last few seconds keep
+            # Lite up for 30 s at most; a page that is still open beats in that time.
+            _last_api_request = min(_last_api_request, now - INACTIVITY_TIMEOUT_SECS + CLOSED_PAGE_GRACE_SECS)
+        return
+    _pages[page] = now + (HIDDEN_PAGE_TIMEOUT_SECS if state == 'hidden' else INACTIVITY_TIMEOUT_SECS)
+    if len(_pages) > _MAX_PAGES:
+        for key in [key for key, until in _pages.items() if until <= now]:
+            del _pages[key]
+
+
+def _open_until(now: float) -> float:
+    """The time until which some SMS page counts as open (call with _shutdown_lock held)."""
+    for key in [key for key, until in _pages.items() if until <= now]:
+        del _pages[key]
+    return max([_last_api_request + INACTIVITY_TIMEOUT_SECS, *_pages.values()])
+
+
+def _add_lite_lifecycle(app) -> None:
+    """Lite-mode endpoints that end it (Logout) or keep it up (the pages' heartbeat), and the
+    middleware that counts every other API request as activity."""
+    from fastapi import Request as _Request
+    from fastapi.responses import JSONResponse as _JSONResponse
+
+    # These two are unauthenticated (logout calls schedule-shutdown after the token is gone),
+    # so only the Lite machine itself may use them - otherwise anyone on the LAN could stop it.
+    _forbidden = _JSONResponse({'detail': 'Local requests only'}, status_code=403)
+
+    @app.post('/api/v1/lite/schedule-shutdown', include_in_schema=False)
+    async def _lite_schedule_shutdown(request: _Request):
+        global _shutdown_after
+        if not _is_local_request(request):
+            return _forbidden
+        with _shutdown_lock:
+            _shutdown_after = time.time() + 30
+        _debug_log('[lite_simple_entrypoint] Shutdown scheduled in 30 s (logout).')
+        return _JSONResponse({'scheduled_in': 30})
+
+    @app.post('/api/v1/lite/cancel-shutdown', include_in_schema=False)
+    async def _lite_cancel_shutdown(request: _Request):
+        global _shutdown_after, _last_api_request
+        if not _is_local_request(request):
+            return _forbidden
+        with _shutdown_lock:
+            _shutdown_after = None
+            _last_api_request = time.time()
+        _debug_log('[lite_simple_entrypoint] Shutdown cancelled (new login).')
+        return _JSONResponse({'cancelled': True})
+
+    # Sent every 10 s by every open SMS page (also from phones and PCs on the LAN), logged in or
+    # not. It only keeps Lite alive, so it needs no login and is not restricted to this machine.
+    # It does not cancel a Logout shutdown. `page` and `state` (visible, hidden, closed): plan
+    # todo 67, see _note_heartbeat.
+    @app.get('/api/v1/lite/heartbeat', include_in_schema=False)
+    async def _lite_heartbeat(page: str | None = None, state: str | None = None):
+        with _shutdown_lock:
+            _note_heartbeat(page, state, time.time())
+        return _JSONResponse({'alive': True})
+
+    @app.middleware('http')
+    async def _track_activity(request: _Request, call_next):
+        global _last_api_request
+        path = request.url.path
+        # A heartbeat records itself (a closed page must not count as a request that keeps Lite up).
+        if path.startswith('/api/') and path != '/api/v1/lite/heartbeat':
+            with _shutdown_lock:
+                _last_api_request = time.time()
+        return await call_next(request)
+
 _LOOPBACK_HOSTS = {'127.0.0.1', '::1', 'localhost'}
 
 
@@ -255,12 +344,12 @@ def _monitor_shutdown() -> None:
         now = time.time()
         with _shutdown_lock:
             deadline = _shutdown_after
-            idle = now - _last_api_request
+            open_until = _open_until(now)
         if deadline is not None and now >= deadline:
             _debug_log('[lite_simple_entrypoint] Auto-shutdown: logout grace period expired.')
             _cleanup_and_exit()
-        if idle >= INACTIVITY_TIMEOUT_SECS:
-            _debug_log(f'[lite_simple_entrypoint] Auto-shutdown: no SMS page open for {INACTIVITY_TIMEOUT_SECS} s.')
+        if now >= open_until:
+            _debug_log('[lite_simple_entrypoint] Auto-shutdown: no SMS page open (or all closed).')
             _cleanup_and_exit()
 
 
@@ -472,49 +561,9 @@ def main() -> None:
     # Lite-mode: auto-shutdown endpoints + activity middleware
     # -----------------------------------------------------------------------
     global _shutdown_after, _last_api_request
+    from fastapi import Request as _Request  # the page route below takes one
 
-    from fastapi import Request as _Request
-    from fastapi.responses import JSONResponse as _JSONResponse
-
-    # These two are unauthenticated (logout calls schedule-shutdown after the token is gone),
-    # so only the Lite machine itself may use them - otherwise anyone on the LAN could stop it.
-    _forbidden = _JSONResponse({'detail': 'Local requests only'}, status_code=403)
-
-    @app.post('/api/v1/lite/schedule-shutdown', include_in_schema=False)
-    async def _lite_schedule_shutdown(request: _Request):
-        global _shutdown_after
-        if not _is_local_request(request):
-            return _forbidden
-        with _shutdown_lock:
-            _shutdown_after = time.time() + 30
-        _debug_log('[lite_simple_entrypoint] Shutdown scheduled in 30 s (logout).')
-        return _JSONResponse({'scheduled_in': 30})
-
-    @app.post('/api/v1/lite/cancel-shutdown', include_in_schema=False)
-    async def _lite_cancel_shutdown(request: _Request):
-        global _shutdown_after, _last_api_request
-        if not _is_local_request(request):
-            return _forbidden
-        with _shutdown_lock:
-            _shutdown_after = None
-            _last_api_request = time.time()
-        _debug_log('[lite_simple_entrypoint] Shutdown cancelled (new login).')
-        return _JSONResponse({'cancelled': True})
-
-    # Sent every 10 s by every open SMS page (also from phones and PCs on the LAN), logged in or
-    # not. The activity middleware below records it. It only keeps Lite alive, so it needs no
-    # login and is not restricted to this machine. It does not cancel a Logout shutdown.
-    @app.get('/api/v1/lite/heartbeat', include_in_schema=False)
-    async def _lite_heartbeat():
-        return _JSONResponse({'alive': True})
-
-    @app.middleware('http')
-    async def _track_activity(request: _Request, call_next):
-        global _last_api_request
-        if request.url.path.startswith('/api/'):
-            with _shutdown_lock:
-                _last_api_request = time.time()
-        return await call_next(request)
+    _add_lite_lifecycle(app)
 
     # Start background shutdown monitor. The inactivity clock starts now, not at import: startup
     # can wait minutes (QNAP retry or password window), and the browser opens only after that.

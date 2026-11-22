@@ -73,6 +73,7 @@ export default {
   // Κατάσταση Σύνδεσης Backend
   backendUnavailable: 'Ο διακομιστής δεν είναι διαθέσιμος',
   backendReconnecting: 'Προσπάθεια επανασύνδεσης...',
+  backendLiteStopped: 'Το SMS Lite δεν απαντά. Αν έκλεισε, ξεκινήστε το ξανά από το εικονίδιό του· η σελίδα επανασυνδέεται μόνη της.',
   backendConnected: 'Η σύνδεση αποκαταστάθηκε',
   backendCheckFailed: 'Αδυναμία σύνδεσης με το backend API',
   // Κοινές Ενέργειες
