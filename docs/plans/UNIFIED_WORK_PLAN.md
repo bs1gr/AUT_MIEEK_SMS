@@ -572,7 +572,7 @@ selector and the small grey labels. Seen in a browser (a scratch server from the
 `VERSION` set one release back for the check so that every box shows; screenshots before and
 after in both themes): in the light theme the banner, the installer box and the instructions'
 heading were unreadable before and read well after. In the dark theme nothing changed, for the
-reason under todo 66.
+reason under todo 66 (now in part 5 of the archive).
 
 **2026-11-21: the installer reads and writes the uninstall entry that Inno Setup creates** (PR
 461, merged as `e38de9f90`; todo 65; the owner: "continue with suggested"; CI green: backend
@@ -2535,29 +2535,26 @@ tree as evidence that GitHub is clear.
 the answers are under "In v1.18.78"). v1.18.80 is released (2026-11-22, the top of this
 plan) and the cloud VM runs it (the same day, on the owner's word "update the VM to
 v1.18.80"; its first start migrated the shared database to `f4c2a8d6e1b3`), with the privacy
-controller's name and contact in its `.env`. The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
-Docker half, 2026-11-21: the install worked, the rebuild failed on an unquoted path and SMS
-was started from SMS Manager; fixed in v1.18.80, under "In v1.18.80"; its update to v1.18.80
-from the page still stops at the rebuild once). Still open: todo 40's
-last step, an update from the page that finishes by itself (from v1.18.80 on; its Lite half
-was done on 2026-11-21 and found that the Update of an installed SMS Lite could never save its
-download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninstall
-entry in Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed in
-v1.18.79 and
-proven only at the next release's updates, 66 (the Control Panel's colours and the updater's
-texts, both themes and both languages) done 2026-11-22, 67 (SMS Lite stopping
-under a page in the background) done 2026-11-22 as the owner chose (a page in the background
-counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
-done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
-71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo
-73, the CI load tests that failed every request, and todo 74, a startup stage the status script
-could skip on a busy PC (both found and done 2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
-stays on 14.18 for now) and its smaller items. Closed on
-2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
-in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
-part 5 of the archive); on 2026-11-22 todo 55 (the owner: "yes, archive todo 55"), its last
-point, the copy off the VM, automatic since 2026-11-21 (moved to part 5 of the archive). Moot: `viewer` and `guest` getting 403 on the Dashboard
-overview, since those roles no longer exist (PR 425 turned them into "No role").
+controller's name and contact in its `.env`. The owner's Docker test install on the dev PC
+runs v1.18.79, updated from the page (todo 40's Docker half, 2026-11-21: the install worked,
+the rebuild failed on an unquoted path and SMS was started from SMS Manager; fixed in
+v1.18.80, under "In v1.18.80"; its update to v1.18.80 from the page still stops at the
+rebuild once). Still open: todo 40's last step, an update from the page that finishes by
+itself (from v1.18.80 on; its Lite half was done on 2026-11-21 and found that the Update of
+an installed SMS Lite could never save its download, fixed in v1.18.79); todos 65 and 68,
+found by that test (65, the uninstall entry in Settings → Apps; 68, SMS Lite running
+elevated after its own Update), fixed in v1.18.79 and proven only at the next release's
+updates; todo 50's two optional owner chores (old archives, a home install's Privacy
+settings); todo 58's PostgreSQL 14 on the NAS (the owner stays on 14.18 for now) and its
+smaller items. Closed on 2026-11-20: todo 44 (the owner: "Close it"), the contrast design
+calls (PR 455), the test data in the shared database (todo 56); on 2026-11-21 todo 63, every
+point of it done (moved to part 5 of the archive); on 2026-11-22 todo 55 (the owner: "yes,
+archive todo 55"), its last point, the copy off the VM, automatic since 2026-11-21, and
+todos 66, 67 and 69 to 74, all done (66 and 67, found by todo 40's test, and 69 to 72, on
+changing a course's teaching schedule, released in v1.18.80; 73, the CI load tests, and 74,
+the startup status script, on `main` since), all moved to part 5 of the archive. Moot:
+`viewer` and `guest` getting 403 on the Dashboard overview, since those roles no longer exist
+(PR 425 turned them into "No role").
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3047,67 +3044,6 @@ and 44 and 48 in its part 5):
 
 <!-- -->
 
-66. **The Updates panel's messages** (found 2026-11-21 in the owner's screenshot of the failed
-    Lite Update). Every error, a failed install too, appears under "Error checking for updates"
-    (`UpdatesPanel.tsx`). The green box shows the server's English sentence ("Smart updater
-    started. Track progress from the updater timeline.") on a Greek page instead of the
-    translated `updateInstallStarted`, and it stays beside the red one after the job fails.
-    Both boxes use dark-theme colours only (`text-red-300`, `text-green-300` on a 30 % tint)
-    and are hard to read in the light theme.
-    - **Done 2026-11-21** in PR 458 (under "In v1.18.79"): the title says what
-      failed, the "started" note goes on a failure, the start and SMS Lite's closing are
-      translated, and both boxes have light-theme colours.
-    - ~~**Left:** the rest of the panel (the "Update Available" banner, the release card, the
-      instructions) still uses dark-theme colours only.~~ **Done 2026-11-21** for the light
-      theme (the entry under "In v1.18.79"). Still left: the body of a failure is
-      the server's English text (the job's failures have no message keys); the Docker host
-      task's status texts are shown as they come, seen for the first time when todo 40's
-      Docker half runs. **Done 2026-11-22** (the entry under "In v1.18.80"):
-      every failure and start refusal named in both languages, the phases too.
-    - **Found while checking it, 2026-11-21 (the owner's word needed: it touches every tab of
-      the Control Panel):** on the System page the Control Panel is shown "embedded", and its
-      container there is `bg-white … text-slate-900 dark:text-gray-100` (`ControlPanel.tsx`,
-      `containerClass`; also `headerClass`, `mainClass`, `cardBaseClass`). Its background stays
-      white in the dark theme while its text turns light. So in the dark theme, any text
-      without its own colour is pale on white, and every `dark:` variant of the tabs assumes a
-      dark background that is not there: in the Updates tab the "Update Available" and "Update
-      Instructions" boxes and two card headings stay unreadable in the dark theme, before and
-      after the change above. The standalone layout of the same component has its dark
-      variants. Suggested: dark variants for the embedded container, header, main area and
-      cards, then every tab looked at in both themes (screenshots).
-    - **Done 2026-11-21 another way** (the owner: "fix the dark theme container too"; the entry
-      under "In v1.18.79"): in the dark theme the rest of the app shows white
-      cards, so the Control Panel became a light island that matches them, rather than a dark
-      panel inside a white card. Every tab was looked at in both themes.
-
-<!-- -->
-
-67. **SMS Lite shut down under a page that was still open** (2026-11-21, 15:25:35, its log:
-    "Auto-shutdown: no SMS page open for 90 s"; the owner: the tab was still open, in the
-    background, while they worked in Explorer for a few minutes). Every SMS page sends a
-    heartbeat every 10 s, and Lite exits 90 s after the last one (the owner's rule of
-    2026-10-13). A browser can slow down or freeze a page in the background (Edge does both),
-    so a page left behind another window can let Lite stop under the user, who then finds the
-    page dead. Not reproduced yet. The rule is the owner's: a change (a longer wait, or a
-    heartbeat that a sleeping tab still sends) is the owner's decision.
-    - **The owner's choice, 2026-11-22** ("for todo 67, set 5 hours open"): neither of those (a
-      frozen page runs no code, its workers included, so it sends nothing however long Lite
-      waits). Instead **the page says when it goes into the background and when it is really
-      closed.** On going hidden it sends one beat marked hidden, and Lite then waits up to
-      **5 hours**; the 10 s beats resume when it comes back. On a real close (the tab or the
-      browser) it sends "closed", and Lite exits 30 s later unless another page beats. The
-      90 s rule stays for the rest (a visible page whose browser crashed, a lost network). If
-      Lite is gone all the same, the page says so ("start SMS Lite again from its icon")
-      instead of failing silently. Start by reproducing the freeze in Edge, to see the hidden
-      beat arrive before it. **Logout is unchanged** (the owner asked): a Logout on the Lite PC
-      still makes Lite exit 30 s later, whatever pages are open or in the background; a new
-      sign-in within those 30 s cancels it; a Logout from a phone or another PC does not stop
-      Lite (`schedule-shutdown` answers only the Lite PC itself).
-    - **Done 2026-11-22** (the entry under "In v1.18.80"), as chosen; the freeze
-      could not be reproduced with an automated Edge (it keeps every page visible).
-
-<!-- -->
-
 68. **After its own Update, SMS Lite probably runs with administrator rights** (found
     2026-11-21 during todo 40's Lite test).
     - SMS Lite starts the installer with ShellExecute "runas" (`_launch_installer_elevated` in
@@ -3132,111 +3068,6 @@ and 44 and 48 in its part 5):
       starts SMS Lite again once the installer has finished. **Left:** seeing it in a real
       update (a release that carries it, updated to a later one).
 
-<!-- -->
-
-**Todos 69 to 72: changing a course's teaching schedule** (the owner, 2026-11-21, after asking
-what happens when a teacher swaps courses or sets them at other hours: "add all four to the plan
-as todos"). Read in the code the same day (`absence_limit_service.py`, `routers_courses.py`,
-`AttendanceView.tsx`, `CoursesView.tsx`). The schedule is edited under Courses → Teaching
-Schedule; the Calendar page only shows it. A course's absence total is its *current*
-`periods_per_week` × `SEMESTER_WEEKS` (14, one global setting), and the absences counted are all
-of its Absent and Excused rows, whatever their date or period. Moving a course to other days or
-hours with the same number of periods changes no record and no percentage. Changing the number
-of periods recalculates every student's limits for the whole semester, past weeks included.
-
-69. **A warning before a change in periods per week is saved, showing its effect on absences.**
-    Example: going from 2 to 3 periods a week raises the total from 28 to 42, allowed absences
-    from 8 to 12 and the participation limit from 2 to 4; going down pushes students over the
-    30 % (fail) or 10 % (participation) limits and can change final grades (participation
-    counts 0 when forfeited). Today nothing is shown. Suggested: when the Teaching Schedule's
-    period count changes, list the students whose status would change (fail, participation)
-    before saving, with Save / Cancel. Also not covered by today's soft conflict warning: the
-    Edit Course dialog (it re-sends the whole course) and course imports. No decision needed
-    beyond the wording.
-    - **Done 2026-11-22** (the entry under "In v1.18.80"): the dialog, on every
-      save that changes the periods or a limit; the Edit Course dialog cannot change the
-      periods; a course import that does says so in its result.
-
-<!-- -->
-
-70. **An audit entry for schedule changes.** `PUT /courses/{id}` (`update_course`, permission
-    `courses:edit`) writes no audit entry, so an overwritten schedule leaves no trace of the old
-    one or of who changed it. `CourseService`, which does audit, is used by no router. Every
-    teacher holds `courses:edit` and courses have no teacher field, so any teacher can change
-    any course's schedule. Suggested: an audit entry with the old and new `teaching_schedule` and
-    `periods_per_week` (and the other changed fields) on every course update. No decision needed.
-    - **Done 2026-11-22** (the entry under "In v1.18.80"): every course change and
-      every change of its evaluation rules, with the changed fields before and after, shown on
-      the Audit Log page.
-
-<!-- -->
-
-71. **Freezing the totals for weeks already taught.** The total uses today's schedule for all 14
-    weeks, so a change mid-semester rewrites the past. Nothing in the data marks when a semester
-    starts or which schedule was in force in which week (`Course.semester` is free text, the 14
-    weeks are global). Suggested: a dated schedule history (each change with the date it takes
-    effect), with the total counted week by week from the schedule that applied then; needs a
-    semester start date and an additive migration. **Needs the owner's choice of approach before
-    it is built** (a larger change; it touches the absence limits and the final grades).
-    - **The owner's choice, 2026-11-22** ("go with your recommendation for 71"): not the dated
-      history, but **one stored total per course, set by a question at the moment of change.**
-      A new nullable column, "periods in the semester", empty for every course (an additive
-      migration); while it is empty today's rule applies (periods per week × 14), so no course
-      changes until someone changes a schedule. When the period count of a course that already
-      has attendance changes, todo 69's warning asks: "it was wrong from the start" (a
-      correction: the whole semester is counted again, as today, and the stored total is
-      cleared) or "it changes from week N on" (the total becomes the weeks before N at the old
-      count plus the rest at the new one: 2 → 3 from week 8 gives 7 × 2 + 7 × 3 = 35, where
-      today it jumps to 42). N is filled in from the course's first recorded lesson and can be
-      corrected. An administrator can also type the total in Edit Course, where the
-      curriculum fixes a course's hours. Todo 70's audit entry is the record of what changed
-      when. Why not the history: a correction and a real change cannot be told apart without
-      asking, so the question is needed either way, and once it is asked one number is enough;
-      the history needs a new table, a semester start date (none exists) and a week-by-week
-      count in every absence calculation. Built after 69, whose dialog it uses.
-    - **Done 2026-11-22** (the entry under "In v1.18.80"; migration
-      `f4c2a8d6e1b3`): the stored total, the dialog's question, Edit Course's box.
-
-<!-- -->
-
-72. **Showing absences recorded in a period that no longer exists.** The Attendance sheet shows
-    only the periods today's schedule gives a date, so when a day loses a period, the absences
-    already recorded in it vanish from the sheet but still count in the limits; and past dates on
-    a weekday the course no longer has are greyed out in the Attendance calendar, although their
-    records are there. Suggested: show such periods, marked as outside the schedule, whenever
-    they hold records, and let a past date with records be opened. No decision needed beyond the
-    wording.
-    - **Done 2026-11-22** (the entry under "In v1.18.80").
-
-73. **The load tests in CI fail every request, and nothing notices** (found 2026-11-22 while
-    releasing v1.18.80). The job "Load & Performance Tests (Conditional)" of the CI/CD pipeline
-    starts a server on SQLite and runs `scripts/run_load_tests.py` (Locust, 50 users, 60 s). All
-    2,406 requests failed, `/health` included, each answered in about 3 ms; the job still shows
-    success, because the step ends in `|| echo "Load tests failed (continuing ...)"`, and its
-    readiness loop's `curl -s` takes any answer as ready. The same on v1.18.79's tag commit
-    (`0d3554c3b`) and on `0fdee9560`, so not this release's doing. Not yet looked into: what the
-    server answers (the job keeps `backend.log`; likely a setting the server no longer accepts,
-    such as `AUTH_MODE: disabled`, or the host check). Suggested: find the answer, repair the
-    job's environment, and let the job fail (or at least say so in its summary) when the failure
-    rate is over its 2 % threshold. No decision needed; not urgent (the job proves nothing
-    today, and nothing depends on it).
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.80"). The cause was not the
-      server: the script unpacked its (method, path) pairs the wrong way round, so it asked
-      for `POST /GET`; several of its paths and its password were wrong as well.
-
-74. **`STARTUP_STATUS.ps1` can skip a startup stage when the PC is busy** (found 2026-11-22: it
-    failed the gate of a plan-only commit, with 4 to 6 GB of memory free).
-    `test_slow_start_is_reported_stage_by_stage_until_health_answers` failed once in the gate and
-    once in two runs of its file alone, then passed: "Assembling the application" was missing
-    from the output, the other four stages were there in order and the backend answered. The
-    stand-in backend writes a stage every 1.5 s, and the script looks every 400 ms; a busy PC
-    makes one look longer than 1.5 s, and the script prints only the stage it finds at that
-    moment, so a stage passed in between is never shown. Suggested: print every stage whose
-    marker is in the log since the start, in order, not only the newest one; the test then
-    holds on a busy PC too. No decision needed.
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.80"), with the stages logged
-      just before `/health` answered shown as well.
-
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
 
@@ -3253,7 +3084,7 @@ stood between them (the Tailwind 4 migration, the dependency rounds, the Septemb
 follow-ups) and the dated sections from September 29 back to June 15, 2026 are in
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for word. A section this plan names and
 does not contain is there.
-On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done, and todo 55 on 2026-11-22 (the owner: "yes, archive todo 55").
+On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done, and todo 55 on 2026-11-22 (the owner: "yes, archive todo 55"). Todos 66, 67 and 69 to 74 followed the same day, all done (66, 67 and 69 to 72 released in v1.18.80, 73 and 74 on `main` since).
 
 ## 🗄️ Historical Archive (Feb–Aug 2026)
 
