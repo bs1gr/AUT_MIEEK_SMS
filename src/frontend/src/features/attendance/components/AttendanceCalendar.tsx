@@ -52,28 +52,38 @@ const AttendanceCalendar = ({
           const today = isToday(day);
           const selected = isSelected(day);
           const hasAttendance = datesWithAttendance.has(formatLocalDate(day));
+          // Plan todo 72: a date with records opens even when the schedule no longer has its
+          // weekday; those records still count in the absence limits.
+          const outside = !teaching && hasAttendance;
+          const open = teaching || outside;
 
           return (
             <button
               key={idx}
               type="button"
-              onClick={() => teaching && setSelectedDate(day)}
-              disabled={!teaching}
+              onClick={() => open && setSelectedDate(day)}
+              disabled={!open}
+              title={outside ? t('attendanceOutsideScheduleDayTitle') || 'Attendance recorded on a day outside the schedule' : undefined}
+              data-testid={outside ? `calendar-day-outside-${formatLocalDate(day)}` : undefined}
               className={`aspect-square p-2 rounded text-center transition relative ${
-                !teaching ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50' : ''
+                !open ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50' : ''
               } ${
-                teaching && today ? 'ring-2 ring-indigo-500' : ''
+                open && today ? 'ring-2 ring-indigo-500' : ''
               } ${
-                teaching && selected ? 'bg-linear-to-br/srgb from-indigo-600 to-purple-600 text-white font-bold shadow-sm' : ''
+                open && selected ? 'bg-linear-to-br/srgb from-indigo-600 to-purple-600 text-white font-bold shadow-sm' : ''
               } ${
                 teaching && !selected && hasAttendance ? 'bg-green-100 hover:bg-green-200 text-gray-700 font-semibold' : ''
               } ${
                 teaching && !selected && !hasAttendance ? 'bg-gray-50 hover:bg-indigo-100 text-gray-700' : ''
+              } ${
+                outside && !selected ? 'bg-amber-100 hover:bg-amber-200 text-gray-700 font-semibold border border-amber-300' : ''
               }`}
             >
               {day.getDate()}
-              {teaching && hasAttendance && !selected && (
-                <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+              {hasAttendance && !selected && (
+                <span
+                  className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full ${outside ? 'bg-amber-600' : 'bg-green-600'}`}
+                ></span>
               )}
             </button>
           );
@@ -88,6 +98,10 @@ const AttendanceCalendar = ({
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 rounded bg-gray-50 border border-gray-300"></div>
           <span>{t('noAttendanceYet') || 'No attendance yet'}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-4 rounded bg-amber-100 border border-amber-300"></div>
+          <span>{t('attendanceOutsideScheduleLegend') || 'Recorded on a day the schedule no longer has'}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 rounded bg-linear-to-br/srgb from-indigo-600 to-purple-600"></div>

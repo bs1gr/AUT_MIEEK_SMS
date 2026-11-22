@@ -16,6 +16,7 @@ import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import apiClient from '@/api/api';
 import { getPendingAttendanceSyncCount } from '@/features/attendance/utils/offlineAttendanceQueue';
+import { periodsOutsideSchedule, recordedPeriodsOn, sheetPeriods } from '@/features/attendance/utils/outsideSchedule';
 import { useAttendanceSaveSync, type RawAttendanceRecord } from '../hooks/useAttendanceSaveSync';
 import AttendanceCalendar from './AttendanceCalendar';
 import AttendanceQuickActions from './AttendanceQuickActions';
@@ -237,8 +238,28 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     return total > 0 ? total : 1;
   }, [localCourses, selectedCourse, selectedDate, getScheduleEntriesForDate]);
 
-  const activePeriods = useMemo(() => Array.from({ length: periodCount }, (_, idx) => idx + 1), [periodCount]);
-  const hasMultiplePeriods = periodCount > 1;
+  // Whether the schedule has the selected date at all (a course without a schedule has every day).
+  const dayInSchedule = useMemo(() => {
+    if (!selectedCourse || !selectedDate) return true;
+    const course = localCourses.find((c) => c.id === selectedCourse);
+    const sched = course?.teaching_schedule as unknown;
+    if (!course || !sched) return true;
+    const empty = Array.isArray(sched) ? sched.length === 0 : Object.keys(sched as object).length === 0;
+    return empty || getScheduleEntriesForDate(course, selectedDate).length > 0;
+  }, [localCourses, selectedCourse, selectedDate, getScheduleEntriesForDate]);
+
+  // Plan todo 72: the sheet shows every period that holds a record on the date, also one the
+  // schedule no longer gives it (those absences still count in the limits), marked as such.
+  const recordedPeriods = useMemo(
+    () => recordedPeriodsOn(attendanceRecords, selectedDateStr),
+    [attendanceRecords, selectedDateStr]
+  );
+  const activePeriods = useMemo(() => sheetPeriods(periodCount, recordedPeriods), [periodCount, recordedPeriods]);
+  const outsideSchedulePeriods = useMemo(
+    () => periodsOutsideSchedule(activePeriods, periodCount, dayInSchedule).filter((p) => recordedPeriods.includes(p)),
+    [activePeriods, periodCount, dayInSchedule, recordedPeriods]
+  );
+  const hasMultiplePeriods = activePeriods.length > 1;
 
   // Attendance key generator (moved above effects to avoid use-before-declare errors)
   const getAttendanceKey = useCallback((studentId: number, periodNumber = 1, dateStr = selectedDateStr) =>
@@ -1048,6 +1069,19 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         enrolledStudentsCount={enrolledStudents?.length || 0}
       />
 
+      {/* Plan todo 72: records the schedule no longer has a lesson for still count */}
+      {outsideSchedulePeriods.length > 0 && (
+        <div
+          role="note"
+          data-testid="attendance-outside-schedule"
+          className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        >
+          {dayInSchedule
+            ? t('attendanceOutsideSchedulePeriods', { periods: outsideSchedulePeriods.join(', ') })
+            : t('attendanceOutsideScheduleDay')}
+        </div>
+      )}
+
       {/* Student List */}
       <AttendanceStudentList
         t={t}
@@ -1058,6 +1092,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         evaluationCategories={evaluationCategories}
         hasMultiplePeriods={hasMultiplePeriods}
         activePeriods={activePeriods}
+        outsideSchedulePeriods={outsideSchedulePeriods}
         getStudentPeriodStatuses={getStudentPeriodStatuses}
         getAggregatedStatus={getAggregatedStatus}
         isStudentExpanded={isStudentExpanded}
