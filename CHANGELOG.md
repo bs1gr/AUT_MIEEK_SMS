@@ -55,6 +55,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.80] - 2026-11-22
+
+### Features
+- **updates**: the Updates panel says what went wrong in the page's language (#471)
+- **lite**: a page in the background keeps SMS Lite up for up to 5 hours (#470)
+- **attendance**: show attendance recorded where the schedule has no lesson (#469)
+- **courses**: a schedule changed mid-semester keeps the weeks already taught (#468)
+- **courses**: a save that changes the absence limits shows what it does first (#467)
+- **courses**: a course change is in the audit log, with what was there before (#466)
+- **cloud**: copy the VM's backups to Oracle Object Storage every 6 hours (#465)
+
+### Bug Fixes
+- **update**: the Docker host task's rebuild starts from 'C:\Program Files\SMS' (#464)
+
+### Documentation
+- **plan**: #465 merged; todo 55 closed and archived
+- **plan**: v1.18.79 released and verified, the cloud VM on the tag
+
 ## [1.18.79] - 2026-11-21
 
 ### Bug Fixes
@@ -5126,6 +5145,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
