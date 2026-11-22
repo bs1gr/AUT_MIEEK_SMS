@@ -123,6 +123,7 @@ def serialize_course(course) -> Dict[str, Any]:
         "credits": course.credits,
         "hours_per_week": course.hours_per_week,
         "periods_per_week": course.periods_per_week,
+        "semester_periods": getattr(course, "semester_periods", None),
         "description": course.description,
         "evaluation_rules": course.evaluation_rules,
         "teaching_schedule": course.teaching_schedule,

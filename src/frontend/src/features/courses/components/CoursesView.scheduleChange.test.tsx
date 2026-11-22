@@ -75,6 +75,25 @@ const warning = {
       participation_forfeited_after: true,
     },
   ],
+  periods_change: true,
+  suggested_from_week: null as number | null,
+  semester_weeks: 14,
+};
+
+// Todo 71: the server's answer for a change from week N on (the weeks before keep 3 a week).
+const fromWeek = (week: number) => {
+  const total = 42 - (14 - week + 1);
+  return {
+    ...warning,
+    suggested_from_week: 8,
+    after: {
+      periods_per_week: 2,
+      scheduled_periods: total,
+      allowed_absences: Math.floor(total * 0.3),
+      participation_allowed_absences: Math.floor(total * 0.1),
+    },
+    changes: [],
+  };
 };
 
 const renderCourses = async (c: Course = course()) => {
@@ -166,6 +185,66 @@ describe('CoursesView: a save that changes the absence limits', () => {
     await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1));
     expect(api.preview).not.toHaveBeenCalled();
     expect(screen.queryByTestId('schedule-change-dialog')).not.toBeInTheDocument();
+  });
+
+  describe('from which week a change of the periods applies (todo 71)', () => {
+    beforeEach(() => {
+      api.preview.mockImplementation(async (_id: number, request: { change_from_week?: number | null }) =>
+        request.change_from_week ? fromWeek(request.change_from_week) : { ...warning, suggested_from_week: 8 }
+      );
+    });
+
+    it('starts from the week we are in, shows what that keeps, and saves with it', async () => {
+      await renderCourses();
+      save();
+
+      const dialog = await screen.findByTestId('schedule-change-dialog');
+      expect(api.preview).toHaveBeenCalledTimes(2);
+      expect(api.preview.mock.calls[1][1]).toMatchObject({ change_from_week: 8 });
+      expect(within(dialog).getByTestId('schedule-change-from-week')).toBeChecked();
+      expect(within(dialog).getByTestId('schedule-change-week')).toHaveValue(8);
+      // Weeks 1-7 keep 3 periods: 21 + 7 x 2 = 35, not 28.
+      expect(within(dialog).getByTestId('schedule-change-scheduled_periods')).toHaveTextContent('42 → 35');
+
+      fireEvent.click(within(dialog).getByTestId('schedule-change-save'));
+
+      await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1));
+      expect(api.put.mock.calls[0][1]).toMatchObject({ schedule_change_from_week: 8 });
+    });
+
+    it('asks again for a correction of the whole semester, and saves it without a week', async () => {
+      await renderCourses();
+      save();
+      const dialog = await screen.findByTestId('schedule-change-dialog');
+
+      fireEvent.click(within(dialog).getByTestId('schedule-change-correction'));
+
+      await waitFor(() =>
+        expect(within(dialog).getByTestId('schedule-change-scheduled_periods')).toHaveTextContent('42 → 28')
+      );
+      expect(api.preview.mock.calls.at(-1)![1]).toMatchObject({ change_from_week: null });
+      fireEvent.click(within(dialog).getByTestId('schedule-change-save'));
+
+      await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1));
+      expect(api.put.mock.calls[0][1]).not.toHaveProperty('schedule_change_from_week');
+    });
+
+    it('asks again for another week, and does not save a week outside the semester', async () => {
+      await renderCourses();
+      save();
+      const dialog = await screen.findByTestId('schedule-change-dialog');
+      const week = within(dialog).getByTestId('schedule-change-week');
+
+      fireEvent.change(week, { target: { value: '10' } });
+      await waitFor(() =>
+        expect(within(dialog).getByTestId('schedule-change-scheduled_periods')).toHaveTextContent('42 → 37')
+      );
+      expect(api.preview.mock.calls.at(-1)![1]).toMatchObject({ change_from_week: 10 });
+
+      fireEvent.change(week, { target: { value: '15' } });
+      expect(within(dialog).getByTestId('schedule-change-save')).toBeDisabled();
+      expect(api.preview.mock.calls.at(-1)![1]).toMatchObject({ change_from_week: 10 });
+    });
   });
 
   it('saves at once when the change touches no student', async () => {

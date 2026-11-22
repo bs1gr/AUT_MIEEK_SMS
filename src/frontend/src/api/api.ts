@@ -1177,6 +1177,8 @@ export interface ScheduleChangePreviewRequest {
   hours_per_week?: number;
   absence_limit_percent?: number;
   participation_limit_percent?: number;
+  /** Todo 71: the week the new periods apply from (the weeks before keep their count); none = a correction. */
+  change_from_week?: number | null;
 }
 
 export interface ScheduleChangeTotals {
@@ -1204,6 +1206,11 @@ export interface ScheduleChangePreview {
   enrolled_students: number;
   has_attendance: boolean;
   changes: ScheduleChangeStudent[];
+  /** Todo 71: whether the periods per week change; then the page asks from which week. */
+  periods_change: boolean;
+  /** The week today is in, counted from the first recorded lesson; none without attendance. */
+  suggested_from_week: number | null;
+  semester_weeks: number;
 }
 
 export interface AuditLogEntry {

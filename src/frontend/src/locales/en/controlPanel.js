@@ -355,6 +355,7 @@ export default {
       participation_limit_percent: 'Participation limit (%)',
       hours_per_week: 'Contact hours per week',
       periods_per_week: 'Periods per week',
+      semester_periods: 'Periods in the semester',
       teaching_schedule: 'Teaching schedule'
     },
     nothing: 'none',

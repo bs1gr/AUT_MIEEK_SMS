@@ -11,7 +11,9 @@ For each course, absences are counted against the semester's scheduled teaching 
 
 Units: attendance is recorded one row per teaching period, so limits are computed in periods.
 The semester total is ``periods_per_week x SEMESTER_WEEKS`` (``hours_per_week`` stands in for
-courses without a period schedule). Absent and Excused both count as absences; Late does not.
+courses without a period schedule), unless the course keeps its own total (``semester_periods``,
+plan todo 71: a schedule changed from week N on keeps the weeks before N at the old count).
+Absent and Excused both count as absences; Late does not.
 
 The Directorate-approved extended limit (15%, per enrollment) was removed on 2026-10-07; its
 database columns stay until every installed app no longer reads them.
@@ -20,6 +22,7 @@ database columns stay until every installed app no longer reads them.
 from __future__ import annotations
 
 import math
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, Iterable, List, Optional
 
 from sqlalchemy import func
@@ -43,11 +46,48 @@ def semester_weeks() -> int:
     return int(getattr(settings, "SEMESTER_WEEKS", 14) or 14)
 
 
+def _today() -> date:
+    return date.today()
+
+
 def weekly_periods(course: Any) -> float:
     periods = int(getattr(course, "periods_per_week", 0) or 0)
     if periods > 0:
         return float(periods)
     return float(getattr(course, "hours_per_week", 0) or 0)
+
+
+def scheduled_total(course: Any, weeks: Optional[int] = None) -> float:
+    """The periods a course has in the semester: its own total when it keeps one (plan todo 71),
+    otherwise its periods per week times the semester's weeks."""
+    stored = getattr(course, "semester_periods", None)
+    if stored is not None and stored > 0:
+        return float(stored)
+    return weekly_periods(course) * (semester_weeks() if weeks is None else weeks)
+
+
+def total_after_change(course: Any, *, new_weekly: float, from_week: int, weeks: Optional[int] = None) -> int:
+    """The semester's total when the periods per week become ``new_weekly`` from week
+    ``from_week`` on (plan todo 71): the weeks before keep the count they were taught with.
+
+    The weeks from ``from_week`` to the end were counted at today's periods per week (also
+    after an earlier change, which only kept the weeks before it), so they are counted again at
+    the new number: 2 -> 3 from week 8 of 14 gives 28 + (3 - 2) x 7 = 35, and a later 3 -> 1
+    from week 11 gives 35 - 2 x 4 = 27.
+    """
+    weeks = semester_weeks() if weeks is None else weeks
+    from_week = min(max(int(from_week), 1), weeks)
+    remaining = weeks - from_week + 1
+    total = scheduled_total(course, weeks) + (float(new_weekly) - weekly_periods(course)) * remaining
+    return max(0, int(round(total)))
+
+
+def week_of(first_lesson: date) -> int:
+    """The week of the semester today is in, counting from the week (Monday) of the first lesson,
+    within the semester: the week a schedule change made today applies from (plan todo 71)."""
+    first_monday = first_lesson - timedelta(days=first_lesson.weekday())
+    week = (_today() - first_monday).days // 7 + 1
+    return min(max(week, 1), semester_weeks())
 
 
 def course_limits(course: Any) -> tuple[float, float]:
@@ -68,7 +108,7 @@ def evaluate(course: Any, *, absent: int, excused: int, weeks: Optional[int] = N
     """Absence status for one student in one course, from status counts."""
     weeks = semester_weeks() if weeks is None else weeks
     per_week = weekly_periods(course)
-    scheduled = per_week * weeks
+    scheduled = scheduled_total(course, weeks)
     fail_limit, participation_limit = course_limits(course)
     absences = absent + excused
 
@@ -206,17 +246,25 @@ def schedule_change_preview(db: Session, course: Any, after: Any) -> Dict[str, A
         )
     changes.sort(key=lambda change: change["student_name"].casefold())
 
-    has_attendance = (
-        db.query(Attendance.id).filter(Attendance.course_id == course.id, Attendance.deleted_at.is_(None)).first()
-        is not None
+    first_lesson = (
+        db.query(func.min(Attendance.date))
+        .filter(Attendance.course_id == course.id, Attendance.deleted_at.is_(None))
+        .scalar()
     )
+    if isinstance(first_lesson, datetime):
+        first_lesson = first_lesson.date()
     return {
         "course_id": course.id,
         "before": _totals(evaluate(course, absent=0, excused=0)),
         "after": _totals(evaluate(after, absent=0, excused=0)),
         "enrolled_students": len(enrollments),
-        "has_attendance": has_attendance,
+        "has_attendance": first_lesson is not None,
         "changes": changes,
+        # Plan todo 71: whether the periods per week change (then the page asks from which week),
+        # and the week today is in, counted from the first recorded lesson.
+        "periods_change": weekly_periods(after) != weekly_periods(course),
+        "suggested_from_week": week_of(first_lesson) if first_lesson is not None else None,
+        "semester_weeks": semester_weeks(),
     }
 
 

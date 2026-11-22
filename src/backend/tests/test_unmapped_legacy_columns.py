@@ -53,10 +53,15 @@ def test_drop_keeps_courses_and_enrollments_and_downgrade_restores_the_columns(t
         assert LEGACY["courses"] <= _columns(engine, "courses")
         with sessionmaker(bind=engine)() as session:
             student = Student(first_name="Ada", last_name="L", email="ada@example.com", student_id="S-1")
-            course = Course(course_code="LEG-1", course_name="Legacy", semester="S1")
-            session.add_all([student, course])
+            session.add(student)
             session.flush()
-            session.add(CourseEnrollment(student_id=student.id, course_id=course.id))
+            # The course goes in by the columns given (and those with defaults), as v1.18.56
+            # wrote it: today's model also maps columns added after that revision
+            # (courses.semester_periods, todo 71), which an ORM insert would name.
+            course_id = session.execute(
+                Course.__table__.insert().values(course_code="LEG-1", course_name="Legacy", semester="S1")
+            ).inserted_primary_key[0]
+            session.add(CourseEnrollment(student_id=student.id, course_id=course_id))
             session.commit()
 
         command.upgrade(cfg, "head")

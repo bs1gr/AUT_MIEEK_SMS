@@ -319,4 +319,52 @@ describe('EditCourseModal', () => {
       expect(yearInput).toHaveValue(new Date().getFullYear().toString());
     });
   });
+
+  // Plan todo 71: a course's own total of periods in the semester, typed by hand.
+  describe('Periods in the semester', () => {
+    const save = (user: ReturnType<typeof userEvent.setup>) =>
+      user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    it('shows the total a course keeps and sends it back as it is', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <EditCourseModal course={{ ...mockCourse, semester_periods: 35 }} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+
+      expect(screen.getByTestId('semester-periods-input')).toHaveValue(35);
+      await save(user);
+
+      await waitFor(() => expect(mockOnUpdate).toHaveBeenCalledWith(expect.objectContaining({ semester_periods: 35 })));
+    });
+
+    it('sends a typed total, and an empty box as none', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <EditCourseModal course={mockCourse} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+      const box = screen.getByTestId('semester-periods-input');
+      expect(box).toHaveValue(null);
+
+      await user.type(box, '40');
+      await save(user);
+      await waitFor(() => expect(mockOnUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ semester_periods: 40 })));
+
+      await user.clear(box);
+      await save(user);
+      await waitFor(() => expect(mockOnUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ semester_periods: null })));
+    });
+
+    it('does not save a total that is not a whole number', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(
+        <EditCourseModal course={mockCourse} onClose={mockOnClose} onUpdate={mockOnUpdate} />
+      );
+
+      await user.type(screen.getByTestId('semester-periods-input'), '2.5');
+      await save(user);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/whole number/i);
+      expect(mockOnUpdate).not.toHaveBeenCalled();
+    });
+  });
 });

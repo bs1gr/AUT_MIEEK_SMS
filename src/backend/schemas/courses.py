@@ -14,6 +14,8 @@ class ScheduleChangePreview(BaseModel):
     hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
     absence_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
     participation_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
+    # Plan todo 71: the week the new periods apply from; the weeks before keep their count.
+    change_from_week: Optional[int] = Field(None, ge=1, le=52)
 
 
 class CourseCreate(BaseModel):
@@ -28,6 +30,8 @@ class CourseCreate(BaseModel):
     participation_limit_percent: Optional[float] = Field(default=10.0, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
     periods_per_week: Optional[int] = Field(default=0, ge=0, le=60)
+    # Plan todo 71: the course's own total of periods in the semester; empty = periods per week x weeks.
+    semester_periods: Optional[int] = Field(default=None, ge=0, le=3000)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
     is_active: Optional[bool] = Field(default=None)
 
@@ -50,6 +54,7 @@ class CourseCreate(BaseModel):
             "participation_limit_percent",
             "hours_per_week",
             "periods_per_week",
+            "semester_periods",
             "teaching_schedule",
             "is_active",
         ]
@@ -88,6 +93,11 @@ class CourseUpdate(BaseModel):
     participation_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
     periods_per_week: Optional[int] = Field(None, ge=0, le=60)
+    # Plan todo 71: the course's own total of periods in the semester (null: periods per week x weeks).
+    semester_periods: Optional[int] = Field(None, ge=0, le=3000)
+    # Not a field: the week a change of the periods applies from. Without it a change of the periods
+    # is a correction and the whole semester is counted at the new number.
+    schedule_change_from_week: Optional[int] = Field(None, ge=1, le=52)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
     is_active: Optional[bool] = None
 
@@ -112,6 +122,7 @@ class CourseUpdate(BaseModel):
             "participation_limit_percent",
             "hours_per_week",
             "periods_per_week",
+            "semester_periods",
             "teaching_schedule",
             "is_active",
         ]
@@ -141,6 +152,7 @@ class CourseResponse(BaseModel):
     participation_limit_percent: Optional[float] = None
     hours_per_week: Optional[float]
     periods_per_week: Optional[int]
+    semester_periods: Optional[int] = None
     teaching_schedule: Optional[List[Dict[str, Any]]]
     is_active: Optional[bool]
 

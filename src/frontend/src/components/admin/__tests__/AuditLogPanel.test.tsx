@@ -264,6 +264,7 @@ describe('AuditLogPanel', () => {
         'participation_limit_percent',
         'periods_per_week',
         'semester',
+        'semester_periods',
         'teaching_schedule',
       ]
     );
