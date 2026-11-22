@@ -310,8 +310,23 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-22: CI's load test sends real requests, and its failure shows** (this PR; todo 73,
-which needed no decision). `scripts/run_load_tests.py`, run by the job "Load & Performance
+**2026-11-22: the gate runs the markdownlint version the lockfile pins, and never waits at a
+prompt** (this PR; found that day, no decision needed). `COMMIT_READY.ps1` ran a bare
+`npx markdownlint-cli`. On a PC without the root `node_modules` (this one: `npm install` is not
+run in the root) npx then asks the registry for the newest release, and when that one is not
+in its cache it asks "Need to install ... Ok to proceed?" on a console nobody sees. On
+2026-11-22, the day 0.50.1 came out, the gate stood still there until its watchdog stopped it,
+and every gate of that day needed a junction to a cached copy. Now the gate reads the version
+from `package-lock.json` (0.49.1, the one `package.json` asks for; Dependabot's updates of it
+are followed) and runs `npx --yes markdownlint-cli@<version>`: fetched once without a question,
+then taken from the cache. A lockfile without the entry gives the plain name, still with
+`--yes`. The two passes share one list of arguments instead of eight spelled-out calls. 0.49.1
+finds this tree clean, as 0.50.0 did. Tests: `test_gate_markdownlint_pinned.py` (3; all fail on
+the old gate), and the gate of this PR itself ran without the junction.
+
+**2026-11-22: CI's load test sends real requests, and its failure shows** (PR 473, merged as
+`44865b2cf`, CI green; its first run on `main`: 2,396 requests, none failed; todo 73, which
+needed no decision). `scripts/run_load_tests.py`, run by the job "Load & Performance
 Tests" on every push to `main`, unpacked its (method, path) pairs the wrong way round
 (`endpoint, method = ...`), so every request was a POST to `/GET`: all 2,406 failed in about
 3 ms each. Several paths were not routes either (`/api/v1/students/search`,
