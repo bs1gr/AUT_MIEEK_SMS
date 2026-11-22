@@ -1288,6 +1288,50 @@ function Invoke-CodeQualityChecks {
         Pop-Location
     }
 
+    # Scripts: Ruff linting, with the backend's rules. scripts/ holds tools that CI and the
+    # releases run (the load test, the SARIF merge, the backup checks); the lint above never
+    # looked there, and the load test sent nothing but POSTs to "/GET" for months unnoticed
+    # (2026-11-22, plan todo 73). Skipped when -Target names what to check.
+    Write-Section "Scripts: Ruff Linting"
+    if ($Target) {
+        Write-Info "Skipped: -Target names what to check"
+    } else {
+        try {
+            Push-Location $PROJECT_ROOT
+            $ruffArgs = @('check')
+            if ($AutoFix) { $ruffArgs += '--fix' }
+            $ruffArgs += @('--config', 'config/ruff.toml', 'scripts')
+            $output = $null
+            if (Test-CommandAvailable -Name "ruff") {
+                $output = ruff @ruffArgs 2>&1
+            } elseif (Test-CommandAvailable -Name "python") {
+                $output = python -m ruff @ruffArgs 2>&1
+            } else {
+                Write-Warning-Msg "Ruff is not available; skipping the scripts lint"
+                $LASTEXITCODE = 0
+                $output = "SKIPPED"
+            }
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Scripts linting passed"
+                Add-Result "Linting" "Scripts Ruff" $true
+            } else {
+                Write-Failure "Scripts linting failed"
+                Write-Host $output -ForegroundColor Gray
+                Add-Result "Linting" "Scripts Ruff" $false $output
+                $allPassed = $false
+            }
+        }
+        catch {
+            Write-Failure "Scripts linting error: $_"
+            Add-Result "Linting" "Scripts Ruff" $false $_
+            $allPassed = $false
+        }
+        finally {
+            Pop-Location
+        }
+    }
+
     # Backend: MyPy Type Checking
     Write-Section "Backend: MyPy Type Checking"
 

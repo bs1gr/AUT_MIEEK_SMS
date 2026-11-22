@@ -20,7 +20,7 @@ import argparse
 import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 
 @dataclass
@@ -279,7 +279,7 @@ def main():
         consolidator.print_stats()
         sys.exit(0)
     else:
-        print(f"❌ Failed to save consolidated SARIF")
+        print("❌ Failed to save consolidated SARIF")
         sys.exit(1)
 
 

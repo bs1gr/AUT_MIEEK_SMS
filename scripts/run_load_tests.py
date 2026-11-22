@@ -175,7 +175,7 @@ class LoadTestUser(threading.Thread):
                 except requests.Timeout:
                     response_time_ms = (time.time() - request_start) * 1000
                     self.metrics.record_request(method, endpoint, 504, response_time_ms)
-                except Exception as e:
+                except Exception:
                     response_time_ms = (time.time() - request_start) * 1000
                     self.metrics.record_request(method, endpoint, 500, response_time_ms)
 
@@ -200,7 +200,7 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
         duration: Test duration in seconds
         output: Path to save results JSON
     """
-    print(f"📊 Starting load test...")
+    print("📊 Starting load test...")
     print(f"   Host: {host}")
     print(f"   Users: {users}")
     print(f"   Spawn rate: {spawn_rate} users/second")
@@ -246,7 +246,7 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
             if result['num_failures']:
                 codes = ", ".join(f"{code} x{count}" for code, count in result['status_codes'].items())
                 print(f"  HTTP status: {codes}")
-            print(f"  Response times (ms):")
+            print("  Response times (ms):")
             print(f"    Min:    {result['min_response_time_ms']:8.0f}")
             print(f"    Median: {result['median_response_time_ms']:8.0f}")
             print(f"    Avg:    {result['avg_response_time_ms']:8.0f}")
@@ -257,7 +257,7 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
         print("\n" + "=" * 80)
 
         summary = metrics.get_summary()
-        print(f"\n📊 Overall Statistics:")
+        print("\n📊 Overall Statistics:")
         print(f"   Total Requests: {summary['total_requests']}")
         print(f"   Total Failures: {summary['total_failures']}")
         print(f"   Success Rate: {summary['success_rate_percent']:.1f}%")
@@ -287,7 +287,7 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
             print(f"\n❌ Test failed: Failure rate {failure_rate:.1f}% exceeds 2% threshold")
             return False
 
-        print(f"\n✅ Load test passed!")
+        print("\n✅ Load test passed!")
         return True
 
     except KeyboardInterrupt:

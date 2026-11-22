@@ -212,6 +212,11 @@ jobs:
           cd src/backend
           ruff check . --config=../../config/ruff.toml --output-format=github
 
+      - name: Run Ruff on scripts/
+        # The tools CI and the releases run (the load test, the SARIF merge, the backup checks),
+        # with the backend's rules. The step above never looked there (2026-11-22, plan todo 73).
+        run: ruff check scripts --config=config/ruff.toml --output-format=github
+
       - name: Run MyPy type checker
         run: |
           # Run mypy from project root to avoid namespace conflicts
