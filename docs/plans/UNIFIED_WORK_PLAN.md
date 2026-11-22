@@ -1,8 +1,52 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.79
+**Current Version**: 1.18.80
 **Last Updated**: November 22, 2026
-**Status**: ✅ **v1.18.79 released 2026-11-21** (tag on `0d3554c3b`, run by the assistant; the
+**Status**: ✅ **v1.18.80 released 2026-11-22** (tag on `ce5d07cc1`, run by the assistant; the
+owner: "continue unattended for all pending tasks until successfully reach to v1.18.80"). It
+carries PRs 464 to 471, under "In v1.18.80" below: the Docker host task's rebuild starts from
+"C:\Program Files\SMS" (464), the cloud VM's backups copied to Oracle Object Storage (465,
+running on the VM since 2026-11-21), every course change in the audit log (466, todo 70), a
+warning before a save changes a course's absence limits (467, todo 69), a schedule changed in
+the middle of a semester keeps the weeks already taught (468, todo 71), attendance recorded
+where the schedule has no lesson shown (469, todo 72), SMS Lite and a page in the background
+(470, todo 67), the Updates panel's failures in the page's language (471, the rest of todo 66).
+**One database change:** migration `f4c2a8d6e1b3`, additive (a nullable
+`courses.semester_periods`, empty for every course). The shared database stays at
+`e2b7c9d4a1f6` until a v1.18.80 server on it starts (the cloud VM's update waits for the
+owner's word). **A v1.18.79 server keeps working on a database that has it** (tried
+2026-11-22 with the v1.18.79 Lite on a profile the new build had migrated: `/health` healthy,
+only its migration check "degraded" (`at_head: false`); it read the courses and students,
+made a course (the new column empty) and edited one; its startup log says "Can't locate
+revision identified by 'f4c2a8d6e1b3'" and nothing else changes).
+
+- **Before the tag:** `RELEASE_READY` (no `-TagRelease`, release commit `c2f4672ab`, 66 min
+  under the memory watchdog, never under 3.8 GB free, with Docker Desktop stopped): exit 0,
+  backend 2,120 passed, 49 skipped, 0 failed, the frontend suite passed; the local test
+  installer built (90,279,224 bytes, never uploaded). The hand-written notes commit `ce5d07cc1`
+  passed `COMMIT_READY -Quick`; `DOCKER_BUILD_CHECK.ps1 -Version 1.18.80` on it: the image
+  builds for amd64 and arm64 (4.3 min; the release commit's own run passed too); CI/CD
+  (backend 2,111 passed and 58 skipped) and E2E (77 passed) green on the same commit.
+- **Smoke test before the release** (on `0fdee9560`, the final code): SMS Lite v1.18.79 →
+  the new build on one profile, 15 of 15 checks (the data kept, the migration on SQLite, the
+  schedule preview 42 → 35, a save from week 8 giving 35 periods with 10 absences allowed, the
+  audit entry naming the teacher, a correction clearing the total, week 15 refused with 422,
+  `job_not_found`, the page-id heartbeat); PostgreSQL 14 from `e2b7c9d4a1f6` to
+  `f4c2a8d6e1b3`, down and up again, Greek text intact; a browser walk of 8 pages as a teacher
+  and as an administrator, no failed request and no console error. Live, a page in the
+  background kept Lite up 111 s and Logout stopped it with a page open; "closed → 30 s" is
+  covered by the unit tests only (Edge tabs the smoke opened by mistake kept beating).
+- **The tag's release, installer and APK workflows succeeded. Verified on the published
+  assets:** `SMS_Installer_1.18.80.exe` 87,495,040 bytes, SHA-256 `d5a2fe5f…dade6` = GitHub's
+  digest, Authenticode Valid, CN=AUT MIEEK, thumbprint `2693C1B1…075D`, timestamped, file
+  version v1.18.80, not the local build (90,279,224 bytes); `SMS_Android_1.18.80.apk`
+  4,644,761 bytes, SHA-256 `c929da7d…8984` = GitHub's digest, `versionCode 118080`, signer
+  `686fb6ed…d2ea` as before. The release has the hand-written text (identical to
+  `.github/RELEASE_NOTES_v1.18.80.md`) and those two files only, and is the latest release.
+- Found while releasing, not this release's doing: the CI load tests fail every request
+  without failing the job (todo 73).
+
+**Before that: v1.18.79 released 2026-11-21** (tag on `0d3554c3b`, run by the assistant; the
 owner: "release v1.18.79 and update the VM"). It carries PRs 456 to 463, under "In v1.18.79"
 below: SMS Lite's Update saves its download in the user's profile and starts SMS Lite again with
 the user's own rights, the uninstall entry in Settings → Apps works and No keeps the settings,
@@ -35,10 +79,10 @@ by hand (the release text says so).
 - **The owner's Docker test install on the dev PC runs v1.18.79** (the owner, 23:02 local
   time, with Update in the Control Panel: todo 40's Docker half). The host task installed the
   release, then its rebuild failed with exit code 64; the owner started SMS from SMS Manager.
-  The fix is under "On `main` since v1.18.79".
+  The fix is under "In v1.18.80".
 - **The cloud VM's backups are also copied off the VM since 2026-11-21**, to a bucket in
   Oracle Object Storage every 6 hours, watched by a second healthchecks.io check (todo 55; the
-  owner: "set up the backup copies to Object Storage"). Under "On `main` since v1.18.79".
+  owner: "set up the backup copies to Object Storage"). Under "In v1.18.80".
 
 **Before that: v1.18.78 released 2026-11-21** (tag on `1ea198829`, run by the assistant; the
 owner's go-ahead of 2026-11-20, after going through every open todo: "Release + update VM").
@@ -254,10 +298,10 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
-### On `main` since v1.18.79 (unreleased)
+### In v1.18.80
 
-**2026-11-22: the Updates panel says what went wrong in the page's language** (this PR; the
-rest of todo 66, which needed no decision). The body of a failure was the server's English text
+**2026-11-22: the Updates panel says what went wrong in the page's language** (PR 471, merged
+as `0fdee9560`, CI green and E2E 77 passed; the rest of todo 66, which needed no decision). The body of a failure was the server's English text
 (the job's failures had no message keys), and the Docker host task's texts were shown as they
 came. Now every failure of the update job carries a reason (`failure_reason`, one of twelve in
 `maintenance.FAILURE_REASONS`: the release unreadable or invalid, nothing newer, no installer,
@@ -275,8 +319,9 @@ refusal or a phase has no sentence in either language. Tests: four maintenance t
 and the closed list) and `UpdatesPanel.failures.test.tsx` (6; the five about the page fail on
 the old panel).
 
-**2026-11-22: SMS Lite counts a page in the background as open, for up to 5 hours** (this PR;
-todo 67, the owner's choice of that day: "set 5 hours open"). Every page beat every 10 s and Lite
+**2026-11-22: SMS Lite counts a page in the background as open, for up to 5 hours** (PR 470,
+merged as `3f001354a`, CI green and E2E 77 passed, run by hand: the label at creation left it
+skipped; todo 67, the owner's choice of that day: "set 5 hours open"). Every page beat every 10 s and Lite
 exited 90 s after the last beat; a browser can slow down or freeze a page in the background
 (Edge does both), and a frozen page sends nothing, so Lite stopped under a page that was still
 open (2026-11-21, 15:25:35). Now each beat carries the page's own id and its state: the page
@@ -2399,11 +2444,13 @@ tree as evidence that GitHub is clear.
 *What is left is below.*
 
 **Open work as of 2026-11-22** (after the owner went through every open todo on 2026-11-20;
-the answers are under "In v1.18.78"). v1.18.79 is released and the cloud VM runs it, with
-the privacy controller's name and contact in its `.env` (2026-11-21, the top of this plan).
-The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
+the answers are under "In v1.18.78"). v1.18.80 is released (2026-11-22, the top of this
+plan); **the cloud VM still runs v1.18.79** (with the privacy controller's name and contact in
+its `.env`): its update to v1.18.80, which also migrates the shared database, waits for the
+owner's word. The owner's Docker test install on the dev PC runs v1.18.79, updated from the page (todo 40's
 Docker half, 2026-11-21: the install worked, the rebuild failed on an unquoted path and SMS
-was started from SMS Manager; fixed under "On `main` since v1.18.79"). Still open: todo 40's
+was started from SMS Manager; fixed in v1.18.80, under "In v1.18.80"; its update to v1.18.80
+from the page still stops at the rebuild once). Still open: todo 40's
 last step, an update from the page that finishes by itself (from v1.18.80 on; its Lite half
 was done on 2026-11-21 and found that the Update of an installed SMS Lite could never save its
 download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninstall
@@ -2414,7 +2461,8 @@ texts, both themes and both languages) done 2026-11-22, 67 (SMS Lite stopping
 under a page in the background) done 2026-11-22 as the owner chose (a page in the background
 counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
 done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
-71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo
+73, the CI load tests that fail every request (found 2026-11-22, no decision needed); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -2794,7 +2842,7 @@ and 44 and 48 in its part 5):
         edition (`install_metadata.txt` v1.18.79 from v1.18.78 at 23:03:45); the installer
         registered and started the task again (23:03:52).
       - *The rebuild did not:* `DOCKER.ps1 -Update` exited with code 64 at 23:03:53 and the
-        job's status file says `failed`; fixed in the entry under "On `main` since v1.18.79".
+        job's status file says `failed`; fixed in the entry under "In v1.18.80".
         The owner started SMS from SMS Manager (23:05:10), which built `sms-fullstack:v1.18.79`
         from the cache and started it (23:06:38): healthy, `/health` v1.18.79, the same SQLite
         data (1 student, 26 courses), migrations at `e2b7c9d4a1f6`, the task's heartbeat fresh.
@@ -2925,7 +2973,7 @@ and 44 and 48 in its part 5):
       theme (the entry under "In v1.18.79"). Still left: the body of a failure is
       the server's English text (the job's failures have no message keys); the Docker host
       task's status texts are shown as they come, seen for the first time when todo 40's
-      Docker half runs. **Done 2026-11-22** (the entry under "On `main` since v1.18.79"):
+      Docker half runs. **Done 2026-11-22** (the entry under "In v1.18.80"):
       every failure and start refusal named in both languages, the phases too.
     - **Found while checking it, 2026-11-21 (the owner's word needed: it touches every tab of
       the Control Panel):** on the System page the Control Panel is shown "embedded", and its
@@ -2966,7 +3014,7 @@ and 44 and 48 in its part 5):
       still makes Lite exit 30 s later, whatever pages are open or in the background; a new
       sign-in within those 30 s cancels it; a Logout from a phone or another PC does not stop
       Lite (`schedule-shutdown` answers only the Lite PC itself).
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"), as chosen; the freeze
+    - **Done 2026-11-22** (the entry under "In v1.18.80"), as chosen; the freeze
       could not be reproduced with an automated Edge (it keeps every page visible).
 
 <!-- -->
@@ -3016,7 +3064,7 @@ of periods recalculates every student's limits for the whole semester, past week
     before saving, with Save / Cancel. Also not covered by today's soft conflict warning: the
     Edit Course dialog (it re-sends the whole course) and course imports. No decision needed
     beyond the wording.
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"): the dialog, on every
+    - **Done 2026-11-22** (the entry under "In v1.18.80"): the dialog, on every
       save that changes the periods or a limit; the Edit Course dialog cannot change the
       periods; a course import that does says so in its result.
 
@@ -3028,7 +3076,7 @@ of periods recalculates every student's limits for the whole semester, past week
     teacher holds `courses:edit` and courses have no teacher field, so any teacher can change
     any course's schedule. Suggested: an audit entry with the old and new `teaching_schedule` and
     `periods_per_week` (and the other changed fields) on every course update. No decision needed.
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"): every course change and
+    - **Done 2026-11-22** (the entry under "In v1.18.80"): every course change and
       every change of its evaluation rules, with the changed fields before and after, shown on
       the Audit Log page.
 
@@ -3057,7 +3105,7 @@ of periods recalculates every student's limits for the whole semester, past week
       asking, so the question is needed either way, and once it is asked one number is enough;
       the history needs a new table, a semester start date (none exists) and a week-by-week
       count in every absence calculation. Built after 69, whose dialog it uses.
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"; migration
+    - **Done 2026-11-22** (the entry under "In v1.18.80"; migration
       `f4c2a8d6e1b3`): the stored total, the dialog's question, Edit Course's box.
 
 <!-- -->
@@ -3069,7 +3117,20 @@ of periods recalculates every student's limits for the whole semester, past week
     records are there. Suggested: show such periods, marked as outside the schedule, whenever
     they hold records, and let a past date with records be opened. No decision needed beyond the
     wording.
-    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79").
+    - **Done 2026-11-22** (the entry under "In v1.18.80").
+
+73. **The load tests in CI fail every request, and nothing notices** (found 2026-11-22 while
+    releasing v1.18.80). The job "Load & Performance Tests (Conditional)" of the CI/CD pipeline
+    starts a server on SQLite and runs `scripts/run_load_tests.py` (Locust, 50 users, 60 s). All
+    2,406 requests failed, `/health` included, each answered in about 3 ms; the job still shows
+    success, because the step ends in `|| echo "Load tests failed (continuing ...)"`, and its
+    readiness loop's `curl -s` takes any answer as ready. The same on v1.18.79's tag commit
+    (`0d3554c3b`) and on `0fdee9560`, so not this release's doing. Not yet looked into: what the
+    server answers (the job keeps `backend.log`; likely a setting the server no longer accepts,
+    such as `AUTH_MODE: disabled`, or the host check). Suggested: find the answer, repair the
+    job's environment, and let the job fail (or at least say so in its summary) when the failure
+    rate is over its 2 % threshold. No decision needed; not urgent (the job proves nothing
+    today, and nothing depends on it).
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
