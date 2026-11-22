@@ -70,6 +70,7 @@ class ImportService:
         course_data: dict,
         *,
         translate_rules_fn=None,
+        warnings: Optional[list] = None,
     ) -> tuple[bool, Optional[str]]:
         """
         Create or update a course from normalized data.
@@ -78,6 +79,9 @@ class ImportService:
             db: Database session
             course_data: Normalized course dictionary
             translate_rules_fn: Optional function to translate evaluation rules
+            warnings: Where to say that an update changed the periods per week of a course that
+                already has attendance (plan todo 69): its students' absence limits are then
+                counted from the new number for the whole semester.
 
         Returns:
             Tuple of (created: bool, error: Optional[str])
@@ -136,7 +140,10 @@ class ImportService:
         db_course = db.query(Course).filter(Course.course_code == code).first()
 
         if db_course:
+            from backend.services.absence_limit_service import weekly_periods
+
             ImportService.reactivate_if_soft_deleted(db_course, entity="course", identifier=str(code))
+            periods_before = weekly_periods(db_course)
 
             # Update fields
             for field in [
@@ -164,6 +171,21 @@ class ImportService:
                     pass
                 else:
                     setattr(db_course, "evaluation_rules", new_rules)
+
+            periods_after = weekly_periods(db_course)
+            if warnings is not None and periods_after != periods_before:
+                (Attendance,) = import_names("models", "Attendance")
+                has_attendance = (
+                    db.query(Attendance.id)
+                    .filter(Attendance.course_id == db_course.id, Attendance.deleted_at.is_(None))
+                    .first()
+                    is not None
+                )
+                if has_attendance:
+                    warnings.append(
+                        f"warning: {code}: periods per week {periods_before:g} -> {periods_after:g}; its students' "
+                        f"absence limits are now counted from {periods_after:g} periods a week for the whole semester"
+                    )
 
             return False, None  # Updated, not created
         else:

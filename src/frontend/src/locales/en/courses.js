@@ -121,4 +121,23 @@ export default {
   enrollment: 'Enrollment',
   enrollmentManagement: 'Enrollment Management',
   assignStudentsToCourse: 'Assign students to this course',
+  // Before a change in periods per week is saved (plan todo 69)
+  scheduleChange: {
+    title: 'The number of periods per week changes',
+    intro: 'The absence limits are counted from the periods per week for the whole semester, the weeks already taught included. Saving this schedule changes them for every student of the course.',
+    periods: 'Periods per week',
+    total: 'Periods in the semester',
+    allowed: 'Absences allowed before failing',
+    participation: 'Absences before the Class Participation share is lost',
+    studentsTitle: 'Students whose status changes',
+    noStudentChanges: 'No student\'s status changes.',
+    noAttendanceYet: 'No attendance has been recorded for this course yet.',
+    absences: '{{count}} absences',
+    shareKept: 'Participation counts',
+    shareLost: 'Participation lost',
+    checking: 'Checking what this change does…',
+    checkFailed: 'What this change does to the absence limits could not be checked.',
+    save: 'Save the new schedule',
+    cancel: 'Back to the schedule'
+  },
 };

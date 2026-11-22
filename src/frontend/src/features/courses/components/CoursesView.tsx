@@ -10,7 +10,9 @@ import { usePerformanceMonitor } from '@/hooks';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
 import { CourseCardSkeleton, ListSkeleton } from '@/components/ui';
 import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
-import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI } from '@/api/api';
+import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI, type ScheduleChangePreview } from '@/api/api';
+import ScheduleChangeDialog from '@/features/courses/components/ScheduleChangeDialog';
+import { scheduleChangeNeedsWarning } from '@/features/courses/utils/scheduleChange';
 import {
   DEFAULT_DAY_SCHEDULE,
   calculateEndTime,
@@ -87,6 +89,8 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const [selectedToEnroll, setSelectedToEnroll] = useState<number[]>([]);
   const [scheduleConflicts, setScheduleConflicts] = useState<ScheduleConflict[]>([]);
   const [showConflictWarning, setShowConflictWarning] = useState<boolean>(false);
+  // What a save would do to the absence limits, while the dialog asks (plan todo 69).
+  const [scheduleChange, setScheduleChange] = useState<ScheduleChangePreview | null>(null);
 
   // Common grade categories using translations (bilingual labels for datalist)
   const commonCategories = [
@@ -375,11 +379,13 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     setSelectedToEnroll([]);
   }, [selectedCourse]);
 
-  const saveCourseData = async () => {
+  // `confirmedChange`: the schedule change dialog's Save, after the checks below were passed once.
+  const saveCourseData = async (options?: { confirmedChange?: boolean }) => {
+    const confirmedChange = options?.confirmedChange === true;
     if (activeTab === 'evaluation' && !validateRules()) return;
 
     // Check for schedule conflicts before saving
-    if (activeTab === 'schedule') {
+    if (activeTab === 'schedule' && !confirmedChange) {
       const foundConflicts = await checkScheduleConflicts();
       if (foundConflicts.length > 0 && !showConflictWarning) {
         // Conflicts found but warning wasn't shown yet - show it and don't save
@@ -410,11 +416,41 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         participation_limit_percent: participationLimit,
       };
 
+      // A save that changes the absence limits shows what it does first (plan todo 69): the
+      // limits count for the whole semester, so a new period count rewrites the past weeks.
+      const stored = courses.find((c) => c.id === selectedCourse);
+      const newPeriods = scheduleList.reduce((sum, item) => sum + (Number(item.periods) || 0), 0);
+      const limitsMayChange =
+        !!stored &&
+        (newPeriods !== Number(stored.periods_per_week ?? 0) ||
+          absenceLimit !== Number(stored.absence_limit_percent ?? 30) ||
+          participationLimit !== Number(stored.participation_limit_percent ?? 10));
+      if (limitsMayChange && !confirmedChange) {
+        let preview: ScheduleChangePreview;
+        try {
+          preview = await coursesAPI.previewScheduleChange(selectedCourse as number, {
+            teaching_schedule: scheduleList,
+            hours_per_week: payload.hours_per_week,
+            absence_limit_percent: absenceLimit,
+            participation_limit_percent: participationLimit,
+          });
+        } catch {
+          showToast(t('courses.scheduleChange.checkFailed'), 'error');
+          return;
+        }
+        if (scheduleChangeNeedsWarning(preview)) {
+          setScheduleChange(preview);
+          return;
+        }
+      }
+
       await apiClient.put(`/courses/${selectedCourse}`, payload);
+      setScheduleChange(null);
 
       showToast(t('courseDataSaved'), 'success');
       loadCourses();
     } catch {
+      setScheduleChange(null);
       showToast(t('failedToSaveData'), 'error');
     } finally {
       setIsLoading(false);
@@ -475,6 +511,14 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
 
   return (
     <div className="space-y-6">
+      {scheduleChange && (
+        <ScheduleChangeDialog
+          preview={scheduleChange}
+          saving={isLoading}
+          onCancel={() => setScheduleChange(null)}
+          onConfirm={() => { void saveCourseData({ confirmedChange: true }); }}
+        />
+      )}
       {toast && (
         <div className={`fixed top-4 right-4 ${toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'} text-white px-6 py-3 rounded-lg shadow-lg z-50`}>
           <div className="flex items-center space-x-2">
@@ -1149,7 +1193,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
               {t('clearAll')}
             </button>
             <button
-              onClick={saveCourseData}
+              onClick={() => { void saveCourseData(); }}
               disabled={(externalLoading || isLoading) || (activeTab === 'evaluation' && !isValidTotal) || (activeTab === 'schedule' && !hoursOk)}
               className="px-6 py-2 bg-linear-to-r/srgb from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all font-medium disabled:opacity-50 flex items-center space-x-2"
             >

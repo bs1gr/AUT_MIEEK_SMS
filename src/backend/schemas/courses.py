@@ -3,6 +3,19 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
+class ScheduleChangePreview(BaseModel):
+    """A course's schedule and limits as the Teaching Schedule tab is about to save them (todo 69).
+
+    Fields left out keep the course's current value; a schedule sets the periods per week.
+    """
+
+    teaching_schedule: Optional[List[Dict[str, Any]]] = None
+    periods_per_week: Optional[int] = Field(None, ge=0, le=60)
+    hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
+    absence_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
+    participation_limit_percent: Optional[float] = Field(None, ge=0.0, le=100.0)
+
+
 class CourseCreate(BaseModel):
     course_code: str = Field(..., min_length=1, max_length=20)
     course_name: str = Field(..., min_length=1, max_length=200)

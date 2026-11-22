@@ -604,6 +604,12 @@ export const coursesAPI = {
     return unwrapResponse<Course>(response.data);
   },
 
+  // What saving this schedule would do to the course's absence limits; saves nothing (todo 69).
+  previewScheduleChange: async (id: number, data: ScheduleChangePreviewRequest): Promise<ScheduleChangePreview> => {
+    const response = await apiClient.post(`/courses/${id}/schedule-change-preview`, data);
+    return unwrapResponse<ScheduleChangePreview>(response.data);
+  },
+
   // is_active is derived from enrollments; these complete / restore the course's enrollments
   end: async (id: number): Promise<Course> => {
     const response = await apiClient.post(`/courses/${id}/end`);
@@ -1164,6 +1170,42 @@ export const rbacAPI = {
 // ==================== AUDIT LOG ====================
 
 /** One line of the audit log, as GET /audit/logs sends it. */
+/** A schedule and limits as the Teaching Schedule tab is about to save them (todo 69). */
+export interface ScheduleChangePreviewRequest {
+  teaching_schedule?: Array<Record<string, unknown>>;
+  periods_per_week?: number;
+  hours_per_week?: number;
+  absence_limit_percent?: number;
+  participation_limit_percent?: number;
+}
+
+export interface ScheduleChangeTotals {
+  periods_per_week: number;
+  scheduled_periods: number;
+  allowed_absences: number | null;
+  participation_allowed_absences: number | null;
+}
+
+/** A student whose absence status or Class Participation share a schedule change would change. */
+export interface ScheduleChangeStudent {
+  student_id: number;
+  student_name: string;
+  absences: number;
+  status_before: string;
+  status_after: string;
+  participation_forfeited_before: boolean;
+  participation_forfeited_after: boolean;
+}
+
+export interface ScheduleChangePreview {
+  course_id: number;
+  before: ScheduleChangeTotals;
+  after: ScheduleChangeTotals;
+  enrolled_students: number;
+  has_attendance: boolean;
+  changes: ScheduleChangeStudent[];
+}
+
 export interface AuditLogEntry {
   id: number;
   action: string;
