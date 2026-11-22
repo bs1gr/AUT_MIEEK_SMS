@@ -1443,37 +1443,33 @@ function Invoke-CodeQualityChecks {
             }
             $mdStateBefore = Get-MarkdownState
 
+            function Get-MarkdownlintPackage {
+                # The markdownlint-cli version package-lock.json pins, as npx's package spec.
+                # A bare `npx markdownlint-cli` on a PC without the root node_modules asks the
+                # registry for the newest release, and when that is not cached it waits at a
+                # "Need to install" prompt nobody sees: the gate hung there on 2026-11-22, the
+                # day 0.50.1 came out. Pinned and with --yes, npx fetches it once, then reuses it.
+                param([string]$LockPath)
+                try {
+                    $lock = [System.IO.File]::ReadAllText($LockPath)
+                    if ($lock -match '(?s)"node_modules/markdownlint-cli"\s*:\s*\{[^}]*?"version"\s*:\s*"([^"]+)"') {
+                        return "markdownlint-cli@$($Matches[1])"
+                    }
+                } catch {}
+                return 'markdownlint-cli'
+            }
+            $mdPackage = Get-MarkdownlintPackage -LockPath (Join-Path $PROJECT_ROOT "package-lock.json")
+            $mdArgs = @('--yes', $mdPackage, '**/*.md')
+            if (Test-Path $mdConfig) { $mdArgs += @('--config', $mdConfig) }
+            if (Test-Path $mdIgnore) { $mdArgs += @('--ignore-path', $mdIgnore) }
+
             # Always auto-fix markdown issues (safe and trivial formatting changes)
             # First pass: try to fix issues
-            Write-Info "Running markdownlint with auto-fix..."
-            if (Test-Path $mdConfig) {
-                if (Test-Path $mdIgnore) {
-                    $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
-                } else {
-                    $output = npx markdownlint-cli "**/*.md" --fix --config "$mdConfig" 2>&1
-                }
-            } else {
-                if (Test-Path $mdIgnore) {
-                    $output = npx markdownlint-cli "**/*.md" --fix --ignore-path "$mdIgnore" 2>&1
-                } else {
-                    $output = npx markdownlint-cli "**/*.md" --fix 2>&1
-                }
-            }
+            Write-Info "Running $mdPackage with auto-fix..."
+            $output = npx @mdArgs --fix 2>&1
 
             # Second pass: check if any issues remain after auto-fix
-            if (Test-Path $mdConfig) {
-                if (Test-Path $mdIgnore) {
-                    $checkOutput = npx markdownlint-cli "**/*.md" --config "$mdConfig" --ignore-path "$mdIgnore" 2>&1
-                } else {
-                    $checkOutput = npx markdownlint-cli "**/*.md" --config "$mdConfig" 2>&1
-                }
-            } else {
-                if (Test-Path $mdIgnore) {
-                    $checkOutput = npx markdownlint-cli "**/*.md" --ignore-path "$mdIgnore" 2>&1
-                } else {
-                    $checkOutput = npx markdownlint-cli "**/*.md" 2>&1
-                }
-            }
+            $checkOutput = npx @mdArgs 2>&1
             $checkExitCode = $LASTEXITCODE
 
             # Report what the fix pass rewrote, so nothing lands in a commit unannounced.
