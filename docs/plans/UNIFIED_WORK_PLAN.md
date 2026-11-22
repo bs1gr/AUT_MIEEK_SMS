@@ -310,8 +310,20 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-22: the gate and CI lint `scripts/` as well** (this PR; the owner, offered it after
+todo 73: "do both options"). `scripts/` holds tools that CI and the releases run (the load
+test, the SARIF merge, the backup checks), and neither `COMMIT_READY.ps1` nor CI's "Backend
+Linting (Python)" job looked there: the load test of todo 73 asked for nothing but `POST /GET`
+from 2026-06-04 (`03f5d3bd1`) until that day, unnoticed. Now the gate has a step "Scripts: Ruff Linting" after the backend's, with
+the same `config/ruff.toml` (and `--fix` under `-AutoFix`; skipped when `-Target` names what to
+check), and the CI job a step "Run Ruff on scripts/". With the backend's rules the 31 files had
+7 findings, all fixed here: an unused import in `consolidate-sarif.py`, five f-strings without a
+placeholder and an unused variable (the two files). Ruff's default rules find more (blind
+`except Exception`, `utcnow()`); the repository's rules leave those out for the backend too.
+Tests: `test_scripts_folder_is_linted.py` (2; both fail on the old gate and workflow).
+
 **2026-11-22: the gate runs the markdownlint version the lockfile pins, and never waits at a
-prompt** (this PR; found that day, no decision needed). `COMMIT_READY.ps1` ran a bare
+prompt** (PR 474, merged as `526112f83`, its checks green; found that day, no decision needed). `COMMIT_READY.ps1` ran a bare
 `npx markdownlint-cli`. On a PC without the root `node_modules` (this one: `npm install` is not
 run in the root) npx then asks the registry for the newest release, and when that one is not
 in its cache it asks "Need to install ... Ok to proceed?" on a console nobody sees. On
