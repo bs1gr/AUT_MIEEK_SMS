@@ -5,6 +5,7 @@ Tests authentication settings management via /control/api/maintenance/*.
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -286,6 +287,44 @@ def test_docker_status_survives_the_container_rebuild(client, monkeypatch, tmp_p
     assert (data["status"], data["phase"], data["target_version"]) == ("completed", "bridge_completed", "1.18.57")
 
 
+def test_a_failure_of_the_host_task_is_named_for_the_page(client, monkeypatch, tmp_path, control_admin_headers):
+    # Plan todo 66: the page showed the host task's English text as the failure; it now gets a
+    # reason it can say in its own language, and the text stays as the technical detail.
+    _docker_context(monkeypatch)
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "1")
+    monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+    job_id = "cd" * 16
+    (tmp_path / f"update_status_{job_id}.json").write_text(
+        json.dumps(
+            {
+                "job_id": job_id,
+                "status": "failed",
+                "phase": "bridge_failed",
+                "progress_percent": 100,
+                "message": "DOCKER.ps1 -Update exited with code 64.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    data = client.get(
+        f"/control/api/maintenance/updates/auto-install/{job_id}/status", headers=control_admin_headers
+    ).json()
+
+    assert (data["status"], data["failure_reason"]) == ("failed", "host_failed")
+    assert data["message"] == "DOCKER.ps1 -Update exited with code 64."
+
+
+def test_every_failure_has_a_reason_the_page_knows():
+    # The reasons are a closed list; a failure without one is "unexpected".
+    from backend.routers.control import maintenance
+
+    assert len(set(maintenance.FAILURE_REASONS)) == len(maintenance.FAILURE_REASONS) == 12
+    source = Path(maintenance.__file__).read_text(encoding="utf-8")
+    used = set(re.findall(r'reason="([a-z_]+)"', source)) | set(re.findall(r'"([a-z_]+)" if declined else', source))
+    assert used <= set(maintenance.FAILURE_REASONS)
+
+
 def test_native_checkout_is_never_updated_with_the_installer(client, monkeypatch, control_admin_headers):
     # A developer's checkout (NATIVE.ps1) used to download and run the full installer over itself.
     from backend.routers.control import maintenance
@@ -532,6 +571,7 @@ def test_auto_install_status_not_found(client, control_admin_headers):
     assert data["status"] == "not_found"
     assert data["phase"] == "not_found"
     assert data["phase_history"] == []
+    assert data["failure_reason"] == "job_not_found"
 
 
 def test_auto_install_status_invalid_job_id_returns_not_found(client, control_admin_headers):
@@ -681,6 +721,7 @@ def test_lite_update_declined_at_uac_keeps_sms_lite_running(client, monkeypatch,
     ).json()
     assert status["status"] == "failed"
     assert "cancelled at the Windows security prompt" in status["message"]
+    assert status["failure_reason"] == "uac_declined"  # the page says it in its own language (todo 66)
     assert calls["exits"] == 0  # SMS Lite keeps running
     assert calls["killed"] == 1  # and the helper that would have started it again is stopped
 
@@ -704,6 +745,7 @@ def test_lite_update_refuses_an_installer_without_a_published_hash(
     ).json()
     assert status["status"] == "failed"
     assert "no SHA-256" in status["message"]
+    assert status["failure_reason"] == "no_checksum"
     assert calls["launched"] == [] and calls["exits"] == 0
     assert not (tmp_path / "s.exe").exists()
 

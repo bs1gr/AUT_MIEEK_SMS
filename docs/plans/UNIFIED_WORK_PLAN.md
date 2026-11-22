@@ -256,6 +256,25 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
+**2026-11-22: the Updates panel says what went wrong in the page's language** (this PR; the
+rest of todo 66, which needed no decision). The body of a failure was the server's English text
+(the job's failures had no message keys), and the Docker host task's texts were shown as they
+came. Now every failure of the update job carries a reason (`failure_reason`, one of twelve in
+`maintenance.FAILURE_REASONS`: the release unreadable or invalid, nothing newer, no installer,
+no SHA-256, a SHA-256 that differs, cancelled at UAC, an installer that would not start, the
+host task's trigger or the host task itself failing, a job the server no longer knows, and an
+unexpected error), and the panel says it in English or Greek with the server's text below as
+"Technical detail". A start the server refuses is named by the `message_key` it already sent
+(Docker without the host task, a developer copy, not Windows, the trigger not written). A
+finished Docker update says "Updated to 1.18.80: SMS has started again with the new version",
+one that found nothing newer says so, and the phases in the panel and its timeline are named
+("Rebuilding the container", "Failed on the host"); the timeline's lines keep the server's own
+words. A test reads `maintenance.py` and `update-watcher.ps1` and fails when a reason, a
+refusal or a phase has no sentence in either language. Tests: four maintenance tests
+(`failure_reason` of a declined UAC, a missing SHA-256, an unknown job and a failed host task,
+and the closed list) and `UpdatesPanel.failures.test.tsx` (6; the five about the page fail on
+the old panel).
+
 **2026-11-22: SMS Lite counts a page in the background as open, for up to 5 hours** (this PR;
 todo 67, the owner's choice of that day: "set 5 hours open"). Every page beat every 10 s and Lite
 exited 90 s after the last beat; a browser can slow down or freeze a page in the background
@@ -276,8 +295,9 @@ it, even minimized; there, the "closed" beat of a closing page arrived. Tests:
 `test_lite_background_pages.py` (7), `useLiteHeartbeat.test.ts` (4 new) and
 `BackendStatusBanner.test.tsx` (2); they fail on the old code.
 
-**2026-11-22: attendance recorded where the schedule no longer has a lesson is shown** (this
-PR; todo 72, which needed no decision beyond the wording). The Attendance sheet showed only the
+**2026-11-22: attendance recorded where the schedule no longer has a lesson is shown** (PR
+469, merged as `caa63437e`, CI green and E2E 77 passed; todo 72, which needed no decision beyond
+the wording). The Attendance sheet showed only the
 periods today's schedule gives a date, so when a day lost a period, the absences already
 recorded in it vanished from the sheet while still counting in the absence limits; and a past
 date on a weekday the course no longer has was greyed out in the calendar, although its records
@@ -2389,8 +2409,8 @@ was done on 2026-11-21 and found that the Update of an installed SMS Lite could 
 download, fixed in v1.18.79); todos 65 to 68, found by that test: 65 (the uninstall
 entry in Settings → Apps) and 68 (SMS Lite running elevated after its own Update) fixed in
 v1.18.79 and
-proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
-but for the English bodies of the updater's failures (next in line), 67 (SMS Lite stopping
+proven only at the next release's updates, 66 (the Control Panel's colours and the updater's
+texts, both themes and both languages) done 2026-11-22, 67 (SMS Lite stopping
 under a page in the background) done 2026-11-22 as the owner chose (a page in the background
 counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
 done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
@@ -2905,7 +2925,8 @@ and 44 and 48 in its part 5):
       theme (the entry under "In v1.18.79"). Still left: the body of a failure is
       the server's English text (the job's failures have no message keys); the Docker host
       task's status texts are shown as they come, seen for the first time when todo 40's
-      Docker half runs.
+      Docker half runs. **Done 2026-11-22** (the entry under "On `main` since v1.18.79"):
+      every failure and start refusal named in both languages, the phases too.
     - **Found while checking it, 2026-11-21 (the owner's word needed: it touches every tab of
       the Control Panel):** on the System page the Control Panel is shown "embedded", and its
       container there is `bg-white … text-slate-900 dark:text-gray-100` (`ControlPanel.tsx`,

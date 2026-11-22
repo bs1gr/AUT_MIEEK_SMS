@@ -39,6 +39,8 @@ const UPDATER_TIMELINE_MODE_STORAGE_KEY = 'sms.controlPanel.updaterTimelineMode'
 interface AutoInstallStartResponse {
   success: boolean;
   message: string;
+  /** e.g. "maintenance.update.auto_install_docker_blocked": the page says it in its own words. */
+  message_key?: string | null;
   details?: {
     job_id?: string;
     status_endpoint?: string;
@@ -62,6 +64,8 @@ interface AutoUpdateStatusResponse {
   bytes_total: number | null;
   message: string | null;
   error: string | null;
+  /** Plan todo 66: why it failed, a word with a sentence in both languages (updateFailureReasons). */
+  failure_reason?: string | null;
   started_at: string | null;
   updated_at: string | null;
   phase_history: Array<{
@@ -87,6 +91,7 @@ export const UpdatesPanel: React.FC = () => {
   // What failed: the check or the install. Every error used to be titled "Error checking for
   // updates", a failed SMS Lite update too (2026-11-21).
   const [errorKind, setErrorKind] = useState<'check' | 'install'>('check');
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
   const [updaterStatus, setUpdaterStatus] = useState<AutoUpdateStatusResponse | null>(null);
   const [timelineMode, setTimelineMode] = useState<'grouped' | 'raw'>(() => {
@@ -164,12 +169,22 @@ export const UpdatesPanel: React.FC = () => {
     }
   }, []);
 
+  // A text of this panel, or null when the language has none for the key (plan todo 66).
+  const known = useCallback((key: string, options?: Record<string, unknown>): string | null => {
+    const full = `controlPanel.${key}`;
+    const text = t(full, options);
+    return text && text !== full ? text : null;
+  }, [t]);
+  const phaseName = useCallback((phase: string) => known(`updaterPhases.${phase}`) ?? phase, [known]);
+
   // A failed install: titled as such, and the note that it started goes (it stayed beside the
-  // error, so the page said both "started" and "failed").
-  const failInstall = useCallback((message: string) => {
+  // error, so the page said both "started" and "failed"). `detail`: the server's own English
+  // text, under the page's sentence, when the page could name the failure (todo 66).
+  const failInstall = useCallback((message: string, detail: string | null = null) => {
     setErrorKind('install');
     setInstallMessage(null);
     setError(message);
+    setErrorDetail(detail && detail !== message ? detail : null);
   }, []);
 
   const fetchUpdaterStatus = useCallback(async (jobId: string) => {
@@ -196,19 +211,27 @@ export const UpdatesPanel: React.FC = () => {
     if (status.status === 'completed') {
       stopUpdaterPolling();
       setInstalling(false);
-      // SMS Lite's own words, not the server's English sentence. The Docker host task's status
-      // text is shown as it comes (todo 66: not yet seen in a real Docker update).
+      // In the page's own words, not the server's or the host task's English sentence (todo 66).
+      const mode = updateInfo?.deployment_mode;
       setInstallMessage(
-        updateInfo?.deployment_mode === 'lite'
+        mode === 'lite'
           ? t('updateLiteRestarting')
-          : status.message || (t('updateInstallStarted') || 'Installer launched successfully.'),
+          : status.phase === 'up_to_date'
+            ? known('updateAlreadyLatest') ?? status.message ?? ''
+            : mode === 'docker'
+              ? known('updateDockerCompleted', { version: status.target_version ?? '' }) ?? status.message ?? ''
+              : status.message || (t('updateInstallStarted') || 'Installer launched successfully.'),
       );
     } else if (status.status === 'failed' || status.status === 'not_found') {
       stopUpdaterPolling();
       setInstalling(false);
-      failInstall(status.error || status.message || (t('updateInstallFailed') || 'Automatic update failed.'));
+      // The page's sentence for the reason; the server's English text below it.
+      const reason = status.status === 'not_found' ? 'job_not_found' : status.failure_reason;
+      const named = reason ? known(`updateFailureReasons.${reason}`) : null;
+      const serverText = (status.error && status.error !== 'not_found' ? status.error : status.message) || null;
+      failInstall(named ?? (serverText || t('updateInstallFailed') || 'Automatic update failed.'), named ? serverText : null);
     }
-  }, [failInstall, stopUpdaterPolling, t, updateInfo?.deployment_mode]);
+  }, [failInstall, known, stopUpdaterPolling, t, updateInfo?.deployment_mode]);
 
   const startUpdaterPolling = useCallback(async (jobId: string) => {
     stopUpdaterPolling();
@@ -222,6 +245,7 @@ export const UpdatesPanel: React.FC = () => {
   const checkForUpdates = useCallback(async (channel: 'stable' | 'preview') => {
     setLoading(true);
     setError(null);
+    setErrorDetail(null);
     try {
       const response = await controlApiClient.get('/maintenance/updates/check', {
         params: { channel },
@@ -254,6 +278,7 @@ export const UpdatesPanel: React.FC = () => {
     setInstalling(true);
     setInstallMessage(null);
     setError(null);
+    setErrorDetail(null);
     setUpdaterStatus(null);
 
     try {
@@ -262,8 +287,11 @@ export const UpdatesPanel: React.FC = () => {
         install_mode: 'silent',
       });
       if (response?.data?.success === false) {
-        // e.g. Docker without the host task, or a developer checkout: the message says what to do
-        failInstall(response.data.message || t('updateInstallFailed'));
+        // e.g. Docker without the host task, or a developer checkout: the message says what to
+        // do. In the page's language when it knows the key (todo 66), the server's text below.
+        const key = (response.data.message_key || '').split('.').pop();
+        const named = key ? known(`updateStartRefusals.${key}`) : null;
+        failInstall(named ?? (response.data.message || t('updateInstallFailed')), named ? response.data.message : null);
         setInstalling(false);
         return;
       }
@@ -283,7 +311,7 @@ export const UpdatesPanel: React.FC = () => {
       failInstall(data?.message || data?.detail || (err instanceof Error ? err.message : '') || t('updateInstallFailed'));
       setInstalling(false);
     }
-  }, [deploymentMode, failInstall, releaseChannel, startUpdaterPolling, t]);
+  }, [deploymentMode, failInstall, known, releaseChannel, startUpdaterPolling, t]);
 
   // No auto-check on mount — updates are only checked when the user clicks a button
 
@@ -404,7 +432,12 @@ export const UpdatesPanel: React.FC = () => {
                 : t('updateCheckError') || 'Error checking for updates'}
             </p>
             {!(errorKind === 'install' && error === t('updateInstallFailed')) && (
-              <p className="text-red-700 dark:text-red-400 text-sm mt-1">{error}</p>
+              <p className="text-red-700 dark:text-red-400 text-sm mt-1" data-testid="update-error-text">{error}</p>
+            )}
+            {errorDetail && (
+              <p className="text-red-700/80 dark:text-red-400/80 text-xs mt-1" data-testid="update-error-detail">
+                {t('controlPanel.updateFailureDetail') || 'Technical detail'}: {errorDetail}
+              </p>
             )}
           </div>
         </div>
@@ -425,7 +458,7 @@ export const UpdatesPanel: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-200">{t('updaterTimelineTitle') || 'Smart Updater Timeline'}</h3>
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              {(t('updaterPhase') || 'Phase')}: {updaterStatus.phase}
+              {(t('updaterPhase') || 'Phase')}: <span data-testid="updater-phase">{phaseName(updaterStatus.phase)}</span>
             </span>
           </div>
 
@@ -479,7 +512,7 @@ export const UpdatesPanel: React.FC = () => {
                 {displayedPhaseHistory.map((entry, index) => (
                   <li key={`${entry.phase}-${entry.timestamp}-${index}`} className="text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-2">
                     <span className="text-gray-700 dark:text-gray-300">[{new Date(entry.timestamp).toLocaleTimeString()}]</span>
-                    <span>{entry.phase}</span>
+                    <span>{phaseName(entry.phase)}</span>
                     <span className="text-gray-600 dark:text-gray-400">({entry.status})</span>
                     {typeof entry.progress_percent === 'number' && <span>{entry.progress_percent}%</span>}
                     {timelineMode === 'grouped' && entry.occurrences > 1 && <span className="text-gray-600 dark:text-gray-400">{t('updaterOccurrences', { count: entry.occurrences }) || `${entry.occurrences}x`}</span>}
