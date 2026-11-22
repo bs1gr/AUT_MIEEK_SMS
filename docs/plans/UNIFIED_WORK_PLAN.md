@@ -55,6 +55,19 @@ revision identified by 'f4c2a8d6e1b3'" and nothing else changes).
   `auto_backup_*` files, so it stays at about 15:26 UTC.
 - Found while releasing, not this release's doing: the CI load tests fail every request
   without failing the job (todo 73).
+- **The releases before it are archived** (2026-11-22, from 11:48 UTC; the owner: "set all
+  previous releases before v1.18.80 to prereleases and remove their assets, there is no need of
+  them"). The 22 releases v1.18.58 to v1.18.79 (the ones still on GitHub; older tags had no
+  release any more) are prereleases, and their 44 files (an installer and an APK each, about
+  1.9 GB) are deleted; their text and their tags stay. Done with `gh release delete-asset` and
+  `gh release edit --prerelease`, not with `scripts/ops/archive-releases.ps1` (it prepends a
+  v1.6.3 note and deletes nothing). v1.18.80 is untouched: the latest release, its two files
+  with the same SHA-256. The Updates panel and the update banner read `/releases/latest` (the
+  preview channel the newest non-draft release), so nothing changes for an installation; the
+  Release Asset Sanitizer ran on each edit and had nothing to remove; no build workflow listens
+  to release events. **v1.18.80 stays as the reference release, with its files** (the owner:
+  "not yet, let's let v1.18.80 as reference"). Files deleted from a release cannot be put back
+  as they were (an old tag's workflow is never run again).
 
 **Before that: v1.18.79 released 2026-11-21** (tag on `0d3554c3b`, run by the assistant; the
 owner: "release v1.18.79 and update the VM"). It carries PRs 456 to 463, under "In v1.18.79"
@@ -310,8 +323,8 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-22: the gate and CI lint `scripts/` as well** (this PR; the owner, offered it after
-todo 73: "do both options"). `scripts/` holds tools that CI and the releases run (the load
+**2026-11-22: the gate and CI lint `scripts/` as well** (PR 475, merged as `c0e494abc`, its
+checks green; the owner, offered it after todo 73: "do both options"). `scripts/` holds tools that CI and the releases run (the load
 test, the SARIF merge, the backup checks), and neither `COMMIT_READY.ps1` nor CI's "Backend
 Linting (Python)" job looked there: the load test of todo 73 asked for nothing but `POST /GET`
 from 2026-06-04 (`03f5d3bd1`) until that day, unnoticed. Now the gate has a step "Scripts: Ruff Linting" after the backend's, with
@@ -323,7 +336,8 @@ placeholder and an unused variable (the two files). Ruff's default rules find mo
 Tests: `test_scripts_folder_is_linted.py` (2; both fail on the old gate and workflow).
 
 **2026-11-22: the gate runs the markdownlint version the lockfile pins, and never waits at a
-prompt** (PR 474, merged as `526112f83`, its checks green; found that day, no decision needed). `COMMIT_READY.ps1` ran a bare
+prompt** (PR 474, merged as `526112f83`, CI and E2E green on `main`; found that day, no
+decision needed). `COMMIT_READY.ps1` ran a bare
 `npx markdownlint-cli`. On a PC without the root `node_modules` (this one: `npm install` is not
 run in the root) npx then asks the registry for the newest release, and when that one is not
 in its cache it asks "Need to install ... Ok to proceed?" on a console nobody sees. On
