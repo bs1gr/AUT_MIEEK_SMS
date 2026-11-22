@@ -147,9 +147,29 @@ class AutoUpdateStatusResponse(BaseModel):
     bytes_total: Optional[int] = None
     message: Optional[str] = None
     error: Optional[str] = None
+    # Plan todo 66: why a job failed, as a word the page translates (FAILURE_REASONS); `message`
+    # and `error` stay the server's own English text, shown as the technical detail.
+    failure_reason: Optional[str] = None
     started_at: Optional[str] = None
     updated_at: Optional[str] = None
     phase_history: list[Dict[str, Any]] = Field(default_factory=list)
+
+
+# What an update can fail on. The Updates panel has a sentence for each, in both languages.
+FAILURE_REASONS = (
+    "release_unavailable",
+    "release_invalid",
+    "no_newer_release",
+    "no_installer",
+    "no_checksum",
+    "checksum_mismatch",
+    "uac_declined",
+    "installer_launch_failed",
+    "host_trigger_failed",
+    "host_failed",
+    "job_not_found",
+    "unexpected",
+)
 
 
 _AUTO_UPDATE_JOBS: Dict[str, Dict[str, Any]] = {}
@@ -413,6 +433,8 @@ def _sync_job_from_host_updater_status(job_id: str) -> None:
         "progress_percent": progress_int,
         "message": status_payload.get("message"),
         "error": status_payload.get("error"),
+        # Todo 66: the host task's failures are its own English text; the page names them.
+        "failure_reason": "host_failed" if mapped_status == "failed" else None,
     }
 
     if status_payload.get("target_version"):
@@ -518,13 +540,16 @@ def _get_auto_update_job(job_id: str) -> Optional[Dict[str, Any]]:
         return dict(job) if job else None
 
 
-def _mark_auto_update_failed(job_id: str, message: str, *, error: Optional[str] = None) -> None:
+def _mark_auto_update_failed(
+    job_id: str, message: str, *, error: Optional[str] = None, reason: str = "unexpected"
+) -> None:
     _update_auto_update_job(
         job_id,
         status="failed",
         phase="failed",
         message=message,
         error=error or message,
+        failure_reason=reason if reason in FAILURE_REASONS else "unexpected",
     )
 
 
@@ -545,22 +570,24 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
         )
         release = _fetch_github_release(channel=payload.channel)
         if not release:
-            _mark_auto_update_failed(job_id, "Could not fetch release metadata for update.")
+            _mark_auto_update_failed(job_id, "Could not fetch release metadata for update.", reason="release_unavailable")
             return
 
         latest_version = str(release.get("tag_name", "")).lstrip("v")
         if not latest_version:
-            _mark_auto_update_failed(job_id, "Release metadata did not include a valid version.")
+            _mark_auto_update_failed(job_id, "Release metadata did not include a valid version.", reason="release_invalid")
             return
 
         if not payload.allow_downgrade and not _version_is_newer(latest_version, current_version):
-            _mark_auto_update_failed(job_id, "No newer update available for the selected channel.")
+            _mark_auto_update_failed(job_id, "No newer update available for the selected channel.", reason="no_newer_release")
             return
 
         installer_url, installer_hash = _pick_installer_asset(release.get("assets", []) or [])
 
         if not installer_url:
-            _mark_auto_update_failed(job_id, "No Windows installer asset was found for the selected release.")
+            _mark_auto_update_failed(
+                job_id, "No Windows installer asset was found for the selected release.", reason="no_installer"
+            )
             return
 
         updates_dir = _get_updates_download_dir()
@@ -599,7 +626,11 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
         if not expected_hash:
             # Without a published hash there is nothing to check the download against.
             installer_path.unlink(missing_ok=True)
-            _mark_auto_update_failed(job_id, "The release publishes no SHA-256 for its installer; not installing it.")
+            _mark_auto_update_failed(
+                job_id,
+                "The release publishes no SHA-256 for its installer; not installing it.",
+                reason="no_checksum",
+            )
             return
         if computed_hash.lower() != expected_hash.lower():
             installer_path.unlink(missing_ok=True)
@@ -607,6 +638,7 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
                 job_id,
                 "Downloaded installer failed SHA256 verification.",
                 error=f"Expected {expected_hash}, got {computed_hash}",
+                reason="checksum_mismatch",
             )
             return
 
@@ -642,6 +674,7 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
                 if declined
                 else "The installer could not be started.",
                 error=str(exc),
+                reason="uac_declined" if declined else "installer_launch_failed",
             )
             return
 
@@ -658,7 +691,7 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
         _schedule_lite_exit()
     except Exception as exc:  # pragma: no cover - defensive catch
         logger.error("Smart updater job failed: %s", exc, exc_info=True)
-        _mark_auto_update_failed(job_id, "Updater job failed unexpectedly.", error=str(exc))
+        _mark_auto_update_failed(job_id, "Updater job failed unexpectedly.", error=str(exc), reason="unexpected")
 
 
 def _get_policy_description(enabled: bool, mode: str) -> str:
@@ -1066,6 +1099,7 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
                     job_id,
                     "Failed to enqueue host updater bridge trigger.",
                     error=str(exc),
+                    reason="host_trigger_failed",
                 )
                 return OperationResult(
                     success=False,
@@ -1167,6 +1201,7 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
             progress_percent=0,
             message="No updater job found for the requested id.",
             error="not_found",
+            failure_reason="job_not_found",
             phase_history=[],
         )
 
@@ -1190,6 +1225,7 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
                 target_version=host_status.get("target_version"),
                 message=host_status.get("message"),
                 error=host_status.get("error"),
+                failure_reason="host_failed" if raw == "failed" else None,
                 updated_at=host_status.get("updated_at"),
                 phase_history=[],
             )
@@ -1200,6 +1236,7 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
             progress_percent=0,
             message="No updater job found for the requested id.",
             error="not_found",
+            failure_reason="job_not_found",
             phase_history=[],
         )
 
