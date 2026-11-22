@@ -13,8 +13,37 @@ import random
 import threading
 from datetime import datetime
 from pathlib import Path
-from collections import defaultdict
+from collections import Counter, defaultdict
 import requests
+
+# The account `src/backend/seed_e2e_data.py` creates, which CI's load-test job seeds.
+LOGIN_EMAIL = "test@example.com"
+LOGIN_PASSWORD = "Test@Pass123"
+
+# What each kind of user reads, as (method, path). Every path is a route of the application
+# (tests/test_load_test_script.py checks it); repeating one weights it.
+ENDPOINTS = {
+    "teacher": [
+        ("GET", "/api/v1/students/"),
+        ("GET", "/api/v1/students/"),
+        ("GET", "/api/v1/search/students?q=test"),
+        ("GET", "/api/v1/courses/"),
+        ("GET", "/api/v1/grades/"),
+        ("GET", "/api/v1/attendance/"),
+        ("GET", "/api/v1/analytics/dashboard"),
+        ("GET", "/api/v1/notifications/unread-count"),
+        ("GET", "/health"),
+    ],
+    "admin": [
+        ("GET", "/api/v1/analytics/dashboard"),
+        ("GET", "/api/v1/admin/users"),
+        ("GET", "/api/v1/courses/"),
+        ("GET", "/api/v1/enrollments/"),
+        ("GET", "/api/v1/audit/logs"),
+        ("GET", "/health"),
+    ],
+}
+
 
 class LoadTestMetrics:
     """Collect and analyze load test metrics."""
@@ -57,6 +86,7 @@ class LoadTestMetrics:
             results[endpoint] = {
                 "num_requests": len(requests_list),
                 "num_failures": failures,
+                "status_codes": {str(code): count for code, count in sorted(Counter(r['status_code'] for r in requests_list).items())},
                 "min_response_time_ms": round(min(times), 2) if times else 0,
                 "avg_response_time_ms": round(sum(times) / len(times), 2) if times else 0,
                 "max_response_time_ms": round(max(times), 2) if times else 0,
@@ -115,7 +145,7 @@ class LoadTestUser(threading.Thread):
         try:
             resp = self.session.post(
                 urljoin(self.host, "/api/v1/auth/login"),
-                json={"email": "test@example.com", "password": "test"},
+                json={"email": LOGIN_EMAIL, "password": LOGIN_PASSWORD},
                 timeout=5
             )
             if resp.status_code == 200:
@@ -130,7 +160,7 @@ class LoadTestUser(threading.Thread):
         while time.time() - start < self.duration:
             try:
                 # Select endpoint based on user type
-                endpoint, method = self._select_endpoint()
+                method, endpoint = self._select_endpoint()
 
                 # Make request
                 request_start = time.time()
@@ -155,38 +185,8 @@ class LoadTestUser(threading.Thread):
                 time.sleep(0.1)
 
     def _select_endpoint(self):
-        """Select endpoint based on user type."""
-        # Weighted random selection of endpoints
-        if self.user_type == "teacher":
-            choices = [
-                ("GET", "/api/v1/students"),
-                ("GET", "/api/v1/students"),
-                ("GET", "/api/v1/students/search?q=test"),
-                ("GET", "/api/v1/grades"),
-                ("POST", "/api/v1/grades"),
-                ("GET", "/api/v1/analytics/dashboard"),
-                ("GET", "/api/v1/reports/grades"),
-                ("GET", "/health"),
-            ]
-        elif self.user_type == "admin":
-            choices = [
-                ("GET", "/api/v1/analytics/dashboard"),
-                ("GET", "/api/v1/users"),
-                ("GET", "/api/v1/courses"),
-                ("GET", "/health"),
-                ("GET", "/api/v1/audit"),
-            ]
-        else:  # student
-            choices = [
-                ("GET", "/api/v1/students/me/grades"),
-                ("GET", "/api/v1/students/me/schedule"),
-                ("GET", "/api/v1/notifications"),
-                ("GET", "/api/v1/announcements"),
-                ("GET", "/api/v1/students/me/assignments"),
-                ("GET", "/health"),
-            ]
-
-        return random.choice(choices)
+        """A (method, path) for this kind of user, at random."""
+        return random.choice(ENDPOINTS[self.user_type])
 
 
 def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: int = 60, output: str | None = None):
@@ -216,14 +216,8 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
 
     try:
         for i in range(users):
-            # Select user type based on weight
-            rand = random.random()
-            if rand < 0.6:
-                user_type = "teacher"
-            elif rand < 0.8:
-                user_type = "admin"
-            else:
-                user_type = "student"
+            # Three teachers to one administrator (the application has no other role).
+            user_type = "teacher" if random.random() < 0.75 else "admin"
 
             user = LoadTestUser(i, host, metrics, duration, user_type)
             user.start()
@@ -249,6 +243,9 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
             print(f"\n{endpoint}")
             print(f"  ✓ Requests: {result['num_requests']} ({result['requests_per_second']:.2f} req/s)")
             print(f"  ✗ Failures: {result['num_failures']} ({result['failure_rate_percent']:.1f}%)")
+            if result['num_failures']:
+                codes = ", ".join(f"{code} x{count}" for code, count in result['status_codes'].items())
+                print(f"  HTTP status: {codes}")
             print(f"  Response times (ms):")
             print(f"    Min:    {result['min_response_time_ms']:8.0f}")
             print(f"    Median: {result['median_response_time_ms']:8.0f}")

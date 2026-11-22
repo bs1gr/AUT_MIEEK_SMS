@@ -310,8 +310,29 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-22: the startup display shows every stage, also on a busy PC** (this PR; todo 74,
-which needed no decision). `STARTUP_STATUS.ps1`, which `NATIVE.ps1` runs while the backend
+**2026-11-22: CI's load test sends real requests, and its failure shows** (this PR; todo 73,
+which needed no decision). `scripts/run_load_tests.py`, run by the job "Load & Performance
+Tests" on every push to `main`, unpacked its (method, path) pairs the wrong way round
+(`endpoint, method = ...`), so every request was a POST to `/GET`: all 2,406 failed in about
+3 ms each. Several paths were not routes either (`/api/v1/students/search`,
+`/api/v1/reports/grades`, `/api/v1/users`, `/api/v1/audit`, a `POST /api/v1/grades` with an
+empty body, and a "student" user whose `/students/me/...` pages never existed), and it signed in
+with a password the seed does not set. The step ended in `|| echo`, so the job stayed green.
+Now the pairs are read in the right order from one list per kind of user, three teachers to
+one administrator (the application has no other role): only routes the application has, all
+reads; the sign-in uses the account `seed_e2e_data.py` creates; the report gives each failing
+request's HTTP status; the step fails when more than 2 % of the requests fail (on a pull
+request the job's `continue-on-error` still lets the pipeline go on, on `main` it shows); the
+unused `pip install locust` is gone. The job runs only on `main`, so it was run here the way
+CI runs it (a SQLite file, the migrations, the E2E seed, the same settings, 50 users for 60 s):
+the old script 2,406 requests, all failed, exit 1, exactly as in CI; the new one 2,239
+requests, none failed, `/health` the slowest (95th percentile 676 ms). Tests:
+`test_load_test_script.py` (4: every request a route of the application, for both kinds of
+user; a user signs in with the seeded account and sends GETs to its own paths; the CI step
+keeps the exit code); all four fail on the old script and workflow.
+
+**2026-11-22: the startup display shows every stage, also on a busy PC** (PR 472, merged as
+`5edb4059f`, CI green; todo 74, which needed no decision). `STARTUP_STATUS.ps1`, which `NATIVE.ps1` runs while the backend
 starts, looks at the log every 400 ms and showed only the newest stage it found. When one look
 took longer than a stage (a busy PC), the stage in between was never shown, and those logged
 just before `/health` answered were never shown at all; a gate failed on that on 2026-11-22.
@@ -2488,8 +2509,8 @@ under a page in the background) done 2026-11-22 as the owner chose (a page in th
 counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
 done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
 71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo
-73, the CI load tests that fail every request (found 2026-11-22, no decision needed); todo 74,
-a startup stage the status script could skip on a busy PC, done the same day; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+73, the CI load tests that failed every request, and todo 74, a startup stage the status script
+could skip on a busy PC (both found and done 2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -3158,6 +3179,9 @@ of periods recalculates every student's limits for the whole semester, past week
     job's environment, and let the job fail (or at least say so in its summary) when the failure
     rate is over its 2 % threshold. No decision needed; not urgent (the job proves nothing
     today, and nothing depends on it).
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.80"). The cause was not the
+      server: the script unpacked its (method, path) pairs the wrong way round, so it asked
+      for `POST /GET`; several of its paths and its password were wrong as well.
 
 74. **`STARTUP_STATUS.ps1` can skip a startup stage when the PC is busy** (found 2026-11-22: it
     failed the gate of a plan-only commit, with 4 to 6 GB of memory free).
