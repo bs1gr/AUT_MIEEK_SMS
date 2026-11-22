@@ -68,6 +68,16 @@ revision identified by 'f4c2a8d6e1b3'" and nothing else changes).
   to release events. **v1.18.80 stays as the reference release, with its files** (the owner:
   "not yet, let's let v1.18.80 as reference"). Files deleted from a release cannot be put back
   as they were (an old tag's workflow is never run again).
+- **The owner's Docker test install on the dev PC runs v1.18.80** (seen 2026-11-22 at about
+  17:00 local: `C:\Program Files\SMS` at v1.18.80, its image `sms-fullstack:v1.18.80` built at
+  09:52 local, the `sms-app` container created at 12:51 and stopped cleanly; how the update
+  was run is not recorded).
+- **Todo 50 has nothing left** (2026-11-22, the owner's choices from a list of names, sizes
+  and dates, nothing opened): the older installations' copies in `D:\SMS\AUT` and three loose
+  `.db` files went to the Recycle Bin; an old v1.18.15 "Unicode Trial" install,
+  `C:\Program Files (x86)\SMS-UT`, with 881 backups made before the health text was deleted,
+  was removed with its own uninstaller; `D:\SMS\CONFIDENTIAL\sms-content` stays; the Privacy
+  settings are not needed on a home install. Todo 50 is in part 5 of the archive.
 
 **Before that: v1.18.79 released 2026-11-21** (tag on `0d3554c3b`, run by the assistant; the
 owner: "release v1.18.79 and update the VM"). It carries PRs 456 to 463, under "In v1.18.79"
@@ -2536,25 +2546,24 @@ the answers are under "In v1.18.78"). v1.18.80 is released (2026-11-22, the top 
 plan) and the cloud VM runs it (the same day, on the owner's word "update the VM to
 v1.18.80"; its first start migrated the shared database to `f4c2a8d6e1b3`), with the privacy
 controller's name and contact in its `.env`. The owner's Docker test install on the dev PC
-runs v1.18.79, updated from the page (todo 40's Docker half, 2026-11-21: the install worked,
-the rebuild failed on an unquoted path and SMS was started from SMS Manager; fixed in
-v1.18.80, under "In v1.18.80"; its update to v1.18.80 from the page still stops at the
-rebuild once). Still open: todo 40's last step, an update from the page that finishes by
-itself (from v1.18.80 on; its Lite half was done on 2026-11-21 and found that the Update of
-an installed SMS Lite could never save its download, fixed in v1.18.79); todos 65 and 68,
-found by that test (65, the uninstall entry in Settings → Apps; 68, SMS Lite running
-elevated after its own Update), fixed in v1.18.79 and proven only at the next release's
-updates; todo 50's two optional owner chores (old archives, a home install's Privacy
-settings); todo 58's PostgreSQL 14 on the NAS (the owner stays on 14.18 for now) and its
-smaller items. Closed on 2026-11-20: todo 44 (the owner: "Close it"), the contrast design
-calls (PR 455), the test data in the shared database (todo 56); on 2026-11-21 todo 63, every
-point of it done (moved to part 5 of the archive); on 2026-11-22 todo 55 (the owner: "yes,
-archive todo 55"), its last point, the copy off the VM, automatic since 2026-11-21, and
-todos 66, 67 and 69 to 74, all done (66 and 67, found by todo 40's test, and 69 to 72, on
-changing a course's teaching schedule, released in v1.18.80; 73, the CI load tests, and 74,
-the startup status script, on `main` since), all moved to part 5 of the archive. Moot:
-`viewer` and `guest` getting 403 on the Dashboard overview, since those roles no longer exist
-(PR 425 turned them into "No role").
+runs v1.18.80 too (seen 2026-11-22; todo 40's Docker half, on 2026-11-21, had updated it to
+v1.18.79 from the page: the install worked, the rebuild failed on an unquoted path and SMS
+was started from SMS Manager; fixed in v1.18.80, under "In v1.18.80"). Still open: todo 40's
+last step, an update from the page that finishes by itself (from v1.18.80 on; its Lite half
+was done on 2026-11-21 and found that the Update of an installed SMS Lite could never save
+its download, fixed in v1.18.79); todos 65 and 68, found by that test (65, the uninstall
+entry in Settings → Apps; 68, SMS Lite running elevated after its own Update), fixed in
+v1.18.79 and proven only at the next release's updates; todo 58's PostgreSQL 14 on the NAS
+(the owner stays on 14.18 for now) and its smaller items. Closed on 2026-11-20: todo 44 (the
+owner: "Close it"), the contrast design calls (PR 455), the test data in the shared database
+(todo 56); on 2026-11-21 todo 63, every point of it done (moved to part 5 of the archive); on
+2026-11-22 todo 55 (the owner: "yes, archive todo 55"), its last point, the copy off the VM,
+automatic since 2026-11-21, todos 66, 67 and 69 to 74, all done (66 and 67, found by todo
+40's test, and 69 to 72, on changing a course's teaching schedule, released in v1.18.80; 73,
+the CI load tests, and 74, the startup status script, on `main` since), and todo 50, its two
+optional chores settled by the owner (the top of this plan), all moved to part 5 of the
+archive. Moot: `viewer` and `guest` getting 403 on the Dashboard overview, since those roles
+no longer exist (PR 425 turned them into "No role").
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -2678,8 +2687,8 @@ word: the next release.
     - *Installs older than v1.18.70 on the shared database:* such a build answers with an
       error when it saves a second rating for a slot that has one (the note is now in the
       status record of v1.18.70, part 4 of the archive). The owner's `sms-app` container on
-      the dev PC is not one of them: it is a test install on a local SQLite file, on v1.18.79
-      since 2026-11-21 (updated from the page, todo 40).
+      the dev PC is not one of them: it is a test install on a local SQLite file, on v1.18.80
+      since 2026-11-22 (on v1.18.79 from 2026-11-21, updated from the page, todo 40).
     - ~~*"Slow query" warnings on the cloud host.* `db/query_profiler.py` warns about every
       statement over 100 ms; the database is 65 ms away, so the health check's own catalogue
       query warns every 30 seconds (13 of the 15 warnings in the VM's first five minutes on
@@ -2940,78 +2949,6 @@ and 44 and 48 in its part 5):
 
 <!-- -->
 
-50. **Privacy hardening after a consent / GDPR review** (owner, 2026-11-13: "make sure that comply
-    by Consent Management Checklist for GDPR Cyprus Compliance" before the cloud VM is updated;
-    then "do all recommended") — no checklist by that name exists in the project, so the app was
-    checked against GDPR Articles 6-9, Law 125(I)/2018 and the cookie rule of Law 112(I)/2004.
-    Passing already: only strictly necessary cookies, no tracking, no third-party scripts.
-    - **Done 2026-11-13 (unreleased):** health information left the general student response
-      and is admin-only (`/students/{id}/health`), is masked in the audit log and is out of the
-      semester export unless an administrator asks (the encrypted archive keeps it); the staff
-      notes moved from the browser's `localStorage` to the server, per account (additive
-      migration `f6c3d8b1a2e4`), with a one-time move of what a browser still holds; a public
-      Privacy page (EN/EL) linked from the footer, with the controller's contacts from four
-      `PRIVACY_*` settings. Described in `docs/admin/PRIVACY_AND_GDPR.md`.
-    - **The owner's / ΜΙΕΕΚ's, not code:** the lawful basis in writing (and the Article 9
-      condition for health data, or clearing that column), retention periods, Oracle's
-      data-processing agreement for Always Free, the wording of the notice and the four contact
-      settings. **The cloud VM stays on `54eab4a67` until the owner says otherwise.**
-    - **Second round, same day (owner: "try to satisfy all above at a default state as
-      recommended"), unreleased:** an administrator-only section in the student Edit dialog
-      with the health information, a personal-data file for access requests
-      (`/data-subject/students/{id}/export`, soft-deleted records included) and permanent
-      erasure (`DELETE /data-subject/students/{id}`, registry number typed to confirm; audit
-      entries of that student lose their personal details). The admin document gained a table
-      of recommended defaults (lawful basis, health data, retention, hosting) that the
-      institution confirms or changes; none is enforced automatically.
-    - **Deliberately not done:** a consent register (nothing relies on consent), automatic
-      deletion by retention period (no period has been decided, and deleting real records on a
-      guess is not a default), and switching health recording off (the CSV import carries a
-      health column on purpose; it is now admin-only instead). Oracle's agreement for Always
-      Free could not be confirmed from public documents.
-    - **Health data switched off, 2026-11-13 (owner: "make sure that no health data is passed
-      ... if exist, we have to correct it asap"; no payment is possible, so the host stays on
-      Always Free).** Oracle's Data Processing Agreement (14 August 2025) was read: no trial
-      exclusion, but section 2.6 rules out regulated health data. A count on the real database
-      found health text for 4 of 81 students and copies in 6 audit rows; the owner chose to
-      delete it, and it was removed the same day (verified by count: 0 and 0, 81 students).
-      `HEALTH_DATA_ENABLED` (default false) now keeps the app from storing, importing, showing
-      or exporting it, with a guard on the model itself; the cloud compose file fixes it to
-      false. **Not reached:** database backups, semester archives and export files made before
-      that day may still contain the text. ~~**Still open:** read the Oracle Cloud Services
-      Agreement accepted at sign-up for how it treats a free account.~~ **Read the same day**
-      (the v1.18.68 paragraph at the head of this plan: the Cyprus Cloud Services Agreement of
-      22 June 2023 and the Data Processing Agreement of 14 August 2025 exclude neither free
-      nor trial accounts); only the free account's order record could not be read.
-    - **The owner's decisions, 2026-11-20** (recorded in `docs/admin/PRIVACY_AND_GDPR.md`,
-      "Decided for the ΜΙΕΕΚ installation"):
-      - **Lawful basis:** Article 6(1)(e), public task (plus 6(1)(c) where a law requires the record).
-      - **Retention:** the proposed periods are adopted, written down only. No automatic deletion
-        is built; that would need a new decision.
-      - **Controller on the Privacy page:** the owner, as the teacher.
-      - **Older copies, done 2026-11-20 (owner: "do suggested"):** files on the dev PC written
-        on or before 13 November that copy the current database went to the Recycle Bin, none
-        of them opened. That was 246 files, 12.7 MB, all git-ignored, under `backups\database`
-        (with `.metadata`), `backups\postgres`, `backups\semester_archives` and
-        `src\backend\exports` (165 near-empty `export_1_*.xlsx`). Nothing in Downloads,
-        Desktop, Documents or OneDrive matched. The VM's backups start on 16 November and are
-        clean, as are the copies in the owner's confidential folder.
-      - **Kept as the owner's own archives:** the older installations' files in other folders
-        on the dev PC (2025 to June 2026). Under the adopted one-year backup rule they can go
-        when the owner chooses.
-      - **Out of reach:** snapshots on the QNAP itself, and files already sent to others.
-      - ~~**Still open:** the controller's name and contact for the `PRIVACY_*` settings (supplied
-        by the owner, set in the servers' `.env`, never in the repository).~~ **The owner,
-        2026-11-20 ("Set them at the VM update"):** asked for when the VM is moved onto
-        v1.18.78, and written into the VM's `.env` only. **Done 2026-11-21 on the VM** (the
-        owner typed them; the Privacy page answers `configured: true`).
-      - **Left, both optional and the owner's (as of 2026-11-21):** the older installations'
-        archives above, removable under the one-year rule whenever the owner chooses; and the
-        same two `PRIVACY_*` settings in the `.env` of a home install, only if that install
-        should show them. Nothing in the code is open here.
-
-<!-- -->
-
 65. **Uninstalling from Settings → Apps finds no uninstaller** (found 2026-11-21 by todo 40's
     Lite test). The script says `AppId={{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}}`. In Inno Setup
     `{{` is a literal `{` but `}}` stays `}}`, so Inno registers every installation under
@@ -3084,7 +3021,7 @@ stood between them (the Tailwind 4 migration, the dependency rounds, the Septemb
 follow-ups) and the dated sections from September 29 back to June 15, 2026 are in
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for word. A section this plan names and
 does not contain is there.
-On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done, and todo 55 on 2026-11-22 (the owner: "yes, archive todo 55"). Todos 66, 67 and 69 to 74 followed the same day, all done (66, 67 and 69 to 72 released in v1.18.80, 73 and 74 on `main` since).
+On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done, and todo 55 on 2026-11-22 (the owner: "yes, archive todo 55"). Todos 66, 67 and 69 to 74 followed the same day, all done (66, 67 and 69 to 72 released in v1.18.80, 73 and 74 on `main` since). Todo 50 followed the same day, its two optional chores settled by the owner.
 
 ## 🗄️ Historical Archive (Feb–Aug 2026)
 

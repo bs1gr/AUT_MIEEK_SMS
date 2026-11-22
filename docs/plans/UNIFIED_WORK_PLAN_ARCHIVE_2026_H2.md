@@ -7,7 +7,7 @@ see the plan and `CHANGELOG.md`. Earlier history is in
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H1.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H1.md).
 
 Five parts (parts 1 to 3 moved on 2026-11-15, parts 4 and 5 on 2026-11-20, with todo 63
-added to part 5 on 2026-11-21 and todos 55, 66, 67 and 69 to 74 on 2026-11-22):
+added to part 5 on 2026-11-21 and todos 50, 55, 66, 67 and 69 to 74 on 2026-11-22):
 
 1. Releases v1.18.65 down to v1.18.51 and the work between them.
 2. The closed entries and dated notes of the plan's "Next todos" section. Entries that were
@@ -15,7 +15,7 @@ added to part 5 on 2026-11-21 and todos 55, 66, 67 and 69 to 74 on 2026-11-22):
 3. The dated sections, from September 29 back to June 15, 2026.
 4. Releases v1.18.73 back to v1.18.66: the status records from the head of the plan and the
    "In v1.18.x" sections (the plan keeps v1.18.74 and later).
-5. Closed todos moved from the plan's "Next todos" (44, 48, 52, 53, 55, 56, 57, 59 to 64, 66, 67, 69 to 74).
+5. Closed todos moved from the plan's "Next todos" (44, 48, 50, 52, 53, 55, 56, 57, 59 to 64, 66, 67, 69 to 74).
 
 ---
 
@@ -6343,7 +6343,7 @@ The records of v1.18.65 down to v1.18.51, and of the work between them, are in p
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), unchanged.
 
 
-## Part 5: closed todos (moved from the plan's "Next todos" on 2026-11-20; 63 on 2026-11-21; 55, 66, 67 and 69 to 74 on 2026-11-22)
+## Part 5: closed todos (moved from the plan's "Next todos" on 2026-11-20; 63 on 2026-11-21; 50, 55, 66, 67 and 69 to 74 on 2026-11-22)
 
 44. **Cloud host: deploy the backend on Oracle Always Free, keeping today's setup as the backup**
     (owner approved todo 19's proposal on 2026-11-12) — Oracle Always Free, home region
@@ -6423,6 +6423,94 @@ The records of v1.18.65 down to v1.18.51, and of the work between them, are in p
       time in the release of v1.18.73 (2026-11-17):** started by `RELEASE_READY` for the
       release commit, then run by hand on the commit that got the tag; both runs passed for
       both platforms (the top of this document).
+
+<!-- -->
+
+50. **Privacy hardening after a consent / GDPR review** (owner, 2026-11-13: "make sure that comply
+    by Consent Management Checklist for GDPR Cyprus Compliance" before the cloud VM is updated;
+    then "do all recommended") — no checklist by that name exists in the project, so the app was
+    checked against GDPR Articles 6-9, Law 125(I)/2018 and the cookie rule of Law 112(I)/2004.
+    Passing already: only strictly necessary cookies, no tracking, no third-party scripts.
+    - **Done 2026-11-13 (unreleased):** health information left the general student response
+      and is admin-only (`/students/{id}/health`), is masked in the audit log and is out of the
+      semester export unless an administrator asks (the encrypted archive keeps it); the staff
+      notes moved from the browser's `localStorage` to the server, per account (additive
+      migration `f6c3d8b1a2e4`), with a one-time move of what a browser still holds; a public
+      Privacy page (EN/EL) linked from the footer, with the controller's contacts from four
+      `PRIVACY_*` settings. Described in `docs/admin/PRIVACY_AND_GDPR.md`.
+    - **The owner's / ΜΙΕΕΚ's, not code:** the lawful basis in writing (and the Article 9
+      condition for health data, or clearing that column), retention periods, Oracle's
+      data-processing agreement for Always Free, the wording of the notice and the four contact
+      settings. **The cloud VM stays on `54eab4a67` until the owner says otherwise.**
+    - **Second round, same day (owner: "try to satisfy all above at a default state as
+      recommended"), unreleased:** an administrator-only section in the student Edit dialog
+      with the health information, a personal-data file for access requests
+      (`/data-subject/students/{id}/export`, soft-deleted records included) and permanent
+      erasure (`DELETE /data-subject/students/{id}`, registry number typed to confirm; audit
+      entries of that student lose their personal details). The admin document gained a table
+      of recommended defaults (lawful basis, health data, retention, hosting) that the
+      institution confirms or changes; none is enforced automatically.
+    - **Deliberately not done:** a consent register (nothing relies on consent), automatic
+      deletion by retention period (no period has been decided, and deleting real records on a
+      guess is not a default), and switching health recording off (the CSV import carries a
+      health column on purpose; it is now admin-only instead). Oracle's agreement for Always
+      Free could not be confirmed from public documents.
+    - **Health data switched off, 2026-11-13 (owner: "make sure that no health data is passed
+      ... if exist, we have to correct it asap"; no payment is possible, so the host stays on
+      Always Free).** Oracle's Data Processing Agreement (14 August 2025) was read: no trial
+      exclusion, but section 2.6 rules out regulated health data. A count on the real database
+      found health text for 4 of 81 students and copies in 6 audit rows; the owner chose to
+      delete it, and it was removed the same day (verified by count: 0 and 0, 81 students).
+      `HEALTH_DATA_ENABLED` (default false) now keeps the app from storing, importing, showing
+      or exporting it, with a guard on the model itself; the cloud compose file fixes it to
+      false. **Not reached:** database backups, semester archives and export files made before
+      that day may still contain the text. ~~**Still open:** read the Oracle Cloud Services
+      Agreement accepted at sign-up for how it treats a free account.~~ **Read the same day**
+      (the v1.18.68 paragraph at the head of this plan: the Cyprus Cloud Services Agreement of
+      22 June 2023 and the Data Processing Agreement of 14 August 2025 exclude neither free
+      nor trial accounts); only the free account's order record could not be read.
+    - **The owner's decisions, 2026-11-20** (recorded in `docs/admin/PRIVACY_AND_GDPR.md`,
+      "Decided for the ΜΙΕΕΚ installation"):
+      - **Lawful basis:** Article 6(1)(e), public task (plus 6(1)(c) where a law requires the record).
+      - **Retention:** the proposed periods are adopted, written down only. No automatic deletion
+        is built; that would need a new decision.
+      - **Controller on the Privacy page:** the owner, as the teacher.
+      - **Older copies, done 2026-11-20 (owner: "do suggested"):** files on the dev PC written
+        on or before 13 November that copy the current database went to the Recycle Bin, none
+        of them opened. That was 246 files, 12.7 MB, all git-ignored, under `backups\database`
+        (with `.metadata`), `backups\postgres`, `backups\semester_archives` and
+        `src\backend\exports` (165 near-empty `export_1_*.xlsx`). Nothing in Downloads,
+        Desktop, Documents or OneDrive matched. The VM's backups start on 16 November and are
+        clean, as are the copies in the owner's confidential folder.
+      - **Kept as the owner's own archives:** the older installations' files in other folders
+        on the dev PC (2025 to June 2026). Under the adopted one-year backup rule they can go
+        when the owner chooses.
+      - **Out of reach:** snapshots on the QNAP itself, and files already sent to others.
+      - ~~**Still open:** the controller's name and contact for the `PRIVACY_*` settings (supplied
+        by the owner, set in the servers' `.env`, never in the repository).~~ **The owner,
+        2026-11-20 ("Set them at the VM update"):** asked for when the VM is moved onto
+        v1.18.78, and written into the VM's `.env` only. **Done 2026-11-21 on the VM** (the
+        owner typed them; the Privacy page answers `configured: true`).
+      - ~~**Left, both optional and the owner's (as of 2026-11-21):** the older installations'
+        archives above, removable under the one-year rule whenever the owner chooses; and the
+        same two `PRIVACY_*` settings in the `.env` of a home install, only if that install
+        should show them. Nothing in the code is open here.~~ **Settled 2026-11-22** (the
+        owner chose from a list of names, sizes and dates; nothing was opened):
+        - To the Recycle Bin: the 4 files in `D:\SMS\AUT` (2 `.db`, 2 small `.zip`, 6 to 25
+          November 2025) and 3 loose `.db` files (`D:\SMS\data`, empty; in `src\backend\data`,
+          a Lite file of September 2026 and an empty `test.db`).
+        - Removed with its own uninstaller: an old v1.18.15 "Unicode Trial" install in
+          `C:\Program Files (x86)\SMS-UT` (March 2026, 1.2 GB), which the 2026-11-20 search
+          had missed. It held 881 backups (423 MB, November 2025 to March 2026) made before the
+          health text was deleted. 59,788 files went, nothing outside its folder, and its entry
+          in Settings → Apps with them. v1.18.15's uninstaller removes every `sms-*` container
+          before it asks anything, and every `sms-fullstack` and `postgres` image on either
+          Yes, so it was run with Docker Desktop stopped; the test install's container and
+          images were all there afterwards.
+        - Kept, the owner's choice: `D:\SMS\CONFIDENTIAL\sms-content` (7 database files,
+          December 2025 to June 2026, under a year old).
+        - The Privacy settings on a home install: not needed (the owner), since only the cloud
+          VM serves other people. Nothing in todo 50 is left.
 
 <!-- -->
 
