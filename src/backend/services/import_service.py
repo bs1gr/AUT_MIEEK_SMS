@@ -153,6 +153,7 @@ class ImportService:
                 "description",
                 "hours_per_week",
                 "periods_per_week",
+                "semester_periods",
                 "teaching_schedule",
                 "absence_penalty",
                 "absence_limit_percent",
@@ -173,6 +174,11 @@ class ImportService:
                     setattr(db_course, "evaluation_rules", new_rules)
 
             periods_after = weekly_periods(db_course)
+            # Plan todo 71: an import that changes the periods is a correction, so a semester
+            # total kept from an earlier change no longer holds; a file that has one (a session
+            # export) brings it along.
+            if periods_after != periods_before and "semester_periods" not in course_data:
+                db_course.semester_periods = None
             if warnings is not None and periods_after != periods_before:
                 (Attendance,) = import_names("models", "Attendance")
                 has_attendance = (
@@ -199,6 +205,7 @@ class ImportService:
                 "evaluation_rules",
                 "hours_per_week",
                 "periods_per_week",
+                "semester_periods",
                 "teaching_schedule",
                 "absence_penalty",
                 "absence_limit_percent",

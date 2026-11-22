@@ -355,6 +355,7 @@ export default {
       participation_limit_percent: 'Όριο συμμετοχής (%)',
       hours_per_week: 'Ώρες επαφής ανά εβδομάδα',
       periods_per_week: 'Περίοδοι ανά εβδομάδα',
+      semester_periods: 'Περίοδοι στο εξάμηνο',
       teaching_schedule: 'Πρόγραμμα διδασκαλίας'
     },
     nothing: 'κανένα',

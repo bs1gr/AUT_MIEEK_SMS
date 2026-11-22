@@ -180,6 +180,10 @@ class Course(SoftDeleteMixin, Base):
     # Teaching schedule fields
     hours_per_week = Column(Float, default=3.0)
     periods_per_week = Column(Integer, default=0)
+    # Plan todo 71: the course's own total of periods in the semester, kept when a schedule
+    # changes from a given week on (the weeks before keep their count). NULL: periods per week
+    # times the semester's weeks, as always (migration f4c2a8d6e1b3).
+    semester_periods = Column(Integer, nullable=True)
     teaching_schedule = Column(JSON)
 
     # Relationships

@@ -138,6 +138,18 @@ export default {
     checking: 'Checking what this change does…',
     checkFailed: 'What this change does to the absence limits could not be checked.',
     save: 'Save the new schedule',
-    cancel: 'Back to the schedule'
+    cancel: 'Back to the schedule',
+    // Plan todo 71: from when a change in the periods applies
+    whenTitle: 'From when does the new number of periods apply?',
+    fromWeek: 'From week',
+    weekLabel: 'Week of the semester (1 to {{weeks}})',
+    fromWeekHelp: 'The weeks before it keep the number of periods they were taught with. The week is counted from the week of the first recorded lesson; the semester has {{weeks}}.',
+    correction: 'It was wrong from the start: count the whole semester with the new number'
+  },
+  // Plan todo 71: Edit Course, the course's own total of periods in the semester
+  semesterPeriods: {
+    label: 'Periods in the semester',
+    help: 'Empty: periods per week × the weeks of the semester. Fill it in when the curriculum fixes the course\'s total; a schedule change from a given week on fills it in itself.',
+    invalid: 'Enter a whole number of 0 or more, or leave it empty.'
   },
 };

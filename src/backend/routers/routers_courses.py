@@ -24,6 +24,41 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})
 
 
+def _check_change_week(request: Request, week: Optional[int]) -> None:
+    """A week a schedule change applies from has to be a week of the semester (plan todo 71)."""
+    weeks = absence_limit_service.semester_weeks()
+    if week is not None and not 1 <= week <= weeks:
+        raise http_error(
+            422,
+            ErrorCode.VALIDATION_FAILED,
+            f"The week a schedule change applies from must be between 1 and {weeks}",
+            request,
+            context={"week": week, "semester_weeks": weeks},
+        )
+
+
+def _semester_periods_after(course: Any, *, new_weekly: float, from_week: Optional[int]) -> Optional[int]:
+    """The course's own semester total once its periods per week become ``new_weekly`` (todo 71).
+
+    From a given week on, the weeks before keep the count they were taught with. Without a week
+    the change is a correction: no total is kept, and the whole semester is counted at the new
+    number, as before todo 71.
+    """
+    if from_week is None:
+        return None
+    return absence_limit_service.total_after_change(course, new_weekly=new_weekly, from_week=from_week)
+
+
+def _weekly_after(course: Any, values: Dict[str, Any]) -> float:
+    """The periods per week the course would count with after these values are saved."""
+    return absence_limit_service.weekly_periods(
+        SimpleNamespace(
+            periods_per_week=values.get("periods_per_week", course.periods_per_week),
+            hours_per_week=values.get("hours_per_week", course.hours_per_week),
+        )
+    )
+
+
 def _course_values(course: Any, fields: Iterable[str]) -> Dict[str, Any]:
     """The course's current values of these fields, copied, with its rules in their normal form."""
     values = {field: copy.deepcopy(getattr(course, field, None)) for field in fields}
@@ -358,10 +393,17 @@ def update_course(
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
         update_data = course_data.model_dump(exclude_unset=True)
-        # What the request may replace, for the audit entry; a schedule also sets periods_per_week.
+        from_week = update_data.pop("schedule_change_from_week", None)
+        _check_change_week(request, from_week)
+        # What the request may replace, for the audit entry; a schedule also sets periods_per_week,
+        # and a change of the periods the semester's own total (todo 71).
         tracked = [field for field in update_data if field != "is_active"]
         if "teaching_schedule" in update_data and "periods_per_week" not in tracked:
             tracked.append("periods_per_week")
+        if "semester_periods" not in tracked and any(
+            field in update_data for field in ("teaching_schedule", "periods_per_week", "hours_per_week")
+        ):
+            tracked.append("semester_periods")
         before = _course_values(course, tracked)
 
         if "evaluation_rules" in update_data:
@@ -383,6 +425,16 @@ def update_course(
 
         if "teaching_schedule" in update_data:
             update_data["periods_per_week"] = _calculate_periods_per_week(update_data.get("teaching_schedule"))
+
+        # Plan todo 71: a change of the periods per week sets the semester's own total (the weeks
+        # before `from_week` keep their count), or clears it for a correction. A total sent with
+        # the request (Edit Course) is the total.
+        if "semester_periods" not in update_data:
+            new_weekly = _weekly_after(course, update_data)
+            if new_weekly != absence_limit_service.weekly_periods(course):
+                update_data["semester_periods"] = _semester_periods_after(
+                    course, new_weekly=new_weekly, from_week=from_week
+                )
 
         with transaction(db):
             for key, value in update_data.items():
@@ -420,6 +472,8 @@ def preview_schedule_change(
         (Course,) = import_names("models", "Course")
         course = get_by_id_or_404(db, Course, course_id)
         values = proposed.model_dump(exclude_unset=True)
+        from_week = values.get("change_from_week")
+        _check_change_week(request, from_week)
         periods = course.periods_per_week
         if "teaching_schedule" in values:
             periods = _calculate_periods_per_week(values.get("teaching_schedule"))
@@ -435,7 +489,12 @@ def preview_schedule_change(
             hours_per_week=_value("hours_per_week"),
             absence_limit_percent=_value("absence_limit_percent"),
             participation_limit_percent=_value("participation_limit_percent"),
+            semester_periods=course.semester_periods,
         )
+        # As a save would count it (todo 71): from the week asked, or a correction.
+        new_weekly = absence_limit_service.weekly_periods(after)
+        if new_weekly != absence_limit_service.weekly_periods(course):
+            after.semester_periods = _semester_periods_after(course, new_weekly=new_weekly, from_week=from_week)
         return absence_limit_service.schedule_change_preview(db, course, after)
     except HTTPException:
         raise

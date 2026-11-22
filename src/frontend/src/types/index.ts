@@ -27,6 +27,8 @@ export interface Course {
   credits: number;
   hours_per_week?: number;
   periods_per_week?: number;
+  /** The course's own total of periods in the semester (todo 71); empty: periods per week x weeks. */
+  semester_periods?: number | null;
   // Optional canonical year and instructor fields used in some views and tests
   year?: number;
   instructor?: string;

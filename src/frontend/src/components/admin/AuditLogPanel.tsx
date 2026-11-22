@@ -105,6 +105,7 @@ const COURSE_FIELDS = new Set([
   'participation_limit_percent',
   'hours_per_week',
   'periods_per_week',
+  'semester_periods',
   'teaching_schedule',
 ]);
 

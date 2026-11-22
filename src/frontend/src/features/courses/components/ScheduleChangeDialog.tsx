@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import type { ScheduleChangePreview, ScheduleChangeTotals } from '@/api/api';
@@ -12,6 +12,12 @@ import type { ScheduleChangePreview, ScheduleChangeTotals } from '@/api/api';
  * down can push students over the fail (30 %) or the Class Participation (10 %) limit. Nothing
  * showed that before a save. This dialog shows the totals before and after, and the students
  * whose status or participation share would change, with Save and Back.
+ *
+ * When the periods per week change in a course that has been taught (plan todo 71, the owner's
+ * choice), it asks from when: "from week N on" keeps the weeks before N at the count they were
+ * taught with (N is the week today is in, counted from the first recorded lesson); "it was
+ * wrong from the start" counts the whole semester at the new number. Each answer asks the
+ * server again, so the totals and the students shown are those the save would give.
  */
 
 type Props = {
@@ -19,6 +25,11 @@ type Props = {
   saving: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** The week the new periods apply from, or null for a correction of the whole semester. */
+  fromWeek: number | null;
+  onFromWeekChange: (week: number | null) => void;
+  /** True while the server is asked again for another answer. */
+  checking: boolean;
 };
 
 const STATUS_KEYS: Record<string, string> = {
@@ -33,11 +44,37 @@ const number = (value: number | null | undefined): string => {
   return Number.isInteger(value) ? String(value) : String(Math.round(value * 10) / 10);
 };
 
-const ScheduleChangeDialog: React.FC<Props> = ({ preview, saving, onConfirm, onCancel }) => {
+const ScheduleChangeDialog: React.FC<Props> = ({
+  preview,
+  saving,
+  onConfirm,
+  onCancel,
+  fromWeek,
+  onFromWeekChange,
+  checking,
+}) => {
   const { t } = useLanguage();
   const text = (key: string, options?: Record<string, unknown>) => t(`courses.scheduleChange.${key}`, options);
   const status = (value: string) => t(STATUS_KEYS[value] ?? STATUS_KEYS.unknown);
   const share = (lost: boolean) => text(lost ? 'shareLost' : 'shareKept');
+  const weeks = preview.semester_weeks || 14;
+  const asksWhen = preview.periods_change && preview.has_attendance;
+  const [weekText, setWeekText] = useState(String(fromWeek ?? preview.suggested_from_week ?? 1));
+  const [lastWeek, setLastWeek] = useState<number>(fromWeek ?? preview.suggested_from_week ?? 1);
+  const busy = saving || checking;
+
+  const onWeekText = (value: string) => {
+    setWeekText(value);
+    const week = Number(value);
+    if (Number.isInteger(week) && week >= 1 && week <= weeks) {
+      setLastWeek(week);
+      onFromWeekChange(week);
+    }
+  };
+  const weekValid = (() => {
+    const week = Number(weekText);
+    return Number.isInteger(week) && week >= 1 && week <= weeks;
+  })();
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -68,6 +105,53 @@ const ScheduleChangeDialog: React.FC<Props> = ({ preview, saving, onConfirm, onC
           <h3 id="schedule-change-title" className="text-lg font-bold">{text('title')}</h3>
         </div>
         <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">{text('intro')}</p>
+
+        {asksWhen && (
+          <fieldset
+            className="mb-4 space-y-2 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-700"
+            data-testid="schedule-change-when"
+          >
+            <legend className="px-1 font-semibold">{text('whenTitle')}</legend>
+            <label className="flex flex-wrap items-center gap-2">
+              <input
+                type="radio"
+                name="schedule-change-when"
+                checked={fromWeek !== null}
+                onChange={() => onFromWeekChange(lastWeek)}
+                disabled={saving}
+                data-testid="schedule-change-from-week"
+              />
+              <span>{text('fromWeek')}</span>
+              <input
+                type="number"
+                min={1}
+                max={weeks}
+                value={weekText}
+                onChange={(event) => onWeekText(event.target.value)}
+                onFocus={() => { if (fromWeek === null) onFromWeekChange(lastWeek); }}
+                disabled={saving}
+                aria-label={text('weekLabel', { weeks })}
+                aria-invalid={!weekValid}
+                data-testid="schedule-change-week"
+                className="w-16 rounded-md border border-gray-300 px-2 py-1 dark:border-gray-600 dark:bg-gray-800"
+              />
+              <span className="w-full text-xs text-gray-600 dark:text-gray-400">{text('fromWeekHelp', { weeks })}</span>
+            </label>
+            <label className="flex items-start gap-2">
+              <input
+                type="radio"
+                name="schedule-change-when"
+                checked={fromWeek === null}
+                onChange={() => onFromWeekChange(null)}
+                disabled={saving}
+                className="mt-1"
+                data-testid="schedule-change-correction"
+              />
+              <span>{text('correction')}</span>
+            </label>
+            {checking && <p className="text-xs text-gray-600 dark:text-gray-400">{text('checking')}</p>}
+          </fieldset>
+        )}
 
         <table className="mb-4 w-full text-sm" data-testid="schedule-change-totals">
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -126,7 +210,7 @@ const ScheduleChangeDialog: React.FC<Props> = ({ preview, saving, onConfirm, onC
           <button
             type="button"
             onClick={onConfirm}
-            disabled={saving}
+            disabled={busy || (asksWhen && fromWeek !== null && !weekValid)}
             data-testid="schedule-change-save"
             className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >

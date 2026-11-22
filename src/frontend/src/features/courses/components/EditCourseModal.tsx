@@ -27,6 +27,10 @@ interface EditCourseModalProps {
 
 type SemesterType = 'spring' | 'winter' | 'academic_year' | 'school_year' | 'custom';
 
+// A course's own total of periods in the semester as the box shows it: empty when none is kept.
+const semesterPeriodsText = (value?: number | null): string =>
+  value === null || value === undefined ? '' : String(value);
+
 const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUpdate }) => {
   const { t } = useLanguage();
 
@@ -34,6 +38,9 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
   const [semesterType, setSemesterType] = useState<SemesterType>('custom');
   const [semesterYear, setSemesterYear] = useState<string>(new Date().getFullYear().toString());
   const [customSemester, setCustomSemester] = useState<string>('');
+  // Plan todo 71: empty means periods per week times the semester's weeks.
+  const [semesterPeriods, setSemesterPeriods] = useState<string>(semesterPeriodsText(course.semester_periods));
+  const semesterPeriodsValid = semesterPeriods.trim() === '' || /^\d+$/.test(semesterPeriods.trim());
 
   const form = useForm<SchemaCourseFormData>({
     resolver: zodResolver(courseSchema) as unknown as Resolver<SchemaCourseFormData>,
@@ -73,6 +80,8 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
         setSemesterType('custom');
         setCustomSemester(sem);
       }
+
+      setSemesterPeriods(semesterPeriodsText(course.semester_periods));
 
       // Reset form with course data
       form.reset({
@@ -129,6 +138,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
   };
 
   const onSubmit = (data: SchemaCourseFormData): void => {
+    if (!semesterPeriodsValid) return;
     // Map schema data back to Course type
     const updatedCourse: Course = {
       ...course,
@@ -136,6 +146,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
       course_name: data.course_name,
       semester: data.semester,
       credits: data.credits,
+      semester_periods: semesterPeriods.trim() === '' ? null : Number(semesterPeriods.trim()),
     };
     onUpdate(updatedCourse);
     onClose();
@@ -276,6 +287,28 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
                   </FormItem>
                 )}
               />
+              {/* Plan todo 71: the course's own total of periods in the semester */}
+              <div className="space-y-2">
+                <label htmlFor="semesterPeriodsInput" className="text-sm font-medium leading-none">
+                  {t('courses.semesterPeriods.label')}
+                </label>
+                <Input
+                  id="semesterPeriodsInput"
+                  type="number"
+                  min={0}
+                  step={1}
+                  data-testid="semester-periods-input"
+                  value={semesterPeriods}
+                  onChange={(e) => setSemesterPeriods(e.target.value)}
+                  aria-invalid={!semesterPeriodsValid}
+                  aria-describedby="semesterPeriodsHelp"
+                />
+                <p id="semesterPeriodsHelp" className="text-xs text-gray-600">
+                  {semesterPeriodsValid ? t('courses.semesterPeriods.help') : (
+                    <span className="text-red-600" role="alert">{t('courses.semesterPeriods.invalid')}</span>
+                  )}
+                </p>
+              </div>
             </div>
 
             <FormField

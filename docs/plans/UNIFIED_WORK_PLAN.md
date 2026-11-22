@@ -256,6 +256,27 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
+**2026-11-22: a schedule changed in the middle of a semester keeps the weeks already taught**
+(this PR; todo 71, the owner's choice of that day: "go with your recommendation for 71";
+**migration `f4c2a8d6e1b3`**, additive: one nullable column). A course's absence total was always
+its periods per week × 14, so going from 2 to 3 periods in week 8 made it 42 for the whole
+semester. A course now keeps its own total, `courses.semester_periods`, empty for every course
+(empty: periods per week × 14, as before). When the periods per week change in a course that
+has attendance, todo 69's dialog asks from when: "From week N" (N is the week today is in,
+counted from the week of the first recorded lesson; it can be changed), so the weeks before
+N keep the count they were taught with (2 → 3 from week 8: 7 × 2 + 7 × 3 = 35; a later 3 → 1 from
+week 11 gives 27, each change counting the remaining weeks again), or "It was wrong from the
+start" (a correction: the whole semester at the new number, the kept total cleared). Each
+answer asks the server again, so the totals and the students shown are those the save gives;
+`PUT /courses/{id}` takes `schedule_change_from_week` (a week outside the semester is refused).
+A change of the periods without a week (an API call, a course import) is a correction. Edit
+Course has a "Periods in the semester" box for a total the curriculum fixes (empty: none).
+The total goes into the audit entry, the session export and its import; every page that shows
+absence limits takes them from the server, so all follow. Tests: `test_semester_periods.py`
+(14), three new dialog tests and three for Edit Course (the six fail on the code before);
+`test_unmapped_legacy_columns.py` now inserts its v1.18.56 course by the columns given (today's
+model maps the new column, which that revision does not have).
+
 **2026-11-22: a save that changes a course's absence limits shows what it does first** (this
 PR; todo 69, which needed no decision beyond the wording). A course's absence total is its
 periods per week times 14, for the whole semester, past weeks included, and nothing showed
@@ -273,8 +294,8 @@ course import that changes the periods of a course with attendance now says so i
 ("warning: AUD101: periods per week 3 -> 2; ..."). Tests: `test_schedule_change_preview.py`
 (5) and `CoursesView.scheduleChange.test.tsx` (5; the 3 about the dialog fail on the old page).
 
-**2026-11-22: a change to a course is in the audit log, with what was there before** (this PR;
-todo 70, which needed no decision). `PUT /courses/{id}` and `PUT /courses/{id}/evaluation-rules`
+**2026-11-22: a change to a course is in the audit log, with what was there before** (PR 466,
+merged as `39db1ff94`; todo 70, which needed no decision; CI green, E2E 77 passed). `PUT /courses/{id}` and `PUT /courses/{id}/evaluation-rules`
 wrote no entry, so a teacher's new schedule (which sets every student's absence limits) left no
 trace of the old one or of who saved it. Each change now writes one entry (`update`, resource
 `course`, operation `update_course`) with the changed fields and their old and new values; the
@@ -2336,10 +2357,10 @@ v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
 background; the owner chose the fix on 2026-11-22: a page in the background counts as open
-for up to 5 hours); todos 71 and 72 on changing a course's teaching schedule (frozen totals
-for weeks already taught, absences in a period that no longer exists; the owner chose 71's
-approach on 2026-11-22), to be built in the order 71, 72, then 67 (70, the audit entry, and
-69, the warning before a change in periods is saved, done 2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+for up to 5 hours); todo 72 on changing a course's teaching schedule (absences in a period
+that no longer exists), to be built before 67 (70, the audit entry, 69, the warning before a
+change in periods is saved, and 71, the weeks already taught keep their count, done
+2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -2979,6 +3000,8 @@ of periods recalculates every student's limits for the whole semester, past week
       asking, so the question is needed either way, and once it is asked one number is enough;
       the history needs a new table, a semester start date (none exists) and a week-by-week
       count in every absence calculation. Built after 69, whose dialog it uses.
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"; migration
+      `f4c2a8d6e1b3`): the stored total, the dialog's question, Edit Course's box.
 
 <!-- -->
 

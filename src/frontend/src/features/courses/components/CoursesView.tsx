@@ -3,14 +3,20 @@
 // Enhanced with teaching schedule management and hours per week
 
 /* eslint-disable testing-library/no-await-sync-queries */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
 import { CourseCardSkeleton, ListSkeleton } from '@/components/ui';
 import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
-import apiClient, { studentsAPI, coursesAPI, enrollmentsAPI, type ScheduleChangePreview } from '@/api/api';
+import apiClient, {
+  studentsAPI,
+  coursesAPI,
+  enrollmentsAPI,
+  type ScheduleChangePreview,
+  type ScheduleChangePreviewRequest,
+} from '@/api/api';
 import ScheduleChangeDialog from '@/features/courses/components/ScheduleChangeDialog';
 import { scheduleChangeNeedsWarning } from '@/features/courses/utils/scheduleChange';
 import {
@@ -43,6 +49,8 @@ type CourseUpdatePayload = {
   hours_per_week: number;
   absence_limit_percent: number;
   participation_limit_percent: number;
+  // Todo 71: the week a change of the periods applies from; without it, a correction.
+  schedule_change_from_week?: number;
 };
 // Per-tick deductions of the participation observations (see utils/participation).
 type ObservationInputs = Record<SpecialParticipationCategory, string | number>;
@@ -89,8 +97,13 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
   const [selectedToEnroll, setSelectedToEnroll] = useState<number[]>([]);
   const [scheduleConflicts, setScheduleConflicts] = useState<ScheduleConflict[]>([]);
   const [showConflictWarning, setShowConflictWarning] = useState<boolean>(false);
-  // What a save would do to the absence limits, while the dialog asks (plan todo 69).
+  // What a save would do to the absence limits, while the dialog asks (plan todo 69), and from
+  // which week a change of the periods applies (todo 71; null: a correction of the semester).
   const [scheduleChange, setScheduleChange] = useState<ScheduleChangePreview | null>(null);
+  const [changeFromWeek, setChangeFromWeek] = useState<number | null>(null);
+  const [checkingChange, setCheckingChange] = useState(false);
+  const previewRequest = useRef<ScheduleChangePreviewRequest | null>(null);
+  const previewCall = useRef(0);
 
   // Common grade categories using translations (bilingual labels for datalist)
   const commonCategories = [
@@ -379,8 +392,34 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     setSelectedToEnroll([]);
   }, [selectedCourse]);
 
-  // `confirmedChange`: the schedule change dialog's Save, after the checks below were passed once.
-  const saveCourseData = async (options?: { confirmedChange?: boolean }) => {
+  const closeScheduleChange = () => {
+    previewCall.current += 1; // an answer still on its way is not shown
+    previewRequest.current = null;
+    setScheduleChange(null);
+    setChangeFromWeek(null);
+    setCheckingChange(false);
+  };
+
+  // The dialog's other answer (todo 71): ask again what the save would do from that week on.
+  const recheckScheduleChange = async (week: number | null) => {
+    setChangeFromWeek(week);
+    const request = previewRequest.current;
+    if (!request || !selectedCourse) return;
+    const call = ++previewCall.current;
+    setCheckingChange(true);
+    try {
+      const answer = await coursesAPI.previewScheduleChange(selectedCourse as number, { ...request, change_from_week: week });
+      if (call === previewCall.current) setScheduleChange(answer);
+    } catch {
+      if (call === previewCall.current) showToast(t('courses.scheduleChange.checkFailed'), 'error');
+    } finally {
+      if (call === previewCall.current) setCheckingChange(false);
+    }
+  };
+
+  // `confirmedChange`: the schedule change dialog's Save, after the checks below were passed once;
+  // `fromWeek`: the week it said the new periods apply from (todo 71).
+  const saveCourseData = async (options?: { confirmedChange?: boolean; fromWeek?: number | null }) => {
     const confirmedChange = options?.confirmedChange === true;
     if (activeTab === 'evaluation' && !validateRules()) return;
 
@@ -414,6 +453,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         hours_per_week: Number.isFinite(calculatedHours) ? calculatedHours : 0,
         absence_limit_percent: absenceLimit,
         participation_limit_percent: participationLimit,
+        ...(confirmedChange && options?.fromWeek ? { schedule_change_from_week: options.fromWeek } : {}),
       };
 
       // A save that changes the absence limits shows what it does first (plan todo 69): the
@@ -426,31 +466,44 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
           absenceLimit !== Number(stored.absence_limit_percent ?? 30) ||
           participationLimit !== Number(stored.participation_limit_percent ?? 10));
       if (limitsMayChange && !confirmedChange) {
-        let preview: ScheduleChangePreview;
+        const request: ScheduleChangePreviewRequest = {
+          teaching_schedule: scheduleList,
+          hours_per_week: payload.hours_per_week,
+          absence_limit_percent: absenceLimit,
+          participation_limit_percent: participationLimit,
+        };
+        let shown: ScheduleChangePreview | null = null;
+        let week: number | null = null;
         try {
-          preview = await coursesAPI.previewScheduleChange(selectedCourse as number, {
-            teaching_schedule: scheduleList,
-            hours_per_week: payload.hours_per_week,
-            absence_limit_percent: absenceLimit,
-            participation_limit_percent: participationLimit,
-          });
+          const preview = await coursesAPI.previewScheduleChange(selectedCourse as number, request);
+          if (scheduleChangeNeedsWarning(preview)) {
+            shown = preview;
+            if (preview.periods_change && preview.has_attendance && preview.suggested_from_week) {
+              // Taught already: by default the change applies from the week we are in (todo 71).
+              week = preview.suggested_from_week;
+              shown = await coursesAPI.previewScheduleChange(selectedCourse as number, { ...request, change_from_week: week });
+            }
+          }
         } catch {
           showToast(t('courses.scheduleChange.checkFailed'), 'error');
           return;
         }
-        if (scheduleChangeNeedsWarning(preview)) {
-          setScheduleChange(preview);
+        if (shown) {
+          previewCall.current += 1;
+          previewRequest.current = request;
+          setChangeFromWeek(week);
+          setScheduleChange(shown);
           return;
         }
       }
 
       await apiClient.put(`/courses/${selectedCourse}`, payload);
-      setScheduleChange(null);
+      closeScheduleChange();
 
       showToast(t('courseDataSaved'), 'success');
       loadCourses();
     } catch {
-      setScheduleChange(null);
+      closeScheduleChange();
       showToast(t('failedToSaveData'), 'error');
     } finally {
       setIsLoading(false);
@@ -515,8 +568,11 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         <ScheduleChangeDialog
           preview={scheduleChange}
           saving={isLoading}
-          onCancel={() => setScheduleChange(null)}
-          onConfirm={() => { void saveCourseData({ confirmedChange: true }); }}
+          onCancel={closeScheduleChange}
+          onConfirm={() => { void saveCourseData({ confirmedChange: true, fromWeek: changeFromWeek }); }}
+          fromWeek={changeFromWeek}
+          onFromWeekChange={(week) => { void recheckScheduleChange(week); }}
+          checking={checkingChange}
         />
       )}
       {toast && (
