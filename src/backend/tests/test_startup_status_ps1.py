@@ -46,10 +46,11 @@ from datetime import datetime
 
 HEALTH = %(health)r
 
-def log(path, message):
+def log(path, *messages):
+    # Several messages go in one write, so no reader can see some of them without the rest.
     stamp = datetime.now().strftime("%%Y-%%m-%%d %%H:%%M:%%S,%%f")[:-3]
     with open(path, "a", encoding="utf-8") as fh:
-        fh.write(f"{stamp} - backend.fake - INFO - [-] - {message}\n")
+        fh.write("".join(f"{stamp} - backend.fake - INFO - [-] - {message}\n" for message in messages))
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -66,14 +67,22 @@ def worker(port, log_path, mode):
     time.sleep(3)
     if mode == "crash":
         sys.exit(1)
-    for message in (
+    messages = (
         "Logging initialized",
         "Registered routers: Students, Admin",
         "FastAPI application created successfully (version=v9.9.9)",
         "[run_migrations] ENTER",
-    ):
-        log(log_path, message)
-        time.sleep(1.5)
+    )
+    if mode == "slow":
+        for message in messages:
+            log(log_path, message)
+            time.sleep(1.5)
+    else:
+        # "burst": every stage begins and ends between two looks of the script, as on a busy
+        # PC; "burst-serve": /health answers right after them as well.
+        log(log_path, *messages)
+        if mode == "burst":
+            time.sleep(2)
     http.server.HTTPServer(("127.0.0.1", port), Handler).serve_forever()
 
 if __name__ == "__main__":
@@ -160,6 +169,29 @@ def test_slow_start_is_reported_stage_by_stage_until_health_answers(fake_backend
     assert positions == sorted(positions), result.stdout
     assert "Backend ready in" in result.stdout
     assert "v9.9.9, database sqlite: healthy" in result.stdout
+
+
+@pytest.mark.parametrize("mode", ["burst", "burst-serve"])
+def test_stages_begun_between_two_looks_are_all_shown(fake_backend, mode):
+    # On a busy PC one look of the script can take longer than a stage (2026-11-22: a gate
+    # failed when "Assembling the application" was never shown). The script showed only the
+    # newest stage it found, and none of those logged just before /health answered.
+    proc, port, log_path = fake_backend(mode)
+
+    result = _run_status("-BackendPort", port, "-BackendPid", proc.pid, "-LogPath", log_path, "-TimeoutSec", 60)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    stages = [
+        "Registering API routers",
+        "Assembling the application",
+        "Starting services",
+        "Checking database migrations",
+    ]
+    positions = [result.stdout.find(f"> {stage}...") for stage in stages]
+    assert -1 not in positions, result.stdout
+    assert positions == sorted(positions), result.stdout
+    assert "(-" not in result.stdout, result.stdout  # no stage lasts less than nothing
+    assert "Backend ready in" in result.stdout
 
 
 def test_a_worker_that_dies_during_startup_is_reported_instead_of_waited_on(fake_backend):

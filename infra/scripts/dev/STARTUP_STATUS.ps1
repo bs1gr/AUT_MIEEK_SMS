@@ -121,9 +121,13 @@ function Get-Health {
     }
 }
 
+$script:stageSeenAt = @{}
+
 function Get-LogStage {
-    # Highest stage whose marker was logged since this backend process started.
+    # Highest stage whose marker was logged since this backend process started. Also keeps in
+    # $script:stageSeenAt the time each marker was first logged, by stage.
     param([datetime]$Since)
+    $script:stageSeenAt = @{}
     if (-not (Test-Path -LiteralPath $LogPath)) { return -1 }
     try {
         $stream = [System.IO.File]::Open($LogPath, 'Open', 'Read', 'ReadWrite')
@@ -146,7 +150,10 @@ function Get-LogStage {
         if ($stamp -lt $Since) { continue }
         for ($i = $best + 1; $i -lt $Stages.Count; $i++) {
             $marker = $Stages[$i].Marker
-            if ($marker -and $line.Contains($marker)) { $best = $i }
+            if ($marker -and $line.Contains($marker)) {
+                $best = $i
+                if (-not $script:stageSeenAt.ContainsKey($i)) { $script:stageSeenAt[$i] = $stamp }
+            }
         }
     }
     return $best
@@ -204,6 +211,31 @@ function Format-Seconds {
     return ('{0:0}s' -f $Seconds)
 }
 
+function Show-StagesUpTo {
+    # Moves the display on to stage $Target. On a busy PC one look can take longer than a stage,
+    # so the stages begun since the last look are all shown, in order, each one that has
+    # evidence: its line in the log, or the reload worker seen. A stage starts when its line was
+    # logged (else now). The first look starts at the stage it finds: what came before was not
+    # watched.
+    param([int]$Target, [datetime]$Now)
+    if ($script:stage -lt 0) {
+        $script:stage = $Target
+        if (-not $live) { Write-Line "  > $($Stages[$Target].Name)..." }
+        return
+    }
+    for ($next = $script:stage + 1; $next -le $Target; $next++) {
+        $seen = ($next -eq $Target) -or $script:stageSeenAt.ContainsKey($next) -or ($next -eq $StageWorker -and $script:workerSeen)
+        if (-not $seen) { continue }
+        $begins = $Now
+        if ($script:stageSeenAt.ContainsKey($next)) { $begins = $script:stageSeenAt[$next] }
+        if ($begins -lt $script:stageStart) { $begins = $script:stageStart }
+        Write-Line ("  $check {0} ({1})" -f $Stages[$script:stage].Name, (Format-Seconds ($begins - $script:stageStart).TotalSeconds)) 'DarkGray'
+        $script:stageStart = $begins
+        $script:stage = $next
+        if (-not $live) { Write-Line "  > $($Stages[$script:stage].Name)..." }
+    }
+}
+
 # --- state ------------------------------------------------------------------------------------
 if ($BackendPid -le 0) { $BackendPid = Get-PidFromFile '.backend.pid' }
 $scriptStart = Get-Date
@@ -245,6 +277,7 @@ while ($true) {
             $backendReady = $true
         } elseif ($portOpen) {
             $newStage = $StageListening
+            [void](Get-LogStage -Since $backendStart.AddSeconds(-1))
         } else {
             if ($BackendPid -gt 0 -and -not (Get-Process -Id $BackendPid -ErrorAction SilentlyContinue)) {
                 $failure = "Backend process (PID $BackendPid) is no longer running"
@@ -270,6 +303,11 @@ while ($true) {
         }
 
         if ($backendReady) {
+            if (-not $firstPass) {
+                # The stages logged since the last look come before "ready".
+                $logged = Get-LogStage -Since $backendStart.AddSeconds(-1)
+                if ($logged -gt $stage) { Show-StagesUpTo $logged $now }
+            }
             if ($stage -ge 0) {
                 Write-Line ("  $check {0} ({1})" -f $Stages[$stage].Name, (Format-Seconds ($now - $stageStart).TotalSeconds)) 'DarkGray'
             }
@@ -285,12 +323,7 @@ while ($true) {
             $color = if ($overall -and $overall -ne 'healthy') { 'Yellow' } else { 'Green' }
             Write-Line "  $check $headline$suffix" $color
         } elseif ($newStage -gt $stage) {
-            if ($stage -ge 0) {
-                Write-Line ("  $check {0} ({1})" -f $Stages[$stage].Name, (Format-Seconds ($now - $stageStart).TotalSeconds)) 'DarkGray'
-                $stageStart = $now
-            }
-            $stage = $newStage
-            if (-not $live) { Write-Line "  > $($Stages[$stage].Name)..." }
+            Show-StagesUpTo $newStage $now
         }
     }
 

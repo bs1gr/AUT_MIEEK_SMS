@@ -308,6 +308,22 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
+### On `main` since v1.18.80 (unreleased)
+
+**2026-11-22: the startup display shows every stage, also on a busy PC** (this PR; todo 74,
+which needed no decision). `STARTUP_STATUS.ps1`, which `NATIVE.ps1` runs while the backend
+starts, looks at the log every 400 ms and showed only the newest stage it found. When one look
+took longer than a stage (a busy PC), the stage in between was never shown, and those logged
+just before `/health` answered were never shown at all; a gate failed on that on 2026-11-22.
+Now each stage begun since the last look is shown, in order, when there is evidence of it (its
+line in the log, or the reload worker seen), and each takes its start from its log line, so
+the times are those of the backend's own log; the stages logged since the last look come
+before "Backend ready". The first look still starts at the stage it finds (what came before
+was not watched). Tests: `test_stages_begun_between_two_looks_are_all_shown`, twice: the
+stand-in backend writes its four startup lines in one write, then answers `/health` 2 s later
+or at once; both fail on the old script every time (it showed only "Checking database
+migrations", or no stage). The file passed three runs in a row.
+
 ### In v1.18.80
 
 **2026-11-22: the Updates panel says what went wrong in the page's language** (PR 471, merged
@@ -2472,8 +2488,8 @@ under a page in the background) done 2026-11-22 as the owner chose (a page in th
 counts as open for up to 5 hours); todos 69 to 72 on changing a course's teaching schedule
 done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
 71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo
-73, the CI load tests that fail every request, and todo 74, a startup stage the status script
-can skip on a busy PC (both found 2026-11-22, no decision needed); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+73, the CI load tests that fail every request (found 2026-11-22, no decision needed); todo 74,
+a startup stage the status script could skip on a busy PC, done the same day; todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -3153,6 +3169,8 @@ of periods recalculates every student's limits for the whole semester, past week
     moment, so a stage passed in between is never shown. Suggested: print every stage whose
     marker is in the log since the start, in order, not only the newest one; the test then
     holds on a busy PC too. No decision needed.
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.80"), with the stages logged
+      just before `/health` answered shown as well.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
