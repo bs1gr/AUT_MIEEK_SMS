@@ -2,6 +2,7 @@
 
 import copy
 import logging
+from types import SimpleNamespace
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
@@ -15,8 +16,8 @@ from backend.rate_limiting import RATE_LIMIT_READ, RATE_LIMIT_WRITE, limiter
 from backend.rbac import require_permission
 from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.common import PaginatedResponse, PaginationParams
-from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
-from backend.services import course_activation
+from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate, ScheduleChangePreview
+from backend.services import absence_limit_service, course_activation
 from backend.services.audit_service import get_audit_logger
 
 logger = logging.getLogger(__name__)
@@ -397,6 +398,49 @@ def update_course(
         raise
     except Exception as exc:
         logger.exception("Error updating course %s: %s", course_id, exc)
+        raise internal_server_error(request=request)
+
+
+@router.post("/{course_id}/schedule-change-preview")
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("courses:edit")
+def preview_schedule_change(
+    request: Request,
+    course_id: int,
+    proposed: ScheduleChangePreview,
+    db: Session = Depends(get_db),
+):
+    """What saving this schedule would do to the course's absence limits (plan todo 69).
+
+    Read-only. A change in periods per week recalculates every student's limits for the whole
+    semester; the Teaching Schedule tab asks for this before it saves, and lists the students
+    whose status would change.
+    """
+    try:
+        (Course,) = import_names("models", "Course")
+        course = get_by_id_or_404(db, Course, course_id)
+        values = proposed.model_dump(exclude_unset=True)
+        periods = course.periods_per_week
+        if "teaching_schedule" in values:
+            periods = _calculate_periods_per_week(values.get("teaching_schedule"))
+        elif values.get("periods_per_week") is not None:
+            periods = values["periods_per_week"]
+
+        def _value(field: str) -> Any:
+            return values[field] if values.get(field) is not None else getattr(course, field)
+
+        after = SimpleNamespace(
+            id=course.id,
+            periods_per_week=periods,
+            hours_per_week=_value("hours_per_week"),
+            absence_limit_percent=_value("absence_limit_percent"),
+            participation_limit_percent=_value("participation_limit_percent"),
+        )
+        return absence_limit_service.schedule_change_preview(db, course, after)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error previewing a schedule change of course %s: %s", course_id, exc)
         raise internal_server_error(request=request)
 
 

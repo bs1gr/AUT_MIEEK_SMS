@@ -6,11 +6,12 @@ import { LanguageProvider } from '@/LanguageContext';
 import type { Course } from '@/types';
 import CoursesView from './CoursesView';
 
-const api = vi.hoisted(() => ({ getAll: vi.fn(), put: vi.fn() }));
+const api = vi.hoisted(() => ({ getAll: vi.fn(), put: vi.fn(), preview: vi.fn() }));
 
 vi.mock('@/api/api', () => ({
   default: { put: api.put },
-  coursesAPI: { getAll: api.getAll },
+  // A changed limit asks what it does first (todo 69); a course without students has nobody to warn.
+  coursesAPI: { getAll: api.getAll, previewScheduleChange: api.preview },
   studentsAPI: { getAllPages: vi.fn().mockResolvedValue([]) },
   enrollmentsAPI: { getEnrolledStudents: vi.fn().mockResolvedValue([]), getByStudent: vi.fn().mockResolvedValue([]) },
 }));
@@ -66,6 +67,10 @@ describe('CoursesView: participation observation deductions and absence limits',
     await i18n.changeLanguage('en');
     api.getAll.mockReset();
     api.put.mockReset().mockResolvedValue({ data: {} });
+    const totals = { periods_per_week: 0, scheduled_periods: 0, allowed_absences: null, participation_allowed_absences: null };
+    api.preview.mockReset().mockResolvedValue({
+      course_id: 5, before: totals, after: totals, enrolled_students: 0, has_attendance: false, changes: [],
+    });
   });
 
   it('shows Class Participation whole, each observation as a share of the day, and what stays for presence', async () => {

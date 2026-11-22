@@ -153,7 +153,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 <!-- endpoint-requirements:start -->
 
-337 endpoints.
+338 endpoints.
 
 #### `/api/v1/admin`
 
@@ -272,6 +272,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `GET /api/v1/courses/{course_id}/evaluation-rules` | `courses:view` |
 | `PUT /api/v1/courses/{course_id}/evaluation-rules` | `courses:edit` |
 | `POST /api/v1/courses/{course_id}/reactivate` | `courses:edit` |
+| `POST /api/v1/courses/{course_id}/schedule-change-preview` | `courses:edit` |
 
 #### `/api/v1/custom-reports`
 

@@ -160,6 +160,66 @@ def course_absence_status(db: Session, course: Any) -> List[Dict[str, Any]]:
     return out
 
 
+def _totals(result: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        key: result[key]
+        for key in ("periods_per_week", "scheduled_periods", "allowed_absences", "participation_allowed_absences")
+    }
+
+
+def schedule_change_preview(db: Session, course: Any, after: Any) -> Dict[str, Any]:
+    """What a change of a course's weekly periods would do to its students (plan todo 69).
+
+    ``after`` is the course as it would be saved (its periods per week and limits). A change in
+    periods recalculates every student's limits for the whole semester, past weeks included,
+    and can push a student over the fail or the Class Participation limit (or back under it);
+    nothing showed that before a save. Read-only: returns the totals before and after, and the
+    enrolled students whose status or participation share would change, by name.
+    """
+    (Attendance, Student) = import_names("models", "Attendance", "Student")
+    counts = _status_counts(db, course_id=course.id)
+    enrollments = _live_enrollments(db, course_id=course.id)
+    ids = [enr.student_id for enr in enrollments]
+    students = {s.id: s for s in db.query(Student).filter(Student.id.in_(ids)).all()} if ids else {}
+
+    changes = []
+    for enr in enrollments:
+        c = counts.get((enr.student_id, course.id), {})
+        before_result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0))
+        after_result = evaluate(after, absent=c.get("absent", 0), excused=c.get("excused", 0))
+        if (
+            before_result["status"] == after_result["status"]
+            and before_result["participation_forfeited"] == after_result["participation_forfeited"]
+        ):
+            continue
+        student = students.get(enr.student_id)
+        changes.append(
+            {
+                "student_id": enr.student_id,
+                "student_name": f"{student.first_name} {student.last_name}".strip() if student else "",
+                "absences": before_result["absences"],
+                "status_before": before_result["status"],
+                "status_after": after_result["status"],
+                "participation_forfeited_before": before_result["participation_forfeited"],
+                "participation_forfeited_after": after_result["participation_forfeited"],
+            }
+        )
+    changes.sort(key=lambda change: change["student_name"].casefold())
+
+    has_attendance = (
+        db.query(Attendance.id).filter(Attendance.course_id == course.id, Attendance.deleted_at.is_(None)).first()
+        is not None
+    )
+    return {
+        "course_id": course.id,
+        "before": _totals(evaluate(course, absent=0, excused=0)),
+        "after": _totals(evaluate(after, absent=0, excused=0)),
+        "enrolled_students": len(enrollments),
+        "has_attendance": has_attendance,
+        "changes": changes,
+    }
+
+
 def student_absence_status(db: Session, student_id: int) -> List[Dict[str, Any]]:
     """Status for every course the student is enrolled in (not dropped)."""
     (Course,) = import_names("models", "Course")

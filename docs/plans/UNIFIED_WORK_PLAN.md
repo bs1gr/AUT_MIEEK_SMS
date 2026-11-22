@@ -256,6 +256,23 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
+**2026-11-22: a save that changes a course's absence limits shows what it does first** (this
+PR; todo 69, which needed no decision beyond the wording). A course's absence total is its
+periods per week times 14, for the whole semester, past weeks included, and nothing showed
+what a new period count (or a new fail or participation limit) did before it was saved. Now
+the Courses page asks the server first (`POST /courses/{id}/schedule-change-preview`,
+read-only: the totals before and after, and the enrolled students whose status or
+Class Participation share would change, by name), whenever a save changes the periods or a
+limit. When the limits change and the course has students, a dialog shows periods per week,
+periods in the semester, absences allowed before failing and before the participation share is
+lost, before → after, and each student whose status changes ("Sufficient → Insufficient
+(failed)", "Participation counts → Participation lost"); it saves only after "Save the new
+schedule". A check that cannot be made saves nothing and says so. The Edit Course dialog has
+no schedule fields (it sends the stored values back), so it cannot change the periods. A
+course import that changes the periods of a course with attendance now says so in its result
+("warning: AUD101: periods per week 3 -> 2; ..."). Tests: `test_schedule_change_preview.py`
+(5) and `CoursesView.scheduleChange.test.tsx` (5; the 3 about the dialog fail on the old page).
+
 **2026-11-22: a change to a course is in the audit log, with what was there before** (this PR;
 todo 70, which needed no decision). `PUT /courses/{id}` and `PUT /courses/{id}/evaluation-rules`
 wrote no entry, so a teacher's new schedule (which sets every student's absence limits) left no
@@ -2319,10 +2336,10 @@ v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
 background; the owner chose the fix on 2026-11-22: a page in the background counts as open
-for up to 5 hours); todos 69, 71 and 72 on changing a course's teaching schedule (a warning
-before a change in periods is saved, frozen totals for weeks already taught, absences in a
-period that no longer exists; the owner chose 71's approach on 2026-11-22), to be built in
-the order 69, 71, 72, then 67 (70, the audit entry, done 2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+for up to 5 hours); todos 71 and 72 on changing a course's teaching schedule (frozen totals
+for weeks already taught, absences in a period that no longer exists; the owner chose 71's
+approach on 2026-11-22), to be built in the order 71, 72, then 67 (70, the audit entry, and
+69, the warning before a change in periods is saved, done 2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -2921,6 +2938,9 @@ of periods recalculates every student's limits for the whole semester, past week
     before saving, with Save / Cancel. Also not covered by today's soft conflict warning: the
     Edit Course dialog (it re-sends the whole course) and course imports. No decision needed
     beyond the wording.
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79"): the dialog, on every
+      save that changes the periods or a limit; the Edit Course dialog cannot change the
+      periods; a course import that does says so in its result.
 
 <!-- -->
 

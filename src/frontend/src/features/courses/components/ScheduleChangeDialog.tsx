@@ -1,0 +1,141 @@
+import React, { useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { useLanguage } from '@/LanguageContext';
+import type { ScheduleChangePreview, ScheduleChangeTotals } from '@/api/api';
+// The check whether to show this dialog is scheduleChangeNeedsWarning (utils/scheduleChange).
+
+/**
+ * Before a Teaching Schedule is saved that changes the absence limits (plan todo 69).
+ *
+ * A course's absence total is its periods per week times the semester's weeks, for the whole
+ * semester, past weeks included: going from 2 to 3 periods raises it from 28 to 42, and going
+ * down can push students over the fail (30 %) or the Class Participation (10 %) limit. Nothing
+ * showed that before a save. This dialog shows the totals before and after, and the students
+ * whose status or participation share would change, with Save and Back.
+ */
+
+type Props = {
+  preview: ScheduleChangePreview;
+  saving: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
+
+const STATUS_KEYS: Record<string, string> = {
+  ok: 'attendance.absenceLimitStatusOk',
+  warning: 'attendance.absenceLimitStatusWarning',
+  insufficient: 'attendance.absenceLimitStatusInsufficient',
+  unknown: 'attendance.absenceLimitStatusUnknown',
+};
+
+const number = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  return Number.isInteger(value) ? String(value) : String(Math.round(value * 10) / 10);
+};
+
+const ScheduleChangeDialog: React.FC<Props> = ({ preview, saving, onConfirm, onCancel }) => {
+  const { t } = useLanguage();
+  const text = (key: string, options?: Record<string, unknown>) => t(`courses.scheduleChange.${key}`, options);
+  const status = (value: string) => t(STATUS_KEYS[value] ?? STATUS_KEYS.unknown);
+  const share = (lost: boolean) => text(lost ? 'shareLost' : 'shareKept');
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !saving) onCancel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onCancel, saving]);
+
+  const rows: Array<[string, keyof ScheduleChangeTotals]> = [
+    ['periods', 'periods_per_week'],
+    ['total', 'scheduled_periods'],
+    ['allowed', 'allowed_absences'],
+    ['participation', 'participation_allowed_absences'],
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="schedule-change-title"
+        data-testid="schedule-change-dialog"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 text-gray-900 shadow-xl dark:bg-gray-900 dark:text-gray-100"
+      >
+        <div className="mb-3 flex items-start gap-3">
+          <AlertTriangle size={24} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
+          <h3 id="schedule-change-title" className="text-lg font-bold">{text('title')}</h3>
+        </div>
+        <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">{text('intro')}</p>
+
+        <table className="mb-4 w-full text-sm" data-testid="schedule-change-totals">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            {rows.map(([label, field]) => (
+              <tr key={field} data-testid={`schedule-change-${field}`}>
+                <td className="py-1.5 pr-3 text-gray-700 dark:text-gray-300">{text(label)}</td>
+                <td className="py-1.5 text-right font-semibold whitespace-nowrap">
+                  {number(preview.before[field])} → {number(preview.after[field])}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {!preview.has_attendance ? (
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400" data-testid="schedule-change-no-attendance">{text('noAttendanceYet')}</p>
+        ) : preview.changes.length === 0 ? (
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400" data-testid="schedule-change-none">{text('noStudentChanges')}</p>
+        ) : (
+          <div className="mb-4">
+            <h4 className="mb-2 text-sm font-semibold">{text('studentsTitle')}</h4>
+            <ul className="max-h-56 space-y-1.5 overflow-y-auto text-sm" data-testid="schedule-change-students">
+              {preview.changes.map((change) => (
+                <li
+                  key={change.student_id}
+                  data-testid={`schedule-change-student-${change.student_id}`}
+                  className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/40"
+                >
+                  <div className="font-medium">
+                    {change.student_name || `#${change.student_id}`}{' '}
+                    <span className="font-normal text-gray-600 dark:text-gray-400">({text('absences', { count: change.absences })})</span>
+                  </div>
+                  {change.status_before !== change.status_after && (
+                    <div>{status(change.status_before)} → {status(change.status_after)}</div>
+                  )}
+                  {change.participation_forfeited_before !== change.participation_forfeited_after && (
+                    <div>{share(change.participation_forfeited_before)} → {share(change.participation_forfeited_after)}</div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={saving}
+            autoFocus
+            data-testid="schedule-change-cancel"
+            className="rounded-lg border-2 border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+          >
+            {text('cancel')}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={saving}
+            data-testid="schedule-change-save"
+            className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {text('save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ScheduleChangeDialog;

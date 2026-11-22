@@ -769,7 +769,7 @@ def import_courses(
                             obj.pop("teaching_schedule", None)
                     # Use service to create/update
                     was_created, err = ImportService.create_or_update_course(
-                        db, obj, translate_rules_fn=_translate_rules
+                        db, obj, translate_rules_fn=_translate_rules, warnings=errors
                     )
                     if err:
                         errors.append(f"{name}: {err}")
@@ -1097,7 +1097,9 @@ def _import_items(
                     skipped.append(reason)
                 continue
             # Use service to create/update
-            was_created, err = ImportService.create_or_update_course(db, obj, translate_rules_fn=_translate_rules)
+            was_created, err = ImportService.create_or_update_course(
+                db, obj, translate_rules_fn=_translate_rules, warnings=errors
+            )
             if err:
                 errors.append(f"item: {err}")
                 continue
