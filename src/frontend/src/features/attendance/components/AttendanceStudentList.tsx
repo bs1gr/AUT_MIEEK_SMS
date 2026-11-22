@@ -23,6 +23,8 @@ export interface AttendanceStudentListProps {
   evaluationCategories: AttendanceEvaluationRule[];
   hasMultiplePeriods: boolean;
   activePeriods: number[];
+  /** Plan todo 72: periods shown because they hold records, though the schedule no longer has them. */
+  outsideSchedulePeriods?: number[];
   getStudentPeriodStatuses: (studentId: number) => Record<number, string>;
   getAggregatedStatus: (studentId: number) => AttendanceAggregatedStatus;
   isStudentExpanded: (studentId: number) => boolean;
@@ -43,6 +45,7 @@ const AttendanceStudentList = ({
   evaluationCategories,
   hasMultiplePeriods,
   activePeriods,
+  outsideSchedulePeriods = [],
   getStudentPeriodStatuses,
   getAggregatedStatus,
   isStudentExpanded,
@@ -157,7 +160,14 @@ const AttendanceStudentList = ({
                       <div className="space-y-2">
                         {activePeriods.map((period) => (
                           <div key={period} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white border rounded-lg p-2">
-                            <span className="text-xs font-semibold text-gray-700">{t('periodLabel', { number: period }) || `Period ${period}`}</span>
+                            <span
+                              className={`text-xs font-semibold ${outsideSchedulePeriods.includes(period) ? 'text-amber-800' : 'text-gray-700'}`}
+                              data-testid={`period-label-${period}`}
+                            >
+                              {outsideSchedulePeriods.includes(period)
+                                ? t('periodOutsideScheduleLabel', { number: period }) || `Period ${period} (outside the schedule)`
+                                : t('periodLabel', { number: period }) || `Period ${period}`}
+                            </span>
                             {renderPerPeriodButtons(s.id, period, periodStatuses[period])}
                           </div>
                         ))}

@@ -256,6 +256,19 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.79 (unreleased)
 
+**2026-11-22: attendance recorded where the schedule no longer has a lesson is shown** (this
+PR; todo 72, which needed no decision beyond the wording). The Attendance sheet showed only the
+periods today's schedule gives a date, so when a day lost a period, the absences already
+recorded in it vanished from the sheet while still counting in the absence limits; and a past
+date on a weekday the course no longer has was greyed out in the calendar, although its records
+were there. Now the sheet shows every period that holds a record on the date, those outside the
+schedule labelled "Period 3 (outside the schedule)", with a note above the list that they still
+count; and the calendar opens a date with records on such a weekday, in amber, with its own line
+in the legend. A day without lessons and without records stays closed. The logic is in
+`features/attendance/utils/outsideSchedule.ts`. Tests: `outsideSchedule.test.ts` (3) and
+`AttendanceOutsideSchedule.test.tsx` (3; the two about the calendar date and the period label
+fail on the old components).
+
 **2026-11-22: a schedule changed in the middle of a semester keeps the weeks already taught**
 (this PR; todo 71, the owner's choice of that day: "go with your recommendation for 71";
 **migration `f4c2a8d6e1b3`**, additive: one nullable column). A course's absence total was always
@@ -277,8 +290,9 @@ absence limits takes them from the server, so all follow. Tests: `test_semester_
 `test_unmapped_legacy_columns.py` now inserts its v1.18.56 course by the columns given (today's
 model maps the new column, which that revision does not have).
 
-**2026-11-22: a save that changes a course's absence limits shows what it does first** (this
-PR; todo 69, which needed no decision beyond the wording). A course's absence total is its
+**2026-11-22: a save that changes a course's absence limits shows what it does first** (PR
+467, merged as `f06d436b7`; todo 69, which needed no decision beyond the wording; CI green, E2E
+77 passed). A course's absence total is its
 periods per week times 14, for the whole semester, past weeks included, and nothing showed
 what a new period count (or a new fail or participation limit) did before it was saved. Now
 the Courses page asks the server first (`POST /courses/{id}/schedule-change-preview`,
@@ -2357,10 +2371,9 @@ v1.18.79 and
 proven only at the next release's updates, 66 (the Control Panel's colours, both themes) done
 but for the English bodies of the updater's failures, 67 (SMS Lite stopping under a page in the
 background; the owner chose the fix on 2026-11-22: a page in the background counts as open
-for up to 5 hours); todo 72 on changing a course's teaching schedule (absences in a period
-that no longer exists), to be built before 67 (70, the audit entry, 69, the warning before a
-change in periods is saved, and 71, the weeks already taught keep their count, done
-2026-11-22); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
+for up to 5 hours; next in line); todos 69 to 72 on changing a course's teaching schedule
+done 2026-11-22 (70, the audit entry; 69, the warning before a change in periods is saved;
+71, the weeks already taught keep their count; 72, attendance outside the schedule shown); todo 50's two optional owner chores (old archives, a home install's Privacy settings); todo 58's PostgreSQL 14 on the NAS (the owner
 stays on 14.18 for now) and its smaller items. Closed on
 2026-11-20: todo 44 (the owner: "Close it"), the contrast design calls (PR 455), the test data
 in the shared database (todo 56); on 2026-11-21 todo 63, every point of it done (moved to
@@ -3012,6 +3025,7 @@ of periods recalculates every student's limits for the whole semester, past week
     records are there. Suggested: show such periods, marked as outside the schedule, whenever
     they hold records, and let a past date with records be opened. No decision needed beyond the
     wording.
+    - **Done 2026-11-22** (the entry under "On `main` since v1.18.79").
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):

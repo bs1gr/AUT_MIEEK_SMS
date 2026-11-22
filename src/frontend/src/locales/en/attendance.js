@@ -83,6 +83,12 @@ export default {
   noScheduleToExport: 'No teaching schedule to export',
   attendanceRecorded: 'Attendance recorded',
   noAttendanceYet: 'No attendance yet',
+  // Plan todo 72: records the schedule no longer has a lesson for
+  attendanceOutsideScheduleLegend: 'Recorded on a day the schedule no longer has',
+  attendanceOutsideScheduleDayTitle: 'Attendance recorded on a day outside the schedule',
+  periodOutsideScheduleLabel: 'Period {{number}} (outside the schedule)',
+  attendanceOutsideSchedulePeriods: 'Period(s) {{periods}} of this date hold attendance, although the course\'s schedule no longer gives this day so many periods. They are shown here and still count in the absence limits.',
+  attendanceOutsideScheduleDay: 'The course\'s schedule no longer has this day, but attendance was recorded on it. It is shown here and still counts in the absence limits.',
   selectedDate: 'Selected date',
   noDateSelected: 'No date selected',
   autosavePending: 'Changes pending...',
