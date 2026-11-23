@@ -127,6 +127,14 @@ class EnrollmentFacts:
     excused: int = 0
     absence: Dict[str, Any] = field(default_factory=dict)
     grades: List[Dict[str, Any]] = field(default_factory=list)
+    # The final-grade calculation's own figures per rule category ("average", "weight",
+    # "total_items", "forfeited", "deduction"), keyed by the rule's category as the course spells
+    # it. Empty when the final grade did not come from the rules.
+    category_breakdown: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Points the final grade lost after the categories were weighted: the participation
+    # observations ticked in Attendance, and the course's penalty per unexcused absence.
+    participation_deduction: float = 0.0
+    absence_deduction: float = 0.0
 
     @property
     def attended(self) -> int:
@@ -146,7 +154,9 @@ class EnrollmentFacts:
 
     @property
     def passing(self) -> Optional[bool]:
-        return None if self.final_grade is None else self.final_grade >= PASS_MARK
+        # Judged on the grade as it is shown (2 decimals): a plain mean of 33.33 % and 66.67 %
+        # comes out a hair under 50 and is shown as 50, which must not read as a fail.
+        return None if self.final_grade is None else round(self.final_grade, 2) >= PASS_MARK
 
 
 def _pooled_rate(facts: Iterable[EnrollmentFacts]) -> Optional[float]:
@@ -235,6 +245,8 @@ class AnalyticsOverviewService:
         percentages = [g.grade / g.max_grade * 100 for g in grades if g.max_grade]
         final_grade: Optional[float] = None
         basis: Optional[str] = None
+        breakdown: Dict[str, Dict[str, Any]] = {}
+        participation_deduction = absence_deduction = 0.0
         if percentages or daily:
             if course.evaluation_rules:
                 data = self._final_grades._calculate_final_grade_from_records(
@@ -242,6 +254,10 @@ class AnalyticsOverviewService:
                 )
                 if not data.get("error") and data.get("total_weight_used", 0) > 0:
                     final_grade, basis = float(data["final_grade"]), "rules"
+                    breakdown = dict(data.get("category_breakdown") or {})
+                    participation_deduction = float(data.get("participation_deduction") or 0.0)
+                    # What the grade lost, not the penalty asked: the grade stops at 0.
+                    absence_deduction = float(data.get("absence_deduction_applied") or 0.0)
             if final_grade is None and percentages:
                 final_grade, basis = mean(percentages), "average"
 
@@ -271,8 +287,15 @@ class AnalyticsOverviewService:
                 for g in dated
                 if g.max_grade
             ],
+            category_breakdown=breakdown,
+            participation_deduction=participation_deduction,
+            absence_deduction=absence_deduction,
             **counts,
         )
+
+    def course_facts(self, course_id: int) -> List[EnrollmentFacts]:
+        """Facts for the live enrollments of active students in one course (the grade sheets)."""
+        return self._facts(course_ids=[course_id], active_students_only=True)[0]
 
     # ------------------------------------------------------------------ views
 

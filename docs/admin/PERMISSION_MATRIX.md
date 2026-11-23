@@ -153,7 +153,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 <!-- endpoint-requirements:start -->
 
-338 endpoints.
+341 endpoints.
 
 #### `/api/v1/admin`
 
@@ -397,6 +397,14 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `PATCH /api/v1/feedback/entries/{entry_id}/archive` | role `admin` or `teacher` |
 | `PATCH /api/v1/feedback/entries/{entry_id}/unarchive` | role `admin` or `teacher` |
 | `POST /api/v1/feedback/github/import` | role `admin` or `teacher` |
+
+#### `/api/v1/grade-sheets`
+
+| Request | Asks for |
+|---|---|
+| `GET /api/v1/grade-sheets/course/{course_id}` | `reports:generate` |
+| `GET /api/v1/grade-sheets/course/{course_id}/assessments` | `reports:generate` |
+| `GET /api/v1/grade-sheets/course/{course_id}/export/{file_format}` | `reports:generate` |
 
 #### `/api/v1/grades`
 

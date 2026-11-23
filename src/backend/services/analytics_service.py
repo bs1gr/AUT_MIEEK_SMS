@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 
 from sqlalchemy import case, func, inspect
@@ -15,6 +15,98 @@ from backend.services import absence_limit_service
 from backend.services.cache_service import get_cache_manager
 
 logger = logging.getLogger(__name__)
+
+
+def normalize_rule_category(name: Optional[str]) -> str:
+    """Normalize category names to improve matching between evaluation rules and recorded items.
+
+    Handles case-insensitive comparisons, common synonyms, and Greek equivalents. This is the
+    final grade's own matching (``_calculate_final_grade_from_records``); it lives at module level
+    so that the grade sheets can tell which rule the calculation treats as Class Participation.
+    Changing it changes final grades.
+    """
+    if not name:
+        return ""
+    n = str(name).strip().lower()
+    # Remove common punctuation
+    for ch in [":", ";", ",", ".", "-", "_", "(", ")"]:
+        n = n.replace(ch, " ")
+    n = " ".join(n.split())  # collapse whitespace
+
+    # Synonyms map (both EN and EL)
+    synonyms = {
+        # Exams
+        "midterm exam": "midterm",
+        "midterm": "midterm",
+        "intermediate": "midterm",
+        "ενδιάμεση": "midterm",
+        "ενδιάμεση εξέταση": "midterm",
+        "ενδιάμεση εξεταση": "midterm",
+        "final exam": "final",
+        "final": "final",
+        "τελική": "final",
+        "τελική εξέταση": "final",
+        "τελικη": "final",
+        "τελικη εξεταση": "final",
+        # Coursework
+        "homework": "homework",
+        "assignment": "homework",
+        "assignments": "homework",
+        "εργασία": "homework",
+        "εργασια": "homework",
+        "άσκηση": "homework",
+        "ασκηση": "homework",
+        "project": "project",
+        "πρότζεκτ": "project",
+        "προτζεκτ": "project",
+        "lab": "lab",
+        "lab work": "lab",
+        "εργαστήριο": "lab",
+        "εργαστηριο": "lab",
+        "quiz": "quiz",
+        "κουίζ": "quiz",
+        "κουιζ": "quiz",
+        # Participation / attendance
+        "class participation": "participation",
+        "participation": "participation",
+        "συμμετοχή": "participation",
+        "συμμετοχη": "participation",
+        "no participation": "no participation",
+        "minor participation": "minor participation",
+        "minor participation mobile usage": "minor participation (mobile usage)",
+        "minor participation with mobile usage": "minor participation (mobile usage)",
+        "attendance": "attendance",
+        "παρουσία": "attendance",
+        "παρουσια": "attendance",
+    }
+
+    # Direct map
+    if n in synonyms:
+        return synonyms[n]
+
+    # Heuristic contains-based mapping
+    contains_map = {
+        "minor participation (mobile usage)": [
+            "minor participation mobile usage",
+            "minor participation with mobile usage",
+            "mobile usage participation",
+            "mobile use participation",
+        ],
+        "no participation": ["no participation"],
+        "minor participation": ["minor participation"],
+        "midterm": ["midterm", "ενδιάμεση", "ενδιαμεση"],
+        "final": ["final", "τελική", "τελικη"],
+        "homework": ["homework", "assignment", "εργασ", "άσκη", "ασκη"],
+        "project": ["project", "πρότζεκ", "προτζεκ"],
+        "lab": ["lab", "εργαστηρ"],
+        "quiz": ["quiz", "κουιζ", "κουίζ", "τεστ"],
+        "participation": ["participation", "συμμετο"],
+        "attendance": ["attendance", "παρουσ"],
+    }
+    for key, needles in contains_map.items():
+        if any(needle in n for needle in needles):
+            return key
+    return n
 
 
 @dataclass
@@ -797,93 +889,7 @@ class AnalyticsService:
         category_scores: Dict[str, float] = {}
         category_details: Dict[str, Any] = {}
 
-        def _normalize_category(name: Optional[str]) -> str:
-            """Normalize category names to improve matching between evaluation rules and recorded items.
-
-            Handles case-insensitive comparisons, common synonyms, and Greek equivalents.
-            """
-            if not name:
-                return ""
-            n = str(name).strip().lower()
-            # Remove common punctuation
-            for ch in [":", ";", ",", ".", "-", "_", "(", ")"]:
-                n = n.replace(ch, " ")
-            n = " ".join(n.split())  # collapse whitespace
-
-            # Synonyms map (both EN and EL)
-            synonyms = {
-                # Exams
-                "midterm exam": "midterm",
-                "midterm": "midterm",
-                "intermediate": "midterm",
-                "ενδιάμεση": "midterm",
-                "ενδιάμεση εξέταση": "midterm",
-                "ενδιάμεση εξεταση": "midterm",
-                "final exam": "final",
-                "final": "final",
-                "τελική": "final",
-                "τελική εξέταση": "final",
-                "τελικη": "final",
-                "τελικη εξεταση": "final",
-                # Coursework
-                "homework": "homework",
-                "assignment": "homework",
-                "assignments": "homework",
-                "εργασία": "homework",
-                "εργασια": "homework",
-                "άσκηση": "homework",
-                "ασκηση": "homework",
-                "project": "project",
-                "πρότζεκτ": "project",
-                "προτζεκτ": "project",
-                "lab": "lab",
-                "lab work": "lab",
-                "εργαστήριο": "lab",
-                "εργαστηριο": "lab",
-                "quiz": "quiz",
-                "κουίζ": "quiz",
-                "κουιζ": "quiz",
-                # Participation / attendance
-                "class participation": "participation",
-                "participation": "participation",
-                "συμμετοχή": "participation",
-                "συμμετοχη": "participation",
-                "no participation": "no participation",
-                "minor participation": "minor participation",
-                "minor participation mobile usage": "minor participation (mobile usage)",
-                "minor participation with mobile usage": "minor participation (mobile usage)",
-                "attendance": "attendance",
-                "παρουσία": "attendance",
-                "παρουσια": "attendance",
-            }
-
-            # Direct map
-            if n in synonyms:
-                return synonyms[n]
-
-            # Heuristic contains-based mapping
-            contains_map = {
-                "minor participation (mobile usage)": [
-                    "minor participation mobile usage",
-                    "minor participation with mobile usage",
-                    "mobile usage participation",
-                    "mobile use participation",
-                ],
-                "no participation": ["no participation"],
-                "minor participation": ["minor participation"],
-                "midterm": ["midterm", "ενδιάμεση", "ενδιαμεση"],
-                "final": ["final", "τελική", "τελικη"],
-                "homework": ["homework", "assignment", "εργασ", "άσκη", "ασκη"],
-                "project": ["project", "πρότζεκ", "προτζεκ"],
-                "lab": ["lab", "εργαστηρ"],
-                "quiz": ["quiz", "κουιζ", "κουίζ", "τεστ"],
-                "participation": ["participation", "συμμετο"],
-                "attendance": ["attendance", "παρουσ"],
-            }
-            for key, needles in contains_map.items():
-                if any(needle in n for needle in needles):
-                    return key
-            return n
+        _normalize_category = normalize_rule_category
 
         def _as_float(value: Any) -> float:
             try:
@@ -945,9 +951,13 @@ class AnalyticsService:
             category_grades = [gr for gr in grades if _normalize_category(getattr(gr, "category", None)) == rule_norm]
 
             if category_lower in self.exam_categories and category_grades:
+                # An exam counts its latest grade alone: the latest date_submitted, then the
+                # latest entry. A grade without the date counts as the oldest. (Until November
+                # 2026 that stand-in date was the text "1970-01-01", and an exam with one dated
+                # and one undated grade raised TypeError, comparing a date with a str.)
                 category_grades = sorted(
                     category_grades,
-                    key=lambda g: (g.date_submitted or "1970-01-01", g.id),
+                    key=lambda g: (g.date_submitted or date.min, g.id),
                     reverse=True,
                 )[:1]
 
@@ -1047,10 +1057,15 @@ class AnalyticsService:
         penalty_per_absence = float(getattr(course, "absence_penalty", 0.0) or 0.0)
         unexcused_absences = 0
         absence_deduction = 0.0
+        # What the final grade really lost to the penalty: it never goes below 0, so a penalty
+        # larger than the grade takes only the grade. Reported for the grade sheets; the grade
+        # itself is computed as before.
+        absence_deduction_applied = 0.0
 
         if penalty_per_absence > 0:
             unexcused_absences = len([a for a in attendance if str(a.status).lower() == "absent"])
             absence_deduction = penalty_per_absence * unexcused_absences
+            absence_deduction_applied = min(absence_deduction, max(0.0, final_grade))
             final_grade = max(0.0, final_grade - absence_deduction)
 
         gpa = (final_grade / 100.0) * 4.0 if final_grade > 0 else 0
@@ -1070,6 +1085,7 @@ class AnalyticsService:
             "absence_penalty": penalty_per_absence,
             "unexcused_absences": unexcused_absences,
             "absence_deduction": round(absence_deduction, 2),
+            "absence_deduction_applied": round(absence_deduction_applied, 2),
             "participation_forfeited": participation_forfeited,
             "participation_deduction": round(participation_deduction, 2),
             "participation_observations": observations,

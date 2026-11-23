@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.80
-**Last Updated**: November 22, 2026
+**Last Updated**: November 23, 2026
 **Status**: ✅ **v1.18.80 released 2026-11-22** (tag on `ce5d07cc1`, run by the assistant; the
 owner: "continue unattended for all pending tasks until successfully reach to v1.18.80"). It
 carries PRs 464 to 471, under "In v1.18.80" below: the Docker host task's rebuild starts from
@@ -332,6 +332,68 @@ The status records of v1.18.73 back to v1.18.67, and the release record of v1.18
 word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
+
+**2026-11-23: grade sheets, the server side** (todo 75 stage 1, PR NNN). Three sheets of one
+course list every student of it A to Z by surname (Greek accents ignored), with the registration
+number: the students the Analytics page counts, live enrollments of active students.
+- **One assessment:** score, out of, percentage. A student not graded has an empty score. With
+  several grades the latest counts (the latest date handed in, then the latest entry: the final
+  grade's order for an exam), and the remarks column says how many. A score out of another
+  maximum than the assessment's is printed as "75 / 100". Class figures under the table.
+- **Every assessment:** one column each (percentages), then the final grade. Two assessments of
+  one name under different categories print the category beside the name.
+- **By category:** one column per evaluation rule, under the rule's own name and the weight the
+  final grade gives it, holding the average the final grade counts. A cell the final grade
+  zeroed for absences is marked (the calculation's own flag, so never an Attendance rule or a
+  course without rules), and the points it subtracts after weighting (participation
+  observations, the penalty per absence, never more than the grade had) get a Deductions column.
+  A course without rules: one column per category of its grades.
+
+The final grade is the Analytics page's. A student over the absence limit is marked and counted
+as failed, whatever the grade, and the notes under the table say where each final grade came
+from (the rules, or the mean of the grades). The routes are
+`GET /api/v1/grade-sheets/course/{id}/assessments`, `GET /api/v1/grade-sheets/course/{id}?kind=...`
+and `.../export/pdf|excel`, all `reports:generate`. The PDF is in Greek or English, A4, landscape
+when the columns would be narrow, and a sheet wider than the page prints in column groups that
+each repeat the students and the final grade. It carries the signed-in teacher's name and a line
+to sign; a double name too long for its column breaks at its hyphen. Excel says in columns what
+the PDF says with marks (a category zeroed for absences is the number 0 shown as "0 (absences)"),
+and the file name names the assessment in Latin letters. An assessment is the grades with the
+same name and category. Names are compared without case, accents or extra spaces, but "C++
+Project" is not "C Project"; categories by their exact standard name, so "Lab Work" and
+"Εργαστήριο" are one while a "Τελική" under "Θεωρητική Εξέταση" and one under "Πρακτική
+Εξέταση" are two, as for the final grade. The new `services/grade_categories.py` folds category
+names (English or Greek, any accents) into one list of eleven (a generic Exam and Attendance
+beside the grading form's names; "Mid-Term" is a midterm) for comparing across courses
+(`group_key`); within a course the sheets use `exact_key`. It never calculates a final grade,
+and a name is translated on a sheet only when it is exactly a standard name.
+
+Changes outside the sheets, all found by the reviews below:
+- **The final grade's exam rule:** a grade without date_submitted now counts as the oldest
+  (`date.min`). The stand-in was the text "1970-01-01", so an exam with one dated and one undated
+  grade raised TypeError and answered 500 on the Analytics page too. No grade that computed
+  before changes. The calculation's category matching moved to module level as it was
+  (`normalize_rule_category`), for the sheets to use, and its result gains
+  `absence_deduction_applied`, what the penalty took from a grade that stops at 0.
+- **The Analytics page's pass/fail** is judged on the final grade as shown (2 decimals): a plain
+  mean of 33.33 % and 66.67 % is a hair under 50 in floating point and was shown as 50 but
+  counted as failing.
+- **`optional_signed_in_user`, `may_see_health_data` and `health_data_access`** are plain
+  functions now, so FastAPI runs their account read in a worker thread instead of on the event
+  loop (the lesson log, student notes and the health-data checks use them too).
+
+**Review before the PR, two adversarial passes.** The first: six reviewers, one angle each (the
+figures against the final grade, the categories, the routes, the PDF and Excel, unusual data,
+the tests and docs), then two or three skeptics per finding trying to refute it: 44 findings, 43
+held, 16 once merged, all fixed. The tests that prove them failed on the reviewed code (18 of
+`test_grade_sheets.py`, 16 of `test_grade_categories.py`); the two regression guards
+(accent-insensitive order, the latest by date) failed on the reviewer's mutations. The second
+pass, on the fixes: 11 findings, 9 held by both skeptics, all fixed (the two exam rules above,
+the 50 counted as failed, "nothing graded" printed over final grades from daily ratings, the
+floor, Excel notes naming marks no cell carries, file names, a note that claimed every exam
+column held its latest grade, the Excel zero as text, the names cut mid-word); each new test
+fails when its fix is undone. Tests: `test_grade_categories.py` (55), `test_grade_sheets.py`
+(30). The page is stage 2.
 
 **2026-11-22: the gate and CI lint `scripts/` as well** (PR 475, merged as `c0e494abc`, its
 checks green; the owner, offered it after todo 73: "do both options"). `scripts/` holds tools that CI and the releases run (the load
@@ -2565,6 +2627,9 @@ optional chores settled by the owner (the top of this plan), all moved to part 5
 archive. Moot: `viewer` and `guest` getting 403 on the Dashboard overview, since those roles
 no longer exist (PR 425 turned them into "No role").
 
+**New on 2026-11-23: todo 75**, the analytics and reports rework, in six stages; the owner's
+four answers are in its entry. Stage 1 (grade sheets, the server side) is on `main`.
+
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
 since v1.18.72 it reports to a monitoring service, and a failed backup puts a notice in the
@@ -3004,6 +3069,41 @@ and 44 and 48 in its part 5):
       leave SMS Lite closed. Instead "runas" stays, and a helper with the user's own rights
       starts SMS Lite again once the installer has finished. **Left:** seeing it in a real
       update (a release that carries it, updated to a later one).
+
+75. **Analytics and reports rework** (the owner, 2026-11-23: rebuild the analytics dashboard
+    into a course-agnostic view of each student's scores, for comparison across courses and the
+    diagnosis of strengths and difficulties; tie analytics to the export reports in one direct
+    workflow; make grading lists for exams and other assessments easy to produce).
+    - **What the code had** (mapped that day). The Analytics page (Dashboard → Analytics) shows
+      one student across courses only as each course's final grade. Nothing groups scores by
+      category or assessment. Its Export ignores the filters on screen and exports school totals,
+      and nothing links it to Utils → Reports. No page lists a course's students for one exam:
+      the nearest is the custom report builder, about ten steps with the course number typed by
+      hand, listing only students who already have a grade, and its saved sort never applies
+      (the builder saves `{"<field>": "asc"}`, the generator reads only `field`/`direction`
+      keys). `features/analytics/` is not imported anywhere.
+    - **The owner's answers (2026-11-23):** (1) "competency/activity" means the grade
+      categories, folded into one standard list across courses, with no database change;
+      (2) grade sheets: one assessment, the course matrix (every assessment) and category
+      totals, not a blank roster; (3) Analytics stays behind the Dashboard toggle (no new tab),
+      with an export that keeps the filters and links to the grade sheets, and Utils → Reports
+      tidied; (4) the custom report builder stays, as "Advanced", and is fixed.
+    - **Stages, each its own PR:**
+      1. Grade sheets, the server side: the standard category list, the three sheets as JSON,
+         PDF and Excel. **Done** (under "On `main` since v1.18.80").
+      2. Grade sheets, the page: a course and assessment picker, the sheet on screen, PDF and
+         Excel; reached from Utils → Reports, the Grading page and Analytics.
+      3. Analytics, the diagnosis across courses: each student's category profile over all
+         their courses against the class's, with strengths and difficulties; the class view by
+         category and course.
+      4. The Analytics export keeps the filters and carries the per-student rows and category
+         profile; a course row opens its grade sheets.
+      5. The custom report builder: the saved sort, more than one filter per field, course and
+         category pickers, generate and download from the builder, the CSV with a BOM (Greek in
+         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average).
+      6. Utils → Reports tidied (about 15 links lead to 3 pages). Removing the dead code
+         (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
+         asked first.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
