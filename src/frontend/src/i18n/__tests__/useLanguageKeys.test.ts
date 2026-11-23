@@ -32,6 +32,13 @@ const FALLBACKS = [
 const HANDED_T = new Set([
   'components/tools/SessionExportImport.tsx',
   'components/tools/useSessionExportImport.ts',
+  // The Analytics page hands its `t` to its parts (plan todo 75 stage 3).
+  'features/dashboard/components/AnalyticsCategories.tsx',
+  'features/dashboard/components/AnalyticsClassView.tsx',
+  'features/dashboard/components/AnalyticsFilterBar.tsx',
+  'features/dashboard/components/AnalyticsStudentView.tsx',
+  'features/dashboard/components/AnalyticsCharts.tsx',
+  'features/dashboard/components/analyticsUi.tsx',
 ]);
 
 const HOOK = /const\s*\{[^}]*\bt\b(?!\s*:)[^}]*\}\s*=\s*useLanguage\(\)/;

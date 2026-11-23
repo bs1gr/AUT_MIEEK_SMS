@@ -180,6 +180,8 @@ export default {
       continuous: 'Continuous Assessment',
       participation: 'Class Participation',
       attendance: 'Attendance',
+      // Grades saved without a category (Analytics, plan todo 75 stage 3)
+      uncategorized: 'Uncategorized',
     },
   },
 };

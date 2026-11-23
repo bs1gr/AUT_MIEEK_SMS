@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, BookOpen, Calendar, Download, TrendingUp, Users } from 'lucide-react';
@@ -10,6 +10,7 @@ import { useDashboards, type Dashboard } from '../hooks/useDashboards';
 import AnalyticsFilterBar, { type AnalyticsViewMode } from './AnalyticsFilterBar';
 import AnalyticsClassView from './AnalyticsClassView';
 import AnalyticsStudentView from './AnalyticsStudentView';
+import { categoriesForCourse } from './AnalyticsCategories';
 import { PASS_MARK } from './AnalyticsCharts';
 import { SummaryCard, absenceStatusLabel, formatPercent, resolveVisibleCharts } from './analyticsUi';
 
@@ -61,6 +62,13 @@ export const AnalyticsDashboard = () => {
     return effectiveCourseId ? all.filter((c) => c.id === effectiveCourseId) : all;
   }, [studentOverview.data, effectiveCourseId]);
 
+  // By category (todo 75 stage 3): across all the student's courses, or one course's own figures.
+  // None at all from a server older than stage 3: the profile then shows nothing.
+  const studentCategories = useMemo(() => {
+    const all = studentOverview.data?.categories;
+    return all === undefined ? undefined : categoriesForCourse(all, effectiveCourseId);
+  }, [studentOverview.data, effectiveCourseId]);
+
   const activeDashboard = selectedDashboardId ? dashboards.find((d: Dashboard) => d.id === selectedDashboardId) : defaultDashboard;
   const visibleCharts = useMemo(
     () => resolveVisibleCharts(activeDashboard?.configuration?.charts as string[] | undefined),
@@ -76,11 +84,22 @@ export const AnalyticsDashboard = () => {
     setDivision('');
     setCourseId(null);
   };
+  // A name in the class view opens that student in the same course, when one is chosen (the
+  // student view falls back to all courses if the student is not in it). The class view's button
+  // goes away, so focus moves to the student picker instead of falling back to the page.
+  const studentSelectRef = useRef<HTMLSelectElement>(null);
+  const focusStudentPicker = useRef(false);
   const openStudent = (id: number) => {
+    focusStudentPicker.current = true;
     setViewMode('student');
     setStudentId(id);
-    setCourseId(null);
   };
+  useEffect(() => {
+    if (focusStudentPicker.current && viewMode === 'student') {
+      focusStudentPicker.current = false;
+      studentSelectRef.current?.focus();
+    }
+  }, [viewMode, studentId]);
 
   const cards = (() => {
     if (viewMode === 'class') {
@@ -193,6 +212,7 @@ export const AnalyticsDashboard = () => {
           setStudentId(id);
           setCourseId(null);
         }}
+        studentSelectRef={studentSelectRef}
         courses={courseOptions}
         courseId={effectiveCourseId}
         onCourseChange={setCourseId}
@@ -228,6 +248,7 @@ export const AnalyticsDashboard = () => {
           formatDate={(d) => formatDate(d)}
           visibleCharts={visibleCharts}
           courses={studentCourses}
+          categories={studentCategories}
           singleCourse={Boolean(effectiveCourseId)}
         />
       )}

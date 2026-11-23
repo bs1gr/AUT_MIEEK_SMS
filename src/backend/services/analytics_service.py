@@ -1025,6 +1025,14 @@ class AnalyticsService:
         # share when the student has no participation ratings yet).
         observations: Dict[str, Dict[str, float]] = {}
         participation_deduction = 0.0
+        # The share of Class Participation the student keeps, in percent, for the Analytics page
+        # (plan todo 75 stage 3): what the ratings earned, or the whole share for being present
+        # while there are none (as the cap below counts it), less what the observations took.
+        # Worked out from the ticks themselves, never from what the final grade could absorb (with
+        # nothing else graded the final grade has nothing to take them from). For a rated student
+        # it is exactly the share the final grade counts. None without a participation rule, when
+        # it is forfeited, or with nothing to count.
+        participation_share: Optional[Dict[str, Any]] = None
         if participation_rule is not None and not participation_forfeited:
             percents = dict(self.observation_default_percent)
             for rule in observation_rules:
@@ -1041,10 +1049,11 @@ class AnalyticsService:
                     day_loss[perf.date] = max(day_loss.get(perf.date, 0.0), percents[perf_norm])
             attended_days = {a.date for a in attendance if str(a.status).lower() in {"present", "late"}} | set(day_loss)
             participation_weight = _as_float(participation_rule.get("weight"))
+            participation_category = participation_rule["category"]
+            rated = participation_category in category_scores
             requested = sum(day_loss.values()) / 100 * participation_weight / len(attended_days) if day_loss else 0.0
             if requested > 0:
-                participation_category = participation_rule["category"]
-                if participation_category in category_scores:
+                if rated:
                     requested *= normalization
                     earned = category_scores[participation_category] * participation_weight / 100 * normalization
                 else:
@@ -1053,6 +1062,16 @@ class AnalyticsService:
                 final_grade -= participation_deduction
                 if participation_category in category_details:
                     category_details[participation_category]["deduction"] = round(participation_deduction, 2)
+            if participation_weight > 0 and (rated or attended_days):
+                kept = category_scores[participation_category] if rated else 100.0
+                # The days' losses, in percent of the share: each attended day is an equal slice.
+                lost = sum(day_loss.values()) / len(attended_days) if day_loss else 0.0
+                participation_share = {
+                    "category": participation_category,
+                    "weight": participation_weight,
+                    "rated": rated,
+                    "percent": max(0.0, kept - lost),
+                }
 
         penalty_per_absence = float(getattr(course, "absence_penalty", 0.0) or 0.0)
         unexcused_absences = 0
@@ -1089,6 +1108,7 @@ class AnalyticsService:
             "participation_forfeited": participation_forfeited,
             "participation_deduction": round(participation_deduction, 2),
             "participation_observations": observations,
+            "participation_share": participation_share,
         }
 
     # ----------------------------- Cache Invalidation ---------------------------------

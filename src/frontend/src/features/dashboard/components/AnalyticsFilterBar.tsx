@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { Dashboard } from '../hooks/useDashboards';
 import type { Translate } from './AnalyticsCharts';
 
@@ -22,6 +23,8 @@ export interface AnalyticsFilterBarProps {
   students: Option[];
   studentId: number | null;
   onStudentChange: (id: number | null) => void;
+  /** The student picker, for the page to move focus there (a name opened from the class view). */
+  studentSelectRef?: Ref<HTMLSelectElement>;
   /** Student view: that student's enrolled courses. Class view: courses of the selection. */
   courses: Option[];
   courseId: number | null;
@@ -51,6 +54,7 @@ const AnalyticsFilterBar = ({
   students,
   studentId,
   onStudentChange,
+  studentSelectRef,
   courses,
   courseId,
   onCourseChange,
@@ -107,6 +111,7 @@ const AnalyticsFilterBar = ({
       <label className={FIELD}>
         {t('analytics.studentLabel')}
         <select
+          ref={studentSelectRef}
           value={studentId ?? ''}
           onChange={(e) => onStudentChange(e.target.value ? Number(e.target.value) : null)}
           className={SELECT}
