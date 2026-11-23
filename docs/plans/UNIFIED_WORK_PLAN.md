@@ -333,6 +333,22 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-23: the gate's checkpoint reads a Greek file name in any console** (todo 79, found that
+day committing todo 77 point 1; no decision needed). COMMIT_READY ends by recording a fingerprint
+of the tree it validated (`scripts/ENFORCE_COMMIT_READY_GUARD.ps1`), and the pre-commit hook
+refuses a commit whose tree has another. `Get-TreeFingerprint` read git's paths in the console's
+code page: in a new console on this PC (code page 737; a detached gate gets one)
+"docs/user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md" came back garbled, was not found, and was recorded as deleted, its
+content never hashed. A gate run there wrote a checkpoint that a commit from a UTF-8 console never
+matched ("COMMIT BLOCKED: the code changed after it was validated", with nothing changed), and an
+edit of the Greek guide after a gate in such a console would not have voided its checkpoint. It
+now reads git's output in UTF-8 and gives the console its code page back, as COMMIT_READY's
+`Get-MarkdownState` does since #395. `test_commit_ready_checkpoint_greek_names.py` (3, each
+failed on the old guard) runs the guard in a console of its own: the same fingerprint whatever
+the code page, a Greek-named file fingerprinted by its content, and named readably in the
+checkpoint. The assistant's detached gate had set UTF-8 first since that day
+(`D:\tmp\sms-tools\gate-guarded.ps1`, outside the repository).
+
 **2026-11-23: a Late is attended on every page, and its number is shown where the teacher
 evaluates** (todo 77, point 1; the owner that day: "Late should not count as absent, but should
 be referenced in a students attendance results in order to be considered in the teacher's final
