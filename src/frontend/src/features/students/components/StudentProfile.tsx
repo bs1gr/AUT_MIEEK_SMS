@@ -8,6 +8,7 @@ import { GradeBreakdownModal } from '@/features/grading';
 import StudentPerformanceReport from '@/components/StudentPerformanceReport';
 import type { Student, Grade, Attendance, Highlight, HighlightCreatePayload, Course, CourseEnrollment, StudentCoursePerformance } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
+import { attendedRate, countStatuses, statusKey } from '@/utils/attendanceRate';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import StudentPredictionsSection from './StudentPredictionsSection';
@@ -197,8 +198,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const calculateStats = () => {
     // Attendance stats
     const totalClasses = attendance.length;
-    const present = attendance.filter(a => a.status === 'Present').length;
-  const attendanceRateNum = totalClasses > 0 ? (present / totalClasses * 100) : 0;
+    // Present and Late are attended, as on every page (todo 77).
+    const attendanceRateNum = attendedRate(attendance);
 
     // Grade stats
     const totalGrades = grades.length;
@@ -500,7 +501,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <CheckCircle size={24} />
               <span className="text-xs opacity-75">{t('attendance', { ns: 'common' })}</span>
             </div>
-            <p className="text-4xl font-bold">{stats.attendanceRate}%</p>
+            <p className="text-4xl font-bold" data-testid="profile-attendance-rate">{stats.attendanceRate}%</p>
             <p className="text-sm opacity-90">{stats.totalClasses} {t('classes', { ns: 'common' })}</p>
           </div>
 
@@ -878,10 +879,12 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           {(() => {
             const att = attendanceCourseFilter ? attendance.filter(a => a.course_id === attendanceCourseFilter) : attendance;
             const total = att.length;
+            // Counted as the rate tile counts them, whatever the case a status was stored in.
+            const counts = countStatuses(att);
             return (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {(['Present', 'Absent', 'Late', 'Excused'] as const).map(status => {
-                  const count = att.filter(a => a.status === status).length;
+                  const count = counts[statusKey(status) as keyof typeof counts];
                   const percentage = total > 0 ? (count / total * 100).toFixed(1) : 0;
                   const colors = {
                     Present: 'from-green-500 to-green-600',
@@ -891,7 +894,11 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   } as const;
 
                   return (
-                    <div key={status} className={`bg-linear-to-br/srgb ${colors[status]} rounded-xl shadow-sm p-4 text-white`}>
+                    <div
+                      key={status}
+                      className={`bg-linear-to-br/srgb ${colors[status]} rounded-xl shadow-sm p-4 text-white`}
+                      data-testid={`profile-attendance-count-${statusKey(status)}`}
+                    >
                       <p className="text-sm opacity-90">{t(status.toLowerCase(), { ns: 'reports' })}</p>
                       <p className="text-3xl font-bold mt-2">{count}</p>
                       <p className="text-sm opacity-90 mt-1">{percentage}%</p>

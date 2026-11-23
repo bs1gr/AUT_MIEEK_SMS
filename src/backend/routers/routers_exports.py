@@ -85,7 +85,7 @@ TRANSLATIONS = {
         "label_unique_students": "Unique Students",
         "label_unique_courses": "Unique Courses",
         "label_date_range": "Date Range",
-        "label_present_share": "Present Share",
+        "label_present_share": "Attended Share (Present + Late)",
         "label_status": "Status",
         "label_count": "Count",
         "label_notice": "Notice",
@@ -189,7 +189,7 @@ TRANSLATIONS = {
         "label_unique_students": "Μοναδικοί Σπουδαστές",
         "label_unique_courses": "Μοναδικά Μαθήματα",
         "label_date_range": "Εύρος Ημερομηνιών",
-        "label_present_share": "Ποσοστό Παρόντων",
+        "label_present_share": "Ποσοστό Παρουσίας (Παρών + Αργοπορία)",
         "label_status": "Κατάσταση",
         "label_count": "Πλήθος",
         "label_notice": "Σημείωση",
@@ -517,6 +517,13 @@ HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="s
 
 def _init_status_counts():
     return {status: 0 for status in ATTENDANCE_STATUSES}
+
+
+def _attended_percent(counts: dict, total: int) -> float:
+    """Present and Late over every period (plan todo 77: the one meaning of attended).
+
+    Until then these exports counted Present alone, so a Late lowered the rate."""
+    return (counts.get("Present", 0) + counts.get("Late", 0)) / total * 100 if total else 0
 
 
 def _normalize_status(status: str | None) -> str:
@@ -876,7 +883,7 @@ def _build_attendance_analytics_csv_rows(
             daily_entry["total"] += 1
 
     total_records = sum(overall_counts.values())
-    present_share = (overall_counts["Present"] / total_records * 100) if total_records else 0
+    present_share = _attended_percent(overall_counts, total_records)
     date_range = na_value
     if date_values:
         sorted_dates = sorted(date_values)
@@ -908,7 +915,7 @@ def _build_attendance_analytics_csv_rows(
                 data["counts"]["Absent"],
                 data["counts"]["Late"],
                 data["counts"]["Excused"],
-                f"{(data['counts']['Present'] / data['total'] * 100) if data['total'] else 0:.1f}%",
+                f"{_attended_percent(data['counts'], data['total']):.1f}%",
             ]
             for data in sorted(course_summary.values(), key=lambda item: item["course_code"])
         ]
@@ -924,7 +931,7 @@ def _build_attendance_analytics_csv_rows(
                 data["counts"]["Absent"],
                 data["counts"]["Late"],
                 data["counts"]["Excused"],
-                f"{(data['counts']['Present'] / data['total'] * 100) if data['total'] else 0:.1f}%",
+                f"{_attended_percent(data['counts'], data['total']):.1f}%",
             ]
             for period, data in sorted(period_summary.items())
         ]
@@ -942,7 +949,7 @@ def _build_attendance_analytics_csv_rows(
                 data["counts"]["Absent"],
                 data["counts"]["Late"],
                 data["counts"]["Excused"],
-                f"{(data['counts']['Present'] / data['total'] * 100) if data['total'] else 0:.1f}%",
+                f"{_attended_percent(data['counts'], data['total']):.1f}%",
             ]
             for _, data in sorted(
                 course_period_summary.items(), key=lambda item: (item[1]["course_code"], item[1]["period"])
@@ -1900,7 +1907,7 @@ def export_attendance_analytics_excel(request: Request, db: Session = Depends(ge
                 daily_entry["total"] += 1
 
         total_records = sum(overall_counts.values())
-        present_share = (overall_counts["Present"] / total_records * 100) if total_records else 0
+        present_share = _attended_percent(overall_counts, total_records)
         date_range = na_value
         if date_values:
             sorted_dates = sorted(date_values)
@@ -1935,7 +1942,7 @@ def export_attendance_analytics_excel(request: Request, db: Session = Depends(ge
         for row_idx, data in enumerate(sorted(course_summary.values(), key=lambda item: item["course_code"]), start=2):
             counts = data["counts"]
             total = data["total"]
-            rate = (counts["Present"] / total * 100) if total else 0
+            rate = _attended_percent(counts, total)
             values = [
                 data["course_code"],
                 data["course_name"],
@@ -1956,7 +1963,7 @@ def export_attendance_analytics_excel(request: Request, db: Session = Depends(ge
         for row_idx, period in enumerate(sorted(period_summary.keys()), start=2):
             counts = period_summary[period]["counts"]
             total = period_summary[period]["total"]
-            rate = (counts["Present"] / total * 100) if total else 0
+            rate = _attended_percent(counts, total)
             values = [
                 period,
                 total,
@@ -1982,7 +1989,7 @@ def export_attendance_analytics_excel(request: Request, db: Session = Depends(ge
             data = course_period_summary[key]
             counts = data["counts"]
             total = data["total"]
-            rate = (counts["Present"] / total * 100) if total else 0
+            rate = _attended_percent(counts, total)
             values = [
                 data["course_code"],
                 data["course_name"],
@@ -2135,7 +2142,7 @@ def export_attendance_analytics_pdf(request: Request, db: Session = Depends(get_
                 date_values.add(att_date)
 
         total_records = sum(overall_counts.values())
-        present_share = (overall_counts["Present"] / total_records * 100) if total_records else 0
+        present_share = _attended_percent(overall_counts, total_records)
         date_range = na_value
         if date_values:
             sorted_dates = sorted(date_values)
@@ -3001,11 +3008,10 @@ def export_student_report_pdf(student_id: int, request: Request, db: Session = D
             db.query(Attendance).filter(Attendance.student_id == student_id, Attendance.deleted_at.is_(None)).all()
         )
         total_att = len(attendance_records)
-        present = len([a for a in attendance_records if a.status == "Present"])
-        absent = len([a for a in attendance_records if a.status == "Absent"])
-        late = len([a for a in attendance_records if a.status == "Late"])
-        excused = len([a for a in attendance_records if a.status == "Excused"])
-        att_rate = (present / total_att * 100) if total_att > 0 else 0
+        statuses = [str(a.status or "").strip().lower() for a in attendance_records]
+        present, absent = statuses.count("present"), statuses.count("absent")
+        late, excused = statuses.count("late"), statuses.count("excused")
+        att_rate = _attended_percent({"Present": present, "Late": late}, total_att)
         att_headers = [
             t("total_classes", lang),
             t("present", lang),

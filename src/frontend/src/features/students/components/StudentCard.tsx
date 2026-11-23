@@ -200,7 +200,11 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
               {stats.attendance && (
                 <div className="bg-linear-to-br/srgb from-purple-500 to-purple-600 rounded-lg p-4 text-white shadow-md">
                   <div className="text-xs opacity-75 mb-1">{t('absences') || 'Absences'}</div>
-                  <div className="text-2xl font-bold">{stats.attendance.absent}/{stats.attendance.total}</div>
+                  {/* The absences the ΜΙΕΕΚ limit and the rate below count: Absent and Excused,
+                      never a Late (plan todo 77). */}
+                  <div className="text-2xl font-bold" data-testid="student-card-absences">
+                    {stats.attendance.absent + stats.attendance.excused}/{stats.attendance.total}
+                  </div>
                   <div className="text-xs opacity-90">{stats.attendance.attendanceRate}%</div>
                 </div>
               )}

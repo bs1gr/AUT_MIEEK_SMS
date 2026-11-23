@@ -82,7 +82,8 @@ const mockStats: StudentStats = {
     absent: 3,
     late: 2,
     excused: 1,
-    attendanceRate: '83.3',
+    // Present and Late attended (plan todo 77): 27 of 30.
+    attendanceRate: '90.0',
   },
 };
 
@@ -183,8 +184,9 @@ describe('StudentCard', () => {
 
     it('displays attendance statistics', () => {
       renderStudentCard({ isExpanded: true });
-      expect(screen.getByText('3/30')).toBeInTheDocument(); // absent/total
-      const attendanceRates = screen.getAllByText('83.3%');
+      // The absences are Absent and Excused, as the rate under them counts (plan todo 77): 3 + 1.
+      expect(screen.getByTestId('student-card-absences')).toHaveTextContent('4/30');
+      const attendanceRates = screen.getAllByText('90.0%');
       expect(attendanceRates.length).toBeGreaterThan(0);
     });
 

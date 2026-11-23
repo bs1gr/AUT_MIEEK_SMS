@@ -221,6 +221,8 @@ class GradeSheetService:
             "participation_forfeited": f.participation_forfeited,
             "participation_deduction": _round(f.participation_deduction),
             "absence_deduction": _round(f.absence_deduction),
+            # Periods the student came late: attended, not absences, shown for the evaluation.
+            "late": f.late,
         }
 
     @staticmethod

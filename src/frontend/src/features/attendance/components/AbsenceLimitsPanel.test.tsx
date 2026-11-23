@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
-import AbsenceLimitsPanel from './AbsenceLimitsPanel';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '@/i18n/config';
+import { LanguageProvider, useLanguage } from '@/LanguageContext';
+import AbsenceLimitsPanel, { type AbsenceLimitsPanelProps } from './AbsenceLimitsPanel';
 import { attendanceAPI } from '@/api/api';
 import type { AbsenceLimitStatus, Student } from '@/types';
 
@@ -71,6 +74,56 @@ describe('AbsenceLimitsPanel', () => {
     expect(within(third).getByText('absenceLimitParticipationKept {"allowed":4}')).toBeInTheDocument();
     expect(within(third).getByText('absenceLimitAllowed {"allowed":12,"limit":30}')).toBeInTheDocument();
     expect(mockedAttendance.getCourseAbsenceStatus).toHaveBeenCalledWith(7);
+  });
+
+  it('names the Lates beside the absences, as not absences', async () => {
+    // Plan todo 77: a Late is attended, not an absence; its number is here for the evaluation.
+    mockedAttendance.getCourseAbsenceStatus.mockResolvedValue([
+      row({ student_id: 1, late: 3 }),
+      row({ student_id: 2 }),
+      row({ student_id: 3, late: 0 }),
+    ]);
+
+    render(<AbsenceLimitsPanel t={t} courseId={7} students={students} />);
+
+    expect(await screen.findByTestId('absence-limit-late-1')).toHaveTextContent('absenceLimitLate {"count":3}');
+    // None from an older server (no field at all), nor for a student without a Late (this
+    // server's 0).
+    expect(screen.queryByTestId('absence-limit-late-2')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('absence-limit-late-3')).not.toBeInTheDocument();
+  });
+
+  // The page's own texts, through the namespaces the Attendance page looks a bare key up in.
+  const WithPageTexts = (props: Omit<AbsenceLimitsPanelProps, 't'>) => {
+    const { t } = useLanguage();
+    return <AbsenceLimitsPanel t={t} {...props} />;
+  };
+
+  it.each([
+    ['en', 1, 'Late: 1 (not an absence)'],
+    ['en', 2, 'Late: 2 (not absences)'],
+    ['el', 1, 'Αργοπορία: 1 (δεν είναι απουσία)'],
+    ['el', 2, 'Αργοπορίες: 2 (δεν είναι απουσίες)'],
+  ] as const)('in %s, %i Late reads "%s"', async (lang, late, text) => {
+    mockedAttendance.getCourseAbsenceStatus.mockResolvedValue([row({ student_id: 1, late })]);
+    localStorage.setItem('i18nextLng', lang);
+    await act(async () => {
+      await i18n.changeLanguage(lang);
+    });
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <LanguageProvider>
+          <WithPageTexts courseId={7} students={students} />
+        </LanguageProvider>
+      </I18nextProvider>
+    );
+
+    expect(await screen.findByTestId('absence-limit-late-1')).toHaveTextContent(text);
+    // The help above says the same word as the Attendance page's button.
+    expect(screen.getByTestId('absence-limits-panel')).toHaveTextContent(
+      lang === 'el' ? 'οι αργοπορίες όχι' : 'Late does not'
+    );
   });
 
   it('names every value for the phone layout, where the header row is not shown', async () => {

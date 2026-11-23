@@ -470,7 +470,9 @@ class AnalyticsOverviewService:
             grade_count=len(percentages),
             rating_count=len(daily),
             exam_average=_mean(g.grade / g.max_grade * 100 for g in grades if g.max_grade and _is_exam(g.category)),
-            absence=absence_limit_service.evaluate(course, absent=counts["absent"], excused=counts["excused"]),
+            absence=absence_limit_service.evaluate(
+                course, absent=counts["absent"], excused=counts["excused"], late=counts["late"]
+            ),
             grades=[
                 {
                     "date": _grade_date(g),
@@ -602,6 +604,8 @@ class AnalyticsOverviewService:
                     "credits": sum(int(courses[f.course_id].credits or 0) for f in sf),
                     "failing_courses": failing,
                     "attendance_rate": _round(_pooled_rate(sf)),
+                    # Attended, not absences, shown for the evaluation (plan todo 77).
+                    "late": sum(f.late for f in sf),
                     "absence_status": worst,
                     "participation_forfeited": [courses[f.course_id].course_name for f in sf if f.participation_forfeited],
                     "at_risk": bool(failing) or any(f.participation_forfeited for f in sf) or worst in (

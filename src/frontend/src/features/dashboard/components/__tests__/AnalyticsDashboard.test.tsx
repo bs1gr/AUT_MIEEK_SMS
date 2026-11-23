@@ -349,6 +349,64 @@ describe('AnalyticsDashboard', () => {
     expect(matrix).toHaveTextContent('1 student of this selection has nothing counted in any category yet and is not listed.');
   });
 
+  it('names the Lates under the attendance rates, for the evaluation (todo 77)', async () => {
+    // A Late is attended, so the rate does not show it: its number is written under the rate.
+    const withLates = studentOverview(
+      1,
+      'Anna Alpha',
+      [course(1, 'MATH', 74, { attendance: { ...attendance(4, 1), late: 2, recorded: 7, rate: 85.7 } }), course(2, 'PHYS', null)],
+      annaCategories
+    );
+    const classWithLates: ClassOverview = {
+      ...classOverview,
+      courses: [{ ...classOverview.courses[0], attendance: { ...classOverview.courses[0].attendance, late: 2 } }],
+      students: classOverview.students.map((s) => (s.id === 2 ? { ...s, late: 3 } : s)),
+    };
+    const answer = get.getMockImplementation()!;
+    get.mockImplementation(async (url: string, ...rest: unknown[]) => {
+      if (url === '/analytics/student/1/overview') return { data: withLates };
+      if (url === '/analytics/overview') return { data: classWithLates };
+      return answer(url, ...rest);
+    });
+    renderPage();
+
+    const table = await screen.findByTestId('analytics-student-courses');
+    const math = within(table).getByText('Course MATH').closest('tr') as HTMLElement;
+    await waitFor(() => expect(within(math).getByText('2 late')).toBeInTheDocument());
+    const phys = within(table).getByText('Course PHYS').closest('tr') as HTMLElement;
+    expect(within(phys).queryByTestId('analytics-late-count')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Class Analytics' }));
+    const atRisk = await screen.findByTestId('analytics-at-risk');
+    expect(within(atRisk).getByText('3 late')).toBeInTheDocument();
+    const courses = screen.getByTestId('analytics-class-courses');
+    expect(within(courses).getByText('2 late')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['el', 1, '1 αργοπορία'],
+    ['el', 2, '2 αργοπορίες'],
+    ['en', 1, '1 late'],
+  ] as const)('names %s Lates in the page language: %i reads "%s"', async (lang, late, text) => {
+    localStorage.setItem('i18nextLng', lang);
+    await i18n.changeLanguage(lang);
+    const withLates = studentOverview(
+      1,
+      'Anna Alpha',
+      [course(1, 'MATH', 74, { attendance: { ...attendance(4, 1), late, recorded: 5 + late, rate: 80 } }), course(2, 'PHYS', null)],
+      annaCategories
+    );
+    const answer = get.getMockImplementation()!;
+    get.mockImplementation(async (url: string, ...rest: unknown[]) =>
+      url === '/analytics/student/1/overview' ? { data: withLates } : answer(url, ...rest)
+    );
+    renderPage();
+
+    const table = await screen.findByTestId('analytics-student-courses');
+    const math = within(table).getByText('Course MATH').closest('tr') as HTMLElement;
+    await waitFor(() => expect(within(math).getByTestId('analytics-late-count')).toHaveTextContent(new RegExp(`^${text}$`)));
+  });
+
   it('shows no category profile from a server older than the categories', async () => {
     const { categories: _dropped, ...older } = students[1];
     void _dropped;

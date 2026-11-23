@@ -401,10 +401,10 @@ def get_attendance_stats(request: Request, student_id: int, course_id: int, db: 
         if not attendance_records:
             return {"message": "No attendance records found"}
 
-        present = len([a for a in attendance_records if str(a.status) == "Present"])
-        absent = len([a for a in attendance_records if str(a.status) == "Absent"])
-        late = len([a for a in attendance_records if str(a.status) == "Late"])
-        excused = len([a for a in attendance_records if str(a.status) == "Excused"])
+        def count(status: str) -> int:
+            return len([a for a in attendance_records if str(a.status or "").lower() == status])
+
+        present, absent, late, excused = count("present"), count("absent"), count("late"), count("excused")
         total = len(attendance_records)
 
         return {
@@ -415,7 +415,8 @@ def get_attendance_stats(request: Request, student_id: int, course_id: int, db: 
             "absent_count": absent,
             "late_count": late,
             "excused_count": excused,
-            "attendance_rate": round((present / total * 100) if total > 0 else 0, 2),
+            # Present and Late are attended (todo 77), as everywhere: until then Late lost here.
+            "attendance_rate": round(((present + late) / total * 100) if total > 0 else 0, 2),
         }
 
     except Exception:

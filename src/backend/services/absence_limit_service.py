@@ -13,7 +13,9 @@ Units: attendance is recorded one row per teaching period, so limits are compute
 The semester total is ``periods_per_week x SEMESTER_WEEKS`` (``hours_per_week`` stands in for
 courses without a period schedule), unless the course keeps its own total (``semester_periods``,
 plan todo 71: a schedule changed from week N on keeps the weeks before N at the old count).
-Absent and Excused both count as absences; Late does not.
+Absent and Excused both count as absences; Late does not. Present and Late are attended: one
+meaning on every page (the owner, 2026-11-23, plan todo 77: "Late should not count as absent").
+The number of Lates is still counted and shown, for the teacher's evaluation.
 
 The Directorate-approved extended limit (15%, per enrollment) was removed on 2026-10-07; its
 database columns stay until every installed app no longer reads them.
@@ -40,6 +42,15 @@ STATUS_OK = "ok"
 STATUS_WARNING = "warning"
 STATUS_INSUFFICIENT = "insufficient"
 STATUS_UNKNOWN = "unknown"  # no teaching schedule, so no total to measure against
+
+# What a period's attendance status means, lower-cased: the one definition every rate uses.
+ATTENDED_STATUSES = frozenset({"present", "late"})
+ABSENCE_STATUSES = frozenset({"absent", "excused"})
+
+
+def is_attended(status: Any) -> bool:
+    """Present or Late, whatever the case the row was stored in."""
+    return str(status or "").strip().lower() in ATTENDED_STATUSES
 
 
 def semester_weeks() -> int:
@@ -104,8 +115,10 @@ def _allowed(scheduled: float, percent: float) -> int:
     return math.floor(scheduled * percent / 100.0 + 1e-9)
 
 
-def evaluate(course: Any, *, absent: int, excused: int, weeks: Optional[int] = None) -> Dict[str, Any]:
-    """Absence status for one student in one course, from status counts."""
+def evaluate(course: Any, *, absent: int, excused: int, late: int = 0, weeks: Optional[int] = None) -> Dict[str, Any]:
+    """Absence status for one student in one course, from status counts.
+
+    ``late`` is not an absence; it is only reported beside them, for the teacher to weigh."""
     weeks = semester_weeks() if weeks is None else weeks
     per_week = weekly_periods(course)
     scheduled = scheduled_total(course, weeks)
@@ -141,6 +154,7 @@ def evaluate(course: Any, *, absent: int, excused: int, weeks: Optional[int] = N
         "absences": absences,
         "unexcused_absences": absent,
         "excused_absences": excused,
+        "late": late,
         "absence_percent": round(percent, 2),
         "limit_percent": fail_limit,
         "allowed_absences": allowed_out,
@@ -155,28 +169,30 @@ def evaluate(course: Any, *, absent: int, excused: int, weeks: Optional[int] = N
 
 def evaluate_records(course: Any, records: Iterable[Any]) -> Dict[str, Any]:
     """Same as :func:`evaluate`, counting statuses from attendance rows."""
-    absent = excused = 0
+    absent = excused = late = 0
     for rec in records:
         s = str(getattr(rec, "status", "")).lower()
         if s == "absent":
             absent += 1
         elif s == "excused":
             excused += 1
-    return evaluate(course, absent=absent, excused=excused)
+        elif s == "late":
+            late += 1
+    return evaluate(course, absent=absent, excused=excused, late=late)
 
 
 def _status_counts(db: Session, **filters: int) -> Dict[tuple[int, int], Dict[str, int]]:
-    """{(student_id, course_id): {"absent": n, "excused": n}} for non-deleted rows."""
+    """{(student_id, course_id): {"absent": n, "excused": n, "late": n}} for non-deleted rows."""
     (Attendance,) = import_names("models", "Attendance")
     status_lower = func.lower(Attendance.status)
     q = db.query(Attendance.student_id, Attendance.course_id, status_lower, func.count(Attendance.id)).filter(
-        Attendance.deleted_at.is_(None), status_lower.in_(["absent", "excused"])
+        Attendance.deleted_at.is_(None), status_lower.in_(["absent", "excused", "late"])
     )
     for column, value in filters.items():
         q = q.filter(getattr(Attendance, column) == value)
     counts: Dict[tuple[int, int], Dict[str, int]] = {}
     for student_id, course_id, status, n in q.group_by(Attendance.student_id, Attendance.course_id, status_lower):
-        counts.setdefault((student_id, course_id), {"absent": 0, "excused": 0})[status] = int(n)
+        counts.setdefault((student_id, course_id), {"absent": 0, "excused": 0, "late": 0})[status] = int(n)
     return counts
 
 
@@ -194,7 +210,7 @@ def course_absence_status(db: Session, course: Any) -> List[Dict[str, Any]]:
     out = []
     for enr in _live_enrollments(db, course_id=course.id):
         c = counts.get((enr.student_id, course.id), {})
-        result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0))
+        result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0), late=c.get("late", 0))
         result.update(student_id=enr.student_id, course_id=enr.course_id)
         out.append(result)
     return out
@@ -287,7 +303,7 @@ def student_absence_status(db: Session, student_id: int) -> List[Dict[str, Any]]
         if course is None:
             continue
         c = counts.get((student_id, course.id), {})
-        result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0))
+        result = evaluate(course, absent=c.get("absent", 0), excused=c.get("excused", 0), late=c.get("late", 0))
         result.update(
             student_id=student_id, course_id=course.id, course_code=course.course_code, course_name=course.course_name
         )

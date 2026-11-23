@@ -46,13 +46,17 @@ export default {
   // Attendance metrics
   email: 'Email',
   attendanceRate: 'Attendance Rate',
-  totalDays: 'Total Days',
+  // One record per teaching period (a day can have several), as the absence limits count them.
+  totalDays: 'Periods recorded',
   present: 'Present',
   absent: 'Absent',
   late: 'Late',
   excused: 'Excused',
   unexcusedAbsences: 'Unexcused Absences',
-  attendanceRateValue: '{{rate}}% ({{present}}/{{total}} days)',
+  // Attended = Present + Late (plan todo 77), as the rate counts them.
+  attendanceRateValue: '{{rate}}% ({{attended}}/{{total}} periods attended)',
+  attendanceLateCount_one: '{{count}} late',
+  attendanceLateCount_other: '{{count}} late',
 
   // Grade metrics
   average: 'Average',
@@ -143,6 +147,7 @@ export default {
     remarks: 'Remarks',
     finalGrade: 'Final grade',
     deductions: 'Deductions',
+    late: 'Late',
     average: 'Average',
     notGraded: 'Not graded',
     entries: '{{n}} grades, the latest shown',
@@ -156,6 +161,7 @@ export default {
     basisRules: 'One column per evaluation rule of the course: the average the final grade counts.',
     basisGrades: 'This course has no evaluation rules: each category is the mean of its grades.',
     deductionsNote: 'Deductions: points the final grade loses for participation observations and unexcused absences.',
+    lateNote: "Late: periods the student arrived late. They count as attended, not as absences; shown for the teacher's evaluation.",
     finalRules: "Final grade so far: from the course's evaluation rules, scaled to the work graded so far.",
     finalAverage: "Final grade: the mean of the student's grades (no evaluation rule applies).",
     finalAverageMarked: '† No evaluation rule matched these grades: the final grade is their mean.',

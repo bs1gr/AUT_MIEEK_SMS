@@ -13,6 +13,7 @@ from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
 from backend.models import Attendance, Course, CourseEnrollment, Grade, Student
+from backend.services.absence_limit_service import ABSENCE_STATUSES, ATTENDED_STATUSES
 from backend.schemas.metrics import (
     AttendanceMetrics,
     CourseMetrics,
@@ -196,8 +197,14 @@ class MetricsService:
         Returns:
             AttendanceMetrics with attendance rates
         """
-        # Total attendance records
-        total_records = self.db.query(func.count(Attendance.id)).scalar() or 0
+        # Present and Late are attended, Absent and Excused absences, whatever the case a status
+        # was stored in (plan todo 77). Until then this compared with a lower-case "present" that
+        # the stored "Present" never matched, and took a Late for an absence. The live filter
+        # repeats the app session's own soft-delete filter, for a session without it (the tests').
+        live = Attendance.deleted_at.is_(None)
+        status = func.lower(Attendance.status)
+        attended = status.in_(sorted(ATTENDED_STATUSES))
+        total_records = self.db.query(func.count(Attendance.id)).filter(live).scalar() or 0
 
         if total_records == 0:
             return AttendanceMetrics(
@@ -209,9 +216,11 @@ class MetricsService:
                 by_date={},
             )
 
-        # Present/absent counts
-        present_count = self.db.query(func.count(Attendance.id)).filter(Attendance.status == "present").scalar() or 0
-        absent_count = total_records - present_count
+        # Attended (Present + Late) / absent (Absent + Excused) counts
+        present_count = self.db.query(func.count(Attendance.id)).filter(live, attended).scalar() or 0
+        absent_count = (
+            self.db.query(func.count(Attendance.id)).filter(live, status.in_(sorted(ABSENCE_STATUSES))).scalar() or 0
+        )
 
         # Overall attendance rate
         attendance_rate = (present_count / total_records * 100) if total_records > 0 else 0.0
@@ -221,9 +230,10 @@ class MetricsService:
             self.db.query(
                 Course.course_code,
                 func.count(Attendance.id).label("total"),
-                func.sum(case((Attendance.status == "present", 1), else_=0)).label("present"),
+                func.sum(case((attended, 1), else_=0)).label("present"),
             )
             .join(Course)
+            .filter(live)
             .group_by(Course.course_code)
             .all()
         )
@@ -236,8 +246,9 @@ class MetricsService:
             self.db.query(
                 Attendance.date,
                 func.count(Attendance.id).label("total"),
-                func.sum(case((Attendance.status == "present", 1), else_=0)).label("present"),
+                func.sum(case((attended, 1), else_=0)).label("present"),
             )
+            .filter(live)
             .group_by(Attendance.date)
             .order_by(Attendance.date.desc())
             .limit(7)

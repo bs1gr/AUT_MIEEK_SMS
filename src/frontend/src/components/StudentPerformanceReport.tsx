@@ -10,6 +10,11 @@ interface AttendanceSummary {
   total_days: number;
   present: number;
   absent: number;
+  /** Attended: in the rate (plan todo 77). */
+  late?: number;
+  /** An absence, as the ΜΙΕΕΚ limit counts it. */
+  excused?: number;
+  /** Present and Late over every period recorded. */
   attendance_rate: number;
   unexcused_absences: number;
 }
@@ -421,25 +426,39 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   <h3 className="text-lg font-semibold mb-3">{t('attendanceSummary', { ns: 'reports' })}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600">{t('attendanceRate', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('attendanceRate', { ns: 'reports' })}:</span>
                       <span className={`font-bold ${getAttendanceColor(report.overall_attendance.attendance_rate)}`}>
                         {report.overall_attendance.attendance_rate}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('totalDays', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('totalDays', { ns: 'reports' })}:</span>
                       <span>{report.overall_attendance.total_days}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('present', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('present', { ns: 'reports' })}:</span>
                       <span className="text-green-600">{report.overall_attendance.present}</span>
                     </div>
+                    {/* A Late counts as attended in the rate, an Excused as an absence (plan
+                        todo 77): both listed, so the rate can be read off the counts. */}
+                    {report.overall_attendance.late !== undefined && (
+                      <div data-testid="report-overall-late">
+                        <span className="text-gray-600 mr-1">{t('late', { ns: 'reports' })}:</span>
+                        <span className="text-amber-700">{report.overall_attendance.late}</span>
+                      </div>
+                    )}
                     <div>
-                      <span className="text-gray-600">{t('absent', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('absent', { ns: 'reports' })}:</span>
                       <span className="text-red-600">{report.overall_attendance.absent}</span>
                     </div>
+                    {report.overall_attendance.excused !== undefined && (
+                      <div data-testid="report-overall-excused">
+                        <span className="text-gray-600 mr-1">{t('excused', { ns: 'reports' })}:</span>
+                        <span className="text-blue-700">{report.overall_attendance.excused}</span>
+                      </div>
+                    )}
                     <div>
-                      <span className="text-gray-600">{t('unexcusedAbsences', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('unexcusedAbsences', { ns: 'reports' })}:</span>
                       <span className="text-red-600 font-medium">{report.overall_attendance.unexcused_absences}</span>
                     </div>
                   </div>
@@ -513,13 +532,20 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                         <div className="mb-2 flex items-center justify-between">
                           <div>
                             <p className="text-sm text-gray-600">{t('attendance', { ns: 'reports' })}:</p>
-                            <p className={`text-sm font-medium ${getAttendanceColor(course.attendance.attendance_rate)}`}>
+                            <p
+                              className={`text-sm font-medium ${getAttendanceColor(course.attendance.attendance_rate)}`}
+                              data-testid={`report-course-attendance-${idx}`}
+                            >
+                              {/* The periods attended, Present and Late, as the rate counts them
+                                  (plan todo 77); the Lates named for the evaluation. */}
                               {t('attendanceRateValue', {
                                 ns: 'reports',
                                 rate: course.attendance.attendance_rate,
-                                present: course.attendance.present,
+                                attended: course.attendance.present + (course.attendance.late ?? 0),
                                 total: course.attendance.total_days,
                               })}
+                              {(course.attendance.late ?? 0) > 0 &&
+                                ` · ${t('attendanceLateCount', { ns: 'reports', count: course.attendance.late })}`}
                             </p>
                           </div>
                           <button

@@ -121,6 +121,54 @@ describe('StudentProfile - Academic History', () => {
   });
 });
 
+describe('StudentProfile - attendance rate', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedStudentsAPI.getById.mockResolvedValue(STUDENT);
+    mockedGradesAPI.getByStudent.mockResolvedValue([]);
+    mockedHighlightsAPI.getByStudent.mockResolvedValue([]);
+    mockedApiClient.get.mockResolvedValue({ data: [] });
+  });
+
+  it('counts Present and Late as attended, Excused as an absence (todo 77)', async () => {
+    // It counted Present alone: 25%.
+    mockedAttendanceAPI.getByStudent.mockResolvedValue(
+      ['Present', 'Late', 'Late', 'Excused'].map((status, i) => ({
+        id: i + 1,
+        student_id: 42,
+        course_id: 9,
+        date: `2026-11-0${i + 2}`,
+        status,
+      }))
+    );
+
+    renderProfile();
+
+    expect(await screen.findByTestId('profile-attendance-rate')).toHaveTextContent('75%');
+  });
+
+  it('counts each status whatever its case, as the rate tile does', async () => {
+    // A semester file can bring "late" or "Absent "; the rate took them, the cards did not.
+    mockedAttendanceAPI.getByStudent.mockResolvedValue(
+      ['present', 'late', 'Late', 'Absent '].map((status, i) => ({
+        id: i + 1,
+        student_id: 42,
+        course_id: 9,
+        date: `2026-11-0${i + 2}`,
+        status,
+      }))
+    );
+
+    renderProfile();
+
+    expect(await screen.findByTestId('profile-attendance-rate')).toHaveTextContent('75%');
+    expect(screen.getByTestId('profile-attendance-count-present')).toHaveTextContent(/^\D*1\s*25\.0%$/);
+    expect(screen.getByTestId('profile-attendance-count-late')).toHaveTextContent(/^\D*2\s*50\.0%$/);
+    expect(screen.getByTestId('profile-attendance-count-absent')).toHaveTextContent(/^\D*1\s*25\.0%$/);
+    expect(screen.getByTestId('profile-attendance-count-excused')).toHaveTextContent(/^\D*0\s*0\.0%$/);
+  });
+});
+
 describe('StudentProfile - dates of enrolment and of grades', () => {
   beforeEach(() => {
     vi.clearAllMocks();

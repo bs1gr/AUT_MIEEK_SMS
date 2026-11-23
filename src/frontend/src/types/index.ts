@@ -115,6 +115,8 @@ export interface AbsenceLimitStatus {
   absences: number;
   unexcused_absences: number;
   excused_absences: number;
+  /** Periods the student came late: not absences, shown for the evaluation (todo 77; absent from older servers). */
+  late?: number;
   absence_percent: number;
   /** Fail limit (%): over it attendance is insufficient and the course is failed. */
   limit_percent: number;
@@ -313,6 +315,8 @@ export interface FinalGrade {
   // Points the ticked participation observations took off final_grade (already applied).
   participation_deduction?: number;
   absence_limit?: AbsenceLimitStatus;
+  /** The periods recorded, by status (plan todo 77: a Late is attended; absent from older servers). */
+  attendance?: { present: number; late: number; absent: number; excused: number; recorded: number };
 }
 
 // Utility types

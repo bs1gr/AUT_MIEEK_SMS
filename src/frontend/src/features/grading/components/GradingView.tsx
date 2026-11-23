@@ -11,6 +11,7 @@ import { useGradeEntrySync } from '@/features/grading/hooks/useGradeEntrySync';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { splitParticipationRules } from '@/utils/participation';
 import { gradeSheetsLink } from '@/features/grade-sheets/gradeSheetsLink';
+import FinalGradeAttendance from './FinalGradeAttendance';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -420,7 +421,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         {!studentId || !courseId ? (
           <p className="text-sm text-gray-500">{t('selectStudentAndCourse')}</p>
         ) : gradeEntry.finalSummary ? (
-          <div className="text-sm">
+          <div className="text-sm" data-testid="grading-final-summary">
             {gradeEntry.finalSummary.attendance_insufficient && (
               <span className="inline-block mb-2 text-xs font-semibold px-2 py-1 rounded border bg-red-100 text-red-800 border-red-300">
                 {t('attendanceInsufficientBadge')}
@@ -447,6 +448,14 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                 </ul>
               </div>
             )}
+            {/* The periods recorded, a Late among the attended and counted for the teacher's
+                evaluation (the owner, 2026-11-23, plan todo 77). */}
+            <FinalGradeAttendance
+              attendance={gradeEntry.finalSummary.attendance}
+              t={t}
+              className="mt-2 text-gray-800"
+              testId="grading-attendance-counts"
+            />
           </div>
         ) : (
           <p className="text-sm text-gray-500">{t('noData')}</p>

@@ -38,7 +38,9 @@ def test_predictions_from_grades_and_attendance(client, db, admin_headers):
     assert len(body["grade_predictions"]) == 4
     assert {"date", "predicted_grade", "confidence"} <= set(body["grade_predictions"][0])
 
-    # Present and Excused count as attended, as on the Students page: 3 of 5.
+    # Present and Late count as attended, as on every page (plan todo 77): 3 of 5. (Present and
+    # Excused, counted until then, happen to give 3 of 5 here too; test_late_is_attended tells
+    # them apart.)
     risk = body["risk_assessment"]
     assert risk["attendance_rate"] == 60.0
     assert risk["risk_level"] in {"low", "medium", "high"}

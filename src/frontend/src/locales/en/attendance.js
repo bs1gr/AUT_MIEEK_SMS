@@ -119,6 +119,8 @@ export default {
   absenceLimitColumnStatus: 'Status',
   absenceLimitSummary: '{{absences}} of {{scheduled}} periods ({{percent}}%)',
   absenceLimitExcusedBreakdown: 'Unexcused: {{unexcused}} · Excused: {{excused}}',
+  absenceLimitLate_one: 'Late: {{count}} (not an absence)',
+  absenceLimitLate_other: 'Late: {{count}} (not absences)',
   absenceLimitAllowed: '{{allowed}} ({{limit}}%)',
   absenceLimitRemaining: '{{count}} left',
   absenceLimitStatusOk: 'Sufficient',

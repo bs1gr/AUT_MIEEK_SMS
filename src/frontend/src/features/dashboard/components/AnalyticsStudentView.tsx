@@ -8,7 +8,7 @@ import {
   PASS_MARK,
   type Translate,
 } from './AnalyticsCharts';
-import { AbsenceBadge, formatPercent } from './analyticsUi';
+import { AbsenceBadge, formatPercent, LateCount } from './analyticsUi';
 
 export interface AnalyticsStudentViewProps {
   t: Translate;
@@ -118,7 +118,10 @@ const AnalyticsStudentView = ({
                 </td>
                 <td className={CELL}>{formatPercent(c.class_average)}</td>
                 <td className={CELL}>{c.rank ? t('analytics.overview.rankOf', { rank: c.rank, total: c.ranked_of }) : '—'}</td>
-                <td className={CELL}>{formatPercent(c.attendance.rate)}</td>
+                <td className={CELL}>
+                  {formatPercent(c.attendance.rate)}
+                  <LateCount count={c.attendance.late} t={t} />
+                </td>
                 <td className={CELL}>
                   {c.absence.allowed_absences !== null && c.absence.allowed_absences !== undefined
                     ? t('analytics.overview.absencesOfAllowed', {

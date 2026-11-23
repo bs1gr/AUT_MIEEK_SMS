@@ -74,6 +74,8 @@ export interface FinalFields {
   participation_forfeited: boolean;
   participation_deduction: number | null;
   absence_deduction: number | null;
+  /** Periods the student came late (plan todo 77): attended, not absences; absent from older servers. */
+  late?: number;
 }
 
 export interface MatrixRow extends RowBase, FinalFields {
