@@ -1,4 +1,6 @@
-import type { StudentOverviewCourse } from '@/api/hooks/useAnalytics';
+import type { StudentCategory, StudentOverviewCourse } from '@/api/hooks/useAnalytics';
+import { cn } from '@/lib/utils';
+import { AnalyticsCategoryProfile } from './AnalyticsCategories';
 import {
   AttendanceBreakdownChart,
   CourseComparisonChart,
@@ -14,13 +16,29 @@ export interface AnalyticsStudentViewProps {
   visibleCharts: Set<string>;
   /** Already narrowed to the chosen course, when there is one. */
   courses: StudentOverviewCourse[];
+  /** By category across the courses (or the chosen course's own); none from an older server. */
+  categories?: StudentCategory[];
   singleCourse: boolean;
 }
+
+// A colour on a cell that already has one (CELL's grey) must replace it, not race it in the
+// stylesheet: Tailwind emits colours alphabetically, so text-slate-700 beat text-red-700.
+
+/** A course with rules whose final grade fell back to the mean of grades no rule counts. */
+const outsideTheRules = (c: StudentOverviewCourse): boolean =>
+  Boolean(c.has_rules) && c.grade_basis === 'average' && c.grade_count > 0;
 
 const CELL = 'px-3 py-2 text-sm text-slate-700';
 const HEAD = 'px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-600';
 
-const AnalyticsStudentView = ({ t, formatDate, visibleCharts, courses, singleCourse }: AnalyticsStudentViewProps) => {
+const AnalyticsStudentView = ({
+  t,
+  formatDate,
+  visibleCharts,
+  courses,
+  categories,
+  singleCourse,
+}: AnalyticsStudentViewProps) => {
   if (courses.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center" data-testid="analytics-no-courses">
@@ -62,6 +80,14 @@ const AnalyticsStudentView = ({ t, formatDate, visibleCharts, courses, singleCou
         )}
       </div>
 
+      <AnalyticsCategoryProfile
+        t={t}
+        categories={categories}
+        singleCourse={singleCourse}
+        participationLost={courses.some((c) => c.absence.participation_forfeited)}
+        outsideRules={courses.filter(outsideTheRules).map((c) => c.course_name)}
+      />
+
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
         <table className="min-w-full divide-y divide-slate-200" data-testid="analytics-student-courses">
           <thead className="bg-slate-50">
@@ -83,10 +109,11 @@ const AnalyticsStudentView = ({ t, formatDate, visibleCharts, courses, singleCou
                   <div className="text-xs text-slate-600">
                     {t('analytics.overview.gradesRecorded', { count: c.grade_count })}
                     {c.rating_count > 0 && ` · ${t('analytics.overview.ratingsRecorded', { count: c.rating_count })}`}
-                    {c.grade_basis === 'average' && ` · ${t('analytics.overview.noRulesNote')}`}
+                    {c.grade_basis === 'average' &&
+                      ` · ${t(outsideTheRules(c) ? 'analytics.overview.outsideRulesNote' : 'analytics.overview.noRulesNote')}`}
                   </div>
                 </td>
-                <td className={`${CELL} font-semibold ${c.passing === false ? 'text-red-700' : 'text-slate-900'}`}>
+                <td className={cn(CELL, 'font-semibold', c.passing === false ? 'text-red-700' : 'text-slate-900')}>
                   {formatPercent(c.final_grade)}
                 </td>
                 <td className={CELL}>{formatPercent(c.class_average)}</td>
@@ -133,7 +160,7 @@ const AnalyticsStudentView = ({ t, formatDate, visibleCharts, courses, singleCou
                     <td className={CELL}>{g.date ? formatDate(g.date) : '—'}</td>
                     <td className={CELL}>{g.category ?? '—'}</td>
                     <td className={CELL}>{g.assignment ?? '—'}</td>
-                    <td className={`${CELL} ${g.percentage < PASS_MARK ? 'text-red-700' : ''}`}>{formatPercent(g.percentage)}</td>
+                    <td className={cn(CELL, g.percentage < PASS_MARK && 'text-red-700')}>{formatPercent(g.percentage)}</td>
                   </tr>
                 ))}
               </tbody>

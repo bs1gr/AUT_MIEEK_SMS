@@ -154,6 +154,7 @@ export default {
     participationLost: 'Class Participation lost (over 10% absences)',
     participationLostIn: 'Class Participation lost: {{courses}}',
     noRulesNote: 'no evaluation rules, plain average',
+    outsideRulesNote: 'grades outside the evaluation rules, plain average',
     absences: 'Absences',
     absencesOfAllowed: '{{used}} of {{allowed}} allowed',
     absenceLimit: 'Absence Limit',
@@ -188,6 +189,49 @@ export default {
     noEnrollments: 'This student is not enrolled in any course.',
     noStudents: 'No active students in this selection.',
     exportScope: 'Exports cover all active students',
+  },
+  // By category, whatever the course (plan todo 75): strengths and difficulties
+  categories: {
+    title: 'Strengths and difficulties by category',
+    help: "The student's average in each grading category (exams, labs, homework...) across all their courses, as the final grade counts it, against the class's average in the same courses.",
+    helpCourse: "The student's average in each category of this course, as the final grade counts it, against the class's average.",
+    category: 'Category',
+    student: 'Student',
+    classAverage: 'Class average',
+    difference: 'Difference',
+    bar: 'Student and class as a bar',
+    courses: 'Courses',
+    strength: 'Strength',
+    difficulty: 'Difficulty',
+    strengths: 'Strengths: {{list}}',
+    difficulties: 'Difficulties: {{list}}',
+    noSignals: 'No category stands out from the class.',
+    noData: 'No category has a grade yet.',
+    noDataLost: 'No category counts yet: Class Participation lost to absences is not counted.',
+    noDataOutsideRules:
+      "No grade yet in a category the course's evaluation rules count; grades in other categories are not counted here.",
+    outsideRules: 'Grades outside the evaluation rules are not counted here: {{courses}}.',
+    legend:
+      'Difficulty: under 50, or at least 10 points under the class average. Strength: 85 or more, or at least 10 points over it; the 50 and 85 limits decide first. Attendance can be a difficulty, never a strength, and so can Class Participation in a course that rates nobody: every day present then counts in full, less the observations ticked in Attendance. Rated Class Participation counts those observations as the final grade does. A category lost to absences is not counted.',
+    matrixTitle: 'Students by category, across their courses',
+    matrixTitleCourse: 'Students by category in this course',
+    matrixHelp:
+      "Each student's average per category over all their courses in this selection, against the average of the same courses (among this selection's students); the students with the most difficulties first.",
+    matrixHelpCourse:
+      "Each student's average per category in this course, against the course's average (among this selection's students); the students with the most difficulties first.",
+    matrixLegend:
+      '▼ Difficulty: under 50, or at least 10 points under the average of the same courses. ▲ Strength: 85 or more, or at least 10 points over it; the 50 and 85 limits decide first. Attendance can be a difficulty, never a strength, and so can Class Participation in a course that rates nobody (every day present counts in full, less the observations ticked). Under each figure: its difference from that average. A category lost to absences is not counted.',
+    matrixLegendCourse:
+      "▼ Difficulty: under 50, or at least 10 points under the course's average. ▲ Strength: 85 or more, or at least 10 points over it; the 50 and 85 limits decide first. Attendance can be a difficulty, never a strength, and so can Class Participation in a course that rates nobody (every day present counts in full, less the observations ticked). Under each figure: its difference from that average. A category lost to absences is not counted.",
+    sameCourses: 'Average of the same courses: {{value}}',
+    courseAverage: 'Course average: {{value}}',
+    unlisted_one: '{{count}} student of this selection has nothing counted in any category yet and is not listed.',
+    unlisted_other: '{{count}} students of this selection have nothing counted in any category yet and are not listed.',
+    studentsAverage: "Students' average",
+    byCourseTitle: 'Courses by category',
+    byCourseHelp: "Each course's class average per category.",
+    course: 'Course',
+    difficultyCount: 'Difficulties',
   },
   // Student Profile predictions panel (codes from the backend are translated here)
   predictive: {

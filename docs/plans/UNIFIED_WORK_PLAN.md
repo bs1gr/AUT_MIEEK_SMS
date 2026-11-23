@@ -333,7 +333,88 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-23: grade sheets, the page** (todo 75 stage 2). `#/operations/reports/grade-sheets`:
+**2026-11-23: Analytics by category, whatever the course** (todo 75 stage 3). The Analytics page
+(Dashboard → Analytics) now diagnoses by grading category across courses. A course's own
+category names fold into the standard list of stage 1 (`grade_categories.group_key`), so
+"Εργαστήριο" in one course and "Lab Work" in another are one category.
+- **Student view, "Strengths and difficulties by category":** the student's average in each
+  category over all their courses against the class's average in the same courses, the
+  difference, a bar, each course's own figure with its mark, and the strengths and difficulties
+  named in a line above. A course chosen narrows it to that course's figures and marks. A student
+  whose only graded category was lost to absences is told so, not "nothing graded", and so is
+  one whose grades are all outside a course's rules (that course's row now says "grades outside
+  the evaluation rules", not "no evaluation rules"); a server older than this shows no such
+  section (the phone app can be newer than its server).
+- **Class view, "Students by category":** each student's average per category over their
+  courses in the selection, marked against the average of the same courses among the selection's
+  students (a student in a hard course is not held to an easy one's average), the students with
+  the most difficulties first; under each figure its difference from that average, on screen and
+  not only on hover; a bottom row with the students' own average. A name opens the student (in
+  the chosen course, if one is chosen; the focus goes to the student picker). A line says how
+  many of the selection's students have nothing counted yet (they have no row). Then "Courses
+  by category", each course's class average per category. On a phone the names, categories and
+  courses stay in view while the tables scroll.
+- **The figures are what the final grade counts.** A course with weighted rules counts its rules,
+  for every student (as its category sheet): the averages of the final grade's breakdown, an
+  exam by its latest grade, daily ratings in their rule, two rules of one kind by their weights.
+  Class Participation is the share kept after the observations ticked in Attendance, worked out
+  from the ticks themselves, with one scale per course (the owner, 2026-11-23): where anyone is
+  rated, only the rated have a figure, the rating less the ticks, exactly what the final grade
+  counts; where nobody is rated but ticks are used, every student present counts from the whole
+  share less the ticks (the 2026-10-13 rule: the rest is credit for presence), a figure that can
+  be a difficulty, never a strength, and is never compared with a rating. A category lost to
+  absences is left out; a grade outside the rules does not count. Without rules: each
+  category's weighted mean of its grades, as percentages of their maximum. A grade without a
+  category is "Χωρίς κατηγορία" / "Uncategorized"; another course's own name is shown as most of
+  its grades spell it. Every figure is sent and judged as shown, to one decimal with a half up.
+- **The marks:** under 50 a difficulty and 85 or more a strength, whatever the class; in
+  between, 10 points under or over the class decide. Attendance, and participation from presence
+  alone, can be a difficulty, never a strength (85 to 90 % attendance is already past the 10 %
+  participation limit). A mark is never colour alone: a badge with
+  its word, or ▼ / ▲ with the word for screen readers; the strengths read at 9:1 in ΜΙΕΕΚ Dark
+  too (they were dark green on black, 2.6:1).
+- **Server:** `categories` in `GET /analytics/overview` and `GET /analytics/student/{id}/overview`,
+  whose course rows gain `has_rules`; the final-grade calculation's result gains
+  `participation_share` (no grade changes).
+- Also fixed on that page: colours written as a second class on a cell never showed, since
+  Tailwind emits colours alphabetically and the grey won (a failing final grade printed grey).
+
+**Adversarial review before the PR, two passes.** The first: six reviewers (the figures, the
+categories, the page, integration, the tests, a teacher's eye), then two skeptics per finding
+(is it real, is it worth fixing now): 33 findings, none shown false, 15 held by both skeptics, 18
+real but judged not worth fixing by one. Fixed: the 15, and of the 18 the one-course titles, the
+selection named in the help, two rules of one kind by their weights, the levels first, a name
+keeping the chosen course, the row headers and focus, the spelling of a name, the Greek wording.
+The worst: participation ignored the observation ticks, so a student ticked "No participation"
+day after day could show 90 % and a Strength (or no row, unrated); a type error that fails the
+gate and CI; marks judged at two decimals beside figures shown at one, so "80.0 % | 70.0 % |
++10.0" stood unmarked under a legend that says 10 points; the reference a mark was judged
+against only in a tooltip, never on a phone. Kept as they are, with reasons: two rules of one
+kind stay one category within a course (no ΜΙΕΕΚ course in `templates/courses` folds two rules);
+the tie order by first name (the at-risk list above does the same); the cost at 300 students
+(about 6 ms per Dashboard at the real size). Three questions that change final grades went to the
+owner and are todo 77; the page's language is todo 76. The second pass, on the fixes: four
+reviewers (the figures, integration, the page, a teacher's eye) and a skeptic per finding: 9
+findings, none refuted, 6 held and 3 real but not urgent, all fixed but the one todo 77 settles
+(without rules a category weighs the grades by their Weight, the final grade not yet). The worst:
+an unrated share inherited the final grade's floor, so a student ticked "No participation" with
+nothing graded yet showed 100 and a Strength; unrated 100s for presence raised the class average
+a rated student was judged against (the owner chose one scale per course); Attendance at 88 %,
+already past the participation limit, a Strength; a tenth lost to float noise (16.99/20 shown
+84.9); the score bar gone in ΜΙΕΕΚ Dark (its "bg-slate-50" rule also catches bg-slate-500).
+
+Tests: `test_analytics_categories.py` (50; on the reviewed code 21 failed after the first pass
+and 12 after the second, and each of 20 mutations of the fixes is caught),
+`AnalyticsCategories.test.tsx` (13), `AnalyticsDashboard.test.tsx` (14, its fixtures now carry
+categories, so the English and Greek check covers them), the i18n key scan now covers the
+Analytics components; each of 20 mutations of the page's fixes is caught. Checked in a browser
+against a backend on a throwaway SQLite (never the shared database), as a teacher, in Greek and
+English, light and ΜΙΕΕΚ Dark, desktop and 390 px: three ticks took a student's participation in
+a course from 80.0 to 35.0 (a difficulty), what the calculation's breakdown gives; 25 of 25
+checks, no failed request and no console error.
+
+**2026-11-23: grade sheets, the page** (todo 75 stage 2, PR 485, merged as `d6d5230d6`, its
+checks green). `#/operations/reports/grade-sheets`:
 a course, the kind of sheet (one assessment, every assessment, by category) and, for one
 assessment, which (the newest unless the address names one the course has; each listed with
 its dates, first to last), then the sheet on screen with the printed sheet's columns, marks and
@@ -2659,8 +2740,10 @@ archive. Moot: `viewer` and `guest` getting 403 on the Dashboard overview, since
 no longer exist (PR 425 turned them into "No role").
 
 **New on 2026-11-23: todo 75**, the analytics and reports rework, in six stages; the owner's
-four answers are in its entry. Stages 1 and 2 (the grade sheets, their server side and their
-page) are on `main`.
+four answers are in its entry. Stages 1 to 3 (the grade sheets, their server side and their
+page; Analytics by category) are on `main`. **Todo 77**, three corrections to the final grade
+the owner decided that day (Late is attended, lab names match lab, the Weight counts without
+rules), is next, then **todo 76** (the page's language), then stages 4 to 6.
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3124,11 +3207,11 @@ and 44 and 48 in its part 5):
       1. Grade sheets, the server side: the standard category list, the three sheets as JSON,
          PDF and Excel. **Done** (PR 484, under "On `main` since v1.18.80").
       2. Grade sheets, the page: a course and assessment picker, the sheet on screen, PDF and
-         Excel; reached from Utils → Reports, the Grading page and Analytics. **Done** (under
-         "On `main` since v1.18.80"; the Analytics course rows already open their sheets).
+         Excel; reached from Utils → Reports, the Grading page and Analytics. **Done** (PR 485,
+         under "On `main` since v1.18.80"; the Analytics course rows already open their sheets).
       3. Analytics, the diagnosis across courses: each student's category profile over all
          their courses against the class's, with strengths and difficulties; the class view by
-         category and course.
+         category and course. **Done** (under "On `main` since v1.18.80").
       4. The Analytics export keeps the filters and carries the per-student rows and category
          profile (a course row opening its grade sheets came with stage 2).
       5. The custom report builder: the saved sort, more than one filter per field, course and
@@ -3137,6 +3220,36 @@ and 44 and 48 in its part 5):
       6. Utils → Reports tidied (about 15 links lead to 3 pages). Removing the dead code
          (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
          asked first.
+
+76. **The page's language for the browser** (found by todo 75 stage 3's review, 2026-11-23; no
+    decision needed). `index.html` says `lang="en"` and nothing changes it with the language
+    chosen, so the browser keeps the accents of Greek words written in capitals by CSS
+    (`uppercase`: "ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ", in 33 files), and a screen reader reads
+    Greek with an English voice (WCAG 3.1.1). Set `document.documentElement.lang` from the
+    language in `LanguageProvider`, then look over the pages that use `uppercase`. Its own PR,
+    after todo 77.
+
+77. **Three corrections to the final grade** (the owner, 2026-11-23, asked after todo 75 stage
+    3's review; each changes final grades, no database change):
+    1. **Late is not an absence.** An "Attendance"/"Παρουσία" rule counted only Present as
+       attended, while the attendance rate and the ΜΙΕΕΚ absence limit count Present + Late.
+       The owner: "Late should not count as absent, but should be referenced in a students
+       attendance results in order to be considered in the teacher's final evaluation." Count
+       Late as attended in the rule, and show the number of Lates beside the student's
+       attendance where the teacher evaluates (proposed: the Analytics student view, the grade
+       sheets on screen, PDF and Excel, the Grading page's final-grade breakdown).
+    2. **Lab names match lab.** The final grade's matching (`normalize_rule_category`) finds
+       "εργασ" (homework) before "εργαστηρ" (lab), so a rule "Εργαστήρια" or "Εργαστηριακή
+       Εργασία" takes the homework grades. The owner: "The lab always happens in class, the
+       matching should be reordered or corrected properly." "Παρουσίαση" (a presentation) is
+       matched as attendance by the same order: corrected with it. "Τελική Εργασία" stays a
+       Final Exam, as the course editor saves it.
+    3. **The Weight counts without rules too.** A course without rules, or a student whose
+       grades match no rule, gets the plain mean of the grades; the grade's Weight box counts
+       only in the category figures and the grade sheets. The owner: "The final grade should use
+       the Weight too."
+    One PR after todo 75 stage 3, with tests that fail on the old rules, the help texts and docs
+    that state them, and release notes that say final grades change.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):

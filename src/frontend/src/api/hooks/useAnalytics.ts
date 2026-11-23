@@ -17,7 +17,52 @@ export interface AttendanceCounts {
   rate: number | null;
 }
 
+/** Plan todo 75 stage 3: averages by category, whatever the course. */
+export type CategorySignal = 'strength' | 'difficulty' | null;
+
+export interface CategoryColumn {
+  /** The key that compares categories across courses ("lab", "exam"... or "custom:<name>"). */
+  key: string;
+  /** Set for a standard category (and "uncategorized" for grades without one): shown with its translated label. */
+  label_key: string | null;
+  /** The category's own name, for one that is not standard. */
+  name: string;
+}
+
+export interface StudentCategory extends CategoryColumn {
+  average: number | null;
+  class_average: number | null;
+  difference: number | null;
+  signal: CategorySignal;
+  courses: {
+    id: number;
+    course_code: string;
+    course_name: string;
+    average: number | null;
+    class_average: number | null;
+    signal: CategorySignal;
+  }[];
+}
+
+export interface ClassCategories {
+  columns: CategoryColumn[];
+  averages: (number | null)[];
+  students: {
+    id: number;
+    name: string;
+    cells: (number | null)[];
+    /** What each cell was marked against: the average of the same courses, as on the student view. */
+    class_averages: (number | null)[];
+    signals: CategorySignal[];
+    difficulties: number;
+    strengths: number;
+  }[];
+  courses: { id: number; course_code: string; course_name: string; cells: (number | null)[] }[];
+}
+
 export interface ClassOverview {
+  /** Absent from a server older than todo 75 stage 3. */
+  categories?: ClassCategories;
   scope: { academic_year: string | null; class_division: string | null; course_id: number | null };
   filters: { academic_years: string[]; class_divisions: string[] };
   summary: {
@@ -72,6 +117,11 @@ export interface StudentOverviewCourse {
   course_name: string;
   final_grade: number | null;
   grade_basis: 'rules' | 'average' | null;
+  /**
+   * The course has evaluation rules (todo 75 stage 3; absent from older servers). With
+   * grade_basis "average" the grades so far are all outside the rules, so no category counts them.
+   */
+  has_rules?: boolean;
   grade_count: number;
   /** Per-period participation ratings (daily performance); they count toward the final grade too. */
   rating_count: number;
@@ -115,6 +165,8 @@ export interface StudentOverview {
     at_risk: boolean;
   };
   courses: StudentOverviewCourse[];
+  /** Absent from a server older than todo 75 stage 3. */
+  categories?: StudentCategory[];
 }
 
 export interface ClassOverviewParams {

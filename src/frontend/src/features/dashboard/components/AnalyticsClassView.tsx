@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { ClassOverview } from '@/api/hooks/useAnalytics';
 import { gradeSheetsLink } from '@/features/grade-sheets/gradeSheetsLink';
+import { cn } from '@/lib/utils';
 import {
   AttendanceBreakdownChart,
   AttendanceGradeScatter,
@@ -9,6 +10,7 @@ import {
   type Translate,
 } from './AnalyticsCharts';
 import { AbsenceBadge, formatPercent } from './analyticsUi';
+import { AnalyticsCategoryMatrix } from './AnalyticsCategories';
 
 export interface AnalyticsClassViewProps {
   t: Translate;
@@ -108,7 +110,7 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
                       </div>
                     </td>
                     <td className={CELL}>{formatPercent(s.average_final_grade)}</td>
-                    <td className={`${CELL} text-red-700`}>{s.failing_courses.join(', ') || '—'}</td>
+                    <td className={cn(CELL, 'text-red-700')}>{s.failing_courses.join(', ') || '—'}</td>
                     <td className={CELL}>{formatPercent(s.attendance_rate)}</td>
                     <td className={CELL}>
                       <AbsenceBadge status={s.absence_status} t={t} />
@@ -125,6 +127,14 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
           </div>
         )}
       </section>
+
+      <AnalyticsCategoryMatrix
+        t={t}
+        block={overview.categories}
+        singleCourse={Boolean(overview.scope.course_id)}
+        unlisted={overview.categories ? students.length - overview.categories.students.length : 0}
+        onOpenStudent={onOpenStudent}
+      />
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
         <table className="min-w-full divide-y divide-slate-200" data-testid="analytics-class-courses">

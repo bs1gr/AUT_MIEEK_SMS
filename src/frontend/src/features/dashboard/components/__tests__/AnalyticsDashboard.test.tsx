@@ -6,7 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/i18n/config';
 import { LanguageProvider } from '@/LanguageContext';
-import type { ClassOverview, StudentOverview, StudentOverviewCourse } from '@/api/hooks/useAnalytics';
+import type { ClassOverview, StudentCategory, StudentOverview, StudentOverviewCourse } from '@/api/hooks/useAnalytics';
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
 
 const get = vi.hoisted(() => vi.fn());
@@ -45,6 +45,7 @@ const course = (id: number, code: string, final: number | null, extra: Partial<S
   course_name: `Course ${code}`,
   final_grade: final,
   grade_basis: final === null ? null : 'rules',
+  has_rules: true,
   grade_count: final === null ? 0 : 2,
   rating_count: 0,
   passing: final === null ? null : final >= 50,
@@ -60,9 +61,15 @@ const course = (id: number, code: string, final: number | null, extra: Partial<S
   ...extra,
 });
 
-const studentOverview = (id: number, name: string, courses: StudentOverviewCourse[]): StudentOverview => {
+const studentOverview = (
+  id: number,
+  name: string,
+  courses: StudentOverviewCourse[],
+  categories?: StudentCategory[]
+): StudentOverview => {
   const finals = courses.map((c) => c.final_grade).filter((g): g is number => g !== null);
   return {
+    ...(categories ? { categories } : {}),
     student: { id, student_id: `S${id}`, name, academic_year: 'A', class_division: 'A1', is_active: true },
     summary: {
       courses: courses.length,
@@ -79,7 +86,47 @@ const studentOverview = (id: number, name: string, courses: StudentOverviewCours
   };
 };
 
+// Anna by category (plan todo 75 stage 3). Final exams: 74 in MATH (14 over its 60, a strength)
+// and 60 in PHYS, so 67 against 61 across both, which stands out from nothing.
+const categoryCourse = (id: number, code: string, average: number, classAverage: number, signal: StudentCategory['signal']) => ({
+  id,
+  course_code: code,
+  course_name: `Course ${code}`,
+  average,
+  class_average: classAverage,
+  signal,
+});
+const annaCategories: StudentCategory[] = [
+  {
+    key: 'final', label_key: 'final', name: 'Final Exam', average: 67, class_average: 61, difference: 6, signal: null,
+    courses: [categoryCourse(1, 'MATH', 74, 60, 'strength'), categoryCourse(2, 'PHYS', 60, 62, null)],
+  },
+  {
+    key: 'custom:οπτικοποιηση', label_key: null, name: 'Οπτικοποίηση', average: 40, class_average: 65, difference: -25,
+    signal: 'difficulty', courses: [categoryCourse(1, 'MATH', 40, 65, 'difficulty')],
+  },
+  {
+    key: 'custom:', label_key: 'uncategorized', name: '', average: 88, class_average: 70, difference: 18, signal: 'strength',
+    courses: [categoryCourse(2, 'PHYS', 88, 70, 'strength')],
+  },
+];
+
 const classOverview: ClassOverview = {
+  categories: {
+    columns: [
+      { key: 'final', label_key: 'final', name: 'Final Exam' },
+      { key: 'custom:οπτικοποιηση', label_key: null, name: 'Οπτικοποίηση' },
+      { key: 'custom:', label_key: 'uncategorized', name: '' },
+    ],
+    averages: [67, 40, 88],
+    students: [
+      {
+        id: 1, name: 'Anna Alpha', cells: [67, 40, 88], class_averages: [61, 65, 70],
+        signals: [null, 'difficulty', 'strength'], difficulties: 1, strengths: 1,
+      },
+    ],
+    courses: [{ id: 1, course_code: 'MATH', course_name: 'Course MATH', cells: [60, 65, null] }],
+  },
   scope: { academic_year: null, class_division: null, course_id: null },
   filters: { academic_years: ['A', 'B'], class_divisions: ['A1', 'A2'] },
   summary: {
@@ -110,28 +157,34 @@ const classOverview: ClassOverview = {
   students: [
     {
       id: 1, student_id: 'S1', name: 'Anna Alpha', academic_year: 'A', class_division: 'A1', courses: 2,
-      average_final_grade: 74, failing_courses: [], attendance_rate: 80, absence_status: 'ok',
-      participation_forfeited: [], at_risk: false,
+      average_final_grade: 74, exam_average: 74, credits: 6, failing_courses: [], attendance_rate: 80,
+      absence_status: 'ok', participation_forfeited: [], at_risk: false,
     },
     {
       id: 2, student_id: 'S2', name: 'Bob Beta', academic_year: 'A', class_division: 'A2', courses: 1,
-      average_final_grade: 34, failing_courses: ['Course CHEM'], attendance_rate: 50, absence_status: 'warning',
-      participation_forfeited: ['Course CHEM'], at_risk: true,
+      average_final_grade: 34, exam_average: 34, credits: 3, failing_courses: ['Course CHEM'], attendance_rate: 50,
+      absence_status: 'warning', participation_forfeited: ['Course CHEM'], at_risk: true,
     },
   ],
 };
 
 const students: Record<number, StudentOverview> = {
-  1: studentOverview(1, 'Anna Alpha', [course(1, 'MATH', 74), course(2, 'PHYS', null)]),
-  2: studentOverview(2, 'Bob Beta', [
-    course(3, 'CHEM', 34, {
-      rating_count: 6,
-      absence: {
-        status: 'warning', absences: 10, allowed_absences: 12, remaining_absences: 2, absence_percent: 23.8, limit_percent: 30,
-        participation_limit_percent: 10, participation_allowed_absences: 4, participation_forfeited: true,
-      },
-    }),
-  ]),
+  1: studentOverview(1, 'Anna Alpha', [course(1, 'MATH', 74), course(2, 'PHYS', null)], annaCategories),
+  // Only Class Participation graded in CHEM, and lost to absences: no category counts.
+  2: studentOverview(
+    2,
+    'Bob Beta',
+    [
+      course(3, 'CHEM', 34, {
+        rating_count: 6,
+        absence: {
+          status: 'warning', absences: 10, allowed_absences: 12, remaining_absences: 2, absence_percent: 23.8, limit_percent: 30,
+          participation_limit_percent: 10, participation_allowed_absences: 4, participation_forfeited: true,
+        },
+      }),
+    ],
+    []
+  ),
 };
 
 const renderPage = () =>
@@ -155,8 +208,10 @@ describe('AnalyticsDashboard', () => {
     localStorage.setItem('i18nextLng', 'en');
     await i18n.changeLanguage('en');
     get.mockReset();
-    get.mockImplementation(async (url: string) => {
-      if (url === '/analytics/overview') return { data: classOverview };
+    get.mockImplementation(async (url: string, config?: { params?: { course_id?: number } }) => {
+      // As the server: the scope names the course asked for.
+      const courseId = config?.params?.course_id ?? null;
+      if (url === '/analytics/overview') return { data: { ...classOverview, scope: { ...classOverview.scope, course_id: courseId } } };
       const match = url.match(/^\/analytics\/student\/(\d+)\/overview$/);
       if (match) return { data: students[Number(match[1])] };
       throw new Error(`unexpected ${url}`);
@@ -235,14 +290,111 @@ describe('AnalyticsDashboard', () => {
     expect(within(table).getByText(/Participation ratings: 6/)).toBeInTheDocument();
   });
 
+  it("narrows the category profile to the chosen course's own figures and marks", async () => {
+    renderPage();
+    const profile = await screen.findByTestId('analytics-category-profile');
+    const finalRow = () => within(screen.getByTestId('analytics-category-final')).getAllByRole('cell');
+    const finalBadge = () => within(screen.getByTestId('analytics-category-final')).getByRole('rowheader');
+    // Across both courses: 67 against 61, no mark; the courses keep their own marks.
+    expect(finalRow()[0]).toHaveTextContent('67.0%');
+    expect(within(finalBadge()).queryByText('Strength')).toBeNull();
+    expect(within(profile).getByText('Uncategorized')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId('analytics-course-select'), { target: { value: '1' } });
+
+    await waitFor(() => expect(finalRow()[0]).toHaveTextContent('74.0%'));
+    expect(finalRow()[1]).toHaveTextContent('60.0%');
+    expect(finalRow()[2]).toHaveTextContent('+14.0');
+    expect(within(finalBadge()).getByText('Strength')).toBeInTheDocument();
+    // PHYS's own category is not one of MATH's.
+    expect(screen.queryByTestId('analytics-category-custom:')).toBeNull();
+  });
+
+  it('says Class Participation lost to absences is not counted, instead of "no grade yet"', async () => {
+    renderPage();
+    const studentSelect = await screen.findByTestId('analytics-student-select');
+    await waitFor(() => expect(optionLabels(studentSelect)).toContain('Bob Beta'));
+    fireEvent.change(studentSelect, { target: { value: '2' } });
+
+    const profile = await screen.findByTestId('analytics-category-profile');
+    await waitFor(() =>
+      expect(profile).toHaveTextContent('No category counts yet: Class Participation lost to absences is not counted.')
+    );
+    expect(profile).not.toHaveTextContent('No category has a grade yet.');
+  });
+
+  it('explains a course whose grades are all outside its evaluation rules', async () => {
+    // The final grade fell back to the plain mean of grades no rule counts: the row says so, and
+    // the profile says why nothing is counted, instead of "no grade yet".
+    const outside = studentOverview(1, 'Anna Alpha', [course(1, 'MATH', 80, { grade_basis: 'average' })], []);
+    const answer = get.getMockImplementation()!;
+    get.mockImplementation(async (url: string, ...rest: unknown[]) =>
+      url === '/analytics/student/1/overview' ? { data: outside } : answer(url, ...rest)
+    );
+    renderPage();
+
+    const table = await screen.findByTestId('analytics-student-courses');
+    expect(within(table).getByText(/grades outside the evaluation rules, plain average/)).toBeInTheDocument();
+    expect(within(table).queryByText(/no evaluation rules/)).toBeNull();
+    const profile = screen.getByTestId('analytics-category-profile');
+    expect(profile).toHaveTextContent("No grade yet in a category the course's evaluation rules count");
+    expect(profile).not.toHaveTextContent('No category has a grade yet.');
+  });
+
+  it('says how many students of the selection the class map leaves out', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Class Analytics' }));
+    const matrix = await screen.findByTestId('analytics-category-matrix');
+    // Bob has nothing counted in a category (his Class Participation was lost to absences).
+    expect(matrix).toHaveTextContent('1 student of this selection has nothing counted in any category yet and is not listed.');
+  });
+
+  it('shows no category profile from a server older than the categories', async () => {
+    const { categories: _dropped, ...older } = students[1];
+    void _dropped;
+    const answer = get.getMockImplementation()!;
+    get.mockImplementation(async (url: string, ...rest: unknown[]) =>
+      url === '/analytics/student/1/overview' ? { data: older } : answer(url, ...rest)
+    );
+    renderPage();
+
+    await screen.findByTestId('analytics-student-courses');
+    expect(screen.queryByTestId('analytics-category-profile')).toBeNull();
+  });
+
+  it('opens a name of a course-filtered class map in that course, with focus on the student picker', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Class Analytics' }));
+    const courseSelect = await screen.findByTestId('analytics-course-select');
+    await waitFor(() => expect(optionLabels(courseSelect)).toContain('Course MATH'));
+    fireEvent.change(courseSelect, { target: { value: '1' } });
+    const matrix = await screen.findByTestId('analytics-category-matrix');
+    expect(within(matrix).getByText('Students by category in this course')).toBeInTheDocument();
+
+    fireEvent.click(within(matrix).getByRole('button', { name: 'Anna Alpha' }));
+
+    const studentSelect = (await screen.findByTestId('analytics-student-select')) as HTMLSelectElement;
+    await waitFor(() => expect(studentSelect.value).toBe('1'));
+    await waitFor(() => expect((screen.getByTestId('analytics-course-select') as HTMLSelectElement).value).toBe('1'));
+    expect(document.activeElement).toBe(studentSelect);
+    await waitFor(() => expect(within(screen.getByTestId('analytics-category-final')).getAllByRole('cell')[0]).toHaveTextContent('74.0%'));
+  });
+
   it.each(['en', 'el'])('has a translation for every visible text (%s)', async (lang) => {
     localStorage.setItem('i18nextLng', lang);
     await i18n.changeLanguage(lang);
     const { container } = renderPage();
     await screen.findByTestId('analytics-student-courses');
+    // The student view with its category profile, then the class view with its map.
+    await screen.findByTestId('analytics-category-table');
+    expect(container.textContent).not.toMatch(/analytics\.|reports\.|dashboard\.(select|default|manage)/);
     fireEvent.click(screen.getAllByRole('button', { pressed: false })[0]);
     await screen.findByTestId('analytics-at-risk');
-    expect(container.textContent).not.toMatch(/analytics\.|dashboard\.(select|default|manage)/);
-    if (lang === 'el') expect(screen.getByText('Αναλυτικά Τάξης')).toBeInTheDocument();
+    await screen.findByTestId('analytics-category-matrix');
+    expect(container.textContent).not.toMatch(/analytics\.|reports\.|dashboard\.(select|default|manage)/);
+    if (lang === 'el') {
+      expect(screen.getByText('Αναλυτικά Τάξης')).toBeInTheDocument();
+      expect(screen.getAllByText('Χωρίς κατηγορία').length).toBeGreaterThan(0);
+    }
   });
 });
