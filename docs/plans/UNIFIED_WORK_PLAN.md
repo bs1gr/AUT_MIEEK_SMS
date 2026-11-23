@@ -368,7 +368,9 @@ helper, the Students page (its rate, its absences tile with the real card) and t
 sheets' column, averages row and red, the Grading page's summary and the breakdown, the report,
 the limits panel and Analytics, in English and Greek where the words matter, with the zeros a
 student without a Late gets as well as an older server's missing fields. Each of 7 mutations of
-the page changes and 39 of the reviews' fixes is caught.
+the page changes and 39 of the reviews' fixes is caught. CI's whole-suite run then found that
+the report's and the admin metrics' caches carried one test's answers to the next (each test's
+database starts its ids at 1 again): `conftest.py` empties them around every test now.
 
 Review: two adversarial passes before the PR, each with four reviewers (first on completeness,
 the figures, the pages and a ΜΙΕΕΚ teacher's eye; then on the fixes, the pages, the teacher's
