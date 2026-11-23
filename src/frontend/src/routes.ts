@@ -72,6 +72,11 @@ export const ReportTemplateBrowserPage = lazy(() =>
   import(/* webpackChunkName: "reports-templates" */ './features/custom-reports/pages/ReportTemplateBrowserPage')
 );
 
+// Grade sheets of a course (plan todo 75)
+export const GradeSheetsPage = lazy(() =>
+  import(/* webpackChunkName: "grade-sheets" */ './features/grade-sheets/GradeSheetsPage')
+);
+
 // Admin/RBAC page moved to admin feature module (v1.17.5+)
 export const AdminPermissionsPage = lazy(() =>
   import(/* webpackChunkName: "admin-permissions" */ './features/admin').then(m => ({ default: m.PermissionsPage }))
@@ -131,5 +136,6 @@ export default {
   ReportBuilderPage,
   ReportListPage,
   ReportTemplateBrowserPage,
+  GradeSheetsPage,
   preloadCriticalRoutes,
 };

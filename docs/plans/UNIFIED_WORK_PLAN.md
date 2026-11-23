@@ -333,7 +333,38 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-23: grade sheets, the server side** (todo 75 stage 1, PR NNN). Three sheets of one
+**2026-11-23: grade sheets, the page** (todo 75 stage 2). `#/operations/reports/grade-sheets`:
+a course, the kind of sheet (one assessment, every assessment, by category) and, for one
+assessment, which (the newest unless the address names one the course has; each listed with
+its dates, first to last), then the sheet on screen with the printed sheet's columns, marks and
+notes, the course named on it, and "PDF to print" / "Excel" in the page's language. The course,
+kind and assessment live in the address, so a link opens a sheet and a reload keeps it. Only the
+sheet the controls name is ever shown or downloaded: while the next loads, the previous one
+(perhaps another course's) is not on screen, and an answer or a list of assessments for a choice
+no longer made is ignored. A failure says so with "Try again". Dates follow the date format of
+Utils → Settings. The way in is one click from three places: a card first in Utils → Reports, a
+"Grade sheet" link beside "Print/Export Report" on the Grading page (the selected course), and
+under each course of the Analytics class view (its category sheet). The page has no background
+of its own and its controls and sheet are white cards, as Analytics, so it reads in the dark
+theme; on a wide sheet the surname stays in view while the columns scroll; on a phone the
+pickers fit. The advanced report builder is linked from the page. One server change: a raw
+score is rounded in the JSON as every other figure, so a score like 8.125 reads 8.12 on the page
+and in the PDF alike.
+
+**Adversarial review before the PR:** four reviewers (state, fidelity to the PDF, integration,
+tests) and two skeptics per finding: 19 findings, 17 held (11 once merged), all fixed. The
+worst: the previous sheet stayed on screen, downloadable as the next, while the next loaded; a
+course change could open the old course's assessment key in the new course; a failed list of
+assessments hid the two sheets that do not need it. Tests: `GradeSheetsPage.test.tsx` (20),
+`gradeSheetsAPI.test.ts` (3), `test_grade_sheets.py` (31); each test aimed at a fix fails when
+the fix is undone (9 mutations). Checked in a browser against a backend on a throwaway SQLite
+(never the shared database) as a teacher, in Greek and English: the three kinds on a course with
+two exam rules, a re-sit, a score out of 100, a student over the absence limit and one who lost
+participation, a course without rules and one with 18 assessments, the PDF download, the three
+ways in, a 360 px screen and the dark theme; no failed request and no console error.
+
+**2026-11-23: grade sheets, the server side** (todo 75 stage 1, PR 484, merged as `7672ecb05`,
+its checks green). Three sheets of one
 course list every student of it A to Z by surname (Greek accents ignored), with the registration
 number: the students the Analytics page counts, live enrollments of active students.
 - **One assessment:** score, out of, percentage. A student not graded has an empty score. With
@@ -2628,7 +2659,8 @@ archive. Moot: `viewer` and `guest` getting 403 on the Dashboard overview, since
 no longer exist (PR 425 turned them into "No role").
 
 **New on 2026-11-23: todo 75**, the analytics and reports rework, in six stages; the owner's
-four answers are in its entry. Stage 1 (grade sheets, the server side) is on `main`.
+four answers are in its entry. Stages 1 and 2 (the grade sheets, their server side and their
+page) are on `main`.
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3090,14 +3122,15 @@ and 44 and 48 in its part 5):
       tidied; (4) the custom report builder stays, as "Advanced", and is fixed.
     - **Stages, each its own PR:**
       1. Grade sheets, the server side: the standard category list, the three sheets as JSON,
-         PDF and Excel. **Done** (under "On `main` since v1.18.80").
+         PDF and Excel. **Done** (PR 484, under "On `main` since v1.18.80").
       2. Grade sheets, the page: a course and assessment picker, the sheet on screen, PDF and
-         Excel; reached from Utils → Reports, the Grading page and Analytics.
+         Excel; reached from Utils → Reports, the Grading page and Analytics. **Done** (under
+         "On `main` since v1.18.80"; the Analytics course rows already open their sheets).
       3. Analytics, the diagnosis across courses: each student's category profile over all
          their courses against the class's, with strengths and difficulties; the class view by
          category and course.
       4. The Analytics export keeps the filters and carries the per-student rows and category
-         profile; a course row opens its grade sheets.
+         profile (a course row opening its grade sheets came with stage 2).
       5. The custom report builder: the saved sort, more than one filter per field, course and
          category pickers, generate and download from the builder, the CSV with a BOM (Greek in
          Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average).

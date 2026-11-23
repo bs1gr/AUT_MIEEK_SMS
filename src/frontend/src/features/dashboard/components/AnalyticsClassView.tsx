@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import type { ClassOverview } from '@/api/hooks/useAnalytics';
+import { gradeSheetsLink } from '@/features/grade-sheets/gradeSheetsLink';
 import {
   AttendanceBreakdownChart,
   AttendanceGradeScatter,
@@ -142,6 +144,14 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
                 <td className={CELL}>
                   <div className="font-medium text-slate-900">{c.course_name}</div>
                   <div className="text-xs text-slate-600">{c.course_code}</div>
+                  {/* The course's sheets, by category first: what the averages here are made of. */}
+                  <Link
+                    to={gradeSheetsLink(c.id, 'categories')}
+                    className="text-xs font-medium text-indigo-700 underline"
+                    data-testid={`analytics-grade-sheets-${c.id}`}
+                  >
+                    {t('reports.gradeSheets.openGradeSheets')}
+                  </Link>
                 </td>
                 <td className={CELL}>
                   {c.students}

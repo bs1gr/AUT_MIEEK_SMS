@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { FileText } from 'lucide-react';
+import { FileText, Table2 } from 'lucide-react';
+import { gradeSheetsLink } from '@/features/grade-sheets/gradeSheetsLink';
 
 export interface OperationsReportsTabProps {
   t: (key: string, options?: Record<string, unknown>) => string;
@@ -41,6 +42,21 @@ const OperationsReportsTab = ({ t, studentIdParam, courseIdParam }: OperationsRe
 
   return (
     <div className="space-y-6">
+      {/* The grading lists of a course: the most common report, one click away (todo 75). */}
+      <Link
+        to={gradeSheetsLink(courseIdParam && Number.isFinite(Number(courseIdParam)) ? courseIdParam : null)}
+        className="flex items-start gap-4 rounded-lg border border-indigo-200 bg-white p-5 transition hover:border-indigo-400 hover:shadow-md"
+        data-testid="reports-grade-sheets-card"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700">
+          <Table2 className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">{t('gradeSheets.openGradeSheets', { ns: 'reports' })}</h2>
+          <p className="text-sm text-slate-600">{t('gradeSheets.cardDescription', { ns: 'reports' })}</p>
+        </div>
+      </Link>
+
       <div className="rounded-lg border border-slate-200 bg-linear-to-br/srgb from-indigo-50 to-slate-50 p-6">
         <div className="mb-6 flex items-center gap-3">
           <FileText className="h-6 w-6 text-indigo-600" />

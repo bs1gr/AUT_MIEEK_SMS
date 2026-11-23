@@ -10,6 +10,7 @@ import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useGradeEntrySync } from '@/features/grading/hooks/useGradeEntrySync';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { splitParticipationRules } from '@/utils/participation';
+import { gradeSheetsLink } from '@/features/grade-sheets/gradeSheetsLink';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -398,12 +399,22 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           </p>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-lg font-semibold text-slate-900">{t('finalGradeSummary')}</h3>
-            <Link
-              to={summaryReportLink}
-              className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              {t('printSummaryReport')}
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* The course's list for an exam or every assessment, ready to print (todo 75). */}
+              <Link
+                to={gradeSheetsLink(courseId || null)}
+                className="inline-flex items-center rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                data-testid="grading-grade-sheet-link"
+              >
+                {t('reports.gradeSheets.openGradeSheet')}
+              </Link>
+              <Link
+                to={summaryReportLink}
+                className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                {t('printSummaryReport')}
+              </Link>
+            </div>
           </div>
         </div>
         {!studentId || !courseId ? (
