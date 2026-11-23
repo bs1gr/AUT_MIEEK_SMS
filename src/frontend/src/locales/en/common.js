@@ -134,6 +134,7 @@ export default {
   labWork: 'Lab Work',
   project: 'Project',
   presentation: 'Presentation',
+  attendanceCategory: 'Attendance',
    // Misc
   na: 'N/A',
   year: 'Year',

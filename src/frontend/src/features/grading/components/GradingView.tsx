@@ -8,7 +8,7 @@ import { Student, Course, Grade } from '@/types';
 import { formatLocalDate } from '@/utils/date';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useGradeEntrySync } from '@/features/grading/hooks/useGradeEntrySync';
-import { getCanonicalCategory } from '@/utils/categoryLabels';
+import { foldRuleName, getRuleKind, getStandardCategory, localizeStandardName } from '@/utils/categoryLabels';
 import { splitParticipationRules } from '@/utils/participation';
 import { gradeSheetsLink } from '@/features/grade-sheets/gradeSheetsLink';
 import FinalGradeAttendance from './FinalGradeAttendance';
@@ -46,6 +46,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       'Quizzes': t('quizzes'),
       'Project': t('project'),
       'Presentation': t('presentation'),
+      // The rule that counts the periods attended (plan todo 77): «Παρουσία» in Greek.
+      'Attendance': t('attendanceCategory'),
       'Midterm': t('midterm'),
       'Midterm Exam': t('midtermExam'),
       'Final Exam': t('finalExam'),
@@ -54,7 +56,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       'Minor participation': t('minorParticipationOption') || 'Minor participation',
       'Minor participation (mobile usage)': t('minorParticipationMobileOption') || 'Minor participation (mobile usage)',
     };
-    return categoryMap[category] || category;
+    // Any other standard name in the page's language («Εργαστήρια», "Presentation"); a course's
+    // own name ("Exam", «Θεωρητική Εξέταση») as it was typed.
+    return categoryMap[category] || localizeStandardName(category, t) || category;
   };
 
   const translateAssignmentName = (name?: string): string => {
@@ -199,7 +203,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // Weighted rules only: participation observations are deductions, not grade categories.
   const evaluationRules: EvaluationRule[] = useMemo(() => {
     if (!courseId || !Array.isArray(selectedCourse?.evaluation_rules)) return [];
-    return splitParticipationRules(selectedCourse.evaluation_rules as EvaluationRule[], (category) => getCanonicalCategory(category, t)).rules;
+    return splitParticipationRules(selectedCourse.evaluation_rules as EvaluationRule[], (category) => getRuleKind(category, t)).rules;
   }, [courseId, selectedCourse, t]);
 
   // Category options with display names
@@ -214,10 +218,34 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       { value: 'Class Participation', label: t('classParticipation') },
       { value: 'Continuous Assessment', label: t('continuousAssessment') }
     ];
+    // A course's own rules too, under their own names («Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο
+    // σπίτι)»), a standard name in the page's language («Παρουσίαση» for "Presentation"). Not a
+    // standard name of a kind already offered ("Homework/Assignments" is "Homework"), and not the
+    // Attendance rule: it counts the periods attended and has no grades of its own; a grade filed
+    // under it was averaged with that share (todo 77 point 2's review).
+    const kinds = new Set(base.map(b => getRuleKind(b.value, t)));
     const rules = evaluationRules.map(r => r.category).filter(Boolean);
-    const customRules = rules.filter(r => !base.some(b => b.value === r)).map(r => ({ value: r, label: r }));
-    return [...base, ...customRules];
-  }, [evaluationRules, t]);
+    const customRules = rules
+      .filter(r => {
+        const kind = getRuleKind(r, t);
+        if (base.some(b => b.value === r) || kind === 'Attendance') return false;
+        return !(getStandardCategory(r, t) && kinds.has(kind));
+      })
+      .map(r => ({ value: r, label: localizeStandardName(r, t) }));
+    const options = [...base, ...customRules];
+    // A grade being edited keeps its own category on the list, though the list no longer offers it
+    // ("Homework/Assignments", "Attendance" filed before): else the box would show the first option
+    // while the grade keeps its own (todo 77 point 2's review). 'Midterm' is the empty form's.
+    // The server stores a grade's category title-cased («… Εργασιών Στο Σπίτι)»): the option of the
+    // same name takes the grade's spelling instead of a second, near-identical option.
+    const own = gradeEntry.category;
+    if (own && own !== 'Midterm' && !options.some(o => o.value === own)) {
+      const same = options.findIndex(o => foldRuleName(o.value) === foldRuleName(own));
+      if (same >= 0) options[same] = { ...options[same], value: own };
+      else options.push({ value: own, label: localizeStandardName(own, t) });
+    }
+    return options;
+  }, [evaluationRules, t, gradeEntry.category]);
 
   // An exam takes its latest grade alone: the Weight box is closed for it. ('Midterm' is what
   // the form starts with before a category is chosen; it used to be the only spelling checked,

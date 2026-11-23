@@ -41,6 +41,12 @@ from backend.services import grade_categories as cats
         ("Mid-semester Exam", "midterm"),
         ("Midsemester Exam", "midterm"),
         ("Εξέταση Μέσου Εξαμήνου", "midterm"),
+        # Coursework before the exams, as the final grade reads it (the owner, 2026-11-23: a final
+        # project is coursework, not the final exam).
+        ("Τελική Εργασία", "homework"),
+        ("Ενδιάμεση Εργασία", "homework"),
+        ("Final Project", "project"),
+        ("Mid-Term Project", "project"),
         # An exam the name does not place in the semester is not a final exam.
         ("Exam", "exam"),
         ("Εξέταση", "exam"),
@@ -60,8 +66,14 @@ def test_known_spellings_fold_into_one_key(name, key):
 @pytest.mark.parametrize(
     "name, key",
     [
-        # "Παρουσίαση" (presentation) is not "Παρουσία" (attendance).
+        # "Παρουσίαση" (presentation) is not "Παρουσία" (attendance), not even in the genitive,
+        # which casefold makes "παρουσιασ" (todo 77 point 2's review).
         ("Παρουσίαση", "presentation"),
+        ("Παρουσιάσεις", "presentation"),
+        ("Ποσοστό Παρουσίας", "attendance"),
+        ("ΠΑΡΟΥΣΙΑΣ", "attendance"),
+        # A lab, abbreviated or not.
+        ("Εργαστ. Ασκήσεις", "lab"),
         # The more specific word wins.
         ("Final Project", "project"),
         ("Τελική εργασία", "homework"),

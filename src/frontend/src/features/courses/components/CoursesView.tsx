@@ -9,7 +9,7 @@ import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
 import { generateCourseScheduleICS, downloadICS } from '@/utils/calendarUtils';
 import { CourseCardSkeleton, ListSkeleton } from '@/components/ui';
-import { getLocalizedCategory, getCanonicalCategory } from '@/utils/categoryLabels';
+import { getCanonicalCategory, getRuleKind, localizeStandardName } from '@/utils/categoryLabels';
 import apiClient, {
   studentsAPI,
   coursesAPI,
@@ -115,7 +115,9 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     { en: 'Final Exam', translated: t('finalExam') },
     { en: 'Lab Work', translated: t('labWork') },
     { en: 'Project', translated: t('project') },
-    { en: 'Presentation', translated: t('presentation') }
+    { en: 'Presentation', translated: t('presentation') },
+    // Counts the periods attended, Present and Late (plan todo 77).
+    { en: 'Attendance', translated: t('attendanceCategory') }
   ];
 
   // Fixed: weekDays now properly stores both English and translated names
@@ -194,7 +196,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     if (course) {
       const { rules, deductions } = splitParticipationRules(
         (course.evaluation_rules as Rule[]) || [],
-        (category) => getCanonicalCategory(category, t),
+        (category) => getRuleKind(category, t),
       );
       setEvaluationRules(rules);
       setObservationDeductions(deductions);
@@ -212,7 +214,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
     }
   }, [courses, selectedCourse, t]);
 
-  const isParticipationRule = (rule: Rule) => getCanonicalCategory(String(rule.category || ''), t) === CLASS_PARTICIPATION;
+  const isParticipationRule = (rule: Rule) => getRuleKind(String(rule.category || ''), t) === CLASS_PARTICIPATION;
   const participationRule = evaluationRules.find(isParticipationRule);
 
   // Stored layout: canonical names, Class Participation with its whole share, then the three
@@ -699,7 +701,7 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                       {evaluationRules.map((rule, idx) => {
                         const w = parseFloat(String(rule.weight));
                         const weightStr = Number.isFinite(w) ? `${w}%` : '';
-                        const localizedCategory = getLocalizedCategory(String(rule.category || ''), t);
+                        const localizedCategory = localizeStandardName(String(rule.category || ''), t);
                         return (
                           <span key={`rule-pill-${idx}`} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-indigo-50 border border-indigo-200 text-indigo-800">
                             <span className="font-medium">{localizedCategory || '-'}</span>

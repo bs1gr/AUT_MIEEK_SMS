@@ -27,6 +27,8 @@ export default {
   labWork: 'Εργαστήριο',
   project: 'Πρότζεκτ',
   classParticipation: 'Συμμετοχή στο Μάθημα',
+  // Ο κανόνας που μετρά τις ώρες παρουσίας (todo 77).
+  attendanceCategory: 'Παρουσία',
   continuousAssessment: 'Συνεχής Αξιολόγηση',
   noParticipationOption: 'Καμία συμμετοχή',
   minorParticipationOption: 'Μικρή συμμετοχή',

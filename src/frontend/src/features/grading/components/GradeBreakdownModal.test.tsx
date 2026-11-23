@@ -168,6 +168,37 @@ describe('GradeBreakdownModal', () => {
     expect(screen.queryByTestId('breakdown-attendance')).not.toBeInTheDocument();
   });
 
+  it('names an Attendance rule in the page language (todo 77 point 2)', async () => {
+    mockedApiClient.get.mockResolvedValue({
+      data: {
+        ...FINAL_GRADE,
+        category_breakdown: { Attendance: { average: 75, weight: 20, contribution: 15, total_items: 1 } },
+      },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    expect(await screen.findByText('attendanceCategory')).toBeInTheDocument();
+    expect(screen.queryByText('Attendance')).not.toBeInTheDocument();
+  });
+
+  it('names any other standard category in the page language too', async () => {
+    mockedApiClient.get.mockResolvedValue({
+      data: {
+        ...FINAL_GRADE,
+        category_breakdown: {
+          Presentation: { average: 80, weight: 50, contribution: 40, total_items: 1 },
+          Quizzes: { average: 70, weight: 50, contribution: 35, total_items: 1 },
+        },
+      },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    expect(await screen.findByText('presentation')).toBeInTheDocument();
+    expect(screen.getByText('quizzes')).toBeInTheDocument();
+  });
+
   it('shows an error message when the fetch fails', async () => {
     mockedApiClient.get.mockRejectedValue(new Error('network down'));
 

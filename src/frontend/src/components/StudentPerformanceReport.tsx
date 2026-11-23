@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 import { reportsAPI } from '@/api/api';
-import { getLocalizedCategory } from '@/utils/categoryLabels';
+import { localizeStandardName } from '@/utils/categoryLabels';
 import { downloadBlob } from '@/utils/downloadFile';
 
 // TypeScript interfaces for report data
@@ -590,7 +590,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                           <div className="space-y-1">
                             {course.performance_categories.map((perf, perfIdx) => (
                               <div key={perfIdx} className="text-sm">
-                                <span className="font-medium">{getLocalizedCategory(perf.category, (key) => t(key, { ns: 'grades' }))}:</span> {perf.score}/{perf.max_score}
+                                <span className="font-medium">{localizeStandardName(perf.category, (key) => t(key, { ns: 'grades' }))}:</span> {perf.score}/{perf.max_score}
                                 {perf.notes && <span className="text-gray-500 ml-2">({perf.notes})</span>}
                               </div>
                             ))}

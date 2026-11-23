@@ -26,7 +26,7 @@ import AttendancePerformanceModal from './AttendancePerformanceModal';
 import AbsenceLimitsPanel from './AbsenceLimitsPanel';
 import LessonLogCard from './LessonLogCard';
 import LessonLogHistory from './LessonLogHistory';
-import { getCanonicalCategory } from '@/utils/categoryLabels';
+import { getRuleKind } from '@/utils/categoryLabels';
 import { splitParticipationRules, type SpecialParticipationCategory } from '@/utils/participation';
 
 // Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
@@ -452,7 +452,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       const course = localCourses.find((c) => c.id === selectedCourse);
       const { rules, deductions } = splitParticipationRules(
         (course?.evaluation_rules as EvaluationRule[] | undefined) || [],
-        (category) => getCanonicalCategory(category, t),
+        (category) => getRuleKind(category, t),
       );
       const dailyCats = rules.filter((rule) =>
         dailyTrackableCategories.some((cat) => rule.category?.includes(cat) || rule.category?.toLowerCase?.().includes(cat.toLowerCase()))

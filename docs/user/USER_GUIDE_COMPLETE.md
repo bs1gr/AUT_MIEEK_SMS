@@ -176,6 +176,42 @@ up the **Total Weight**: make it 100%. **Save Changes** stores the rules.
 The categories the Grades page knows are Midterm Exam, Final Exam, Quizzes, Lab Work,
 Homework, Project, Class Participation and Continuous Assessment.
 
+A rule takes the grades of its category by the category's words: accents, capitals, a plural
+and a hyphen do not matter, so "Εργαστήρια" takes the Lab Work grades, "ΤΕΛΙΚΗ ΕΞΕΤΑΣΗ" the
+Final Exam grades and "Mid-Term Exam" the Midterm Exam grades. When a name holds the words of
+several categories, the first of these wins: continuous assessment, a project, a lab, homework,
+the midterm, the final, a quiz, participation, a presentation, attendance ("Παρουσία στο
+Εργαστήριο" is a lab, "Εργασίες και Συμμετοχή" homework; "Τελική Εργασία" is homework and "Final
+Project" a project, coursework and not the final exam). A name that
+is one of the app's categories in either language, as the app names it or in a common spelling
+("Εργαστήρια", "Παρουσίες", "Τελική Εξέταση"), is saved as that category; any other name is kept
+as typed and read by its words: "Εργαστ. Ασκήσεις" takes the Lab Work grades (a lab is never
+homework), "Παρουσία και Συμμετοχή" is Class Participation, "1η Ενδιάμεση Εξέταση" the Midterm
+Exam. A course's own name (say "Θεωρητική Εξέταση") takes the grades of that name, whatever the
+accents and capitals. Saving a course never changes what its rules count.
+
+A course has one midterm and one final: each counts one grade only, that of the latest sitting
+(a second sitting is for a student who missed the first), whatever its rules are called. The
+latest is the grade with the latest date, then the one entered last, so a retake must be dated
+after the first sitting. A rule with the word "Συνεχής" or "Continuous" in its name (Continuous
+Assessment), with anything in brackets as in the ΜΙΕΕΚ templates, takes every graded activity of
+the course that no other rule of the course takes: homework, exercises, quizzes, projects,
+presentations, lab work, a course's own names, the grades filed under it, and their daily
+ratings. Not Class Participation or attendance, and not a grade saved without a category. The
+midterm and the final have rules of their own; where a course has none for one of them (the lab
+templates, whose midterm is part of "Συνεχής Αξιολόγηση (… και Ενδιάμεση Εξέταση)"), that exam's
+one grade counts in continuous assessment. In a course without a continuous assessment rule, a
+grade that no rule takes counts nowhere. (Until November 2026 the templates' "Συνεχής Αξιολόγηση (Εκπόνηση
+εργασιών στο σπίτι)" took the homework alone, and the course editor saved both template rules as
+"Homework/Assignments": in a template course saved in the editor before then, type the rule's name again, say
+"Συνεχής Αξιολόγηση", to make it the continuous assessment rule.)
+
+The **Category Name** suggestions also offer **Attendance** (in Greek "Παρουσία"; a rule named
+"Παρουσίες" or "Ποσοστό Παρουσίας" is the Attendance rule too): a rule with no grades of its own,
+which counts the share of periods attended (section 8). Until November 2026 a rule typed
+"Παρουσία" was saved as Class Participation and shows as such: type "Παρουσία" again on the rule
+that was meant to count attendance, to make it the Attendance rule.
+
 Two more things are set here:
 
 - **Absence limits (ΜΙΕΕΚ):** the fail limit and the Class Participation limit, each as a

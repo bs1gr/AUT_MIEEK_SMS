@@ -4,6 +4,7 @@ import { useLanguage } from '@/LanguageContext';
 import { FinalGrade } from '@/types';
 import apiClient from '@/api/api';
 import { getGreekGradeDescription } from '@/utils/gradeUtils';
+import { localizeStandardName } from '@/utils/categoryLabels';
 import FinalGradeAttendance from './FinalGradeAttendance';
 
 interface Props {
@@ -33,6 +34,8 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
       'Quiz': t('quiz'),
       'Project': t('project'),
       'Lab Work': t('labWork'),
+      // The rule that counts the periods attended (plan todo 77): «Παρουσία» in Greek.
+      'Attendance': t('attendanceCategory'),
       // Greek category names (in case backend returns Greek)
       'Συμμετοχή στο Μάθημα': t('classParticipation'),
       'Συνεχής Αξιολόγηση': t('continuousAssessment'),
@@ -44,8 +47,11 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
       'Κουίζ': t('quiz'),
       'Πρότζεκτ': t('project'),
       'Εργαστήριο': t('labWork'),
+      'Παρουσία': t('attendanceCategory'),
     };
-    return categoryMap[category] || category;
+    // Any other standard name ("Presentation", "Quizzes") in the page's language; a course's own
+    // name ("Exam", «Θεωρητική Εξέταση») as it was typed.
+    return categoryMap[category] || localizeStandardName(category, t) || category;
   };
 
   useEffect(() => {
