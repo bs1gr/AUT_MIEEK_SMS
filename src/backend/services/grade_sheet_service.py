@@ -258,7 +258,7 @@ class GradeSheetService:
                     "category": category,
                     "category_key": cats.canonical_category(category),
                     "label_key": cats.standard_key(category),
-                    "max_grade": _most_common([g.max_grade for g in dated]),
+                    "max_grade": _round(_most_common([g.max_grade for g in dated])),
                     "first_date": min(days).isoformat() if days else None,
                     "last_date": max(days).isoformat() if days else None,
                     "graded": len({g.student_id for g in rows}),
@@ -309,8 +309,9 @@ class GradeSheetService:
             rows.append(
                 {
                     **self._student_row(data, f, number),
-                    "score": latest.grade if latest is not None else None,
-                    "max_grade": latest.max_grade if latest is not None else None,
+                    # Rounded as every other figure, so the page and the PDF print the same digits.
+                    "score": _round(latest.grade) if latest is not None else None,
+                    "max_grade": _round(latest.max_grade) if latest is not None else None,
                     "percentage": _round(pct),
                     "date": day.isoformat() if day else None,
                     "entries": len(entries),

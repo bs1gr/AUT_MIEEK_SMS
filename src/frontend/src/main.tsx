@@ -37,6 +37,7 @@ import {
   ReportBuilderPage,
   ReportListPage,
   ReportTemplateBrowserPage,
+  GradeSheetsPage,
   preloadCriticalRoutes,
 } from './routes';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -110,6 +111,7 @@ void (async () => {
               <Route path="/operations/reports/builder" element={<ReportBuilderPage />} />
               <Route path="/operations/reports/builder/:id" element={<ReportBuilderPage />} />
               <Route path="/operations/reports/templates" element={<ReportTemplateBrowserPage />} />
+              <Route path="/operations/reports/grade-sheets" element={<GradeSheetsPage />} />
               {/* Admin: Permissions management and Import/Export */}
               <Route element={<RequireAdmin />}>
                 <Route element={<AdminLayout />}>

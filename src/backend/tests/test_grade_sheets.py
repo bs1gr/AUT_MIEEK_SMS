@@ -426,6 +426,21 @@ def test_a_score_out_of_another_maximum_says_so(client):
     assert (body["Αλεξίου"][4:7], body["Βασιλείου"][4:7]) == ((15.0, 20.0, 75.0), (75.0, 100.0, 75.0))
 
 
+def test_a_score_with_more_decimals_reads_the_same_on_the_page_and_in_the_pdf(client):
+    # The page prints the JSON's figure; the PDF rounds half to even. Both now get 8.12.
+    course = _create_course(client, "DECIMALS")
+    s = _student(client, 47, "Ραφαήλ", "Δώρα")
+    _enroll(client, course["id"], s["id"])
+    _grade(client, s["id"], course["id"], "Quiz", "Quizzes", 8.125, max_grade=10)
+    (quiz,) = _assessments(client, course["id"])
+
+    sheet = _sheet(client, course["id"], "assessment", quiz["key"])
+    text = _pdf_text(_export(client, course["id"], "pdf", kind="assessment", assessment=quiz["key"]))
+
+    assert sheet["rows"][0]["score"] == 8.12
+    assert "8.12" in text and "8.13" not in text
+
+
 def test_surnames_sort_without_their_accents(client):
     # By code point "Έλληνας" and "Ωραιόπουλος" (accented capitals) would come before "Αθανασίου".
     course = _create_course(client, "SORT")
