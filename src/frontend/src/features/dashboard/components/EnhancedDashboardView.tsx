@@ -14,7 +14,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
-import { getLocalizedCategory } from '@/utils/categoryLabels';
+import { localizeStandardName } from '@/utils/categoryLabels';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import './EnhancedDashboardView.css';
@@ -418,7 +418,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                                 const weightLabel = Number.isFinite(weightValue)
                                   ? `${Math.round(weightValue)}%`
                                   : '';
-                                const localizedCategory = getLocalizedCategory(
+                                const localizedCategory = localizeStandardName(
                                   String(rule?.category || ''),
                                   t
                                 );

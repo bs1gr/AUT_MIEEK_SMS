@@ -99,6 +99,10 @@ describe('Grading page: the periods by status in the final-grade summary', () =>
     const counts = await screen.findByTestId('grading-attendance-counts');
     expect(counts).toHaveTextContent('Παρουσίες: Παρών 3 · Αργοπορία 1 · Απών 1 · Δικαιολογημένος 2');
     expect(counts).toHaveTextContent('Η αργοπορία μετρά ως παρουσία');
+    // The Attendance rule in the category list is named in Greek too (todo 77 point 2).
+    const summary = screen.getByTestId('grading-final-summary');
+    expect(summary).toHaveTextContent('Παρουσία: 80.0%');
+    expect(summary).not.toHaveTextContent('Attendance');
   });
 
   it('counts without the note when there is no Late', async () => {
@@ -114,6 +118,46 @@ describe('Grading page: the periods by status in the final-grade summary', () =>
     await openSummary('en', finalGrade({ present: 0, late: 0, absent: 0, excused: 0, recorded: 0 }));
     expect(screen.getByTestId('grading-final-summary')).toHaveTextContent('80%');
     expect(screen.queryByTestId('grading-attendance-counts')).not.toBeInTheDocument();
+  });
+
+  it('offers a course\'s own rules by their Greek names, and no Attendance to file grades under', async () => {
+    // The Attendance rule counts the periods attended and has no grades of its own; a grade filed
+    // under it was averaged with that share. "Homework/Assignments" is the Homework option already.
+    const own = [
+      {
+        ...courses[0],
+        evaluation_rules: [
+          { category: 'Attendance', weight: 10 },
+          { category: 'Presentation', weight: 10 },
+          { category: 'Homework/Assignments', weight: 40 },
+          { category: 'Θεωρητική Εξέταση', weight: 40 },
+        ],
+      },
+    ];
+    vi.mocked(apiModule.default.get).mockImplementation(async () => answer([]));
+    localStorage.setItem('i18nextLng', 'el');
+    await act(async () => {
+      await i18n.changeLanguage('el');
+    });
+    const { container } = render(
+      <I18nextProvider i18n={i18n}>
+        <LanguageProvider>
+          <BrowserRouter>
+            <DateTimeSettingsProvider>
+              <GradingView students={students} courses={own} />
+            </DateTimeSettingsProvider>
+          </BrowserRouter>
+        </LanguageProvider>
+      </I18nextProvider>
+    );
+    fireEvent.change(container.querySelector('select[name="courseId"]')!, { target: { value: '1' } });
+
+    const labels = Array.from(container.querySelectorAll('select[name="category"] option')).map((o) => o.textContent);
+    expect(labels).toContain('Παρουσίαση');
+    expect(labels).toContain('Θεωρητική Εξέταση');
+    expect(labels).not.toContain('Παρουσία');
+    expect(labels).not.toContain('Attendance');
+    expect(labels.filter((l) => l === 'Εργασία')).toHaveLength(1);
   });
 
   it('says nothing of attendance from an older server, which sends no counts', async () => {

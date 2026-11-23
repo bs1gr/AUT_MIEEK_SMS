@@ -27,6 +27,8 @@ export default {
   labWork: 'Lab Work',
   project: 'Project',
   classParticipation: 'Class Participation',
+  // The rule that counts the periods attended (plan todo 77).
+  attendanceCategory: 'Attendance',
   continuousAssessment: 'Continuous Assessment',
   noParticipationOption: 'No participation',
   minorParticipationOption: 'Minor participation',

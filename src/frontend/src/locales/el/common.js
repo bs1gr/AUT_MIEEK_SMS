@@ -134,6 +134,7 @@ export default {
   labWork: 'Εργαστηριακή Εργασία',
   project: 'Πρότζεκτ',
   presentation: 'Παρουσίαση',
+  attendanceCategory: 'Παρουσία',
   // Διάφορα
   na: '—',
   year: 'Έτος',

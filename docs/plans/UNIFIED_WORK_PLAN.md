@@ -333,7 +333,88 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-23: the gate's checkpoint reads a Greek file name in any console** (todo 79, found that
+**2026-11-23: a rule finds its grades whatever the spelling, a lab is no homework, an exam
+counts one grade, and continuous assessment takes the lesson's tasks** (todo 77, point 2; the
+owner on 2026-11-23: a rule named "Εργαστήρια" or "Εργαστηριακή Εργασία" "is wrongly matched as
+homework by the final grade. The lab always happens in class, the matching should be reordered or
+corrected properly", and, asked: compare Greek names without accents; a rule typed «Παρουσία» or
+«Παρουσίες» is the Attendance rule; an Attendance rule under any spelling counts the attendance
+records; Midterm and Final under any spelling take the latest grade. Asked again that evening,
+after the second review: "There is only one official midterm per semester for each course. The second
+midterm is only if the student missed the first one"; "there should no averaging any exam per
+course"; "midterm exam and final exam are always unique single weights. homework, any other
+exercise or any other assessment and task during the lesson's period, belongs to «Συνεχής
+Αξιολόγηση»"; of the course editor, "Rename only standard names"; after the third review:
+«Τελική Εργασία» and "Final Project" are coursework, not the final exam; "there is no course
+without a midterm exam and a final exam in MIEEK"; a grade without a category counts nowhere; the
+course importer keeps names too, todo 81). The final grade's
+matching (`analytics_service.normalize_rule_category`) took the first stem it found anywhere in a
+name, in a fixed order: "εργασ" (homework) before "εργαστηρ" (lab), so a lab rule took the
+homework grades; "παρουσ" (attendance) caught "Παρουσίαση" (a presentation); accents counted
+("Ασκήσεις" was no homework, "Θεωρητική Εξέταση" not "ΘΕΩΡΗΤΙΚΗ ΕΞΕΤΑΣΗ"); the Attendance rule
+had to be spelled "attendance" or "παρουσία", and an exam one of eight spellings ("ΤΕΛΙΚΗ
+ΕΞΕΤΑΣΗ" averaged a retake with the first sitting). Now names compare without case, accents or
+punctuation; a stem counts at the start of a word only, as in stage 1's standard category list;
+the order is the observations (their Greek labels too, read as Class Participation until now),
+continuous assessment, a project, a lab (also "Εργαστ."), homework, the exams (coursework
+first: «Τελική Εργασία» is homework, "Final Project" and "Mid-Term Project" projects), a quiz,
+participation, a presentation (by stems past the "σ", so the genitive «Ποσοστό Παρουσίας» stays
+attendance), attendance; "Mid-Term" is a midterm. **An exam counts one grade, its latest
+sitting** (`AnalyticsService.counted_grades`), whatever its rules are called, plural ones
+(«Ενδιάμεσες Εξετάσεις») and two rules of one kind («1η» and «2η Ενδιάμεση») included.
+**Continuous assessment** (any rule named «Συνεχής Αξιολόγηση» or "Continuous Assessment", the
+templates' «… (Εκπόνηση εργασιών στο σπίτι)» and «… και Ενδιάμεση Εξέταση)» too, which read as
+homework and as a midterm) takes every graded task no other rule of the course takes (homework,
+quizzes, projects, presentations, a course's own names, the grades filed under the Grading page's
+«Συνεχής Αξιολόγηση» option), never Class Participation, attendance or a grade without a
+category; a Midterm or Final goes there as its one grade only where the course has no rule of its
+own for it (the lab templates AUT0201/0203/0204 hold the midterm in that rule, which the course
+importer saves as plain "Continuous Assessment"). `grade_categories` (Analytics' grouping) reads
+coursework before the exams too.
+**Final grades change** for courses whose rule names were matched wrongly (a lab rule, a
+presentation rule, an Attendance rule or an exam spelled otherwise, «Ασκήσεις», a name that held a
+stem inside a word: "Συνεργασία", "Επεξεργασία Δεδομένων", a course's own name with other
+accents), for an exam with two sittings under two rule names or a plural one, for a rule like
+«Τελική Εργασία» or "Final Project" (now coursework, no longer the exam), and for every course with
+a continuous rule where a grade no rule named was recorded, an imported lab course's midterm
+among them (it now counts there). The grade sheets and Analytics follow, as they count what the final grade counts. **The
+course editor (`categoryLabels.ts`) saves a name as a standard category only when it is one**, in
+either language, as the app names it or in a common spelling, whatever the page's language («Εργαστήρια», «Παρουσίες»,
+«Τελική Εξέταση»); any other name is kept as typed, so saving a course never changes what its
+rules count (`getCanonicalCategory`; until then it saved a name as the category a keyword in it
+named: both template rules «Συνεχής Αξιολόγηση (…)» became "Homework/Assignments", and its
+Greek midterm keyword never matched, as it kept an accent the folded name has not). It tells a rule's kind (Class
+Participation, Attendance, an observation) by the final grade's own keywords in the same order
+(`getRuleKind`; one table of 60 names, `utils/__tests__/ruleNameCases.json`, is tested on both
+sides, with the folding of the final grade). It saves «Παρουσία» and «Παρουσίες» as Attendance
+(it saved them as Class Participation, which never counts attendance) and offers Attendance among
+its suggestions. The Grading page lists a course's own rules under their own names (a standard
+name in the page's language; "Exam" and "Exercises" no longer show as «Τελική Εξέταση» and
+«Εργασία»), no longer offers the Attendance rule to file grades under (it has none of its own;
+such a grade was averaged with the attended share), and keeps an edited grade's own category in
+the box; the breakdown names Presentation and Quizzes in Greek too. **For the release notes:** a
+«Παρουσία» rule saved before this was stored as Class Participation and shows as «Συμμετοχή στο
+Μάθημα»; typing «Παρουσία» again makes it the Attendance rule. And a template course saved in the
+editor before this has "Homework/Assignments" where the template had «Συνεχής Αξιολόγηση (…)»:
+typing the name again makes it continuous assessment (both user guides say both, how a rule finds
+its grades, the one counted sitting and continuous assessment).
+
+Tests: `test_rule_category_matching.py` (128: the names, the shared table, and the final grade of
+each case through the API); `test_grade_categories.py` (the same
+genitive and abbreviation); `categoryLabels.test.ts` (the shared table, on the Greek and the
+English page); `CoursesView.attendanceRule.test.tsx` (a save keeps the course's own names);
+`GradingView.categoryList.test.tsx`; the Grading page's summary in Greek; the breakdown.
+Three adversarial reviews that day: the first (four reviewers, a skeptic per finding) found the
+editor ordering its keywords otherwise than the final grade; the second (three of four reviewers
+before a PC restart) found that a save could still change grades and that the template rules lost
+their meaning, which took the owner's answers above; the third (the code and the texts) found
+«Τελική Εργασία» read as the exam, uncategorised grades in continuous assessment, the importer's
+renaming (todo 81), grade edits that never reach the server (todo 82) and texts that
+contradicted the code. Every held finding is fixed or decided by the owner. 69 of the new backend
+tests fail on v1.18.80's matching; 20 of 20 mutants caught (the Attendance page's one-line call,
+the same as the Grading page's, is accepted untested).
+
+**2026-11-23: the gate's checkpoint reads a Greek file name in any console** (todo 79, PR 488, merged as `346256aa4`, its checks green; found that
 day committing todo 77 point 1; no decision needed). COMMIT_READY ends by recording a fingerprint
 of the tree it validated (`scripts/ENFORCE_COMMIT_READY_GUARD.ps1`), and the pre-commit hook
 refuses a commit whose tree has another. `Get-TreeFingerprint` read git's paths in the console's
@@ -350,7 +431,8 @@ checkpoint. The assistant's detached gate had set UTF-8 first since that day
 (`D:\tmp\sms-tools\gate-guarded.ps1`, outside the repository).
 
 **2026-11-23: a Late is attended on every page, and its number is shown where the teacher
-evaluates** (todo 77, point 1; the owner that day: "Late should not count as absent, but should
+evaluates** (todo 77, point 1, PR 487, merged as `e0ab34612`, its checks green; the owner that
+day: "Late should not count as absent, but should
 be referenced in a students attendance results in order to be considered in the teacher's final
 evaluation", and Present + Late as the one meaning of attended). Until then the app had five
 meanings of attended: the final grade's Attendance rule, the student summary, the dashboard, the
@@ -2829,7 +2911,7 @@ no longer exist (PR 425 turned them into "No role").
 four answers are in its entry. Stages 1 to 3 (the grade sheets, their server side and their
 page; Analytics by category) are on `main`. **Todo 77**, three corrections to the final grade
 the owner decided that day (Late is attended, lab names match lab, the Weight counts without
-rules), in three PRs: point 1 is on `main`, points 2 and 3 next; then **todo 76** (the page's
+rules), in three PRs: points 1 and 2 are on `main`, point 3 next; then **todo 76** (the page's
 language), then stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's
 statuses, Excused days on the Attendance page (a question for the owner), the exports' Greek
 words.
@@ -3350,10 +3432,44 @@ and 44 and 48 in its part 5):
       the Students page): the rules, else the Weight-weighted mean of the grades; (d) the number
       of Lates shown on the grade sheets, in the Grading page's breakdown, in Analytics and in
       the Attendance page's absence limits.
-    - **Three PRs, one per point.** Point 1 (attended, the Lates shown): **Done** (under "On
-      `main` since v1.18.80"). Point 2 (matching) and point 3 (the Weight, one final grade) next.
-      **Release point 1 only together with point 2:** its Greek help and guide name a
-      «Παρουσία» rule, which the course editor saves as Class Participation until point 2.
+    - **The owner's answers after point 2's second review (2026-11-23, late)**, which changed it: one
+      midterm and one final per course, each counting one grade, its latest sitting, however its
+      rules are named ("The second midterm is only if the student missed the first one"; "there
+      should no averaging any exam per course"); continuous assessment takes every other graded
+      task of the lesson ("homework, any other exercise or any other assessment and task during
+      the lesson's period, belongs to «Συνεχής Αξιολόγηση»"); the course editor renames only
+      standard names. And a new rule, todo 80: a retake of the final exam under 50 fails the course.
+    - **Three PRs, one per point.** Point 1 (attended, the Lates shown) and point 2 (matching):
+      **Done** (under "On `main` since v1.18.80"). Point 3 (the Weight, one final grade) next.
+      Points 1 and 2 go out in the same release: point 1's Greek help and guide name a
+      «Παρουσία» rule, which the course editor saved as Class Participation before point 2 (such a
+      rule stays so until it is typed again: the release notes must say it).
+
+80. **A retake of the final exam under 50 fails the course** (the owner, 2026-11-23, asked after
+    todo 77 point 2's second review: "if the final exam is missed, can be repeated and only then,
+    the final exams' grade kept will be the second one. However, in the second effort, iff the
+    exam grade is under 50, is considered a fail"; then, asked: the final exam only; the course
+    failed, the grade still worked out and shown). Like the ΜΙΕΕΚ absence limit: the final grade
+    stays, marked "failed: retake under 50", and the course counts as failed on the Grading page,
+    the grade sheets and Analytics whatever the figure. **A missed first sitting gets no grade
+    recorded** (the owner, the same evening), so a student has one Final Exam grade either way and the
+    data cannot tell a retake. **By date** (the owner's choice, the same day): each course gets the
+    date of its final exam (a new optional course field, an additive migration built in a clone),
+    and a Final Exam grade dated after it is the retake. Its own PR, after todo 77.
+81. **The course importer keeps a course's own rule names** (found by todo 77 point 2's third
+    review, 2026-11-23; the owner: "Yes, keep names"). `routers_imports._map_category` renames every
+    rule to an English label by substring ("Τελική Εργασία" -> "Assignments", "Ασκήσεις" ->
+    "Exercises", the lab templates' «Συνεχής Αξιολόγηση (… και Ενδιάμεση Εξέταση)» -> "Continuous
+    Assessment") and `_translate_rules` merges rules that get the same label, keeping the last weight
+    («Θεωρητική Εξέταση» 40 + «Πρακτική Εξέταση» 30 -> one "Exam" 30). Rename only standard names, as
+    the course editor does since todo 77 point 2, and never merge two rules. Future imports only.
+    Its own PR.
+
+82. **Editing a grade's category or name is ignored by the server** (found by the same review; no
+    decision needed). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
+    so the Grading page's Edit sends them and the server drops them: a grade filed under the wrong
+    category cannot be moved. Add them (the category title-cased as `GradeCreate` does), with a test
+    that an edit moves a grade to another rule. Its own PR.
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).

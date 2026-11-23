@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+import re
+import unicodedata
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional, cast
+from typing import Any, Dict, Iterable, List, Optional, Pattern, Tuple, cast
 
 from sqlalchemy import case, func, inspect
 from sqlalchemy.engine.reflection import Inspector
@@ -17,94 +19,126 @@ from backend.services.cache_service import get_cache_manager
 logger = logging.getLogger(__name__)
 
 
-def normalize_rule_category(name: Optional[str]) -> str:
-    """Normalize category names to improve matching between evaluation rules and recorded items.
+def _fold_rule_name(name: Any) -> str:
+    """A name as the final grade compares it: no case, no accents, punctuation as spaces, single
+    spaces ("Τελική-Εξέταση" -> "τελικη εξεταση"; casefold makes a final sigma a sigma)."""
+    decomposed = unicodedata.normalize("NFD", str(name))
+    bare = "".join(ch for ch in decomposed if not unicodedata.combining(ch)).casefold()
+    for ch in ":;,.-_()/":
+        bare = bare.replace(ch, " ")
+    return " ".join(bare.split())
 
-    Handles case-insensitive comparisons, common synonyms, and Greek equivalents. This is the
-    final grade's own matching (``_calculate_final_grade_from_records``); it lives at module level
-    so that the grade sheets can tell which rule the calculation treats as Class Participation.
-    Changing it changes final grades.
-    """
-    if not name:
-        return ""
-    n = str(name).strip().lower()
-    # Remove common punctuation
-    for ch in [":", ";", ",", ".", "-", "_", "(", ")"]:
-        n = n.replace(ch, " ")
-    n = " ".join(n.split())  # collapse whitespace
 
-    # Synonyms map (both EN and EL)
-    synonyms = {
+# Whole names first (written as people type them; folded like the names compared with them).
+_RULE_SYNONYMS: Dict[str, str] = {
+    _fold_rule_name(spelling): key
+    for spelling, key in {
         # Exams
         "midterm exam": "midterm",
         "midterm": "midterm",
         "intermediate": "midterm",
         "ενδιάμεση": "midterm",
         "ενδιάμεση εξέταση": "midterm",
-        "ενδιάμεση εξεταση": "midterm",
         "final exam": "final",
         "final": "final",
         "τελική": "final",
         "τελική εξέταση": "final",
-        "τελικη": "final",
-        "τελικη εξεταση": "final",
         # Coursework
         "homework": "homework",
         "assignment": "homework",
         "assignments": "homework",
         "εργασία": "homework",
-        "εργασια": "homework",
         "άσκηση": "homework",
-        "ασκηση": "homework",
         "project": "project",
         "πρότζεκτ": "project",
-        "προτζεκτ": "project",
         "lab": "lab",
         "lab work": "lab",
         "εργαστήριο": "lab",
-        "εργαστηριο": "lab",
         "quiz": "quiz",
         "κουίζ": "quiz",
-        "κουιζ": "quiz",
+        # The course editor saves the Greek name as the English one: both one category.
+        "continuous assessment": "continuous",
+        "συνεχής αξιολόγηση": "continuous",
         # Participation / attendance
         "class participation": "participation",
         "participation": "participation",
         "συμμετοχή": "participation",
-        "συμμετοχη": "participation",
         "no participation": "no participation",
         "minor participation": "minor participation",
         "minor participation mobile usage": "minor participation (mobile usage)",
         "minor participation with mobile usage": "minor participation (mobile usage)",
+        # The observations as the Greek page names them, which the course editor saves as the
+        # English names (todo 77 point 2's review: they were read as Class Participation).
+        "καμία συμμετοχή": "no participation",
+        "μικρή συμμετοχή": "minor participation",
+        "μικρή συμμετοχή (χρήση κινητού)": "minor participation (mobile usage)",
         "attendance": "attendance",
         "παρουσία": "attendance",
-        "παρουσια": "attendance",
-    }
+    }.items()
+}
 
-    # Direct map
-    if n in synonyms:
-        return synonyms[n]
+# Then the first key with a word that starts with one of its stems, in this order: the more
+# specific stem wins where one word holds another's (the owner, 2026-11-23, plan todo 77 point 2).
+# Continuous assessment first: the templates' «Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο σπίτι)»
+# and «… και Ενδιάμεση Εξέταση)» are that rule, whatever their brackets name (the owner,
+# 2026-11-23: "homework, any other exercise or any other assessment and task during the lesson's
+# period, belongs to «Συνεχής Αξιολόγηση»"). Coursework before the exams: "Τελική Εργασία" is
+# homework and "Final Project" a project, not the final exam (the owner, the same evening); only a
+# name that is just the exam counts the exam's one grade. A project before a lab and homework, as
+# the standard category list has it (`grade_categories`); a lab before homework ("Εργαστήρια",
+# "Εργαστηριακή Εργασία", "Εργαστ. Ασκήσεις" hold "εργασ"); a presentation before attendance, by
+# stems that go past the "σ" ("Παρουσίαση", "Παρουσιάσεις"), since the genitive of attendance folds
+# to "παρουσιασ" too ("Ποσοστό Παρουσίας"); participation before both ("Παρουσία και Συμμετοχή" is
+# participation). A stem counts only at the start of a word, as in that list, so "Collaboration" is
+# no lab and "Επεξεργασία" no homework. The course editor finds a rule's kind by the same stems in
+# the same order (`categoryLabels.ts`, `getRuleKind`). Until then homework came before lab, project
+# after it, attendance took any "παρουσ", and a stem counted anywhere in a word.
+_RULE_STEMS: Tuple[Tuple[str, Tuple[Pattern[str], ...]], ...] = tuple(
+    (key, tuple(re.compile(r"(?<!\w)" + re.escape(_fold_rule_name(stem))) for stem in stems))
+    for key, stems in (
+        (
+            "minor participation (mobile usage)",
+            (
+                "minor participation mobile usage",
+                "minor participation with mobile usage",
+                "mobile usage participation",
+                "mobile use participation",
+                "μικρή συμμετοχή χρήση κινητού",
+            ),
+        ),
+        ("no participation", ("no participation", "καμία συμμετοχή")),
+        ("minor participation", ("minor participation", "μικρή συμμετοχή")),
+        ("continuous", ("continuous", "συνεχ")),
+        ("project", ("project", "πρότζεκ")),
+        ("lab", ("lab", "εργαστ")),
+        ("homework", ("homework", "assignment", "εργασ", "άσκη", "εξάσκη")),
+        ("midterm", ("midterm", "mid term", "ενδιάμεσ")),
+        ("final", ("final", "τελικ")),
+        ("quiz", ("quiz", "κουίζ", "τεστ")),
+        ("participation", ("participation", "συμμετο")),
+        ("presentation", ("presentation", "παρουσιαση", "παρουσιασε")),
+        ("attendance", ("attendance", "παρουσ")),
+    )
+)
 
-    # Heuristic contains-based mapping
-    contains_map = {
-        "minor participation (mobile usage)": [
-            "minor participation mobile usage",
-            "minor participation with mobile usage",
-            "mobile usage participation",
-            "mobile use participation",
-        ],
-        "no participation": ["no participation"],
-        "minor participation": ["minor participation"],
-        "midterm": ["midterm", "ενδιάμεση", "ενδιαμεση"],
-        "final": ["final", "τελική", "τελικη"],
-        "homework": ["homework", "assignment", "εργασ", "άσκη", "ασκη"],
-        "project": ["project", "πρότζεκ", "προτζεκ"],
-        "lab": ["lab", "εργαστηρ"],
-        "quiz": ["quiz", "κουιζ", "κουίζ", "τεστ"],
-        "participation": ["participation", "συμμετο"],
-        "attendance": ["attendance", "παρουσ"],
-    }
-    for key, needles in contains_map.items():
-        if any(needle in n for needle in needles):
+
+def normalize_rule_category(name: Optional[str]) -> str:
+    """Normalize category names to improve matching between evaluation rules and recorded items.
+
+    Compares names without case, accents or punctuation, and maps common synonyms and Greek
+    equivalents to one key; any other name is its folded self, so a course's own name matches its
+    grades whatever the accents ("Θεωρητική Εξέταση" is "ΘΕΩΡΗΤΙΚΗ ΕΞΕΤΑΣΗ"). This is the final
+    grade's own matching (``_calculate_final_grade_from_records``); it lives at module level so
+    that the grade sheets can tell which rule the calculation treats as Class Participation.
+    Changing it changes final grades.
+    """
+    if not name:
+        return ""
+    n = _fold_rule_name(name)
+    if n in _RULE_SYNONYMS:
+        return _RULE_SYNONYMS[n]
+    for key, stems in _RULE_STEMS:
+        if any(stem.search(n) for stem in stems):
             return key
     return n
 
@@ -125,16 +159,13 @@ class StudentCourseSummary:
 class AnalyticsService:
     """Encapsulates analytics-related business logic and heavy DB work."""
 
-    exam_categories = {
-        "midterm",
-        "midterm exam",
-        "final exam",
-        "final",
-        "ενδιάμεση",
-        "ενδιάμεση εξέταση",
-        "τελική εξέταση",
-        "τελική",
-    }
+    # The exams, by normalized name: each counts one grade, its latest sitting (`counted_grades`).
+    # The owner, 2026-11-23: "There is only one official midterm per semester for each course. The
+    # second midterm is only if the student missed the first one", and "there should no averaging
+    # any exam per course". Until todo 77 point 2 a rule had to be spelled one of eight ways to
+    # count its latest grade, and "ΤΕΛΙΚΗ ΕΞΕΤΑΣΗ", "Τελικές Εξετάσεις" or two rules "Midterm 1"
+    # and "Midterm 2" averaged a retake with the first sitting.
+    exam_categories = frozenset({"midterm", "final"})
     # Participation observations ticked per day in Attendance, by normalized name (see
     # _normalize_category), with the default share of that day's Class Participation each one
     # takes, by severity (owner, 2026-10-13). A rule's `deduction_percent` overrides the default.
@@ -145,6 +176,33 @@ class AnalyticsService:
         "minor participation": 20.0,
     }
     participation_observations = set(observation_default_percent)
+    # What a continuous-assessment rule never takes for want of a rule of its own: these are not
+    # graded tasks (see `_calculate_final_grade_from_records`).
+    not_continuous = frozenset({"participation", "attendance"} | participation_observations)
+
+    @classmethod
+    def counted_grades(cls, grades: Iterable[Any]) -> List[Any]:
+        """Of the grades a rule takes, those that count: every grade that has a maximum, but of a
+        Midterm and of a Final only the latest sitting (the latest date_submitted, then the latest
+        entry; an undated grade counts as the oldest). A course has one midterm and one final; a
+        second sitting is for a student who missed the first, and replaces it, never averaged
+        with it, whatever the grades are called (the owner, 2026-11-23)."""
+        kept: List[Any] = []
+        latest: Dict[str, Any] = {}
+        for grade in grades:
+            if not getattr(grade, "max_grade", 0):
+                continue
+            kind = normalize_rule_category(getattr(grade, "category", None))
+            if kind not in cls.exam_categories:
+                kept.append(grade)
+                continue
+            current = latest.get(kind)
+            if current is None or (grade.date_submitted or date.min, grade.id) > (
+                current.date_submitted or date.min,
+                current.id,
+            ):
+                latest[kind] = grade
+        return kept + list(latest.values())
 
     @staticmethod
     def grade_weight(grade: Any) -> float:
@@ -928,6 +986,38 @@ class AnalyticsService:
             absence_limit_service.evaluate_records(course, attendance)["participation_forfeited"]
         )
 
+        # Which rule takes a grade or a rating (the owner, 2026-11-23): the rules of its own kind;
+        # else, in a course with a continuous-assessment rule, that rule ("homework, any other
+        # exercise or any other assessment and task during the lesson's period, belongs to
+        # «Συνεχής Αξιολόγηση»"), except Class Participation, attendance and the observations. A
+        # Midterm or Final with no rule of its own goes there too, as its one grade: "there is no
+        # course without a midterm exam and a final exam in MIEEK", so where the rules have none
+        # it is part of continuous assessment (the templates' «Συνεχής Αξιολόγηση (Εκπόνηση
+        # εργασιών στο σπίτι και Ενδιάμεση Εξέταση)», which the course importer saves as
+        # "Continuous Assessment"). A grade without a category counts nowhere, as before: it could
+        # be anything. Until then a grade no rule named counted nowhere: a quiz or a project in a
+        # template course, or a grade filed under the Grading page's «Συνεχής Αξιολόγηση» option
+        # where the rule read as homework.
+        rule_kinds = {
+            _normalize_category(r.get("category"))
+            for r in evaluation_rules
+            if r.get("category") and _as_float(r.get("weight")) > 0
+        }
+
+        def _taken_by(name: Any) -> Optional[str]:
+            kind = _normalize_category(name)
+            if not kind:
+                return None
+            # A rule of the grade's own kind first: a course's Midterm rule keeps the midterm.
+            if kind in rule_kinds:
+                return kind
+            if "continuous" not in rule_kinds or kind in self.not_continuous:
+                return None
+            return "continuous"
+
+        grades_taken = [(g, _taken_by(getattr(g, "category", None))) for g in grades]
+        ratings_taken = [(p, _taken_by(getattr(p, "category", None))) for p in daily_performance]
+
         for rule in evaluation_rules:
             category = rule.get("category")
             weight = float(rule.get("weight", 0))
@@ -952,21 +1042,12 @@ class AnalyticsService:
             total_item_weight = 0.0
             item_count = 0
 
-            category_lower = (category or "").lower()
-            # Match grades to this rule category using normalized names
+            # The grades this rule takes, an exam by its latest sitting alone (`counted_grades`; a
+            # grade without the date counts as the oldest. Until November 2026 that stand-in date
+            # was the text "1970-01-01", and an exam with one dated and one undated grade raised
+            # TypeError, comparing a date with a str).
             rule_norm = _normalize_category(category)
-            category_grades = [gr for gr in grades if _normalize_category(getattr(gr, "category", None)) == rule_norm]
-
-            if category_lower in self.exam_categories and category_grades:
-                # An exam counts its latest grade alone: the latest date_submitted, then the
-                # latest entry. A grade without the date counts as the oldest. (Until November
-                # 2026 that stand-in date was the text "1970-01-01", and an exam with one dated
-                # and one undated grade raised TypeError, comparing a date with a str.)
-                category_grades = sorted(
-                    category_grades,
-                    key=lambda g: (g.date_submitted or date.min, g.id),
-                    reverse=True,
-                )[:1]
+            category_grades = self.counted_grades(g for g, taken in grades_taken if taken == rule_norm)
 
             for grade in category_grades:
                 if getattr(grade, "max_grade", 0):
@@ -980,16 +1061,16 @@ class AnalyticsService:
                     item_count += 1
 
             if include_daily:
-                for perf in (
-                    p for p in daily_performance if _normalize_category(getattr(p, "category", None)) == rule_norm
-                ):
+                for perf in (p for p, taken in ratings_taken if taken == rule_norm):
                     if getattr(perf, "max_score", 0):
                         daily_pct = (perf.score / perf.max_score) * 100
                         weighted_sum += daily_pct * daily_multiplier
                         total_item_weight += daily_multiplier
                         item_count += 1
 
-            if category_lower in {"attendance", "παρουσία"}:
+            # The Attendance rule, under any spelling ("Παρουσίες", "ΠΑΡΟΥΣΙΑ"; the owner,
+            # 2026-11-23): until then only "attendance" or "παρουσία" counted the periods.
+            if rule_norm == "attendance":
                 if attendance:
                     # Present and Late are attended (the owner, 2026-11-23); Absent and Excused
                     # are absences, as the ΜΙΕΕΚ limit counts them. Until then Late lost here.

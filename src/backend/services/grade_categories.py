@@ -151,16 +151,21 @@ _PHRASES: tuple[tuple[re.Pattern[str], Optional[str]], ...] = (
 )
 
 # Then the start of any word, in this order: the more specific word wins ("Final project" is a
-# project, "Εργαστηριακή εργασία" is lab work, "Παρουσίαση" is not "Παρουσία").
+# project, "Εργαστηριακή εργασία" and "Εργαστ. Ασκήσεις" are lab work, "Παρουσίαση" is not
+# "Παρουσία"). A presentation by stems that go past the "σ": casefold makes the genitive of
+# attendance "παρουσιασ" too ("Ποσοστό Παρουσίας"; plan todo 77 point 2's review). Coursework
+# before the exams, as the final grade reads them: «Τελική Εργασία» and «Ενδιάμεση Εργασία» are
+# homework (the owner, 2026-11-23: a final project is coursework, not the final exam).
+_COURSEWORK_KEYS = ("project", "lab", "homework")
 _WORD_STARTS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("continuous", ("continuous", "συνεχ")),
-    ("presentation", ("presentation", "παρουσιασ")),
+    ("presentation", ("presentation", "παρουσιαση", "παρουσιασε")),
     ("project", ("project", "προτζεκ")),
-    ("lab", ("lab", "εργαστηρ")),
+    ("lab", ("lab", "εργαστ")),
     ("participation", ("particip", "συμμετοχ")),
     ("attendance", ("attendance", "παρουσι")),
-    ("midterm", ("midterm", "intermediate", "ενδιαμεσ")),
     ("homework", ("homework", "assignment", "exercise", "εργασ", "ασκησ")),
+    ("midterm", ("midterm", "intermediate", "ενδιαμεσ")),
     ("final", ("final", "τελικ")),
     ("quiz", ("quiz", "test", "κουιζ", "τεστ", "διαγωνισμ")),
     ("exam", ("exam", "εξετασ")),
@@ -194,10 +199,15 @@ def canonical_category(name: Any) -> Optional[str]:
         return None
     if folded in _EXACT:
         return _EXACT[folded]
+    words = folded.split()
     for pattern, key in _PHRASES:
         if pattern.search(folded):
+            # "Mid-Term Project" is a project, as for the final grade: coursework before the exams.
+            if key == "midterm":
+                for coursework, starts in _WORD_STARTS:
+                    if coursework in _COURSEWORK_KEYS and any(w.startswith(s) for w in words for s in starts):
+                        return coursework
             return key
-    words = folded.split()
     for key, starts in _WORD_STARTS:
         if any(word.startswith(start) for word in words for start in starts):
             return key

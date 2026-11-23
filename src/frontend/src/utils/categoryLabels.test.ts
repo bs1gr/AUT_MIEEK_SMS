@@ -1,5 +1,65 @@
 import { describe, it, expect } from 'vitest';
-import { getLocalizedCategory, getCanonicalCategory } from './categoryLabels';
+import {
+  foldRuleName,
+  getCanonicalCategory,
+  getLocalizedCategory,
+  getRuleKind,
+  getStandardCategory,
+  localizeStandardName,
+} from './categoryLabels';
+import ruleNameCases from './__tests__/ruleNameCases.json';
+import elGrades from '@/locales/el/grades';
+import elCommon from '@/locales/el/common';
+import enGrades from '@/locales/en/grades';
+import enCommon from '@/locales/en/common';
+
+// Each page's own texts, as useLanguage finds a bare key: grades before common.
+const pageT = (grades: unknown, common: unknown) => (key: string): string =>
+  String((grades as Record<string, unknown>)[key] ?? (common as Record<string, unknown>)[key] ?? key);
+const pageGreekT = pageT(elGrades, elCommon);
+const pageEnglishT = pageT(enGrades, enCommon);
+
+// The final grade's key of each standard category (analytics_service.normalize_rule_category).
+const KEY_OF: Record<string, string> = {
+  'Midterm Exam': 'midterm',
+  'Final Exam': 'final',
+  'Homework/Assignments': 'homework',
+  'Lab Work': 'lab',
+  Quizzes: 'quiz',
+  Project: 'project',
+  Presentation: 'presentation',
+  'Class Participation': 'participation',
+  'Continuous Assessment': 'continuous',
+  Attendance: 'attendance',
+  'No participation': 'no participation',
+  'Minor participation': 'minor participation',
+  'Minor participation (mobile usage)': 'minor participation (mobile usage)',
+};
+
+describe('the course editor saves a rule as the final grade reads it (todo 77 point 2)', () => {
+  // One table for both sides: test_rule_category_matching.py checks that the final grade makes
+  // the same category (`key`) of each name and of what the editor saves it as.
+  const cases = ruleNameCases.map((c) => [c.name, c.saved, c.kind, c.key] as const);
+
+  it.each(cases)('saves %s as %s, on the Greek and the English page', (typed, saved) => {
+    // A standard name as that category, any other as typed (the owner, 2026-11-23).
+    expect(getCanonicalCategory(typed, pageGreekT)).toBe(saved);
+    expect(getCanonicalCategory(typed, pageEnglishT)).toBe(saved);
+  });
+
+  it.each(cases)('finds the kind of %s as the final grade does', (typed, _saved, kind, key) => {
+    expect(getRuleKind(typed, pageGreekT)).toBe(kind);
+    expect(getRuleKind(typed, pageEnglishT)).toBe(kind);
+    // A standard kind is the final grade's key; any other name is the name itself, folded alike.
+    expect(KEY_OF[kind] ?? foldRuleName(typed)).toBe(key);
+  });
+
+  it('never renames what it already saved', () => {
+    for (const { saved } of ruleNameCases) {
+      expect(getCanonicalCategory(saved, pageGreekT)).toBe(saved);
+    }
+  });
+});
 
 describe('categoryLabels', () => {
   // Mock translation function
@@ -131,26 +191,52 @@ describe('categoryLabels', () => {
       expect(getCanonicalCategory('Τελική Εξέταση', mockGreekT)).toBe('Final Exam');
       expect(getCanonicalCategory('Ενδιάμεση Εξέταση', mockGreekT)).toBe('Midterm Exam');
       expect(getCanonicalCategory('Συμμετοχή στο Μάθημα', mockGreekT)).toBe('Class Participation');
+      // In the English page too: a standard name in either language (the owner, 2026-11-23).
+      expect(getCanonicalCategory('Τελική Εξέταση', mockT)).toBe('Final Exam');
+      expect(getCanonicalCategory('Εργαστήρια', mockT)).toBe('Lab Work');
     });
 
-    it('uses heuristics for Greek keywords', () => {
-      // Heuristics work on normalized input (diacritics removed)
-      // Use partial keyword matches that actually exist in the heuristic checks
-      expect(getCanonicalCategory('Τελική', mockT)).toBe('Final Exam'); // 'τελική' check in heuristic
-      expect(getCanonicalCategory('τελικ', mockT)).toBe('Final Exam'); // 'τελικ' prefix match
-      expect(getCanonicalCategory('τελικη εξεταση', mockT)).toBe('Final Exam'); // contains 'τελικ'
-      expect(getCanonicalCategory('εργαστηριο', mockT)).toBe('Lab Work'); // contains 'εργαστηρ'
-      expect(getCanonicalCategory('παρουσιαση', mockT)).toBe('Class Participation'); // contains 'παρουσι'
-      expect(getCanonicalCategory('εργασια μαθηματος', mockT)).toBe('Homework/Assignments'); // contains 'εργασ'
+    // The owner, 2026-11-23 (plan todo 77 point 2): a rule typed «Παρουσία» or «Παρουσίες» is the
+    // Attendance rule, which counts the periods attended; until then the editor saved it as Class
+    // Participation, which never counts them. And, 2026-11-23: "Rename only standard names".
+    it.each([
+      ['Παρουσία', 'Attendance'],
+      ['Παρουσίες', 'Attendance'],
+      ['ΠΑΡΟΥΣΙΑ', 'Attendance'],
+      ['attendance', 'Attendance'],
+      ['Παρουσίαση', 'Presentation'],
+      ['Παρουσιάσεις', 'Presentation'],
+      ['Συμμετοχή', 'Class Participation'],
+      ['Εργαστήρια', 'Lab Work'],
+      ['Εργαστηριακή Εργασία', 'Lab Work'],
+      ['Ενδιάμεση', 'Midterm Exam'],
+      ['Τελική', 'Final Exam'],
+      ['τελικη εξεταση', 'Final Exam'],
+      ['εργαστηριο', 'Lab Work'],
+      // Any other name as typed: the final grade reads it by its words.
+      ['Ενδιάμεσες εξετάσεις', 'Ενδιάμεσες εξετάσεις'],
+      ['1η Ενδιάμεση Εξέταση', '1η Ενδιάμεση Εξέταση'],
+      ['Τελική Εργασία', 'Τελική Εργασία'],
+      ['Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο σπίτι)', 'Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο σπίτι)'],
+      ['Collaborative assignment', 'Collaborative assignment'],
+      ['εργασια μαθηματος', 'εργασια μαθηματος'],
+      ['τελικ', 'τελικ'],
+      ['Επεξεργασία Δεδομένων', 'Επεξεργασία Δεδομένων'],
+    ])('saves %s as %s', (typed, saved) => {
+      expect(getCanonicalCategory(typed, mockGreekT)).toBe(saved);
     });
 
-    it('uses heuristics for English keywords', () => {
-      expect(getCanonicalCategory('final test', mockT)).toBe('Final Exam');
-      expect(getCanonicalCategory('midterm test', mockT)).toBe('Midterm Exam');
-      expect(getCanonicalCategory('lab experiment', mockT)).toBe('Lab Work');
-      expect(getCanonicalCategory('participation grade', mockT)).toBe('Class Participation');
-      expect(getCanonicalCategory('homework set', mockT)).toBe('Homework/Assignments');
-      expect(getCanonicalCategory('assignment 1', mockT)).toBe('Homework/Assignments');
+    it('names a stored Attendance rule in the page language', () => {
+      const greekT = (key: string) => (key === 'attendanceCategory' ? 'Παρουσία' : mockGreekT(key));
+      expect(getLocalizedCategory('Attendance', greekT)).toBe('Παρουσία');
+      // And back: what the Greek editor shows saves as Attendance again.
+      expect(getCanonicalCategory('Παρουσία', greekT)).toBe('Attendance');
+    });
+
+    it('keeps descriptive English names as typed', () => {
+      for (const name of ['final test', 'midterm test', 'lab experiment', 'participation grade', 'homework set', 'assignment 1']) {
+        expect(getCanonicalCategory(name, mockT)).toBe(name);
+      }
     });
 
     it('canonicalizes special participation options', () => {
@@ -158,6 +244,8 @@ describe('categoryLabels', () => {
       expect(getCanonicalCategory('Minor participation', mockT)).toBe('Minor participation');
       expect(getCanonicalCategory('Minor participation (mobile usage)', mockT)).toBe('Minor participation (mobile usage)');
       expect(getCanonicalCategory('minor participation with mobile usage', mockT)).toBe('Minor participation (mobile usage)');
+      // The Greek labels in either page (the English page saved them as typed).
+      expect(getCanonicalCategory('Καμία συμμετοχή', mockT)).toBe('No participation');
     });
 
     it('normalizes diacritics and whitespace', () => {
@@ -193,6 +281,7 @@ describe('categoryLabels', () => {
       // If input matches a translated label, return canonical
       expect(getCanonicalCategory('Homework/Assignments', mockT)).toBe('Homework/Assignments');
       expect(getCanonicalCategory('Lab Work', mockT)).toBe('Lab Work');
+      expect(getCanonicalCategory('Έργο', mockGreekT)).toBe('Project');
     });
 
     it('handles edge case with multiple spaces', () => {
@@ -202,6 +291,48 @@ describe('categoryLabels', () => {
     it('preserves unknown custom categories without modification', () => {
       const custom = 'My Custom Grade Type';
       expect(getCanonicalCategory(custom, mockT)).toBe(custom);
+    });
+  });
+
+  describe('getRuleKind', () => {
+    it('finds the kind of a descriptive name by its keywords, as the final grade does', () => {
+      expect(getRuleKind('τελικ', mockT)).toBe('Final Exam');
+      expect(getRuleKind('final test', mockT)).toBe('Final Exam');
+      expect(getRuleKind('midterm test', mockT)).toBe('Midterm Exam');
+      expect(getRuleKind('lab experiment', mockT)).toBe('Lab Work');
+      expect(getRuleKind('participation grade', mockT)).toBe('Class Participation');
+      expect(getRuleKind('homework set', mockT)).toBe('Homework/Assignments');
+      expect(getRuleKind('εργασια μαθηματος', mockT)).toBe('Homework/Assignments');
+      expect(getRuleKind('Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο σπίτι και Ενδιάμεση Εξέταση)', mockT)).toBe(
+        'Continuous Assessment'
+      );
+    });
+
+    it('finds the observations, whatever the page language', () => {
+      expect(getRuleKind('Μικρή συμμετοχή (χρήση κινητού)', mockT)).toBe('Minor participation (mobile usage)');
+      expect(getRuleKind('Mobile usage participation', mockT)).toBe('Minor participation (mobile usage)');
+    });
+
+    it('leaves a name without a keyword as it is', () => {
+      expect(getRuleKind('Θεωρητική Εξέταση', mockT)).toBe('Θεωρητική Εξέταση');
+      expect(getRuleKind('', mockT)).toBe('');
+    });
+  });
+
+  describe('localizeStandardName', () => {
+    it('translates a standard name only', () => {
+      expect(localizeStandardName('Homework/Assignments', pageGreekT)).toBe('Εργασία');
+      expect(localizeStandardName('Εργαστήρια', pageGreekT)).toBe('Εργαστήριο');
+      expect(localizeStandardName('Attendance', pageGreekT)).toBe('Παρουσία');
+    });
+
+    it('shows a course own name as typed, never as the category a keyword suggests', () => {
+      // getLocalizedCategory names "Exam" Final Exam and "Exercises" Homework; the final grade does
+      // not (todo 77 point 2's review: the Grading page offered «Τελική Εξέταση» twice).
+      expect(localizeStandardName('Exam', pageGreekT)).toBe('Exam');
+      expect(localizeStandardName('Exercises', pageGreekT)).toBe('Exercises');
+      expect(localizeStandardName('Θεωρητική Εξέταση', pageEnglishT)).toBe('Θεωρητική Εξέταση');
+      expect(getStandardCategory('Exam', pageEnglishT)).toBeNull();
     });
   });
 
@@ -225,6 +356,13 @@ describe('categoryLabels', () => {
       const inputs = ['final', 'Final', 'FINAL', 'final exam', 'Final Exam'];
       const results = inputs.map(input => getLocalizedCategory(input, mockT));
       expect(results.every(r => r === 'Final Exam')).toBe(true);
+    });
+
+    it('a stored standard name, shown in the page language, saves as itself again', () => {
+      for (const stored of Object.keys(KEY_OF)) {
+        expect(getCanonicalCategory(localizeStandardName(stored, pageGreekT), pageGreekT)).toBe(stored);
+        expect(getCanonicalCategory(localizeStandardName(stored, pageEnglishT), pageEnglishT)).toBe(stored);
+      }
     });
   });
 });
