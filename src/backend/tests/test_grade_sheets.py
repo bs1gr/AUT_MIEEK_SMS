@@ -240,7 +240,9 @@ def test_category_totals_without_rules_use_the_grades_own_categories(client, sce
     assert all(c["weight"] is None for c in sheet["columns"])
     (row,) = sheet["rows"]
     assert row["cells"] == [80.0, 70.0]  # (60*1 + 90*2) / 3
-    assert row["final_grade"] == 73.33  # no rules: the plain mean of 60, 90 and 70, weights aside
+    # No rules: the mean by Weight, (60 * 1 + 90 * 2 + 70 * 1) / 4 (plan todo 77 point 3; the
+    # plain mean of 60, 90 and 70 was 73.33).
+    assert row["final_grade"] == 77.5
     assert row["grade_basis"] == "average"
 
 

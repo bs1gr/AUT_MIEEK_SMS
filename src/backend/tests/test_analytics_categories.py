@@ -422,8 +422,8 @@ def test_a_grade_out_of_twenty_rounds_as_a_teacher_rounds_it(client):
 
 
 def test_a_course_row_says_whether_the_course_has_rules(client):
-    # With rules but grades outside them the final grade falls back to their plain mean: the row
-    # says the course has rules, so the page can explain an empty profile.
+    # With rules but grades outside them the final grade is their mean by Weight: the row says
+    # the course has rules, so the page can explain an empty profile.
     with_rules = _create_course(client, "OUT1", rules=[{"category": "Final Exam", "weight": 100.0}])
     without = _create_course(client, "OUT2")
     s = _student(client, 103, "Παπαδάκη", "Πηνελόπη")
@@ -475,7 +475,7 @@ def test_a_course_with_rules_shows_what_its_final_grade_counts(client):
 
 def test_two_rules_of_one_kind_count_by_their_weights(client):
     # Θεωρητική Εξέταση 70 / Πρακτική Εξέταση 30, graded 90 and 50: the exam share of the final
-    # grade is 0.7 * 90 + 0.3 * 50 = 78 (the final grade itself here), not their plain mean 70.
+    # grade is 0.7 * 90 + 0.3 * 50 = 78 (the final grade itself here), not the mean of the two, 70.
     rules = [{"category": "Θεωρητική Εξέταση", "weight": 70.0}, {"category": "Πρακτική Εξέταση", "weight": 30.0}]
     course = _create_course(client, "SPLIT", rules=rules)
     s = _student(client, 87, "Νικολάου", "Νεφέλη")
@@ -491,7 +491,7 @@ def test_two_rules_of_one_kind_count_by_their_weights(client):
 
 def test_a_course_with_rules_counts_only_its_rules_for_every_student(client):
     # Homework 50 / Final Exam 50. Ξενάκη's Lab Work is outside the rules. Ψυχογιού has only Lab
-    # Work: her final grade falls back to the plain mean, but, as on the grade sheet by category,
+    # Work: her final grade is the mean of her grades, but, as on the grade sheet by category,
     # she has no category of this course, and the course's figures are not made of hers alone.
     rules = [{"category": "Homework", "weight": 50.0}, {"category": "Final Exam", "weight": 50.0}]
     course = _create_course(client, "MX101", rules=rules)

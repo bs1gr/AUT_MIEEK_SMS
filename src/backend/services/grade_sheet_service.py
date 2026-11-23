@@ -10,13 +10,15 @@ Three kinds, each listing every student of the course, A to Z by surname (accent
   (exams by their latest grade, ratings included); a cell the final grade zeroed because of
   absences is flagged in ``forfeited``. For a course without rules, one column per category of
   its grades (a standard name's spellings together, any other name on its own), each the
-  weighted mean of its grades.
+  weighted mean of its grades, a Midterm or Final Exam by its latest grade (what the final
+  grade counts).
 
 The students are the ones the Analytics page counts: live enrollments (not deleted, not dropped)
 of active students. The final grade is the Analytics page's too (``AnalyticsOverviewService``):
 from the course's evaluation rules, scaled to the work done so far, less the participation and
-absence deductions (both on each row); or the plain mean of the grades when no rule applies
-(``grade_basis`` "average"). A student over the ΜΙΕΕΚ absence limit fails the course whatever
+absence deductions (both on each row); or, when no rule takes a grade, the grades' own mean, each
+by its Weight, an exam by its latest grade, less the absence penalty (``grade_basis`` "average";
+plan todo 77 point 3). A student over the ΜΙΕΕΚ absence limit fails the course whatever
 the grade, and the class figures count them that way.
 
 An **assessment** is every grade of the course with the same name and the same category. Names
@@ -418,13 +420,21 @@ class GradeSheetService:
     def _grade_columns(
         data: _CourseData,
     ) -> Tuple[List[Dict[str, Any]], Callable[[EnrollmentFacts], Tuple[List[Optional[float]], List[bool]]]]:
-        """A course without rules: each category's weighted mean of the student's grades.
+        """A course without rules: each category's weighted mean of the student's grades that
+        the final grade counts (``AnalyticsService.counted_grades``, taken over all the student's
+        grades: one Midterm and one Final, each by its latest sitting, whatever the grades are
+        called; a sitting that does not count is in no column, "Midterm 1" beside its retake
+        "Midterm 2" included).
 
-        Nothing is forfeited here: without rules the final grade is the plain mean of every grade.
+        Nothing is forfeited here: without rules the final grade is the grades' own mean (each by
+        its Weight, an exam by its latest grade, less the absence penalty).
         """
-        groups: Dict[str, List[Any]] = {}
+        per_student: Dict[int, List[Any]] = {}
         for g in data.grades:
-            if g.max_grade:
+            per_student.setdefault(g.student_id, []).append(g)
+        groups: Dict[str, List[Any]] = {}
+        for own in per_student.values():
+            for g in AnalyticsService.counted_grades(own):
                 groups.setdefault(cats.exact_key(g.category), []).append(g)
         keys = sorted(groups, key=cats.sort_position)
         columns = []

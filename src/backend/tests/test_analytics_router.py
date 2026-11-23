@@ -156,7 +156,8 @@ def test_final_grade_with_grades_dailyperf_and_absence_penalty(client):
     assert round(breakdown["Homework"]["average"], 2) == 82.5
 
 
-def test_final_grade_without_rules_returns_error(client):
+def test_final_grade_without_rules_or_grades_returns_error(client):
+    # With grades, a course without rules has the mean of them (test_final_grade_without_rules.py).
     s = _create_student(client, 2)
     c = _create_course(client, "C0", rules=[], absence_penalty=0.0)
 
@@ -227,7 +228,8 @@ def test_student_all_courses_summary_with_mixed_courses(client):
 
     assert _create_grade(client, s["id"], course_b["id"], "Project", "Project", 95).status_code == 201
 
-    # Ensure the invalid course is considered when gathering course IDs but skipped due to missing rules
+    # A course without rules is listed with the mean of its grades, as every page shows it (plan
+    # todo 77 point 3). Until then it was left out here.
     assert _create_grade(client, s["id"], course_invalid["id"], "Quiz", "Quiz", 100).status_code == 201
 
     r = client.get(f"/api/v1/analytics/student/{s['id']}/all-courses-summary")
@@ -235,11 +237,12 @@ def test_student_all_courses_summary_with_mixed_courses(client):
     data = r.json()
 
     assert data["student"]["id"] == s["id"]
-    assert data["total_credits"] == course_a["credits"] + course_b["credits"]
-    assert len(data["courses"]) == 2
+    assert data["total_credits"] == course_a["credits"] + course_b["credits"] + course_invalid["credits"]
+    assert len(data["courses"]) == 3
 
     courses_by_code = {c["course_code"]: c for c in data["courses"]}
-    assert set(courses_by_code.keys()) == {"MIX1", "MIX2"}
+    assert set(courses_by_code.keys()) == {"MIX0", "MIX1", "MIX2"}
+    assert (courses_by_code["MIX0"]["final_grade"], courses_by_code["MIX0"]["letter_grade"]) == (100.0, "A+")
 
     course_a_summary = courses_by_code["MIX1"]
     assert course_a_summary["letter_grade"] == "B"
@@ -249,7 +252,8 @@ def test_student_all_courses_summary_with_mixed_courses(client):
     assert course_b_summary["letter_grade"] == "A"
     assert course_b_summary["final_grade"] == 95.0
 
-    assert round(data["overall_gpa"], 2) == 3.56
+    # (3.4 * 3 + 3.8 * 2 + 4.0 * 4) / 9; without MIX0 it was 3.56.
+    assert round(data["overall_gpa"], 2) == 3.76
 
 
 def test_student_all_courses_summary_student_not_found(client):

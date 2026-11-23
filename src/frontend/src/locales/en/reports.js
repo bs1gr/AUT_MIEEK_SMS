@@ -159,18 +159,21 @@ export default {
     summaryFinalAbsences:
       'Students: {{enrolled}}. Class average {{average}}. Passed {{passed}}, failed {{failed}} ({{absences}} of them over the absence limit), no grade yet {{noGrade}}.',
     basisRules: 'One column per evaluation rule of the course: the average the final grade counts.',
-    basisGrades: 'This course has no evaluation rules: each category is the mean of its grades.',
+    basisGrades:
+      'This course has no evaluation rules: each category is the mean of its grades, each counted as often as its Weight says; an exam is its latest grade.',
     deductionsNote: 'Deductions: points the final grade loses for participation observations and unexcused absences.',
     lateNote: "Late: periods the student arrived late. They count as attended, not as absences; shown for the teacher's evaluation.",
     finalRules: "Final grade so far: from the course's evaluation rules, scaled to the work graded so far.",
-    finalAverage: "Final grade: the mean of the student's grades (no evaluation rule applies).",
-    finalAverageMarked: '† No evaluation rule matched these grades: the final grade is their mean.',
+    finalAverage:
+      "Final grade: the mean of the student's grades, each counted as often as its Weight says and an exam by its latest grade, less any absence penalty (no evaluation rule applies).",
+    finalAverageMarked:
+      '† No evaluation rule matched these grades: the final grade is their mean (each by its Weight, an exam by its latest grade), less any absence penalty.',
     overLimit: '* Over the absence limit: the course is failed whatever the grade.',
     forfeitedNote: '‡ Over the Class Participation absence limit: the category counts 0.',
     ratingsOnly: 'No assessment has been graded yet: the final grades so far come from the daily ratings.',
     overLimitBadge: 'Over the absence limit',
     forfeitedCell: 'Over the Class Participation absence limit: counts 0',
-    averageBasisCell: 'No evaluation rule matched: the mean of the grades',
+    averageBasisCell: 'No evaluation rule matched: the mean of the grades, by their Weight',
     openGradeSheets: 'Grade sheets',
     openGradeSheet: 'Grade sheet',
     cardDescription: "Print a course's list for one exam, every assessment, or by category.",

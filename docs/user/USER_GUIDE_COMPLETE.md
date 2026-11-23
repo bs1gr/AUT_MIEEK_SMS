@@ -298,7 +298,9 @@ Exam, which take their latest grade alone (section 8).
 **The summary** on the right shows the final grade so far: as a percentage, as a GPA, as a
 letter and on the Greek scale of 0 to 20 with its word (for example "15.5/20, Καλώς"). Under
 it stand the average of each graded category with its weight, and the course's evaluation
-rules. **Refresh Final Grade** works it out again.
+rules. Where no evaluation rule takes the student's grades, a note stands in place of the
+category averages and says the final grade is the mean of the grades (section 8). **Refresh
+Final Grade** works it out again.
 
 **Grade History** lists every grade of the student in the course: assignment, category,
 score, percentage, weight, letter, date. **Edit** puts a grade back into the form;
@@ -321,6 +323,19 @@ and not used: a category was the plain average of its grades. A final grade that
 grades of different weights in one category is therefore not what it was before.) Two
 exceptions: for Midterm Exam and Final Exam only the latest grade counts, and a day's rating
 in a category (section 6) counts like one more grade of that category, with weight 1.
+
+**Without evaluation rules.** In a course without rules, or where none of a student's grades
+falls under any of its rules, the final grade is the mean of the grades instead: each grade as
+a percentage, counted as often as its Weight says, and Midterm Exam and Final Exam once each,
+by the latest sitting. Daily ratings do not count in it, and whatever a rule counts for the
+student besides grades (attendance, a rating) does not make the grade then. Of the deductions
+only the absence penalty below comes off it: there is no Class Participation share to lose.
+Homework of 60% (weight 1) and 90% (weight 2) and a quiz of 80% (weight 1) give (60 + 180 + 80)
+÷ 4 = 80%. Without rules and without a grade there is no final grade (the Grading page shows
+"-"). (Until November 2026 such a course had no final grade on the Grading page or in a
+student's breakdown, while Analytics and the grade sheets showed the plain average of its
+grades: every grade once, both sittings of an exam, and no absence penalty. A student whose
+grades matched none of the rules had 0 on the Grading page.)
 
 **Absences** are counted in periods:
 

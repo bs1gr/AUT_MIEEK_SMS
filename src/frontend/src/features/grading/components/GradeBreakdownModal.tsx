@@ -131,7 +131,13 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
               </div>
             </div>
 
-            {/* Category Breakdown Table */}
+            {/* Category Breakdown Table; where no rule takes the grades, the final grade is
+                their mean and there is no category to list (plan todo 77 point 3). */}
+            {data.grade_basis === 'average' ? (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-gray-800" data-testid="breakdown-final-from-mean">
+                {t('grades.finalGradeFromMeanNote')}
+              </div>
+            ) : (
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                 <h5 className="font-semibold text-gray-800">{t('categoryBreakdown')}</h5>
@@ -169,6 +175,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                 </table>
               </div>
             </div>
+            )}
 
             {/* Absence penalty */}
             {(Number(data.unexcused_absences || 0) > 0 && Number(data.absence_penalty || 0) > 0) && (

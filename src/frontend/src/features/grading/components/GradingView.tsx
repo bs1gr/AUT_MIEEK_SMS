@@ -466,7 +466,13 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                 <p className="text-gray-600">{gpaToPercentage(gradeEntry.finalSummary.gpa).toFixed(1)}%</p>
               </>
             )}
-            {gradeEntry.finalSummary.category_breakdown && (
+            {/* No rule takes the grades: the final grade is their mean, and there are no
+                categories to list (plan todo 77 point 3). */}
+            {gradeEntry.finalSummary.grade_basis === 'average' ? (
+              <p className="mt-2 text-gray-700" data-testid="grading-final-from-mean">
+                {t('grades.finalGradeFromMeanNote')}
+              </p>
+            ) : gradeEntry.finalSummary.category_breakdown && (
               <div className="mt-2">
                 <p className="font-semibold">{t('categoryBreakdown')}</p>
                 <ul className="list-disc ml-5">

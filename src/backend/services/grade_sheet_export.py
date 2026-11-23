@@ -76,12 +76,15 @@ LABELS: Dict[str, Dict[str, str]] = {
         "summary_final_absences": "Students: {enrolled}. Class average {final_average}. Passed {passed}, "
         "failed {failed} ({failed_absences} of them over the absence limit), no grade yet {no_grade}.",
         "basis_rules": "One column per evaluation rule of the course: the average the final grade counts.",
-        "basis_grades": "This course has no evaluation rules: each category is the mean of its grades.",
+        "basis_grades": "This course has no evaluation rules: each category is the mean of its grades, each "
+        "counted as often as its Weight says; an exam is its latest grade.",
         "deductions_note": "Deductions: points the final grade loses for participation observations and "
         "unexcused absences.",
         "final_rules": "Final grade so far: from the course's evaluation rules, scaled to the work graded so far.",
-        "final_average": "Final grade: the mean of the student's grades (no evaluation rule applies).",
-        "final_average_marked": "† No evaluation rule matched these grades: the final grade is their mean.",
+        "final_average": "Final grade: the mean of the student's grades, each counted as often as its Weight "
+        "says and an exam by its latest grade, less any absence penalty (no evaluation rule applies).",
+        "final_average_marked": "† No evaluation rule matched these grades: the final grade is their mean (each "
+        "by its Weight, an exam by its latest grade), less any absence penalty.",
         "over_limit": "* Over the absence limit: the course is failed whatever the grade.",
         "forfeited_suffix": "(absences)",
         "forfeited_mark": "0 ‡",
@@ -89,7 +92,8 @@ LABELS: Dict[str, Dict[str, str]] = {
         # Excel has no marks: its notes point at the columns and cells that say the same.
         "over_limit_excel": 'Absence limit "over the limit": the course is failed whatever the grade.',
         "final_average_excel": 'Final grade from "mean of the grades": no evaluation rule matched these '
-        "grades, so the final grade is their mean.",
+        "grades, so the final grade is their mean (each by its Weight, an exam by its latest grade), less any "
+        "absence penalty.",
         "forfeited_note_excel": '"0 (absences)": over the Class Participation absence limit, the category counts 0.',
         "no_columns_ratings": "No assessment has been graded yet: the final grades so far come from the daily ratings.",
         "entries": "{count} grades, the latest shown",
@@ -140,21 +144,26 @@ LABELS: Dict[str, Dict[str, str]] = {
         "summary_final_absences": "Σπουδαστές: {enrolled}. Μέσος όρος τάξης {final_average}. Επιτυχόντες {passed}, "
         "αποτυχόντες {failed} (εκ των οποίων {failed_absences} λόγω ορίου απουσιών), χωρίς βαθμό ακόμη {no_grade}.",
         "basis_rules": "Μία στήλη για κάθε κανόνα αξιολόγησης του μαθήματος: ο μέσος όρος που μετρά ο τελικός βαθμός.",
-        "basis_grades": "Το μάθημα δεν έχει κανόνες αξιολόγησης: κάθε κατηγορία είναι ο μέσος όρος των βαθμών της.",
+        "basis_grades": "Το μάθημα δεν έχει κανόνες αξιολόγησης: κάθε κατηγορία είναι ο μέσος όρος των βαθμών της, "
+        "ο καθένας όσες φορές λέει η Βαρύτητά του· μια εξέταση είναι ο πιο πρόσφατος βαθμός της.",
         "deductions_note": "Αφαιρέσεις: μονάδες που χάνει ο τελικός βαθμός για παρατηρήσεις συμμετοχής και "
         "αδικαιολόγητες απουσίες.",
         "final_rules": "Τελικός βαθμός μέχρι στιγμής: από τους κανόνες αξιολόγησης του μαθήματος, αναγόμενος "
         "στη βαθμολογημένη ως τώρα εργασία.",
-        "final_average": "Τελικός βαθμός: ο μέσος όρος των βαθμών του σπουδαστή (δεν ισχύει κανόνας αξιολόγησης).",
+        "final_average": "Τελικός βαθμός: ο μέσος όρος των βαθμών του σπουδαστή, ο καθένας όσες φορές λέει η "
+        "Βαρύτητά του και κάθε εξέταση με τον πιο πρόσφατο βαθμό της, μείον τυχόν ποινή απουσίας (δεν ισχύει "
+        "κανόνας αξιολόγησης).",
         "final_average_marked": "† Κανένας κανόνας αξιολόγησης δεν αντιστοιχεί σε αυτούς τους βαθμούς: "
-        "ο τελικός βαθμός είναι ο μέσος όρος τους.",
+        "ο τελικός βαθμός είναι ο μέσος όρος τους (ο καθένας με τη Βαρύτητά του, κάθε εξέταση με τον πιο "
+        "πρόσφατο βαθμό της), μείον τυχόν ποινή απουσίας.",
         "over_limit": "* Πάνω από το όριο απουσιών: το μάθημα δεν περνά, όποιος κι αν είναι ο βαθμός.",
         "forfeited_suffix": "(απουσίες)",
         "forfeited_mark": "0 ‡",
         "forfeited_note": "‡ Πάνω από το όριο απουσιών της Συμμετοχής στο Μάθημα: η κατηγορία μετρά 0.",
         "over_limit_excel": "Όριο απουσιών «πάνω από το όριο»: το μάθημα δεν περνά, όποιος κι αν είναι ο βαθμός.",
         "final_average_excel": "Τελικός βαθμός από «μέσο όρο βαθμών»: κανένας κανόνας αξιολόγησης δεν "
-        "αντιστοιχεί σε αυτούς τους βαθμούς, οπότε ο τελικός βαθμός είναι ο μέσος όρος τους.",
+        "αντιστοιχεί σε αυτούς τους βαθμούς, οπότε ο τελικός βαθμός είναι ο μέσος όρος τους (ο καθένας με τη "
+        "Βαρύτητά του, κάθε εξέταση με τον πιο πρόσφατο βαθμό της), μείον τυχόν ποινή απουσίας.",
         "forfeited_note_excel": "«0 (απουσίες)»: πάνω από το όριο απουσιών της Συμμετοχής στο Μάθημα, "
         "η κατηγορία μετρά 0.",
         "no_columns_ratings": "Δεν έχει βαθμολογηθεί ακόμη καμία αξιολόγηση: οι τελικοί βαθμοί ως τώρα "

@@ -324,8 +324,8 @@ describe('AnalyticsDashboard', () => {
   });
 
   it('explains a course whose grades are all outside its evaluation rules', async () => {
-    // The final grade fell back to the plain mean of grades no rule counts: the row says so, and
-    // the profile says why nothing is counted, instead of "no grade yet".
+    // The final grade is the mean (by Weight) of grades no rule counts: the row says so, and the
+    // profile says why nothing is counted, instead of "no grade yet".
     const outside = studentOverview(1, 'Anna Alpha', [course(1, 'MATH', 80, { grade_basis: 'average' })], []);
     const answer = get.getMockImplementation()!;
     get.mockImplementation(async (url: string, ...rest: unknown[]) =>
@@ -334,7 +334,7 @@ describe('AnalyticsDashboard', () => {
     renderPage();
 
     const table = await screen.findByTestId('analytics-student-courses');
-    expect(within(table).getByText(/grades outside the evaluation rules, plain average/)).toBeInTheDocument();
+    expect(within(table).getByText(/grades outside the evaluation rules: their mean, by their Weight/)).toBeInTheDocument();
     expect(within(table).queryByText(/no evaluation rules/)).toBeNull();
     const profile = screen.getByTestId('analytics-category-profile');
     expect(profile).toHaveTextContent("No grade yet in a category the course's evaluation rules count");
