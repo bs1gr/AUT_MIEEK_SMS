@@ -107,6 +107,21 @@ not enough.
 - The export needs `course_id`; `start_date` and `end_date` narrow it, `lang` is `en` or `el`.
   The teacher's notes are printed only with `include_notes=true`.
 
+## Grade sheets
+
+`GET /api/v1/grade-sheets/course/{course_id}/assessments`, `GET /api/v1/grade-sheets/course/{course_id}`
+and `GET /api/v1/grade-sheets/course/{course_id}/export/{file_format}` (`pdf` or `excel`) ask
+for `reports:generate`, like the Analytics page.
+
+- The students are the course's live enrollments (not deleted, not dropped) of active students,
+  A to Z by surname, the same ones the Analytics page counts.
+- `kind` is `assessment` (one assessment, named by the `key` the assessments list gives, as
+  `assessment=`), `matrix` (one column per assessment) or `categories` (one column per
+  evaluation rule of the course, or per category of its grades when it has no rules).
+- The export takes `lang` (`en` or `el`) and prints the signed-in account's name as the teacher.
+  The account is read in a worker thread (`optional_signed_in_user` is a plain function), not on
+  the event loop.
+
 ## Protecting a new endpoint
 
 ```python

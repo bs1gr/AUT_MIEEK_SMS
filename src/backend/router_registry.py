@@ -110,6 +110,7 @@ def register_routers(app: FastAPI) -> None:
     _try_add("backend.routers.routers_help", "Help & Documentation")
     _try_add("backend.routers.routers_semester_archive", "Semester Archive")
     _try_add("backend.routers.routers_lesson_logs", "Lesson Logs")
+    _try_add("backend.routers.routers_grade_sheets", "Grade Sheets")
     _try_add("backend.routers.routers_student_notes", "Student Notes")
     _try_add("backend.routers.routers_privacy", "Privacy")
     _try_add("backend.routers.routers_data_subject", "Data subject requests")
