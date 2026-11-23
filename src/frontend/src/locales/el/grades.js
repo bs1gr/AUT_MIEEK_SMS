@@ -77,6 +77,8 @@ export default {
   presenceCreditRemainder: 'μένει {{percent}}% της ημέρας για την παρουσία',
   participationShare: 'Μερίδιο Συμμετοχής στο Μάθημα',
   participationDeductionNote: 'Παρατηρήσεις συμμετοχής από τις Παρουσίες: −{{points}}% από τον τελικό βαθμό.',
+  breakdownAttendance: 'Παρουσίες: Παρών {{present}} · Αργοπορία {{late}} · Απών {{absent}} · Δικαιολογημένος {{excused}}',
+  breakdownLateNote: 'Η αργοπορία μετρά ως παρουσία, όχι ως απουσία· ο αριθμός των αργοποριών φαίνεται εδώ για την αξιολόγησή σας.',
   participationForfeitedNote: 'Οι απουσίες ξεπερνούν το όριο της Συμμετοχής ({{allowed}} από {{scheduled}} ώρες), οπότε το μερίδιο της Συμμετοχής στο Μάθημα μετρά 0.',
   invalidScoreMaxValues: 'Μη έγκυρες τιμές βαθμού ή μέγιστου βαθμού',
   scoreMustBeBetween0AndMax: 'Ο βαθμός πρέπει να είναι μεταξύ 0 και του μέγιστου βαθμού',

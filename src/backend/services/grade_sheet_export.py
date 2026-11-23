@@ -60,6 +60,9 @@ LABELS: Dict[str, Dict[str, str]] = {
         "remarks": "Remarks",
         "final": "Final grade",
         "deductions": "Deductions",
+        "late": "Late",
+        "late_note": "Late: periods the student arrived late. They count as attended, not as absences; "
+        "shown for the teacher's evaluation.",
         "absence_limit": "Absence limit",
         "over_limit_short": "over the limit",
         "final_from": "Final grade from",
@@ -121,6 +124,9 @@ LABELS: Dict[str, Dict[str, str]] = {
         "remarks": "Παρατηρήσεις",
         "final": "Τελικός βαθμός",
         "deductions": "Αφαιρέσεις",
+        "late": "Αργοπορίες",
+        "late_note": "Αργοπορίες: ώρες που ο σπουδαστής ήρθε αργά. Μετρούν ως παρουσία, όχι ως απουσία· "
+        "φαίνονται για την αξιολόγηση του καθηγητή.",
         "absence_limit": "Όριο απουσιών",
         "over_limit_short": "πάνω από το όριο",
         "final_from": "Τελικός βαθμός από",
@@ -173,9 +179,14 @@ _GREEK_TO_LATIN = {
     "ρ": "r", "σ": "s", "ς": "s", "τ": "t", "υ": "y", "φ": "f", "χ": "ch", "ψ": "ps", "ω": "o",
 }  # fmt: skip
 
-# The PDF's column widths, in millimetres.
+# The PDF's column widths, in millimetres. Every word of a fixed column's header fits whole at
+# the smallest header size (5.5 pt). The Late column is as wide as its header needs, by language:
+# "Late" fits 14 mm, "Αργοπορίες" needs 16 (at 14 it printed "Αργοπορί" / "ες"). Every millimetre
+# more comes out of the value columns, so English keeps 14. A sheet of three value columns and a
+# Late stays portrait in both.
 _MM_NUMBER, _MM_REG, _MM_SURNAME, _MM_FIRST = 10.0, 20.0, 32.0, 26.0
 _MM_FINAL, _MM_DEDUCTIONS = 18.0, 18.0
+_MM_LATE = {"en": 14.0, "el": 16.0}
 # A value column: at least 13 mm (else the next column group), at most 30; the page turns to
 # landscape once portrait would leave the columns under 20 mm, where headers start to shrink.
 _MM_VALUE_MIN, _MM_VALUE_COMFORT, _MM_VALUE_MAX = 13.0, 20.0, 30.0
@@ -318,6 +329,12 @@ def _has_deductions(sheet: Dict[str, Any]) -> bool:
     )
 
 
+def _has_late(sheet: Dict[str, Any]) -> bool:
+    """A Late column, on the sheets that end in the final grade, once anyone has a Late (plan
+    todo 77: a Late is attended, and the teacher weighs it in the final evaluation)."""
+    return sheet["kind"] != "assessment" and any(r.get("late") for r in sheet["rows"])
+
+
 def _over_limit(sheet: Dict[str, Any]) -> bool:
     return sheet["kind"] != "assessment" and any(r.get("result") == RESULT_FAILED_ABSENCES for r in sheet["rows"])
 
@@ -408,7 +425,7 @@ def _grid(
         ]
         return columns, rows, averages
 
-    deductions, over_limit = _has_deductions(sheet), _over_limit(sheet)
+    deductions, over_limit, late = _has_deductions(sheet), _over_limit(sheet), _has_late(sheet)
     bases = _bases(sheet)
     mixed = len(bases) > 1
     columns = [
@@ -418,6 +435,9 @@ def _grid(
         _Column(labels["first_name"], "lead", _MM_FIRST, excel_width=18),
     ]
     columns += [_Column(title, "value") for title in _column_titles(sheet, lang)]
+    if late:
+        # Excel 12 wide, as Deductions: at 10 Excel too breaks "Αργοπορίες" in two.
+        columns.append(_Column(labels["late"], "tail", _MM_LATE.get(lang, _MM_LATE["en"]), excel_width=12))
     if deductions:
         columns.append(_Column(labels["deductions"], "tail", _MM_DEDUCTIONS, excel_width=12))
     columns.append(_Column(labels["final"], "tail", _MM_FINAL, excel_width=12))
@@ -439,6 +459,8 @@ def _grid(
             for v, lost in zip(r["cells"], forfeited)
         ]
         tail = []
+        if late:
+            tail.append(_cell(r.get("late") or None))
         if deductions:
             lost_points = (r.get("participation_deduction") or 0) + (r.get("absence_deduction") or 0)
             tail.append(_cell(-round(lost_points, 2) if lost_points else None))
@@ -453,6 +475,7 @@ def _grid(
 
     blank = _cell(None)
     averages = [blank, blank, _cell(labels["average"]), blank] + [_cell(v) for v in sheet["column_averages"]]
+    averages += [blank] if late else []
     averages += [blank] if deductions else []
     averages += [_cell(sheet["summary"]["final_average"])]
     averages += [blank] if over_limit else []
@@ -470,6 +493,8 @@ def _notes(sheet: Dict[str, Any], labels: Dict[str, str], excel: bool = False) -
     notes = [labels["summary_final_absences" if summary.get("failed_absences") else "summary_final"].format(**figures)]
     if sheet["kind"] == "categories":
         notes.append(labels["basis_rules"] if sheet.get("basis") == "rules" else labels["basis_grades"])
+    if _has_late(sheet):
+        notes.append(labels["late_note"])
     if _has_deductions(sheet):
         notes.append(labels["deductions_note"])
     bases = _bases(sheet)

@@ -33,6 +33,7 @@ import {
   type GradeSheetKind,
   type MatrixSheet,
 } from '@/api/gradeSheetsAPI';
+import { cn } from '@/lib/utils';
 import { downloadBlob } from '@/utils/downloadFile';
 import type { DateFormatOption } from '@/utils/dateTime';
 import type { Course } from '@/types';
@@ -566,10 +567,17 @@ const AssessmentTable = ({
                       formatNumber(row.score)
                     )}
                   </td>
-                  <td className={`${NUMBER_CELL} ${row.passed === false ? 'text-red-700' : ''}`}>
+                  {/* cn(), as on the other two sheets: a second text colour must replace the
+                      cell's own, which Tailwind emits after it and would print instead. */}
+                  <td
+                    className={cn(NUMBER_CELL, row.passed === false && 'text-red-700')}
+                    data-testid={`grade-sheets-percent-${row.student.id}`}
+                  >
                     {formatNumber(row.percentage)}
                   </td>
-                  <td className={`${CELL} text-slate-600`}>{row.entries > 1 ? g('entries', { n: row.entries }) : ''}</td>
+                  <td className={cn(CELL, 'text-slate-600')} data-testid={`grade-sheets-remarks-${row.student.id}`}>
+                    {row.entries > 1 ? g('entries', { n: row.entries }) : ''}
+                  </td>
                 </tr>
               );
             })}
@@ -632,6 +640,8 @@ const FinalTable = ({
   const deductions =
     sheet.kind === 'categories' &&
     sheet.rows.some((r) => (r.participation_deduction ?? 0) + (r.absence_deduction ?? 0) > 0);
+  // Plan todo 77: a Late is attended, not an absence, and the teacher weighs it at the end.
+  const late = sheet.rows.some((r) => (r.late ?? 0) > 0);
   const overLimit = sheet.rows.some((r) => r.result === 'failed_absences');
   const forfeitedAny = sheet.kind === 'categories' && sheet.rows.some((r) => r.forfeited.some(Boolean));
   const summary = sheet.summary;
@@ -646,6 +656,7 @@ const FinalTable = ({
   const notes = [
     g(summary.failed_absences ? 'summaryFinalAbsences' : 'summaryFinal', summaryValues),
     sheet.kind === 'categories' ? g(sheet.basis === 'rules' ? 'basisRules' : 'basisGrades') : '',
+    late ? g('lateNote') : '',
     deductions ? g('deductionsNote') : '',
     bases.has('rules') ? g('finalRules') : '',
     bases.has('average') ? g(bases.has('rules') ? 'finalAverageMarked' : 'finalAverage') : '',
@@ -674,6 +685,11 @@ const FinalTable = ({
                   {title}
                 </th>
               ))}
+              {late && (
+                <th scope="col" className={NUMBER_HEAD}>
+                  {g('late')}
+                </th>
+              )}
               {deductions && (
                 <th scope="col" className={NUMBER_HEAD}>
                   {g('deductions')}
@@ -696,16 +712,27 @@ const FinalTable = ({
                     return (
                       <td
                         key={sheet.columns[index].key}
-                        className={`${NUMBER_CELL} ${zeroed ? 'text-red-700' : ''}`}
+                        // cn(): a second text colour must replace the cell's grey, which Tailwind
+                        // would otherwise emit after red and so print instead of it.
+                        className={cn(NUMBER_CELL, zeroed && 'text-red-700')}
                         title={zeroed ? g('forfeitedCell') : undefined}
                       >
                         {zeroed ? `0 ${MARK_FORFEITED}` : formatNumber(value)}
                       </td>
                     );
                   })}
+                  {late && (
+                    <td className={NUMBER_CELL} data-testid={`grade-sheets-late-${row.student.id}`}>
+                      {row.late ? row.late : ''}
+                    </td>
+                  )}
                   {deductions && <td className={NUMBER_CELL}>{lost ? formatNumber(-lost) : ''}</td>}
                   <td
-                    className={`${NUMBER_CELL} font-semibold ${row.result === 'failed' || row.result === 'failed_absences' ? 'text-red-700' : ''}`}
+                    className={cn(
+                      NUMBER_CELL,
+                      'font-semibold',
+                      (row.result === 'failed' || row.result === 'failed_absences') && 'text-red-700'
+                    )}
                     data-testid={`grade-sheets-final-${row.student.id}`}
                   >
                     {formatNumber(row.final_grade) || (marks ? NO_FIGURE : '')}
@@ -730,6 +757,7 @@ const FinalTable = ({
                   {formatNumber(value)}
                 </td>
               ))}
+              {late && <td className={CELL} />}
               {deductions && <td className={CELL} />}
               <td className={`${NUMBER_CELL} font-semibold`}>{formatNumber(summary.final_average)}</td>
             </tr>

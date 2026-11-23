@@ -166,6 +166,13 @@ describe('GradeSheetsPage', () => {
       '4GS4ΙωάννουΆννα75 / 10075', // another maximum than the assessment's 20: say out of what
     ]);
     expect(screen.getByTestId('grade-sheets-row-3')).toHaveClass('bg-slate-50'); // not graded
+    // Under the pass mark in red, as on the other two sheets: the colour replaces the cell's
+    // grey (cn()); the remarks muted the same way.
+    expect(screen.getByTestId('grade-sheets-percent-2')).toHaveClass('text-red-700');
+    expect(screen.getByTestId('grade-sheets-percent-2')).not.toHaveClass('text-slate-800');
+    expect(screen.getByTestId('grade-sheets-percent-1')).not.toHaveClass('text-red-700');
+    expect(screen.getByTestId('grade-sheets-remarks-1')).toHaveClass('text-slate-600');
+    expect(screen.getByTestId('grade-sheets-remarks-1')).not.toHaveClass('text-slate-800');
     expect(screen.getByTestId('grade-sheets-summary')).toHaveTextContent(g('summaryAssessment'));
     expect(screen.getByTestId('grade-sheets-course-title')).toHaveTextContent('MATH - Course MATH · Fall');
     // Each option names the category, the dates (first - last, as the order follows the first)
@@ -288,14 +295,78 @@ describe('GradeSheetsPage', () => {
       g('deductions'),
       g('finalGrade'),
     ]);
-    const first = within(screen.getByTestId('grade-sheets-row-1')).getAllByRole('cell').map((c) => c.textContent);
-    expect(first.slice(4)).toEqual(['0 ‡', '80', '', '72']);
+    const firstCells = within(screen.getByTestId('grade-sheets-row-1')).getAllByRole('cell');
+    expect(firstCells.slice(4).map((c) => c.textContent)).toEqual(['0 ‡', '80', '', '72']);
+    // The cell lost to absences is red: the colour replaces the cell's grey (merged with cn()).
+    expect(firstCells[4]).toHaveClass('text-red-700');
+    expect(firstCells[4]).not.toHaveClass('text-slate-800');
+    expect(firstCells[5]).not.toHaveClass('text-red-700');
     const second = within(screen.getByTestId('grade-sheets-row-2')).getAllByRole('cell').map((c) => c.textContent);
     expect(second.slice(4)).toEqual(['90', '80', '-9.6', '71.4']);
     const notes = screen.getByTestId('grade-sheets-notes').textContent;
     expect(notes).toContain(g('basisRules'));
     expect(notes).toContain(g('deductionsNote'));
     expect(notes).toContain(g('forfeitedNote'));
+  });
+
+  it('counts the Lates in their own column, before the deductions, once anyone has one', async () => {
+    // Plan todo 77: a Late is attended, not an absence, and the teacher weighs it at the end.
+    api.sheet.mockResolvedValue({
+      kind: 'categories',
+      course: course(7),
+      basis: 'rules',
+      columns: [{ key: 'rule:0', category: 'Homework', category_key: 'homework', label_key: 'homework', weight: 100 }],
+      column_averages: [55],
+      rows: [
+        { number: 1, student: student(1, 'Δημητρίου', 'Στέλλα'), cells: [80], forfeited: [false], ...final({ final_grade: 80, late: 3 }) },
+        {
+          number: 2,
+          student: student(2, 'Ιωάννου', 'Ραφαέλα'),
+          cells: [30],
+          forfeited: [false],
+          ...final({ final_grade: 30, result: 'failed', participation_deduction: 2, late: 0 }),
+        },
+      ],
+      summary: { enrolled: 2, final_average: 55, passed: 1, failed: 1, failed_absences: 0, no_grade: 0 },
+    });
+
+    renderPage('?courseId=7&kind=categories');
+
+    const table = await screen.findByTestId('grade-sheets-table');
+    const headers = within(table).getAllByRole('columnheader').map((h) => h.textContent);
+    expect(headers.slice(5)).toEqual([g('late'), g('deductions'), g('finalGrade')]);
+    expect(screen.getByTestId('grade-sheets-late-1')).toHaveTextContent('3');
+    expect(screen.getByTestId('grade-sheets-late-2')).toHaveTextContent('');
+    expect(screen.getByTestId('grade-sheets-notes').textContent).toContain(g('lateNote'));
+    // The averages row keeps its columns: blank under Late and Deductions, the class average
+    // under the final grade.
+    const averages = within(table.querySelector('tfoot')!).getAllByRole('cell');
+    expect(averages).toHaveLength(within(table.querySelector('thead')!).getAllByRole('columnheader').length);
+    expect(averages.slice(-4).map((c) => c.textContent)).toEqual(['55', '', '', '55']);
+    // A failing final grade is red: the colour replaces the cell's grey (merged with cn()).
+    const failing = screen.getByTestId('grade-sheets-final-2');
+    expect(failing).toHaveClass('text-red-700');
+    expect(failing).not.toHaveClass('text-slate-800');
+  });
+
+  it('has no Late column while nobody has a Late', async () => {
+    // What this server sends when nobody has one: late 0 on every row.
+    api.sheet.mockResolvedValue(matrixOf(7, 'Ορφανίδης', [{ final_grade: 80, late: 0 }, { final_grade: 70, late: 0 }]));
+
+    renderPage('?courseId=7&kind=matrix');
+
+    const table = await screen.findByTestId('grade-sheets-table');
+    expect(within(table).queryByText(g('late'))).toBeNull();
+    expect(screen.getByTestId('grade-sheets-notes').textContent).not.toContain(g('lateNote'));
+  });
+
+  it('has no Late column from an older server, which sends no Lates', async () => {
+    api.sheet.mockResolvedValue(matrixOf(7, 'Ορφανίδης', [{ final_grade: 80 }]));
+
+    renderPage('?courseId=7&kind=matrix');
+
+    const table = await screen.findByTestId('grade-sheets-table');
+    expect(within(table).queryByText(g('late'))).toBeNull();
   });
 
   it('says when final grades come from the daily ratings alone', async () => {

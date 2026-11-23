@@ -137,6 +137,8 @@ export default {
     gradedOf: '{{graded}} από {{total}} με βαθμό',
     attendanceRate: 'Παρουσία',
     attendanceRule: 'Παρών και Αργοπορία μετρούν ως παρουσία',
+    lateCount_one: '{{count}} αργοπορία',
+    lateCount_other: '{{count}} αργοπορίες',
     atRiskStudents: 'Σπουδαστές σε Κίνδυνο',
     rank: 'Θέση',
     rankOf: '{{rank}} από {{total}}',

@@ -8,7 +8,9 @@ import type { FinalGrade } from '@/types';
 vi.mock('@/api/api');
 
 vi.mock('@/LanguageContext', () => ({
-  useLanguage: () => ({ t: (key: string) => key }),
+  useLanguage: () => ({
+    t: (key: string, options?: Record<string, unknown>) => (options ? `${key} ${JSON.stringify(options)}` : key),
+  }),
 }));
 
 const mockedApiClient = apiClient as unknown as { get: ReturnType<typeof vi.fn> };
@@ -130,6 +132,40 @@ describe('GradeBreakdownModal', () => {
 
     await screen.findByText('87.50%');
     expect(screen.queryByTestId('breakdown-attendance-insufficient')).not.toBeInTheDocument();
+  });
+
+  it('counts the periods by status, a Late among the attended and named for the evaluation', async () => {
+    // Plan todo 77: a Late is not an absence, but the teacher weighs it at the end.
+    mockedApiClient.get.mockResolvedValue({
+      data: { ...FINAL_GRADE, attendance: { present: 10, late: 3, absent: 1, excused: 2, recorded: 16 } },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    const block = await screen.findByTestId('breakdown-attendance');
+    expect(block).toHaveTextContent('grades.breakdownAttendance {"present":10,"late":3,"absent":1,"excused":2}');
+    expect(block).toHaveTextContent('grades.breakdownLateNote');
+  });
+
+  it('says nothing of attendance without any period recorded', async () => {
+    // What this server sends for a student with nothing recorded: the counts, all 0.
+    mockedApiClient.get.mockResolvedValue({
+      data: { ...FINAL_GRADE, attendance: { present: 0, late: 0, absent: 0, excused: 0, recorded: 0 } },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    await screen.findByText('87.50%');
+    expect(screen.queryByTestId('breakdown-attendance')).not.toBeInTheDocument();
+  });
+
+  it('says nothing of attendance from an older server, which sends no counts', async () => {
+    mockedApiClient.get.mockResolvedValue({ data: FINAL_GRADE });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    await screen.findByText('87.50%');
+    expect(screen.queryByTestId('breakdown-attendance')).not.toBeInTheDocument();
   });
 
   it('shows an error message when the fetch fails', async () => {

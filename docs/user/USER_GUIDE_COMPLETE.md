@@ -305,6 +305,13 @@ Nothing is blocked, and nobody is told by e-mail.
 the final grade; Excused and Late periods are not counted for it. With a penalty of 2, two
 Absent periods turn a final grade of 75% into 71%.
 
+**An Attendance rule.** A course can have an evaluation rule named Attendance. Its average is
+the share of periods attended: Present and Late count as attended, Absent and Excused do not,
+as everywhere in the application. A Late is never an absence, but the number of Lates is shown
+beside a student's attendance for the teacher's evaluation: on the grade sheets, in the Final
+Grade Summary of the Grades page and in a student's **View Breakdown**, in the student
+performance report, in Analytics and in the absence limits of the Attendance page.
+
 **Class Participation.** Each attended day is worth an equal part of the Class Participation
 share. An observation ticked for a day takes its percentage of that day's part (the most
 severe one, if several are ticked); the rest stays for the student's presence.

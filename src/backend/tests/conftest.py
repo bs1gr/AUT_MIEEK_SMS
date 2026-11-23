@@ -387,6 +387,31 @@ def setup_db(setup_db_schema):
                 pass
 
 
+def _clear_cached_answers() -> None:
+    from backend.cache import redis_cache, response_cache
+    from backend.routers import routers_metrics
+
+    redis_cache.fallback_cache.clear()
+    response_cache.clear()
+    with routers_metrics._METRICS_CACHE_LOCK:
+        routers_metrics._METRICS_CACHE.clear()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_cached_answers():
+    """No answer a cache keeps may reach another test.
+
+    The student performance report (15 minutes, keyed by the student's id) and the admin metrics
+    (30 seconds, keyed by nothing) keep their answers in the process, and every test's database
+    starts its ids at 1 again. When one process runs the whole suite, as CI does, a test was
+    served what another had built: on 2026-11-23 test_reports_router read the report of
+    test_late_is_attended's student, and test_metrics its 4 attendance records for 45.
+    """
+    _clear_cached_answers()
+    yield
+    _clear_cached_answers()
+
+
 @pytest.fixture(scope="function")
 def db(setup_db):
     """

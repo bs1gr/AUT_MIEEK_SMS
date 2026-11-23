@@ -16,6 +16,8 @@ class AbsenceLimitStatus(BaseModel):
     absences: int
     unexcused_absences: int
     excused_absences: int
+    # Periods the student came late: not absences, shown for the evaluation (plan todo 77).
+    late: int = 0
     absence_percent: float
     limit_percent: float
     allowed_absences: Optional[int] = None

@@ -152,6 +152,12 @@ const AbsenceLimitsPanel = ({ t, courseId, students, refreshKey }: AbsenceLimits
                     <div className="text-xs text-gray-600">
                       {t('absenceLimitExcusedBreakdown', { unexcused: row.unexcused_absences, excused: row.excused_absences })}
                     </div>
+                    {/* Not absences (plan todo 77), shown for the teacher's evaluation. */}
+                    {(row.late ?? 0) > 0 && (
+                      <div className="text-xs text-gray-600" data-testid={`absence-limit-late-${row.student_id}`}>
+                        {t('absenceLimitLate', { count: row.late })}
+                      </div>
+                    )}
                   </td>
                   <td className={`${CELL} col-span-2 sm:pr-3`}>
                     <PhoneLabel>{t('absenceLimitColumnParticipation')}</PhoneLabel>

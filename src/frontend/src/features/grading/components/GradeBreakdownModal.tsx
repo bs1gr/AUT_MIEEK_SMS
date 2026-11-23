@@ -4,6 +4,7 @@ import { useLanguage } from '@/LanguageContext';
 import { FinalGrade } from '@/types';
 import apiClient from '@/api/api';
 import { getGreekGradeDescription } from '@/utils/gradeUtils';
+import FinalGradeAttendance from './FinalGradeAttendance';
 
 interface Props {
   studentId: number;
@@ -172,6 +173,15 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                 </div>
               </div>
             )}
+
+            {/* The periods recorded (plan todo 77): a Late is attended, not an absence, and its
+                number is shown for the teacher's own evaluation. */}
+            <FinalGradeAttendance
+              attendance={data.attendance}
+              t={t}
+              className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-gray-800"
+              testId="breakdown-attendance"
+            />
 
             {/* Participation observations: already taken off the final grade above */}
             {Number(data.participation_deduction || 0) > 0 && (

@@ -5,13 +5,14 @@ import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
 import { attendanceAPI, gradesAPI, coursesAPI, analyticsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
-import type { Student, Attendance, Grade, Course } from '@/types';
+import type { Student, Grade, Course } from '@/types';
 
 import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
 import StudentCard from './StudentCard';
 import { useStudentNotes } from '../hooks/useStudentNotes';
 import type { StudentStats } from './studentTypes';
 import { eventBus, EVENTS } from '@/utils/events';
+import { attendedRate, countStatuses } from '@/utils/attendanceRate';
 
 // Filter values: '' = all, NOT_SET = students with no value in that field.
 const ALL = '';
@@ -115,11 +116,10 @@ const StudentsView: React.FC<StudentsViewProps> = ({
         courses?: StudentStats['courseSummary'];
       } | null;
       const total = attendance.length;
-      const present = attendance.filter((a: Attendance) => a.status === 'Present').length;
-      const absent = attendance.filter((a: Attendance) => a.status === 'Absent').length;
-      const late = attendance.filter((a: Attendance) => a.status === 'Late').length;
-      const excused = attendance.filter((a: Attendance) => a.status === 'Excused').length;
-      const attendanceRate = total > 0 ? (((present + excused) / total) * 100).toFixed(1) : '0.0';
+      // Counted as the rate counts them, whatever the case a status was stored in.
+      const { present, absent, late, excused } = countStatuses(attendance);
+      // Present and Late are attended, as on every page (todo 77); Excused is an absence.
+      const attendanceRate = attendedRate(attendance).toFixed(1);
 
       let avg = 0;
       if (grades.length > 0) {

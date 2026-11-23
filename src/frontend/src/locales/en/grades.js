@@ -77,6 +77,8 @@ export default {
   presenceCreditRemainder: '{{percent}}% of the day stays for presence',
   participationShare: 'Class Participation share',
   participationDeductionNote: 'Participation observations ticked in Attendance: −{{points}}% from the final grade.',
+  breakdownAttendance: 'Attendance: Present {{present}} · Late {{late}} · Absent {{absent}} · Excused {{excused}}',
+  breakdownLateNote: 'A Late counts as attended, not as an absence; the number of Lates is here for your evaluation.',
   participationForfeitedNote: 'Absences are over the Class Participation limit ({{allowed}} of {{scheduled}} periods), so the Class Participation share counts as 0.',
   invalidScoreMaxValues: 'Invalid score or max grade values',
   scoreMustBeBetween0AndMax: 'Score must be between 0 and max grade',

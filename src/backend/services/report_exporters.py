@@ -49,9 +49,12 @@ REPORT_LABELS = {
         "value": "Value",
         "attendance_rate": "Attendance Rate",
         "attendance_rate_percent": "Attendance Rate (%)",
-        "total_days": "Total Days",
+        # One record per teaching period (a day can have several), as the absence limits count.
+        "total_days": "Periods recorded",
         "present": "Present",
         "absent": "Absent",
+        "late": "Late",
+        "excused": "Excused",
         "unexcused_absences": "Unexcused Absences",
         "average_grade": "Average Grade",
         "average_percentage": "Average Percentage",
@@ -104,9 +107,11 @@ REPORT_LABELS = {
         "value": "Τιμή",
         "attendance_rate": "Ποσοστό Παρουσιών",
         "attendance_rate_percent": "Ποσοστό Παρουσιών (%)",
-        "total_days": "Συνολικές Ημέρες",
+        "total_days": "Καταγεγραμμένες ώρες",
         "present": "Παρών",
         "absent": "Απών",
+        "late": "Αργοπορία",
+        "excused": "Δικαιολογημένος",
         "unexcused_absences": "Αδικαιολόγητες Απουσίες",
         "average_grade": "Μέσος Βαθμός",
         "average_percentage": "Μέσο Ποσοστό",
@@ -343,7 +348,11 @@ def generate_pdf_report(
             [get_label("attendance_rate", language), f"{att.get('attendance_rate', 0):.1f}%"],
             [get_label("total_days", language), str(att.get("total_days", 0))],
             [get_label("present", language), str(att.get("present", 0))],
+            # A Late is attended and counts in the rate (plan todo 77), an Excused is an absence:
+            # with both listed the rate can be read off the rows.
+            [get_label("late", language), str(att.get("late", 0))],
             [get_label("absent", language), str(att.get("absent", 0))],
+            [get_label("excused", language), str(att.get("excused", 0))],
             [get_label("unexcused_absences", language), str(att.get("unexcused_absences", 0))],
         ]
 
@@ -416,6 +425,9 @@ def generate_pdf_report(
                 course_data.append(
                     [get_label("attendance_rate", language), f"{course['attendance']['attendance_rate']:.1f}%"]
                 )
+                # The Lates the rate counts as attended, named for the teacher's evaluation.
+                if course["attendance"].get("late"):
+                    course_data.append([get_label("late", language), str(course["attendance"]["late"])])
 
             if course.get("grades"):
                 course_data.append(
@@ -521,7 +533,9 @@ def generate_csv_report(
         writer.writerow([get_label("attendance_rate_percent", language), f"{att.get('attendance_rate', 0):.1f}"])
         writer.writerow([get_label("total_days", language), att.get("total_days", 0)])
         writer.writerow([get_label("present", language), att.get("present", 0)])
+        writer.writerow([get_label("late", language), att.get("late", 0)])
         writer.writerow([get_label("absent", language), att.get("absent", 0)])
+        writer.writerow([get_label("excused", language), att.get("excused", 0)])
         writer.writerow([get_label("unexcused_absences", language), att.get("unexcused_absences", 0)])
         writer.writerow([])
 
@@ -544,6 +558,7 @@ def generate_csv_report(
                 get_label("course_code", language),
                 get_label("course_title", language),
                 get_label("attendance_rate", language),
+                get_label("late", language),
                 get_label("average_grade", language),
                 get_label("trend", language),
             ]
@@ -554,6 +569,8 @@ def generate_csv_report(
             att_rate = attendance.get("attendance_rate", "N/A")
             if att_rate != "N/A":
                 att_rate = f"{att_rate:.1f}"
+            # The Lates the rate counts as attended (plan todo 77).
+            late = attendance.get("late", 0) if attendance else "N/A"
 
             grades = course.get("grades") or {}
             avg_grade = grades.get("average_percentage", "N/A")
@@ -562,7 +579,7 @@ def generate_csv_report(
 
             trend = translate_trend(grades.get("grade_trend", "N/A"), language)
 
-            writer.writerow([course["course_code"], course["course_title"], att_rate, avg_grade, trend])
+            writer.writerow([course["course_code"], course["course_title"], att_rate, late, avg_grade, trend])
 
             # Add course notes row if provided
             note_text = (course_notes or {}).get(course["course_code"], "")

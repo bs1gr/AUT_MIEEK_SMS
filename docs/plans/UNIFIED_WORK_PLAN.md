@@ -333,7 +333,77 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
-**2026-11-23: Analytics by category, whatever the course** (todo 75 stage 3). The Analytics page
+**2026-11-23: a Late is attended on every page, and its number is shown where the teacher
+evaluates** (todo 77, point 1; the owner that day: "Late should not count as absent, but should
+be referenced in a students attendance results in order to be considered in the teacher's final
+evaluation", and Present + Late as the one meaning of attended). Until then the app had five
+meanings of attended: the final grade's Attendance rule, the student summary, the dashboard, the
+attendance statistics, the student report (whose per-course absences counted every period not
+Present, a Late included) and the attendance exports counted Present alone; the Students page
+and the Student Profile's outlook counted Present and Excused; the Profile's tile Present alone;
+the admin metrics compared with a lower-case "present" that the stored "Present" never matched.
+Now every rate counts Present and Late as attended, Absent and Excused as absences:
+`absence_limit_service.ATTENDED_STATUSES` / `ABSENCE_STATUSES` / `is_attended` on the server (a
+few counts add Present and Late themselves: the statistics, the exports, the per-course rates of
+a student's attendance), `utils/attendanceRate.ts` in the browser. **Final grades change only where a course has
+an "Attendance" rule and a student has a Late**: the rule counts it as attended. The number of
+Lates is shown: a "Late" column on the grade sheets (course matrix and categories; screen, PDF
+and Excel; once anyone has one, with a note), the periods by status in the Grading page's
+final-grade summary and in the Profile's breakdown (also for a course without rules), under the
+attendance rate in Analytics (each course of a student, each student at risk, each course of the
+class view), and in the absence limits of the Attendance page. The student performance report
+lists the Lates and the Excused beside its rate (screen, PDF and CSV; per course too), and on
+screen puts the periods attended beside the rate; it says periods, not days, as the rest of the
+app (a record is one teaching period, and a day can have several): "75% (3/4 periods
+attended)", "Periods recorded". The Students page card's "Absences" are Absent and Excused, as
+the rate under them, and its counts and the Profile's take a status whatever its case. The help
+("Does attendance change the final grade?") and both user guides say so. Also fixed on the grade
+sheets page: a category zeroed for absences, a failing final grade and a failing percentage
+printed grey, not red (the colour race stage 3 found on Analytics).
+
+Tests: `test_late_is_attended.py` (13; 11 failed on the old code, the other two guard that a
+sheet without a Late has no such column and that the Late column takes no room English headers
+need); `test_attendance_router`'s statistics now 80 % (4 of 5; it was 60 %); frontend: the rate
+helper, the Students page (its rate, its absences tile with the real card) and the Profile, the
+sheets' column, averages row and red, the Grading page's summary and the breakdown, the report,
+the limits panel and Analytics, in English and Greek where the words matter, with the zeros a
+student without a Late gets as well as an older server's missing fields. Each of 7 mutations of
+the page changes and 39 of the reviews' fixes is caught. CI's whole-suite run then found that
+the report's and the admin metrics' caches carried one test's answers to the next (each test's
+database starts its ids at 1 again): `conftest.py` empties them around every test now.
+
+Review: two adversarial passes before the PR, each with four reviewers (first on completeness,
+the figures, the pages and a ΜΙΕΕΚ teacher's eye; then on the fixes, the pages, the teacher's
+eye again and the tests and documents) and a skeptic per finding.
+- **First pass:** 14 findings, none refuted. Fixed: the four held (the Grading page's own
+  summary did not name the Lates, one of the four places the owner named, only the Profile's
+  breakdown did; the report read "75 % (1/4 days)", its rate counting the Lates and the days
+  beside it not, and its PDF and CSV listed neither the Lates nor the Excused; the Students page
+  card counted Absent alone as "Absences" over a rate that counts Excused as an absence; the
+  Greek PDF printed "Αργοπορί" / "ες" in a 14 mm column, with a test that every word of a fixed
+  column's header fits) and six of the rest: the counts for a course without rules, the counts
+  whatever the case, "Δικαιολογημένος" and "αργοπορίες" as the Attendance page says them, one
+  Late in the singular, the one-assessment sheet's red, and the tests that did not pin the
+  zeroed cell's red and the averages row.
+- **Second pass, on the fixes:** 13 findings, one refuted. Fixed: the five held (the report
+  called periods "days", "(5/8 days)" for four lesson days; the Late column is 16 mm in Greek
+  only, since at 16 in English its 2 mm split long value headers for nothing, "Late" fits 14;
+  in Excel it is 12 wide, as at 10 Excel too broke "Αργοπορίες"; the zeros this server sends
+  for a student without a Late were never tested, only an older server's missing fields; and a
+  sentence of todo 78 below was false) and five more: the Grading test waited on a percentage
+  the rules card shows too, the Greek late count of Analytics and the limits help word had no
+  test, the metrics fields still said "Present records", and the plan quoted the help and the
+  metrics fix wrongly. Not fixed: a newer phone app on an older server shows the old server's
+  rate beside the new count of periods attended (the owner updates both the same day, and the
+  other way round is as contradictory and cannot be fixed here); the Greek words of an
+  attendance export no page offers (todo 78).
+- Left for todo 78: a status a semester file brings in another case or with spaces, Excused
+  days the Attendance page still lets a teacher rate (the owner's call), the exports' Greek
+  status words; and for todo 77 point 2: the Greek help names a «Παρουσία» rule, which the
+  course editor saves as Class Participation until then.
+
+**2026-11-23: Analytics by category, whatever the course** (todo 75 stage 3, PR 486, merged as
+`c4d44e030`, its checks green). The Analytics page
 (Dashboard → Analytics) now diagnoses by grading category across courses. A course's own
 category names fold into the standard list of stage 1 (`grade_categories.group_key`), so
 "Εργαστήριο" in one course and "Lab Work" in another are one category.
@@ -2743,7 +2813,10 @@ no longer exist (PR 425 turned them into "No role").
 four answers are in its entry. Stages 1 to 3 (the grade sheets, their server side and their
 page; Analytics by category) are on `main`. **Todo 77**, three corrections to the final grade
 the owner decided that day (Late is attended, lab names match lab, the Weight counts without
-rules), is next, then **todo 76** (the page's language), then stages 4 to 6.
+rules), in three PRs: point 1 is on `main`, points 2 and 3 next; then **todo 76** (the page's
+language), then stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's
+statuses, Excused days on the Attendance page (a question for the owner), the exports' Greek
+words.
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3243,13 +3316,52 @@ and 44 and 48 in its part 5):
        Εργασία" takes the homework grades. The owner: "The lab always happens in class, the
        matching should be reordered or corrected properly." "Παρουσίαση" (a presentation) is
        matched as attendance by the same order: corrected with it. "Τελική Εργασία" stays a
-       Final Exam, as the course editor saves it.
+       Final Exam, as the course editor saves it. With it, the Greek pages name an Attendance
+       rule «Παρουσία»: the Grading page's summary and the breakdown print "Attendance" (their
+       `translateCategory` has no such name; seen in point 1's browser check).
     3. **The Weight counts without rules too.** A course without rules, or a student whose
        grades match no rule, gets the plain mean of the grades; the grade's Weight box counts
        only in the category figures and the grade sheets. The owner: "The final grade should use
        the Weight too."
     One PR after todo 75 stage 3, with tests that fail on the old rules, the help texts and docs
     that state them, and release notes that say final grades change.
+    - **The owner's follow-up answers (2026-11-23)**, each the recommended one: (a) one meaning
+      of attended on every page, Present + Late (Absent and Excused absences); (b) matching:
+      compare Greek names without accents, a rule typed "Παρουσία"/"Παρουσίες" in the course
+      editor saves as Attendance (not Class Participation), an Attendance rule under any
+      spelling counts the attendance records, Midterm/Final under any spelling take the latest
+      grade; (c) one final grade everywhere (Analytics, the grade sheets, the Grading page and
+      the Students page): the rules, else the Weight-weighted mean of the grades; (d) the number
+      of Lates shown on the grade sheets, in the Grading page's breakdown, in Analytics and in
+      the Attendance page's absence limits.
+    - **Three PRs, one per point.** Point 1 (attended, the Lates shown): **Done** (under "On
+      `main` since v1.18.80"). Point 2 (matching) and point 3 (the Weight, one final grade) next.
+      **Release point 1 only together with point 2:** its Greek help and guide name a
+      «Παρουσία» rule, which the course editor saves as Class Participation until point 2.
+
+78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
+    todo 77 point 1's review, 2026-11-23).
+    1. **A semester file's statuses are stored as written** (no decision needed). Every page
+       and the API take only "Present", "Absent", "Late", "Excused", but the semester import
+       (`routers_sessions._import_attendance`) stores what the file says. Since point 1 a
+       "late" counts as a Late in the server's figures (Analytics, the absence limits, the
+       grade sheets, the Grading page), on the Students page and in the Profile, but not on
+       the Attendance page, which compares the exact word: its "Attendance insights" count it
+       as unrecorded and no status button is lit, and an "absent" day there leaves Rate open.
+       "Late " (a space) counts on some pages and not on others, "Tardy" on none. Store the
+       four forms whatever the case and spacing, and list any other in the import's errors
+       instead of storing it; then either put the rows already stored into the four forms
+       once, or have the Attendance page read a status whatever its case (`statusKey` in
+       `utils/attendanceRate.ts`).
+    2. **An Excused day can be rated** (the owner's decision). The Attendance page closes Rate
+       and the participation ticks only for a student marked Absent; an Excused one stays
+       open, and a tick on that day makes the day an attended one, so it takes its slice of
+       Class Participation. Excused is an absence (point 1): should it close Rate as Absent
+       does? And when a day turns Excused after ratings were saved, should they be cleared, as
+       for Absent (that deletes the teacher's ratings)?
+    3. **The exports' Greek status words** (no decision needed): the Export Center's files say
+       "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
+       where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):

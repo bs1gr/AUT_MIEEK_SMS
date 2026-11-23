@@ -128,17 +128,17 @@ class AttendanceMetrics(BaseModel):
 
     Attributes:
         total_records: Total attendance records
-        present_count: Number of present records
-        absent_count: Number of absent records
-        attendance_rate: Percentage of attendance
+        present_count: Records attended: Present and Late (plan todo 77)
+        absent_count: Absences: Absent and Excused, as the ΜΙΕΕΚ limit counts them
+        attendance_rate: Percentage of records attended (Present and Late)
         by_course: Attendance rate breakdown by course
         by_date: Attendance trends over time
     """
 
     total_records: int = Field(..., ge=0, description="Total attendance records")
-    present_count: int = Field(..., ge=0, description="Present records")
-    absent_count: int = Field(..., ge=0, description="Absent records")
-    attendance_rate: float = Field(..., ge=0, le=100, description="Overall attendance %")
+    present_count: int = Field(..., ge=0, description="Records attended: Present and Late")
+    absent_count: int = Field(..., ge=0, description="Absences: Absent and Excused")
+    attendance_rate: float = Field(..., ge=0, le=100, description="Overall attendance % (Present and Late)")
     by_course: dict[str, float] = Field(default_factory=dict, description="Attendance % by course")
     by_date: dict[str, float] = Field(default_factory=dict, description="Attendance trends by date")
 

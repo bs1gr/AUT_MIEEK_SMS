@@ -717,7 +717,8 @@ def test_attendance_stats(client):
     assert data["present_count"] == 3
     assert data["absent_count"] == 1
     assert data["late_count"] == 1
-    assert data["attendance_rate"] == 60.0  # 3/5 * 100
+    # Present and Late are attended (plan todo 77): 4 of 5. It was 60.0, Present alone.
+    assert data["attendance_rate"] == 80.0
 
 
 def test_attendance_stats_no_records_returns_message(client):

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, Iterable, List, Optional, cast
 
 from sqlalchemy import case, func, inspect
 from sqlalchemy.engine.reflection import Inspector
@@ -216,6 +216,9 @@ class AnalyticsService:
         absence_status = absence_limit_service.evaluate_records(course, attendance)
         result["absence_limit"] = absence_status
         result["attendance_insufficient"] = absence_status["attendance_insufficient"]
+        # The periods by status, a Late among them, for the teacher's evaluation (plan todo 77):
+        # also for a course without evaluation rules, whose calculation stops before counting.
+        result.setdefault("attendance", self._attendance_counts(attendance))
         return result
 
     def get_student_all_courses_summary(self, student_id: int) -> Dict[str, Any]:
@@ -379,8 +382,8 @@ class AnalyticsService:
         # Calculate from loaded relationships (no additional queries)
         attendance_records = [a for a in student.attendances if a.deleted_at is None]
         total_att = len(attendance_records)
-        present = len([a for a in attendance_records if a.status == "Present"])
-        attendance_rate = (present / total_att * 100) if total_att > 0 else 0
+        attended = len([a for a in attendance_records if absence_limit_service.is_attended(a.status)])
+        attendance_rate = (attended / total_att * 100) if total_att > 0 else 0
 
         grades = [g for g in student.grades if g.deleted_at is None]
         avg_grade = sum((g.grade / g.max_grade * 100) for g in grades) / len(grades) if grades else 0
@@ -442,15 +445,15 @@ class AnalyticsService:
 
         if "attendances" in tables:
             attendance_count = self.db.query(self.Attendance).filter(self.Attendance.deleted_at.is_(None)).count()
-            present_count = (
+            attended_count = (
                 self.db.query(self.Attendance)
                 .filter(
                     self.Attendance.deleted_at.is_(None),
-                    func.lower(self.Attendance.status) == "present",
+                    func.lower(self.Attendance.status).in_(sorted(absence_limit_service.ATTENDED_STATUSES)),
                 )
                 .count()
             )
-            avg_attendance = (present_count / attendance_count * 100) if attendance_count > 0 else 0.0
+            avg_attendance = (attended_count / attendance_count * 100) if attendance_count > 0 else 0.0
 
         return {
             "total_students": int(student_count),
@@ -644,8 +647,9 @@ class AnalyticsService:
             "moving_average": round(moving_avg, 2),
         }
 
-    # Statuses that count as attended, as on the Students page: Present and Excused.
-    _ATTENDED_STATUSES = {"present", "excused"}
+    # Statuses that count as attended, as on every page: Present and Late (the owner,
+    # 2026-11-23). Until then Excused counted here and Late did not.
+    _ATTENDED_STATUSES = absence_limit_service.ATTENDED_STATUSES
 
     def get_student_predictive_analytics(
         self,
@@ -792,13 +796,15 @@ class AnalyticsService:
                 "present": present,
                 "absent": absent,
                 "late": late,
-                "attendance_rate": round((present / total * 100), 2) if total > 0 else 0,
+                # Present and Late are attended (todo 77); the Lates stay counted above.
+                "attendance_rate": round(((present + late) / total * 100), 2) if total > 0 else 0,
             }
 
         # Overall summary
         all_records = attendance_records
         total_all = len(all_records)
-        present_all = len([r for r in all_records if r.status.lower() == "present"])
+        attended_all = len([r for r in all_records if absence_limit_service.is_attended(r.status)])
+        late_all = len([r for r in all_records if str(r.status or "").lower() == "late"])
 
         return {
             "student": {
@@ -806,8 +812,9 @@ class AnalyticsService:
                 "name": f"{student.first_name} {student.last_name}",
                 "student_id": student.student_id,
             },
-            "overall_attendance_rate": round((present_all / total_all * 100), 2) if total_all > 0 else 0,
+            "overall_attendance_rate": round((attended_all / total_all * 100), 2) if total_all > 0 else 0,
             "total_classes": total_all,
+            "late": late_all,
             "courses": course_summaries,
         }
 
@@ -984,8 +991,10 @@ class AnalyticsService:
 
             if category_lower in {"attendance", "παρουσία"}:
                 if attendance:
+                    # Present and Late are attended (the owner, 2026-11-23); Absent and Excused
+                    # are absences, as the ΜΙΕΕΚ limit counts them. Until then Late lost here.
                     total = len(attendance)
-                    present = len([a for a in attendance if str(a.status).lower() == "present"])
+                    present = len([a for a in attendance if absence_limit_service.is_attended(a.status)])
                     att_pct = (present / total * 100) if total > 0 else 0
                     weighted_sum += att_pct
                     total_item_weight += 1.0
@@ -1109,7 +1118,20 @@ class AnalyticsService:
             "participation_deduction": round(participation_deduction, 2),
             "participation_observations": observations,
             "participation_share": participation_share,
+            # The periods recorded, by status, for the teacher's evaluation (the Lates are not
+            # absences but are shown: plan todo 77).
+            "attendance": self._attendance_counts(attendance),
         }
+
+    @staticmethod
+    def _attendance_counts(attendance: Iterable[Any]) -> Dict[str, int]:
+        counts = {"present": 0, "late": 0, "absent": 0, "excused": 0}
+        for record in attendance:
+            status = str(getattr(record, "status", "") or "").strip().lower()
+            if status in counts:
+                counts[status] += 1
+        counts["recorded"] = sum(counts.values())
+        return counts
 
     # ----------------------------- Cache Invalidation ---------------------------------
     def invalidate_cache_for_student(self, student_id: int, course_id: Optional[int] = None) -> None:

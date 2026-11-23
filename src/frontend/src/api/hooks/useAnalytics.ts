@@ -104,6 +104,8 @@ export interface ClassOverview {
     credits: number;
     failing_courses: string[];
     attendance_rate: number | null;
+    /** Periods come late, across the courses: attended, shown for the evaluation (todo 77; absent from older servers). */
+    late?: number;
     absence_status: AbsenceStatus | null;
     /** Courses where absences are over the Class Participation limit (that share counts as 0). */
     participation_forfeited: string[];

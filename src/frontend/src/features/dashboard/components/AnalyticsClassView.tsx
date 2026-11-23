@@ -9,7 +9,7 @@ import {
   GradeDistributionChart,
   type Translate,
 } from './AnalyticsCharts';
-import { AbsenceBadge, formatPercent } from './analyticsUi';
+import { AbsenceBadge, formatPercent, LateCount } from './analyticsUi';
 import { AnalyticsCategoryMatrix } from './AnalyticsCategories';
 
 export interface AnalyticsClassViewProps {
@@ -111,7 +111,10 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
                     </td>
                     <td className={CELL}>{formatPercent(s.average_final_grade)}</td>
                     <td className={cn(CELL, 'text-red-700')}>{s.failing_courses.join(', ') || '—'}</td>
-                    <td className={CELL}>{formatPercent(s.attendance_rate)}</td>
+                    <td className={CELL}>
+                      {formatPercent(s.attendance_rate)}
+                      <LateCount count={s.late} t={t} />
+                    </td>
                     <td className={CELL}>
                       <AbsenceBadge status={s.absence_status} t={t} />
                       {s.participation_forfeited.length > 0 && (
@@ -177,7 +180,10 @@ const AnalyticsClassView = ({ t, visibleCharts, overview, onOpenStudent }: Analy
                   {' / '}
                   <span className={c.failing > 0 ? 'text-red-700' : ''}>{c.failing}</span>
                 </td>
-                <td className={CELL}>{formatPercent(c.attendance_rate)}</td>
+                <td className={CELL}>
+                  {formatPercent(c.attendance_rate)}
+                  <LateCount count={c.attendance.late} t={t} />
+                </td>
                 <td className={CELL}>
                   {c.absence_insufficient > 0 || c.absence_warning > 0 || c.participation_forfeited > 0
                     ? t('analytics.overview.absenceCounts', {

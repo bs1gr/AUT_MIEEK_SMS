@@ -11,7 +11,7 @@ import csv
 import io
 import logging
 from datetime import date, datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
@@ -36,6 +36,7 @@ from backend.schemas import (
     ReportPeriod,
     StudentPerformanceReport,
 )
+from backend.services.absence_limit_service import ATTENDED_STATUSES
 from backend.services.report_exporters import generate_csv_report, generate_pdf_report
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -72,6 +73,22 @@ def _calculate_period_dates(
     else:
         # Default to semester
         return today - timedelta(days=120), today
+
+
+def _status_counts(records: List[Attendance]) -> Dict[str, int]:
+    """Present / Absent / Late / Excused periods, whatever the case the status was stored in."""
+    counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+    for record in records:
+        status = str(record.status or "").strip().lower()
+        if status in counts:
+            counts[status] += 1
+    return counts
+
+
+def _attended_rate(counts: Dict[str, int], total: int) -> float:
+    """Present and Late over every period recorded (plan todo 77: the one meaning of attended)."""
+    attended = sum(counts[status] for status in ATTENDED_STATUSES)
+    return round(attended / total * 100, 1) if total > 0 else 0
 
 
 def _calculate_trend(values: List[float]) -> str:
@@ -202,19 +219,17 @@ def _build_student_report(
 
         if attendance_records:
             total_days = len(attendance_records)
-            present = len([a for a in attendance_records if a.status == "Present"])
-            absent = len([a for a in attendance_records if a.status == "Absent"])
-            late = len([a for a in attendance_records if a.status == "Late"])
-            excused = len([a for a in attendance_records if a.status == "Excused"])
+            counts = _status_counts(attendance_records)
 
             report_data["overall_attendance"] = AttendanceSummary(
                 total_days=total_days,
-                present=present,
-                absent=absent,
-                late=late,
-                excused=excused,
-                attendance_rate=round((present / total_days) * 100, 1) if total_days > 0 else 0,
-                unexcused_absences=absent,
+                present=counts["present"],
+                absent=counts["absent"],
+                late=counts["late"],
+                excused=counts["excused"],
+                # Present and Late are attended (todo 77); until then Late lowered this rate.
+                attendance_rate=_attended_rate(counts, total_days),
+                unexcused_absences=counts["absent"],
             )
 
     # Get grades summary using date_submitted with fallback to date_assigned
@@ -324,20 +339,19 @@ def _build_student_report(
 
             if course_attendance:
                 total = len(course_attendance)
-                present_count = len([a for a in course_attendance if a.status == "Present"])
-                absent_count = len([a for a in course_attendance if a.status == "Absent"])
-                late_count = len([a for a in course_attendance if a.status == "Late"])
-                excused_count = len([a for a in course_attendance if a.status == "Excused"])
-                course_summary["attendance_rate"] = round((present_count / total) * 100, 1) if total > 0 else 0
-                course_summary["total_absences"] = total - present_count
+                course_counts = _status_counts(course_attendance)
+                course_summary["attendance_rate"] = _attended_rate(course_counts, total)
+                # The absences the ΜΙΕΕΚ limit counts: Absent and Excused, never a Late (until
+                # todo 77 every period not Present was counted here, a Late included).
+                course_summary["total_absences"] = course_counts["absent"] + course_counts["excused"]
                 course_summary["attendance"] = AttendanceSummary(
                     total_days=total,
-                    present=present_count,
-                    absent=absent_count,
-                    late=late_count,
-                    excused=excused_count,
-                    attendance_rate=round((present_count / total) * 100, 1) if total > 0 else 0,
-                    unexcused_absences=absent_count,
+                    present=course_counts["present"],
+                    absent=course_counts["absent"],
+                    late=course_counts["late"],
+                    excused=course_counts["excused"],
+                    attendance_rate=_attended_rate(course_counts, total),
+                    unexcused_absences=course_counts["absent"],
                 )
 
         # Daily performance

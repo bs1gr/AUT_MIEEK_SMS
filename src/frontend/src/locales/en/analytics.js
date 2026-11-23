@@ -144,6 +144,8 @@ export default {
     gradedOf: '{{graded}} of {{total}} graded',
     attendanceRate: 'Attendance',
     attendanceRule: 'Present and Late count as attended',
+    lateCount_one: '{{count}} late',
+    lateCount_other: '{{count}} late',
     atRiskStudents: 'Students at Risk',
     rank: 'Rank',
     rankOf: '{{rank}} of {{total}}',

@@ -6,6 +6,17 @@ import type { Translate } from './AnalyticsCharts';
 export const formatPercent = (value: number | null | undefined): string =>
   value === null || value === undefined ? '—' : `${value.toFixed(1)}%`;
 
+/**
+ * "3 late" under an attendance rate (plan todo 77): a Late counts as attended, so the rate does
+ * not show it; its number is here for the teacher's evaluation. Nothing when there is none.
+ */
+export const LateCount = ({ count, t }: { count: number | null | undefined; t: Translate }) =>
+  count ? (
+    <span className="block text-xs text-slate-600" data-testid="analytics-late-count">
+      {t('analytics.overview.lateCount', { count })}
+    </span>
+  ) : null;
+
 interface SummaryCardProps {
   icon: ComponentType<{ size?: number | string; className?: string }>;
   label: string;
