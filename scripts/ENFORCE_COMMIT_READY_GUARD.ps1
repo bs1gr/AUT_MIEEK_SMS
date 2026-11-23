@@ -109,6 +109,17 @@ function Get-TreeFingerprint {
     # ls-files --others and hash-object resolve paths against the current directory, so
     # pin everything to the repo root - the hook runs from there, callers may not.
     Push-Location $repoRoot
+    # git prints paths in UTF-8, and PowerShell reads a native command's output in the
+    # console's code page. In a new console on a Greek Windows (737) the name
+    # "docs/user/ΟΔΗΓΟΣ_ΧΡΗΣΗΣ.md" came back garbled: no such file, so it was recorded as
+    # deleted and its content never hashed, and a checkpoint written there never matched a
+    # commit from a UTF-8 console (plan todo 79, 2026-11-23). As COMMIT_READY's
+    # Get-MarkdownState does: UTF-8 for the git calls, the console's own code page after.
+    $previousEncoding = $null
+    try {
+        $previousEncoding = [Console]::OutputEncoding
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    } catch {}
     try {
         $head = ''
         try { $head = (git rev-parse HEAD 2>$null) } catch {}
@@ -167,6 +178,9 @@ function Get-TreeFingerprint {
             IsClean     = ($changedPaths.Count -eq 0)
         }
     } finally {
+        if ($previousEncoding) {
+            try { [Console]::OutputEncoding = $previousEncoding } catch {}
+        }
         Pop-Location
     }
 }
