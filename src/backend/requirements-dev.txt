@@ -15,7 +15,7 @@ httpx>=0.28.1
 python-multipart>=0.0.33
 protobuf>=7.36.2  # CVE-2026-0994 fixed since 6.x
 types-requests>=2.33.0.20261030
-pypdf>=7.0.1
+pypdf>=7.1.1
 
 # Security constraints for development transitive dependencies
 filelock>=4.2.4  # 3.20.4–4.2.0 ReadWriteLock/SoftFileLock advisories
