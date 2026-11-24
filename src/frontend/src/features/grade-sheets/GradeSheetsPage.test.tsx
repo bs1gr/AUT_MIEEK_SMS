@@ -254,6 +254,48 @@ describe('GradeSheetsPage', () => {
     expect(screen.queryByTestId('grade-sheets-assessment')).not.toBeInTheDocument();
   });
 
+  it('marks a retake of the final exam under 50 §, in red whatever the grade, and says why', async () => {
+    // Plan todo 80: as over the absence limit, the course is failed and the grade stays as worked out.
+    const retake = { date: '2026-02-10', percentage: 45, failed: true };
+    api.sheet.mockResolvedValue({
+      ...matrixOf(7, 'Αντωνίου', [{ final_grade: 63, result: 'failed_retake', final_exam_retake: retake }, {}]),
+      summary: { enrolled: 2, final_average: 70, passed: 1, failed: 1, failed_absences: 0, failed_retake: 1, no_grade: 0 },
+    });
+
+    renderPage('?courseId=7&kind=matrix');
+
+    const failed = await screen.findByTestId('grade-sheets-final-1');
+    expect(failed).toHaveTextContent(/^63§$/);
+    expect(failed).toHaveClass('text-red-700');
+    expect(failed).not.toHaveClass('text-slate-800');
+    expect(within(failed).getByTitle(g('retakeBadge'))).toHaveTextContent('§');
+    expect(screen.getByTestId('grade-sheets-final-2')).toHaveTextContent(/^77$/);
+    expect(screen.getByTestId('grade-sheets-final-2')).not.toHaveClass('text-red-700');
+    const notes = screen.getByTestId('grade-sheets-notes').textContent;
+    expect(notes).toContain(`${g('summaryFinalRetake')} {"enrolled":2,"average":"70","passed":1,"failed":1,"absences":0,"retakes":1,"noGrade":0}`);
+    expect(notes).toContain(g('retakeNote'));
+    expect(notes).not.toContain(g('overLimit'));
+  });
+
+  it('counts the absence limit and the retake apart when the sheet has both', async () => {
+    api.sheet.mockResolvedValue({
+      ...matrixOf(7, 'Αντωνίου', [
+        { final_grade: 63, result: 'failed_absences', absence_status: 'insufficient' },
+        { final_grade: 63, result: 'failed_retake', final_exam_retake: { date: '2026-02-10', percentage: 45, failed: true } },
+      ]),
+      summary: { enrolled: 2, final_average: 63, passed: 0, failed: 2, failed_absences: 1, failed_retake: 1, no_grade: 0 },
+    });
+
+    renderPage('?courseId=7&kind=matrix');
+
+    expect(await screen.findByTestId('grade-sheets-final-1')).toHaveTextContent(/^63\*$/);
+    expect(screen.getByTestId('grade-sheets-final-2')).toHaveTextContent(/^63§$/);
+    const notes = screen.getByTestId('grade-sheets-notes').textContent;
+    expect(notes).toContain(g('summaryFinalAbsencesRetake'));
+    expect(notes).toContain(g('overLimit'));
+    expect(notes).toContain(g('retakeNote'));
+  });
+
   it('marks no final grade † when every one comes from the mean of the grades', async () => {
     api.sheet.mockResolvedValue(
       matrixOf(7, 'Ευαγγέλου', [{ final_grade: 70, grade_basis: 'average' }, { final_grade: 64, grade_basis: 'average' }])

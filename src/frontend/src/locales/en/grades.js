@@ -66,7 +66,7 @@ export default {
   categoryLabel: 'category',
   weightPlaceholder: 'Weight (multiplier)',
   weightHint: 'Weight: a grade with weight 2 counts like two grades of its category. Empty counts as 1; the highest is 3.',
-  weightHintExam: 'Midterm Exam and Final Exam take the latest grade alone, so a weight changes nothing there.',
+  weightHintExam: 'Midterm Exam and Final Exam take one grade alone, the retake if there is one, else the latest, so a weight changes nothing there.',
   refreshFinal: 'Refresh Final Grade',
   finalGradeSummary: 'Final Grade Summary',
   printSummaryReport: 'Print/Export Report',
@@ -129,7 +129,21 @@ export default {
   totalBeforePenalty: 'Total (before penalty)',
   // A final grade where no evaluation rule takes the grades (plan todo 77 point 3).
   finalGradeFromMeanNote:
-    'No evaluation rule applies to these grades, so the final grade is their mean: each grade counts as often as its Weight says, and of Midterm Exam and Final Exam only the latest. Any absence penalty comes off the mean.',
+    'No evaluation rule applies to these grades, so the final grade is their mean: each grade counts as often as its Weight says, and of Midterm Exam and Final Exam only the retake, else the latest. Any absence penalty comes off the mean.',
+  // Plan todo 80 (the owner, 2026-11-24): the day an exam was taken, and the retake that replaces
+  // the earlier sitting; a retake of the final exam under 50 fails the course whatever the grade.
+  examSittingDate: 'Date the exam was taken',
+  retakeLabel: 'Retake (replaces the earlier sitting)',
+  retakeHintFinal:
+    'Tick it for the student who sits the final exam again. The retake counts in the final grade and the earlier sitting no longer does; a retake under 50 fails the course.',
+  retakeHintMidterm:
+    'Tick it for the student who sits the midterm again. The retake counts in the final grade and the earlier sitting no longer does.',
+  retakeBadge: 'Retake',
+  replacedByRetake: 'Replaced by the retake: not counted',
+  finalExamRetakeFailedBadge: 'Failed: the final exam retake is under 50',
+  finalExamRetakeFigures: '{{percentage}}% on {{date}}',
+  finalExamRetakeFailedDetail:
+    'The retake of {{date}}: {{percentage}}%. A retake of the final exam under 50 fails the course whatever the final grade, which is still worked out and shown.',
   outOf100: '0-100',
   divider: '/',
   // Edit/Delete

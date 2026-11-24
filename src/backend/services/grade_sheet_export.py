@@ -9,8 +9,9 @@ A sheet with more columns than a landscape page holds is printed in column group
 repeats the student columns and the final grade, so no figure runs off the paper.
 
 Excel holds the same table with numbers as numbers. What the PDF says with a mark, Excel says in a
-column of its own (the absence limit; whether a final grade came from the rules) or in the cell's
-number format (a category zeroed for absences is the number 0, shown as "0 (absences)").
+column of its own (the absence limit; a retake of the final exam under 50; whether a final grade
+came from the rules) or in the cell's number format (a category zeroed for absences is the number
+0, shown as "0 (absences)").
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from xml.sax.saxutils import escape
 
 from backend.services import grade_categories as cats
-from backend.services.grade_sheet_service import RESULT_FAILED_ABSENCES
+from backend.services.grade_sheet_service import RESULT_FAILED_ABSENCES, RESULT_FAILED_RETAKE
 
 FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts")
 FONT_REGULAR = "DejaVuSans"
@@ -75,24 +76,34 @@ LABELS: Dict[str, Dict[str, str]] = {
         "no grade yet {no_grade}.",
         "summary_final_absences": "Students: {enrolled}. Class average {final_average}. Passed {passed}, "
         "failed {failed} ({failed_absences} of them over the absence limit), no grade yet {no_grade}.",
+        # Plan todo 80: a retake of the final exam under 50 fails the course whatever the grade.
+        "summary_final_retake": "Students: {enrolled}. Class average {final_average}. Passed {passed}, "
+        "failed {failed} ({failed_retake} of them on a final exam retake under 50), no grade yet {no_grade}.",
+        "summary_final_absences_retake": "Students: {enrolled}. Class average {final_average}. Passed {passed}, "
+        "failed {failed} ({failed_absences} of them over the absence limit, {failed_retake} on a final exam "
+        "retake under 50), no grade yet {no_grade}.",
         "basis_rules": "One column per evaluation rule of the course: the average the final grade counts.",
         "basis_grades": "This course has no evaluation rules: each category is the mean of its grades, each "
-        "counted as often as its Weight says; an exam is its latest grade.",
+        "counted as often as its Weight says; an exam is its retake, else its latest grade.",
         "deductions_note": "Deductions: points the final grade loses for participation observations and "
         "unexcused absences.",
         "final_rules": "Final grade so far: from the course's evaluation rules, scaled to the work graded so far.",
         "final_average": "Final grade: the mean of the student's grades, each counted as often as its Weight "
-        "says and an exam by its latest grade, less any absence penalty (no evaluation rule applies).",
+        "says and an exam by its retake, else its latest grade, less any absence penalty (no evaluation rule applies).",
         "final_average_marked": "† No evaluation rule matched these grades: the final grade is their mean (each "
-        "by its Weight, an exam by its latest grade), less any absence penalty.",
+        "by its Weight, an exam by its retake, else its latest grade), less any absence penalty.",
         "over_limit": "* Over the absence limit: the course is failed whatever the grade.",
+        "retake": "Final exam retake",
+        "retake_short": "under 50",
+        "retake_note": "§ Final exam retake under 50: the course is failed whatever the grade.",
         "forfeited_suffix": "(absences)",
         "forfeited_mark": "0 ‡",
         "forfeited_note": "‡ Over the Class Participation absence limit: the category counts 0.",
         # Excel has no marks: its notes point at the columns and cells that say the same.
         "over_limit_excel": 'Absence limit "over the limit": the course is failed whatever the grade.',
+        "retake_note_excel": 'Final exam retake "under 50": the course is failed whatever the grade.',
         "final_average_excel": 'Final grade from "mean of the grades": no evaluation rule matched these '
-        "grades, so the final grade is their mean (each by its Weight, an exam by its latest grade), less any "
+        "grades, so the final grade is their mean (each by its Weight, an exam by its retake, else its latest grade), less any "
         "absence penalty.",
         "forfeited_note_excel": '"0 (absences)": over the Class Participation absence limit, the category counts 0.',
         "no_columns_ratings": "No assessment has been graded yet: the final grades so far come from the daily ratings.",
@@ -143,27 +154,38 @@ LABELS: Dict[str, Dict[str, str]] = {
         "αποτυχόντες {failed}, χωρίς βαθμό ακόμη {no_grade}.",
         "summary_final_absences": "Σπουδαστές: {enrolled}. Μέσος όρος τάξης {final_average}. Επιτυχόντες {passed}, "
         "αποτυχόντες {failed} (εκ των οποίων {failed_absences} λόγω ορίου απουσιών), χωρίς βαθμό ακόμη {no_grade}.",
+        "summary_final_retake": "Σπουδαστές: {enrolled}. Μέσος όρος τάξης {final_average}. Επιτυχόντες {passed}, "
+        "αποτυχόντες {failed} (εκ των οποίων {failed_retake} λόγω επαναληπτικής τελικής εξέτασης κάτω από 50), "
+        "χωρίς βαθμό ακόμη {no_grade}.",
+        "summary_final_absences_retake": "Σπουδαστές: {enrolled}. Μέσος όρος τάξης {final_average}. "
+        "Επιτυχόντες {passed}, αποτυχόντες {failed} (εκ των οποίων {failed_absences} λόγω ορίου απουσιών και "
+        "{failed_retake} λόγω επαναληπτικής τελικής εξέτασης κάτω από 50), χωρίς βαθμό ακόμη {no_grade}.",
         "basis_rules": "Μία στήλη για κάθε κανόνα αξιολόγησης του μαθήματος: ο μέσος όρος που μετρά ο τελικός βαθμός.",
         "basis_grades": "Το μάθημα δεν έχει κανόνες αξιολόγησης: κάθε κατηγορία είναι ο μέσος όρος των βαθμών της, "
-        "ο καθένας όσες φορές λέει η Βαρύτητά του· μια εξέταση είναι ο πιο πρόσφατος βαθμός της.",
+        "ο καθένας όσες φορές λέει η Βαρύτητά του· μια εξέταση είναι η επαναληπτική της, αλλιώς ο πιο πρόσφατος βαθμός της.",
         "deductions_note": "Αφαιρέσεις: μονάδες που χάνει ο τελικός βαθμός για παρατηρήσεις συμμετοχής και "
         "αδικαιολόγητες απουσίες.",
         "final_rules": "Τελικός βαθμός μέχρι στιγμής: από τους κανόνες αξιολόγησης του μαθήματος, αναγόμενος "
         "στη βαθμολογημένη ως τώρα εργασία.",
         "final_average": "Τελικός βαθμός: ο μέσος όρος των βαθμών του σπουδαστή, ο καθένας όσες φορές λέει η "
-        "Βαρύτητά του και κάθε εξέταση με τον πιο πρόσφατο βαθμό της, μείον τυχόν ποινή απουσίας (δεν ισχύει "
+        "Βαρύτητά του και κάθε εξέταση με την επαναληπτική της, αλλιώς τον πιο πρόσφατο βαθμό της, μείον τυχόν ποινή απουσίας (δεν ισχύει "
         "κανόνας αξιολόγησης).",
         "final_average_marked": "† Κανένας κανόνας αξιολόγησης δεν αντιστοιχεί σε αυτούς τους βαθμούς: "
         "ο τελικός βαθμός είναι ο μέσος όρος τους (ο καθένας με τη Βαρύτητά του, κάθε εξέταση με τον πιο "
         "πρόσφατο βαθμό της), μείον τυχόν ποινή απουσίας.",
         "over_limit": "* Πάνω από το όριο απουσιών: το μάθημα δεν περνά, όποιος κι αν είναι ο βαθμός.",
+        "retake": "Επαναληπτική τελική εξέταση",
+        "retake_short": "κάτω από 50",
+        "retake_note": "§ Επαναληπτική τελική εξέταση κάτω από 50: το μάθημα δεν περνά, όποιος κι αν είναι ο βαθμός.",
         "forfeited_suffix": "(απουσίες)",
         "forfeited_mark": "0 ‡",
         "forfeited_note": "‡ Πάνω από το όριο απουσιών της Συμμετοχής στο Μάθημα: η κατηγορία μετρά 0.",
         "over_limit_excel": "Όριο απουσιών «πάνω από το όριο»: το μάθημα δεν περνά, όποιος κι αν είναι ο βαθμός.",
+        "retake_note_excel": "Επαναληπτική τελική εξέταση «κάτω από 50»: το μάθημα δεν περνά, όποιος κι αν "
+        "είναι ο βαθμός.",
         "final_average_excel": "Τελικός βαθμός από «μέσο όρο βαθμών»: κανένας κανόνας αξιολόγησης δεν "
         "αντιστοιχεί σε αυτούς τους βαθμούς, οπότε ο τελικός βαθμός είναι ο μέσος όρος τους (ο καθένας με τη "
-        "Βαρύτητά του, κάθε εξέταση με τον πιο πρόσφατο βαθμό της), μείον τυχόν ποινή απουσίας.",
+        "Βαρύτητά του, κάθε εξέταση με την επαναληπτική της, αλλιώς τον πιο πρόσφατο βαθμό της), μείον τυχόν ποινή απουσίας.",
         "forfeited_note_excel": "«0 (απουσίες)»: πάνω από το όριο απουσιών της Συμμετοχής στο Μάθημα, "
         "η κατηγορία μετρά 0.",
         "no_columns_ratings": "Δεν έχει βαθμολογηθεί ακόμη καμία αξιολόγηση: οι τελικοί βαθμοί ως τώρα "
@@ -348,6 +370,11 @@ def _over_limit(sheet: Dict[str, Any]) -> bool:
     return sheet["kind"] != "assessment" and any(r.get("result") == RESULT_FAILED_ABSENCES for r in sheet["rows"])
 
 
+def _retake_failed(sheet: Dict[str, Any]) -> bool:
+    """Anyone on the sheet failed on a retake of the final exam under 50 (plan todo 80)."""
+    return sheet["kind"] != "assessment" and any(r.get("result") == RESULT_FAILED_RETAKE for r in sheet["rows"])
+
+
 def _bases(sheet: Dict[str, Any]) -> set:
     """Where the final grades on the sheet came from: "rules", "average", or both."""
     return {r.get("grade_basis") for r in sheet["rows"] if r.get("final_grade") is not None} - {None}
@@ -360,6 +387,8 @@ def _final_text(row: Dict[str, Any], mixed: bool) -> str:
         marks += " †"
     if row.get("result") == RESULT_FAILED_ABSENCES:
         marks += " *"
+    if row.get("result") == RESULT_FAILED_RETAKE:
+        marks += " §"
     if marks and not text:
         text = "-"
     return text + marks
@@ -435,6 +464,7 @@ def _grid(
         return columns, rows, averages
 
     deductions, over_limit, late = _has_deductions(sheet), _over_limit(sheet), _has_late(sheet)
+    retake = _retake_failed(sheet)
     bases = _bases(sheet)
     mixed = len(bases) > 1
     columns = [
@@ -452,6 +482,9 @@ def _grid(
     columns.append(_Column(labels["final"], "tail", _MM_FINAL, excel_width=12))
     if over_limit:
         columns.append(_Column(labels["absence_limit"], "tail", pdf=False, excel_width=18))
+    if retake:
+        # Excel only, as the absence limit: the PDF says it with a mark (§) and its note.
+        columns.append(_Column(labels["retake"], "tail", pdf=False, excel_width=18))
     if mixed:
         columns.append(_Column(labels["final_from"], "tail", pdf=False, excel_width=20))
 
@@ -476,6 +509,8 @@ def _grid(
         tail.append(_cell(r.get("final_grade"), _final_text(r, mixed)))
         if over_limit:
             tail.append(_cell(labels["over_limit_short"] if r.get("result") == RESULT_FAILED_ABSENCES else None))
+        if retake:
+            tail.append(_cell(labels["retake_short"] if r.get("result") == RESULT_FAILED_RETAKE else None))
         if mixed:
             basis = r.get("grade_basis")
             tail.append(_cell({"rules": labels["from_rules"], "average": labels["from_average"]}.get(basis)))
@@ -488,6 +523,7 @@ def _grid(
     averages += [blank] if deductions else []
     averages += [_cell(sheet["summary"]["final_average"])]
     averages += [blank] if over_limit else []
+    averages += [blank] if retake else []
     averages += [blank] if mixed else []
     return columns, rows, averages
 
@@ -499,7 +535,9 @@ def _notes(sheet: Dict[str, Any], labels: Dict[str, str], excel: bool = False) -
     figures = {k: (_number(v) if isinstance(v, float) else ("-" if v is None else v)) for k, v in summary.items()}
     if sheet["kind"] == "assessment":
         return [labels["summary_assessment"].format(**figures)]
-    notes = [labels["summary_final_absences" if summary.get("failed_absences") else "summary_final"].format(**figures)]
+    summary_key = "summary_final" + ("_absences" if summary.get("failed_absences") else "")
+    summary_key += "_retake" if summary.get("failed_retake") else ""
+    notes = [labels[summary_key].format(**figures)]
     if sheet["kind"] == "categories":
         notes.append(labels["basis_rules"] if sheet.get("basis") == "rules" else labels["basis_grades"])
     if _has_late(sheet):
@@ -516,6 +554,8 @@ def _notes(sheet: Dict[str, Any], labels: Dict[str, str], excel: bool = False) -
             notes.append(labels["final_average"])
     if _over_limit(sheet):
         notes.append(labels["over_limit_excel" if excel else "over_limit"])
+    if _retake_failed(sheet):
+        notes.append(labels["retake_note_excel" if excel else "retake_note"])
     if sheet["kind"] == "categories" and any(any(r.get("forfeited") or []) for r in sheet["rows"]):
         notes.append(labels["forfeited_note_excel" if excel else "forfeited_note"])
     return notes

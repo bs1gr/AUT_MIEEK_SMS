@@ -10,12 +10,12 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 
 from backend.db_utils import get_by_id_or_404, paginate, transaction
-from backend.errors import internal_server_error
+from backend.errors import ErrorCode, http_error, internal_server_error
 from backend.import_resolver import import_names
 from backend.schemas.audit import AuditAction, AuditResource
 from backend.schemas.grades import GradeCreate, GradeUpdate
 from backend.schemas.highlights import HighlightCreate
-from backend.services.analytics_service import AnalyticsService
+from backend.services.analytics_service import AnalyticsService, normalize_rule_category
 from backend.services.audit_service import AuditLogger
 from backend.services.highlight_service import HighlightService
 
@@ -35,11 +35,27 @@ class GradeService:
             logger.error("Failed to import models: %s", exc, exc_info=True)
             raise internal_server_error(request=self.request)
 
+    @staticmethod
+    def is_exam_category(category: Optional[str]) -> bool:
+        """A Midterm's or a Final Exam's grade, under any spelling (as the final grade reads it)."""
+        return normalize_rule_category(category) in AnalyticsService.exam_categories
+
+    def _check_retake(self, category: Optional[str], is_retake: Optional[bool]) -> None:
+        """Plan todo 80: only an exam's grade can be the retake that replaces an earlier sitting."""
+        if is_retake and not self.is_exam_category(category):
+            raise http_error(
+                422,
+                ErrorCode.VALIDATION_FAILED,
+                "Only a Midterm or Final Exam grade can be marked as a retake",
+                self.request,
+            )
+
     # ------------------------------------------------------------------
     # CRUD operations
     # ------------------------------------------------------------------
     def create_grade(self, grade: GradeCreate):
         """Create a new grade entry."""
+        self._check_retake(grade.category, grade.is_retake)
         # Validate student exists
         get_by_id_or_404(
             self.db,
@@ -141,6 +157,14 @@ class GradeService:
 
         update_dict = grade_update.model_dump(exclude_unset=True)
 
+        # Plan todo 80: the mark is checked against the category the grade will have; a retake
+        # moved out of the exams (filed under the wrong category, say) is no retake any more.
+        category_after = update_dict.get("category", db_grade.category)
+        if "is_retake" in update_dict:
+            self._check_retake(category_after, update_dict["is_retake"])
+        elif "category" in update_dict and db_grade.is_retake and not self.is_exam_category(category_after):
+            update_dict["is_retake"] = False
+
         # Validate student if changed
         if "student_id" in update_dict:
             get_by_id_or_404(
@@ -224,6 +248,9 @@ class GradeService:
                 cid,
                 request=self.request,
             )
+
+        for g in grades:
+            self._check_retake(g.category, g.is_retake)
 
         with transaction(self.db):
             db_grades = [self.Grade(**g.model_dump()) for g in grades]
@@ -370,6 +397,7 @@ class GradeService:
             "date_assigned": str(grade.date_assigned) if grade.date_assigned else None,
             "date_submitted": str(grade.date_submitted) if grade.date_submitted else None,
             "notes": grade.notes,
+            "is_retake": bool(getattr(grade, "is_retake", False)),
         }
 
     def _log_audit(

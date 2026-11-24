@@ -333,6 +333,49 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: a retake is a Midterm or Final Exam grade the teacher marks as one, and it replaces
+the earlier sitting** (todo 80; the owner that morning, after the "by date" build misread old
+grades: "teacher shall have the option to select the date exam was taken and also to select a
+retake exam as an overwrite of the first final exam. After retake exam the first final exam should
+not count in grading and the retake exam replaces it at the final grading. The same should happen
+with a midterm retake"; kept from 2026-11-23: a retake of the final exam under 50 fails the course,
+the grade still worked out and shown). **One database change:** migration `c7d4e2a9f1b6`, additive,
+`grades.is_retake` (false for every grade stored, with a server default, so an older version keeps
+working on a database that has it: its grades are no retakes). The by-date build (a course's final
+exam date, migration `b8e3d5f7a2c4`) is dropped, never merged; its diff is kept in
+`D:\tmp\todo80-held`.
+
+- **The rule** (`AnalyticsService.counted_grades`): of a Midterm and of a Final, under any spelling,
+  one grade counts: the retake when one is marked, whatever the dates, else the latest sitting, as
+  since todo 77 point 2 (existing grades count as they did). `final_exam_retake` reports a counted
+  Final that is a retake (`{date, percentage, failed}`); under 50 the course is failed, as with the
+  ΜΙΕΕΚ absence limit: on the Grading page (a red warning and a badge, the final grade shown), the
+  grade sheets (§ on screen and in the PDF, a column "Final exam retake" in Excel, the summary's
+  count), Analytics (pass rate, failing courses, "needs attention"). A midterm retake only replaces.
+- **The Grading page**: for a grade of either exam (by the rule's words, so a course's own
+  «Τελική Εξέταση» too) "Date the exam was taken" (today unless changed; it stays for the next
+  student's grade) and "Retake (replaces the earlier sitting)", cleared after each grade and on
+  another student or course. An edit shows the grade's own day and mark; an undated grade stays
+  undated (the held build's review: an edit dated it today). Grade History marks "Retake" and
+  "Replaced by the retake: not counted".
+- **The server**: only an exam's grade can be a retake (422 on any other, on create, bulk create and
+  edit); a retake moved to another category loses the mark; the audit entry names it. The semester
+  file carries the mark and an import keeps a retake beside the sitting it replaced (the mark is part
+  of what identifies a grade: a retake usually has the same name and category); the grades file
+  (Control Panel) reads `date_submitted` and `is_retake` (yes/true/1/«ναι»), refused on any other
+  category or a wrong date, and its help names both.
+- **Texts**: "an exam by its latest grade" became "by its retake, else its latest grade" in the
+  grade sheets' notes (screen, PDF, Excel), the Weight hint, the no-rules note, both help answers
+  (with how to enter a retake) and both user guides (sections 5, 7, 8).
+
+Tests: `test_exam_retake_mark.py` (35: which sitting counts, the final grade with and without rules,
+50 and 49.5, a midterm retake, the API's mark and its refusals, the audit entry, the grade sheets in
+both languages and Excel, Analytics, a semester file both ways, the grades file, the migration up,
+down and an older version's insert), `test_grade_sheets.py` (the summary's new count),
+`GradingView.retakeMark.test.tsx` (10: the fields for both exams and a course's own name, the
+payload, the mark cleared, an edit, an undated edit, the history marks, the failed retake), and the
+held build's page tests that carry over (grade sheets page, Analytics, breakdown).
+
 **2026-11-24: a semester file's attendance statuses are stored as the pages write them, and every
 file names them in the Attendance page's words** (todo 78, points 1 and 3; found by todo 77 point
 1's review; no decision needed). Every page and the API take only "Present", "Absent", "Late",
@@ -3055,10 +3098,12 @@ the owner decided that day (Late is attended, lab names match lab, the Weight co
 rules), in three PRs, all three on `main`; **todo 76** (the page's language) too (2026-11-24);
 next, stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's statuses and the
 exports' Greek words (points 1 and 3, on `main` since 2026-11-24), Excused days on the
-Attendance page (point 2, a question for the owner). Found and decided by
-point 2's and 3's reviews: todos 80 (a retake of the final under 50 fails the course), 81 (the
-importer keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, a
-question for the owner), 84 (Analytics fails for an inactive student).
+Attendance page (point 2, decided 2026-11-24). Found and decided by
+point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces the earlier
+sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
+keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
+2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
+out, decided 2026-11-24). **Next, decided and not yet built: 78 point 2, 83, 85**, each its own PR.
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3619,6 +3664,15 @@ and 44 and 48 in its part 5):
       saves today; editing an undated Final Exam grade dates it today; the Control Panel's import
       text does not name the new `date_submitted` column. The semester archive (todo 85) would
       record such a failed student as passed.
+    - **The owner's answer (2026-11-24): (b), for the midterm too.** "teacher shall have the option
+      to select the date exam was taken and also to select a retake exam as an overwrite of the
+      first final exam. After retake exam the first final exam should not count in grading and the
+      retake exam replaces it at the final grading. The same should happen with a midterm retake".
+      **Done** (under "On `main` since v1.18.80"): a retake mark per grade (migration
+      `c7d4e2a9f1b6`), the date chosen on the Grading page; the by-date build was dropped. Of the
+      smaller findings, those that still apply are fixed (an undated grade stays undated on an edit,
+      the import text names the columns); the sitting date staying for the next student is now on
+      purpose (one exam, one day, for a class), the retake mark never does.
 81. **The course importer keeps a course's own rule names** (found by todo 77 point 2's third
     review, 2026-11-23; the owner: "Yes, keep names"). `routers_imports._map_category` renames every
     rule to an English label by substring ("Τελική Εργασία" -> "Assignments", "Ασκήσεις" ->
@@ -3645,6 +3699,11 @@ and 44 and 48 in its part 5):
     there (the Profile's breakdown does). Analytics' "top by exams" counts every sitting of an exam.
     Keep them as plain averages of the grades listed, count them as the final grade counts (Weight,
     an exam's latest sitting), or show the final grade in their place?
+    - **The owner's answer (2026-11-24):** "should show averages if not exams grades published yet.
+      otherwise, the real grades should populate". Per course: the average while no exam grade is
+      recorded, the course's real final grade once it is; the overall figures take each course's
+      figure so. To settle when building and say in the PR: whether "exam grades in" is the Final
+      Exam's grade or any exam's, and what a course with no exam rule shows. Its own PR, next.
 
 84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
     decision needed). `GET /api/v1/analytics/student/{id}/overview` answers 500 for a student who
@@ -3662,6 +3721,11 @@ and 44 and 48 in its part 5):
     since the limit came in) nor, once todo 80 is in, at a final exam retake under 50. Should either
     fail keep the enrolment out of the archive (proposed: both, with the reason shown in the preview,
     as "incomplete_grading" is today)?
+    - **The owner's answer (2026-11-24):** "such students should be kept out of the archive, with
+      the reason shown in its preview. however, they still have the opportunity to retake the course
+      next available year". Both fails keep the enrolment out, the reason in the preview; check, and
+      say, that such a student can enrol in the course again the next year (a live old enrolment, the
+      same course row or a new one). Its own PR, after todo 80 (on `main` since 2026-11-24).
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).
@@ -3683,12 +3747,13 @@ and 44 and 48 in its part 5):
        open, and a tick on that day makes the day an attended one, so it takes its slice of
        Class Participation. Excused is an absence (point 1): should it close Rate as Absent
        does? And when a day turns Excused after ratings were saved, should they be cleared, as
-       for Absent (that deletes the teacher's ratings)?
+       for Absent (that deletes the teacher's ratings)? **The owner's answer (2026-11-24):** "an
+       Excused day should close Rate the way Absent does, and clear ratings already saved for that
+       day". Its own PR.
     3. **The exports' Greek status words** (no decision needed): the Export Center's files say
        "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
        where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
-       **Done** (the page's words, under "On `main` since v1.18.80"). Point 2 waits for the
-       owner.
+       **Done** (the page's words, under "On `main` since v1.18.80"). Point 2 is decided (above).
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):

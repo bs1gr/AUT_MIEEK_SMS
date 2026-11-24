@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, extractAPIResponseData } from '@/api/api';
+import type { FinalExamRetake } from '@/types';
 
 /**
  * Analytics page overview (GET /analytics/overview and /analytics/student/{id}/overview).
@@ -127,7 +128,10 @@ export interface StudentOverviewCourse {
   grade_count: number;
   /** Per-period participation ratings (daily performance); they count toward the final grade too. */
   rating_count: number;
+  /** False on a retake of the final exam under 50 too, whatever the final grade (plan todo 80). */
   passing: boolean | null;
+  /** The retake of the final exam (plan todo 80), or null; absent from older servers. */
+  final_exam_retake?: FinalExamRetake | null;
   class_average: number | null;
   rank: number | null;
   ranked_of: number;

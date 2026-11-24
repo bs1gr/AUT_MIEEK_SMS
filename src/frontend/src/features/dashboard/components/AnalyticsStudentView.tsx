@@ -115,6 +115,17 @@ const AnalyticsStudentView = ({
                 </td>
                 <td className={cn(CELL, 'font-semibold', c.passing === false ? 'text-red-700' : 'text-slate-900')}>
                   {formatPercent(c.final_grade)}
+                  {/* Plan todo 80: failed whatever the figure, as over the absence limit. */}
+                  {c.final_exam_retake?.failed && (
+                    <div className="mt-1 text-xs font-semibold text-red-700" data-testid={`analytics-retake-failed-${c.id}`}>
+                      {t('analytics.overview.finalExamRetakeFailed', {
+                        // The server's figure, two decimals at most: one decimal would show 49.96 as 50.0.
+                        percentage: `${c.final_exam_retake.percentage}%`,
+                        // At noon: a day alone ('YYYY-MM-DD') is read as UTC midnight, the day before west of it.
+                        date: formatDate(`${c.final_exam_retake.date}T12:00:00`),
+                      })}
+                    </div>
+                  )}
                 </td>
                 <td className={CELL}>{formatPercent(c.class_average)}</td>
                 <td className={CELL}>{c.rank ? t('analytics.overview.rankOf', { rank: c.rank, total: c.ranked_of }) : '—'}</td>

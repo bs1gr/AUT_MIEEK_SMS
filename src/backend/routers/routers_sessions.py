@@ -940,11 +940,22 @@ def _same_category(Grade, category):
     return Grade.category == category
 
 
-def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results: Dict):
-    """Import grades. A grade is recognised by student, course, assignment name and category."""
-    Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
+def _is_true(value: Any) -> bool:
+    """A file's yes: true, 1, "true", "yes", "ναι" (any case); anything else, a missing value too, is no."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value == 1
+    return str(value or "").strip().lower() in {"true", "1", "yes", "y", "ναι"}
 
-    for grade_data in grades:
+
+def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results: Dict):
+    """Import grades. A grade is recognised by student, course, assignment name, category and
+    whether it is a retake."""
+    Grade, Student, Course = import_names("models", "Grade", "Student", "Course")
+    from backend.services.grade_service import GradeService
+
+    for idx, grade_data in enumerate(grades):
         try:
             student = _resolve_student(db, Student, grade_data.get("student_id_ref"))
             course = _resolve_course(db, Course, grade_data.get("course_code_ref"))
@@ -955,9 +966,20 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                 )
                 continue
 
+            # Plan todo 80: a Midterm or Final Exam grade that replaces the earlier sitting. A file
+            # from before it has no such field: no grade of it is a retake.
+            is_retake = _is_true(grade_data.get("is_retake"))
+            if is_retake and not GradeService.is_exam_category(grade_data.get("category")):
+                results["summary"]["grades"]["errors"].append(
+                    f"Grade #{idx + 1}: only a Midterm or Final Exam grade can be a retake"
+                )
+                continue
+
             # The grade this row stands for: the same student, course, assignment name and
             # category. Until November 2026 the category was left out, so the two grades of one
             # assignment in two categories were one record here: the second overwrote the first.
+            # A retake usually has the name and category of the sitting it replaces, so whether
+            # the grade is a retake belongs to what identifies it too (plan todo 80).
             existing = (
                 db.query(Grade)
                 .filter(
@@ -965,6 +987,7 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                     Grade.course_id == course.id,
                     Grade.assignment_name == grade_data.get("assignment_name"),
                     _same_category(Grade, grade_data.get("category")),
+                    Grade.is_retake.is_(True) if is_retake else Grade.is_retake.is_(False),
                     Grade.deleted_at.is_(None),
                 )
                 .order_by(Grade.id)
@@ -999,6 +1022,7 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                     date_submitted=datetime.fromisoformat(grade_data["date_submitted"]).date()
                     if grade_data.get("date_submitted")
                     else None,
+                    is_retake=is_retake,
                 )
                 db.add(grade)
                 results["summary"]["grades"]["created"] += 1

@@ -13,8 +13,12 @@ class GradeCreate(BaseModel):
     max_grade: float = Field(default=100.0, gt=0)
     weight: float = Field(default=1.0, ge=0, le=3.0)
     date_assigned: Optional[date] = None
+    # For an exam, the day it was taken (plan todo 80: the teacher picks it).
     date_submitted: Optional[date] = None
     notes: Optional[str] = None
+    # Plan todo 80: a Midterm or Final Exam grade that replaces the earlier sitting. Only an exam's
+    # grade can be one (GradeService refuses the mark on any other).
+    is_retake: bool = False
 
     @model_validator(mode="after")
     def validate_grade_not_exceeds_max(self):
@@ -56,11 +60,19 @@ class GradeUpdate(BaseModel):
     notes: Optional[str] = None
     date_assigned: Optional[date] = None
     date_submitted: Optional[date] = None
+    is_retake: Optional[bool] = None
 
     @field_validator("category")
     @classmethod
     def normalize_category(cls, v: Optional[str]) -> Optional[str]:
         return _normalize_category(v)
+
+    @model_validator(mode="after")
+    def validate_retake_not_null(self):
+        """An edit may set or clear the retake mark, never leave it unknown (the column has none)."""
+        if "is_retake" in self.model_fields_set and self.is_retake is None:
+            raise ValueError("is_retake must be true or false")
+        return self
 
     @model_validator(mode="after")
     def validate_assignment_name_kept(self):
@@ -97,5 +109,6 @@ class GradeResponse(BaseModel):
     date_assigned: Optional[date]
     date_submitted: Optional[date]
     notes: Optional[str]
+    is_retake: bool = False
 
     model_config = ConfigDict(from_attributes=True)

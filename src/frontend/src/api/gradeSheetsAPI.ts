@@ -6,11 +6,15 @@
  * '@/api/api' with just a default export keeps working.
  */
 import apiClient from './api';
+import type { FinalExamRetake } from '@/types';
 
 export type GradeSheetKind = 'assessment' | 'matrix' | 'categories';
 export type GradeSheetFormat = 'pdf' | 'excel';
-/** A student's course result: over the absence limit the course is failed whatever the grade. */
-export type CourseResult = 'passed' | 'failed' | 'failed_absences' | null;
+/**
+ * A student's course result: over the absence limit the course is failed whatever the grade, and so
+ * it is on a retake of the final exam under 50 (plan todo 80).
+ */
+export type CourseResult = 'passed' | 'failed' | 'failed_absences' | 'failed_retake' | null;
 
 export interface GradeSheetCourse {
   id: number;
@@ -76,6 +80,8 @@ export interface FinalFields {
   absence_deduction: number | null;
   /** Periods the student came late (plan todo 77): attended, not absences; absent from older servers. */
   late?: number;
+  /** The retake of the final exam (plan todo 80), or null; absent from older servers. */
+  final_exam_retake?: FinalExamRetake | null;
 }
 
 export interface MatrixRow extends RowBase, FinalFields {
@@ -114,6 +120,8 @@ export interface FinalSummary {
   passed: number;
   failed: number;
   failed_absences: number;
+  /** Failed on a retake of the final exam under 50 (plan todo 80); absent from older servers. */
+  failed_retake?: number;
   no_grade: number;
 }
 

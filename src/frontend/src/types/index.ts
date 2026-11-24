@@ -59,8 +59,14 @@ export interface Grade {
   max_grade: number;
   weight: number;
   date_assigned?: string;
+  /** For an exam, the day it was taken (plan todo 80: the teacher picks it). */
   date_submitted?: string;
   notes?: string;
+  /**
+   * Plan todo 80: a Midterm or Final Exam grade the teacher marked as the retake. It replaces the
+   * earlier sitting in the final grade; absent from older servers (no retake).
+   */
+  is_retake?: boolean;
 }
 
 export interface Attendance {
@@ -299,7 +305,8 @@ export interface FinalGrade {
   total_weight_used: number;
   /**
    * "rules": from the evaluation rules' categories; "average": no rule takes the grades, so the
-   * final grade is their mean by Weight, an exam by its latest grade (plan todo 77 point 3).
+   * final grade is their mean by Weight, an exam by its retake, else its latest grade (plan todo 77
+   * point 3, todo 80).
    * Absent from older servers.
    */
   grade_basis?: 'rules' | 'average';
@@ -323,6 +330,19 @@ export interface FinalGrade {
   absence_limit?: AbsenceLimitStatus;
   /** The periods recorded, by status (plan todo 77: a Late is attended; absent from older servers). */
   attendance?: { present: number; late: number; absent: number; excused: number; recorded: number };
+  /** The retake of the final exam (plan todo 80), or null; absent from older servers. */
+  final_exam_retake?: FinalExamRetake | null;
+}
+
+/**
+ * A retake of the final exam (plan todo 80): the Final Exam grade the teacher marked as the retake,
+ * which replaced the earlier sitting. Under 50 (`failed`) the course is failed whatever the final grade.
+ */
+export interface FinalExamRetake {
+  /** The day it was taken, 'YYYY-MM-DD'; null for an undated grade. */
+  date: string | null;
+  percentage: number;
+  failed: boolean;
 }
 
 // Utility types

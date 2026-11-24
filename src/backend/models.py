@@ -484,6 +484,10 @@ class Grade(SoftDeleteMixin, Base):
     date_assigned = Column(Date, index=True)  # ✅ ADDED INDEX
     date_submitted = Column(Date, index=True)  # ✅ ADDED INDEX
     notes = Column(Text)
+    # Plan todo 80 (the owner, 2026-11-24): a Midterm or Final Exam grade the teacher marks as the
+    # retake. It replaces the earlier sitting in the final grade, which no longer counts, and a
+    # retake of the final exam under 50 fails the course (migration c7d4e2a9f1b6).
+    is_retake = Column(Boolean, nullable=False, default=False, server_default=false())
 
     # Relationships
     student = relationship("Student", back_populates="grades")  # type: ignore[var-annotated]

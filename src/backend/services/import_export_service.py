@@ -1,6 +1,6 @@
 import shutil
 import logging
-from datetime import datetime, UTC
+from datetime import date, datetime, UTC
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
@@ -188,6 +188,19 @@ class ImportExportService:
         text = str(value).strip()
         return text or None
 
+    @staticmethod
+    def _grade_day(text: Optional[str]) -> Optional[date]:
+        """A grade row's own date (column date_submitted, for an exam the day it was taken):
+        YYYY-MM-DD, or the date and time Excel gives a date cell. None without one; ValueError
+        for anything else."""
+        return None if text is None else date.fromisoformat(text.strip()[:10])
+
+    @staticmethod
+    def _is_retake(text: Optional[str]) -> bool:
+        """Column is_retake (plan todo 80): yes, true, 1 or «ναι» marks the Midterm or Final Exam
+        grade that replaces the earlier sitting; empty or anything else, no."""
+        return str(text or "").strip().lower() in {"true", "1", "yes", "y", "ναι"}
+
     def _import_students(self, db: Session, df: pd.DataFrame) -> Dict[str, int]:
         """With the rule of Utils > Imports: a student is the one with that student ID or that
         e-mail address; one that is there is updated, a deleted one comes back."""
@@ -256,11 +269,21 @@ class ImportExportService:
             grade_val = float(row.get("grade"))
             max_grade = float(self._cell(row, "max_grade") or 100)
             weight = float(self._cell(row, "weight") or 1.0)
+            # Plan todo 80: an exam's row can give the day it was taken and whether it is the
+            # retake that replaces the earlier sitting (checked in _validate_data).
+            own_day = self._grade_day(self._cell(row, "date_submitted"))
+            is_retake = self._is_retake(self._cell(row, "is_retake"))
+            if is_retake:
+                from backend.services.grade_service import GradeService
+
+                if not GradeService.is_exam_category(category):
+                    raise ValueError(f"Row {int(index) + 2}: only a Midterm or Final Exam grade can be a retake")
 
             # The grade this row stands for: the same student, course, assignment name and
             # category, and not a deleted one. The same assignment is kept under two categories
             # on purpose, so the name alone does not say which grade is meant (as in the
-            # session import, routers_sessions._import_grades).
+            # session import, routers_sessions._import_grades). A retake usually has the name
+            # and category of the sitting it replaces, so the mark belongs to it too.
             grade = (
                 db.query(Grade)
                 .filter(
@@ -268,6 +291,7 @@ class ImportExportService:
                     Grade.course_id == course.id,
                     Grade.assignment_name == assignment_name,
                     Grade.category == category,
+                    Grade.is_retake.is_(True) if is_retake else Grade.is_retake.is_(False),
                     Grade.deleted_at.is_(None),
                 )
                 .order_by(Grade.id)
@@ -278,6 +302,8 @@ class ImportExportService:
                 grade.grade = grade_val  # type: ignore[assignment]
                 grade.max_grade = max_grade  # type: ignore[assignment]
                 grade.weight = weight  # type: ignore[assignment]
+                if own_day is not None:  # a grade that is there keeps its date unless the row has one
+                    grade.date_submitted = own_day  # type: ignore[assignment]
                 counts["updated"] += 1
             else:
                 grade = Grade(
@@ -288,7 +314,8 @@ class ImportExportService:
                     grade=grade_val,
                     max_grade=max_grade,
                     weight=weight,
-                    date_submitted=datetime.now(UTC),
+                    date_submitted=own_day or datetime.now(UTC),
+                    is_retake=is_retake,
                 )
                 db.add(grade)
                 counts["created"] += 1
@@ -362,6 +389,15 @@ class ImportExportService:
                         float(text)
                     except ValueError:
                         row_errors.append(f"{column} is not a number")
+                try:
+                    self._grade_day(self._cell(row, "date_submitted"))
+                except ValueError:
+                    row_errors.append("date_submitted is not a date (YYYY-MM-DD)")
+                if self._is_retake(self._cell(row, "is_retake")):
+                    from backend.services.grade_service import GradeService
+
+                    if not GradeService.is_exam_category(self._cell(row, "category")):
+                        row_errors.append("is_retake: only a Midterm or Final Exam grade can be a retake")
 
             # The same student or course twice in one file: which row is to count?
             if key is not None:

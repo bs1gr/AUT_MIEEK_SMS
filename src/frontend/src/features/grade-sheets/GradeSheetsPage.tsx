@@ -7,8 +7,9 @@
  * (`#/operations/reports/grade-sheets?courseId=7&kind=assessment&assessment=final|...`), so the
  * Grading page, Analytics and Utils → Reports can open a sheet directly, and a reload keeps it.
  * The table shows what the PDF prints, with the same marks: * over the absence limit (the course
- * is failed whatever the grade), † a final grade from the mean of the grades when the sheet mixes
- * that with grades from the rules, ‡ a category the final grade zeroed for absences.
+ * is failed whatever the grade), § a retake of the final exam under 50 (failed too, plan todo 80),
+ * † a final grade from the mean of the grades when the sheet mixes that with grades from the rules,
+ * ‡ a category the final grade zeroed for absences.
  *
  * Only the sheet the controls name is ever shown or downloaded: while the next one loads, the
  * previous one (perhaps another course's) is not on screen. The list of assessments is the
@@ -49,6 +50,7 @@ const KIND_LABELS: Record<GradeSheetKind, string> = {
 };
 // The marks of the printed sheet (grade_sheet_export.py), explained in the notes under the table.
 const MARK_OVER_LIMIT = '*';
+const MARK_RETAKE = '§';
 const MARK_AVERAGE = '†';
 const MARK_FORFEITED = '‡';
 const SEPARATOR = ' · ';
@@ -603,6 +605,7 @@ const finalMarks = (row: FinalFields, mixed: boolean): string =>
   [
     mixed && row.grade_basis === 'average' && row.final_grade !== null ? MARK_AVERAGE : '',
     row.result === 'failed_absences' ? MARK_OVER_LIMIT : '',
+    row.result === 'failed_retake' ? MARK_RETAKE : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -643,6 +646,7 @@ const FinalTable = ({
   // Plan todo 77: a Late is attended, not an absence, and the teacher weighs it at the end.
   const late = sheet.rows.some((r) => (r.late ?? 0) > 0);
   const overLimit = sheet.rows.some((r) => r.result === 'failed_absences');
+  const failedRetake = sheet.rows.some((r) => r.result === 'failed_retake');
   const forfeitedAny = sheet.kind === 'categories' && sheet.rows.some((r) => r.forfeited.some(Boolean));
   const summary = sheet.summary;
   const summaryValues = {
@@ -651,16 +655,22 @@ const FinalTable = ({
     passed: summary.passed,
     failed: summary.failed,
     absences: summary.failed_absences,
+    retakes: summary.failed_retake ?? 0,
     noGrade: summary.no_grade,
   };
   const notes = [
-    g(summary.failed_absences ? 'summaryFinalAbsences' : 'summaryFinal', summaryValues),
+    g(
+      // Plan todo 80: the failed on a retake of the final exam are counted apart, as those over the limit.
+      `summaryFinal${summary.failed_absences ? 'Absences' : ''}${summary.failed_retake ? 'Retake' : ''}`,
+      summaryValues
+    ),
     sheet.kind === 'categories' ? g(sheet.basis === 'rules' ? 'basisRules' : 'basisGrades') : '',
     late ? g('lateNote') : '',
     deductions ? g('deductionsNote') : '',
     bases.has('rules') ? g('finalRules') : '',
     bases.has('average') ? g(bases.has('rules') ? 'finalAverageMarked' : 'finalAverage') : '',
     overLimit ? g('overLimit') : '',
+    failedRetake ? g('retakeNote') : '',
     forfeitedAny ? g('forfeitedNote') : '',
   ].filter(Boolean);
 
@@ -731,7 +741,8 @@ const FinalTable = ({
                     className={cn(
                       NUMBER_CELL,
                       'font-semibold',
-                      (row.result === 'failed' || row.result === 'failed_absences') && 'text-red-700'
+                      (row.result === 'failed' || row.result === 'failed_absences' || row.result === 'failed_retake') &&
+                        'text-red-700'
                     )}
                     data-testid={`grade-sheets-final-${row.student.id}`}
                   >
@@ -739,7 +750,13 @@ const FinalTable = ({
                     {marks && (
                       <span
                         className="ml-1"
-                        title={row.result === 'failed_absences' ? g('overLimitBadge') : g('averageBasisCell')}
+                        title={
+                          row.result === 'failed_absences'
+                            ? g('overLimitBadge')
+                            : row.result === 'failed_retake'
+                              ? g('retakeBadge')
+                              : g('averageBasisCell')
+                        }
                       >
                         {marks}
                       </span>

@@ -191,10 +191,13 @@ homework), "Παρουσία και Συμμετοχή" is Class Participation, 
 Exam. A course's own name (say "Θεωρητική Εξέταση") takes the grades of that name, whatever the
 accents and capitals. Saving a course never changes what its rules count.
 
-A course has one midterm and one final: each counts one grade only, that of the latest sitting
-(a second sitting is for a student who missed the first), whatever its rules are called. The
-latest is the grade with the latest date, then the one entered last, so a retake must be dated
-after the first sitting. A rule with the word "Συνεχής" or "Continuous" in its name (Continuous
+A course has one midterm and one final: each counts one grade only, whatever its rules are
+called. That is the **retake** when one of the grades is marked as the retake (section 7): it
+replaces the earlier sitting, which no longer counts, whatever the dates. Without a retake it is
+the latest sitting: the grade with the latest date (the day the exam was taken), then the one
+entered last. A retake of the final exam under 50 fails the course whatever the final grade
+(section 8); a midterm retake only replaces the first sitting. (Until November 2026 nothing told
+a retake: a second sitting counted only by being dated later.) A rule with the word "Συνεχής" or "Continuous" in its name (Continuous
 Assessment), with anything in brackets as in the ΜΙΕΕΚ templates, takes every graded activity of
 the course that no other rule of the course takes: homework, exercises, quizzes, projects,
 presentations, lab work, a course's own names, the grades filed under it, and their daily
@@ -294,7 +297,16 @@ earned and the points possible. **Save Grade** stores it. A form with something 
 answers "Please fill in all required fields". The form also has a box **Weight**: how often
 the grade counts in the average of its category. A grade with weight 2 counts like two
 grades; an empty box is 1 and the highest is 3. The box is closed for Midterm Exam and Final
-Exam, which take their latest grade alone (section 8).
+Exam, which take one grade alone (section 8).
+
+**An exam and its retake.** For a Midterm Exam or a Final Exam grade (under any of its names,
+"Τελική Εξέταση" or a course's own name for it) the form has two more fields. **Date the exam
+was taken**: the day the student sat it, today unless you change it; it stays for the next
+student's grade, so a class's exam is dated once. **Retake (replaces the earlier sitting)**:
+tick it for the student who sits the exam again, or sits it late after missing it (a missed
+sitting has no grade). The retake counts in the final grade and the earlier sitting no longer
+does; the tick is cleared after each grade, so it never carries over to the next student. A
+grade of another category cannot be a retake. **Edit** shows a grade's own date and tick.
 
 **The summary** on the right shows the final grade so far: as a percentage, as a GPA, as a
 letter and on the Greek scale of 0 to 20 with its word (for example "15.5/20, Καλώς"). Under
@@ -304,8 +316,15 @@ category averages and says the final grade is the mean of the grades (section 8)
 Final Grade** works it out again.
 
 **Grade History** lists every grade of the student in the course: assignment, category,
-score, percentage, weight, letter, date. **Edit** puts a grade back into the form;
+score, percentage, weight, letter, date. A retake is marked **Retake**, and the sitting it
+replaced **Replaced by the retake: not counted**. **Edit** puts a grade back into the form;
 **Delete** removes it.
+
+**A failed retake.** A retake of the final exam under 50 fails the course whatever the final
+grade, as the absence limit does: the page says so in red above the form and in the summary
+("Failed: the final exam retake is under 50"), and the final grade is still worked out and
+shown. The grade sheets mark such a student with **§** (Excel: a column "Final exam retake"),
+and Analytics counts the course as failed.
 
 **Print/Export Report** leads to the report templates of Utils > Reports, where the
 breakdown can be exported.
@@ -322,13 +341,14 @@ Within a category each grade counts as a percentage of its points, and as often 
 that all have the same weight average as usual. (Until November 2026 the Weight was stored
 and not used: a category was the plain average of its grades. A final grade that has
 grades of different weights in one category is therefore not what it was before.) Two
-exceptions: for Midterm Exam and Final Exam only the latest grade counts, and a day's rating
+exceptions: for Midterm Exam and Final Exam one grade alone counts, the retake, else the latest
+(section 5), and a day's rating
 in a category (section 6) counts like one more grade of that category, with weight 1.
 
 **Without evaluation rules.** In a course without rules, or where none of a student's grades
 falls under any of its rules, the final grade is the mean of the grades instead: each grade as
 a percentage, counted as often as its Weight says, and Midterm Exam and Final Exam once each,
-by the latest sitting. Daily ratings do not count in it, and whatever a rule counts for the
+by the retake, else the latest sitting. Daily ratings do not count in it, and whatever a rule counts for the
 student besides grades (attendance, a rating) does not make the grade then. Of the deductions
 only the absence penalty below comes off it: there is no Class Participation share to lose.
 Homework of 60% (weight 1) and 90% (weight 2) and a quiz of 80% (weight 1) give (60 + 180 + 80)

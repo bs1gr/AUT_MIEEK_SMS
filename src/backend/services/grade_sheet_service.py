@@ -19,7 +19,8 @@ from the course's evaluation rules, scaled to the work done so far, less the par
 absence deductions (both on each row); or, when no rule takes a grade, the grades' own mean, each
 by its Weight, an exam by its latest grade, less the absence penalty (``grade_basis`` "average";
 plan todo 77 point 3). A student over the ΜΙΕΕΚ absence limit fails the course whatever
-the grade, and the class figures count them that way.
+the grade, and so does a retake of the final exam under 50 (plan todo 80); the class figures count
+them that way.
 
 An **assessment** is every grade of the course with the same name and the same category. Names
 are compared without case, accents or repeated spaces, but every other character counts ("C++
@@ -51,10 +52,12 @@ from backend.services.analytics_service import AnalyticsService, normalize_rule_
 
 KINDS = ("assessment", "matrix", "categories")
 
-# What a student's course result is: passed, failed on the grade, failed on absences, or not yet.
+# What a student's course result is: passed, failed on the grade, failed on absences, failed on a
+# retake of the final exam under 50 (plan todo 80), or not yet.
 RESULT_PASSED = "passed"
 RESULT_FAILED = "failed"
 RESULT_FAILED_ABSENCES = "failed_absences"
+RESULT_FAILED_RETAKE = "failed_retake"
 
 
 def _round(value: Optional[float]) -> Optional[float]:
@@ -102,10 +105,14 @@ def assessment_key(name: Any, category: Any) -> str:
 
 
 def course_result(f: EnrollmentFacts) -> Optional[str]:
-    """passed / failed / failed_absences, or None while there is no final grade (ΜΙΕΕΚ rule:
-    over the absence limit the course is failed whatever the grade)."""
+    """passed / failed / failed_absences / failed_retake, or None while there is no final grade
+    (ΜΙΕΕΚ rule: over the absence limit the course is failed whatever the grade; the owner,
+    2026-11-23, plan todo 80: and on a retake of the final exam under 50). One result per
+    student: the absence limit first, as it applies whatever the grades."""
     if f.absence.get("status") == STATUS_INSUFFICIENT:
         return RESULT_FAILED_ABSENCES
+    if f.retake_failed:
+        return RESULT_FAILED_RETAKE
     if f.passing is None:
         return None
     return RESULT_PASSED if f.passing else RESULT_FAILED
@@ -225,6 +232,8 @@ class GradeSheetService:
             "absence_deduction": _round(f.absence_deduction),
             # Periods the student came late: attended, not absences, shown for the evaluation.
             "late": f.late,
+            # Plan todo 80: the retake of the final exam ({"date", "percentage", "failed"}), or None.
+            "final_exam_retake": f.final_exam_retake,
         }
 
     @staticmethod
@@ -235,8 +244,11 @@ class GradeSheetService:
             "enrolled": len(roster),
             "final_average": _round(mean(finals)) if finals else None,
             "passed": results.count(RESULT_PASSED),
-            "failed": results.count(RESULT_FAILED) + results.count(RESULT_FAILED_ABSENCES),
+            "failed": results.count(RESULT_FAILED)
+            + results.count(RESULT_FAILED_ABSENCES)
+            + results.count(RESULT_FAILED_RETAKE),
             "failed_absences": results.count(RESULT_FAILED_ABSENCES),
+            "failed_retake": results.count(RESULT_FAILED_RETAKE),
             "no_grade": results.count(None),
         }
 
