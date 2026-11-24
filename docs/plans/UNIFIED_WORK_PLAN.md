@@ -1,8 +1,55 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.80
+**Current Version**: 1.18.81
 **Last Updated**: November 24, 2026
-**Status**: ✅ **v1.18.80 released 2026-11-22** (tag on `ce5d07cc1`, run by the assistant; the
+**Status**: ✅ **v1.18.81 released 2026-11-24** (tag on `ec257a61b`, run by the assistant; the
+owner, asked when to release: "After todo 83"). It carries PRs 472 to 501, under "In v1.18.81"
+below. **Final grades change in some courses:** a teacher marks a Midterm or Final Exam grade as
+the retake, which replaces the earlier sitting, and a final exam retake under 50 fails the course
+(todo 80); a Late counts as attended in an Attendance rule too, with the number of Lates shown
+where the teacher evaluates (todo 77); rules find their grades whatever the spelling, a final quiz
+is coursework (todos 77 and 86); a course without rules counts the Weight (todo 77); the Students
+page, the Profile and the student report show a course's average until its Final Exam is graded,
+then its final grade (todo 83). Also: the grade sheets and Analytics by category (todo 75, stages 1
+to 3), Excused days close Rate (todo 78), the semester archive keeps failed students out (todo 85),
+the page's language for Greek capitals (todo 76), todos 81, 82 and 84, the gate and CI fixes 472 to
+475 and 488, and the Dependabot batches 476 to 482. **One database change:** migration
+`c7d4e2a9f1b6`, additive (`grades.is_retake`, NOT NULL with the server default false, so no stored
+grade is a retake). **The shared database is still at `f4c2a8d6e1b3`:** the cloud VM runs v1.18.80
+until the owner says otherwise, and its first start on v1.18.81 will run the migration. **A
+v1.18.80 server keeps working on a database that has it** (tried before the tag on PostgreSQL 14:
+it read and made grades, the server default filling the new column; its startup log says "Can't
+locate revision" and nothing else changes).
+
+- **Before the tag:** `RELEASE_READY` (no `-TagRelease`, release commit `547e368f1`, 71 min
+  under the memory watchdog, never under 10.7 GB free, with Docker Desktop stopped): exit 0,
+  backend 2,534 passed, 49 skipped, 0 failed, the frontend suite passed; the local test
+  installer built (90,465,608 bytes, never uploaded). The hand-written notes commit `ec257a61b`
+  passed `COMMIT_READY -Quick` (in a clone); `DOCKER_BUILD_CHECK.ps1 -Version 1.18.81` on it: the
+  image builds for amd64 and arm64 (5.4 min; the release commit's own run passed too); CI/CD
+  (backend 2,523 passed and 60 skipped, frontend 2,424) and E2E (77 passed) green on the same
+  commit.
+- **Smoke test before the release** (on the final code, the tree of `ce7173bdc`): SMS Lite
+  v1.18.80 → the new build on one profile, 32 of 33 checks (the one miss was the check's own
+  mistake, two retakes marked at once, and passed once fixed; the data kept, the migration on SQLite, no stored grade
+  a retake, Greek text intact, the latest sitting counting without a mark, a marked retake under 50
+  failing the course with the grade kept, a homework refused as a retake with 422, the courses
+  summary's `final_grade_ready`, the grade sheet's failed retake); PostgreSQL 14.25, 34 of 34:
+  the same checks, v1.18.80 run again on the upgraded database, and the migration down and up; a
+  browser walk as a teacher (12 pages) and as an administrator (15), in English and Greek, no
+  failed request and no console error.
+- **The tag's release, installer and APK workflows succeeded. Verified on the published
+  assets:** `SMS_Installer_1.18.81.exe` 87,729,120 bytes, SHA-256 `f8d83f6a…2e18` = GitHub's
+  digest, Authenticode Valid, CN=AUT MIEEK, thumbprint `2693C1B1…075D`, timestamped by DigiCert,
+  file version v1.18.81, not the local build (90,465,608 bytes); `SMS_Android_1.18.81.apk`
+  4,679,983 bytes, SHA-256 `f71f8af7…7754` = GitHub's digest, `versionCode 118081`, signer
+  `686fb6ed…d2ea` as before. The release has the hand-written text (identical to
+  `.github/RELEASE_NOTES_v1.18.81.md`) and those two files only, and is the latest release.
+- **The cloud VM is not updated** (it runs v1.18.80): that needs the owner's own yes. Its first
+  start on v1.18.81 makes the backup before migrating, then runs `f4c2a8d6e1b3 -> c7d4e2a9f1b6`
+  on the shared database.
+
+**Before that: v1.18.80 released 2026-11-22** (tag on `ce5d07cc1`, run by the assistant; the
 owner: "continue unattended for all pending tasks until successfully reach to v1.18.80"). It
 carries PRs 464 to 471, under "In v1.18.80" below: the Docker host task's rebuild starts from
 "C:\Program Files\SMS" (464), the cloud VM's backups copied to Oracle Object Storage (465,
@@ -331,7 +378,7 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
-### On `main` since v1.18.80 (unreleased)
+### In v1.18.81
 
 **2026-11-24: the student report and Analytics' "top by exams" read a course as the final grade does**
 (todo 83, the second PR; the first did the Students page and the Profile). The student report (the
@@ -3175,7 +3222,10 @@ point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces t
 sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
 keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
 2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
-out, decided and done 2026-11-24). **Todo 83 is done** (two PRs, 2026-11-24); **next, the release v1.18.81** (the owner: "After todo 83"; the VM a separate yes).
+out, decided and done 2026-11-24). **Todo 83 is done** (two PRs, 2026-11-24); **v1.18.81 is
+released** (2026-11-24, the top of this plan; the owner: "After todo 83"). **The cloud VM still
+runs v1.18.80:** its update to v1.18.81 (which migrates the shared database to `c7d4e2a9f1b6`)
+waits for the owner's own yes.
 **Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
 its design to confirm before building, as it removes records.
 
@@ -3639,13 +3689,13 @@ and 44 and 48 in its part 5):
       tidied; (4) the custom report builder stays, as "Advanced", and is fixed.
     - **Stages, each its own PR:**
       1. Grade sheets, the server side: the standard category list, the three sheets as JSON,
-         PDF and Excel. **Done** (PR 484, under "On `main` since v1.18.80").
+         PDF and Excel. **Done** (PR 484, under "In v1.18.81").
       2. Grade sheets, the page: a course and assessment picker, the sheet on screen, PDF and
          Excel; reached from Utils → Reports, the Grading page and Analytics. **Done** (PR 485,
-         under "On `main` since v1.18.80"; the Analytics course rows already open their sheets).
+         under "In v1.18.81"; the Analytics course rows already open their sheets).
       3. Analytics, the diagnosis across courses: each student's category profile over all
          their courses against the class's, with strengths and difficulties; the class view by
-         category and course. **Done** (under "On `main` since v1.18.80").
+         category and course. **Done** (under "In v1.18.81").
       4. The Analytics export keeps the filters and carries the per-student rows and category
          profile (a course row opening its grade sheets came with stage 2).
       5. The custom report builder: the saved sort, more than one filter per field, course and
@@ -3661,7 +3711,7 @@ and 44 and 48 in its part 5):
     (`uppercase`: "ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ", in 33 files), and a screen reader reads
     Greek with an English voice (WCAG 3.1.1). Set `document.documentElement.lang` from the
     language in `LanguageProvider`, then look over the pages that use `uppercase`. Its own PR,
-    after todo 77. **Done** (under "On `main` since v1.18.80").
+    after todo 77. **Done** (under "In v1.18.81").
 
 77. **Three corrections to the final grade** (the owner, 2026-11-23, asked after todo 75 stage
     3's review; each changes final grades, no database change):
@@ -3703,7 +3753,7 @@ and 44 and 48 in its part 5):
       the lesson's period, belongs to «Συνεχής Αξιολόγηση»"); the course editor renames only
       standard names. And a new rule, todo 80: a retake of the final exam under 50 fails the course.
     - **Three PRs, one per point.** Point 1 (attended, the Lates shown) and point 2 (matching):
-      **Done** (under "On `main` since v1.18.80"), and point 3 (the Weight, one final grade)
+      **Done** (under "In v1.18.81"), and point 3 (the Weight, one final grade)
       **done** too (PR 490).
       Points 1 and 2 go out in the same release: point 1's Greek help and guide name a
       «Παρουσία» rule, which the course editor saved as Class Participation before point 2 (such a
@@ -3742,7 +3792,7 @@ and 44 and 48 in its part 5):
       to select the date exam was taken and also to select a retake exam as an overwrite of the
       first final exam. After retake exam the first final exam should not count in grading and the
       retake exam replaces it at the final grading. The same should happen with a midterm retake".
-      **Done** (under "On `main` since v1.18.80"): a retake mark per grade (migration
+      **Done** (under "In v1.18.81"): a retake mark per grade (migration
       `c7d4e2a9f1b6`), the date chosen on the Grading page; the by-date build was dropped. Of the
       smaller findings, those that still apply are fixed (an undated grade stays undated on an edit,
       the import text names the columns); the sitting date staying for the next student is now on
@@ -3754,10 +3804,10 @@ and 44 and 48 in its part 5):
     Assessment") and `_translate_rules` merges rules that get the same label, keeping the last weight
     («Θεωρητική Εξέταση» 40 + «Πρακτική Εξέταση» 30 -> one "Exam" 30). Rename only standard names, as
     the course editor does since todo 77 point 2, and never merge two rules. Future imports only.
-    **Done** (PR 492, under "On `main` since v1.18.80").
+    **Done** (PR 492, under "In v1.18.81").
 
 82. **Editing a grade's category or name is ignored by the server** (found by the same review; no
-    decision needed). **Done** (PR 491, under "On `main` since v1.18.80"). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
+    decision needed). **Done** (PR 491, under "In v1.18.81"). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
     so the Grading page's Edit sends them and the server drops them: a grade filed under the wrong
     category cannot be moved. Add them (the category title-cased as `GradeCreate` does), with a test
     that an edit moves a grade to another rule. Its own PR.
@@ -3780,7 +3830,7 @@ and 44 and 48 in its part 5):
       Exam's grade or any exam's, and what a course with no exam rule shows. Its own PR, next.
     - **Asked, the owner (2026-11-24): the Final Exam's grade decides**; a course whose rules name no
       Final Exam shows its final grade (said in the question). **The Students page and the Profile:
-      done** (under "On `main` since v1.18.80"). **The student report and Analytics' "top by exams":
+      done** (under "In v1.18.81"). **The student report and Analytics' "top by exams":
       done** too, in a second PR.
 
 84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
@@ -3789,7 +3839,7 @@ and 44 and 48 in its part 5):
     (`analytics_overview_service.py`, around line 889), as the student's own figures include the
     inactive student while the class figures leave them out. Give such a student no rank (or the
     class figures without them) instead of failing; a test for an inactive student's overview.
-    **Done** (PR 493, under "On `main` since v1.18.80").
+    **Done** (PR 493, under "In v1.18.81").
 
 85. **The semester archive records a failed student as passed** (found by todo 80's build,
     2026-11-24; the owner's decision, as archiving cannot be undone). `SemesterArchiveService`
@@ -3804,7 +3854,7 @@ and 44 and 48 in its part 5):
       next available year". Both fails keep the enrolment out, the reason in the preview; check, and
       say, that such a student can enrol in the course again the next year (a live old enrolment, the
       same course row or a new one). Its own PR, after todo 80 (on `main` since 2026-11-24).
-    - **Done** (under "On `main` since v1.18.80"), with a finding for the owner on taking the
+    - **Done** (under "In v1.18.81"), with a finding for the owner on taking the
       course again next year: the student stays enrolled in the same course, whose old absences
       and grades keep counting, unless next year's course is made anew under its own code.
 
@@ -3837,7 +3887,7 @@ and 44 and 48 in its part 5):
        four forms whatever the case and spacing, and list any other in the import's errors
        instead of storing it; then either put the rows already stored into the four forms
        once, or have the Attendance page read a status whatever its case (`statusKey` in
-       `utils/attendanceRate.ts`). **Done** (under "On `main` since v1.18.80"; the page reads
+       `utils/attendanceRate.ts`). **Done** (under "In v1.18.81"; the page reads
        the rows already stored whatever their case, none rewritten).
     2. **An Excused day can be rated** (the owner's decision). The Attendance page closes Rate
        and the participation ticks only for a student marked Absent; an Excused one stays
@@ -3846,11 +3896,11 @@ and 44 and 48 in its part 5):
        does? And when a day turns Excused after ratings were saved, should they be cleared, as
        for Absent (that deletes the teacher's ratings)? **The owner's answer (2026-11-24):** "an
        Excused day should close Rate the way Absent does, and clear ratings already saved for that
-       day". **Done** (under "On `main` since v1.18.80").
+       day". **Done** (under "In v1.18.81").
     3. **The exports' Greek status words** (no decision needed): the Export Center's files say
        "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
        where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
-       **Done** (the page's words, under "On `main` since v1.18.80"). Point 2 is decided (above).
+       **Done** (the page's words, under "In v1.18.81"). Point 2 is decided (above).
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
