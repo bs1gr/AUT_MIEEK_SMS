@@ -50,13 +50,8 @@ def test_every_attendance_rate_counts_late_as_attended(client, admin_headers):
     _attendance(client, student["id"], course["id"], *STATUSES)
     sid, cid = student["id"], course["id"]
 
-    summary = client.get(f"/api/v1/analytics/student/{sid}/summary").json()
-    assert summary["attendance_rate"] == 75.0
-
-    attendance = client.get(f"/api/v1/analytics/student/{sid}/attendance").json()
-    assert (attendance["overall_attendance_rate"], attendance["late"]) == (75.0, 2)
-    assert attendance["courses"][str(cid)]["attendance_rate"] == 75.0
-
+    # (The student summary and attendance endpoints of /analytics, which no page called, were
+    # removed with todo 75 stage 6's dead code.)
     stats = client.get(f"/api/v1/attendance/stats/student/{sid}/course/{cid}").json()
     assert (stats["attendance_rate"], stats["late_count"]) == (75.0, 2)
 

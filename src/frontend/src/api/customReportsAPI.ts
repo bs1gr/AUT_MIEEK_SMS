@@ -368,21 +368,6 @@ export const customReportsAPI = {
       );
     }
   },
-
-  /**
-   * Get report statistics
-   */
-  getStatistics: async () => {
-    try {
-      const response = await apiClient.get('/custom-reports/statistics');
-      return extractAPIResponseData(response.data) as Record<string, unknown>;
-    } catch (error) {
-      console.error('[customReportsAPI] Error fetching statistics:', error);
-      throw extractAPIError(
-        (error as { response?: AxiosResponse }).response
-      );
-    }
-  },
 };
 
 // Export combined API for convenience

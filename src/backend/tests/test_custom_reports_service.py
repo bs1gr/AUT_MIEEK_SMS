@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 
 from backend.models import GeneratedReport, Report, ReportTemplate, User
 from backend.schemas.custom_reports import (
     CustomReportCreate,
     CustomReportUpdate,
     GeneratedReportCreate,
-    GeneratedReportUpdate,
     ReportTemplateCreate,
     ReportTemplateUpdate,
 )
@@ -123,7 +121,7 @@ def test_report_crud_and_soft_delete(db):
     assert db.query(Report).filter(Report.id == fresh_report.id).first() is None
 
 
-def test_generated_report_and_stats(db):
+def test_generated_report_created_and_listed(db):
     user = _create_user(db, email="stats@example.com")
     service = CustomReportService(db)
 
@@ -145,38 +143,6 @@ def test_generated_report_and_stats(db):
 
     listed = service.list_generated_reports(report.id, user.id)
     assert len(listed) == 1
-
-    update_data = GeneratedReportUpdate(
-        status="completed",
-        generation_duration_seconds=3.5,
-        email_sent=True,
-        email_sent_at=datetime.now(timezone.utc),
-    )
-    updated = service.update_generated_report(report.id, generated.id, user.id, update_data)
-    assert updated is not None
-    assert updated.status == "completed"
-
-    stats = service.get_report_statistics(user.id)
-    assert stats["total_reports"] == 1
-    assert stats["total_generated_reports"] == 1
-    assert stats["generated_reports_last_30_days"] == 1
-    assert stats["reports_by_type"].get("student") == 1
-
-    # Create an older generated report to verify last 30 days filter
-    older = GeneratedReport(
-        report_id=report.id,
-        user_id=user.id,
-        file_name="report_old.pdf",
-        export_format="pdf",
-        status="completed",
-        generated_at=datetime.now(timezone.utc) - timedelta(days=45),
-    )
-    db.add(older)
-    db.commit()
-
-    stats_after = service.get_report_statistics(user.id)
-    assert stats_after["total_generated_reports"] == 2
-    assert stats_after["generated_reports_last_30_days"] == 1
 
 
 def test_list_generated_reports_excludes_superseded_by_default(db):

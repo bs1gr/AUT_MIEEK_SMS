@@ -822,11 +822,6 @@ export const analyticsAPI = {
     );
     return unwrapResponse<unknown>(response.data);
   },
-
-  getStudentSummary: async (studentId: number): Promise<unknown> => {
-    const response = await apiClient.get<unknown>(`/analytics/student/${studentId}/summary`);
-    return unwrapResponse<unknown>(response.data);
-  },
 };
 
 // ==================== REPORTS API ====================

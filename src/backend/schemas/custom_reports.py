@@ -204,20 +204,6 @@ class GeneratedReportCreate(GeneratedReportBase):
     record_count: Optional[int] = None
 
 
-class GeneratedReportUpdate(BaseModel):
-    """Schema for updating generated report status."""
-
-    file_path: Optional[str] = None
-    file_size_bytes: Optional[int] = None
-    status: Optional[str] = None
-    error_message: Optional[str] = None
-    record_count: Optional[int] = None
-    generation_duration_seconds: Optional[float] = None
-    email_sent: Optional[bool] = None
-    email_sent_at: Optional[datetime] = None
-    email_error: Optional[str] = None
-
-
 class GeneratedReportResponse(GeneratedReportBase):
     """Schema for generated report responses."""
 
@@ -288,43 +274,6 @@ class ReportGenerationResponse(BaseModel):
 # ============================================================================
 
 
-class ReportStatistics(BaseModel):
-    """Schema for report usage statistics."""
-
-    total_reports: int
-    active_scheduled_reports: int
-    reports_by_type: Dict[str, int]
-    total_generated_reports: int
-    generated_reports_last_30_days: int
-    average_generation_time_seconds: Optional[float]
-    total_storage_bytes: Optional[int]
-
-
 # ============================================================================
 # Bulk Operation Schemas
 # ============================================================================
-
-
-class BulkReportGenerationRequest(BaseModel):
-    """Schema for bulk report generation."""
-
-    report_ids: List[int] = Field(..., min_length=1, description="List of report IDs to generate")
-    export_format: Optional[str] = Field(None, description="Override export format for all")
-
-    @field_validator("report_ids")
-    @classmethod
-    def validate_report_ids(cls, v: List[int]) -> List[int]:
-        """Validate report IDs are unique."""
-        if len(v) != len(set(v)):
-            raise ValueError("Report IDs must be unique")
-        return v
-
-
-class BulkReportGenerationResponse(BaseModel):
-    """Schema for bulk generation response."""
-
-    total_requested: int
-    successful: int
-    failed: int
-    generated_report_ids: List[int]
-    errors: List[Dict[str, Any]]
