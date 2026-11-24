@@ -480,6 +480,30 @@ made from them are the users' own and stay. Tests: `test_custom_report_sort_filt
 sort shape, the short operators on GPA, an empty value), and the old CSV tests read the file with
 `utf-8-sig`.
 
+**2026-11-24: the custom report builder keeps every filter and its sort, offers the courses and the
+categories, and saves and downloads in one click** (todo 75 stage 5, the builder; no decision
+needed). The builder saved its filters as a dict keyed by field, so of two filters on one field
+only the last was kept, and its sort as `{"<field>": "asc"}`; it now saves both as lists, which
+the server takes since the server side of this stage. A course filter's value was the course's
+number typed by hand: it is chosen from the courses by code and name (a list of courses, "in",
+stays typed); a category filter suggests the standard categories as stored and in the page's
+language (any other can still be typed); "between" and "in" say how to type them ("60, 90", values
+separated by commas). A template's short operators (`gte`, `lt`) had no option in the step and
+showed as "equals": they are read as their full names; a sort saved as `{"field", "direction"}`
+came back as two rules named "field" and "direction": it is read as one. The last step has "Save
+and download": the report is saved, its file made (the server makes it in the background; the
+builder waits for it, up to two minutes) and downloaded, then the builder closes as on Save; the
+report stays saved if the file fails or takes longer, and a message says where to get it. Until
+now the file came from the Reports list, by generating it there and opening its generated files.
+The validation message is translated. Help texts (both languages) say so. Tests:
+`ReportBuilder.filtersSort.test.tsx` (6: two filters on one field and two sort rules saved as
+lists, an older report's dict filters and `{field, direction}` sort, nothing saved when empty,
+"Save and download", the shape readers), `FilterBuilder.test.tsx` (3: the course picker, the
+category suggestions and the range hint, a list of courses typed), `generateAndDownload.test.ts`
+(3: made, waited for and downloaded; a failure with its reason; the time allowed). On the old
+code 11 of the 12 fail (the last file's module did not exist); "nothing saved when empty" passes
+on both.
+
 ### In v1.18.81
 
 **2026-11-24: the student report and Analytics' "top by exams" read a course as the final grade does**
@@ -3804,8 +3828,8 @@ and 44 and 48 in its part 5):
          "On `main` since v1.18.81").
       5. The custom report builder: the saved sort, more than one filter per field, course and
          category pickers, generate and download from the builder, the CSV with a BOM (Greek in
-         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **The server side
-         done** (under "On `main` since v1.18.81"); the builder's next.
+         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **Done**, in two
+         PRs (under "On `main` since v1.18.81").
       6. Utils → Reports tidied (about 15 links lead to 3 pages). Removing the dead code
          (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
          asked first.
