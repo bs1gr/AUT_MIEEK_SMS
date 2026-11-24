@@ -37,6 +37,7 @@ from backend.schemas import (
     StudentPerformanceReport,
 )
 from backend.services.absence_limit_service import ATTENDED_STATUSES
+from backend.services.analytics_service import AnalyticsService
 from backend.services.report_exporters import generate_csv_report, generate_pdf_report
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -311,13 +312,23 @@ def _build_student_report(
 
             if course_grades:
                 course_percentages = [g.percentage for g in course_grades]
+                course_figure = round(sum(course_percentages) / len(course_percentages), 1)
+                # Plan todo 83 (the owner, 2026-11-24: "should show averages if not exams grades
+                # published yet. otherwise, the real grades should populate"): once the Final Exam
+                # is graded the course's figure is its final grade, as on every page; before, the
+                # average of the grades in the period, as before.
+                final = AnalyticsService(db).calculate_final_grade(student.id, course.id)
+                ready = "error" not in final and bool(final.get("final_grade_ready"))
+                if ready:
+                    course_figure = round(float(final["final_grade"]), 1)
+                course_summary["grade_basis"] = "final" if ready else "average"
                 course_summary["grade_average"] = round(sum(g.grade for g in course_grades) / len(course_grades), 2)
-                course_summary["grade_percentage"] = round(sum(course_percentages) / len(course_percentages), 1)
+                course_summary["grade_percentage"] = course_figure
                 course_summary["latest_grade"] = course_grades[-1].grade if course_grades else None
                 course_summary["grades"] = GradeSummary(
                     total_assignments=len(course_grades),
                     average_grade=round(sum(g.grade for g in course_grades) / len(course_grades), 2),
-                    average_percentage=round(sum(course_percentages) / len(course_percentages), 1),
+                    average_percentage=course_figure,
                     highest_grade=max(g.grade for g in course_grades),
                     lowest_grade=min(g.grade for g in course_grades),
                     grade_trend=_calculate_trend(course_percentages),
@@ -401,6 +412,13 @@ def _build_student_report(
             ]
         ):
             report_data["courses"].append(CourseSummary(**course_summary))
+
+    # Plan todo 83: the overall figure counts each course once by its figure (its final grade once
+    # ready, else its average), as the Students page and the Profile do; until then it was the plain
+    # mean of every grade of the period, a course with many grades weighing more.
+    figures = [c.grade_percentage for c in report_data["courses"] if c.grade_percentage is not None]
+    if report_data.get("overall_grades") is not None and figures:
+        report_data["overall_grades"].average_percentage = round(sum(figures) / len(figures), 1)
 
     # Get highlights
     if report_request.include_highlights:
