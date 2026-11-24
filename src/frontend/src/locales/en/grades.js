@@ -127,6 +127,9 @@ export default {
   totalScoresUsed: 'Total scores used',
   basedOn: 'Based on',
   totalBeforePenalty: 'Total (before penalty)',
+  // A final grade where no evaluation rule takes the grades (plan todo 77 point 3).
+  finalGradeFromMeanNote:
+    'No evaluation rule applies to these grades, so the final grade is their mean: each grade counts as often as its Weight says, and of Midterm Exam and Final Exam only the latest. Any absence penalty comes off the mean.',
   outOf100: '0-100',
   divider: '/',
   // Edit/Delete

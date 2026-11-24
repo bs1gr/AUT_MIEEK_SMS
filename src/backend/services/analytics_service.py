@@ -219,6 +219,25 @@ class AnalyticsService:
             return 1.0
         return weight if weight > 0 else 1.0
 
+    @classmethod
+    def grade_mean(cls, grades: Iterable[Any]) -> Optional[float]:
+        """The grades' own mean, in percent, where no rule takes them (the owner, 2026-11-23,
+        plan todo 77 point 3): of ``counted_grades`` (a Midterm or Final by its latest sitting
+        alone, as under rules), each as often as its Weight says. None without a grade that has
+        a maximum."""
+        kept = cls.counted_grades(grades)
+        if not kept:
+            return None
+
+        # An exam counts once, as the Grading page saves it (its Weight box is closed): a Weight
+        # stored on one by an import or the API does not make the exam count more.
+        def weight(g: Any) -> float:
+            exam = normalize_rule_category(getattr(g, "category", None)) in cls.exam_categories
+            return 1.0 if exam else cls.grade_weight(g)
+
+        total = sum(weight(g) for g in kept)
+        return sum(g.grade / g.max_grade * 100 * weight(g) for g in kept) / total
+
     def __init__(self, db: Session) -> None:
         self.db = db
         (
@@ -275,7 +294,7 @@ class AnalyticsService:
         result["absence_limit"] = absence_status
         result["attendance_insufficient"] = absence_status["attendance_insufficient"]
         # The periods by status, a Late among them, for the teacher's evaluation (plan todo 77):
-        # also for a course without evaluation rules, whose calculation stops before counting.
+        # also where the calculation stops before counting (no evaluation rules and no grade).
         result.setdefault("attendance", self._attendance_counts(attendance))
         return result
 
@@ -944,12 +963,16 @@ class AnalyticsService:
         attendance: Optional[List[Any]],
     ) -> Dict[str, Any]:
         evaluation_rules = course.evaluation_rules or []
-        if not evaluation_rules:
-            return {"error": "No evaluation rules defined for this course"}
-
         grades = grades or []
         daily_performance = daily_performance or []
         attendance = attendance or []
+
+        # Where no rule takes a grade (the course has none, or none matches the student's
+        # grades), the final grade is the grades' own mean (the owner, 2026-11-23, plan todo 77
+        # point 3: one final grade everywhere). Without rules and without a grade there is none.
+        grade_mean = self.grade_mean(grades)
+        if not evaluation_rules and grade_mean is None:
+            return {"error": "No evaluation rules defined for this course"}
 
         category_scores: Dict[str, float] = {}
         category_details: Dict[str, Any] = {}
@@ -1163,6 +1186,24 @@ class AnalyticsService:
                     "percent": max(0.0, kept - lost),
                 }
 
+        # No rule took any of the student's grades, or the course has none: the grades' own mean,
+        # less the absence penalty below as with rules (the owner: "a student whose grades match
+        # no rule"). Whatever else a rule counted (the attendance records, a rating, a forfeited
+        # Class Participation share) does not make the grade then; until todo 77 point 3's review
+        # it did, and one Present record turned a homework of 40 into 100. Until todo 77 point 3
+        # this was 0 here (no rule matched) or an error (no rules), while Analytics and the grade
+        # sheets showed the plain mean.
+        grade_basis = "rules"
+        if grade_mean is not None and not any(
+            taken is not None for g, taken in grades_taken if getattr(g, "max_grade", 0)
+        ):
+            final_grade = grade_mean
+            grade_basis = "average"
+            total_weight_used = 0.0
+            category_details = {}
+            participation_deduction = 0.0
+            participation_share = None
+
         penalty_per_absence = float(getattr(course, "absence_penalty", 0.0) or 0.0)
         unexcused_absences = 0
         absence_deduction = 0.0
@@ -1190,12 +1231,17 @@ class AnalyticsService:
             "greek_grade": round(greek_grade, 2),
             "letter_grade": self.get_letter_grade(final_grade),
             "total_weight_used": total_weight_used,
+            # "rules": the evaluation rules' categories; "average": the grades' own mean, where no
+            # rule takes a grade (plan todo 77 point 3).
+            "grade_basis": grade_basis,
             "category_breakdown": category_details,
             "absence_penalty": penalty_per_absence,
             "unexcused_absences": unexcused_absences,
             "absence_deduction": round(absence_deduction, 2),
             "absence_deduction_applied": round(absence_deduction_applied, 2),
-            "participation_forfeited": participation_forfeited,
+            # A Class Participation share lost to absences: only where a participation rule makes
+            # the grade (a course without one, or a mean of the grades, has no share to lose).
+            "participation_forfeited": participation_forfeited and participation_rule is not None and grade_basis == "rules",
             "participation_deduction": round(participation_deduction, 2),
             "participation_observations": observations,
             "participation_share": participation_share,

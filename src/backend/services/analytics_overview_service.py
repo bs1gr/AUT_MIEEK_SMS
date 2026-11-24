@@ -4,9 +4,11 @@ Built for the Analytics page. Every figure starts from one live enrollment (a st
 course, not deleted, not dropped):
 
 - **Final grade**: the course's evaluation rules (``AnalyticsService._calculate_final_grade_from_records``,
-  the same calculation as the grading screens), scaled to the work completed so far. A course
-  without usable rules falls back to the plain mean of its grade percentages. An enrollment
-  with no grades and no daily performance has no final grade (``None``), not 0.
+  the same calculation as the grading screens), scaled to the work completed so far. Where no
+  rule takes a grade (no rules, or none that matches), that calculation gives the grades' own
+  mean, each by its Weight, an exam by its latest grade, less the absence penalty (plan todo 77
+  point 3: one final grade everywhere). An enrollment with no grades and no daily performance has
+  no final grade (``None``), not 0.
 - **Attendance rate**: Present + Late over all recorded periods. Absent and Excused are
   absences, as in the ΜΙΕΕΚ absence limit (``absence_limit_service``).
 - **Absence status**: ``absence_limit_service.evaluate`` for that enrollment.
@@ -422,22 +424,24 @@ class AnalyticsOverviewService:
         participation: Optional[Dict[str, Any]] = None
         participation_deduction = absence_deduction = 0.0
         graded = bool(percentages or daily)
-        # Where participation is observed, a student present with nothing graded yet still has
-        # a share (the whole of it, less any tick): the calculation runs for it, its grade not.
-        if course.evaluation_rules and (graded or (participation_scale == OBSERVED and attendance)):
+        # The final-grade calculation itself, with rules or without (plan todo 77 point 3: one
+        # final grade everywhere): where no rule takes a grade it gives the grades' own mean, each
+        # by its Weight, an exam by its latest grade, less the absence penalty. Until then this
+        # page took the plain mean of the grades there. Where participation is observed, a
+        # student present with nothing graded yet still has a share (the whole of it, less any
+        # tick): the calculation runs for it, its grade not.
+        if graded or (course.evaluation_rules and participation_scale == OBSERVED and attendance):
             data = self._final_grades._calculate_final_grade_from_records(
                 enrollment.student_id, course, grades, daily, attendance
             )
             if not data.get("error"):
-                if graded and data.get("total_weight_used", 0) > 0:
-                    final_grade, basis = float(data["final_grade"]), "rules"
+                if graded and (data.get("total_weight_used", 0) > 0 or data.get("grade_basis") == "average"):
+                    final_grade, basis = float(data["final_grade"]), data.get("grade_basis") or "rules"
                     breakdown = dict(data.get("category_breakdown") or {})
                     participation_deduction = float(data.get("participation_deduction") or 0.0)
                     # What the grade lost, not the penalty asked: the grade stops at 0.
                     absence_deduction = float(data.get("absence_deduction_applied") or 0.0)
                 participation = data.get("participation_share")
-        if final_grade is None and percentages:
-            final_grade, basis = mean(percentages), "average"
         # One scale per course: where anyone is rated, only a rated share counts; where nobody is,
         # an unrated one (the whole share less the ticks, presence alone); else none at all, or
         # every student of every course would show 100.
@@ -512,7 +516,8 @@ class AnalyticsOverviewService:
         A category the final grade zeroed for absences is left out: that is attendance, not how
         the student does in it. A grade outside the rules does not count, as in the final grade.
         Without rules (the final grade the mean of the grades): each category's weighted mean of
-        its grades, as percentages of their maximum.
+        the grades the final grade counts (``AnalyticsService.counted_grades``: a Midterm or Final
+        Exam by its latest grade), as percentages of their maximum.
         """
         names: Dict[str, Counter[str]] = {}
         totals: Dict[str, List[float]] = {}  # key -> [weighted sum, weights]
@@ -534,9 +539,8 @@ class AnalyticsOverviewService:
             if participation is not None:
                 add(participation.get("category"), float(participation["percent"]), float(participation.get("weight") or 0) or 1.0)
         else:
-            for g in grades:
-                if g.max_grade:
-                    add(g.category, g.grade / g.max_grade * 100, AnalyticsService.grade_weight(g))
+            for g in AnalyticsService.counted_grades(grades):
+                add(g.category, g.grade / g.max_grade * 100, AnalyticsService.grade_weight(g))
         return {key: s / w for key, (s, w) in totals.items() if w}, names
 
     def course_facts(self, course_id: int) -> List[EnrollmentFacts]:

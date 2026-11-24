@@ -199,6 +199,39 @@ describe('GradeBreakdownModal', () => {
     expect(screen.getByText('quizzes')).toBeInTheDocument();
   });
 
+  it('says the final grade is the mean of the grades where no rule takes them', async () => {
+    // Plan todo 77 point 3: no category to list (no empty table), and the absence penalty applies.
+    mockedApiClient.get.mockResolvedValue({
+      data: {
+        ...FINAL_GRADE,
+        final_grade: 70,
+        total_weight_used: 0,
+        grade_basis: 'average',
+        category_breakdown: {},
+        unexcused_absences: 2,
+        absence_penalty: 5,
+        absence_deduction: 10,
+      },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    expect(await screen.findByTestId('breakdown-final-from-mean')).toHaveTextContent('grades.finalGradeFromMeanNote');
+    expect(screen.getByText('70.00%')).toBeInTheDocument();
+    expect(screen.queryByText('totalBeforePenalty')).not.toBeInTheDocument();
+    expect(screen.getByText('absencePenaltyApplied')).toBeInTheDocument();
+  });
+
+  it('lists the categories, without that note, when the rules make the grade', async () => {
+    mockedApiClient.get.mockResolvedValue({ data: { ...FINAL_GRADE, grade_basis: 'rules' } });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    await screen.findByText('87.50%');
+    expect(screen.queryByTestId('breakdown-final-from-mean')).not.toBeInTheDocument();
+    expect(screen.getByText('totalBeforePenalty')).toBeInTheDocument();
+  });
+
   it('shows an error message when the fetch fails', async () => {
     mockedApiClient.get.mockRejectedValue(new Error('network down'));
 

@@ -297,6 +297,12 @@ export interface FinalGrade {
   greek_grade: number;
   letter_grade: string;
   total_weight_used: number;
+  /**
+   * "rules": from the evaluation rules' categories; "average": no rule takes the grades, so the
+   * final grade is their mean by Weight, an exam by its latest grade (plan todo 77 point 3).
+   * Absent from older servers.
+   */
+  grade_basis?: 'rules' | 'average';
   category_breakdown: Record<string, {
     average: number;
     weight: number;

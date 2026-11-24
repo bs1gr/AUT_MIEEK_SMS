@@ -333,8 +333,49 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-23: a final grade no rule makes counts the Weight, an exam's latest sitting and the
+absence penalty, and every page shows that one** (todo 77, point 3, PR 490; the owner that day:
+"The final grade should use the Weight too", and, asked, both recommended answers: the course's
+absence penalty comes off it, as the guide says it comes off every final grade; an exam counts its
+latest grade only, with or without rules). Where no evaluation rule takes a student's grades (a
+course without rules, or grades that match none of its rules) the pages disagreed: the Grading page
+had no final grade ("No evaluation rules defined for this course") or 0, the results the Students
+page fetches left the course out, and Analytics and the grade sheets showed the plain mean of the
+grades (every grade once whatever its Weight, both sittings of an exam, no absence penalty). Now
+the final-grade calculation itself (`AnalyticsService._calculate_final_grade_from_records`) gives
+the mean there, of `AnalyticsService.counted_grades` (point 2's: a Midterm or Final by its latest
+sitting alone, one midterm and one final per course whatever the grades are called): each grade as
+often as its Weight says (none or 0 counts once); then the absence penalty, as under rules. It says
+so (`grade_basis: "average"`); without rules and without a grade there is still none. Every page
+takes that figure: the Grading page and the breakdown (a note where the empty category list was),
+the results the Students page fetches (the course listed, its credits in the overall GPA),
+Analytics, the grade sheets (the deductions column shows the penalty). A course without rules has
+its category figures from the same grades: the grade sheet's Final Exam column and the Analytics
+category show the sitting that counts, not the mean of both. The semester archive still records
+only a final grade from rules that cover the whole course. **Final grades change** where no rule
+takes the grades: a grade whose Weight is not 1, an exam with a retake, a course with an absence
+penalty; the Grading page now has a grade there (none or 0 before). The help ("What does the Weight
+of a grade do?", "How is the final grade calculated?"), both user guides, the grade sheets' notes
+(screen, PDF, Excel) and Analytics' row notes say how.
+
+Tests: `test_final_grade_without_rules.py` (19: the Weight, an exam's latest grade under two
+spellings and as "Midterm 1" / "Midterm 2", an exam counted once whatever its stored weight, an
+undated sitting, the penalty and its floor, rules that take none of the grades (beside an
+Attendance rule, a rating, a forfeited share) and rules that take one, the same final grade on
+five pages, the category figures and sheet, no share lost without a participation rule, no final
+grade without a grade, the archive), the tests that pinned the plain
+mean or the course left out (`test_grade_sheets.py`, `test_analytics_router.py`),
+`GradingView.finalFromMean.test.tsx` (4, the note in English and Greek), `GradeBreakdownModal.test.tsx`
+(2 more). 17 of the 19 new backend tests fail on point 2's code (the other two pin what does
+not change); 16 of 16 mutants caught. Two reviews (the code and the texts) found: the mean
+applied only when no rule counted anything, so an Attendance rule's records, a rating or a
+forfeited Class Participation share made the grade instead of the student's grades (one Present
+record turned a homework of 40 into 100); the categories sheet showed a midterm's first sitting
+filed under another name; the Grading page said a share was lost where there is none; an exam's
+stored Weight counted; texts that said otherwise than the code. All fixed; todo 84 found.
+
 **2026-11-23: a rule finds its grades whatever the spelling, a lab is no homework, an exam
-counts one grade, and continuous assessment takes the lesson's tasks** (todo 77, point 2; the
+counts one grade, and continuous assessment takes the lesson's tasks** (todo 77, point 2, PR 489, merged as `bac28cb2d`, its checks green; the
 owner on 2026-11-23: a rule named "Εργαστήρια" or "Εργαστηριακή Εργασία" "is wrongly matched as
 homework by the final grade. The lab always happens in class, the matching should be reordered or
 corrected properly", and, asked: compare Greek names without accents; a rule typed «Παρουσία» or
@@ -2911,10 +2952,12 @@ no longer exist (PR 425 turned them into "No role").
 four answers are in its entry. Stages 1 to 3 (the grade sheets, their server side and their
 page; Analytics by category) are on `main`. **Todo 77**, three corrections to the final grade
 the owner decided that day (Late is attended, lab names match lab, the Weight counts without
-rules), in three PRs: points 1 and 2 are on `main`, point 3 next; then **todo 76** (the page's
-language), then stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's
-statuses, Excused days on the Attendance page (a question for the owner), the exports' Greek
-words.
+rules), in three PRs, all three on `main`; then **todo 76** (the page's language), then stages
+4 to 6. **Todo 78**, found by point 1's review: a semester file's statuses, Excused days on the
+Attendance page (a question for the owner), the exports' Greek words. Found and decided by
+point 2's and 3's reviews: todos 80 (a retake of the final under 50 fails the course), 81 (the
+importer keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, a
+question for the owner), 84 (Analytics fails for an inactive student).
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3417,7 +3460,7 @@ and 44 and 48 in its part 5):
        Final Exam, as the course editor saves it. With it, the Greek pages name an Attendance
        rule «Παρουσία»: the Grading page's summary and the breakdown print "Attendance" (their
        `translateCategory` has no such name; seen in point 1's browser check).
-    3. **The Weight counts without rules too.** A course without rules, or a student whose
+    3. **The Weight counts without rules too** (done, PR 490). A course without rules, or a student whose
        grades match no rule, gets the plain mean of the grades; the grade's Weight box counts
        only in the category figures and the grade sheets. The owner: "The final grade should use
        the Weight too."
@@ -3440,7 +3483,8 @@ and 44 and 48 in its part 5):
       the lesson's period, belongs to «Συνεχής Αξιολόγηση»"); the course editor renames only
       standard names. And a new rule, todo 80: a retake of the final exam under 50 fails the course.
     - **Three PRs, one per point.** Point 1 (attended, the Lates shown) and point 2 (matching):
-      **Done** (under "On `main` since v1.18.80"). Point 3 (the Weight, one final grade) next.
+      **Done** (under "On `main` since v1.18.80"), and point 3 (the Weight, one final grade)
+      **done** too (PR 490).
       Points 1 and 2 go out in the same release: point 1's Greek help and guide name a
       «Παρουσία» rule, which the course editor saved as Class Participation before point 2 (such a
       rule stays so until it is typed again: the release notes must say it).
@@ -3470,6 +3514,25 @@ and 44 and 48 in its part 5):
     so the Grading page's Edit sends them and the server drops them: a grade filed under the wrong
     category cannot be moved. Add them (the category title-cased as `GradeCreate` does), with a test
     that an edit moves a grade to another rule. Its own PR.
+
+83. **The "Average" figures that are not the final grade** (found by todo 77 point 3,
+    2026-11-23; the owner's decision). The final grade is now one figure on every page that shows
+    one, but some figures labelled "Average" still take the plain mean of every grade: the Students
+    page's expanded card ("Average Grade", and the "Greek scale" and "Letter grade" tiles made from
+    it, over all the student's courses), the Student Profile's overall GPA and Average tiles, each
+    course's "Average" in its grade breakdown (it ignores the Weight; its categories' averages
+    count it; both count every sitting of an exam), and the student report's "Average Grade"
+    (PDF, Excel, CSV). The Students page fetches the final grades and shows none of them
+    there (the Profile's breakdown does). Analytics' "top by exams" counts every sitting of an exam.
+    Keep them as plain averages of the grades listed, count them as the final grade counts (Weight,
+    an exam's latest sitting), or show the final grade in their place?
+
+84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
+    decision needed). `GET /api/v1/analytics/student/{id}/overview` answers 500 for a student who
+    is no longer active: `ValueError: 73.0 is not in list` at the rank
+    (`analytics_overview_service.py`, around line 889), as the student's own figures include the
+    inactive student while the class figures leave them out. Give such a student no rank (or the
+    class figures without them) instead of failing; a test for an inactive student's overview.
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).

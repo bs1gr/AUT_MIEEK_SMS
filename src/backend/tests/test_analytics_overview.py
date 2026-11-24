@@ -3,7 +3,7 @@
 Scenario (numbers checked by hand):
 - MATH has rules Homework 40% / Final Exam 60%; PHYS has no rules; CHEM is only reached through
   a dropped enrollment.
-- s1 (A, A1): MATH 80/70 -> 0.4*80 + 0.6*70 = 74; PHYS 60, 80 -> plain mean 70;
+- s1 (A, A1): MATH 80/70 -> 0.4*80 + 0.6*70 = 74; PHYS 60, 80 (each weight 1) -> their mean 70;
   CHEM dropped (grade 10 must not count). MATH attendance Present, Late, Absent, Excused.
 - s2 (A, A2): MATH 40/30 -> 34 (failing); 5 Absent in MATH -> over the 10% Class Participation limit
   (4 of 42 periods), well under the 30% fail limit (12).
