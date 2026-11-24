@@ -56,6 +56,55 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.81] - 2026-11-24
+
+### Features
+- **students**: a course shows its final grade once its Final Exam is graded, its average before (todo 83, first part) (#500)
+- **grades**: a teacher marks a Midterm or Final Exam grade as the retake, which replaces the earlier sitting (todo 80) (#497)
+- **analytics**: strengths and difficulties by category across courses (todo 75 stage 3) (#486)
+- **reports**: the grade sheets page, one click from Reports, Grading and Analytics (todo 75 stage 2) (#485)
+- **reports**: grade sheets of a course as JSON, PDF and Excel (todo 75 stage 1) (#484)
+
+### Bug Fixes
+- **reports**: the student report and Analytics' exam ranking read a course as the final grade does (todo 83, second part) (#501)
+- **archive**: a student failed on the absence limit or a final retake under 50 is kept out of the semester archive (todo 85) (#499)
+- **attendance**: an Excused day closes Rate as an Absent one does, and its saved ratings are cleared (todo 78 point 2) (#498)
+- **attendance**: a semester file's statuses are stored as the pages write them, every file names them alike (todo 78 points 1 and 3) (#496)
+- **i18n**: the page says which language it is in, so Greek capitals lose their accents (todo 76) (#495)
+- **grades**: a final quiz or a final presentation is coursework, not the final exam (todo 86) (#494)
+- **analytics**: an inactive student's view shows their courses instead of failing (todo 84) (#493)
+- **imports**: a course import keeps the rule names and every rule (todo 81) (#492)
+- **grades**: an edit moves a grade to another category or renames it (todo 82) (#491)
+- **grades**: a final grade no rule makes counts the Weight, an exam's latest sitting and the absence penalty, on every page (todo 77 point 3) (#490)
+- **grades**: rule names match their grades whatever the spelling, an exam counts one grade, continuous assessment takes the course's tasks (todo 77 point 2) (#489)
+- **gate**: the checkpoint reads a Greek file name in any console (todo 79) (#488)
+- **attendance**: a Late counts as attended everywhere, its number shown for the evaluation (todo 77 point 1) (#487)
+- **gate**: run the markdownlint version the lockfile pins, without a prompt (#474)
+- **ci**: the load test sends real requests, and its failure shows (#473)
+- **dev**: the startup display shows every stage, also on a busy PC (#472)
+
+### Documentation
+- **plan**: todo 50 settled (old copies removed, no Privacy settings at home); the Docker test install on v1.18.80
+- **plan**: the done todos 66, 67 and 69 to 74 moved to the archive
+- **plan**: older releases archived, v1.18.80 kept as reference; PRs 474 and 475 merged
+- **plan**: the cloud VM runs v1.18.80; todo 74 (a startup stage skipped on a busy PC)
+- **plan**: v1.18.80 released and verified; todo 73 (CI load tests) found
+
+### Dependencies
+- bump the npm-minor-patch group across 1 directory with 66 updates (#479)
+- update pypdf requirement from >=7.0.1 to >=7.1.1 in /src/backend (#478)
+- bump the pip-minor-patch group in /src/backend with 8 updates (#477)
+- bump @babel/runtime from 7.29.10 to 7.29.15 in /src/frontend (#482)
+- bump @babel/plugin-transform-modules-amd in /src/frontend (#481)
+- bump @babel/plugin-transform-modules-umd in /src/frontend (#480)
+
+### CI/CD
+- bump actions/create-github-app-token from 3.3.0 to 3.4.0 (#476)
+
+### Chores
+- **lint**: the gate and CI lint scripts/ as well (#475)
+
 ## [1.18.80] - 2026-11-22
 
 ### Features
@@ -5145,6 +5194,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
