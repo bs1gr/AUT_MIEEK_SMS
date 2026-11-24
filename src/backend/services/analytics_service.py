@@ -83,8 +83,10 @@ _RULE_SYNONYMS: Dict[str, str] = {
 # and «… και Ενδιάμεση Εξέταση)» are that rule, whatever their brackets name (the owner,
 # 2026-11-23: "homework, any other exercise or any other assessment and task during the lesson's
 # period, belongs to «Συνεχής Αξιολόγηση»"). Coursework before the exams: "Τελική Εργασία" is
-# homework and "Final Project" a project, not the final exam (the owner, the same evening); only a
-# name that is just the exam counts the exam's one grade. A project before a lab and homework, as
+# homework, "Final Project" a project, "Final Quiz" and «Τελικό Τεστ» quizzes, «Τελική Παρουσίαση»
+# a presentation, not the final exam (the owner, the same evening: only a name that is just the
+# exam counts the exam's one grade; plan todo 86: a quiz or a presentation read as the exam could
+# be taken for a final exam retake and fail the course). A project before a lab and homework, as
 # the standard category list has it (`grade_categories`); a lab before homework ("Εργαστήρια",
 # "Εργαστηριακή Εργασία", "Εργαστ. Ασκήσεις" hold "εργασ"); a presentation before attendance, by
 # stems that go past the "σ" ("Παρουσίαση", "Παρουσιάσεις"), since the genitive of attendance folds
@@ -112,11 +114,11 @@ _RULE_STEMS: Tuple[Tuple[str, Tuple[Pattern[str], ...]], ...] = tuple(
         ("project", ("project", "πρότζεκ")),
         ("lab", ("lab", "εργαστ")),
         ("homework", ("homework", "assignment", "εργασ", "άσκη", "εξάσκη")),
-        ("midterm", ("midterm", "mid term", "ενδιάμεσ")),
-        ("final", ("final", "τελικ")),
         ("quiz", ("quiz", "κουίζ", "τεστ")),
         ("participation", ("participation", "συμμετο")),
         ("presentation", ("presentation", "παρουσιαση", "παρουσιασε")),
+        ("midterm", ("midterm", "mid term", "ενδιάμεσ")),
+        ("final", ("final", "τελικ")),
         ("attendance", ("attendance", "παρουσ")),
     )
 )

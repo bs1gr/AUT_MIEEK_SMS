@@ -47,6 +47,9 @@ from backend.services import grade_categories as cats
         ("Ενδιάμεση Εργασία", "homework"),
         ("Final Project", "project"),
         ("Mid-Term Project", "project"),
+        # The final grade's quiz words before the exams too (plan todo 86).
+        ("Final Quiz", "quiz"),
+        ("Τελικό Τεστ", "quiz"),
         # An exam the name does not place in the semester is not a final exam.
         ("Exam", "exam"),
         ("Εξέταση", "exam"),

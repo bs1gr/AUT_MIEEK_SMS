@@ -333,6 +333,21 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: a final quiz or a final presentation is coursework, not the final exam** (todo 86, PR
+494; found by todo 80's review; the owner's answer to todo 77 point 2's third review: only a name
+that is just the exam counts the exam's one grade). The final grade's matching checked the exam
+words before a quiz, participation and a presentation, so "Final Quiz", «Τελικό Τεστ», «Ενδιάμεσο
+Τεστ», "Final Presentation" and «Τελική Παρουσίαση» were read as the exam: a rule of that name
+took the exam's one grade, the exam's rule took the quiz's or the presentation's grade when it was
+the later one, and with todo 80 such a grade could have been taken for a final exam retake. Now
+the order is the observations, continuous assessment, a project, a lab, homework, a quiz,
+participation, a presentation, the midterm, the final, attendance (`_RULE_STEMS`, the course
+editor's `RULE_KEYWORDS`, and `grade_categories` for Analytics' grouping, where «διαγώνισμα» and
+"test", which only it reads as a quiz, keep their place: «Τελικό Διαγώνισμα» stays a final).
+**Final grades change** for courses with such rule names. `test_rule_category_matching.py` (the
+names, and a "Final Quiz" rule beside the Final Exam: 64, was 40), `test_grade_categories.py`,
+the shared table (66 names) on both sides; both user guides say the new order.
+
 **2026-11-24: Analytics shows an inactive student's courses instead of failing** (todo 84, PR 493;
 found by todo 77 point 3's review; no decision needed). A student who is no longer active has
 their own course rows, but the class figures beside them count active students only, and the
@@ -3532,6 +3547,24 @@ and 44 and 48 in its part 5):
     data cannot tell a retake. **By date** (the owner's choice, the same day): each course gets the
     date of its final exam (a new optional course field, an additive migration built in a clone),
     and a Final Exam grade dated after it is the retake. Its own PR, after todo 77.
+    - **Built and held (2026-11-24): the owner's choice is needed again.** The work is in the clone
+      `D:\tmp\sms-retake` (branch `feat/final-retake-fails`, uncommitted: an additive migration
+      `b8e3d5f7a2c4` for `courses.final_exam_date`, the rule in the final-grade calculation, the
+      "failed: retake under 50" mark on the Grading page, the grade sheets (§) and Analytics, the
+      date in the course editor, the Grading page's "Exam sitting date" box for a new Final Exam
+      grade, the import's date). Two reviews. The second found that **"by date" misreads the grades
+      already recorded**: a grade's date is the day it was typed, so every Final Exam grade made so
+      far carries that day, and setting a course's exam date afterwards turns an on-time final typed
+      in a few days later into a failed retake (tried: 67 and passing became failed). A course
+      without a date keeps storing the typing day too. Options: (a) when a date is set, list the
+      Final Exam grades dated after it and have the teacher confirm or correct each; (b) an explicit
+      "retake" mark on the grade (the option not chosen before), which no date can misread; (c) by
+      date, counting only grades entered after the course's date was set. Smaller findings, fixed
+      once the design is settled: the date cannot be saved on the Evaluation Rules tab of a course
+      without rules; the sitting date stays when the teacher picks the next student; an emptied box
+      saves today; editing an undated Final Exam grade dates it today; the Control Panel's import
+      text does not name the new `date_submitted` column. The semester archive (todo 85) would
+      record such a failed student as passed.
 81. **The course importer keeps a course's own rule names** (found by todo 77 point 2's third
     review, 2026-11-23; the owner: "Yes, keep names"). `routers_imports._map_category` renames every
     rule to an English label by substring ("Τελική Εργασία" -> "Assignments", "Ασκήσεις" ->
