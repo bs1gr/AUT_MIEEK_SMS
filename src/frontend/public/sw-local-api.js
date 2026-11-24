@@ -569,33 +569,6 @@ async function analyticsFinalGrade(req, sid, cid) {
   return json({ student_id: sid, course_id: cid, final_grade: Math.round(grade * 10) / 10, letter_grade: letter });
 }
 
-async function analyticsStudentPerformance(req, sid) {
-  if (!await authUser(req)) return unauthorized();
-  const grades = await dbByIndex('grades', 'student_id', sid);
-  return json(grades.map(g => ({ date: g.date || g.created_at, value: (g.grade / (g.max_grade || 1)) * 100, course_id: g.course_id })));
-}
-
-async function analyticsStudentAttendance(req, sid) {
-  if (!await authUser(req)) return unauthorized();
-  const att = await dbByIndex('attendance', 'student_id', sid);
-  const present = att.filter(a => a.status === 'Present').length;
-  const late    = att.filter(a => a.status === 'Late').length;
-  const absent  = att.filter(a => a.status === 'Absent').length;
-  const excused = att.filter(a => a.status === 'Excused').length;
-  return json({ total: att.length, present, late, absent, excused, attendance_rate: att.length ? ((present + late) / att.length) * 100 : 0 });
-}
-
-async function analyticsCourseDistribution(req, cid) {
-  if (!await authUser(req)) return unauthorized();
-  const grades = await dbByIndex('grades', 'course_id', cid);
-  const dist = { A: 0, B: 0, C: 0, D: 0, F: 0 };
-  for (const g of grades) {
-    const pct = (g.grade / (g.max_grade || 1)) * 100;
-    dist[pct >= 90 ? 'A' : pct >= 80 ? 'B' : pct >= 70 ? 'C' : pct >= 60 ? 'D' : 'F']++;
-  }
-  return json({ course_id: cid, grade_distribution: dist, total_grades: grades.length });
-}
-
 // ── Admin Users ──────────────────────────────────────────────────────────────
 
 async function adminUsersGet(req) {
@@ -818,21 +791,10 @@ async function router(request) {
 
   // Analytics
   if (path === '/api/v1/analytics/dashboard' && m === 'GET') return analyticsDashboard(request);
-  mm = path.match(/^\/api\/v1\/analytics\/student\/(\d+)\/summary$/);
-  if (mm) return analyticsStudentSummary(request, Number(mm[1]));
   mm = path.match(/^\/api\/v1\/analytics\/student\/(\d+)\/all-courses-summary$/);
   if (mm) return analyticsStudentSummary(request, Number(mm[1])); // same shape
   mm = path.match(/^\/api\/v1\/analytics\/student\/(\d+)\/course\/(\d+)\/final-grade$/);
   if (mm) return analyticsFinalGrade(request, Number(mm[1]), Number(mm[2]));
-  mm = path.match(/^\/api\/v1\/analytics\/student\/(\d+)\/performance$/);
-  if (mm) return analyticsStudentPerformance(request, Number(mm[1]));
-  mm = path.match(/^\/api\/v1\/analytics\/student\/(\d+)\/attendance$/);
-  if (mm) return analyticsStudentAttendance(request, Number(mm[1]));
-  mm = path.match(/^\/api\/v1\/analytics\/student\/(\d+)\/trends$/);
-  if (mm) return json([]);
-  mm = path.match(/^\/api\/v1\/analytics\/course\/(\d+)\/grade-distribution$/);
-  if (mm) return analyticsCourseDistribution(request, Number(mm[1]));
-  if (path === '/api/v1/analytics/lookups' && m === 'GET') return json({ lookups: {} });
   // Predictive analytics — not implemented in local mode
   if (path.startsWith('/api/v1/analytics/predictive')) return json({ detail: 'Predictive analytics not available in local mode' }, 501);
 
@@ -860,7 +822,6 @@ async function router(request) {
   if (path.startsWith('/api/v1/sessions'))            return json({ detail: 'Not available in local mode' }, 501);
   if (path === '/api/v1/dashboards')                  return m === 'GET' ? emptyList() : json({}, 201);
   if (path.startsWith('/api/v1/dashboards'))          return json({ detail: 'Not available in local mode' }, 501);
-  if (path.startsWith('/api/v1/custom-reports/statistics')) return json({ total_reports: 0 });
   if (path.startsWith('/api/v1/custom-reports'))      return m === 'GET' ? emptyList() : json({}, 201);
   if (path.startsWith('/api/v1/saved-searches') || path.startsWith('/api/v1/search/saved')) return m === 'GET' ? emptyList() : json({}, 201);
   if (path === '/api/v1/search/history')              return m === 'GET' ? emptyList() : json({ cleared: 0 });

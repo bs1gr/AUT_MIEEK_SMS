@@ -45,7 +45,6 @@ from .common import (
     PaginationParams as PaginationParams,
 )
 from .courses import CourseCreate as CourseCreate
-from .analytics import AnalyticsLookupsResponse as AnalyticsLookupsResponse
 from .courses import CourseResponse as CourseResponse
 from .courses import CourseUpdate as CourseUpdate
 from .enrollments import (
@@ -180,9 +179,6 @@ from .reports import (
     GradeSummary as GradeSummary,
 )
 from .reports import (
-    BulkReportRequest as BulkReportRequest,
-)
-from .reports import (
     HighlightSummary as HighlightSummary,
 )
 from .reports import (
@@ -204,17 +200,13 @@ from .reports import (
     StudentPerformanceReport as StudentPerformanceReport,
 )
 from .custom_reports import (
-    BulkReportGenerationRequest as BulkReportGenerationRequest,
-    BulkReportGenerationResponse as BulkReportGenerationResponse,
     CustomReportCreate as CustomReportCreate,
     CustomReportResponse as CustomReportResponse,
     CustomReportUpdate as CustomReportUpdate,
     GeneratedReportCreate as GeneratedReportCreate,
     GeneratedReportResponse as GeneratedReportResponse,
-    GeneratedReportUpdate as GeneratedReportUpdate,
     ReportGenerationRequest as ReportGenerationRequest,
     ReportGenerationResponse as ReportGenerationResponse,
-    ReportStatistics as ReportStatistics,
     ReportTemplateCreate as ReportTemplateCreate,
     ReportTemplateResponse as ReportTemplateResponse,
     ReportTemplateUpdate as ReportTemplateUpdate,

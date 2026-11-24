@@ -43,7 +43,6 @@ export const customReportKeys = {
   generatedBase: (reportId: number) => [...customReportKeys.report(reportId), 'generated'] as const,
   generated: (reportId: number, includeSuperseded: boolean = false) =>
     [...customReportKeys.generatedBase(reportId), { includeSuperseded }] as const,
-  statistics: () => [...customReportKeys.all, 'statistics'] as const,
 };
 
 // ==================== TEMPLATES HOOKS ====================
@@ -364,16 +363,5 @@ export function useDeleteGeneratedReport() {
         }
       }
     },
-  });
-}
-
-/**
- * Fetch report statistics
- */
-export function useReportStatistics() {
-  return useQuery({
-    queryKey: customReportKeys.statistics(),
-    queryFn: customReportsAPI.getStatistics,
-    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }

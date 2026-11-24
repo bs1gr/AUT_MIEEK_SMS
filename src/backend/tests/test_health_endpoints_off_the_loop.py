@@ -150,7 +150,6 @@ ROUTE_ATTRS = {"get", "post", "put", "patch", "delete", "head", "options", "api_
 # the seven stage 2 left on purpose. Anything else in `routers/` that never awaits is a bug.
 LEFT_ASYNC_ON_PURPOSE = {
     ("routers_custom_reports.py", "generate_report"),
-    ("routers_custom_reports.py", "bulk_generate_reports"),
     ("routers_import_export.py", "create_student_import"),
     ("routers_import_export.py", "create_course_import"),
     ("routers_import_export.py", "create_grade_import"),

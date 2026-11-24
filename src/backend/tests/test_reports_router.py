@@ -14,25 +14,6 @@ from fastapi.testclient import TestClient
 from backend.models import Attendance, Course, CourseEnrollment, DailyPerformance, Grade, Highlight, Student
 
 
-def test_get_report_formats(client: TestClient):
-    """Test getting available report formats."""
-    response = client.get("/api/v1/reports/formats")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert "json" in data
-
-
-def test_get_report_periods(client: TestClient):
-    """Test getting available report periods."""
-    response = client.get("/api/v1/reports/periods")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert "week" in data
-    assert "semester" in data
-
-
 def test_generate_student_performance_report(client: TestClient, clean_db):
     """Test generating a comprehensive student performance report."""
     # Create test student

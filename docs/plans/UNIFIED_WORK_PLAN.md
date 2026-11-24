@@ -393,12 +393,34 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.81 (unreleased)
 
+**2026-11-24: the dead code of the analytics and reports rework removed** (todo 75 stage 6; the
+owner, offered it: "do all suggested"). Nothing called any of it; each was checked against the
+pages, the E2E tests, the scripts and workflows, and the backend itself:
+- `src/frontend/src/features/analytics/` (12 files, an older Analytics page no route used, with its
+  3 tests); `src/backend/ops/seed_report_templates.py` and `templates/report_templates.json` (13
+  old templates each; the templates come from `CustomReportService.import_default_templates`).
+- 16 endpoints: `/analytics/student/{id}/summary`, `/performance`, `/trends`, `/attendance`,
+  `/analytics/course/{id}/grade-distribution`, `/analytics/lookups`, `/analytics/cache/student/{id}`
+  and `/cache/course/{id}`; `/reports/formats`, `/periods`, `/bulk/student-performance`,
+  `/reports/cache` and `/cache/{student_id}`; `/custom-reports/statistics`, the PATCH of a
+  generated report and `/custom-reports/bulk-generate`; with the service methods and schemas only
+  they used (`AnalyticsService.get_student_summary` and four more, `invalidate_cache_for_course`,
+  `AnalyticsExportService.export_student_performance_to_excel`, the custom reports' statistics
+  and generated-report update, `schemas/analytics.py`, the bulk schemas), their tests, the
+  frontend wrappers no page called (`analyticsAPI.getStudentSummary`, `getStatistics` and
+  `useReportStatistics`), the local-mode mock's handlers for them, and 18 labels the Reports tab
+  no longer reads (both languages). `docs/admin/PERMISSION_MATRIX.md` regenerated.
+- **Kept on purpose:** `DELETE /analytics/cache/clear` (the only endpoint that asks for
+  `admin:manage`; without it the permission would have to go, by a migration that removes rows),
+  and `/analytics/reports/custom` (the only one asking for `reports:create`, for the same reason).
+- A test of the Late rule read two of the removed endpoints: it checks the others, as before.
+
 **2026-11-24: the Grading page keeps what is typed for the next grade while it reads the list again** (found
 by main's CI failing after PR 507; no decision needed). After a grade was saved, the form waited for
 the final grade and the grade list to be read again and only then cleared itself: whatever the teacher
 had begun to type for the next grade in that time (a category chosen, a score) was wiped, and on a
 slow server (the cloud VM) a quick hand meets it. A test of todo 80 that saved two grades in a row
-met the same race and failed on main once (GradingView.retakeMark.test.tsx, `clears the mark after a
+met the same race and failed on main once (`GradingView.retakeMark.test.tsx`, `clears the mark after a
 save`). Now the form is cleared as soon as the grade is saved, before the reading; the tests wait for
 the form to clear after each save. New test: a score typed while the list is still being read stays
 (fails on the old code).
@@ -3854,7 +3876,8 @@ and 44 and 48 in its part 5):
       6. Utils → Reports tidied (about 15 links lead to 3 pages): **the tidy done** (under "On
          `main` since v1.18.81"). Removing the dead code
          (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
-         asked first.
+         asked first. **Asked, the owner (2026-11-24): "do all suggested"; done** (under "On
+         `main` since v1.18.81").
 
 76. **The page's language for the browser** (found by todo 75 stage 3's review, 2026-11-23; no
     decision needed). `index.html` says `lang="en"` and nothing changes it with the language

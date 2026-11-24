@@ -20,17 +20,13 @@ from backend.security.current_user import get_current_user, require_auth_even_if
 from backend.routers.routers_auth import optional_require_role
 from backend.schemas.response import APIResponse, error_json, success_response
 from backend.schemas.custom_reports import (
-    BulkReportGenerationRequest,
-    BulkReportGenerationResponse,
     CustomReportCreate,
     CustomReportResponse,
     CustomReportUpdate,
     GeneratedReportCreate,
     GeneratedReportResponse,
-    GeneratedReportUpdate,
     ReportGenerationRequest,
     ReportGenerationResponse,
-    ReportStatistics,
     ReportTemplateCreate,
     ReportTemplateResponse,
     ReportTemplateUpdate,
@@ -328,31 +324,6 @@ def list_custom_reports(
 
 
 @router.get(
-    "/statistics",
-    response_model=APIResponse[Dict[str, Any]],
-    summary="Report statistics",
-)
-@require_permission("reports:view")
-def get_report_statistics(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_user),
-) -> APIResponse[Dict[str, Any]]:
-    try:
-        service = CustomReportService(db)
-        stats = service.get_report_statistics(current_user.id)
-        response = ReportStatistics(**stats)
-        return success_response(response.model_dump(), request_id=request.state.request_id)
-    except Exception as e:
-        logger.error(f"Error getting report statistics: {str(e)}")
-        return error_json(
-            code="STATS_ERROR",
-            message="Failed to get report statistics",
-            request_id=request.state.request_id,
-        )
-
-
-@router.get(
     "/{report_id}",
     response_model=APIResponse[Dict[str, Any]],
     summary="Get custom report",
@@ -576,41 +547,6 @@ def list_generated_reports(
         )
 
 
-@router.patch(
-    "/{report_id}/generated/{generated_report_id}",
-    response_model=APIResponse[Dict[str, Any]],
-    summary="Update generated report",
-)
-@limiter.limit(RATE_LIMIT_WRITE)
-@require_permission("reports:view")
-def update_generated_report(
-    request: Request,
-    report_id: int,
-    generated_report_id: int,
-    body: GeneratedReportUpdate,
-    db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_user),
-) -> APIResponse[Dict[str, Any]]:
-    try:
-        service = CustomReportService(db)
-        updated = service.update_generated_report(report_id, generated_report_id, current_user.id, body)
-        if not updated:
-            return error_json(
-                code="FORBIDDEN",
-                message="You do not have permission to update this report instance",
-                request_id=request.state.request_id,
-            )
-        response = GeneratedReportResponse.model_validate(updated)
-        return success_response(response.model_dump(), request_id=request.state.request_id)
-    except Exception as e:
-        logger.error(f"Error updating generated report {generated_report_id}: {str(e)}")
-        return error_json(
-            code="UPDATE_ERROR",
-            message="Failed to update generated report",
-            request_id=request.state.request_id,
-        )
-
-
 @router.delete(
     "/{report_id}/generated/{generated_report_id}",
     response_model=APIResponse[Dict[str, Any]],
@@ -745,73 +681,5 @@ def download_generated_report(
         return error_json(
             code="DOWNLOAD_ERROR",
             message="Failed to download report",
-            request_id=request.state.request_id,
-        )
-
-
-@router.post(
-    "/bulk-generate",
-    response_model=APIResponse[Dict[str, Any]],
-    summary="Bulk generate reports",
-)
-@limiter.limit(RATE_LIMIT_HEAVY)
-@require_permission("reports:generate")
-async def bulk_generate_reports(
-    request: Request,
-    body: BulkReportGenerationRequest,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_user),
-) -> APIResponse[Dict[str, Any]]:
-    try:
-        service = CustomReportService(db)
-        generated_ids: List[int] = []
-        errors: List[Dict[str, Any]] = []
-        language = _get_request_language(request, None)
-
-        for report_id in body.report_ids:
-            report = service.get_report(report_id, current_user.id)
-            if not report:
-                errors.append({"report_id": report_id, "error": "Unauthorized or missing report"})
-                continue
-
-            export_format = str(body.export_format or report.export_format)
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            file_name = f"report_{report_id}_{timestamp}.{export_format}"
-
-            create_data = GeneratedReportCreate(
-                report_id=report_id,
-                user_id=current_user.id,
-                file_name=file_name,
-                export_format=export_format,
-                status="pending",
-            )
-            generated = service.create_generated_report(report_id, current_user.id, create_data)
-            generated_ids.append(int(cast(int, generated.id)))
-            background_tasks.add_task(
-                CustomReportGenerationService.run_generation_task,
-                report_id,
-                int(cast(int, generated.id)),
-                current_user.id,
-                export_format,
-                bool(report.include_charts),
-                None,
-                None,
-                language,
-            )
-
-        response = BulkReportGenerationResponse(
-            total_requested=len(body.report_ids),
-            successful=len(generated_ids),
-            failed=len(errors),
-            generated_report_ids=generated_ids,
-            errors=errors,
-        )
-        return success_response(response.model_dump(), request_id=request.state.request_id)
-    except Exception as e:
-        logger.error(f"Error bulk generating reports: {str(e)}")
-        return error_json(
-            code="BULK_ERROR",
-            message="Failed to generate reports",
             request_id=request.state.request_id,
         )

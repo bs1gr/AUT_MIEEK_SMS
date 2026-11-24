@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 
@@ -157,37 +156,8 @@ def test_custom_report_flow(client: TestClient, db):
     assert history_data["success"] is True
     assert any(r["id"] == generated_id for r in history_data["data"])
 
-    patched = client.patch(
-        f"/api/v1/custom-reports/{report_id}/generated/{generated_id}",
-        json={
-            "status": "completed",
-            "generation_duration_seconds": 1.2,
-            "email_sent": True,
-            "email_sent_at": datetime.now(timezone.utc).isoformat(),
-        },
-        headers=headers,
-    )
-    assert patched.status_code == 200
-    patched_data = patched.json()
-    assert patched_data["success"] is True
-    assert patched_data["data"]["status"] == "completed"
-
-    stats = client.get("/api/v1/custom-reports/statistics", headers=headers)
-    assert stats.status_code == 200
-    stats_data = stats.json()
-    assert stats_data["success"] is True
-    assert stats_data["data"]["total_reports"] >= 1
-
-    bulk = client.post(
-        "/api/v1/custom-reports/bulk-generate",
-        json={"report_ids": [report_id], "export_format": "pdf"},
-        headers=headers,
-    )
-    assert bulk.status_code == 200
-    bulk_data = bulk.json()
-    assert bulk_data["success"] is True
-    assert bulk_data["data"]["successful"] == 1
-
+    # (The PATCH of a generated report, the statistics and the bulk generation, which no page
+    # called, were removed with todo 75 stage 6's dead code.)
     deleted = client.delete(f"/api/v1/custom-reports/{report_id}", headers=headers)
     assert deleted.status_code == 200
     deleted_data = deleted.json()
@@ -213,12 +183,11 @@ def test_generated_reports_endpoint_filters_superseded_by_default(client: TestCl
     assert generated.status_code == 200
     generated_id = generated.json()["data"]["generated_report_id"]
 
-    patched = client.patch(
-        f"/api/v1/custom-reports/{report_id}/generated/{generated_id}",
-        json={"status": "superseded"},
-        headers=headers,
-    )
-    assert patched.status_code == 200
+    # Superseded as a later file supersedes it (its PATCH endpoint, no page's, was removed).
+    from backend.models import GeneratedReport
+
+    db.query(GeneratedReport).filter(GeneratedReport.id == generated_id).update({"status": "superseded"})
+    db.commit()
 
     default_history = client.get(f"/api/v1/custom-reports/{report_id}/generated", headers=headers)
     assert default_history.status_code == 200

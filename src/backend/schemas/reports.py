@@ -169,21 +169,6 @@ class StudentPerformanceReport(BaseModel):
     recommendations: List[str] = []
 
 
-class BulkReportRequest(BaseModel):
-    """Request schema for generating reports for multiple students."""
-
-    student_ids: List[int] = Field(..., description="List of student IDs")
-    course_ids: Optional[List[int]] = Field(None, description="Optional course filter")
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    period: ReportPeriod = ReportPeriod.SEMESTER
-    format: ReportFormat = ReportFormat.JSON
-    include_grades: bool = True
-    include_attendance: bool = True
-    include_daily_performance: bool = True
-    include_highlights: bool = True
-
-
 class ReportJobStatus(BaseModel):
     """Status of an asynchronous report generation job."""
 

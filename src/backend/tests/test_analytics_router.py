@@ -292,36 +292,3 @@ def test_student_all_courses_summary_limits_queries(client):
     select_queries = [stmt for stmt in executed_statements if stmt.startswith("SELECT")]
     # Should remain constant regardless of number of courses (no N+1 behavior)
     assert len(select_queries) <= 12
-
-
-def test_student_summary_success(client):
-    s = _create_student(client, 6)
-    c = _create_course(
-        client,
-        "SUM1",
-        rules=[{"category": "Homework", "weight": 100.0}],
-        absence_penalty=0.0,
-    )
-
-    for idx, status in enumerate(("Present", "Present", "Absent"), start=1):
-        assert _create_att(client, s["id"], c["id"], status, period=idx).status_code == 201
-
-    assert _create_grade(client, s["id"], c["id"], "HW1", "Homework", 80).status_code == 201
-    assert _create_grade(client, s["id"], c["id"], "HW2", "Homework", 90).status_code == 201
-
-    r = client.get(f"/api/v1/analytics/student/{s['id']}/summary")
-    assert r.status_code == 200
-    data = r.json()
-
-    assert data["student"]["student_id"] == s["student_id"]
-    assert data["total_classes"] == 3
-    assert data["attendance_rate"] == 66.67
-    assert data["average_grade"] == 85.0
-    assert data["total_assignments"] == 2
-
-
-def test_student_summary_not_found(client):
-    r = client.get("/api/v1/analytics/student/9999/summary")
-    assert r.status_code == 404
-    message = get_error_message(r.json())
-    assert "not found" in message.lower()

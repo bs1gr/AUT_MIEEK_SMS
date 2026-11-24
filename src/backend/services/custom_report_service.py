@@ -7,12 +7,12 @@ tracking generated report instances.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from typing import Any, Dict, List, Optional, cast
 import logging
 import os
 
-from sqlalchemy import func, desc
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from backend.models import GeneratedReport, Report, ReportTemplate
@@ -20,7 +20,6 @@ from backend.schemas.custom_reports import (
     CustomReportCreate,
     CustomReportUpdate,
     GeneratedReportCreate,
-    GeneratedReportUpdate,
     ReportTemplateCreate,
     ReportTemplateUpdate,
 )
@@ -274,21 +273,6 @@ class CustomReportService:
             .first()
         )
 
-    def update_generated_report(
-        self, report_id: int, report_instance_id: int, user_id: int, update_data: GeneratedReportUpdate
-    ) -> Optional[GeneratedReport]:
-        report_instance = self.get_generated_report(report_id, report_instance_id, user_id)
-        if not report_instance:
-            return None
-
-        update_dict = update_data.model_dump(exclude_unset=True)
-        for key, value in update_dict.items():
-            setattr(report_instance, key, value)
-
-        self.db.commit()
-        self.db.refresh(report_instance)
-        return report_instance
-
     def delete_generated_report(self, report_id: int, report_instance_id: int, user_id: int) -> bool:
         """Delete a generated report record."""
         report_instance = self.get_generated_report(report_id, report_instance_id, user_id)
@@ -313,62 +297,6 @@ class CustomReportService:
     # ==========================================================================
     # STATISTICS
     # ==========================================================================
-
-    def get_report_statistics(self, user_id: int) -> Dict[str, Any]:
-        total_reports = self.db.query(Report).filter(Report.user_id == user_id, Report.deleted_at.is_(None)).count()
-        active_scheduled = (
-            self.db.query(Report)
-            .filter(
-                Report.user_id == user_id,
-                Report.deleted_at.is_(None),
-                Report.schedule_enabled.is_(True),
-            )
-            .count()
-        )
-
-        reports_by_type_rows = (
-            self.db.query(Report.report_type, func.count(Report.id))
-            .filter(Report.user_id == user_id, Report.deleted_at.is_(None))
-            .group_by(Report.report_type)
-            .all()
-        )
-        reports_by_type: Dict[str, int] = {
-            str(row[0]): int(row[1]) for row in reports_by_type_rows if row[0] is not None
-        }
-
-        total_generated = self.db.query(GeneratedReport).filter(GeneratedReport.user_id == user_id).count()
-
-        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        generated_last_30 = (
-            self.db.query(GeneratedReport)
-            .filter(
-                GeneratedReport.user_id == user_id,
-                GeneratedReport.generated_at >= thirty_days_ago,
-            )
-            .count()
-        )
-
-        avg_duration = (
-            self.db.query(func.avg(GeneratedReport.generation_duration_seconds))
-            .filter(GeneratedReport.user_id == user_id, GeneratedReport.generation_duration_seconds.isnot(None))
-            .scalar()
-        )
-
-        total_storage = (
-            self.db.query(func.sum(GeneratedReport.file_size_bytes))
-            .filter(GeneratedReport.user_id == user_id, GeneratedReport.file_size_bytes.isnot(None))
-            .scalar()
-        )
-
-        return {
-            "total_reports": total_reports,
-            "active_scheduled_reports": active_scheduled,
-            "reports_by_type": reports_by_type,
-            "total_generated_reports": total_generated,
-            "generated_reports_last_30_days": generated_last_30,
-            "average_generation_time_seconds": float(avg_duration) if avg_duration else None,
-            "total_storage_bytes": int(total_storage) if total_storage else None,
-        }
 
     def import_default_templates(self) -> int:
         """

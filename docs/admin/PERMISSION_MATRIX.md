@@ -153,7 +153,7 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 <!-- endpoint-requirements:start -->
 
-341 endpoints.
+325 endpoints.
 
 #### `/api/v1/admin`
 
@@ -202,24 +202,16 @@ All of this is for `AUTH_MODE=strict`, the default. See
 |---|---|
 | `GET /api/v1/analytics/attendance-gaps` | `reports:generate` |
 | `DELETE /api/v1/analytics/cache/clear` | `admin:manage` |
-| `DELETE /api/v1/analytics/cache/course/{course_id}` | `admin:manage` |
-| `DELETE /api/v1/analytics/cache/student/{student_id}` | `admin:manage` |
-| `GET /api/v1/analytics/course/{course_id}/grade-distribution` | `reports:generate` |
 | `GET /api/v1/analytics/dashboard` | `reports:generate` |
 | `POST /api/v1/analytics/export/excel` | `analytics:export` or `reports:export` or `reports:generate` |
 | `POST /api/v1/analytics/export/pdf` | `analytics:export` or `reports:export` or `reports:generate` |
-| `GET /api/v1/analytics/lookups` | `reports:generate` |
 | `GET /api/v1/analytics/overview` | `reports:generate` |
 | `GET /api/v1/analytics/predictive/student` | `reports:view` |
 | `POST /api/v1/analytics/reports/custom` | `reports:create` |
 | `GET /api/v1/analytics/reports/custom/{report_id}` | `reports:view` |
 | `GET /api/v1/analytics/student/{student_id}/all-courses-summary` | `reports:generate` |
-| `GET /api/v1/analytics/student/{student_id}/attendance` | `reports:generate` |
 | `GET /api/v1/analytics/student/{student_id}/course/{course_id}/final-grade` | `reports:generate` |
 | `GET /api/v1/analytics/student/{student_id}/overview` | `reports:generate` |
-| `GET /api/v1/analytics/student/{student_id}/performance` | `reports:generate` |
-| `GET /api/v1/analytics/student/{student_id}/summary` | `reports:generate` |
-| `GET /api/v1/analytics/student/{student_id}/trends` | `reports:generate` |
 
 #### `/api/v1/attendance`
 
@@ -280,8 +272,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 |---|---|
 | `GET /api/v1/custom-reports` | `reports:view` |
 | `POST /api/v1/custom-reports` | `reports:view` |
-| `POST /api/v1/custom-reports/bulk-generate` | `reports:generate` |
-| `GET /api/v1/custom-reports/statistics` | `reports:view` |
 | `GET /api/v1/custom-reports/templates` | `reports:view` |
 | `POST /api/v1/custom-reports/templates` | role `admin` |
 | `POST /api/v1/custom-reports/templates/import` | role `admin` |
@@ -294,7 +284,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 | `POST /api/v1/custom-reports/{report_id}/generate` | `reports:generate` |
 | `GET /api/v1/custom-reports/{report_id}/generated` | `reports:view` |
 | `DELETE /api/v1/custom-reports/{report_id}/generated/{generated_report_id}` | `reports:view` |
-| `PATCH /api/v1/custom-reports/{report_id}/generated/{generated_report_id}` | `reports:view` |
 | `GET /api/v1/custom-reports/{report_id}/generated/{generated_report_id}/download` | `reports:generate` |
 
 #### `/api/v1/daily-performance`
@@ -534,11 +523,6 @@ All of this is for `AUTH_MODE=strict`, the default. See
 
 | Request | Asks for |
 |---|---|
-| `POST /api/v1/reports/bulk/student-performance` | `reports:generate` |
-| `DELETE /api/v1/reports/cache` | `reports:generate` |
-| `DELETE /api/v1/reports/cache/{student_id}` | `reports:generate` |
-| `GET /api/v1/reports/formats` | `reports:generate` |
-| `GET /api/v1/reports/periods` | `reports:generate` |
 | `POST /api/v1/reports/student-performance` | `reports:generate` |
 | `POST /api/v1/reports/student-performance/download` | `reports:generate` |
 
