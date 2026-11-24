@@ -15,8 +15,8 @@ to 3), Excused days close Rate (todo 78), the semester archive keeps failed stud
 the page's language for Greek capitals (todo 76), todos 81, 82 and 84, the gate and CI fixes 472 to
 475 and 488, and the Dependabot batches 476 to 482. **One database change:** migration
 `c7d4e2a9f1b6`, additive (`grades.is_retake`, NOT NULL with the server default false, so no stored
-grade is a retake). **The shared database is still at `f4c2a8d6e1b3`:** the cloud VM runs v1.18.80
-until the owner says otherwise, and its first start on v1.18.81 will run the migration. **A
+grade is a retake). **The shared database is at `c7d4e2a9f1b6` since 2026-11-24, 14:22 UTC**,
+migrated by a dev backend started from the main tree, not by the cloud VM (below). **A
 v1.18.80 server keeps working on a database that has it** (tried before the tag on PostgreSQL 14:
 it read and made grades, the server default filling the new column; its startup log says "Can't
 locate revision" and nothing else changes).
@@ -45,9 +45,22 @@ locate revision" and nothing else changes).
   4,679,983 bytes, SHA-256 `f71f8af7…7754` = GitHub's digest, `versionCode 118081`, signer
   `686fb6ed…d2ea` as before. The release has the hand-written text (identical to
   `.github/RELEASE_NOTES_v1.18.81.md`) and those two files only, and is the latest release.
-- **The cloud VM is not updated** (it runs v1.18.80): that needs the owner's own yes. Its first
-  start on v1.18.81 makes the backup before migrating, then runs `f4c2a8d6e1b3 -> c7d4e2a9f1b6`
-  on the shared database.
+- **The shared database was migrated from the dev PC, two minutes before the VM's update**
+  (2026-11-24, 16:22 local, 14:22 UTC): a backend started from the main tree (v1.18.81, the
+  main tree's `.env` naming the shared database; not started by the assistant; a browser loaded
+  its sign-in page, and it was stopped again at about 16:25) made
+  `backups/database/pre_migration_20261124_162254.enc` on the dev PC (531,092 bytes, encrypted
+  with the dev PC's key), then ran `f4c2a8d6e1b3 -> c7d4e2a9f1b6`. The VM, still on v1.18.80,
+  ran on the migrated database for about five minutes (its `/health` healthy, `at_head: false`),
+  as tried before the tag. That backup is on the dev PC only: the off-site copies send the VM's.
+- **The cloud VM runs v1.18.81** (2026-11-24, 14:24 to 14:28 UTC, over SSH; the owner, offered
+  the update: "do all suggested"): `git checkout v1.18.81` (`ec257a61b`), `docker compose up -d
+  --build` (206 s), healthy 231 s after the build began. It had nothing to migrate, so it made no
+  backup of its own (its newest is still the daily one of 2026-11-23, 15:34 UTC; the next is due
+  at about 15:34 UTC). `/health` v1.18.81, the database connected, the migrations at head; read
+  only, 38 grades, none marked as a retake; the student list answers 401 without a sign-in; the
+  Privacy page answers `configured: true`; no ERROR line, no traceback (one WARNING, the standing
+  CSRF notice); the off-site timer active.
 
 **Before that: v1.18.80 released 2026-11-22** (tag on `ce5d07cc1`, run by the assistant; the
 owner: "continue unattended for all pending tasks until successfully reach to v1.18.80"). It
@@ -3223,9 +3236,9 @@ sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 
 keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
 2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
 out, decided and done 2026-11-24). **Todo 83 is done** (two PRs, 2026-11-24); **v1.18.81 is
-released** (2026-11-24, the top of this plan; the owner: "After todo 83"). **The cloud VM still
-runs v1.18.80:** its update to v1.18.81 (which migrates the shared database to `c7d4e2a9f1b6`)
-waits for the owner's own yes.
+released** (2026-11-24, the top of this plan; the owner: "After todo 83"), and the cloud VM runs it
+(the same day, the owner: "do all suggested"; the shared database at `c7d4e2a9f1b6`, migrated
+from the dev PC two minutes before, the top of this plan). Next, todo 75's stages 4 to 6.
 **Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
 its design to confirm before building, as it removes records.
 
