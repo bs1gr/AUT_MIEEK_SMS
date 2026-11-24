@@ -57,6 +57,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.82] - 2026-11-25
+
+### Features
+- **reports**: Utils → Reports shows each report page once (todo 75 stage 6, the tidy) (#507)
+- **reports**: the report builder keeps every filter and its sort, picks courses and categories, saves and downloads in one click (todo 75 stage 5) (#506)
+- **analytics**: the export follows the filters on screen, with the students and their categories (todo 75 stage 4) (#504)
+- **archive**: a student who fails a course is recorded as failed at the archive run and takes it again fresh (todo 87) (#503)
+
+### Bug Fixes
+- **grading**: the form keeps what is typed for the next grade while the list is read again (#508)
+- **reports**: a custom report's saved sort applies, several filters on one field work, its CSV keeps Greek in Excel, the GPA templates use the percent scale (todo 75 stage 5) (#505)
+- **archive**: the Semester Archive preview answers for a student failed on the absence limit or a final retake (#502)
+
+### Documentation
+- **plan**: the cloud VM runs v1.18.81; the shared database migrated from the dev PC first
+- **plan**: v1.18.81 released and verified; the cloud VM still on v1.18.80
+
+### Chores
+- **reports**: remove the analytics and reports code nothing calls (todo 75 stage 6) (#509)
+
 ## [1.18.81] - 2026-11-24
 
 ### Features
@@ -5194,6 +5215,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 

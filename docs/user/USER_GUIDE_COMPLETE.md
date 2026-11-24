@@ -1,6 +1,6 @@
 # User Guide - Student Management System
 
-**Version:** 1.18.81
+**Version:** 1.18.82
 **Checked against the application:** 17 November 2026. Every page named here was opened in
 a running copy as a teacher and as an administrator, and each window and form was opened and
 read. Where something does not work, the guide says so. What sections 7 and 8 say about how

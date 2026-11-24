@@ -77,7 +77,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: v1.18.81
+Version: v1.18.82
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
