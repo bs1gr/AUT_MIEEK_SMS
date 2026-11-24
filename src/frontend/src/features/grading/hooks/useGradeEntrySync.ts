@@ -338,11 +338,14 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
       } else {
         await gradesAPI.create(payload);
       }
+      // The form is cleared as soon as the grade is saved, before the final grade and the list are
+      // read again: cleared after them, it wiped whatever the teacher had begun to type for the next
+      // grade meanwhile (a slow server, a quick hand; seen as a failing test on 2026-11-24).
+      resetForm();
       // Emit event to notify other components that grades changed
       eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
       await loadFinal();
       await fetchGrades();
-      resetForm();
     } catch (e: unknown) {
       if (isOfflineNetworkError(e)) {
         enqueueGradeMutation({

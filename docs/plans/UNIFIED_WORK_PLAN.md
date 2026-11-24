@@ -393,6 +393,16 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.81 (unreleased)
 
+**2026-11-24: the Grading page keeps what is typed for the next grade while it reads the list again** (found
+by main's CI failing after PR 507; no decision needed). After a grade was saved, the form waited for
+the final grade and the grade list to be read again and only then cleared itself: whatever the teacher
+had begun to type for the next grade in that time (a category chosen, a score) was wiped, and on a
+slow server (the cloud VM) a quick hand meets it. A test of todo 80 that saved two grades in a row
+met the same race and failed on main once (GradingView.retakeMark.test.tsx, `clears the mark after a
+save`). Now the form is cleared as soon as the grade is saved, before the reading; the tests wait for
+the form to clear after each save. New test: a score typed while the list is still being read stays
+(fails on the old code).
+
 **2026-11-24: Utils → Reports shows each report page once** (todo 75 stage 6, the tidy; no decision
 needed). The tab had fifteen links to three pages: the three cards (my reports, the builder, the
 templates), then twelve more under them, each opening the template browser with a kind of data
