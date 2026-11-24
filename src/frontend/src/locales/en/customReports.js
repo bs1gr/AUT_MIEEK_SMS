@@ -150,6 +150,16 @@ export default {
   filterField: 'Field',
   filterOperator: 'Operator',
   filterValue: 'Value',
+  // Plan todo 75 stage 5: a range and a list are typed with commas; a course is chosen.
+  filterValueBetween: 'From, to (e.g. 60, 90)',
+  filterValueIn: 'Values separated by commas',
+  filterPickCourse: 'Choose a course',
+  fillRequiredFields: 'Please fill in all required fields',
+  // Save, make the file and download it, from the builder.
+  saveAndDownload: 'Save and download',
+  generatingFile: 'Making the file…',
+  generateFailed: 'The report was saved, but its file could not be made. Try again from the Reports list.',
+  generateTimeout: 'The report was saved; its file is still being made. Download it from the Reports list.',
   removeFilter: 'Remove Filter',
 
   // Filter operators

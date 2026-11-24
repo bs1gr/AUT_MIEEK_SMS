@@ -36,9 +36,9 @@ export interface CustomReport {
   report_type: string; // matches backend: student, course, grade, attendance, custom
   template_id?: number;
   fields: UnknownRecord; // matches backend: dict format
-  filters?: UnknownRecord;
+  filters?: UnknownRecord[] | UnknownRecord; // a list since plan todo 75 stage 5; older reports a dict
   aggregations?: UnknownRecord;
-  sort_by?: UnknownRecord;
+  sort_by?: UnknownRecord[] | UnknownRecord; // a list since plan todo 75 stage 5; older reports a dict
   export_format: 'pdf' | 'excel' | 'csv'; // matches backend field name
   include_charts: boolean;
   schedule_enabled: boolean;

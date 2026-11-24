@@ -5,13 +5,16 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Save, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { coursesAPI } from '@/api/api';
 import { useCreateReport, useCustomReport, useUpdateReport } from '@/hooks/useCustomReports';
 import type { ReportTemplate } from '@/api/customReportsAPI';
 import FieldSelector from './FieldSelector';
 import FilterBuilder from './FilterBuilder';
 import SortBuilder from './SortBuilder';
 import { getLocalizedTemplateText } from '../utils/templateLocalization';
+import { generateAndDownload, ReportGenerationError } from '../utils/generateAndDownload';
 
 interface ReportBuilderProps {
   reportId?: number;
@@ -44,9 +47,9 @@ type BackendReportPayload = {
         fields?: string[];
         group_by?: string | null;
       };
-  filters?: Record<string, { operator?: string; value?: unknown }>;
+  filters?: Array<{ field: string; operator: string; value: unknown }>;
   aggregations?: Record<string, unknown>;
-  sort_by?: Record<string, string>;
+  sort_by?: Array<{ field: string; order: 'asc' | 'desc' }>;
   export_format: 'pdf' | 'excel' | 'csv';
   include_charts: boolean;
   schedule_enabled: boolean;
@@ -93,7 +96,45 @@ const normalizeFilterValue = (value: unknown): string | number | string[] => {
   if (value === null || value === undefined) {
     return '';
   }
+  // A range saved as {from, to}: typed as "from, to" (plan todo 75 stage 5).
+  if (isRecord(value) && 'from' in value && 'to' in value) {
+    return `${String(value.from)}, ${String(value.to)}`;
+  }
   return String(value);
+};
+
+// The operators by the names the filter step offers: the templates use the short ones (gte, lt),
+// which the step had no option for, so a template's filter showed as "equals" (plan todo 75 stage 5).
+const OPERATOR_NAMES: Record<string, string> = {
+  eq: 'equals',
+  ne: 'not_equals',
+  gt: 'greater_than',
+  gte: 'greater_than_or_equal',
+  ge: 'greater_than_or_equal',
+  lt: 'less_than',
+  lte: 'less_than_or_equal',
+  le: 'less_than_or_equal',
+};
+
+export const canonicalOperator = (operator: unknown): string => {
+  const name = typeof operator === 'string' && operator.trim() ? operator.trim().toLowerCase() : 'equals';
+  return OPERATOR_NAMES[name] ?? name;
+};
+
+/** A saved sort in any shape as the step's rules: a list, {field, direction}, or {"<field>": order}. */
+export const sortRulesFrom = (sortBy: unknown): { field: string; order: 'asc' | 'desc' }[] => {
+  const asOrder = (order: unknown): 'asc' | 'desc' => (String(order).toLowerCase() === 'desc' ? 'desc' : 'asc');
+  if (Array.isArray(sortBy)) {
+    return sortBy
+      .filter(isRecord)
+      .filter((rule) => typeof rule.field === 'string' && rule.field)
+      .map((rule) => ({ field: String(rule.field), order: asOrder(rule.order ?? rule.direction) }));
+  }
+  if (!isRecord(sortBy)) return [];
+  if (typeof sortBy.field === 'string' && Object.keys(sortBy).every((key) => ['field', 'direction', 'order'].includes(key))) {
+    return [{ field: sortBy.field, order: asOrder(sortBy.direction ?? sortBy.order) }];
+  }
+  return Object.entries(sortBy).map(([field, order]) => ({ field, order: asOrder(order) }));
 };
 
 const normalizeFilterRule = (value: unknown): FilterRule | null => {
@@ -104,7 +145,7 @@ const normalizeFilterRule = (value: unknown): FilterRule | null => {
   if (!field) {
     return null;
   }
-  const operator = typeof value.operator === 'string' ? value.operator : 'equals';
+  const operator = canonicalOperator(value.operator);
   const normalizedValue = normalizeFilterValue(value.value);
   return { field, operator, value: normalizedValue };
 };
@@ -124,7 +165,7 @@ const normalizeTemplateFilters = (value: unknown): FilterRule[] => {
       return rule ? [rule] : [];
     }
     return Object.entries(value).map(([field, entry]) => {
-      const operator = isRecord(entry) && typeof entry.operator === 'string' ? entry.operator : 'equals';
+      const operator = isRecord(entry) ? canonicalOperator(entry.operator) : 'equals';
       const normalizedValue = isRecord(entry) ? normalizeFilterValue(entry.value ?? entry) : normalizeFilterValue(entry);
       return { field, operator, value: normalizedValue };
     });
@@ -132,39 +173,8 @@ const normalizeTemplateFilters = (value: unknown): FilterRule[] => {
   return [];
 };
 
-const normalizeSortingRule = (value: unknown): SortingRule | null => {
-  if (!isRecord(value)) {
-    return null;
-  }
-  const field = typeof value.field === 'string' ? value.field : '';
-  if (!field) {
-    return null;
-  }
-  const order = value.order === 'desc' ? 'desc' : 'asc';
-  return { field, order };
-};
-
-const normalizeTemplateSorting = (value: unknown): SortingRule[] => {
-  if (!value) {
-    return [];
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((entry) => normalizeSortingRule(entry))
-      .filter((entry): entry is SortingRule => entry !== null);
-  }
-  if (isRecord(value)) {
-    if ('field' in value) {
-      const rule = normalizeSortingRule(value);
-      return rule ? [rule] : [];
-    }
-    return Object.entries(value).map(([field, order]) => ({
-      field,
-      order: order === 'desc' ? 'desc' : 'asc',
-    }));
-  }
-  return [];
-};
+// A template's sort, as a report's: every saved shape (plan todo 75 stage 5; "direction" was lost).
+const normalizeTemplateSorting = (value: unknown): SortingRule[] => sortRulesFrom(value);
 
 const LEGACY_FIELD_ALIASES: Record<string, string> = {
   grade_value: 'grade',
@@ -318,7 +328,36 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [downloading, setDownloading] = useState(false);
+  // Plan todo 75 stage 5: a course is chosen by name, not typed by its number; the categories are
+  // suggested (the standard ones as stored and in the page's language), any other still typed.
+  const coursesQuery = useQuery({
+    queryKey: ['report-builder', 'courses'],
+    queryFn: () => coursesAPI.getAll(0, 1000),
+    staleTime: 5 * 60 * 1000,
+  });
+  const courseOptions = useMemo(
+    () =>
+      (Array.isArray(coursesQuery.data) ? coursesQuery.data : [])
+        .map((course) => ({ id: course.id, label: `${course.course_code} — ${course.course_name}` }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [coursesQuery.data]
+  );
+  const categorySuggestions = useMemo(() => {
+    const standard: Array<[string, string]> = [
+      ['Midterm Exam', 'midtermExam'],
+      ['Final Exam', 'finalExam'],
+      ['Quizzes', 'quizzes'],
+      ['Lab Work', 'labWork'],
+      ['Homework', 'homework'],
+      ['Project', 'project'],
+      ['Class Participation', 'classParticipation'],
+      ['Continuous Assessment', 'continuousAssessment'],
+    ];
+    const names = standard.flatMap(([stored, key]) => [stored, t(key, { ns: 'grades', defaultValue: stored })]);
+    return Array.from(new Set(names));
+  }, [t]);
   const createMutation = useCreateReport();
   const updateMutation = useUpdateReport();
   const { data: reportData } = useCustomReport(reportId ?? 0);
@@ -438,22 +477,21 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
     const filters = Array.isArray(reportFilters)
       ? reportFilters
+          .filter(isRecord)
+          .map((rule) => ({
+            field: String(rule.field ?? ''),
+            operator: canonicalOperator(rule.operator),
+            value: normalizeFilterValue(rule.value),
+          }))
       : reportFilters && typeof reportFilters === 'object'
         ? Object.entries(reportFilters).map(([field, value]) => ({
             field,
-            operator: isRecord(value) && typeof value.operator === 'string' ? value.operator : 'equals',
+            operator: isRecord(value) ? canonicalOperator(value.operator) : 'equals',
             value: isRecord(value) ? normalizeFilterValue(value.value ?? value) : normalizeFilterValue(value),
           }))
         : [];
 
-    const sortingRules = Array.isArray(reportSortBy)
-      ? reportSortBy
-      : reportSortBy && typeof reportSortBy === 'object'
-        ? Object.entries(reportSortBy).map(([field, order]) => ({
-            field,
-            order: order === 'desc' ? 'desc' : 'asc',
-          }))
-        : [];
+    const sortingRules = sortRulesFrom(reportSortBy);
 
     return {
       name: (reportRecord.name as string) || '',
@@ -794,12 +832,35 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async () => {
+  const showToast = (text: string, colour: string) => {
+    const toast = document.createElement('div');
+    toast.textContent = text;
+    toast.style.cssText = `position: fixed; bottom: 20px; right: 20px; background: ${colour}; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+  };
+
+  // Plan todo 75 stage 5: save, then make the file and download it, without leaving the builder
+  // for the Reports list. The report stays saved whatever happens to the file.
+  const downloadSaved = async (savedId: number) => {
+    setDownloading(true);
+    showToast(`⏳ ${t('generatingFile', { ns: 'customReports' })}`, '#2563eb');
+    try {
+      await generateAndDownload(savedId, { exportFormat: config.output_format, language: i18n?.language });
+    } catch (error) {
+      const reason = error instanceof ReportGenerationError && error.reason === 'timeout' ? 'generateTimeout' : 'generateFailed';
+      showToast(`❌ ${t(reason, { ns: 'customReports' })}`, '#ef4444');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleSave = async (download = false) => {
     if (!validateConfig()) {
 
       // Show error toast
       const toast = document.createElement('div');
-      toast.textContent = '❌ Please fill in all required fields';
+      toast.textContent = `❌ ${t('fillRequiredFields', { ns: 'customReports' })}`;
       toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 5000);
@@ -807,24 +868,15 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     }
 
     try {
-      // Transform sorting_rules array to sort_by dict
-      const sortByDict = config.sorting_rules.length > 0
-        ? config.sorting_rules.reduce((acc: Record<string, string>, rule) => {
-            acc[rule.field] = rule.order || 'asc';
-            return acc;
-          }, {})
-        : null;
-
-      // Transform filters array to filters dict if needed
-      const filtersDict = config.filters.length > 0
-        ? config.filters.reduce((acc: Record<string, { operator?: string; value?: unknown }>, filter) => {
-            acc[filter.field] = {
-              operator: filter.operator,
-              value: filter.value
-            };
-            return acc;
-          }, {})
-        : null;
+      // As lists (plan todo 75 stage 5): the sort as rules in order, the filters each on their own,
+      // so two filters on one field both apply. Saved as dicts before, one filter per field kept
+      // (the last) and a sort the report generator never read.
+      const sortRules = config.sorting_rules
+        .filter((rule) => rule.field)
+        .map((rule) => ({ field: rule.field, order: (rule.order === 'desc' ? 'desc' : 'asc') as 'asc' | 'desc' }));
+      const filterRules = config.filters
+        .filter((filter) => filter.field)
+        .map((filter) => ({ field: filter.field, operator: filter.operator, value: filter.value }));
 
       const emailRecipients = config.email_recipients
         .split(',')
@@ -849,9 +901,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           fields: normalizedSelectedFields,
           group_by: config.group_by || null,
         },
-        filters: filtersDict || undefined,
+        filters: filterRules.length > 0 ? filterRules : undefined,
         aggregations: undefined,
-        sort_by: sortByDict || undefined,
+        sort_by: sortRules.length > 0 ? sortRules : undefined,
         export_format: config.output_format,
         include_charts: true,
         schedule_enabled: config.schedule_enabled,
@@ -873,6 +925,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
+        if (download) await downloadSaved(reportId);
         onSuccess?.(reportId);
       } else {
         const result = await createMutation.mutateAsync(backendConfig);
@@ -883,6 +936,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
+        if (download) await downloadSaved(result.id);
         onSuccess?.(result.id);
       }
     } catch (error) {
@@ -1139,6 +1193,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 filters={config.filters}
                 onChange={handleFiltersChange}
                 getFieldLabel={getFieldLabel}
+                courses={courseOptions}
+                categories={categorySuggestions}
               />
             </div>
             <div>
@@ -1259,15 +1315,26 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         )}
 
         {activeStep === 'preview' && (
-          <button
-            data-testid="report-save-btn"
-            onClick={handleSave}
-            disabled={isLoading}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-          >
-            <Save size={18} />
-            {isLoading ? t('generating', { ns: 'customReports' }) : t('save', { ns: 'common' })}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              data-testid="report-save-download-btn"
+              onClick={() => handleSave(true)}
+              disabled={isLoading || downloading}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Download size={18} />
+              {downloading ? t('generatingFile', { ns: 'customReports' }) : t('saveAndDownload', { ns: 'customReports' })}
+            </button>
+            <button
+              data-testid="report-save-btn"
+              onClick={() => handleSave()}
+              disabled={isLoading || downloading}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save size={18} />
+              {isLoading ? t('generating', { ns: 'customReports' }) : t('save', { ns: 'common' })}
+            </button>
+          </div>
         )}
       </div>
     </div>

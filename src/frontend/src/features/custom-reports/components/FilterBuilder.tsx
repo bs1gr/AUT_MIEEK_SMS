@@ -12,12 +12,70 @@ interface Filter {
   value: string | number | string[];
 }
 
+export interface FilterCourseOption {
+  id: number;
+  label: string;
+}
+
 interface FilterBuilderProps {
   fields: string[];
   filters: Filter[];
   onChange: (filters: Filter[]) => void;
   getFieldLabel?: (field: string) => string;
+  /** The courses to choose from for a course filter (plan todo 75 stage 5: the number was typed). */
+  courses?: FilterCourseOption[];
+  /** Category names to suggest for a category filter (any other can still be typed). */
+  categories?: string[];
 }
+
+// The value as the operator takes it: "between" and "in" are typed as a list (plan todo 75 stage 5).
+const valueHintKey = (operator: string) =>
+  operator === 'between' ? 'filterValueBetween' : operator === 'in' ? 'filterValueIn' : 'filterValue';
+
+const CATEGORY_LIST_ID = 'report-filter-categories';
+
+interface FilterValueInputProps {
+  filter: Filter;
+  onValue: (value: string) => void;
+  courses?: FilterCourseOption[];
+  className: string;
+  testId: string;
+}
+
+const FilterValueInput: React.FC<FilterValueInputProps> = ({ filter, onValue, courses, className, testId }) => {
+  const { t } = useTranslation();
+  const single = filter.operator !== 'in' && filter.operator !== 'between';
+  if (filter.field === 'course_id' && single && courses && courses.length > 0) {
+    return (
+      <select
+        value={String(filter.value ?? '')}
+        onChange={(e) => onValue(e.target.value)}
+        className={className}
+        data-testid={testId}
+        aria-label={t('filterValue', { ns: 'customReports' })}
+      >
+        <option value="">{t('filterPickCourse', { ns: 'customReports' })}</option>
+        {courses.map((course) => (
+          <option key={course.id} value={String(course.id)}>
+            {course.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  return (
+    <input
+      type="text"
+      value={Array.isArray(filter.value) ? filter.value.join(', ') : filter.value}
+      onChange={(e) => onValue(e.target.value)}
+      className={className}
+      data-testid={testId}
+      list={filter.field === 'category' ? CATEGORY_LIST_ID : undefined}
+      aria-label={t('filterValue', { ns: 'customReports' })}
+      placeholder={t(valueHintKey(filter.operator), { ns: 'customReports' })}
+    />
+  );
+};
 
 const OPERATORS = [
   { value: 'equals', label: 'operator_equals' },
@@ -39,6 +97,8 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
   filters,
   onChange,
   getFieldLabel,
+  courses,
+  categories,
 }) => {
   const { t } = useTranslation();
   const [newFilter, setNewFilter] = useState<Filter>({
@@ -105,12 +165,12 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 ))}
               </select>
 
-              <input
-                type="text"
-                value={filter.value}
-                onChange={(e) => handleUpdateFilter(index, 'value', e.target.value)}
+              <FilterValueInput
+                filter={filter}
+                onValue={(value) => handleUpdateFilter(index, 'value', value)}
+                courses={courses}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded"
-                placeholder={t('filterValue', { ns: 'customReports' })}
+                testId={`filter-value-${index}`}
               />
 
               <button
@@ -165,12 +225,12 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('filterValue', { ns: 'customReports' })}
             </label>
-            <input
-              type="text"
-              value={newFilter.value}
-              onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
+            <FilterValueInput
+              filter={newFilter}
+              onValue={(value) => setNewFilter({ ...newFilter, value })}
+              courses={courses}
               className="w-full px-3 py-2 border border-gray-300 rounded"
-                placeholder={t('filterValue', { ns: 'customReports' })}
+              testId="filter-value-new"
             />
           </div>
 
@@ -186,6 +246,13 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
 
         <p className="text-xs text-gray-600">{t('helpFilters', { ns: 'customReports' })}</p>
       </div>
+      {categories && categories.length > 0 && (
+        <datalist id={CATEGORY_LIST_ID}>
+          {categories.map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
+      )}
     </div>
   );
 };
