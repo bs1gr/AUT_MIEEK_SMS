@@ -333,6 +333,14 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: Analytics shows an inactive student's courses instead of failing** (todo 84, PR 493;
+found by todo 77 point 3's review; no decision needed). A student who is no longer active has
+their own course rows, but the class figures beside them count active students only, and the
+rank looked their final grade up among those: `ValueError: 100.0 is not in list`, and the whole
+student view answered 500. The rank is given now only to a student who is among the class figures;
+an inactive one gets no rank, with the class average and the number ranked beside them.
+`test_analytics_overview.py`: an inactive student's overview (500 on the old code).
+
 **2026-11-24: a course import keeps the rule names and every rule** (todo 81, PR 492; found by
 todo 77 point 2's third review; the owner: "Yes, keep names"). The course import
 (`routers_imports._map_category` and `_translate_rules`, and a second copy of both inside the
@@ -3557,6 +3565,16 @@ and 44 and 48 in its part 5):
     (`analytics_overview_service.py`, around line 889), as the student's own figures include the
     inactive student while the class figures leave them out. Give such a student no rank (or the
     class figures without them) instead of failing; a test for an inactive student's overview.
+    **Done** (PR 493, under "On `main` since v1.18.80").
+
+85. **The semester archive records a failed student as passed** (found by todo 80's build,
+    2026-11-24; the owner's decision, as archiving cannot be undone). `SemesterArchiveService`
+    archives an enrolment as passed when its final grade is at least the pass mark and the rules
+    cover the whole course, and then replaces its raw grades and attendance with that record. It
+    never looks at the ΜΙΕΕΚ absence limit (a student over 30% is failed whatever the grade; true
+    since the limit came in) nor, once todo 80 is in, at a final exam retake under 50. Should either
+    fail keep the enrolment out of the archive (proposed: both, with the reason shown in the preview,
+    as "incomplete_grading" is today)?
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).

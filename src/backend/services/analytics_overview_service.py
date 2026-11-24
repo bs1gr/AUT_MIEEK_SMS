@@ -882,11 +882,13 @@ class AnalyticsOverviewService:
         rows = []
         for f in sorted(own, key=lambda x: courses[x.course_id].course_name):
             course = courses[f.course_id]
-            peer_finals = sorted(
-                (p.final_grade for p in peers_by_course.get(f.course_id, []) if p.final_grade is not None),
-                reverse=True,
-            )
-            rank = peer_finals.index(f.final_grade) + 1 if f.final_grade is not None else None
+            peers_here = peers_by_course.get(f.course_id, [])
+            peer_finals = sorted((p.final_grade for p in peers_here if p.final_grade is not None), reverse=True)
+            # A place among the class only for one of it: an inactive student is left out of the
+            # class figures, and looking their grade up among them raised ValueError (a 500 for
+            # the whole page; plan todo 84).
+            in_class = any(p.student_id == f.student_id for p in peers_here)
+            rank = peer_finals.index(f.final_grade) + 1 if f.final_grade is not None and in_class else None
             absence = f.absence
             rows.append(
                 {

@@ -154,6 +154,18 @@ def test_student_overview_unknown_student_is_404(client):
     assert client.get("/api/v1/analytics/student/999999/overview").status_code == 404
 
 
+def test_an_inactive_students_overview_has_no_rank_and_no_error(client, scenario):
+    # Plan todo 84: s4 is no longer active, so the class figures (active students only) leave them
+    # out; ranking them among those raised ValueError ("100.0 is not in list") and the page got 500.
+    response = client.get(f"/api/v1/analytics/student/{scenario['s4']['id']}/overview")
+    assert response.status_code == 200, response.text
+
+    (math,) = response.json()["courses"]
+    assert math["final_grade"] == 100.0
+    # The class beside them: the two active students, without a place for one who is not among them.
+    assert (math["rank"], math["ranked_of"], math["class_average"]) == (None, 2, 54.0)
+
+
 def test_class_overview_all_active_students(client, scenario):
     response = client.get("/api/v1/analytics/overview")
     assert response.status_code == 200, response.text
