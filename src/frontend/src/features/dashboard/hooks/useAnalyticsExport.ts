@@ -5,20 +5,47 @@ import { getStoredDateTimeSettings } from '@/utils/dateTime';
 import { downloadBlob } from '@/utils/downloadFile';
 
 /**
+ * What the Analytics page shows, for the export to follow (plan todo 75 stage 4): the class, the
+ * division and the course; in the student view, the student. Empty means "all".
+ */
+export interface AnalyticsExportFilters {
+  academicYear?: string;
+  classDivision?: string;
+  courseId?: number | null;
+  studentId?: number | null;
+}
+
+type ExportFormat = 'pdf' | 'excel';
+
+/** The export's query: the language, the time zone and every filter that is set. */
+export const analyticsExportParams = (
+  language: string,
+  timeZone: string,
+  filters: AnalyticsExportFilters = {}
+): Record<string, string | number> => {
+  const params: Record<string, string | number> = { language, timezone: timeZone };
+  if (filters.academicYear) params.academic_year = filters.academicYear;
+  if (filters.classDivision) params.class_division = filters.classDivision;
+  if (filters.courseId) params.course_id = filters.courseId;
+  if (filters.studentId) params.student_id = filters.studentId;
+  return params;
+};
+
+/**
  * Hook for exporting analytics data
  */
 export function useAnalyticsExport() {
   const { language } = useLanguage();
   const exportDashboardMutation = useMutation({
-    mutationFn: async (format: 'pdf' | 'excel' = 'pdf') => {
+    mutationFn: async ({ format, filters }: { format: ExportFormat; filters?: AnalyticsExportFilters }) => {
       try {
         const endpoint = format === 'pdf' ? '/analytics/export/pdf' : '/analytics/export/excel';
         const dateTimeSettings = getStoredDateTimeSettings();
-        const urlWithLanguage = `${endpoint}?language=${encodeURIComponent(language)}&timezone=${encodeURIComponent(dateTimeSettings.timeZone)}`;
 
         const response = await apiClient({
           method: 'POST',
-          url: urlWithLanguage,
+          url: endpoint,
+          params: analyticsExportParams(language, dateTimeSettings.timeZone, filters),
           responseType: 'arraybuffer',
           headers: {
             'Accept-Language': language === 'el' ? 'el-GR' : 'en-US',
@@ -48,8 +75,8 @@ export function useAnalyticsExport() {
   });
 
   return {
-    exportPDF: () => exportDashboardMutation.mutate('pdf'),
-    exportExcel: () => exportDashboardMutation.mutate('excel'),
+    exportPDF: (filters?: AnalyticsExportFilters) => exportDashboardMutation.mutate({ format: 'pdf', filters }),
+    exportExcel: (filters?: AnalyticsExportFilters) => exportDashboardMutation.mutate({ format: 'excel', filters }),
     isExporting: exportDashboardMutation.isPending,
     exportError: exportDashboardMutation.error instanceof Error
       ? exportDashboardMutation.error.message

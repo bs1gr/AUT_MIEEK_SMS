@@ -310,14 +310,89 @@ def get_student_overview(request: Request, student_id: int, db: Session = Depend
         raise internal_server_error("Student analytics overview failed", request)
 
 
-def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
+_UNCATEGORIZED = {"en": "Uncategorized", "el": "Χωρίς κατηγορία"}
+
+
+def _category_name(column: dict, language: str) -> str:
+    """A category column's name as the page shows it: the standard label, else the typed name."""
+    from backend.services.grade_categories import CATEGORY_KEYS, LABELS
+
+    key = column.get("label_key")
+    if key in CATEGORY_KEYS:
+        return LABELS.get(language, LABELS["en"])[key]
+    if key == "uncategorized":
+        return _UNCATEGORIZED.get(language, _UNCATEGORIZED["en"])
+    return str(column.get("name") or "")
+
+
+def _student_export_data(db: Session, student_id: int, course_id: Optional[int], language: str) -> dict:
+    """The student view of the Analytics page as exported (plan todo 75 stage 4): the student's
+    courses and categories, narrowed to the chosen course as the page narrows them
+    (``categoriesForCourse``: that course's own figures, a category it lacks left out)."""
+    overview = AnalyticsOverviewService(db).student_overview(student_id)
+    courses = [row for row in overview["courses"] if not course_id or row["id"] == course_id]
+    categories = []
+    for category in overview["categories"]:
+        figures = category
+        if course_id:
+            figures = next((c for c in category["courses"] if c["id"] == course_id), None)
+            if figures is None:
+                continue
+        average, class_average = figures["average"], figures["class_average"]
+        categories.append(
+            {
+                "name": _category_name(category, language),
+                "average": average,
+                "class_average": class_average,
+                "difference": round(average - class_average, 1)
+                if average is not None and class_average is not None
+                else None,
+                "signal": figures["signal"],
+            }
+        )
+    return {
+        "student": overview["student"],
+        "summary": overview["summary"],
+        "courses": [
+            {
+                "course": f"{row['course_code']} — {row['course_name']}",
+                "final_grade": row["final_grade"],
+                "class_average": row["class_average"],
+                "attendance_rate": (row.get("attendance") or {}).get("rate"),
+                "late": (row.get("attendance") or {}).get("late"),
+                "absence_status": (row.get("absence") or {}).get("status"),
+                "passing": row["passing"],
+            }
+            for row in courses
+        ],
+        "categories": categories,
+    }
+
+
+def _build_dashboard_export_data(
+    db: Session,
+    language: str = "en",
+    academic_year: Optional[str] = None,
+    class_division: Optional[str] = None,
+    course_id: Optional[int] = None,
+    student_id: Optional[int] = None,
+) -> dict:
     """Export data for the Analytics page: the same figures as GET /analytics/overview.
 
     Averages are of final grades (course evaluation rules), attendance counts Present and Late
     as attended, and only active students and their live enrollments are included. A class or
     course with nothing graded yet exports 0, as the export format has no empty value.
+
+    Plan todo 75 stage 4: the export follows the filters on screen (the class, the division, the
+    course; in the student view, the student) instead of every active student, says which they
+    were, and carries the selection's students and its categories (strengths and difficulties),
+    or the student's courses and categories.
     """
-    overview = AnalyticsOverviewService(db).class_overview()
+    overview = AnalyticsOverviewService(db).class_overview(academic_year or None, class_division or None, course_id)
+    course = next((row for row in overview["courses"] if row["id"] == course_id), None) if course_id else None
+    if course_id and course is None:
+        found = db.query(Course).filter(Course.id == course_id).first()
+        course = {"course_code": found.course_code, "course_name": found.course_name} if found else None
     unknown = "Άγνωστη Τάξη" if language == "el" else "Unknown Class"
 
     by_class: dict[str, list] = {}
@@ -342,7 +417,14 @@ def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
     course_averages.sort(key=lambda item: (-int(item["count"]), str(item["label"])))
 
     summary = overview["summary"]
-    return {
+    categories = overview["categories"]
+    data = {
+        "scope": {
+            "academic_year": academic_year or None,
+            "class_division": class_division or None,
+            "course": f"{course['course_code']} — {course['course_name']}" if course else None,
+            "student": None,
+        },
         "summary": {
             "total_students": summary["students"],
             "total_courses": summary["courses"],
@@ -351,7 +433,20 @@ def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
         },
         "class_averages": class_averages,
         "course_averages": course_averages,
+        "students": overview["students"],
+        "categories": {
+            "columns": [_category_name(column, language) for column in categories["columns"]],
+            "averages": categories["averages"],
+            "students": [
+                {"name": row["name"], "cells": row["cells"], "signals": row["signals"]}
+                for row in categories["students"]
+            ],
+        },
     }
+    if student_id:
+        data["student_view"] = _student_export_data(db, student_id, course_id, language)
+        data["scope"]["student"] = data["student_view"]["student"]["name"]
+    return data
 
 
 @router.get("/student/{student_id}/performance")
@@ -532,6 +627,10 @@ def export_dashboard_excel(
     request: Request,
     language: Optional[str] = Query(None),
     timezone: Optional[str] = Query("Europe/Athens"),
+    academic_year: Optional[str] = Query(None, max_length=10),
+    class_division: Optional[str] = Query(None, max_length=50),
+    course_id: Optional[int] = Query(None, ge=1),
+    student_id: Optional[int] = Query(None, ge=1),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -558,7 +657,16 @@ def export_dashboard_excel(
                 final_language = "en"
 
         logger.info(f"Excel export - query_language={language}, timezone={timezone}, final={final_language}")
-        export_data = _build_dashboard_export_data(db)
+        # The filters on screen (plan todo 75 stage 4), and the language: the Excel export used to
+        # label a student without a class "Unknown Class" in Greek too.
+        export_data = _build_dashboard_export_data(
+            db,
+            language=final_language,
+            academic_year=academic_year,
+            class_division=class_division,
+            course_id=course_id,
+            student_id=student_id,
+        )
         export_service = AnalyticsExportService(db, language=final_language, timezone=timezone)
         excel_data = export_service.export_dashboard_to_excel(data=export_data)
 
@@ -569,6 +677,8 @@ def export_dashboard_excel(
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": "attachment; filename=analytics_dashboard.xlsx"},
         )
+    except HTTPException:
+        raise  # a student that does not exist: 404, not a failed export
     except Exception as exc:
         logger.error("Failed to export dashboard to Excel: %s", exc, exc_info=True)
         raise internal_server_error("Failed to export dashboard to Excel", request)
@@ -581,6 +691,10 @@ def export_dashboard_pdf(
     request: Request,
     language: Optional[str] = Query(None),
     timezone: Optional[str] = Query("Europe/Athens"),
+    academic_year: Optional[str] = Query(None, max_length=10),
+    class_division: Optional[str] = Query(None, max_length=50),
+    course_id: Optional[int] = Query(None, ge=1),
+    student_id: Optional[int] = Query(None, ge=1),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -608,7 +722,14 @@ def export_dashboard_pdf(
 
         logger.info(f"PDF export - query_language={language}, timezone={timezone}, final={final_language}")
         # IMPORTANT: Both must use same language to ensure consistent output (data + export service)
-        export_data = _build_dashboard_export_data(db, language=final_language)
+        export_data = _build_dashboard_export_data(
+            db,
+            language=final_language,
+            academic_year=academic_year,
+            class_division=class_division,
+            course_id=course_id,
+            student_id=student_id,
+        )
         export_service = AnalyticsExportService(db, language=final_language, timezone=timezone)
         assert export_service.language == final_language, "Language mismatch between data and service"
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
@@ -620,6 +741,8 @@ def export_dashboard_pdf(
             media_type="application/pdf",
             headers={"Content-Disposition": "attachment; filename=analytics_dashboard.pdf"},
         )
+    except HTTPException:
+        raise  # a student that does not exist: 404, not a failed export
     except Exception as exc:
         logger.error("Failed to export dashboard to PDF: %s", exc, exc_info=True)
         raise internal_server_error("Failed to export dashboard to PDF", request)

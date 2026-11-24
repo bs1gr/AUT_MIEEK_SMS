@@ -393,6 +393,27 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.81 (unreleased)
 
+**2026-11-24: the Analytics export follows the filters on screen** (todo 75 stage 4; no decision
+needed, the owner's answer (3) of 2026-11-23). The PDF and Excel export took no filter and covered
+every active student ("Exports cover all active students"), whatever the page showed, with only
+the summary, the class and the course averages. Now it takes the page's class, division and
+course, and in the student view the student on screen (the one chosen, else the selection's
+first, as the page shows), says which on top ("Selection: Class: A · Division: A2"), and carries
+the selection's students (one row each: the averages, attendance, Lates, the absence limit,
+the courses under the pass mark, at risk) and its strengths and difficulties by category (each
+student's average against the class's, ▲/▼ as on the page, the class average row); Excel has
+one sheet each, the figures as numbers (they were text like "53.00%"), the marks by number
+format and colour. The student view exports that student's courses and categories, narrowed to
+the chosen course as the page narrows them. The PDF is landscape for the wider tables. Smaller
+fixes on the way: the Excel export now gets the export language (a student without a class was
+"Unknown Class" in Greek too), a student that does not exist is a 404 instead of a failed export,
+names in the PDF's new tables are escaped. The tooltip and both user guides say so. Tests:
+`test_analytics_export_follows_filters.py` (11: the builder with each filter, the categories in
+both languages, the student view narrowed to a course, both endpoints read back with openpyxl
+and pypdf in Greek, the 404; all 11 fail on the old code), `useAnalyticsExport.test.tsx` (2) and
+two in `AnalyticsDashboard.test.tsx` (the student view and the class view send their filters):
+all 4 fail on the old code. The existing analytics and export tests pass unchanged.
+
 **2026-11-24: a student who fails a course takes it again from the beginning** (todo 87; the owner:
 "if the student fail, should retake the course from the beginning, nothing remains from that
 course. He/She has to repeat fresh", then, asked: at the archive run, and for all three fails). The
@@ -3756,7 +3777,8 @@ and 44 and 48 in its part 5):
          their courses against the class's, with strengths and difficulties; the class view by
          category and course. **Done** (under "In v1.18.81").
       4. The Analytics export keeps the filters and carries the per-student rows and category
-         profile (a course row opening its grade sheets came with stage 2).
+         profile (a course row opening its grade sheets came with stage 2). **Done** (under
+         "On `main` since v1.18.81").
       5. The custom report builder: the saved sort, more than one filter per field, course and
          category pickers, generate and download from the builder, the CSV with a BOM (Greek in
          Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average).

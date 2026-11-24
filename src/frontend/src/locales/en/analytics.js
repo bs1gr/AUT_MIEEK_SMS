@@ -192,7 +192,8 @@ export default {
     score: 'Score',
     noEnrollments: 'This student is not enrolled in any course.',
     noStudents: 'No active students in this selection.',
-    exportScope: 'Exports cover all active students',
+    // Plan todo 75 stage 4: the export follows the filters on screen.
+    exportScope: 'The export follows the filters on screen: the class, division and course, or the student shown, with their students and categories',
   },
   // By category, whatever the course (plan todo 75): strengths and difficulties
   categories: {

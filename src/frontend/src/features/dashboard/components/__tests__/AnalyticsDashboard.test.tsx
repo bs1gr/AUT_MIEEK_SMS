@@ -10,13 +10,15 @@ import type { ClassOverview, StudentCategory, StudentOverview, StudentOverviewCo
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
 
 const get = vi.hoisted(() => vi.fn());
+const exportPDF = vi.hoisted(() => vi.fn());
+const exportExcel = vi.hoisted(() => vi.fn());
 
 vi.mock('@/api/api', () => ({
   apiClient: { get },
   extractAPIResponseData: (data: unknown) => data,
 }));
 vi.mock('../../hooks/useAnalyticsExport', () => ({
-  useAnalyticsExport: () => ({ exportPDF: vi.fn(), exportExcel: vi.fn(), isExporting: false, exportError: null }),
+  useAnalyticsExport: () => ({ exportPDF, exportExcel, isExporting: false, exportError: null }),
 }));
 vi.mock('../../hooks/useDashboards', () => ({
   useDashboards: () => ({ dashboards: [], defaultDashboard: null }),
@@ -207,6 +209,8 @@ describe('AnalyticsDashboard', () => {
     // LanguageProvider takes the language from localStorage first.
     localStorage.setItem('i18nextLng', 'en');
     await i18n.changeLanguage('en');
+    exportPDF.mockReset();
+    exportExcel.mockReset();
     get.mockReset();
     get.mockImplementation(async (url: string, config?: { params?: { course_id?: number } }) => {
       // As the server: the scope names the course asked for.
@@ -276,6 +280,36 @@ describe('AnalyticsDashboard', () => {
     fireEvent.change(year, { target: { value: 'B' } });
     await waitFor(() =>
       expect(get).toHaveBeenCalledWith('/analytics/overview', { params: { academic_year: 'B' } })
+    );
+  });
+
+  // Plan todo 75 stage 4: the export follows what the page shows.
+  it('exports the student on screen and the chosen course', async () => {
+    renderPage();
+    const courseSelect = await screen.findByTestId('analytics-course-select');
+    await waitFor(() => expect(optionLabels(courseSelect)).toContain('Course MATH'));
+    fireEvent.change(courseSelect, { target: { value: '1' } });
+    await screen.findByTestId('analytics-grade-list');
+
+    fireEvent.click(screen.getByRole('button', { name: 'PDF' }));
+
+    // Anna: nobody chosen yet, so the selection's first student, as the page shows her.
+    expect(exportPDF).toHaveBeenCalledWith({ academicYear: '', classDivision: '', courseId: 1, studentId: 1 });
+  });
+
+  it("exports the class view's selection, not every student", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Class Analytics' }));
+    const year = await screen.findByRole('combobox', { name: /Academic Year/ });
+    await waitFor(() => expect(optionLabels(year)).toEqual(['All years', 'A', 'B']));
+    fireEvent.change(year, { target: { value: 'B' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Excel' }));
+
+    expect(exportExcel).toHaveBeenCalledWith({ academicYear: 'B', classDivision: '', courseId: null });
+    expect(screen.getByRole('button', { name: 'Excel' })).toHaveAttribute(
+      'title',
+      expect.stringContaining('follows the filters on screen')
     );
   });
 
