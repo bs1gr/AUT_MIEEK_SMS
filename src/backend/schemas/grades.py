@@ -26,10 +26,7 @@ class GradeCreate(BaseModel):
     @field_validator("category")
     @classmethod
     def normalize_category(cls, v: Optional[str]) -> Optional[str]:
-        if v is None:
-            return v
-        vv = v.strip().title()
-        return vv or None
+        return _normalize_category(v)
 
     @model_validator(mode="after")
     def validate_dates(self):
@@ -39,13 +36,38 @@ class GradeCreate(BaseModel):
         return self
 
 
+def _normalize_category(v: Optional[str]) -> Optional[str]:
+    """A category as grades store it: trimmed, title-cased, an empty one as none."""
+    if v is None:
+        return v
+    vv = v.strip().title()
+    return vv or None
+
+
 class GradeUpdate(BaseModel):
+    # The assignment and its category can change too (plan todo 82): the Grading page's Edit sends
+    # them, and until November 2026 they were dropped here, so a grade filed under the wrong
+    # category could not be moved to the rule it belongs to.
+    assignment_name: Optional[str] = Field(None, min_length=1, max_length=200)
+    category: Optional[str] = None
     grade: Optional[float] = Field(None, ge=0)
     max_grade: Optional[float] = Field(None, gt=0)
     weight: Optional[float] = Field(None, ge=0, le=3.0)
     notes: Optional[str] = None
     date_assigned: Optional[date] = None
     date_submitted: Optional[date] = None
+
+    @field_validator("category")
+    @classmethod
+    def normalize_category(cls, v: Optional[str]) -> Optional[str]:
+        return _normalize_category(v)
+
+    @model_validator(mode="after")
+    def validate_assignment_name_kept(self):
+        """An edit may rename the assignment, never leave it without a name."""
+        if "assignment_name" in self.model_fields_set and self.assignment_name is None:
+            raise ValueError("assignment_name cannot be empty")
+        return self
 
     @model_validator(mode="after")
     def validate_grade_not_exceeds_max(self):

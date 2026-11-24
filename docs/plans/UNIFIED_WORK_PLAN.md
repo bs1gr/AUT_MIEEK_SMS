@@ -333,6 +333,15 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: an edit moves a grade to another category or renames it** (todo 82, PR 491; found by
+todo 77 point 2's third review; no decision needed). The Grading page's Edit sends the grade's
+category and the assignment's name, and the server's `GradeUpdate` (schemas/grades.py) had neither,
+so it dropped both without a word: a grade filed under the wrong category could not be moved to the
+rule it belongs to, nor an assignment renamed. Both are taken now, the category stored as a new
+grade's is (trimmed and title-cased, an empty one as none); an edit can rename an assignment but
+never leave it without a name (422). `test_grades_router.py`: an edit moves a grade and renames it,
+and an empty name is refused; both failed on the old schema.
+
 **2026-11-23: a final grade no rule makes counts the Weight, an exam's latest sitting and the
 absence penalty, and every page shows that one** (todo 77, point 3, PR 490; the owner that day:
 "The final grade should use the Weight too", and, asked, both recommended answers: the course's
@@ -3510,7 +3519,7 @@ and 44 and 48 in its part 5):
     Its own PR.
 
 82. **Editing a grade's category or name is ignored by the server** (found by the same review; no
-    decision needed). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
+    decision needed). **Done** (PR 491, under "On `main` since v1.18.80"). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
     so the Grading page's Edit sends them and the server drops them: a grade filed under the wrong
     category cannot be moved. Add them (the category title-cased as `GradeCreate` does), with a test
     that an edit moves a grade to another rule. Its own PR.
