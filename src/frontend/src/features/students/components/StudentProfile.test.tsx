@@ -169,6 +169,46 @@ describe('StudentProfile - attendance rate', () => {
   });
 });
 
+// Plan todo 83 (the owner, 2026-11-24): each course counts by its final grade once its Final Exam is
+// graded, by the average of its grades before. The tiles took the plain mean of every grade.
+describe('StudentProfile - the GPA and Average tiles', () => {
+  const grade = (id: number, course_id: number, value: number) => ({
+    id, student_id: 42, course_id, assignment_name: `G${id}`, category: 'Homework', grade: value, max_grade: 100, weight: 1,
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedStudentsAPI.getById.mockResolvedValue(STUDENT);
+    mockedAttendanceAPI.getByStudent.mockResolvedValue([]);
+    mockedHighlightsAPI.getByStudent.mockResolvedValue([]);
+    // Course 1: grades of 90, 70, 80 (average 80), its final grade 61.5 and ready; course 2: 50.
+    mockedGradesAPI.getByStudent.mockResolvedValue([grade(1, 1, 90), grade(2, 1, 70), grade(3, 1, 80), grade(4, 2, 50)]);
+  });
+
+  it('count a course by its final grade once its Final Exam is graded', async () => {
+    mockedApiClient.get.mockImplementation(async (url: string) =>
+      url.endsWith('/all-courses-summary')
+        ? { data: { courses: [{ course_id: 1, course_code: 'A', final_grade: 61.5, final_grade_ready: true }] } }
+        : { data: [] }
+    );
+
+    renderProfile();
+
+    // (61.5 + 50) / 2 = 55.75, shown 55.8; the GPA is that over 100 times 4.
+    await waitFor(() => expect(screen.getByTestId('profile-average')).toHaveTextContent('55.8%'));
+    expect(screen.getByTestId('profile-gpa')).toHaveTextContent('2.23');
+  });
+
+  it('count every course by its average while no final grade is ready', async () => {
+    mockedApiClient.get.mockResolvedValue({ data: [] });
+
+    renderProfile();
+
+    // (80 + 50) / 2 = 65: each course once, not the mean of the four grades (72.5).
+    await waitFor(() => expect(screen.getByTestId('profile-average')).toHaveTextContent('65%'));
+  });
+});
+
 describe('StudentProfile - dates of enrolment and of grades', () => {
   beforeEach(() => {
     vi.clearAllMocks();

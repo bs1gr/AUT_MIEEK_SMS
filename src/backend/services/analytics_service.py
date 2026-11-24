@@ -153,6 +153,10 @@ class StudentCourseSummary:
     final_grade: float
     gpa: float
     letter_grade: str
+    course_id: int = 0
+    # Plan todo 83: the final grade is the course's figure on the Students page and the Profile
+    # (else the average of the grades so far); see AnalyticsService.final_grade_ready.
+    final_grade_ready: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -213,6 +217,20 @@ class AnalyticsService:
     def _sitting_order(grade: Any) -> Tuple[bool, date, int]:
         """How an exam's sittings rank: a retake above any other, then by day, then by entry."""
         return (bool(getattr(grade, "is_retake", False)), grade.date_submitted or date.min, grade.id or 0)
+
+    @classmethod
+    def final_grade_ready(cls, course: Any, grades: Iterable[Any]) -> bool:
+        """Whether the final grade is the course's figure where the pages show an average (plan todo 83).
+
+        The owner, 2026-11-24: "should show averages if not exams grades published yet. otherwise,
+        the real grades should populate", the Final Exam's grade deciding. True once the student's
+        Final Exam is graded (the sitting that counts, under any spelling), or when the course's
+        rules name no Final Exam (nothing to wait for); a course without rules waits for a Final
+        Exam grade. Until then the pages show the plain average of the grades so far."""
+        if any(normalize_rule_category(getattr(g, "category", None)) == "final" for g in cls.counted_grades(grades)):
+            return True
+        rules = [r for r in (getattr(course, "evaluation_rules", None) or []) if isinstance(r, dict)]
+        return bool(rules) and not any(normalize_rule_category(r.get("category")) == "final" for r in rules)
 
     # Plan todo 80 (the owner, 2026-11-23): "in the second effort, iff the exam grade is under 50,
     # is considered a fail". The final exam only; a midterm retake only replaces the first sitting.
@@ -462,6 +480,8 @@ class AnalyticsService:
                     final_grade=data["final_grade"],
                     gpa=data["gpa"],
                     letter_grade=data["letter_grade"],
+                    course_id=course.id,
+                    final_grade_ready=bool(data.get("final_grade_ready")),
                 )
             )
             overall_gpa += float(data["gpa"]) * int(course.credits or 0)
@@ -1290,6 +1310,8 @@ class AnalyticsService:
             # A retake of the final exam (plan todo 80): {"date", "percentage", "failed"}, or None.
             # Under 50 it fails the course whatever final_grade says, which stays as worked out.
             "final_exam_retake": self.final_exam_retake(grades),
+            # Plan todo 83: whether the pages that show an average show this final grade instead.
+            "final_grade_ready": self.final_grade_ready(course, grades),
         }
 
     @staticmethod

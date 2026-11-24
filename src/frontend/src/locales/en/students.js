@@ -1,5 +1,7 @@
 export default {
   // Students
+  // Plan todo 83: a course shows its final grade once the Final Exam is graded, its average before.
+  finalGradeLabel: 'Final grade',
   studentsTitle: 'Student Management',
   addStudent: 'Add Student',
   addNewStudent: 'Add New Student',

@@ -333,6 +333,28 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: the Students page and the Student Profile show a course's final grade once its Final
+Exam is graded, its average before** (todo 83, the first of two PRs; the owner that day: "should
+show averages if not exams grades published yet. otherwise, the real grades should populate", then,
+asked which exam decides: the Final Exam). The figures labelled "Average" there took the plain mean
+of every grade (every exam sitting, no Weight), so a course whose final grade was settled showed
+another figure on these pages. The server now says for each course whether its final grade is ready
+(`AnalyticsService.final_grade_ready`, in the final grade's answer and in each course of
+`/analytics/student/{id}/all-courses-summary`, with the course's id): the student's Final Exam is
+graded (the sitting that counts, any spelling), or the course's rules name no Final Exam (nothing to
+wait for); a course without rules waits for a Final Exam grade. On the Students page's card the
+course breakdown says "Final grade" with that figure for such a course and "Average" (the plain mean,
+as before) for another, and the card's Average, Greek-scale and letter tiles and its statistics take
+each course once by its figure; the Student Profile, which fetched no final grades, now fetches them
+and its GPA and Average tiles do the same. The breakdown's "Average" is the common word now (a bare
+"average" found the Dashboard's "AVERAGE" in capitals). **Figures change**: where a final grade is
+ready, and because each course now counts once (a course with many grades weighed more before).
+Next, the second PR: the student report's average (PDF, CSV, the page) and Analytics' "top by
+exams", which counts every sitting of an exam. Tests: `test_final_grade_ready.py` (10 cases of the
+rule, both answers), `courseFigures.test.ts`, `CourseGradeBreakdown.test.tsx` (a ready course and an
+older server), `StudentCard.test.tsx`, `StudentProfile.test.tsx` (both tiles); with the old rule put
+back, 4 of the new page tests fail.
+
 **2026-11-24: the semester archive keeps out a student who failed whatever the grade** (todo 85; the
 owner that day: "such students should be kept out of the archive, with the reason shown in its
 preview. however, they still have the opportunity to retake the course next available year").
@@ -3140,9 +3162,10 @@ point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces t
 sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
 keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
 2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
-out, decided and done 2026-11-24). **Next, decided and not yet built: 83**, its own PR. **A
-question for the owner from todo 85:** how next year's course is set up for a student who takes it
-again (the same course keeps last year's absences and grades counting).
+out, decided and done 2026-11-24). **Next: todo 83's second PR** (the student report, Analytics'
+"top by exams"), **then the release v1.18.81** (the owner: "After todo 83"; the VM a separate yes).
+**Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
+its design to confirm before building, as it removes records.
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3743,6 +3766,10 @@ and 44 and 48 in its part 5):
       recorded, the course's real final grade once it is; the overall figures take each course's
       figure so. To settle when building and say in the PR: whether "exam grades in" is the Final
       Exam's grade or any exam's, and what a course with no exam rule shows. Its own PR, next.
+    - **Asked, the owner (2026-11-24): the Final Exam's grade decides**; a course whose rules name no
+      Final Exam shows its final grade (said in the question). **The Students page and the Profile:
+      done** (under "On `main` since v1.18.80"). **Left, a second PR:** the student report's average
+      (PDF, CSV, the page; it has no Excel) and Analytics' "top by exams" (every sitting counted).
 
 84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
     decision needed). `GET /api/v1/analytics/student/{id}/overview` answers 500 for a student who
@@ -3768,6 +3795,22 @@ and 44 and 48 in its part 5):
     - **Done** (under "On `main` since v1.18.80"), with a finding for the owner on taking the
       course again next year: the student stays enrolled in the same course, whose old absences
       and grades keep counting, unless next year's course is made anew under its own code.
+
+87. **A student who fails a course repeats it fresh** (the owner, 2026-11-24, answering todo 85's
+    finding: "if the student fail, should retake the course from the beginning, nothing remains from
+    that course. He/She has to repeat fresh"; the owner's decision on the design). Since todo 85 a
+    student failed on the absence limit or on a final exam retake under 50 is kept out of the
+    semester archive, and so is one below the pass mark: their enrolment, grades, ratings and
+    attendance stay, and as a course code exists once and an enrolment is one per student and
+    course, next year they are still enrolled in the same course with last year's records counting
+    (the absence limit above all). Proposed: the archive run records each failed course in the
+    student's history as failed (`StudentCoursePerformance.passed` false, with the reason: below the
+    pass mark, over the absence limit, a final retake under 50) and then removes that enrolment and
+    its grades, ratings and attendance, after the semester backup it already makes, so the student
+    enrols again with a clean record. Kept as today: an enrolment whose grading is incomplete, or a
+    course without rules. To confirm before building, as it removes records (the semester backup
+    keeps them): that a failed course is recorded as failed and cleared at the archive run, and
+    whether a student below the pass mark is cleared too or only the two hard fails.
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).

@@ -275,6 +275,22 @@ describe('StudentCard', () => {
       expect(greekGrades.length).toBeGreaterThan(0);
     });
 
+    // Plan todo 83: once the course's Final Exam is graded its final grade is the figure, not the
+    // plain mean of its grades (87.5 % here, 17.5 on the Greek scale).
+    it('takes a course by its final grade once the server says it is ready', () => {
+      const ready: StudentStats = {
+        ...mockStats,
+        courseSummary: [
+          { course_id: 1, course_code: 'CS101', course_name: 'CS', credits: 3, final_grade: 61, gpa: 1.4, letter_grade: 'D', final_grade_ready: true },
+        ],
+      };
+      renderStudentCard({ stats: ready, isExpanded: true });
+
+      // 61 % is 12.2 on the Greek scale; 17.5 (the mean of 85 and 90) appears nowhere.
+      expect(screen.getAllByText(/12\.2/).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/17\.5/)).not.toBeInTheDocument();
+    });
+
     it('calculates min and max grades', () => {
       const statsWithVariance: StudentStats = {
         ...mockStats,

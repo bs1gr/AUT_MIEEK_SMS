@@ -12,6 +12,7 @@ import { attendedRate, countStatuses, statusKey } from '@/utils/attendanceRate';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import StudentPredictionsSection from './StudentPredictionsSection';
+import { courseFigures, overallFigure, type CourseSummaryEntry } from '../utils/courseFigures';
 
 
 interface StudentProfileProps {
@@ -32,6 +33,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [coursesById, setCoursesById] = useState<Record<number, Course>>({});
   const [performanceHistory, setPerformanceHistory] = useState<StudentCoursePerformance[]>([]);
+  const [courseSummary, setCourseSummary] = useState<CourseSummaryEntry[]>([]);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
   const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
@@ -125,6 +127,18 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         setCoursesById({});
       }
 
+      // The final grades by course (plan todo 83): a course whose Final Exam is graded counts by its
+      // final grade in the GPA and Average tiles. Without them the tiles keep the plain averages.
+      try {
+        const summaryRes = await apiClient.get(`/analytics/student/${studentId}/all-courses-summary`);
+        if (isStale()) return;
+        const courses = summaryRes?.data?.courses;
+        setCourseSummary(Array.isArray(courses) ? courses : []);
+      } catch {
+        if (isStale()) return;
+        setCourseSummary([]);
+      }
+
       // Try to load archived performance history, but don't fail if none exists yet
       try {
         const historyRes = await apiClient.get(`/enrollments/student/${studentId}/performance-history`);
@@ -201,10 +215,12 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     // Present and Late are attended, as on every page (todo 77).
     const attendanceRateNum = attendedRate(attendance);
 
-    // Grade stats
+    // Grade stats. Plan todo 83: over the student's courses, each by its final grade once the Final
+    // Exam is graded, else by the average of its grades so far (the plain mean of every grade before).
     const totalGrades = grades.length;
     const avgGradeNum = totalGrades > 0
-      ? (grades.reduce((sum: number, g: Grade) => sum + (g.grade / g.max_grade * 100), 0) / totalGrades)
+      ? (overallFigure(courseFigures(grades, courseSummary)) ??
+        grades.reduce((sum: number, g: Grade) => sum + (g.grade / g.max_grade * 100), 0) / totalGrades)
       : 0;
 
     // GPA calculation
@@ -483,7 +499,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <TrendingUp size={24} />
               <span className="text-xs opacity-75">{t('overall', { ns: 'common' })}</span>
             </div>
-            <p className="text-4xl font-bold">{stats.gpa}</p>
+            <p className="text-4xl font-bold" data-testid="profile-gpa">{stats.gpa}</p>
             <p className="text-sm opacity-90">{t('gpaOutOf', { ns: 'students' })}</p>
           </div>
 
@@ -492,7 +508,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <Award size={24} />
               <span className="text-xs opacity-75">{t('average', { ns: 'common' })}</span>
             </div>
-            <p className="text-4xl font-bold">{stats.avgGrade}%</p>
+            <p className="text-4xl font-bold" data-testid="profile-average">{stats.avgGrade}%</p>
             <p className="text-sm opacity-90">{stats.totalGrades} {t('assignments', { ns: 'common' })}</p>
           </div>
 
