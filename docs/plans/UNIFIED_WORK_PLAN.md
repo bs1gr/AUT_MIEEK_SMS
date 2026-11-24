@@ -393,6 +393,17 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.81 (unreleased)
 
+**2026-11-24: Utils → Reports shows each report page once** (todo 75 stage 6, the tidy; no decision
+needed). The tab had fifteen links to three pages: the three cards (my reports, the builder, the
+templates), then twelve more under them, each opening the template browser with a kind of data
+(students, courses, grades, attendance, enrolments), a file format, the analytics tab or a search
+already chosen, though the browser has a search, a kind and a format filter and the tabs itself.
+Now the grade sheets and the three cards; the templates card says what the browser filters by, and
+carries the student or course the tab was opened for (they prefill a template). The dead code of
+the stage (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller, the
+tab's now unused labels) waits for the owner, as the stage says. Test:
+`OperationsReportsTab.test.tsx` (2; both fail on the old tab).
+
 **2026-11-24: the Analytics export follows the filters on screen** (todo 75 stage 4; no decision
 needed, the owner's answer (3) of 2026-11-23). The PDF and Excel export took no filter and covered
 every active student ("Exports cover all active students"), whatever the page showed, with only
@@ -3830,7 +3841,8 @@ and 44 and 48 in its part 5):
          category pickers, generate and download from the builder, the CSV with a BOM (Greek in
          Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **Done**, in two
          PRs (under "On `main` since v1.18.81").
-      6. Utils → Reports tidied (about 15 links lead to 3 pages). Removing the dead code
+      6. Utils → Reports tidied (about 15 links lead to 3 pages): **the tidy done** (under "On
+         `main` since v1.18.81"). Removing the dead code
          (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
          asked first.
 
