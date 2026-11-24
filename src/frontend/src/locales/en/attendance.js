@@ -53,7 +53,8 @@ export default {
   averageRating: 'Average',
   excellent: 'Excellent',
   markAbsent: 'Mark Absent',
-  studentMarkedAbsent: 'Student is marked as Absent. Performance rating is disabled.',
+  // Absent or Excused in every period of the day (plan todo 78 point 2).
+  studentMarkedAbsent: 'Student is marked Absent or Excused this day. Performance rating is disabled.',
   selectAllClear: 'Select All Clear',
   selectAllAbsent: 'Select All Absent',
   selectAllPresent: 'Select All Present',

@@ -5,6 +5,8 @@ export interface AttendanceAggregatedStatus {
   status?: string;
   isMixed: boolean;
   hasAny: boolean;
+  /** Every period recorded is an absence (Absent or Excused): no rating that day (todo 78 point 2). */
+  isAbsence?: boolean;
 }
 
 export interface AttendanceEvaluationRule {
@@ -108,7 +110,8 @@ const AttendanceStudentList = ({
           const periodStatuses = getStudentPeriodStatuses(s.id);
           const aggregatedStatus = getAggregatedStatus(s.id);
           const uniformStatus = aggregatedStatus.status;
-          const isAbsentAllDay = uniformStatus === 'Absent';
+          // Absent or Excused in every period: no rating that day (plan todo 78 point 2).
+          const isAbsentAllDay = Boolean(aggregatedStatus.isAbsence);
 
           return (
             <div key={s.id} className="bg-gray-50 rounded border p-3 space-y-3">

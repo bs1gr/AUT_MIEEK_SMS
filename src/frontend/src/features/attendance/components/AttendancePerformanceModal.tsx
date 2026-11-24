@@ -40,8 +40,8 @@ const AttendancePerformanceModal = ({
   setShowPerformanceModal,
   showToast,
 }: AttendancePerformanceModalProps) => {
-  const modalStatus = getAggregatedStatus(selectedStudentForPerformance.id).status;
-  const isAbsent = modalStatus === 'Absent';
+  // Absent or Excused in every period: nothing to rate (plan todo 78 point 2; Absent alone before).
+  const isAbsent = Boolean(getAggregatedStatus(selectedStudentForPerformance.id).isAbsence);
   const specialParticipationRules = evaluationCategories.filter(
     (rule) => getSpecialParticipationScore(rule.category) !== null,
   );
@@ -102,7 +102,7 @@ const AttendancePerformanceModal = ({
 
         {isAbsent && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700 font-semibold">{t('studentMarkedAbsent') || 'Student is marked as Absent. Performance rating is disabled.'}</p>
+            <p className="text-sm text-red-700 font-semibold">{t('studentMarkedAbsent') || 'Student is marked Absent or Excused this day. Performance rating is disabled.'}</p>
           </div>
         )}
         <div className="space-y-4">

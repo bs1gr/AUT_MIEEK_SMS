@@ -333,8 +333,24 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: an Excused day closes Rate as an Absent one does, and its saved ratings are cleared**
+(todo 78 point 2; the owner that day: "an Excused day should close Rate the way Absent does, and
+clear ratings already saved for that day"). Excused is an absence (todo 77 point 1), but the
+Attendance page closed Rate and the participation ticks, and cleared the day's ratings, only for a
+student marked Absent: a rating or a tick on an Excused day made it an attended day, so it took its
+slice of Class Participation. Now a day is an absence when every period recorded is Absent or
+Excused, mixed or not (`isAbsenceDay` in `utils/attendanceRate.ts`, the day's summary in
+`features/attendance/utils/dayStatus.ts`): Rate is closed, the rating dialog says "Student is
+marked Absent or Excused this day", and marking the day so (one student, or "mark all") clears its
+ratings, which the autosave deletes on the server. A day with one attended period keeps Rate open.
+The help ("How do I rate a student for the day?") and both user guides (section 6) say so. Tests:
+`AttendanceExcusedCloseRate.test.tsx` (8: Excused all day, Absent and Excused, the dialog; 3 of them
+failed on the old page, the other 5 pin what does not change), `attendanceRate.test.ts`. Tried in
+Edge on a scratch server: a present student with a rating saved for the day, Excused clicked: Rate
+closed, the autosave saved both periods Excused and the rating was gone from the server.
+
 **2026-11-24: a retake is a Midterm or Final Exam grade the teacher marks as one, and it replaces
-the earlier sitting** (todo 80; the owner that morning, after the "by date" build misread old
+the earlier sitting** (todo 80, PR 497; the owner that morning, after the "by date" build misread old
 grades: "teacher shall have the option to select the date exam was taken and also to select a
 retake exam as an overwrite of the first final exam. After retake exam the first final exam should
 not count in grading and the retake exam replaces it at the final grading. The same should happen
@@ -377,7 +393,7 @@ payload, the mark cleared, an edit, an undated edit, the history marks, the fail
 held build's page tests that carry over (grade sheets page, Analytics, breakdown).
 
 **2026-11-24: a semester file's attendance statuses are stored as the pages write them, and every
-file names them in the Attendance page's words** (todo 78, points 1 and 3; found by todo 77 point
+file names them in the Attendance page's words** (todo 78, points 1 and 3, PR 496, `b77b10a1b`; found by todo 77 point
 1's review; no decision needed). Every page and the API take only "Present", "Absent", "Late",
 "Excused", but the semester import (`routers_sessions._import_attendance`) stored the file's word
 as written: a "late" counted as a Late in the server's figures and as nothing on the Attendance
@@ -402,7 +418,7 @@ translation file; 5 fail on the old words), `useAttendanceSaveSync.test.ts` (a s
 count failed on the old code), `attendanceStatusWords.test.ts` (Analytics and the reports against
 the page; failed on the old Analytics word).
 
-**2026-11-24: the page says which language it is in** (todo 76; found by todo 75 stage 3's review; no
+**2026-11-24: the page says which language it is in** (todo 76, PR 495, `d9ca22640`; found by todo 75 stage 3's review; no
 decision needed). `index.html` says `lang="en"` and nothing changed it, so on a Greek page the
 browser kept the accents of words written in capitals by CSS (`uppercase`, 48 places in 26 files:
 "ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ") and a screen reader read Greek with an English voice (WCAG
@@ -3098,12 +3114,12 @@ the owner decided that day (Late is attended, lab names match lab, the Weight co
 rules), in three PRs, all three on `main`; **todo 76** (the page's language) too (2026-11-24);
 next, stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's statuses and the
 exports' Greek words (points 1 and 3, on `main` since 2026-11-24), Excused days on the
-Attendance page (point 2, decided 2026-11-24). Found and decided by
+Attendance page (point 2, decided and done 2026-11-24). Found and decided by
 point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces the earlier
 sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
 keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
 2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
-out, decided 2026-11-24). **Next, decided and not yet built: 78 point 2, 83, 85**, each its own PR.
+out, decided 2026-11-24). **Next, decided and not yet built: 83, 85**, each its own PR.
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3749,7 +3765,7 @@ and 44 and 48 in its part 5):
        does? And when a day turns Excused after ratings were saved, should they be cleared, as
        for Absent (that deletes the teacher's ratings)? **The owner's answer (2026-11-24):** "an
        Excused day should close Rate the way Absent does, and clear ratings already saved for that
-       day". Its own PR.
+       day". **Done** (under "On `main` since v1.18.80").
     3. **The exports' Greek status words** (no decision needed): the Export Center's files say
        "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
        where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
