@@ -889,6 +889,51 @@ def test_update_grade_successful(client):
     assert payload["notes"] == "Improved after retake"
 
 
+def test_an_edit_moves_a_grade_to_another_category_and_name(client):
+    """Plan todo 82: the Grading page's Edit sends the category and the assignment's name, and until
+    November 2026 the server dropped both, so a grade filed under the wrong category stayed there."""
+    student = client.post(
+        "/api/v1/students/",
+        json={"first_name": "Mo", "last_name": "Mover", "email": "mo.mover@example.com", "student_id": "MV100"},
+    ).json()
+    course = client.post(
+        "/api/v1/courses/",
+        json={"course_code": "MOV101", "course_name": "Move 101", "semester": "Fall 2025"},
+    ).json()
+    grade = client.post(
+        "/api/v1/grades/",
+        json={**make_grade_payload(1, student_id=student["id"], course_id=course["id"]), "category": "Homework"},
+    ).json()
+
+    r = client.put(
+        f"/api/v1/grades/{grade['id']}",
+        json={"category": "midterm exam", "assignment_name": "Ενδιάμεση (επανάληψη)", "grade": grade["grade"]},
+    )
+
+    assert r.status_code == 200, r.text
+    moved = client.get(f"/api/v1/grades/{grade['id']}").json()
+    # Stored as a new grade's category is: trimmed and title-cased.
+    assert (moved["category"], moved["assignment_name"]) == ("Midterm Exam", "Ενδιάμεση (επανάληψη)")
+
+
+def test_an_edit_never_leaves_a_grade_without_a_name(client):
+    student = client.post(
+        "/api/v1/students/",
+        json={"first_name": "No", "last_name": "Name", "email": "no.name@example.com", "student_id": "NN100"},
+    ).json()
+    course = client.post(
+        "/api/v1/courses/",
+        json={"course_code": "NON101", "course_name": "Name 101", "semester": "Fall 2025"},
+    ).json()
+    grade = client.post(
+        "/api/v1/grades/", json=make_grade_payload(1, student_id=student["id"], course_id=course["id"])
+    ).json()
+
+    assert client.put(f"/api/v1/grades/{grade['id']}", json={"assignment_name": None}).status_code == 422
+    assert client.put(f"/api/v1/grades/{grade['id']}", json={"assignment_name": ""}).status_code == 422
+    assert client.get(f"/api/v1/grades/{grade['id']}").json()["assignment_name"] == grade["assignment_name"]
+
+
 def test_excellence_highlight_created_for_top_grade(client):
     """A or A+ grade should create an Excellence highlight for the student."""
     student = client.post(
