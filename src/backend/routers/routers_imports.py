@@ -11,7 +11,6 @@ import json
 import logging
 import os
 import re
-import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List
@@ -26,6 +25,7 @@ from backend.schemas.audit import AuditAction, AuditResource
 from backend.security.api_keys import verify_api_key_optional
 from backend.rbac import require_permission
 from backend.services.audit_service import AuditLogger
+from backend.services import grade_categories
 from backend.services.import_service import ImportService
 
 logger = logging.getLogger(__name__)
@@ -221,104 +221,54 @@ def _valid_email(s: str) -> bool:
     return 0 < dot_idx < len(domain) - 1 and " " not in s and "\t" not in s
 
 
-def _strip_accents(s: str) -> str:
-    """
-    Remove accent marks from Unicode characters.
-
-    Args:
-        s: String with potential accent marks
-
-    Returns:
-        String with accents removed (normalized to ASCII-compatible form)
-    """
-    try:
-        return "".join(ch for ch in unicodedata.normalize("NFD", s) if unicodedata.category(ch) != "Mn")
-    except Exception:
-        return s
-
-
-def _clean_cat(s: str) -> str:
-    """
-    Clean and normalize category strings.
-
-    Removes trailing parentheses and spaces, normalizes separators.
-
-    Args:
-        s: Raw category string
-
-    Returns:
-        Cleaned category string
-    """
-    s = s.strip()
-    s = s.rstrip(") \t\r\n")  # drop trailing )/spaces without regex backtracking
-    s = re.sub(r"[·•:\-–—]", " ", s)  # collapse separators (surrounding spaces handled by strip and next sub)
-    s = re.sub(r" +", " ", s)  # collapse internal spaces (avoid \s+ backtracking on uncontrolled input)
-    return s.strip()
-
-
 def _ends_with_num(s: str) -> bool:
     """Return True if s ends with a digit (optionally preceded by %) ignoring trailing whitespace."""
     tail = s.rstrip(" \t").rstrip("%")
     return bool(tail) and tail[-1].isdigit()
 
 
-def _map_category(raw: str) -> str:
-    base = _clean_cat(str(raw))
-    base_noacc = _strip_accents(base).lower()
-    mapping = [
-        (["συμμετοχ"], "Class Participation"),
-        (["συνεχη", "διαρκ"], "Continuous Assessment"),
-        (["εργαστηρι"], "Lab Work"),
-        (["ασκησ"], "Exercises"),
-        (["εργασι"], "Assignments"),
-        (["εργασιων στο σπιτι", "στο σπιτι"], "Homework"),
-        (["ενδιαμεση", "προοδος"], "Midterm Exam"),
-        (["τελικ", "τελικη εξεταση"], "Final Exam"),
-        (["εξεταση"], "Exam"),
-        (["παρουσιασ"], "Presentation"),
-        (["project", "εργο"], "Project"),
-        (["quiz", "τεστ"], "Quiz"),
-        (["report", "εκθεση"], "Report"),
-    ]
-    for keys, label in mapping:
-        for k in keys:
-            if k in base_noacc:
-                return label
-    english_known = {
-        "class participation": "Class Participation",
-        "continuous assessment": "Continuous Assessment",
-        "lab assessment": "Lab Work",
-        "lab work": "Lab Work",
-        "assignments": "Assignments",
-        "homework": "Homework",
-        "midterm exam": "Midterm Exam",
-        "final exam": "Final Exam",
-        "exam": "Exam",
-        "presentation": "Presentation",
-        "project": "Project",
-        "quiz": "Quiz",
-        "report": "Report",
-    }
-    low = base.lower()
-    if low in english_known:
-        return english_known[low]
-    return base
+# The name the course editor saves a standard category under (categoryLabels.ts), by the key
+# `grade_categories.standard_key` gives a name that IS one ("Συμμετοχή στο Μάθημα", "Final Exam").
+_STANDARD_RULE_NAMES: Dict[str, str] = {
+    "midterm": "Midterm Exam",
+    "final": "Final Exam",
+    "homework": "Homework/Assignments",
+    "lab": "Lab Work",
+    "quiz": "Quizzes",
+    "project": "Project",
+    "presentation": "Presentation",
+    "participation": "Class Participation",
+    "continuous": "Continuous Assessment",
+    "attendance": "Attendance",
+}
+
+
+def _map_category(raw: Any) -> str:
+    """A rule's name as a course import saves it: a standard category under the name the course
+    editor gives it, any other name as written, its spaces tidied (plan todo 81; the owner,
+    2026-11-23: keep names, as the course editor does since todo 77 point 2). The final grade reads
+    a name by its words. Until then every name was renamed by the first word it held, and the
+    closing bracket cut: the lab templates' «Συνεχής Αξιολόγηση (… και Ενδιάμεση Εξέταση)» became
+    plain "Continuous Assessment" (its midterm lost), «Τελική Εργασία» "Assignments", «Ασκήσεις»
+    "Exercises", «Θεωρητική Εξέταση» "Exam"."""
+    name = " ".join(str(raw or "").split())
+    key = grade_categories.standard_key(name)
+    return _STANDARD_RULE_NAMES.get(key, name) if key else name
 
 
 def _translate_rules(rules: list[dict]) -> list[dict]:
+    """Every rule of the file, in its order, with its name as `_map_category` keeps it and its
+    weight as a number. Two rules are never merged: until todo 81 two names that turned into one
+    label («Θεωρητική Εξέταση» 40, «Πρακτική Εξέταση» 30) became one rule of the last weight."""
     out: list[dict] = []
-    seen: dict[str, float] = {}
     for r in rules or []:
         if not isinstance(r, dict):
             continue
-        cat = _map_category(r.get("category", ""))
         try:
             w = float(str(r.get("weight", 0)).replace("%", "").replace(",", "."))
         except Exception:
             w = 0.0
-        seen[cat] = w  # last one wins
-    for k, v in seen.items():
-        out.append({"category": k, "weight": v})
+        out.append({"category": _map_category(r.get("category", "")), "weight": w})
     return out
 
 
@@ -496,78 +446,6 @@ def import_courses(
         updated = 0
         errors: List[str] = []
         logger.info("Importing courses from directory", extra={"directory": COURSES_DIR})
-
-        # --- Helper: normalize/translate evaluation rule categories ---
-        def _strip_accents(s: str) -> str:
-            try:
-                return "".join(ch for ch in unicodedata.normalize("NFD", s) if unicodedata.category(ch) != "Mn")
-            except Exception:
-                return s
-
-        def _clean_cat(s: str) -> str:
-            s = s.strip()
-            s = re.sub(r"[\)\s]+$", "", s)  # drop trailing )/spaces
-            s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)  # collapse separators
-            s = re.sub(r"\s+", " ", s)
-            return s.strip()
-
-        def _map_category(raw: str) -> str:
-            base = _clean_cat(str(raw))
-            base_noacc = _strip_accents(base).lower()
-            mapping = [
-                (["συμμετοχ"], "Class Participation"),
-                (["συνεχη", "διαρκ"], "Continuous Assessment"),
-                (["εργαστηρι"], "Lab Work"),
-                (["ασκησ"], "Exercises"),
-                (["εργασι"], "Assignments"),
-                (["εργασιων στο σπιτι", "στο σπιτι"], "Homework"),
-                (["ενδιαμεση", "προοδος"], "Midterm Exam"),
-                (["τελικ", "τελικη εξεταση"], "Final Exam"),
-                (["εξεταση"], "Exam"),
-                (["παρουσιασ"], "Presentation"),
-                (["project", "εργο"], "Project"),
-                (["quiz", "τεστ"], "Quiz"),
-                (["report", "εκθεση"], "Report"),
-            ]
-            for keys, label in mapping:
-                for k in keys:
-                    if k in base_noacc:
-                        return label
-            english_known = {
-                "class participation": "Class Participation",
-                "continuous assessment": "Continuous Assessment",
-                "lab assessment": "Lab Work",
-                "lab work": "Lab Work",
-                "assignments": "Assignments",
-                "homework": "Homework",
-                "midterm exam": "Midterm Exam",
-                "final exam": "Final Exam",
-                "exam": "Exam",
-                "presentation": "Presentation",
-                "project": "Project",
-                "quiz": "Quiz",
-                "report": "Report",
-            }
-            low = base.lower()
-            if low in english_known:
-                return english_known[low]
-            return base
-
-        def _translate_rules(rules: list[dict]) -> list[dict]:
-            out: list[dict] = []
-            seen: dict[str, float] = {}
-            for r in rules or []:
-                if not isinstance(r, dict):
-                    continue
-                cat = _map_category(r.get("category", ""))
-                try:
-                    w = float(str(r.get("weight", 0)).replace("%", "").replace(",", "."))
-                except Exception:
-                    w = 0.0
-                seen[cat] = w  # last one wins
-            for k, v in seen.items():
-                out.append({"category": k, "weight": v})
-            return out
 
         for name in os.listdir(COURSES_DIR):
             if not name.lower().endswith((".json")):
