@@ -27,7 +27,16 @@ class ArchiveExcludedPair(BaseModel):
     course_id: int
     course_code: str
     course_name: str
-    reason: Literal["not_passed", "incomplete_grading", "no_evaluation_rules", "already_archived"]
+    # Every reason SemesterArchiveService._evaluate_pair gives: a reason missing here makes the
+    # preview answer 500 (todo 85's two reasons were, in v1.18.81).
+    reason: Literal[
+        "not_passed",
+        "incomplete_grading",
+        "no_evaluation_rules",
+        "already_archived",
+        "failed_absence_limit",
+        "failed_final_retake",
+    ]
     final_grade: Optional[float] = None
     total_weight_used: Optional[float] = None
 
