@@ -17,6 +17,9 @@ export default {
   reasonIncompleteGrading: 'Grading not yet complete',
   reasonNoEvaluationRules: 'No evaluation rules set on this course',
   reasonAlreadyArchived: 'Already archived',
+  // Plan todo 85: failed whatever the final grade; the student takes the course again.
+  reasonFailedAbsenceLimit: 'Failed: over the absence limit (the course is taken again)',
+  reasonFailedFinalRetake: 'Failed: final exam retake under 50 (the course is taken again)',
   finalGrade: 'Final grade',
   student: 'Student',
   course: 'Course',

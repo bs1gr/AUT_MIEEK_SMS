@@ -5,7 +5,9 @@ enrollment where the student has passed the course (weighted final grade,
 fully graded), backs up the whole semester's data, then replaces the raw
 CourseEnrollment/Grade/Attendance/DailyPerformance rows for those passed
 courses with one permanent StudentCoursePerformance record each. Failed,
-dropped, or still-in-progress enrollments are left untouched.
+dropped, or still-in-progress enrollments are left untouched: failed on the
+grade, over the ΜΙΕΕΚ absence limit, or on a final exam retake under 50
+(plan todo 85), whatever the final grade says.
 """
 
 import logging
@@ -16,6 +18,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
+from backend.services import absence_limit_service
 from backend.services.analytics_service import AnalyticsService
 from backend.services.course_activation import sync_course_activation
 from backend.services.semester_export_service import SemesterExportService
@@ -204,6 +207,36 @@ class SemesterArchiveService:
 
         total_weight_used = result["total_weight_used"]
         final_grade = result["final_grade"]
+
+        # Plan todo 85 (the owner, 2026-11-24: "such students should be kept out of the archive,
+        # with the reason shown in its preview"). Archiving records the course as passed and
+        # replaces the raw grades and attendance, so a student who failed it whatever the grade is
+        # kept out: over the ΜΙΕΕΚ absence limit, or with a final exam retake under 50 (todo 80).
+        # Their enrolment and records stay, for the course taken again. Until November 2026 both
+        # were archived as passed when the grade was enough.
+        if grading_records is not None:
+            absence = absence_limit_service.evaluate_records(
+                course, grading_records["attendance"].get((student.id, course.id), [])
+            )
+            insufficient = absence["attendance_insufficient"]
+        else:
+            insufficient = bool(result.get("attendance_insufficient"))
+        if insufficient:
+            return {
+                **base,
+                "eligible": False,
+                "reason": "failed_absence_limit",
+                "final_grade": final_grade,
+                "total_weight_used": total_weight_used,
+            }
+        if (result.get("final_exam_retake") or {}).get("failed"):
+            return {
+                **base,
+                "eligible": False,
+                "reason": "failed_final_retake",
+                "final_grade": final_grade,
+                "total_weight_used": total_weight_used,
+            }
 
         if total_weight_used < 100:
             return {
