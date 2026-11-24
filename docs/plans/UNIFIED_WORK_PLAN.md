@@ -391,6 +391,19 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
+### On `main` since v1.18.81 (unreleased)
+
+**2026-11-24: the Semester Archive preview answers for a student who failed on the absence limit or a
+final retake** (found while designing todo 87; no decision needed). Todo 85 (v1.18.81) gave the
+archive two reasons to keep a student out, `failed_absence_limit` and `failed_final_retake`, and the
+page has their labels, but the preview's response model (`ArchiveExcludedPair.reason`,
+`schemas/semester_archive.py`) still allowed only the four older reasons: `POST
+/api/v1/semester-archive/preview` answered 500 (`ResponseValidationError`) for any semester with such
+a student, so the page could neither preview nor archive that semester. **In v1.18.81, which the
+cloud VM runs.** The service's tests never went through the endpoint. Now the model takes every reason
+the service gives. Test: `test_semester_archive_preview_failed_reasons.py` (through the endpoint;
+fails on the old model with the 500).
+
 ### In v1.18.81
 
 **2026-11-24: the student report and Analytics' "top by exams" read a course as the final grade does**
