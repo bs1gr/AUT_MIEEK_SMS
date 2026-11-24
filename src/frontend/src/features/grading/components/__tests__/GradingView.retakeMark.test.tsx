@@ -58,6 +58,8 @@ const grade = (over: Partial<Grade>): Grade => ({
 
 let storedGrades: Grade[] = [];
 let finalSummary: Record<string, unknown> = {};
+// Holds the grade list's reading open, as a slow server does.
+let holdGrades: Promise<void> | null = null;
 
 const renderForm = async (lang: 'en' | 'el' = 'en') => {
   localStorage.setItem('i18nextLng', lang);
@@ -92,6 +94,9 @@ const save = async (container: HTMLElement, api: 'create' | 'update' = 'create',
   fillScore(container);
   fireEvent.click(container.querySelector('[data-testid="grade-form"] button[type="submit"]')!);
   await waitFor(() => expect(apiModule.gradesAPI[api]).toHaveBeenCalledTimes(call));
+  // The save is done once the form is cleared for the next grade (the call alone is not: the next
+  // step could start before the form clears itself; it failed so on main's CI, 2026-11-24).
+  await waitFor(() => expect((container.querySelector('input[name="grade"]') as HTMLInputElement).value).toBe(''));
   return vi.mocked(apiModule.gradesAPI[api]).mock.calls[call - 1];
 };
 
@@ -100,9 +105,13 @@ describe('Grade Entry: the date an exam was taken and the retake mark', () => {
     vi.clearAllMocks();
     storedGrades = [];
     finalSummary = {};
+    holdGrades = null;
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), text: async () => '' } as unknown as Response));
     vi.mocked(apiModule.default.get).mockImplementation(async (url: string) => {
-      if (url === '/grades/') return answer(storedGrades);
+      if (url === '/grades/') {
+        if (holdGrades) await holdGrades;
+        return answer(storedGrades);
+      }
       if (url.includes('/final-grade')) return answer(finalSummary);
       return answer([]);
     });
@@ -141,6 +150,31 @@ describe('Grade Entry: the date an exam was taken and the retake mark', () => {
     await waitFor(() => expect(screen.getByLabelText('Retake (replaces the earlier sitting)')).not.toBeChecked());
     expect(screen.getByLabelText('Date the exam was taken')).toHaveValue('2026-02-10');
     expect((await save(container, 'create', 2))[0]).toEqual(expect.objectContaining({ date_submitted: '2026-02-10', is_retake: false }));
+  });
+
+  it('keeps what is typed for the next grade while the list is read again after a save', async () => {
+    // The form was cleared only after the final grade and the list were read again, wiping what
+    // had been typed meanwhile; it is cleared as soon as the grade is saved.
+    const container = await renderForm();
+    choose(container, 'Final Exam');
+    let release!: () => void;
+    holdGrades = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    fillScore(container);
+    fireEvent.click(container.querySelector('[data-testid="grade-form"] button[type="submit"]')!);
+    await waitFor(() => expect(apiModule.gradesAPI.create).toHaveBeenCalledTimes(1));
+
+    const score = container.querySelector('input[name="grade"]') as HTMLInputElement;
+    await waitFor(() => expect(score.value).toBe(''));
+    fireEvent.change(score, { target: { value: '77' } });
+    await act(async () => {
+      release();
+      await holdGrades;
+    });
+
+    await waitFor(() => expect(apiModule.default.get).toHaveBeenCalledWith('/grades/', expect.anything()));
+    expect(score.value).toBe('77');
   });
 
   it("reads a course's own name for its final exam as one, and offers the midterm the same", async () => {
