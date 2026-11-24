@@ -71,7 +71,12 @@ export default {
   enrolledCourses: 'Εγγεγραμμένα Μαθήματα',
   noEnrollments: 'Δεν βρέθηκαν εγγραφές',
   academicHistory: 'Ακαδημαϊκό Ιστορικό',
-  academicHistoryDescription: 'Μόνιμο αρχείο μαθημάτων που ο μαθητής έχει ήδη περάσει και ολοκληρώσει.',
+  academicHistoryDescription: 'Μόνιμο αρχείο των μαθημάτων που ο μαθητής ολοκλήρωσε: με επιτυχία, ή με αποτυχία, οπότε το παρακολουθεί ξανά από την αρχή.',
+  // Todo 87: ένα μάθημα με αποτυχία στο ιστορικό, με την αιτία.
+  historyFailed: 'Αποτυχία',
+  historyFailReason_not_passed: 'κάτω από τον βαθμό επιτυχίας',
+  historyFailReason_failed_absence_limit: 'πάνω από το όριο απουσιών',
+  historyFailReason_failed_final_retake: 'επαναληπτική τελική εξέταση κάτω από 50',
   failedToLoadStudentData: 'Αποτυχία φόρτωσης δεδομένων σπουδαστή',
   performance: 'Επίδοση',
   viewPerformance: 'Προβολή Επίδοσης',

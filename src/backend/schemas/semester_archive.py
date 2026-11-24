@@ -21,6 +21,23 @@ class ArchiveEligiblePair(BaseModel):
     total_weight_used: float
 
 
+FailReason = Literal["not_passed", "failed_absence_limit", "failed_final_retake"]
+
+
+class ArchiveFailedPair(BaseModel):
+    """A failed course (plan todo 87): recorded as failed and its records cleared by the run."""
+
+    student_id: int
+    student_name: str
+    course_id: int
+    course_code: str
+    course_name: str
+    reason: FailReason
+    final_grade: float
+    letter_grade: str
+    total_weight_used: float
+
+
 class ArchiveExcludedPair(BaseModel):
     student_id: int
     student_name: str
@@ -28,7 +45,8 @@ class ArchiveExcludedPair(BaseModel):
     course_code: str
     course_name: str
     # Every reason SemesterArchiveService._evaluate_pair gives: a reason missing here makes the
-    # preview answer 500 (todo 85's two reasons were, in v1.18.81).
+    # preview answer 500 (todo 85's two reasons were, in v1.18.81). Since todo 87 the failed ones
+    # go to `failed`.
     reason: Literal[
         "not_passed",
         "incomplete_grading",
@@ -50,8 +68,10 @@ class SemesterArchivePreviewResponse(BaseModel):
     semester: str
     pass_threshold: float
     eligible: List[ArchiveEligiblePair]
+    failed: List[ArchiveFailedPair] = []
     excluded: List[ArchiveExcludedPair]
     eligible_count: int
+    failed_count: int = 0
     excluded_count: int
 
 
@@ -67,6 +87,7 @@ class SemesterArchiveExecuteResponse(BaseModel):
     students_affected: int
     courses_affected: int
     enrollments_archived: int
+    enrollments_failed: int = 0
     enrollments_skipped: int
 
 
@@ -79,6 +100,7 @@ class SemesterArchiveExportListItem(BaseModel):
     students_affected: int
     courses_affected: int
     enrollments_archived: int
+    enrollments_failed: int = 0
     enrollments_skipped: int
     error_message: Optional[str]
     started_at: datetime
@@ -97,6 +119,8 @@ class StudentCoursePerformanceResponse(BaseModel):
     letter_grade: str
     gpa: Optional[float]
     passed: bool
+    # A plain string: a stored record must never make the Profile's history answer 500.
+    fail_reason: Optional[str] = None
     archived_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

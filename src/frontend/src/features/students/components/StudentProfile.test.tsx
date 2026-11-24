@@ -102,6 +102,32 @@ describe('StudentProfile - Academic History', () => {
     expect(screen.getByText('A (92.5%)')).toBeInTheDocument();
   });
 
+  it('shows a failed course as failed, with the reason, beside a passed one (plan todo 87)', async () => {
+    const failedRecord = {
+      ...ARCHIVED_RECORD,
+      id: 2,
+      course_code: 'CS102',
+      final_grade: 84,
+      letter_grade: 'B',
+      passed: false,
+      fail_reason: 'failed_absence_limit',
+    };
+    mockedApiClient.get.mockImplementation((url: string) => {
+      if (url.includes('/performance-history')) {
+        return Promise.resolve({ data: [failedRecord, ARCHIVED_RECORD] });
+      }
+      return Promise.resolve({ data: [] });
+    });
+
+    renderProfile();
+
+    const failed = await screen.findByTestId('history-failed');
+    expect(failed).toHaveTextContent('Failed: over the absence limit (84.0%)');
+    expect(failed.className).toContain('bg-red-100');
+    expect(screen.getAllByTestId('history-failed')).toHaveLength(1);
+    expect(screen.getByText('A (92.5%)')).toBeInTheDocument();
+  });
+
   it('hides the Academic History section when the performance-history request fails', async () => {
     mockedApiClient.get.mockImplementation((url: string) => {
       if (url.includes('/performance-history')) {

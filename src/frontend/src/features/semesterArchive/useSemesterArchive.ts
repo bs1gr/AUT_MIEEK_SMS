@@ -20,13 +20,20 @@ export interface ArchiveEligiblePair {
   total_weight_used: number;
 }
 
+export type FailReason = 'not_passed' | 'failed_absence_limit' | 'failed_final_retake';
+
+/** Plan todo 87: a failed course, recorded as failed and its records cleared by the run. */
+export interface ArchiveFailedPair extends ArchiveEligiblePair {
+  reason: FailReason;
+}
+
 export interface ArchiveExcludedPair {
   student_id: number;
   student_name: string;
   course_id: number;
   course_code: string;
   course_name: string;
-  reason: 'not_passed' | 'incomplete_grading' | 'no_evaluation_rules' | 'already_archived';
+  reason: FailReason | 'incomplete_grading' | 'no_evaluation_rules' | 'already_archived';
   final_grade?: number;
   total_weight_used?: number;
 }
@@ -35,8 +42,10 @@ export interface SemesterArchivePreview {
   semester: string;
   pass_threshold: number;
   eligible: ArchiveEligiblePair[];
+  failed?: ArchiveFailedPair[];
   excluded: ArchiveExcludedPair[];
   eligible_count: number;
+  failed_count?: number;
   excluded_count: number;
 }
 
@@ -46,6 +55,7 @@ export interface SemesterArchiveExecuteResult {
   students_affected: number;
   courses_affected: number;
   enrollments_archived: number;
+  enrollments_failed?: number;
   enrollments_skipped: number;
 }
 
@@ -58,6 +68,7 @@ export interface SemesterArchiveExportListItem {
   students_affected: number;
   courses_affected: number;
   enrollments_archived: number;
+  enrollments_failed?: number;
   enrollments_skipped: number;
   error_message: string | null;
   started_at: string;

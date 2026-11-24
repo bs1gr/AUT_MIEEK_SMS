@@ -2,12 +2,15 @@
 
 Given a semester (the free-text Course.semester label), finds every active
 enrollment where the student has passed the course (weighted final grade,
-fully graded), backs up the whole semester's data, then replaces the raw
-CourseEnrollment/Grade/Attendance/DailyPerformance rows for those passed
-courses with one permanent StudentCoursePerformance record each. Failed,
-dropped, or still-in-progress enrollments are left untouched: failed on the
-grade, over the ΜΙΕΕΚ absence limit, or on a final exam retake under 50
-(plan todo 85), whatever the final grade says.
+fully graded) or failed it, backs up the whole semester's data, then replaces
+the raw CourseEnrollment/Grade/Attendance/DailyPerformance rows for those
+courses with one permanent StudentCoursePerformance record each: passed, or
+failed with the reason (plan todo 87, the owner: a student who fails "has to
+repeat fresh", so nothing of the attempt is left but that record). A student
+fails under the pass mark, over the ΜΙΕΕΚ absence limit, or on a final exam
+retake under 50 (plan todo 85), whatever the final grade says. Enrollments
+still in progress (grading incomplete) or of a course without rules are left
+untouched.
 """
 
 import logging
@@ -172,6 +175,8 @@ class SemesterArchiveService:
             "course_name": course.course_name,
         }
 
+        # A passed record only: a failed attempt (todo 87) is the course to be taken again, perhaps
+        # in the same course row under the same label, and its repeat is archived in its turn.
         if already_archived is not None:
             already = (student.id, course.course_code, course.semester) in already_archived
         else:
@@ -181,6 +186,7 @@ class SemesterArchiveService:
                     self.StudentCoursePerformance.student_id == student.id,
                     self.StudentCoursePerformance.course_code == course.course_code,
                     self.StudentCoursePerformance.semester == course.semester,
+                    self.StudentCoursePerformance.passed.is_(True),
                 )
                 .first()
                 is not None
@@ -207,13 +213,24 @@ class SemesterArchiveService:
 
         total_weight_used = result["total_weight_used"]
         final_grade = result["final_grade"]
+        # What the record of the course needs, passed or failed.
+        record = {
+            "final_grade": final_grade,
+            "letter_grade": result["letter_grade"],
+            "gpa": result["gpa"],
+            "total_weight_used": total_weight_used,
+            "enrollment": enrollment,
+            "course": course,
+            "student": student,
+        }
 
-        # Plan todo 85 (the owner, 2026-11-24: "such students should be kept out of the archive,
-        # with the reason shown in its preview"). Archiving records the course as passed and
-        # replaces the raw grades and attendance, so a student who failed it whatever the grade is
-        # kept out: over the ΜΙΕΕΚ absence limit, or with a final exam retake under 50 (todo 80).
-        # Their enrolment and records stay, for the course taken again. Until November 2026 both
-        # were archived as passed when the grade was enough.
+        # A failed course (plan todo 87; the owner, 2026-11-24: "if the student fail, should retake
+        # the course from the beginning, nothing remains from that course"): recorded as failed with
+        # the reason, and its records cleared like a passed one's. Failed whatever the grade: over
+        # the ΜΙΕΕΚ absence limit, or a final exam retake under 50 (todo 80); these two even while
+        # some grades are still missing. Todo 85 had kept such students out of the archive, their
+        # records counting on when the course was taken again; until then both were archived as
+        # passed when the grade was enough.
         if grading_records is not None:
             absence = absence_limit_service.evaluate_records(
                 course, grading_records["attendance"].get((student.id, course.id), [])
@@ -222,21 +239,9 @@ class SemesterArchiveService:
         else:
             insufficient = bool(result.get("attendance_insufficient"))
         if insufficient:
-            return {
-                **base,
-                "eligible": False,
-                "reason": "failed_absence_limit",
-                "final_grade": final_grade,
-                "total_weight_used": total_weight_used,
-            }
+            return {**base, **record, "eligible": False, "fails": True, "reason": "failed_absence_limit"}
         if (result.get("final_exam_retake") or {}).get("failed"):
-            return {
-                **base,
-                "eligible": False,
-                "reason": "failed_final_retake",
-                "final_grade": final_grade,
-                "total_weight_used": total_weight_used,
-            }
+            return {**base, **record, "eligible": False, "fails": True, "reason": "failed_final_retake"}
 
         if total_weight_used < 100:
             return {
@@ -248,25 +253,9 @@ class SemesterArchiveService:
             }
 
         if final_grade < pass_threshold:
-            return {
-                **base,
-                "eligible": False,
-                "reason": "not_passed",
-                "final_grade": final_grade,
-                "total_weight_used": total_weight_used,
-            }
+            return {**base, **record, "eligible": False, "fails": True, "reason": "not_passed"}
 
-        return {
-            **base,
-            "eligible": True,
-            "final_grade": final_grade,
-            "letter_grade": result["letter_grade"],
-            "gpa": result["gpa"],
-            "total_weight_used": total_weight_used,
-            "enrollment": enrollment,
-            "course": course,
-            "student": student,
-        }
+        return {**base, **record, "eligible": True}
 
     def preview(self, semester: str, pass_threshold: float = 60.0) -> Dict[str, Any]:
         """Dry run: evaluate every active enrollment for `semester` without writing anything."""
@@ -281,7 +270,10 @@ class SemesterArchiveService:
                 self.StudentCoursePerformance.course_code,
                 self.StudentCoursePerformance.semester,
             )
-            .filter(self.StudentCoursePerformance.semester == semester)
+            .filter(
+                self.StudentCoursePerformance.semester == semester,
+                self.StudentCoursePerformance.passed.is_(True),  # see _evaluate_pair
+            )
             .all()
             if student_ids
             else []
@@ -291,11 +283,14 @@ class SemesterArchiveService:
         grading_records = self._fetch_grading_records_for_pairs(course_ids, student_ids)
 
         eligible: List[Dict[str, Any]] = []
+        failed: List[Dict[str, Any]] = []
         excluded: List[Dict[str, Any]] = []
         for enrollment in enrollments:
             pair = self._evaluate_pair(enrollment, pass_threshold, already_archived, grading_records)
             if pair["eligible"]:
                 eligible.append(pair)
+            elif pair.get("fails"):
+                failed.append(pair)
             else:
                 excluded.append(pair)
 
@@ -303,8 +298,10 @@ class SemesterArchiveService:
             "semester": semester,
             "pass_threshold": pass_threshold,
             "eligible": eligible,
+            "failed": failed,
             "excluded": excluded,
             "eligible_count": len(eligible),
+            "failed_count": len(failed),
             "excluded_count": len(excluded),
         }
 
@@ -335,7 +332,10 @@ class SemesterArchiveService:
     def execute(self, semester: str, pass_threshold: float, admin_user_id: Optional[int]) -> Dict[str, Any]:
         # Recompute eligibility server-side; never trust a client-supplied pair list.
         preview_result = self.preview(semester, pass_threshold)
-        eligible = preview_result["eligible"]
+        # Passed and failed courses alike become one record each and lose their raw rows.
+        to_record = [(pair, True) for pair in preview_result["eligible"]] + [
+            (pair, False) for pair in preview_result["failed"]
+        ]
 
         try:
             export_info = SemesterExportService(self.db).create_export(semester, pass_threshold)
@@ -365,9 +365,10 @@ class SemesterArchiveService:
         students_touched: set = set()
         courses_touched: set = set()
         archived_count = 0
+        failed_count = 0
 
         try:
-            for pair in eligible:
+            for pair, passed in to_record:
                 enrollment = pair["enrollment"]
                 course = pair["course"]
                 student = pair["student"]
@@ -382,7 +383,8 @@ class SemesterArchiveService:
                     final_grade=pair["final_grade"],
                     letter_grade=pair["letter_grade"],
                     gpa=pair["gpa"],
-                    passed=True,
+                    passed=passed,
+                    fail_reason=None if passed else pair["reason"],
                     total_weight_used=pair["total_weight_used"],
                     archived_by_user_id=admin_user_id,
                     export_id=export_row.id,
@@ -402,13 +404,17 @@ class SemesterArchiveService:
 
                 students_touched.add(student.id)
                 courses_touched.add(course.id)
-                archived_count += 1
+                if passed:
+                    archived_count += 1
+                else:
+                    failed_count += 1
 
             export_row.status = "completed"
             export_row.completed_at = datetime.now(timezone.utc)
             export_row.students_affected = len(students_touched)
             export_row.courses_affected = len(courses_touched)
             export_row.enrollments_archived = archived_count
+            export_row.enrollments_failed = failed_count
             export_row.enrollments_skipped = preview_result["excluded_count"]
 
             # Archived enrollments are deleted; courses left without students deactivate
@@ -438,5 +444,6 @@ class SemesterArchiveService:
             "students_affected": export_row.students_affected,
             "courses_affected": export_row.courses_affected,
             "enrollments_archived": export_row.enrollments_archived,
+            "enrollments_failed": export_row.enrollments_failed,
             "enrollments_skipped": export_row.enrollments_skipped,
         }

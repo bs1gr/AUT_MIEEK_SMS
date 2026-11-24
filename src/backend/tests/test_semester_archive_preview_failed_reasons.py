@@ -3,7 +3,8 @@
 Todo 85 (v1.18.81) gave the archive two reasons to keep a student out, "failed_absence_limit" and
 "failed_final_retake", but the preview's response model still allowed only the four older reasons:
 the endpoint answered 500 for any semester with such a student, and the page could not preview (nor
-so archive) that semester. The service's own tests never went through the endpoint.
+so archive) that semester. The service's own tests never went through the endpoint. Since todo 87
+both are listed under `failed` (recorded as failed at the run), still through the response model.
 """
 
 from datetime import date, timedelta
@@ -82,5 +83,6 @@ def test_the_preview_answers_with_both_reasons(client, db: Session):
     resp = client.post("/api/v1/semester-archive/preview", json={"semester": SEMESTER, "pass_threshold": 60.0})
 
     assert resp.status_code == 200, resp.text
-    reasons = {p["student_name"].split()[-1]: p["reason"] for p in resp.json()["excluded"]}
+    reasons = {p["student_name"].split()[-1]: p["reason"] for p in resp.json()["failed"]}
     assert reasons == {"over": "failed_absence_limit", "retake": "failed_final_retake"}
+    assert resp.json()["excluded"] == []
