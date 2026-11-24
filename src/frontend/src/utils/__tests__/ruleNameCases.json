@@ -58,5 +58,11 @@
   {"name": "Final Project", "key": "project", "kind": "Project", "saved": "Final Project"},
   {"name": "Τελική Εξέταση Εργαστηρίου", "key": "lab", "kind": "Lab Work", "saved": "Τελική Εξέταση Εργαστηρίου"},
   {"name": "Intermediate", "key": "midterm", "kind": "Midterm Exam", "saved": "Midterm Exam"},
-  {"name": "Εκπόνηση Εργασιών", "key": "homework", "kind": "Homework/Assignments", "saved": "Homework/Assignments"}
+  {"name": "Εκπόνηση Εργασιών", "key": "homework", "kind": "Homework/Assignments", "saved": "Homework/Assignments"},
+  {"name": "Final Quiz", "key": "quiz", "kind": "Quizzes", "saved": "Final Quiz"},
+  {"name": "Τελικό Τεστ", "key": "quiz", "kind": "Quizzes", "saved": "Τελικό Τεστ"},
+  {"name": "Ενδιάμεσο Τεστ", "key": "quiz", "kind": "Quizzes", "saved": "Ενδιάμεσο Τεστ"},
+  {"name": "Final Presentation", "key": "presentation", "kind": "Presentation", "saved": "Final Presentation"},
+  {"name": "Τελική Παρουσίαση", "key": "presentation", "kind": "Presentation", "saved": "Τελική Παρουσίαση"},
+  {"name": "Τελικό Διαγώνισμα", "key": "final", "kind": "Final Exam", "saved": "Τελικό Διαγώνισμα"}
 ]

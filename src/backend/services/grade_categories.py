@@ -165,6 +165,8 @@ _WORD_STARTS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("participation", ("particip", "συμμετοχ")),
     ("attendance", ("attendance", "παρουσι")),
     ("homework", ("homework", "assignment", "exercise", "εργασ", "ασκησ")),
+    # The final grade's quiz words before the exams ("Final Quiz", «Τελικό Τεστ»; plan todo 86).
+    ("quiz", ("quiz", "κουιζ", "τεστ")),
     ("midterm", ("midterm", "intermediate", "ενδιαμεσ")),
     ("final", ("final", "τελικ")),
     ("quiz", ("quiz", "test", "κουιζ", "τεστ", "διαγωνισμ")),

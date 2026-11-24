@@ -154,8 +154,9 @@ export function getCanonicalCategory(category: unknown, t: (key: string) => stri
  * names, utils/__tests__/ruleNameCases.json); else the name itself. The pages use it to tell which
  * rule is Class Participation, Attendance or an observation; it never renames a rule.
  * - the observations first, then continuous assessment (the templates' «Συνεχής Αξιολόγηση
- *   (Εκπόνηση εργασιών στο σπίτι)»), then coursework before the exams («Τελική Εργασία» is
- *   homework, "Final Project" a project: the owner, 2026-11-23);
+ *   (Εκπόνηση εργασιών στο σπίτι)»), then coursework, a quiz, participation and a presentation
+ *   before the exams («Τελική Εργασία» is homework, "Final Project" a project, "Final Quiz" a
+ *   quiz: the owner, 2026-11-23; plan todo 86);
  * - a project before a lab and homework, a lab before homework («Εργαστήρια» holds "εργασ");
  * - participation before presentation and attendance («Παρουσία και Συμμετοχή» is participation);
  * - a presentation before attendance by stems past the "σ" («Παρουσίαση»), so «Ποσοστό Παρουσίας»
@@ -179,11 +180,11 @@ const RULE_KEYWORDS: ReadonlyArray<readonly [string, readonly string[]]> = [
   ['Project', ['project', 'προτζεκ']],
   ['Lab Work', ['lab', 'εργαστ']],
   ['Homework/Assignments', ['homework', 'assignment', 'εργασ', 'ασκη', 'εξασκη']],
-  ['Midterm Exam', ['midterm', 'mid term', 'ενδιαμεσ']],
-  ['Final Exam', ['final', 'τελικ']],
   ['Quizzes', ['quiz', 'κουιζ', 'τεστ']],
   ['Class Participation', ['participation', 'συμμετο']],
   ['Presentation', ['presentation', 'παρουσιαση', 'παρουσιασε']],
+  ['Midterm Exam', ['midterm', 'mid term', 'ενδιαμεσ']],
+  ['Final Exam', ['final', 'τελικ']],
   ['Attendance', ['attendance', 'παρουσ']],
 ];
 

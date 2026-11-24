@@ -71,6 +71,13 @@ from backend.tests.test_grade_sheets import _attendance, _enroll, _grade, _sheet
         ("Final Project", "project"),
         ("Mid-Term Project", "project"),
         ("Τελική Εξέταση Εργαστηρίου", "lab"),
+        # A quiz or a presentation is no exam either (plan todo 86).
+        ("Final Quiz", "quiz"),
+        ("Τελικό Τεστ", "quiz"),
+        ("Ενδιάμεσο Τεστ", "quiz"),
+        ("Final Presentation", "presentation"),
+        ("Τελική Παρουσίαση", "presentation"),
+        ("Τελικό Διαγώνισμα", "final"),
         ("Εργασία Project", "project"),
         ("Κουίζ", "quiz"),
         ("No participation", "no participation"),
@@ -404,3 +411,18 @@ def test_a_course_own_rule_takes_its_grades_whatever_the_accents(client):
 
     assert final["category_breakdown"]["Θεωρητική Εξέταση"]["average"] == 70.0
     assert final["final_grade"] == 70.0
+
+
+def test_a_final_quiz_rule_keeps_its_grades_beside_the_final_exam(client):
+    # Plan todo 86: Final Exam 60 / "Final Quiz" 40; the exam 80 (30 Jan), the quiz 40 (5 Feb):
+    # 0.6 * 80 + 0.4 * 40 = 64. Read as the exam, the quiz was the exam's latest sitting and both
+    # rules took its 40 (and, with a final exam date, it would have been a retake under 50).
+    rules = [{"category": "Final Exam", "weight": 60.0}, {"category": "Final Quiz", "weight": 40.0}]
+    course, student = _course(client, "CONT8", rules, 318)
+    _grade(client, student["id"], course["id"], "F", "Final Exam", 80, max_grade=100, day=date(2026, 1, 30))
+    _grade(client, student["id"], course["id"], "Q", "Final Quiz", 40, max_grade=100, day=date(2026, 2, 5))
+
+    final = _final(client, course, student)
+
+    assert final["category_breakdown"]["Final Exam"]["average"] == 80.0
+    assert final["final_grade"] == 64.0

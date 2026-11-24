@@ -180,9 +180,10 @@ A rule takes the grades of its category by the category's words: accents, capita
 and a hyphen do not matter, so "Εργαστήρια" takes the Lab Work grades, "ΤΕΛΙΚΗ ΕΞΕΤΑΣΗ" the
 Final Exam grades and "Mid-Term Exam" the Midterm Exam grades. When a name holds the words of
 several categories, the first of these wins: continuous assessment, a project, a lab, homework,
-the midterm, the final, a quiz, participation, a presentation, attendance ("Παρουσία στο
-Εργαστήριο" is a lab, "Εργασίες και Συμμετοχή" homework; "Τελική Εργασία" is homework and "Final
-Project" a project, coursework and not the final exam). A name that
+a quiz, participation, a presentation, the midterm, the final, attendance ("Παρουσία στο
+Εργαστήριο" is a lab, "Εργασίες και Συμμετοχή" homework; "Τελική Εργασία" is homework, "Final
+Project" a project, "Final Quiz" a quiz and "Τελική Παρουσίαση" a presentation: coursework, not
+the final exam). A name that
 is one of the app's categories in either language, as the app names it or in a common spelling
 ("Εργαστήρια", "Παρουσίες", "Τελική Εξέταση"), is saved as that category; any other name is kept
 as typed and read by its words: "Εργαστ. Ασκήσεις" takes the Lab Work grades (a lab is never
