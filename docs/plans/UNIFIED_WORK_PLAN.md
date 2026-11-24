@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.80
-**Last Updated**: November 23, 2026
+**Last Updated**: November 24, 2026
 **Status**: ✅ **v1.18.80 released 2026-11-22** (tag on `ce5d07cc1`, run by the assistant; the
 owner: "continue unattended for all pending tasks until successfully reach to v1.18.80"). It
 carries PRs 464 to 471, under "In v1.18.80" below: the Docker host task's rebuild starts from
@@ -332,6 +332,33 @@ The status records of v1.18.73 back to v1.18.67, and the release record of v1.18
 word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
+
+**2026-11-24: the page says which language it is in** (todo 76; found by todo 75 stage 3's review; no
+decision needed). `index.html` says `lang="en"` and nothing changed it, so on a Greek page the
+browser kept the accents of words written in capitals by CSS (`uppercase`, 48 places in 26 files:
+"ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ") and a screen reader read Greek with an English voice (WCAG
+3.1.1). `LanguageProvider` now sets `<html lang>` to the language chosen, before the first paint
+and at every switch (the supported code: a stored "el-GR" gives "el"). Nothing else needed
+changing: the Greek texts hold no capitals typed with accents, and the code's `toUpperCase()` calls
+are on English codes (statuses, file formats, the academic year's A/B). Tried in Edge 158: under
+`lang="en"` CSS writes «Κατηγορία» as «ΚΑΤΗΓΟΡΊΑ», under `lang="el"` as «ΚΑΤΗΓΟΡΙΑ»; on the
+sign-in page of the running frontend the switch sets "en" and "el" and the app's `uppercase`
+class follows, a reload with Greek stored starts as "el", no page error.
+`LanguageContext.test.tsx`: the stored language from the first render, the supported code, every
+switch (3, all failed on the old code).
+
+**2026-11-24: Monday's Dependabot batch merged** (the owner's word of 2026-11-22: wait for it).
+#476 (`actions/create-github-app-token` 3.4.0), #477 (the pip group: FastAPI 0.165.0, SQLAlchemy
+2.1.9, pydantic 2.14.4, ruff 0.17.6 and four more), #478 (pypdf `>=7.1.1`, tests only), #479 (the
+npm group, 66 updates: TanStack Query 5.108, Vitest 5.1.1, Playwright 1.65.1, typescript-eslint
+8.73, recharts 3.11 and others), each green on its own. On `fdb8c797b`, the last merge, CI passed
+(backend 2,446 passed and 60 skipped, frontend 2,381 in 174 files) and E2E too (77 passed).
+**#483 (TypeScript 6.0.3 -> 7.0.2) cannot merge:** `npm ci` fails, as every
+typescript-eslint release (8.74.0, and the v8 alpha) wants `typescript <6.1.0`. It stays open until
+the owner chooses to have Dependabot ignore 7.x until typescript-eslint takes it, or to close it.
+Locally `node_modules`, the root `.venv` and `src\backend\.venv` were brought up to the new
+versions (`tsc` clean, the grading Vitest folder and a backend file pass). Playwright 1.65.1 wants
+a newer bundled Chromium than the one downloaded here; Edge (`channel: 'msedge'`) runs meanwhile.
 
 **2026-11-24: a final quiz or a final presentation is coursework, not the final exam** (todo 86, PR
 494; found by todo 80's review; the owner's answer to todo 77 point 2's third review: only a name
@@ -3488,7 +3515,7 @@ and 44 and 48 in its part 5):
     (`uppercase`: "ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ", in 33 files), and a screen reader reads
     Greek with an English voice (WCAG 3.1.1). Set `document.documentElement.lang` from the
     language in `LanguageProvider`, then look over the pages that use `uppercase`. Its own PR,
-    after todo 77.
+    after todo 77. **Done** (under "On `main` since v1.18.80").
 
 77. **Three corrections to the final grade** (the owner, 2026-11-23, asked after todo 75 stage
     3's review; each changes final grades, no database change):

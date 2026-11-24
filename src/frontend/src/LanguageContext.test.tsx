@@ -163,6 +163,50 @@ describe('LanguageContext', () => {
     });
   });
 
+  // index.html says lang="en"; until November 2026 nothing changed it, so a Greek page kept
+  // the accents of words written in capitals by CSS ("ΚΑΤΗΓΟΡΊΑ") and a screen reader read
+  // Greek with an English voice (WCAG 3.1.1).
+  describe('the page language', () => {
+    afterEach(() => {
+      document.documentElement.lang = '';
+    });
+
+    it('is the stored language from the first render', () => {
+      localStorage.setItem('i18nextLng', 'el');
+
+      renderHook(() => useLanguage(), { wrapper });
+
+      expect(document.documentElement.lang).toBe('el');
+    });
+
+    it('is the supported code, not the detected device locale', async () => {
+      localStorage.setItem('i18nextLng', 'el-GR');
+
+      renderHook(() => useLanguage(), { wrapper });
+
+      await waitFor(() => expect(document.documentElement.lang).toBe('el'));
+    });
+
+    it('follows every switch of language', async () => {
+      const { result } = renderHook(() => useLanguage(), { wrapper });
+
+      await act(async () => {
+        await result.current.setLanguage('el');
+      });
+      expect(document.documentElement.lang).toBe('el');
+
+      await act(async () => {
+        await result.current.setLanguage('en');
+      });
+      expect(document.documentElement.lang).toBe('en');
+
+      await act(async () => {
+        await result.current.setLanguage('el-GR');
+      });
+      expect(document.documentElement.lang).toBe('el');
+    });
+  });
+
   describe('state consistency', () => {
     it('context state reflects current i18n language', async () => {
       const { result } = renderHook(() => useLanguage(), { wrapper });
