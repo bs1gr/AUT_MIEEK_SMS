@@ -636,129 +636,164 @@ class CustomReportGenerationService:
             return False
         return hasattr(model, field)
 
-    def _apply_filters(self, query, model, filters: Any, report_type: str) -> Any:  # type: ignore[no-untyped-def]
-        """Apply filters to the query. Handles multiple filter formats."""
-        if not filters:
-            return query
+    # Plan todo 75 stage 5: one reading of a report's filters and sort for the query and for the
+    # rows. The operators by any of their names (the templates use gte/lt, the builder the long
+    # names); before November 2026 the query knew only some of them and skipped the others.
+    _OPERATOR_ALIASES = {
+        "eq": "equals",
+        "ne": "not_equals",
+        "gt": "greater_than",
+        "gte": "greater_than_or_equal",
+        "ge": "greater_than_or_equal",
+        "lt": "less_than",
+        "lte": "less_than_or_equal",
+        "le": "less_than_or_equal",
+    }
 
-        # Convert list of filter objects to proper queries
+    @classmethod
+    def _filter_value(cls, operator: str, value: Any) -> Any:
+        """A value as the operator takes it: the builder types "in" and "between" as text."""
+        if operator == "in" and isinstance(value, str):
+            return [part.strip() for part in value.split(",") if part.strip()]
+        if operator == "between":
+            if isinstance(value, str):
+                parts = [part.strip() for part in re.split(r"[,;]", value) if part.strip()]
+                if len(parts) == 2:
+                    return {"from": parts[0], "to": parts[1]}
+            elif isinstance(value, (list, tuple)) and len(value) == 2:
+                return {"from": value[0], "to": value[1]}
+        return value
+
+    @classmethod
+    def _filter_rules(cls, filters: Any) -> List[Tuple[str, str, Any]]:
+        """Every filter as (field, operator, value), whatever the shape it was saved in.
+
+        A list of {field, operator, value} (the templates, the builder since November 2026:
+        several filters on one field), {field: {operator, value}} (the builder before), or the
+        oldest {field: value} (equals).
+        """
+        found: List[Tuple[str, Any, Any]] = []
         if isinstance(filters, list):
             for filter_obj in filters:
-                if not isinstance(filter_obj, dict):
-                    continue
-
-                field = filter_obj.get("field")
-                operator = filter_obj.get("operator", "equals")
-                value = filter_obj.get("value")
-                normalized_field = self._normalize_report_field_key(report_type, str(field or ""))
-
-                if not field or not self._can_apply_query_field(model, report_type, normalized_field):
-                    continue
-
-                column = getattr(model, normalized_field)
-
-                # Apply operator-specific logic
-                if operator == "equals":
-                    query = query.filter(column == value)  # type: ignore[operator]
-                elif operator == "not_equals":
-                    query = query.filter(column != value)  # type: ignore[operator]
-                elif operator == "contains":
-                    query = query.filter(column.ilike(f"%{value}%"))  # type: ignore[operator]
-                elif operator == "not_contains":
-                    query = query.filter(~column.ilike(f"%{value}%"))  # type: ignore[operator]
-                elif operator == "starts_with":
-                    query = query.filter(column.ilike(f"{value}%"))  # type: ignore[operator]
-                elif operator == "ends_with":
-                    query = query.filter(column.ilike(f"%{value}"))  # type: ignore[operator]
-                elif operator == "greater_than" or operator == "gt":
-                    query = query.filter(column > value)  # type: ignore[operator]
-                elif operator == "less_than" or operator == "lt":
-                    query = query.filter(column < value)  # type: ignore[operator]
-                elif operator == "greater_than_or_equal":
-                    query = query.filter(column >= value)  # type: ignore[operator]
-                elif operator == "less_than_or_equal":
-                    query = query.filter(column <= value)  # type: ignore[operator]
-                elif operator == "in":
-                    if isinstance(value, (list, tuple)):
-                        query = query.filter(column.in_(value))  # type: ignore[operator]
-                elif operator == "between":
-                    if isinstance(value, dict) and "from" in value and "to" in value:
-                        query = query.filter(column.between(value["from"], value["to"]))  # type: ignore[operator]
-
-        # Nested dict format: {"grade": {"operator": "less_than", "value": 60}}
+                if isinstance(filter_obj, dict) and filter_obj.get("field"):
+                    found.append((str(filter_obj["field"]), filter_obj.get("operator"), filter_obj.get("value")))
         elif isinstance(filters, dict):
-            for field_name, filter_spec in filters.items():
-                normalized_field = self._normalize_report_field_key(report_type, str(field_name))
-                # If value is a dict with operator/value, it's the new format
-                if isinstance(filter_spec, dict) and "operator" in filter_spec and "value" in filter_spec:
-                    operator = filter_spec.get("operator", "equals")
-                    value = filter_spec.get("value")
-
-                    if not self._can_apply_query_field(model, report_type, normalized_field):
-                        continue
-
-                    column = getattr(model, normalized_field)
-
-                    # Apply operator-specific logic
-                    if operator == "equals":
-                        query = query.filter(column == value)  # type: ignore[operator]
-                    elif operator == "not_equals":
-                        query = query.filter(column != value)  # type: ignore[operator]
-                    elif operator == "contains":
-                        query = query.filter(column.ilike(f"%{value}%"))  # type: ignore[operator]
-                    elif operator == "not_contains":
-                        query = query.filter(~column.ilike(f"%{value}%"))  # type: ignore[operator]
-                    elif operator == "starts_with":
-                        query = query.filter(column.ilike(f"{value}%"))  # type: ignore[operator]
-                    elif operator == "ends_with":
-                        query = query.filter(column.ilike(f"%{value}"))  # type: ignore[operator]
-                    elif operator == "greater_than" or operator == "gt":
-                        query = query.filter(column > value)  # type: ignore[operator]
-                    elif operator == "less_than" or operator == "lt":
-                        query = query.filter(column < value)  # type: ignore[operator]
-                    elif operator == "greater_than_or_equal":
-                        query = query.filter(column >= value)  # type: ignore[operator]
-                    elif operator == "less_than_or_equal":
-                        query = query.filter(column <= value)  # type: ignore[operator]
-                    elif operator == "in":
-                        if isinstance(value, (list, tuple)):
-                            query = query.filter(column.in_(value))  # type: ignore[operator]
-                    elif operator == "between":
-                        if isinstance(value, dict) and "from" in value and "to" in value:
-                            query = query.filter(column.between(value["from"], value["to"]))  # type: ignore[operator]
-                # Legacy simple format: {"field_name": value}
+            for field_name, spec in filters.items():
+                if isinstance(spec, dict) and "value" in spec:
+                    found.append((str(field_name), spec.get("operator"), spec.get("value")))
                 else:
-                    if self._can_apply_query_field(model, report_type, normalized_field):
-                        column = getattr(model, normalized_field)
-                        query = query.filter(column == filter_spec)  # type: ignore[operator]
+                    found.append((str(field_name), "equals", spec))
+        rules = []
+        for field, operator, value in found:
+            name = str(operator or "equals").strip().lower()
+            name = cls._OPERATOR_ALIASES.get(name, name)
+            rules.append((field, name, cls._filter_value(name, value)))
+        return rules
 
+    @staticmethod
+    def _sort_rules(sort_by: Any) -> List[Tuple[str, str]]:
+        """Every sort rule as (field, "asc"|"desc"), first rule first, whatever the saved shape.
+
+        A list of {field, order} (or direction), the oldest {field, direction}, or the builder's
+        {"<field>": "asc"|"desc"}, which nothing read before November 2026 (plan todo 75 stage 5:
+        a saved sort never applied).
+        """
+        rules: List[Tuple[str, str]] = []
+        if isinstance(sort_by, list):
+            for sort_obj in sort_by:
+                if isinstance(sort_obj, dict) and sort_obj.get("field"):
+                    order = sort_obj.get("order") or sort_obj.get("direction") or "asc"
+                    rules.append((str(sort_obj["field"]), str(order).lower()))
+        elif isinstance(sort_by, dict):
+            if sort_by.get("field") and set(sort_by) <= {"field", "direction", "order"}:
+                order = sort_by.get("direction") or sort_by.get("order") or "asc"
+                rules.append((str(sort_by["field"]), str(order).lower()))
+            else:
+                rules.extend((str(field), str(order or "asc").lower()) for field, order in sort_by.items() if field)
+        return [(field, "desc" if order == "desc" else "asc") for field, order in rules]
+
+    @staticmethod
+    def _query_value(column: Any, value: Any) -> Any:
+        """A typed value as the column takes it (the builder sends every value as text), or
+        raises ValueError: the query then leaves that filter to the rows' own check."""
+        try:
+            python_type = column.type.python_type
+        except (AttributeError, NotImplementedError):
+            return value
+        if not isinstance(value, str):
+            return value
+        if python_type is int:
+            return int(float(value))
+        if python_type is float:
+            return float(value)
+        if python_type is datetime:
+            return datetime.fromisoformat(value.strip())
+        if python_type is date:
+            return date.fromisoformat(value.strip()[:10])
+        return value
+
+    @staticmethod
+    def _is_text_column(column: Any) -> bool:
+        try:
+            return column.type.python_type is str
+        except (AttributeError, NotImplementedError):
+            return False
+
+    def _sql_condition(self, column: Any, operator: str, value: Any) -> Any:
+        """The query condition for one filter, or None when the query cannot hold it."""
+        try:
+            if operator == "in":
+                if not isinstance(value, (list, tuple)):
+                    return None
+                return column.in_([self._query_value(column, item) for item in value])
+            if operator == "between":
+                if not (isinstance(value, dict) and "from" in value and "to" in value):
+                    return None
+                return column.between(self._query_value(column, value["from"]), self._query_value(column, value["to"]))
+            if operator in {"contains", "not_contains", "starts_with", "ends_with"}:
+                if not self._is_text_column(column):
+                    return None  # PostgreSQL has no ILIKE on a number or a date: the rows' check does it
+                pattern = {
+                    "contains": f"%{value}%",
+                    "not_contains": f"%{value}%",
+                    "starts_with": f"{value}%",
+                    "ends_with": f"%{value}",
+                }[operator]
+                condition = column.ilike(pattern)
+                return ~condition if operator == "not_contains" else condition
+            typed = self._query_value(column, value)
+        except (TypeError, ValueError):
+            return None
+        comparisons = {
+            "equals": lambda: column == typed,
+            "not_equals": lambda: column != typed,
+            "greater_than": lambda: column > typed,
+            "less_than": lambda: column < typed,
+            "greater_than_or_equal": lambda: column >= typed,
+            "less_than_or_equal": lambda: column <= typed,
+        }
+        make = comparisons.get(operator)
+        return make() if make else None
+
+    def _apply_filters(self, query, model, filters: Any, report_type: str) -> Any:  # type: ignore[no-untyped-def]
+        """Apply what the query can of the filters; the rows are checked against all of them
+        afterwards (_apply_post_filters), so a filter the query leaves out still applies."""
+        for field, operator, value in self._filter_rules(filters):
+            normalized_field = self._normalize_report_field_key(report_type, field)
+            if not self._can_apply_query_field(model, report_type, normalized_field):
+                continue
+            condition = self._sql_condition(getattr(model, normalized_field), operator, value)
+            if condition is not None:
+                query = query.filter(condition)
         return query
 
     def _apply_sort(self, query, model, sort_by: Any, report_type: str) -> Any:  # type: ignore[no-untyped-def]
-        """Apply sorting to the query. Handles both list and dict formats."""
-        # Handle list of sort objects
-        if isinstance(sort_by, list):
-            for sort_obj in sort_by:
-                if not isinstance(sort_obj, dict):
-                    continue
-
-                field = sort_obj.get("field")
-                order = str(sort_obj.get("order", "asc")).lower()
-                normalized_field = self._normalize_report_field_key(report_type, str(field or ""))
-
-                if field and self._can_apply_query_field(model, report_type, normalized_field):
-                    column = getattr(model, normalized_field)
-                    query = query.order_by(column.desc() if order == "desc" else column.asc())  # type: ignore[operator]
-
-        # Legacy dict format support
-        elif isinstance(sort_by, dict):
-            field = sort_by.get("field") if isinstance(sort_by, dict) else None
-            direction = str(sort_by.get("direction", "asc")).lower() if isinstance(sort_by, dict) else "asc"
-            normalized_field = self._normalize_report_field_key(report_type, str(field or ""))
-            if field and self._can_apply_query_field(model, report_type, normalized_field):
+        """Apply sorting to the query (the rows are sorted again by every rule afterwards)."""
+        for field, order in self._sort_rules(sort_by):
+            normalized_field = self._normalize_report_field_key(report_type, field)
+            if self._can_apply_query_field(model, report_type, normalized_field):
                 column = getattr(model, normalized_field)
-                query = query.order_by(column.desc() if direction == "desc" else column.asc())  # type: ignore[operator]
-
+                query = query.order_by(column.desc() if order == "desc" else column.asc())  # type: ignore[operator]
         return query
 
     def _normalize_columns(self, report_type: str, fields: Any) -> List[Tuple[str, str]]:  # type: ignore[no-untyped-def]
@@ -863,6 +898,8 @@ class CustomReportGenerationService:
     def _coerce_comparable_value(value: Any) -> Any:
         if value is None or value == "":
             return ""
+        if isinstance(value, (date, datetime)):
+            return value.isoformat()  # a typed date ("2026-01-15") compares with it as text
         if isinstance(value, str):
             stripped = value.strip()
             try:
@@ -875,8 +912,23 @@ class CustomReportGenerationService:
         actual = self._get_resolved_filter_value(record, report_type, field)
         normalized_operator = str(operator or "equals").lower()
 
+        normalized_operator = self._OPERATOR_ALIASES.get(normalized_operator, normalized_operator)
         actual_cmp = self._coerce_comparable_value(actual)
+        if normalized_operator == "between":
+            bounds = self._filter_value("between", expected)
+            if not (isinstance(bounds, dict) and "from" in bounds and "to" in bounds):
+                return True  # not a range: as an unknown operator
+            low, high = (self._coerce_comparable_value(bounds[key]) for key in ("from", "to"))
+            return self._ordered(low, actual_cmp) and self._ordered(actual_cmp, high)
+        if normalized_operator == "in":
+            options = self._filter_value("in", expected)
+            options = options if isinstance(options, (list, tuple, set)) else [options]
+            return actual_cmp in [self._coerce_comparable_value(option) for option in options]
         expected_cmp = self._coerce_comparable_value(expected)
+        if normalized_operator in {"greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"}:
+            # An empty value, or text against a number, is no match (it raised TypeError before).
+            if isinstance(actual_cmp, str) != isinstance(expected_cmp, str) or actual_cmp == "":
+                return False
 
         if normalized_operator in {"equals", "eq"}:
             return actual_cmp == expected_cmp
@@ -898,34 +950,20 @@ class CustomReportGenerationService:
             return actual_cmp < expected_cmp
         if normalized_operator in {"less_than_or_equal", "lte"}:
             return actual_cmp <= expected_cmp
-        if normalized_operator == "in":
-            return actual_cmp in (expected_cmp if isinstance(expected_cmp, (list, tuple, set)) else [expected_cmp])
         return True
+
+    @staticmethod
+    def _ordered(low: Any, high: Any) -> bool:
+        """low <= high, False when they cannot be compared (text against a number, an empty one)."""
+        if low == "" or high == "" or isinstance(low, str) != isinstance(high, str):
+            return False
+        return low <= high
 
     def _apply_post_filters(self, records: List[Any], filters: Any, report_type: str) -> List[Any]:
         if not filters:
             return records
 
-        normalized_filters: List[Tuple[str, str, Any]] = []
-        if isinstance(filters, list):
-            for filter_obj in filters:
-                if isinstance(filter_obj, dict) and filter_obj.get("field"):
-                    normalized_filters.append(
-                        (
-                            str(filter_obj.get("field")),
-                            str(filter_obj.get("operator", "equals")),
-                            filter_obj.get("value"),
-                        )
-                    )
-        elif isinstance(filters, dict):
-            for field_name, filter_spec in filters.items():
-                if isinstance(filter_spec, dict) and "value" in filter_spec:
-                    normalized_filters.append(
-                        (str(field_name), str(filter_spec.get("operator", "equals")), filter_spec.get("value"))
-                    )
-                else:
-                    normalized_filters.append((str(field_name), "equals", filter_spec))
-
+        normalized_filters = self._filter_rules(filters)
         filtered_records = records
         for field, operator, value in normalized_filters:
             filtered_records = [
@@ -939,23 +977,31 @@ class CustomReportGenerationService:
         if not sort_by:
             return records
 
-        sort_rules: List[Tuple[str, str]] = []
-        if isinstance(sort_by, list):
-            for sort_obj in sort_by:
-                if isinstance(sort_obj, dict) and sort_obj.get("field"):
-                    sort_rules.append((str(sort_obj.get("field")), str(sort_obj.get("order", "asc")).lower()))
-        elif isinstance(sort_by, dict) and sort_by.get("field"):
-            sort_rules.append((str(sort_by.get("field")), str(sort_by.get("direction", "asc")).lower()))
-
         sorted_records = list(records)
-        for field, direction in reversed(sort_rules):
-            sorted_records.sort(
-                key=lambda record: self._coerce_comparable_value(
-                    self._get_resolved_filter_value(record, report_type, field)
-                ),
-                reverse=direction == "desc",
-            )
+        for field, direction in reversed(self._sort_rules(sort_by)):
+            # Empty values last either way, numbers before text: mixed values raised TypeError
+            # before. Each pass is stable, so the earlier rules decide first.
+            keyed = [
+                (
+                    self._sort_key(
+                        self._coerce_comparable_value(self._get_resolved_filter_value(r, report_type, field))
+                    ),
+                    r,
+                )
+                for r in sorted_records
+            ]
+            filled = [item for item in keyed if item[0][0] != 2]
+            filled.sort(key=lambda item: item[0], reverse=direction == "desc")
+            sorted_records = [r for _, r in filled] + [r for key, r in keyed if key[0] == 2]
         return sorted_records
+
+    @staticmethod
+    def _sort_key(value: Any) -> Tuple[int, Any]:
+        if value == "":
+            return (2, "")
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return (0, value)
+        return (1, str(value))
 
     def _extract_columns(self, fields: Any) -> List[Tuple[str, str]]:
         columns: Sequence[Any] = []
@@ -1195,7 +1241,9 @@ class CustomReportGenerationService:
         file_path: str,
         group_by_col_index: Optional[int] = None,
     ) -> None:
-        with open(file_path, "w", newline="", encoding="utf-8") as handle:
+        # With a byte-order mark (plan todo 75 stage 5): Excel opens a UTF-8 file without one as
+        # its local code page, so Greek came out garbled. As the other CSV exports do.
+        with open(file_path, "w", newline="", encoding="utf-8-sig") as handle:
             writer = csv.writer(handle)
             writer.writerow(headers)
             current_group = None

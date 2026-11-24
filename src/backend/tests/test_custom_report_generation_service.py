@@ -76,7 +76,7 @@ def test_generate_report_csv_creates_file(db, tmp_path: Path):
     assert generated.file_size_bytes is not None
     assert Path(generated.file_path).exists()
 
-    content = Path(generated.file_path).read_text(encoding="utf-8")
+    content = Path(generated.file_path).read_text(encoding="utf-8-sig")
     assert "First Name" in content
     assert "Jane" in content
 
@@ -190,7 +190,7 @@ def test_generate_grade_report_supports_legacy_field_aliases(db, tmp_path: Path)
     assert generated.status == "completed"
     assert generated.file_path
 
-    content = Path(generated.file_path).read_text(encoding="utf-8")
+    content = Path(generated.file_path).read_text(encoding="utf-8-sig")
     assert "Student Name" in content
     assert "Grade" in content
     assert "Jane Doe" in content
@@ -256,7 +256,7 @@ def test_generate_grade_report_normalizes_legacy_id_column_to_student_identifier
     service.generate_report(cast(int, report.id), cast(int, generated.id), user_id, "csv", include_charts=False)
 
     db.refresh(generated)
-    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8")
+    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8-sig")
     lines = [line.strip() for line in content.splitlines() if line.strip()]
 
     assert lines[0].startswith("Student Name,Student ID,Course Id")
@@ -337,7 +337,7 @@ def test_generate_student_attendance_summary_uses_student_identifier_and_compute
     service.generate_report(cast(int, report.id), cast(int, generated.id), user_id, "csv", include_charts=False)
 
     db.refresh(generated)
-    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8")
+    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8-sig")
     lines = [line.strip() for line in content.splitlines() if line.strip()]
 
     assert lines[0].startswith("Student ID,First Name,Attendance Rate,Total Classes,Attended")
@@ -395,7 +395,7 @@ def test_generate_course_report_supports_legacy_name_code_and_enrollment_count_a
     service.generate_report(cast(int, report.id), cast(int, generated.id), user_id, "csv", include_charts=False)
 
     db.refresh(generated)
-    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8")
+    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8-sig")
     lines = [line.strip() for line in content.splitlines() if line.strip()]
 
     assert lines[0].startswith("Course Name,Course Code,Enrollment Count")
@@ -464,7 +464,7 @@ def test_generate_student_report_supports_legacy_study_year_status_and_gpa_alias
     service.generate_report(cast(int, report.id), cast(int, generated.id), user_id, "csv", include_charts=False)
 
     db.refresh(generated)
-    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8")
+    content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8-sig")
     lines = [line.strip() for line in content.splitlines() if line.strip()]
 
     assert lines[0].startswith("Student ID,Study Year,Active,GPA")
@@ -766,7 +766,7 @@ def test_xlsx_and_csv_both_empty_for_pre_alias_grade_value_field(db, tmp_path: P
 
     # --- CSV (same rows, same _resolve_field, no rendering at all) ---
     gen_csv = _run_report("csv", "alias_proof.csv")
-    csv_content = Path(cast(str, gen_csv.file_path)).read_text(encoding="utf-8")
+    csv_content = Path(cast(str, gen_csv.file_path)).read_text(encoding="utf-8-sig")
     csv_lines = [ln.strip() for ln in csv_content.splitlines() if ln.strip()]
     assert len(csv_lines) == 2, f"Expected header + 1 data row, got {csv_lines}"
     csv_grade_cell = csv_lines[1].split(",")[1]  # grade_value column
