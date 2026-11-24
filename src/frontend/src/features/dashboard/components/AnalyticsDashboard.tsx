@@ -69,6 +69,16 @@ export const AnalyticsDashboard = () => {
     return all === undefined ? undefined : categoriesForCourse(all, effectiveCourseId);
   }, [studentOverview.data, effectiveCourseId]);
 
+  // The export follows what the page shows (plan todo 75 stage 4): the class view's selection, or
+  // the student on screen (the one chosen, else the selection's first) and the chosen course.
+  const exportFilters = useMemo(
+    () =>
+      viewMode === 'class'
+        ? { academicYear, classDivision: division, courseId: effectiveCourseId }
+        : { academicYear, classDivision: division, courseId: effectiveCourseId, studentId: effectiveStudentId },
+    [viewMode, academicYear, division, effectiveCourseId, effectiveStudentId]
+  );
+
   const activeDashboard = selectedDashboardId ? dashboards.find((d: Dashboard) => d.id === selectedDashboardId) : defaultDashboard;
   const visibleCharts = useMemo(
     () => resolveVisibleCharts(activeDashboard?.configuration?.charts as string[] | undefined),
@@ -256,7 +266,7 @@ export const AnalyticsDashboard = () => {
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
-          onClick={() => exportPDF()}
+          onClick={() => exportPDF(exportFilters)}
           disabled={isExporting}
           title={t('analytics.overview.exportScope')}
           className="flex items-center gap-2 rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
@@ -266,7 +276,7 @@ export const AnalyticsDashboard = () => {
         </button>
         <button
           type="button"
-          onClick={() => exportExcel()}
+          onClick={() => exportExcel(exportFilters)}
           disabled={isExporting}
           title={t('analytics.overview.exportScope')}
           className="flex items-center gap-2 rounded-xl bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"

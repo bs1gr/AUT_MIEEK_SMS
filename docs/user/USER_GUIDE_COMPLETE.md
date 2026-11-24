@@ -461,7 +461,10 @@ Reached from the Dashboard (**Analytics**, or **Open Analytics** on a card).
 or an academic year and a class division, and optionally one course. The page shows the
 enrolled courses and how many are graded, the average final grade with the numbers passing
 and failing, attendance, and the state of the absence limit. **PDF** and **Excel** download
-what is shown; **Refresh** reads it again.
+what is shown, for the filters chosen (the file says which): in Class Analytics the summary,
+the class and course averages, every student of the selection and their strengths and
+difficulties by category (Excel: one sheet each); in Student Analytics that student's courses
+and categories. **Refresh** reads it again.
 
 **Select Dashboard** and **Manage** are for arrangements of this page that you save under a
 name ("Dashboard Manager").
