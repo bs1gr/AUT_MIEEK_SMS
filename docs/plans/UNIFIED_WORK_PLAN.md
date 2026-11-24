@@ -333,6 +333,24 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: the semester archive keeps out a student who failed whatever the grade** (todo 85; the
+owner that day: "such students should be kept out of the archive, with the reason shown in its
+preview. however, they still have the opportunity to retake the course next available year").
+Archiving records a course as passed and replaces its raw grades and attendance, and it cannot be
+undone; it looked at the final grade alone, so a student over the ΜΙΕΕΚ absence limit, or (since
+todo 80) with a final exam retake under 50, was archived as passed when the grade was enough. Now
+`SemesterArchiveService._evaluate_pair` keeps both out, before the grading checks, with the reasons
+"Failed: over the absence limit (the course is taken again)" and "Failed: final exam retake under 50
+(the course is taken again)" in the preview (and the archive run, which takes the preview's list).
+Their enrolment, grades and attendance stay as they are. **Found while checking "retake the course
+next year"** (for the owner): an enrolment is one per student and course, and a course code exists
+once, so a student kept out stays enrolled in the same course: next year the teacher enters the new
+grades there (a final exam taken again as a retake, todo 80), but the old year's absences and grades
+stay with it and keep counting (the absence limit above all). A course made anew each year under its
+own code has no such carry-over. Tests: `test_semester_archive_failed_kept_out.py` (both reasons, in
+the preview and for one pair alone, and a run that leaves them enrolled with every record; all 3
+failed on the old service, which archived all three students as passed).
+
 **2026-11-24: an Excused day closes Rate as an Absent one does, and its saved ratings are cleared**
 (todo 78 point 2; the owner that day: "an Excused day should close Rate the way Absent does, and
 clear ratings already saved for that day"). Excused is an absence (todo 77 point 1), but the
@@ -439,8 +457,11 @@ npm group, 66 updates: TanStack Query 5.108, Vitest 5.1.1, Playwright 1.65.1, ty
 8.73, recharts 3.11 and others), each green on its own. On `fdb8c797b`, the last merge, CI passed
 (backend 2,446 passed and 60 skipped, frontend 2,381 in 174 files) and E2E too (77 passed).
 **#483 (TypeScript 6.0.3 -> 7.0.2) cannot merge:** `npm ci` fails, as every
-typescript-eslint release (8.74.0, and the v8 alpha) wants `typescript <6.1.0`. It stays open until
-the owner chooses to have Dependabot ignore 7.x until typescript-eslint takes it, or to close it.
+typescript-eslint release (8.74.0, and the v8 alpha) wants `typescript <6.1.0`. **TypeScript 7.x is
+ignored since 2026-11-24, 08:32 UTC**: the owner commented `@dependabot ignore this major version` on
+#483, and Dependabot closed it ("I won't notify you about version 7.x.x again"). When
+typescript-eslint takes TypeScript 7, comment `@dependabot unignore typescript` on an open Dependabot
+pull request (or reopen #483) to have the updates offered again.
 Locally `node_modules`, the root `.venv` and `src\backend\.venv` were brought up to the new
 versions (`tsc` clean, the grading Vitest folder and a backend file pass). Playwright 1.65.1 wants
 a newer bundled Chromium than the one downloaded here; Edge (`channel: 'msedge'`) runs meanwhile.
@@ -3119,7 +3140,9 @@ point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces t
 sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
 keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
 2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
-out, decided 2026-11-24). **Next, decided and not yet built: 83, 85**, each its own PR.
+out, decided and done 2026-11-24). **Next, decided and not yet built: 83**, its own PR. **A
+question for the owner from todo 85:** how next year's course is set up for a student who takes it
+again (the same course keeps last year's absences and grades counting).
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3742,6 +3765,9 @@ and 44 and 48 in its part 5):
       next available year". Both fails keep the enrolment out, the reason in the preview; check, and
       say, that such a student can enrol in the course again the next year (a live old enrolment, the
       same course row or a new one). Its own PR, after todo 80 (on `main` since 2026-11-24).
+    - **Done** (under "On `main` since v1.18.80"), with a finding for the owner on taking the
+      course again next year: the student stays enrolled in the same course, whose old absences
+      and grades keep counting, unless next year's course is made anew under its own code.
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).

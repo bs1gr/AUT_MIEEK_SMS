@@ -7,6 +7,9 @@ const REASON_KEYS: Record<string, string> = {
   incomplete_grading: 'reasonIncompleteGrading',
   no_evaluation_rules: 'reasonNoEvaluationRules',
   already_archived: 'reasonAlreadyArchived',
+  // Plan todo 85: failed whatever the grade; kept out, the course to be taken again.
+  failed_absence_limit: 'reasonFailedAbsenceLimit',
+  failed_final_retake: 'reasonFailedFinalRetake',
 };
 
 const SemesterArchivePage: React.FC = () => {
