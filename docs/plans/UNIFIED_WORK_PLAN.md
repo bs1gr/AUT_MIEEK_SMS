@@ -436,6 +436,29 @@ cloud VM runs.** The service's tests never went through the endpoint. Now the mo
 the service gives. Test: `test_semester_archive_preview_failed_reasons.py` (through the endpoint;
 fails on the old model with the 500).
 
+**2026-11-24: a custom report's saved sort applies, several filters on one field work, its CSV opens
+in Excel with Greek intact, and the GPA templates use the percent scale** (todo 75 stage 5, the
+server side; no decision needed). The builder saved the sort as `{"<field>": "asc"}`, which the
+generator never read (it knew `{"field", "direction"}` or a list of `{"field", "order"}`): every
+saved sort was ignored. A report's filters could only be a dict, one per field; the query knew some
+operators by one name only (the templates' `gte` and `lt` were left to the rows' check), took
+"between" only as `{"from", "to"}` and "in" only as a list, though the builder types both as text;
+a value typed as text met a number column as text, and an empty value against a number raised
+`TypeError`. Now one reading of the filters and of the sort serves the query and the rows: every
+saved shape, the operators by any name, "between" and "in" from text, values typed for the column
+(numbers, dates), no `ILIKE` on a number (PostgreSQL has none), empty values no match and sorted
+last. The report schemas take lists of filters and sort rules (several filters on one field). The
+CSV has a byte-order mark (`utf-8-sig`), as the other CSV exports, and downloads as
+`text/csv; charset=utf-8`. The three GPA templates filtered a 0–100 average on a four-point scale
+("Honor Roll" and "Top Performers" 3.5 or more: nearly every graded student; "At-Risk" under 2.0:
+nobody, though its description says under 60): now 85 or more (the strength level of Analytics)
+and under 60, sorted by GPA; **data migration `e5c1a7d9b3f2`** repairs the stored copies that are
+still as imported (an edited one is left), and the template import does the same; reports already
+made from them are the users' own and stay. Tests: `test_custom_report_sort_filters_csv.py` (16;
+10 fail on the old code, the other 6 guard what already worked: list sorts and filters, the older
+sort shape, the short operators on GPA, an empty value), and the old CSV tests read the file with
+`utf-8-sig`.
+
 ### In v1.18.81
 
 **2026-11-24: the student report and Analytics' "top by exams" read a course as the final grade does**
@@ -3759,7 +3782,8 @@ and 44 and 48 in its part 5):
          profile (a course row opening its grade sheets came with stage 2).
       5. The custom report builder: the saved sort, more than one filter per field, course and
          category pickers, generate and download from the builder, the CSV with a BOM (Greek in
-         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average).
+         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **The server side
+         done** (under "On `main` since v1.18.81"); the builder's next.
       6. Utils → Reports tidied (about 15 links lead to 3 pages). Removing the dead code
          (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
          asked first.

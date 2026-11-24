@@ -710,7 +710,7 @@ def download_generated_report(
         # Map file extension to media type
         ext_to_media = {
             ".xlsx": ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-            ".csv": ("csv", "text/csv"),
+            ".csv": ("csv", "text/csv; charset=utf-8"),
             ".pdf": ("pdf", "application/pdf"),
         }
 
@@ -722,7 +722,7 @@ def download_generated_report(
             export_format = str(generated.export_format).lower() if generated.export_format else "pdf"
             format_mapping = {
                 "excel": ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-                "csv": ("csv", "text/csv"),
+                "csv": ("csv", "text/csv; charset=utf-8"),
                 "pdf": ("pdf", "application/pdf"),
             }
             ext, media_type = format_mapping.get(export_format, ("pdf", "application/pdf"))

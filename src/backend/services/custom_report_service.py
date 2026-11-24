@@ -28,6 +28,22 @@ from backend.services.report_scheduler import ReportScheduler, get_report_schedu
 
 logger = logging.getLogger(__name__)
 
+# The student "gpa" of a custom report is the mean of the grades in percent, 0 to 100. These system
+# templates filtered it on a four-point scale, so "3.5 or more" took nearly every graded student
+# and "under 2.0" nobody (plan todo 75 stage 5). Now on the percent scale: the excellent at 85 (the
+# strength level of Analytics), the at-risk under 60, as the template's description says.
+GPA_TEMPLATE_FILTERS: Dict[str, List[Dict[str, Any]]] = {
+    "Honor Roll - High Achievers": [{"field": "gpa", "operator": "gte", "value": 85}],
+    "At-Risk Students - Low Grades": [{"field": "gpa", "operator": "lt", "value": 60}],
+    "Top Performers - GPA Analytics": [{"field": "gpa", "operator": "gte", "value": 85}],
+}
+# What they held before, for repairing a stored copy: only an untouched one is changed.
+GPA_TEMPLATE_OLD_FILTERS: Dict[str, List[Dict[str, Any]]] = {
+    "Honor Roll - High Achievers": [{"field": "gpa", "operator": "gte", "value": 3.5}],
+    "At-Risk Students - Low Grades": [{"field": "gpa", "operator": "lt", "value": 2.0}],
+    "Top Performers - GPA Analytics": [{"field": "gpa", "operator": "gte", "value": 3.5}],
+}
+
 
 class CustomReportService:
     """Service for managing report templates, reports, and generated reports."""
@@ -448,8 +464,11 @@ class CustomReportService:
                 report_type="student",
                 is_system=True,
                 fields=["id", "first_name", "last_name", "gpa"],
-                filters=[{"field": "gpa", "operator": "gte", "value": 3.5}],
+                # The "gpa" of a report is the mean of the grades in percent, 0 to 100 (plan todo
+                # 75 stage 5): 3.5 and 2.0, on a four-point scale, took nearly every student.
+                filters=GPA_TEMPLATE_FILTERS["Honor Roll - High Achievers"],
                 aggregations=None,
+                sort_by=[{"field": "gpa", "order": "desc"}],
             ),
             ReportTemplate(
                 name="At-Risk Students - Low Grades",
@@ -458,8 +477,9 @@ class CustomReportService:
                 report_type="student",
                 is_system=True,
                 fields=["id", "first_name", "last_name", "gpa"],
-                filters=[{"field": "gpa", "operator": "lt", "value": 2.0}],
+                filters=GPA_TEMPLATE_FILTERS["At-Risk Students - Low Grades"],
                 aggregations=None,
+                sort_by=[{"field": "gpa", "order": "asc"}],
             ),
             ReportTemplate(
                 name="Attendance Summary - All Students",
@@ -560,8 +580,9 @@ class CustomReportService:
                 report_type="student",
                 is_system=True,
                 fields=["student_id", "first_name", "last_name", "gpa", "attendance_rate", "passed_courses"],
-                filters=[{"field": "gpa", "operator": "gte", "value": 3.5}],
+                filters=GPA_TEMPLATE_FILTERS["Top Performers - GPA Analytics"],
                 aggregations=None,
+                sort_by=[{"field": "gpa", "order": "desc"}],
             ),
             ReportTemplate(
                 name="Student Performance Breakdown - Grades",
@@ -659,6 +680,14 @@ class CustomReportService:
             )
 
             if existing:
+                # A copy imported with the four-point filter, untouched since: given the new one.
+                if (
+                    template.name in GPA_TEMPLATE_OLD_FILTERS
+                    and existing.filters == GPA_TEMPLATE_OLD_FILTERS[template.name]
+                ):
+                    existing.filters = template.filters
+                    existing.sort_by = template.sort_by
+                    logger.info("Template '%s': its GPA filter is now on the percent scale.", template.name)
                 logger.debug(f"Template '{template.name}' already exists. Skipping.")
             else:
                 self.db.add(template)

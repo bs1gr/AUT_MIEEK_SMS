@@ -45,9 +45,9 @@ class ReportTemplateUpdate(BaseModel):
     category: Optional[str] = None
     report_type: Optional[str] = None
     fields: Optional[Dict[str, Any]] = None
-    filters: Optional[Dict[str, Any]] = None
+    filters: Optional[List[Dict[str, Any]] | Dict[str, Any]] = None
     aggregations: Optional[Dict[str, Any]] = None
-    sort_by: Optional[Dict[str, Any]] = None
+    sort_by: Optional[List[Dict[str, Any]] | Dict[str, Any]] = None
     default_export_format: Optional[str] = None
     default_include_charts: Optional[bool] = None
     is_active: Optional[bool] = None
@@ -81,9 +81,11 @@ class CustomReportBase(BaseModel):
     )
     template_id: Optional[int] = Field(None, description="Template ID if based on template")
     fields: Dict[str, Any] = Field(..., description="Selected fields to include")
-    filters: Optional[Dict[str, Any]] = Field(None, description="Filter criteria")
+    # A list of {field, operator, value} (several filters on one field) or the older dict; a list
+    # of {field, order} or the dict {"<field>": "asc"} (plan todo 75 stage 5).
+    filters: Optional[List[Dict[str, Any]] | Dict[str, Any]] = Field(None, description="Filter criteria")
     aggregations: Optional[Dict[str, Any]] = Field(None, description="Aggregation config")
-    sort_by: Optional[Dict[str, Any]] = Field(None, description="Sort configuration")
+    sort_by: Optional[List[Dict[str, Any]] | Dict[str, Any]] = Field(None, description="Sort configuration")
     export_format: str = Field("pdf", description="Export format (pdf, excel, csv)")
     include_charts: bool = Field(True, description="Include charts in export")
 
@@ -142,9 +144,9 @@ class CustomReportUpdate(BaseModel):
     report_type: Optional[str] = None
     template_id: Optional[int] = None
     fields: Optional[Dict[str, Any]] = None
-    filters: Optional[Dict[str, Any]] = None
+    filters: Optional[List[Dict[str, Any]] | Dict[str, Any]] = None
     aggregations: Optional[Dict[str, Any]] = None
-    sort_by: Optional[Dict[str, Any]] = None
+    sort_by: Optional[List[Dict[str, Any]] | Dict[str, Any]] = None
     export_format: Optional[str] = None
     include_charts: Optional[bool] = None
     schedule_enabled: Optional[bool] = None
