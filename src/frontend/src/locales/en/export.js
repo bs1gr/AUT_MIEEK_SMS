@@ -158,7 +158,7 @@ export default {
   ieStored: 'Stored: {{count}} row(s).',
   ieColumnsStudents: 'Columns: student_id, first_name, last_name, email. Also read: study_year, father_name, phone. A student who is there (same student ID or e-mail address) is updated.',
   ieColumnsCourses: 'Columns: course_code, course_name. Also read: semester, credits, description. A course that is there (same code) is updated.',
-  ieColumnsGrades: 'Columns: student_id, course_code, grade. Also read: assignment, category, max_grade, weight. A grade that is there (same student, course, assignment and category) is updated.',
+  ieColumnsGrades: 'Columns: student_id, course_code, grade. Also read: assignment, category, max_grade, weight, date_submitted (YYYY-MM-DD; for an exam the day it was taken; empty: the day of the import) and is_retake (yes for the Midterm or Final Exam grade that replaces the earlier sitting). A grade that is there (same student, course, assignment, category and retake mark) is updated.',
   ieFile: 'File',
   ieListFailed: 'The list could not be loaded.',
   ieStatusPending: 'Waiting',

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { XCircle, PieChart, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { FinalGrade } from '@/types';
 import apiClient from '@/api/api';
 import { getGreekGradeDescription } from '@/utils/gradeUtils';
@@ -16,6 +17,7 @@ interface Props {
 
 const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName, onClose }) => {
   const { t, language } = useLanguage();
+  const { formatDate } = useDateTimeFormatter();
   const [data, setData] = useState<FinalGrade | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -221,6 +223,18 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                   absences: data.absence_limit.absences,
                   limit: data.absence_limit.limit_percent,
                   allowed: data.absence_limit.allowed_absences ?? 0,
+                })}
+              </div>
+            )}
+
+            {/* Plan todo 80: a retake of the final exam under 50 fails the course; the grade is unchanged */}
+            {data.final_exam_retake?.failed && (
+              <div role="alert" className="bg-red-50 border border-red-300 rounded-lg p-4 text-sm text-red-800" data-testid="breakdown-final-exam-retake">
+                <div className="font-semibold mb-1">{t('grades.finalExamRetakeFailedBadge')}</div>
+                {t('grades.finalExamRetakeFailedDetail', {
+                  // At noon: a day alone ('YYYY-MM-DD') is read as UTC midnight, the day before west of it.
+                  date: formatDate(`${data.final_exam_retake.date}T12:00:00`),
+                  percentage: data.final_exam_retake.percentage,
                 })}
               </div>
             )}

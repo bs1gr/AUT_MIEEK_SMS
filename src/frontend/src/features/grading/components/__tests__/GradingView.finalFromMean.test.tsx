@@ -81,7 +81,7 @@ describe('Grading page: a final grade no evaluation rule makes', () => {
 
     expect(summary).toHaveTextContent('77.5%');
     expect(screen.getByTestId('grading-final-from-mean')).toHaveTextContent(
-      'No evaluation rule applies to these grades, so the final grade is their mean: each grade counts as often as its Weight says, and of Midterm Exam and Final Exam only the latest. Any absence penalty comes off the mean.'
+      'No evaluation rule applies to these grades, so the final grade is their mean: each grade counts as often as its Weight says, and of Midterm Exam and Final Exam only the retake, else the latest. Any absence penalty comes off the mean.'
     );
     // No empty list of categories under it.
     expect(summary).not.toHaveTextContent('Category Breakdown');

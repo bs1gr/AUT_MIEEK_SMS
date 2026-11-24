@@ -13,6 +13,11 @@ vi.mock('@/LanguageContext', () => ({
   }),
 }));
 
+// The app's date format, as the page would print a day: a stand-in that shows what it was given.
+vi.mock('@/contexts/DateTimeSettingsContext', () => ({
+  useDateTimeFormatter: () => ({ formatDate: (value: string) => `day(${value})` }),
+}));
+
 const mockedApiClient = apiClient as unknown as { get: ReturnType<typeof vi.fn> };
 
 const FINAL_GRADE: FinalGrade = {
@@ -132,6 +137,32 @@ describe('GradeBreakdownModal', () => {
 
     await screen.findByText('87.50%');
     expect(screen.queryByTestId('breakdown-attendance-insufficient')).not.toBeInTheDocument();
+  });
+
+  it('fails the course on a retake of the final exam under 50, with its grade and day, the grade unchanged', async () => {
+    // Plan todo 80: as the absence limit, a flag; the final grade is still worked out and shown.
+    mockedApiClient.get.mockResolvedValue({
+      data: { ...FINAL_GRADE, final_exam_retake: { date: '2026-02-10', percentage: 45, failed: true } },
+    });
+
+    render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+
+    const alert = await screen.findByTestId('breakdown-final-exam-retake');
+    expect(alert).toHaveAttribute('role', 'alert');
+    expect(alert).toHaveTextContent('grades.finalExamRetakeFailedBadge');
+    // The day at noon, so that no time zone moves it to the day before.
+    expect(alert).toHaveTextContent('grades.finalExamRetakeFailedDetail {"date":"day(2026-02-10T12:00:00)","percentage":45}');
+    expect(screen.getByText('87.50%')).toBeInTheDocument();
+  });
+
+  it('flags no retake of 50 or more, and none an older server does not send', async () => {
+    for (const retake of [{ date: '2026-02-10', percentage: 50, failed: false }, null, undefined]) {
+      mockedApiClient.get.mockResolvedValue({ data: { ...FINAL_GRADE, final_exam_retake: retake } });
+      const { unmount } = render(<GradeBreakdownModal studentId={42} courseId={7} onClose={vi.fn()} />);
+      await screen.findByText('87.50%');
+      expect(screen.queryByTestId('breakdown-final-exam-retake')).not.toBeInTheDocument();
+      unmount();
+    }
   });
 
   it('counts the periods by status, a Late among the attended and named for the evaluation', async () => {

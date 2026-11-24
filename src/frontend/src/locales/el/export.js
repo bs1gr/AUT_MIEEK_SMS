@@ -158,7 +158,7 @@ export default {
   ieStored: 'Αποθηκεύτηκαν: {{count}} γραμμές.',
   ieColumnsStudents: 'Στήλες: student_id, first_name, last_name, email. Διαβάζονται επίσης: study_year, father_name, phone. Ένας σπουδαστής που υπάρχει ήδη (ίδιος αριθμός μητρώου ή ίδια διεύθυνση e-mail) ενημερώνεται.',
   ieColumnsCourses: 'Στήλες: course_code, course_name. Διαβάζονται επίσης: semester, credits, description. Ένα μάθημα που υπάρχει ήδη (ίδιος κωδικός) ενημερώνεται.',
-  ieColumnsGrades: 'Στήλες: student_id, course_code, grade. Διαβάζονται επίσης: assignment, category, max_grade, weight. Ένας βαθμός που υπάρχει ήδη (ίδιος σπουδαστής, μάθημα, εργασία και κατηγορία) ενημερώνεται.',
+  ieColumnsGrades: 'Στήλες: student_id, course_code, grade. Διαβάζονται επίσης: assignment, category, max_grade, weight, date_submitted (ΕΕΕΕ-ΜΜ-ΗΗ· για μια εξέταση η ημέρα που δόθηκε· κενό: η ημέρα της εισαγωγής) και is_retake (ναι για τον βαθμό Ενδιάμεσης ή Τελικής Εξέτασης που αντικαθιστά την προηγούμενη προσπάθεια). Ένας βαθμός που υπάρχει ήδη (ίδιος σπουδαστής, μάθημα, εργασία, κατηγορία και σήμανση επαναληπτικής) ενημερώνεται.',
   ieFile: 'Αρχείο',
   ieListFailed: 'Η λίστα δεν μπόρεσε να φορτωθεί.',
   ieStatusPending: 'Σε αναμονή',

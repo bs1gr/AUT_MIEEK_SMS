@@ -53,10 +53,12 @@ interface UseGradeEntrySyncParams {
   setCourseId: Dispatch<SetStateAction<number | ''>>;
   todayStr: string;
   t: (key: string, options?: Record<string, unknown>) => string;
+  /** Plan todo 80: whether a category is a Midterm's or a Final Exam's (by its words, as the final grade reads it). */
+  isExamCategory?: (category: string) => boolean;
 }
 
 export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
-  const { studentId, courseId, setStudentId, setCourseId, todayStr, t } = params;
+  const { studentId, courseId, setStudentId, setCourseId, todayStr, t, isExamCategory } = params;
 
   const [category, setCategory] = useState('Midterm');
   const [gradeValue, setGradeValue] = useState<string>('');
@@ -65,6 +67,11 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
   const [assignmentName, setAssignmentName] = useState('');
   const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
   const [historyDate, setHistoryDate] = useState<string>('');
+  // Plan todo 80 (the owner, 2026-11-24): for an exam, the day it was taken, which the teacher
+  // picks, and whether this grade is the retake that replaces the earlier sitting. The day stays
+  // from one student to the next (one exam, one day, for a class); the mark never does.
+  const [examDate, setExamDate] = useState<string>('');
+  const [isRetake, setIsRetake] = useState(false);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [finalSummary, setFinalSummary] = useState<FinalGrade | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -203,6 +210,21 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     }
   }, [category]);
 
+  // Plan todo 80: an exam's grade has its day and can be the retake, under any spelling of the kind.
+  const examSitting = Boolean(isExamCategory?.(category));
+  // A new exam grade starts on today, which the teacher changes to the day the exam was taken.
+  useEffect(() => {
+    if (examSitting && !editingGradeId && !examDate) setExamDate(todayStr);
+  }, [examSitting, editingGradeId, examDate, todayStr]);
+  // Only an exam's grade can be a retake; and a mark never carries over to another student or
+  // course (a grade being edited keeps its own).
+  useEffect(() => {
+    if (!examSitting) setIsRetake(false);
+  }, [examSitting]);
+  useEffect(() => {
+    if (editingGradeId === null) setIsRetake(false);
+  }, [studentId, courseId, editingGradeId]);
+
   const handleEditGrade = useCallback((grade: Grade) => {
     setEditingGradeId(grade.id);
     setStudentId(grade.student_id);
@@ -216,6 +238,10 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     const rawDate = grade.date_submitted || grade.date_assigned || new Date().toISOString();
     const normalized = rawDate ? formatLocalDate(rawDate) : todayStr;
     setHistoryDate(normalized);
+    // An exam's own day, empty for an undated grade: saved so, it stays undated (until the review of
+    // 2026-11-24 an edit dated an undated grade today).
+    setExamDate(grade.date_submitted ? formatLocalDate(grade.date_submitted) : '');
+    setIsRetake(Boolean(grade.is_retake));
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [setStudentId, setCourseId, todayStr]);
@@ -251,6 +277,8 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     setMaxGrade('100');
     setWeight('');
     setHistoryDate('');
+    setExamDate('');
+    setIsRetake(false);
   }, []);
 
   const handleDeleteGrade = useCallback(async (gradeId: number) => {
@@ -277,6 +305,10 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     if (!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0) { setError(t('invalidScoreMaxValues')); return; }
     if (gv < 0 || gv > mg) { setError(t('scoreMustBeBetween0AndMax')); return; }
     setSubmitting(true); setError(null);
+    const dayOfEntry = historyDate && historyDate !== todayStr ? historyDate : formatLocalDate(new Date());
+    // An exam's grade is dated on the day it was taken (plan todo 80), the box's day; an edited
+    // grade whose box is empty stays as it is (an undated one undated).
+    const dateSubmitted = examSitting ? (examDate || (editingGradeId ? undefined : dayOfEntry)) : dayOfEntry;
     const payload: Omit<Grade, 'id'> = {
       student_id: Number(studentId),
       course_id: Number(courseId),
@@ -285,8 +317,18 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
       grade: gv,
       max_grade: mg,
       weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
-      date_submitted: historyDate && historyDate !== todayStr ? historyDate : formatLocalDate(new Date()),
+      ...(dateSubmitted ? { date_submitted: dateSubmitted } : {}),
+      // Only an exam's grade can be the retake; any other is saved as none (the server refuses it).
+      is_retake: examSitting && isRetake,
       // optional fields not set: date_assigned, notes
+    };
+    const wasEdit = Boolean(editingGradeId);
+    const resetForm = () => {
+      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
+      setHistoryDate('');
+      setIsRetake(false);
+      // The exam's day stays for the next student's grade, not an edited grade's own day.
+      if (wasEdit) setExamDate('');
     };
     try {
       // Update existing grade or create new one
@@ -300,8 +342,7 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
       eventBus.emit(EVENTS.GRADE_ADDED, { studentId: Number(studentId), courseId: Number(courseId) });
       await loadFinal();
       await fetchGrades();
-      setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
-      setHistoryDate('');
+      resetForm();
     } catch (e: unknown) {
       if (isOfflineNetworkError(e)) {
         enqueueGradeMutation({
@@ -314,8 +355,7 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
         if (editingGradeId) {
           setEditingGradeId(null);
         }
-        setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
-        setHistoryDate('');
+        resetForm();
         return;
       }
 
@@ -323,7 +363,7 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     } finally {
       setSubmitting(false);
     }
-  }, [studentId, courseId, assignmentName, gradeValue, maxGrade, category, weight, historyDate, todayStr, editingGradeId, loadFinal, fetchGrades, updatePendingSyncCount, t]);
+  }, [studentId, courseId, assignmentName, gradeValue, maxGrade, category, weight, historyDate, todayStr, editingGradeId, examSitting, examDate, isRetake, loadFinal, fetchGrades, updatePendingSyncCount, t]);
 
   return {
     category, setCategory,
@@ -333,6 +373,7 @@ export function useGradeEntrySync(params: UseGradeEntrySyncParams) {
     assignmentName, setAssignmentName,
     editingGradeId,
     historyDate, setHistoryDate,
+    examSitting, examDate, setExamDate, isRetake, setIsRetake,
     grades,
     finalSummary,
     submitting,

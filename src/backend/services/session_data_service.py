@@ -182,6 +182,8 @@ def serialize_grade(grade) -> Dict[str, Any]:
         "component_type": getattr(grade, "component_type", None),
         "date_assigned": str(grade.date_assigned) if grade.date_assigned else None,
         "date_submitted": str(grade.date_submitted) if grade.date_submitted else None,
+        # Plan todo 80: a Midterm or Final Exam grade that replaces the earlier sitting.
+        "is_retake": bool(getattr(grade, "is_retake", False)),
     }
 
 

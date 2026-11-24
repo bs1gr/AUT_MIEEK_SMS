@@ -341,6 +341,43 @@ describe('AnalyticsDashboard', () => {
     expect(profile).not.toHaveTextContent('No category has a grade yet.');
   });
 
+  it('marks a course failed on a retake of the final exam under 50, whatever the final grade (todo 80)', async () => {
+    const retake = studentOverview(1, 'Anna Alpha', [
+      course(1, 'MATH', 63, { passing: false, final_exam_retake: { date: '2026-02-10', percentage: 45, failed: true } }),
+      course(2, 'PHYS', 70, { final_exam_retake: { date: '2026-02-10', percentage: 60, failed: false } }),
+    ]);
+    const answer = get.getMockImplementation()!;
+    get.mockImplementation(async (url: string, ...rest: unknown[]) =>
+      url === '/analytics/student/1/overview' ? { data: retake } : answer(url, ...rest)
+    );
+    renderPage();
+
+    const table = await screen.findByTestId('analytics-student-courses');
+    const failed = await within(table).findByTestId('analytics-retake-failed-1');
+    // The server's figure as it is (two decimals at most), and the day read at noon, so that no
+    // time zone shows the day before (the formatter here is a stand-in that shows what it gets).
+    expect(failed).toHaveTextContent('Failed: the final exam retake is under 50 (45%, 2026-02-10T12:00:00)');
+    // The final grade stays as worked out, in red as a fail.
+    expect(failed.closest('td')).toHaveTextContent('63.0%');
+    expect(failed.closest('td')).toHaveClass('text-red-700');
+    expect(within(table).queryByTestId('analytics-retake-failed-2')).toBeNull();
+  });
+
+  it('never shows a retake just under 50 as 50.0 (todo 80 review)', async () => {
+    const retake = studentOverview(1, 'Anna Alpha', [
+      course(1, 'MATH', 70, { passing: false, final_exam_retake: { date: '2026-02-10', percentage: 49.99, failed: true } }),
+    ]);
+    const answer = get.getMockImplementation()!;
+    get.mockImplementation(async (url: string, ...rest: unknown[]) =>
+      url === '/analytics/student/1/overview' ? { data: retake } : answer(url, ...rest)
+    );
+    renderPage();
+
+    const failed = await within(await screen.findByTestId('analytics-student-courses')).findByTestId('analytics-retake-failed-1');
+    expect(failed).toHaveTextContent('(49.99%,');
+    expect(failed).not.toHaveTextContent('50.0%');
+  });
+
   it('says how many students of the selection the class map leaves out', async () => {
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Class Analytics' }));

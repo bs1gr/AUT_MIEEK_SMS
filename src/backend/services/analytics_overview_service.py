@@ -12,6 +12,9 @@ course, not deleted, not dropped):
 - **Attendance rate**: Present + Late over all recorded periods. Absent and Excused are
   absences, as in the ΜΙΕΕΚ absence limit (``absence_limit_service``).
 - **Absence status**: ``absence_limit_service.evaluate`` for that enrollment.
+- **Passing**: a final grade of 50 or more, as shown (2 decimals), unless a retake of the final
+  exam is under 50 (``AnalyticsService.final_exam_retake``, plan todo 80): then the course is
+  failed whatever the grade, and every pass and fail count says so.
 
 Averages over students or courses are means of those per-enrollment values; a student or
 course with nothing graded yet is left out of a mean instead of counting as 0.
@@ -152,6 +155,13 @@ class EnrollmentFacts:
     presence_keys: set[str] = field(default_factory=set)
     # The course has weighted evaluation rules (its categories are those rules).
     with_rules: bool = False
+    # A retake of the course's final exam (plan todo 80): {"date", "percentage", "failed"}, from
+    # ``AnalyticsService.final_exam_retake``; None without one.
+    final_exam_retake: Optional[Dict[str, Any]] = None
+
+    @property
+    def retake_failed(self) -> bool:
+        return bool(self.final_exam_retake and self.final_exam_retake.get("failed"))
 
     @property
     def attended(self) -> int:
@@ -172,8 +182,11 @@ class EnrollmentFacts:
     @property
     def passing(self) -> Optional[bool]:
         # Judged on the grade as it is shown (2 decimals): a plain mean of 33.33 % and 66.67 %
-        # comes out a hair under 50 and is shown as 50, which must not read as a fail.
-        return None if self.final_grade is None else round(self.final_grade, 2) >= PASS_MARK
+        # comes out a hair under 50 and is shown as 50, which must not read as a fail. A retake
+        # of the final exam under 50 fails the course whatever the grade (plan todo 80).
+        if self.final_grade is None:
+            return None
+        return not self.retake_failed and round(self.final_grade, 2) >= PASS_MARK
 
 
 # A category average is a difficulty under the pass mark, a strength from STRENGTH_LEVEL; in
@@ -422,6 +435,7 @@ class AnalyticsOverviewService:
         basis: Optional[str] = None
         breakdown: Dict[str, Dict[str, Any]] = {}
         participation: Optional[Dict[str, Any]] = None
+        retake: Optional[Dict[str, Any]] = None
         participation_deduction = absence_deduction = 0.0
         graded = bool(percentages or daily)
         # The final-grade calculation itself, with rules or without (plan todo 77 point 3: one
@@ -442,6 +456,7 @@ class AnalyticsOverviewService:
                     # What the grade lost, not the penalty asked: the grade stops at 0.
                     absence_deduction = float(data.get("absence_deduction_applied") or 0.0)
                 participation = data.get("participation_share")
+                retake = data.get("final_exam_retake")
         # One scale per course: where anyone is rated, only a rated share counts; where nobody is,
         # an unrated one (the whole share less the ticks, presence alone); else none at all, or
         # every student of every course would show 100.
@@ -494,6 +509,7 @@ class AnalyticsOverviewService:
             category_names=category_names,
             presence_keys=presence_keys,
             with_rules=with_rules,
+            final_exam_retake=retake,
             **counts,
         )
 
@@ -903,6 +919,8 @@ class AnalyticsOverviewService:
                     "grade_count": f.grade_count,
                     "rating_count": f.rating_count,
                     "passing": f.passing,
+                    # Plan todo 80: a retake of the final exam, which under 50 fails the course.
+                    "final_exam_retake": f.final_exam_retake,
                     "class_average": _round(_mean(peer_finals)),
                     "rank": rank,
                     "ranked_of": len(peer_finals),

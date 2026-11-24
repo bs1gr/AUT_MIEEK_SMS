@@ -161,7 +161,8 @@ class StudentCourseSummary:
 class AnalyticsService:
     """Encapsulates analytics-related business logic and heavy DB work."""
 
-    # The exams, by normalized name: each counts one grade, its latest sitting (`counted_grades`).
+    # The exams, by normalized name: each counts one grade, its retake when one is marked, else
+    # its latest sitting (`counted_grades`; plan todo 80).
     # The owner, 2026-11-23: "There is only one official midterm per semester for each course. The
     # second midterm is only if the student missed the first one", and "there should no averaging
     # any exam per course". Until todo 77 point 2 a rule had to be spelled one of eight ways to
@@ -185,10 +186,15 @@ class AnalyticsService:
     @classmethod
     def counted_grades(cls, grades: Iterable[Any]) -> List[Any]:
         """Of the grades a rule takes, those that count: every grade that has a maximum, but of a
-        Midterm and of a Final only the latest sitting (the latest date_submitted, then the latest
-        entry; an undated grade counts as the oldest). A course has one midterm and one final; a
-        second sitting is for a student who missed the first, and replaces it, never averaged
-        with it, whatever the grades are called (the owner, 2026-11-23)."""
+        Midterm and of a Final one sitting only. A course has one midterm and one final; a second
+        sitting is for a student who missed the first, and replaces it, never averaged with it,
+        whatever the grades are called (the owner, 2026-11-23).
+
+        The sitting that counts is the retake when the teacher marked one (``is_retake``; plan
+        todo 80, the owner, 2026-11-24: "After retake exam the first final exam should not count
+        in grading and the retake exam replaces it"), whatever the dates; else the latest sitting.
+        Among several of the same kind, the latest by the day the exam was taken (date_submitted),
+        then the latest entry; an undated grade counts as the oldest."""
         kept: List[Any] = []
         latest: Dict[str, Any] = {}
         for grade in grades:
@@ -199,12 +205,42 @@ class AnalyticsService:
                 kept.append(grade)
                 continue
             current = latest.get(kind)
-            if current is None or (grade.date_submitted or date.min, grade.id) > (
-                current.date_submitted or date.min,
-                current.id,
-            ):
+            if current is None or cls._sitting_order(grade) > cls._sitting_order(current):
                 latest[kind] = grade
         return kept + list(latest.values())
+
+    @staticmethod
+    def _sitting_order(grade: Any) -> Tuple[bool, date, int]:
+        """How an exam's sittings rank: a retake above any other, then by day, then by entry."""
+        return (bool(getattr(grade, "is_retake", False)), grade.date_submitted or date.min, grade.id or 0)
+
+    # Plan todo 80 (the owner, 2026-11-23): "in the second effort, iff the exam grade is under 50,
+    # is considered a fail". The final exam only; a midterm retake only replaces the first sitting.
+    retake_pass_mark = 50.0
+
+    @classmethod
+    def final_exam_retake(cls, grades: Iterable[Any]) -> Optional[Dict[str, Any]]:
+        """The student's retake of the final exam, when it is the sitting that counts, or None.
+
+        {"date", "percentage", "failed"}: the day it was taken (ISO text, or None when undated),
+        its score in percent as shown (2 decimals), and whether it is under 50. The final grade is
+        worked out as always; a retake under 50 only fails the course, as the ΜΙΕΕΚ absence limit
+        does (the owner, 2026-11-23: the course failed, the grade still worked out and shown)."""
+        final = next(
+            (g for g in cls.counted_grades(grades) if normalize_rule_category(getattr(g, "category", None)) == "final"),
+            None,
+        )
+        if final is None or not getattr(final, "is_retake", False):
+            return None
+        day = final.date_submitted
+        if isinstance(day, datetime):
+            day = day.date()
+        percentage = round(final.grade / final.max_grade * 100, 2)
+        return {
+            "date": day.isoformat() if isinstance(day, date) else None,
+            "percentage": percentage,
+            "failed": percentage < cls.retake_pass_mark,
+        }
 
     @staticmethod
     def grade_weight(grade: Any) -> float:
@@ -298,6 +334,7 @@ class AnalyticsService:
         # The periods by status, a Late among them, for the teacher's evaluation (plan todo 77):
         # also where the calculation stops before counting (no evaluation rules and no grade).
         result.setdefault("attendance", self._attendance_counts(attendance))
+        result.setdefault("final_exam_retake", None)
         return result
 
     def get_student_all_courses_summary(self, student_id: int) -> Dict[str, Any]:
@@ -1250,6 +1287,9 @@ class AnalyticsService:
             # The periods recorded, by status, for the teacher's evaluation (the Lates are not
             # absences but are shown: plan todo 77).
             "attendance": self._attendance_counts(attendance),
+            # A retake of the final exam (plan todo 80): {"date", "percentage", "failed"}, or None.
+            # Under 50 it fails the course whatever final_grade says, which stays as worked out.
+            "final_exam_retake": self.final_exam_retake(grades),
         }
 
     @staticmethod

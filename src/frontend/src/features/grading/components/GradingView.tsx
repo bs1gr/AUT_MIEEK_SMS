@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade, gradeWeight } from '@/utils/gradeUtils';
@@ -111,11 +111,43 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // sync are all owned by this hook - see
   // features/grading/hooks/useGradeEntrySync.ts for why they're grouped
   // together (mirrors useAttendanceSaveSync's save/offline-sync extraction).
-  const gradeEntry = useGradeEntrySync({ studentId, courseId, setStudentId, setCourseId, todayStr, t });
+  // Plan todo 80: a Midterm's or a Final Exam's grade, under any spelling the final grade reads so
+  // («Τελική Εξέταση», a course's own rule), has the day it was taken and can be the retake.
+  const isExamCategory = useCallback(
+    (name: string) => ['Midterm Exam', 'Final Exam'].includes(getRuleKind(name, t)),
+    [t]
+  );
+  const gradeEntry = useGradeEntrySync({ studentId, courseId, setStudentId, setCourseId, todayStr, t, isExamCategory });
 
   const isHistoricalMode = Boolean(gradeEntry.historyDate && gradeEntry.historyDate !== todayStr);
   // ΜΙΕΕΚ: over the absence limit -> no final exam. Warn only; grade entry stays open.
   const insufficientAttendance = gradeEntry.finalSummary?.attendance_insufficient ? gradeEntry.finalSummary.absence_limit : undefined;
+  // Plan todo 80: a retake of the final exam under 50 fails the course whatever the final grade,
+  // flagged as the absence limit is (the grade is still worked out and shown).
+  const failedRetake = gradeEntry.finalSummary?.final_exam_retake?.failed ? gradeEntry.finalSummary.final_exam_retake : undefined;
+  // Its day ('YYYY-MM-DD') read at noon: alone it is UTC midnight, the day before west of it.
+  const retakeFigures = failedRetake
+    ? { date: failedRetake.date ? formatDate(`${failedRetake.date}T12:00:00`) : '—', percentage: failedRetake.percentage }
+    : undefined;
+  // Of each exam, the sittings a retake replaced: shown in the list as not counted (plan todo 80).
+  // The one that counts as on the server (AnalyticsService.counted_grades): a retake above any
+  // other sitting, then the latest day it was taken ('YYYY-MM-DD'; undated is the oldest), then the
+  // latest entry. Without a retake nothing is marked: the latest sitting counts, as before.
+  const replacedSittings = useMemo(() => {
+    const countsBefore = (a: Grade, b: Grade): boolean => {
+      if (Boolean(a.is_retake) !== Boolean(b.is_retake)) return Boolean(a.is_retake);
+      const [dayA, dayB] = [a.date_submitted ?? '', b.date_submitted ?? ''];
+      return dayA !== dayB ? dayA > dayB : a.id > b.id;
+    };
+    const replaced = new Set<number>();
+    for (const kind of ['Midterm Exam', 'Final Exam']) {
+      const sittings = gradeEntry.grades.filter((g) => getRuleKind(g.category ?? '', t) === kind && g.max_grade);
+      if (!sittings.some((g) => g.is_retake)) continue;
+      const counted = sittings.reduce((best, g) => (countsBefore(g, best) ? g : best));
+      sittings.forEach((g) => { if (g.id !== counted.id) replaced.add(g.id); });
+    }
+    return replaced;
+  }, [gradeEntry.grades, t]);
   const summaryReportLink = useMemo(() => {
     const params = new URLSearchParams();
     params.set('templateName', 'Student Performance Breakdown - Grades');
@@ -247,7 +279,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     return options;
   }, [evaluationRules, t, gradeEntry.category]);
 
-  // An exam takes its latest grade alone: the Weight box is closed for it. ('Midterm' is what
+  // An exam takes one grade alone (the retake, else the latest): the Weight box is closed for it. ('Midterm' is what
   // the form starts with before a category is chosen; it used to be the only spelling checked,
   // so the box stayed open for "Midterm Exam" and silently saved 1.)
   const examCategory = ['Midterm', 'Midterm Exam', 'Final Exam'].includes(gradeEntry.category);
@@ -326,6 +358,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         </div>
       )}
 
+      {failedRetake && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 text-sm text-red-800 bg-red-50 border border-red-300 rounded-xl px-4 py-3"
+          data-testid="final-exam-retake-warning"
+        >
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-600" />
+          <span>
+            <span className="font-semibold">{t('grades.finalExamRetakeFailedBadge')}.</span>{' '}
+            {t('grades.finalExamRetakeFailedDetail', retakeFigures)}
+          </span>
+        </div>
+      )}
+
       {gradeEntry.finalSummary?.participation_forfeited && gradeEntry.finalSummary.absence_limit && (
         <div
           role="status"
@@ -394,10 +440,46 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
             aria-describedby="weight-hint"
           />
         </div>
-        {/* What the Weight does. An exam takes its latest grade alone, so it has none. */}
+        {/* What the Weight does. An exam takes one grade alone, so it has none. */}
         <p id="weight-hint" data-testid="weight-hint" className="text-xs text-gray-500">
           {examCategory ? t('weightHintExam') : t('weightHint')}
         </p>
+        {/* Plan todo 80 (the owner, 2026-11-24): an exam's grade has the day the exam was taken, and
+            the teacher can mark it as the retake that replaces the earlier sitting. */}
+        {gradeEntry.examSitting && (
+          <div className="flex flex-col gap-3 md:flex-row md:items-start" data-testid="grading-exam-sitting">
+            <div className="space-y-1">
+              <label className="block text-sm text-gray-600" htmlFor="grading-exam-date-input">
+                {t('grades.examSittingDate')}
+              </label>
+              <input
+                id="grading-exam-date-input"
+                name="examDate"
+                type="date"
+                className="border rounded px-3 py-2"
+                value={gradeEntry.examDate}
+                onChange={(e) => gradeEntry.setExamDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1 md:pt-7">
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700" htmlFor="grading-retake-input">
+                <input
+                  id="grading-retake-input"
+                  name="isRetake"
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={gradeEntry.isRetake}
+                  onChange={(e) => gradeEntry.setIsRetake(e.target.checked)}
+                  aria-describedby="grading-retake-hint"
+                />
+                {t('grades.retakeLabel')}
+              </label>
+              <p id="grading-retake-hint" className="text-xs text-gray-500">
+                {t(getRuleKind(gradeEntry.category, t) === 'Final Exam' ? 'grades.retakeHintFinal' : 'grades.retakeHintMidterm')}
+              </p>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             name="grade"
@@ -450,10 +532,23 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           <p className="text-sm text-gray-500">{t('selectStudentAndCourse')}</p>
         ) : gradeEntry.finalSummary ? (
           <div className="text-sm" data-testid="grading-final-summary">
-            {gradeEntry.finalSummary.attendance_insufficient && (
-              <span className="inline-block mb-2 text-xs font-semibold px-2 py-1 rounded border bg-red-100 text-red-800 border-red-300">
-                {t('attendanceInsufficientBadge')}
-              </span>
+            {(gradeEntry.finalSummary.attendance_insufficient || failedRetake) && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {gradeEntry.finalSummary.attendance_insufficient && (
+                  <span className="inline-block text-xs font-semibold px-2 py-1 rounded border bg-red-100 text-red-800 border-red-300">
+                    {t('attendanceInsufficientBadge')}
+                  </span>
+                )}
+                {/* Plan todo 80: the course is failed, the final grade below still worked out. */}
+                {failedRetake && (
+                  <span
+                    className="inline-block text-xs font-semibold px-2 py-1 rounded border bg-red-100 text-red-800 border-red-300"
+                    data-testid="grading-final-exam-retake-badge"
+                  >
+                    {`${t('grades.finalExamRetakeFailedBadge')} (${t('grades.finalExamRetakeFigures', retakeFigures)})`}
+                  </span>
+                )}
+              </div>
             )}
             <p><span className="font-semibold">{t('final')}:</span> {gradeEntry.finalSummary.final_grade ?? '-'}%</p>
             <p><span className="font-semibold">{t('gpa')}:</span> {gradeEntry.finalSummary.gpa ?? '-'}</p>
@@ -549,9 +644,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                     const letter = getLetterGrade(pct);
                     const color = pct >= 90 ? 'text-green-600' : pct >= 80 ? 'text-blue-600' : pct >= 70 ? 'text-yellow-600' : pct >= 60 ? 'text-orange-600' : 'text-red-600';
                     return (
-                      <tr key={g.id} className="hover:bg-gray-50">
+                      <tr key={g.id} className="hover:bg-gray-50" data-testid={`grading-history-row-${g.id}`}>
                         <td className="px-4 py-2">
                           <div className="font-medium text-gray-800">{translateAssignmentName(g.assignment_name)}</div>
+                          {/* Plan todo 80: the retake, and the sitting it replaced (no longer counted). */}
+                          {g.is_retake && (
+                            <span className="mt-1 inline-block text-xs font-semibold px-2 py-0.5 rounded border bg-indigo-50 text-indigo-800 border-indigo-200">
+                              {t('grades.retakeBadge')}
+                            </span>
+                          )}
+                          {replacedSittings.has(g.id) && (
+                            <span className="mt-1 inline-block text-xs font-semibold px-2 py-0.5 rounded border bg-gray-100 text-gray-700 border-gray-300">
+                              {t('grades.replacedByRetake')}
+                            </span>
+                          )}
                           {g.notes && (<div className="text-xs text-gray-500">{g.notes}</div>)}
                         </td>
                         {evaluationRules.length > 0 && (

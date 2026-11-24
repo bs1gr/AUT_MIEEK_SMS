@@ -207,6 +207,7 @@ def test_the_matrix_has_one_column_per_assessment_and_the_analytics_final_grade(
         "passed": 1,
         "failed": 1,
         "failed_absences": 0,
+        "failed_retake": 0,  # plan todo 80: a retake of the final exam under 50
         "no_grade": 1,
     }
 

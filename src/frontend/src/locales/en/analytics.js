@@ -154,6 +154,8 @@ export default {
     gradesRecorded: 'Grades: {{count}}',
     ratingsRecorded: 'Participation ratings: {{count}}',
     participationLost: 'Class Participation lost (over 10% absences)',
+    // Plan todo 80: a retake of the final exam under 50 fails the course whatever the final grade.
+    finalExamRetakeFailed: 'Failed: the final exam retake is under 50 ({{percentage}}, {{date}})',
     participationLostIn: 'Class Participation lost: {{courses}}',
     noRulesNote: 'no evaluation rules: the mean of the grades, by their Weight',
     outsideRulesNote: 'grades outside the evaluation rules: their mean, by their Weight',
@@ -180,7 +182,7 @@ export default {
     chartDistribution: 'Final Grade Distribution',
     chartAttendanceVsGrade: 'Attendance vs Final Grade',
     atRiskTitle: 'Needs Attention ({{count}})',
-    atRiskHelp: 'Failing a course (final grade under 50%), Class Participation lost (absences over 10%), or near or over the 30% absence fail limit.',
+    atRiskHelp: 'Failing a course (final grade under 50%, or a final exam retake under 50), Class Participation lost (absences over 10%), or near or over the 30% absence fail limit.',
     atRiskNone: 'No student is failing, has lost Class Participation or is near the absence limit.',
     gradeList: 'Grades in this course',
     noGrades: 'No grades recorded in this course yet.',
