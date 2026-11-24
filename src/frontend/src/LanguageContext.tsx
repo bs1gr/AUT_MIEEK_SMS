@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface LanguageContextType {
@@ -54,6 +54,14 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     if (language) {
       localStorage.setItem('i18nextLng', language);
     }
+  }, [language]);
+
+  // The page's language is the one chosen. With it the browser writes Greek in capitals
+  // without accents (CSS `uppercase`: «Κατηγορία» as «ΚΑΤΗΓΟΡΙΑ», not «ΚΑΤΗΓΟΡΊΑ») and a
+  // screen reader reads Greek with a Greek voice. index.html says "en" until this runs; a
+  // layout effect sets it before the first paint, and nothing is drawn before React is.
+  useLayoutEffect(() => {
+    document.documentElement.lang = language;
   }, [language]);
 
   const namespaceFallbacks = useMemo(
