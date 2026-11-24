@@ -333,6 +333,21 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: a course import keeps the rule names and every rule** (todo 81, PR 492; found by
+todo 77 point 2's third review; the owner: "Yes, keep names"). The course import
+(`routers_imports._map_category` and `_translate_rules`, and a second copy of both inside the
+templates import) renamed every rule by the first word it held and cut a closing bracket: the lab
+templates' «Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο σπίτι και Ενδιάμεση Εξέταση)» became plain
+"Continuous Assessment" (its midterm lost; point 2 counts the midterm of a course without a Midterm
+rule there anyway), «Τελική Εργασία» "Assignments", «Ασκήσεις» "Exercises", «Θεωρητική Εξέταση»
+"Exam"; and two rules that turned into one label were merged, the last weight kept («Θεωρητική
+Εξέταση» 40 + «Πρακτική Εξέταση» 30 -> one "Exam" 30). Now a standard category is saved under the
+course editor's name (`grade_categories.standard_key`: «Συμμετοχή στο Μάθημα» -> "Class
+Participation"), any other name as written, its spaces tidied, and every rule is kept in its
+order. Future imports only: courses already imported keep their rules. One copy of the helpers
+serves both imports. `test_imports_upload.py`: a template course keeps its names and its four
+rules (failed on the old import); the other import tests pass unchanged.
+
 **2026-11-24: an edit moves a grade to another category or renames it** (todo 82, PR 491; found by
 todo 77 point 2's third review; no decision needed). The Grading page's Edit sends the grade's
 category and the assignment's name, and the server's `GradeUpdate` (schemas/grades.py) had neither,
@@ -3516,7 +3531,7 @@ and 44 and 48 in its part 5):
     Assessment") and `_translate_rules` merges rules that get the same label, keeping the last weight
     («Θεωρητική Εξέταση» 40 + «Πρακτική Εξέταση» 30 -> one "Exam" 30). Rename only standard names, as
     the course editor does since todo 77 point 2, and never merge two rules. Future imports only.
-    Its own PR.
+    **Done** (PR 492, under "On `main` since v1.18.80").
 
 82. **Editing a grade's category or name is ignored by the server** (found by the same review; no
     decision needed). **Done** (PR 491, under "On `main` since v1.18.80"). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,

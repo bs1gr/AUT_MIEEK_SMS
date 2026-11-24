@@ -135,3 +135,37 @@ def test_upload_courses_preserves_evaluation_rules(client: TestClient):
     # Verify all expected categories are present (may be translated)
     categories = [rule.get("category") for rule in er]
     assert len(categories) == 4
+
+
+def test_upload_courses_keeps_the_rule_names_and_every_rule(client: TestClient):
+    """Plan todo 81 (the owner, 2026-11-23: keep names): a standard category is saved under the course
+    editor's name, any other name as written, and two rules are never merged. Until then the lab
+    templates' continuous rule lost its closing bracket and became plain "Continuous Assessment" (its
+    midterm lost), and «Θεωρητική Εξέταση» and «Πρακτική Εξέταση» became one "Exam" of the last weight."""
+    own = "Συνεχής Αξιολόγηση (Εκπόνηση εργασιών στο σπίτι και Ενδιάμεση Εξέταση)"
+    payload = {
+        "course_code": "TEST104",
+        "course_name": "Lab template",
+        "semester": "Α' Εξάμηνο",
+        "credits": 3,
+        "evaluation_rules": [
+            {"category": "Συμμετοχή στο Μάθημα", "weight": 10.0},
+            {"category": own, "weight": 30.0},
+            {"category": "Θεωρητική  Εξέταση", "weight": 30.0},
+            {"category": "Πρακτική Εξέταση", "weight": 30.0},
+        ],
+        "hours_per_week": 3.0,
+    }
+    files = {"files": ("test_course4.json", json.dumps(payload).encode("utf-8"), "application/json")}
+
+    resp = client.post("/api/v1/imports/upload", files=files, data={"import_type": "courses"})
+    assert resp.status_code == 200, resp.text
+
+    courses = client.get("/api/v1/courses/?limit=1000").json().get("items", [])
+    found = next(c for c in courses if c.get("course_code") == "TEST104")
+    assert [(r["category"], r["weight"]) for r in found["evaluation_rules"]] == [
+        ("Class Participation", 10.0),
+        (own, 30.0),
+        ("Θεωρητική Εξέταση", 30.0),
+        ("Πρακτική Εξέταση", 30.0),
+    ]
