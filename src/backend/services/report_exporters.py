@@ -62,6 +62,11 @@ REPORT_LABELS = {
         "highest_grade": "Highest Grade",
         "lowest_grade": "Lowest Grade",
         "trend": "Trend",
+        # Plan todo 83: a course's figure is its final grade once the Final Exam is graded.
+        "final_grade": "Final Grade",
+        "grade_basis": "Grade from",
+        "basis_final": "final grade",
+        "basis_average": "average so far",
         "trend_improving": "Improving",
         "trend_declining": "Declining",
         "trend_stable": "Stable",
@@ -119,6 +124,10 @@ REPORT_LABELS = {
         "highest_grade": "Υψηλότερος Βαθμός",
         "lowest_grade": "Χαμηλότερος Βαθμός",
         "trend": "Τάση",
+        "final_grade": "Τελικός Βαθμός",
+        "grade_basis": "Βαθμός από",
+        "basis_final": "τελικό βαθμό",
+        "basis_average": "μέσο όρο ως τώρα",
         "trend_improving": "Βελτιούμενη",
         "trend_declining": "Πτωτική",
         "trend_stable": "Σταθερή",
@@ -430,9 +439,9 @@ def generate_pdf_report(
                     course_data.append([get_label("late", language), str(course["attendance"]["late"])])
 
             if course.get("grades"):
-                course_data.append(
-                    [get_label("average_grade", language), f"{course['grades']['average_percentage']:.1f}%"]
-                )
+                # Plan todo 83: the final grade once the Final Exam is graded, named so.
+                label = "final_grade" if course.get("grade_basis") == "final" else "average_grade"
+                course_data.append([get_label(label, language), f"{course['grades']['average_percentage']:.1f}%"])
                 course_data.append(
                     [get_label("trend", language), translate_trend(course["grades"]["grade_trend"], language)]
                 )
@@ -561,6 +570,8 @@ def generate_csv_report(
                 get_label("late", language),
                 get_label("average_grade", language),
                 get_label("trend", language),
+                # Plan todo 83: whether the grade column holds the final grade or the average so far.
+                get_label("grade_basis", language),
             ]
         )
 
@@ -578,8 +589,12 @@ def generate_csv_report(
                 avg_grade = f"{avg_grade:.1f}"
 
             trend = translate_trend(grades.get("grade_trend", "N/A"), language)
+            basis = course.get("grade_basis")
+            basis_text = get_label(f"basis_{basis}", language) if basis in ("final", "average") else ""
 
-            writer.writerow([course["course_code"], course["course_title"], att_rate, late, avg_grade, trend])
+            writer.writerow(
+                [course["course_code"], course["course_title"], att_rate, late, avg_grade, trend, basis_text]
+            )
 
             # Add course notes row if provided
             note_text = (course_notes or {}).get(course["course_code"], "")

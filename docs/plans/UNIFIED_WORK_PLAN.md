@@ -333,6 +333,19 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: the student report and Analytics' "top by exams" read a course as the final grade does**
+(todo 83, the second PR; the first did the Students page and the Profile). The student report (the
+page, PDF and CSV; it has no Excel) gave each course and the student the plain mean of the period's
+grades: now a course whose Final Exam is graded (`final_grade_ready`) is given its final grade, named
+"Final grade" on the page and in the PDF, with a last CSV column "Grade from" (final grade / average
+so far), and the student's figure counts each course once by its figure. Analytics' exam average
+("top by exams") took every sitting of an exam, and any name with "final" or «τελικ» in it ("Final
+Quiz", «Τελική Εργασία») as an exam: it reads the exams as the final grade does now (one sitting each,
+the retake when marked, by kind). **Figures change** in the report and the exam ranking. Tests:
+`test_report_and_exams_final_grade.py` (both fail on the old code: the course 65 instead of its final
+grade 60, the exam average 37.5 instead of the retake's 80), `test_late_is_attended.py` (the CSV's 7
+columns), `StudentPerformanceReport.finalGrade.test.tsx` (English and Greek).
+
 **2026-11-24: the Students page and the Student Profile show a course's final grade once its Final
 Exam is graded, its average before** (todo 83, the first of two PRs; the owner that day: "should
 show averages if not exams grades published yet. otherwise, the real grades should populate", then,
@@ -3162,8 +3175,7 @@ point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces t
 sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
 keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
 2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
-out, decided and done 2026-11-24). **Next: todo 83's second PR** (the student report, Analytics'
-"top by exams"), **then the release v1.18.81** (the owner: "After todo 83"; the VM a separate yes).
+out, decided and done 2026-11-24). **Todo 83 is done** (two PRs, 2026-11-24); **next, the release v1.18.81** (the owner: "After todo 83"; the VM a separate yes).
 **Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
 its design to confirm before building, as it removes records.
 
@@ -3768,8 +3780,8 @@ and 44 and 48 in its part 5):
       Exam's grade or any exam's, and what a course with no exam rule shows. Its own PR, next.
     - **Asked, the owner (2026-11-24): the Final Exam's grade decides**; a course whose rules name no
       Final Exam shows its final grade (said in the question). **The Students page and the Profile:
-      done** (under "On `main` since v1.18.80"). **Left, a second PR:** the student report's average
-      (PDF, CSV, the page; it has no Excel) and Analytics' "top by exams" (every sitting counted).
+      done** (under "On `main` since v1.18.80"). **The student report and Analytics' "top by exams":
+      done** too, in a second PR.
 
 84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
     decision needed). `GET /api/v1/analytics/student/{id}/overview` answers 500 for a student who

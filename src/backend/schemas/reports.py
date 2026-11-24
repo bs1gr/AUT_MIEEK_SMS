@@ -91,7 +91,10 @@ class CourseSummary(BaseModel):
     course_name: str
     course_title: Optional[str] = None
     grade_average: Optional[float] = None
+    # The course's figure (plan todo 83): its final grade once the Final Exam is graded
+    # (grade_basis "final"), else the average of the period's grades ("average").
     grade_percentage: Optional[float] = None
+    grade_basis: Optional[str] = None
     attendance_rate: Optional[float] = None
     total_absences: Optional[int] = None
     performance_categories: List[PerformanceSummary] = []

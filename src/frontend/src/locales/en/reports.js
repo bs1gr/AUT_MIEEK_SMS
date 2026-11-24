@@ -61,6 +61,8 @@ export default {
   // Grade metrics
   average: 'Average',
   averageGrade: 'Average Grade',
+  // Plan todo 83: a course's figure is its final grade once its Final Exam is graded.
+  courseFinalGrade: 'Final grade',
   totalAssignments: 'Total Assignments',
   highest: 'Highest',
   highestGrade: 'Highest Grade',

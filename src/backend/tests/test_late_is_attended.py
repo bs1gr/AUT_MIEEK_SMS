@@ -211,8 +211,8 @@ def test_the_report_files_list_the_lates_and_the_excused_beside_the_rate(client)
         assert response.status_code == 200, response.text
         rows = list(csv.reader(io.StringIO(response.content.decode("utf-8-sig"))))
         assert [total, "4"] in rows and [late, "2"] in rows and [excused, "1"] in rows, rows
-        # The course row names its Lates beside its rate.
-        (header,) = [row for row in rows if row and len(row) == 6 and row[3] == late]
+        # The course row names its Lates beside its rate (7 columns since todo 83: the grade's basis).
+        (header,) = [row for row in rows if row and len(row) == 7 and row[3] == late]
         (course_row,) = [row for row in rows if row and row[0] == "LATE8"]
         assert course_row[header.index(late)] == "2" and course_row[2] == "75.0"
 

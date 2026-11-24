@@ -40,6 +40,8 @@ interface CourseDetail {
   course_title: string;
   attendance?: AttendanceSummary;
   grades?: GradeSummary;
+  /** Plan todo 83: "final" once the Final Exam is graded (the figure is the final grade); absent from older servers. */
+  grade_basis?: 'final' | 'average' | null;
   performance_categories?: PerformanceCategory[];
 }
 
@@ -565,7 +567,9 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       {course.grades && (
                         <div className="mb-2 flex items-center justify-between">
                           <div>
-                          <p className="text-sm text-gray-600">{t('grades', { ns: 'reports' })}:</p>
+                          <p className="text-sm text-gray-600" data-testid={`report-course-grade-label-${course.course_code}`}>
+                            {t(course.grade_basis === 'final' ? 'courseFinalGrade' : 'grades', { ns: 'reports' })}:
+                          </p>
                           <p className={`text-sm font-medium ${getGradeColor(course.grades.average_percentage)}`}>
                             {course.grades.average_percentage}% {getTrendIcon(course.grades.grade_trend)}
                           </p>

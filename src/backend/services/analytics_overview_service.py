@@ -107,15 +107,6 @@ def scheduled_weekdays(schedule: Any) -> set[int]:
     return {d for d in weekdays if d is not None and d < 5}
 
 
-# Exam-type grade categories (EN and EL, with and without accents), for the exam average.
-_EXAM_NEEDLES = ("midterm", "final", "exam", "ενδιάμεσ", "ενδιαμεσ", "τελικ", "εξέτασ", "εξετασ")
-
-
-def _is_exam(category: Any) -> bool:
-    text = str(category or "").lower()
-    return any(needle in text for needle in _EXAM_NEEDLES)
-
-
 def _grade_date(grade: Any) -> Optional[str]:
     day = grade.date_submitted or grade.date_assigned
     return day.isoformat() if day else None
@@ -488,7 +479,14 @@ class AnalyticsOverviewService:
             grade_basis=basis,
             grade_count=len(percentages),
             rating_count=len(daily),
-            exam_average=_mean(g.grade / g.max_grade * 100 for g in grades if g.max_grade and _is_exam(g.category)),
+            # The exams as the final grade reads them (plan todo 83): one sitting each, the retake
+            # when marked (counted_grades), by kind. Until November 2026 every sitting counted, and a
+            # name with "final" or «τελικ» in it ("Final Quiz", «Τελική Εργασία») was an exam.
+            exam_average=_mean(
+                g.grade / g.max_grade * 100
+                for g in AnalyticsService.counted_grades(grades)
+                if normalize_rule_category(getattr(g, "category", None)) in AnalyticsService.exam_categories
+            ),
             absence=absence_limit_service.evaluate(
                 course, absent=counts["absent"], excused=counts["excused"], late=counts["late"]
             ),

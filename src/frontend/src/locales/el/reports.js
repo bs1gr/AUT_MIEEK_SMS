@@ -61,6 +61,8 @@ export default {
   // Grade metrics
   average: 'Μέσος Όρος',
   averageGrade: 'Μέσος Βαθμός',
+  // Todo 83: ο βαθμός ενός μαθήματος είναι ο τελικός μόλις βαθμολογηθεί η Τελική Εξέταση.
+  courseFinalGrade: 'Τελικός βαθμός',
   totalAssignments: 'Συνολικές Εργασίες',
   highest: 'Υψηλότερος',
   highestGrade: 'Υψηλότερος Βαθμός',
