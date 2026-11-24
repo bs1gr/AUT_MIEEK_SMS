@@ -27,6 +27,8 @@ import AbsenceLimitsPanel from './AbsenceLimitsPanel';
 import LessonLogCard from './LessonLogCard';
 import LessonLogHistory from './LessonLogHistory';
 import { getRuleKind } from '@/utils/categoryLabels';
+import { isAbsence, isAbsenceDay } from '@/utils/attendanceRate';
+import { aggregateDayStatuses } from '@/features/attendance/utils/dayStatus';
 import { splitParticipationRules, type SpecialParticipationCategory } from '@/utils/participation';
 
 // Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
@@ -359,19 +361,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   const isStudentExpanded = (studentId: number) => expandedStudents.has(studentId);
 
-  const getAggregatedStatus = (studentId: number) => {
-    const statuses = Object.values(getStudentPeriodStatuses(studentId));
-    if (!statuses.length) {
-      return { status: undefined, isMixed: false, hasAny: false };
-    }
-    const first = statuses[0];
-    const isUniform = statuses.every((status) => status === first);
-    return {
-      status: isUniform ? first : undefined,
-      isMixed: !isUniform,
-      hasAny: true,
-    };
-  };
+  const getAggregatedStatus = (studentId: number) => aggregateDayStatuses(Object.values(getStudentPeriodStatuses(studentId)));
 
   const clearPeriodAttendance = (studentId: number, periodNumber: number) => {
     setAttendanceRecords((prev) => {
@@ -435,11 +425,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         next[getAttendanceKey(studentId, period)] = status;
       });
 
-      if (status === 'Absent') {
-        const allAbsent = activePeriods.every((period) => next[getAttendanceKey(studentId, period)] === 'Absent');
-        if (allAbsent) {
-          clearPerformanceForStudent(studentId);
-        }
+      // A day the student attended no period of (Absent or Excused in each) takes no rating: its
+      // ratings are cleared, the autosave deletes the saved ones (plan todo 78 point 2, the owner:
+      // "clear ratings already saved for that day"; Absent alone until November 2026).
+      if (isAbsence(status) && isAbsenceDay(activePeriods.map((period) => next[getAttendanceKey(studentId, period)]))) {
+        clearPerformanceForStudent(studentId);
       }
 
       return next;
@@ -796,7 +786,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       return next;
     });
 
-    if (status === 'Absent') {
+    if (isAbsence(status)) {
       clearPerformanceForStudents((enrolledStudents || []).map((s) => s.id));
     }
 

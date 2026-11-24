@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attendedRate, countStatuses, isAttended, statusForm } from '../attendanceRate';
+import { attendedRate, countStatuses, isAbsence, isAbsenceDay, isAttended, statusForm } from '../attendanceRate';
 
 describe('attendance rate (plan todo 77: Present and Late are attended)', () => {
   it('counts Present and Late, whatever the case, and never Absent or Excused', () => {
@@ -41,6 +41,23 @@ describe('attendance rate (plan todo 77: Present and Late are attended)', () => 
       'constructor',
       'toString',
     ]);
+  });
+
+  it('reads Absent and Excused as absences, and a day of them only as a day without attendance (todo 78)', () => {
+    expect(['Absent', 'excused ', 'Present', 'Late', '', null, 'Tardy'].map(isAbsence)).toEqual([
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(isAbsenceDay(['Absent', 'Excused'])).toBe(true);
+    // A period without a status is no absence: the day is not one yet.
+    expect(isAbsenceDay(['Excused', undefined])).toBe(false);
+    expect(isAbsenceDay(['Excused', 'Late'])).toBe(false);
+    expect(isAbsenceDay([])).toBe(false);
   });
 
   it('counts a status that is the name of an object member in no column', () => {

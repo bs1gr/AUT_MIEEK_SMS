@@ -267,7 +267,8 @@ Closing the browser or reloading the page inside those two seconds still loses i
 **Attendance insights** counts the day's Present, Absent, Late and Excused, and says how
 many of the records it expects are there ("Coverage: 100%, 8/8 records tracked").
 
-**Rate**, next to a student (not offered for one marked Absent), opens **Daily
+**Rate**, next to a student (not offered for one marked Absent or Excused in every period of
+the day: an absence; marking a day so also clears the ratings already saved for it), opens **Daily
 Performance**: a score for each category of the course that is rated by the day (Homework and
 Class Participation, in the course this was checked with), and under it the **participation
 observations**. Tick only the observations that apply. A category is counted for the day

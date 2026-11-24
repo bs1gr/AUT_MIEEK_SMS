@@ -11,6 +11,20 @@ export const statusKey = (status: string | null | undefined): string => String(s
 
 export const isAttended = (status: string | null | undefined): boolean => ATTENDED.has(statusKey(status));
 
+const ABSENCES = new Set(['absent', 'excused']);
+
+/** Absent or Excused, whatever the case: an absence (plan todo 77), on the server's meaning too. */
+export const isAbsence = (status: string | null | undefined): boolean => ABSENCES.has(statusKey(status));
+
+/**
+ * A day the student attended no period of: every period's status an absence, Absent and Excused
+ * mixed or not; a period without a status is not one. Such a day takes no rating: Rate is closed and
+ * the ratings saved for it are cleared (the owner, 2026-11-24, plan todo 78 point 2: "an Excused day
+ * should close Rate the way Absent does"; until then only an all-Absent day did).
+ */
+export const isAbsenceDay = (statuses: ReadonlyArray<string | null | undefined>): boolean =>
+  statuses.length > 0 && statuses.every(isAbsence);
+
 // A Map, not an object: a stored word such as "constructor" must not find Object's own members.
 const STATUS_FORMS: ReadonlyMap<string, string> = new Map([
   ['present', 'Present'],
