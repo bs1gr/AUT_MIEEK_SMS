@@ -29,6 +29,10 @@ export interface StudentStats {
     final_grade: number;
     gpa: number;
     letter_grade: string;
+    /** Absent from older servers. */
+    course_id?: number;
+    /** Plan todo 83: the final grade is the course's figure (else the average so far); absent from older servers. */
+    final_grade_ready?: boolean;
   }>;
   error?: boolean;
 }

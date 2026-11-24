@@ -9,11 +9,14 @@ import {
   weightedAveragePercent,
 } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
+import { courseFigures, type CourseSummaryEntry } from '../utils/courseFigures';
 
 interface CourseGradeBreakdownProps {
   gradesList: Grade[];
   coursesMap: Map<number, Course>;
   onNavigateToCourse?: (courseId: number) => void;
+  /** The student's final grades by course (plan todo 83): a course whose final grade is ready shows it. */
+  courseSummary?: ReadonlyArray<CourseSummaryEntry> | null;
 }
 
 /**
@@ -25,8 +28,11 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
   gradesList,
   coursesMap,
   onNavigateToCourse,
+  courseSummary,
 }) => {
   const { t } = useLanguage();
+  // Plan todo 83: each course's figure, its final grade once ready, else the average so far.
+  const figures = useMemo(() => courseFigures(gradesList, courseSummary), [gradesList, courseSummary]);
   const [fallbackCourses, setFallbackCourses] = useState<Record<number, Course>>({});
 
   useEffect(() => {
@@ -99,9 +105,12 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
         ? [courseInfo.course_code, courseInfo.course_name].filter(Boolean).join(' — ')
         : `${t('course') || 'Course'} #${courseId}`;
 
-      // Calculate course average
+      // The course's figure (plan todo 83): its final grade once the Final Exam is graded, else the
+      // plain average of its grades so far, as before.
       const percentages = courseGrades.map(g => (g.grade / g.max_grade) * 100);
-      const avgPercentage = percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
+      const figure = figures.get(courseId);
+      const isFinal = figure?.basis === 'final';
+      const avgPercentage = figure ? figure.percentage : percentages.reduce((sum, p) => sum + p, 0) / percentages.length;
       const avgGreek = percentageToGreekScale(avgPercentage);
       const letterGrade = getLetterGrade(avgPercentage);
       const gradeColor = getGreekGradeColor(avgGreek);
@@ -125,9 +134,10 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
         letterGrade,
         gradeColor,
         byCategory,
+        isFinal,
       };
     });
-  }, [gradesList, resolveCourseInfo, t]);
+  }, [gradesList, resolveCourseInfo, figures, t]);
 
   // Translate category names
   const translateCategory = (category: string): string => {
@@ -169,7 +179,7 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
         <p className="text-indigo-700 text-sm font-semibold drop-shadow-xs">{t('noGradesRecorded')}</p>
       ) : (
         <div className="space-y-4">
-          {courseBreakdown.map(({ courseId, courseName, courseCode, avgPercentage, avgGreek, letterGrade, gradeColor, byCategory }) => (
+          {courseBreakdown.map(({ courseId, courseName, courseCode, avgPercentage, avgGreek, letterGrade, gradeColor, byCategory, isFinal }) => (
             <div key={courseId} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Course Header */}
               <div className="bg-linear-to-r/srgb from-blue-50 to-indigo-50 px-4 py-3 border-b border-gray-200">
@@ -180,8 +190,9 @@ const CourseGradeBreakdown: React.FC<CourseGradeBreakdownProps> = memo(({
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-sm text-indigo-700 font-semibold">
-                        {t('average')}: <span className={`font-bold ${gradeColor}`}>
+                      <div className="text-sm text-indigo-700 font-semibold" data-testid={`course-figure-${courseId}`}>
+                        {/* common.average: a bare 'average' found the Dashboard's capitals ("AVERAGE"). */}
+                        {isFinal ? t('students.finalGradeLabel') : t('common.average')}: <span className={`font-bold ${gradeColor}`}>
                           {avgGreek.toFixed(1)}/20
                         </span>
                       </div>

@@ -79,6 +79,30 @@ const renderComponent = (props = {}) => {
 };
 
 describe('CourseGradeBreakdown', () => {
+  // Plan todo 83 (the owner, 2026-11-24): the average until the Final Exam is graded, then the
+  // course's real final grade.
+  describe('the final grade once the Final Exam is graded', () => {
+    it('shows a ready course by its final grade and another by its average', () => {
+      renderComponent({
+        courseSummary: [
+          { course_id: 1, course_code: 'CS101', final_grade: 72, final_grade_ready: true },
+          { course_id: 2, course_code: 'MATH201', final_grade: 55, final_grade_ready: false },
+        ],
+      });
+
+      // CS101: its final grade, 72 % = 14.4/20, not the 90 % average of its grades.
+      expect(screen.getByTestId('course-figure-1')).toHaveTextContent(/^Final grade: 14\.4\/20$/);
+      // MATH201: its Final Exam not graded yet, the average of its grades, 80 % = 16.0/20.
+      expect(screen.getByTestId('course-figure-2')).toHaveTextContent(/^Average: 16\.0\/20$/);
+    });
+
+    it('shows every course by its average without the final grades (an older server)', () => {
+      renderComponent({ courseSummary: [{ course_code: 'CS101', final_grade: 72, final_grade_ready: true }] });
+
+      expect(screen.getByTestId('course-figure-1')).toHaveTextContent(/^Average: 18\.0\/20$/);
+    });
+  });
+
   describe('Rendering', () => {
     it('renders component with header', () => {
       renderComponent();

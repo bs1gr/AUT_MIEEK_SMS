@@ -13,6 +13,7 @@ import { useStudentNotes } from '../hooks/useStudentNotes';
 import type { StudentStats } from './studentTypes';
 import { eventBus, EVENTS } from '@/utils/events';
 import { attendedRate, countStatuses } from '@/utils/attendanceRate';
+import { courseFigures, overallFigure } from '../utils/courseFigures';
 
 // Filter values: '' = all, NOT_SET = students with no value in that field.
 const ALL = '';
@@ -121,10 +122,14 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       // Present and Late are attended, as on every page (todo 77); Excused is an absence.
       const attendanceRate = attendedRate(attendance).toFixed(1);
 
+      // Plan todo 83: over the student's courses, each by its final grade once the Final Exam is
+      // graded, else by the average of its grades so far (until then the plain mean of every grade).
       let avg = 0;
       if (grades.length > 0) {
         const percentages = grades.map((g: Grade) => (g.grade / g.max_grade) * 100);
-        avg = percentages.reduce((sum: number, p: number) => sum + p, 0) / percentages.length;
+        avg =
+          overallFigure(courseFigures(grades, finalGradeSummary?.courses)) ??
+          percentages.reduce((sum: number, p: number) => sum + p, 0) / percentages.length;
       }
 
       let finalGrade = undefined;

@@ -6,6 +6,7 @@ import { percentageToGreekScale, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import CourseGradeBreakdown from './CourseGradeBreakdown';
+import { courseFigures, overallFigure } from '../utils/courseFigures';
 import AttendanceDetails from './AttendanceDetails';
 import GradeStatistics, { GradeInsights } from './GradeStatistics';
 import GradeDistribution, { GradeDistributionData } from './GradeDistribution';
@@ -51,7 +52,11 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   const gradeInsights = useMemo<GradeInsights | null>(() => {
     if (!stats?.gradesList || stats.gradesList.length === 0) return null;
     const percentages = stats.gradesList.map((g) => (g.grade / g.max_grade) * 100);
-    const avgPercentage = percentages.reduce((sum, value) => sum + value, 0) / percentages.length;
+    // Plan todo 83: over the student's courses, each by its final grade once the Final Exam is
+    // graded, else by the average of its grades so far (the plain mean of every grade until then).
+    const avgPercentage =
+      overallFigure(courseFigures(stats.gradesList, stats.courseSummary)) ??
+      percentages.reduce((sum, value) => sum + value, 0) / percentages.length;
     const maxPercentage = Math.max(...percentages);
     const minPercentage = Math.min(...percentages);
 
@@ -65,7 +70,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
       minGreek: percentageToGreekScale(minPercentage),
       letterGrade: getLetterGrade(avgPercentage),
     };
-  }, [stats?.gradesList]);
+  }, [stats?.gradesList, stats?.courseSummary]);
 
   const gradeDistribution = useMemo<GradeDistributionData | null>(() => {
     if (!stats?.gradesList || stats.gradesList.length === 0) return null;
@@ -224,6 +229,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
               gradesList={stats.gradesList || []}
               coursesMap={coursesMap}
               onNavigateToCourse={onNavigateToCourse}
+              courseSummary={stats.courseSummary}
             />
           )}
 
