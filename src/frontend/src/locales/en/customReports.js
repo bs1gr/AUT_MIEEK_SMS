@@ -198,6 +198,8 @@ export default {
   filters: 'filters',
   sortRules: 'sortRules',
   standardTemplates: 'Standard Templates',
+  // Plan todo 75 stage 6: the templates card says what the browser itself filters by.
+  templatesFilterHint: 'Ready-made reports, to filter by kind of data and file format',
   csvExportTemplates: 'CSV Export Templates',
   analyticsTemplates: 'Analytics Templates',
     viewAnalyticsTemplates: 'Browse built-in analytics templates and create custom dashboards',
