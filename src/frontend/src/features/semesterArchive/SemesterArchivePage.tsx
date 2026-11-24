@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import useSemesterArchive from './useSemesterArchive';
+import useSemesterArchive, { type SemesterArchiveExecuteResult } from './useSemesterArchive';
 
 const REASON_KEYS: Record<string, string> = {
   not_passed: 'reasonNotPassed',
   incomplete_grading: 'reasonIncompleteGrading',
   no_evaluation_rules: 'reasonNoEvaluationRules',
   already_archived: 'reasonAlreadyArchived',
-  // Plan todo 85: failed whatever the grade; kept out, the course to be taken again.
+  // Plan todo 85: failed whatever the grade. Since todo 87 recorded as failed, the course taken again.
   failed_absence_limit: 'reasonFailedAbsenceLimit',
   failed_final_retake: 'reasonFailedFinalRetake',
 };
@@ -32,14 +32,7 @@ const SemesterArchivePage: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [passThreshold, setPassThreshold] = useState(60);
   const [confirmText, setConfirmText] = useState('');
-  const [result, setResult] = useState<{
-    export_id: number;
-    export_filename: string | null;
-    students_affected: number;
-    courses_affected: number;
-    enrollments_archived: number;
-    enrollments_skipped: number;
-  } | null>(null);
+  const [result, setResult] = useState<SemesterArchiveExecuteResult | null>(null);
 
   useEffect(() => {
     loadSemesters();
@@ -62,7 +55,10 @@ const SemesterArchivePage: React.FC = () => {
     }
   };
 
-  const canExecute = !!preview && preview.eligible_count > 0 && confirmText === selectedSemester && !executing;
+  // Plan todo 87: a run also records failed courses, so it has work with failed students alone.
+  const failed = preview?.failed ?? [];
+  const toRecord = preview ? preview.eligible_count + (preview.failed_count ?? failed.length) : 0;
+  const canExecute = toRecord > 0 && confirmText === selectedSemester && !executing;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -156,6 +152,37 @@ const SemesterArchivePage: React.FC = () => {
             </div>
           )}
 
+          {failed.length > 0 && (
+            <div className="mb-4" data-testid="archive-failed">
+              <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                {t('failedTitle', { ns: 'semesterArchive', count: preview.failed_count ?? failed.length })}
+              </h3>
+              <p className="text-xs text-gray-600 mb-2">{t('failedHint', { ns: 'semesterArchive' })}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-500">
+                      <th className="py-1 pr-4">{t('student', { ns: 'semesterArchive' })}</th>
+                      <th className="py-1 pr-4">{t('course', { ns: 'semesterArchive' })}</th>
+                      <th className="py-1 pr-4">{t('finalGrade', { ns: 'semesterArchive' })}</th>
+                      <th className="py-1 pr-4">{t('reason', { ns: 'semesterArchive' })}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {failed.map((pair) => (
+                      <tr key={`${pair.student_id}-${pair.course_id}`} className="border-t">
+                        <td className="py-1 pr-4">{pair.student_name}</td>
+                        <td className="py-1 pr-4">{pair.course_code} — {pair.course_name}</td>
+                        <td className="py-1 pr-4">{pair.letter_grade} ({pair.final_grade.toFixed(1)}%)</td>
+                        <td className="py-1 pr-4">{t(REASON_KEYS[pair.reason] || pair.reason, { ns: 'semesterArchive' })}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           <h3 className="text-sm font-semibold text-gray-700 mb-2">
             {t('excludedTitle', { ns: 'semesterArchive', count: preview.excluded_count })}
           </h3>
@@ -184,7 +211,7 @@ const SemesterArchivePage: React.FC = () => {
             </div>
           )}
 
-          {preview.eligible_count > 0 && (
+          {toRecord > 0 && (
             <div className="mt-6 pt-6 border-t">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 {t('confirmSectionTitle', { ns: 'semesterArchive' })}
@@ -223,7 +250,7 @@ const SemesterArchivePage: React.FC = () => {
           <h2 className="text-lg font-semibold text-green-800 mb-3">
             {t('executeSuccessTitle', { ns: 'semesterArchive' })}
           </h2>
-          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <dl className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
             <div>
               <dt className="text-gray-500">{t('studentsAffected', { ns: 'semesterArchive' })}</dt>
               <dd className="font-semibold text-gray-900">{result.students_affected}</dd>
@@ -235,6 +262,10 @@ const SemesterArchivePage: React.FC = () => {
             <div>
               <dt className="text-gray-500">{t('enrollmentsArchived', { ns: 'semesterArchive' })}</dt>
               <dd className="font-semibold text-gray-900">{result.enrollments_archived}</dd>
+            </div>
+            <div>
+              <dt className="text-gray-500">{t('enrollmentsFailed', { ns: 'semesterArchive' })}</dt>
+              <dd className="font-semibold text-gray-900">{result.enrollments_failed ?? 0}</dd>
             </div>
             <div>
               <dt className="text-gray-500">{t('enrollmentsSkipped', { ns: 'semesterArchive' })}</dt>
@@ -265,6 +296,7 @@ const SemesterArchivePage: React.FC = () => {
                   <th className="py-1 pr-4">{t('selectSemester', { ns: 'semesterArchive' })}</th>
                   <th className="py-1 pr-4">{t('statusColumn', { ns: 'semesterArchive' })}</th>
                   <th className="py-1 pr-4">{t('enrollmentsArchived', { ns: 'semesterArchive' })}</th>
+                  <th className="py-1 pr-4">{t('enrollmentsFailed', { ns: 'semesterArchive' })}</th>
                   <th className="py-1 pr-4" />
                 </tr>
               </thead>
@@ -276,6 +308,7 @@ const SemesterArchivePage: React.FC = () => {
                       {t(`status${row.status.charAt(0).toUpperCase()}${row.status.slice(1)}`, { ns: 'semesterArchive' })}
                     </td>
                     <td className="py-1 pr-4">{row.enrollments_archived}</td>
+                    <td className="py-1 pr-4">{row.enrollments_failed ?? 0}</td>
                     <td className="py-1 pr-4">
                       {row.export_filename && (
                         <button

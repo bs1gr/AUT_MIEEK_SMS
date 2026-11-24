@@ -71,7 +71,12 @@ export default {
   enrolledCourses: 'Enrolled Courses',
   noEnrollments: 'No enrollments found',
   academicHistory: 'Academic History',
-  academicHistoryDescription: 'Permanent record of courses this student has already passed and completed.',
+  academicHistoryDescription: 'Permanent record of the courses this student has completed: passed, or failed and to be taken again from the beginning.',
+  // Plan todo 87: a failed course in the history, with the reason.
+  historyFailed: 'Failed',
+  historyFailReason_not_passed: 'below the pass threshold',
+  historyFailReason_failed_absence_limit: 'over the absence limit',
+  historyFailReason_failed_final_retake: 'final exam retake under 50',
   failedToLoadStudentData: 'Failed to load student data',
   performance: 'Performance',
   viewPerformance: 'View Performance',

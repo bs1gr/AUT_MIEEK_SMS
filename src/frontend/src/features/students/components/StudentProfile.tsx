@@ -798,9 +798,23 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                       <div className="text-xs text-gray-500">{record.semester}</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-bold text-sm">
-                        {record.letter_grade} ({record.final_grade.toFixed(1)}%)
-                      </span>
+                      {record.passed === false ? (
+                        // Plan todo 87: a failed course, its records cleared; the student takes it again.
+                        <span
+                          className="px-3 py-1 rounded-full bg-red-100 text-red-800 font-bold text-sm"
+                          data-testid="history-failed"
+                        >
+                          {t('historyFailed', { ns: 'students' })}
+                          {record.fail_reason
+                            ? `: ${t(`historyFailReason_${record.fail_reason}`, { ns: 'students', defaultValue: record.fail_reason })}`
+                            : ''}{' '}
+                          ({record.final_grade.toFixed(1)}%)
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 font-bold text-sm">
+                          {record.letter_grade} ({record.final_grade.toFixed(1)}%)
+                        </span>
+                      )}
                     </div>
                   </div>
                   {idx < performanceHistory.length - 1 && (

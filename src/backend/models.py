@@ -359,6 +359,9 @@ class SemesterArchiveExport(Base):
     students_affected = Column(Integer, nullable=False, default=0)
     courses_affected = Column(Integer, nullable=False, default=0)
     enrollments_archived = Column(Integer, nullable=False, default=0)
+    # Plan todo 87: enrolments recorded as failed and cleared (the student repeats the course
+    # fresh). A server default, so an older version's runs still insert.
+    enrollments_failed = Column(Integer, nullable=False, default=0, server_default="0")
     enrollments_skipped = Column(Integer, nullable=False, default=0)
     error_message = Column(Text, nullable=True)
     started_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -370,10 +373,16 @@ class SemesterArchiveExport(Base):
 
 
 class StudentCoursePerformance(Base):
-    """Permanent compact record of a passed course, kept after the raw
+    """Permanent compact record of a course taken, kept after the raw
     CourseEnrollment/Grade/Attendance/DailyPerformance rows for it are deleted
     by the semester archive operation. Course fields are snapshotted so this
     record survives a later rename/delete of the Course row.
+
+    A passed course, or (plan todo 87) a failed one: `passed` false with the
+    `fail_reason`, its records cleared so the student repeats the course fresh.
+    One passed record per student, course code and semester label; failed
+    attempts are not limited, as a course (its code unique) is taken again in
+    the same row, perhaps with the same label.
 
     Not soft-deletable: this is the minimal permanent record the archive
     feature exists to produce.
@@ -392,6 +401,9 @@ class StudentCoursePerformance(Base):
     letter_grade = Column(String(5), nullable=False)
     gpa = Column(Float, nullable=True)
     passed = Column(Boolean, nullable=False, default=True)
+    # Why a failed course failed (plan todo 87): "not_passed" (under the pass mark),
+    # "failed_absence_limit", "failed_final_retake". None for a passed course.
+    fail_reason = Column(String(40), nullable=True)
     total_weight_used = Column(Float, nullable=False)
     archived_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
     archived_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
@@ -402,12 +414,16 @@ class StudentCoursePerformance(Base):
     __table_args__ = (
         Index("idx_student_course_performance_student_semester", "student_id", "semester"),
         Index("idx_student_course_performance_student_course", "student_id", "course_id"),
+        # Passed records only (plan todo 87): a failed attempt must not stop the course
+        # taken again from being recorded as passed under the same label.
         Index(
             "idx_student_course_performance_unique",
             "student_id",
             "course_code",
             "semester",
             unique=True,
+            sqlite_where=text("passed"),
+            postgresql_where=text("passed"),
         ),
     )
 

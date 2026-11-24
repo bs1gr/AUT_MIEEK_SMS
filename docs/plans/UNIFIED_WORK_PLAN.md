@@ -393,6 +393,38 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.81 (unreleased)
 
+**2026-11-24: a student who fails a course takes it again from the beginning** (todo 87; the owner:
+"if the student fail, should retake the course from the beginning, nothing remains from that
+course. He/She has to repeat fresh", then, asked: at the archive run, and for all three fails). The
+semester archive run now records a failed course in the student's history as failed, with the
+reason (below the pass threshold, over the ΜΙΕΕΚ absence limit, a final exam retake under 50), and
+removes that enrolment and its grades, daily ratings and attendance after the semester backup it
+already makes, as it does for a passed course; the student is then enrolled again with a clean
+record. Todo 85 had kept such students out of the archive, so the next year they were still
+enrolled in the same course (a course code exists once) with last year's absences counting, and
+could not even be enrolled again. The two hard fails are recorded even while some grades are
+missing; grading still in progress otherwise, or a course without rules, is left as it was. The
+page lists them under "Will be recorded as failed", with the reason and a note that they take the
+course again; a run with failed students alone is allowed; the results and the past runs count
+them. The Profile's Academic History shows a failed course in red with the reason. **Migration
+`d8b3f1a6c2e9`**, additive: `student_course_performance.fail_reason` (empty for every stored
+record, all passed), `semester_archive_exports.enrollments_failed` (server default 0, so an older
+version's runs still insert), and the unique index on (student, course code, semester label)
+limited to passed records, so a failed attempt neither blocks nor clashes with the repeat's passed
+record in the same course row under the same label; the "already archived" check counts passed
+records only, for the same reason. Its downgrade keeps the passed-only index (the whole-table one
+could not hold a failed attempt beside the repeat's record) and deletes nothing. An older version
+on the new schema writes passed records only; it shows a failed record as a course taken, and
+counts it as already archived. Help texts (both languages) say so. Tests:
+`test_semester_archive_failed_recorded.py` (the preview, one pair alone, the run, the repeat under
+the same label, the endpoints, the migration up, down and up; 6 of its 7 fail on the old code,
+the seventh, a passed record still counting as archived, passes on both), the updated
+`test_semester_archive_service.py` (2 tests: a student below the pass mark is now recorded as
+failed) and `test_semester_archive_preview_failed_reasons.py` (the two reasons now under `failed`);
+`SemesterArchivePage.test.tsx` (the failed list and a run with failed students alone; fails on
+the old page) and `StudentProfile.test.tsx` (a failed course in red with the reason; fails on the
+old Profile).
+
 **2026-11-24: the Semester Archive preview answers for a student who failed on the absence limit or a
 final retake** (found while designing todo 87; no decision needed). Todo 85 (v1.18.81) gave the
 archive two reasons to keep a student out, `failed_absence_limit` and `failed_final_retake`, and the
@@ -3253,7 +3285,8 @@ released** (2026-11-24, the top of this plan; the owner: "After todo 83"), and t
 (the same day, the owner: "do all suggested"; the shared database at `c7d4e2a9f1b6`, migrated
 from the dev PC two minutes before, the top of this plan). Next, todo 75's stages 4 to 6.
 **Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
-its design to confirm before building, as it removes records.
+the design confirmed and done the same evening (on `main` since v1.18.81, with migration
+`d8b3f1a6c2e9`).
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3883,6 +3916,8 @@ and 44 and 48 in its part 5):
     - **Done** (under "In v1.18.81"), with a finding for the owner on taking the
       course again next year: the student stays enrolled in the same course, whose old absences
       and grades keep counting, unless next year's course is made anew under its own code.
+    - **Replaced by todo 87** (2026-11-24, the owner's design): a failed student is recorded as
+      failed at the archive run and their records cleared, instead of being kept out.
 
 87. **A student who fails a course repeats it fresh** (the owner, 2026-11-24, answering todo 85's
     finding: "if the student fail, should retake the course from the beginning, nothing remains from
@@ -3899,6 +3934,9 @@ and 44 and 48 in its part 5):
     course without rules. To confirm before building, as it removes records (the semester backup
     keeps them): that a failed course is recorded as failed and cleared at the archive run, and
     whether a student below the pass mark is cleared too or only the two hard fails.
+    - **The owner's answers (2026-11-24, evening):** "At the archive run" and "All three fails"
+      (below the pass mark, the absence limit, a final retake under 50). **Done** (under "On `main`
+      since v1.18.81"; migration `d8b3f1a6c2e9`).
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).

@@ -101,7 +101,8 @@ def test_preview_threshold_boundary_is_inclusive(db: Session):
     assert result["eligible"][0]["final_grade"] == 60.0
 
 
-def test_preview_excludes_below_threshold_as_not_passed(db: Session):
+def test_preview_lists_below_threshold_as_failed_not_passed(db: Session):
+    # Plan todo 87: a failed course is recorded as failed (it used to be left untouched).
     student = _make_student(db, "fail")
     course = _make_course(db, "ARCH103", evaluation_rules=FULL_WEIGHT_RULES)
     _enroll(db, student, course)
@@ -109,9 +110,8 @@ def test_preview_excludes_below_threshold_as_not_passed(db: Session):
 
     result = SemesterArchiveService(db).preview(SEMESTER, pass_threshold=60.0)
 
-    assert result["eligible_count"] == 0
-    assert result["excluded_count"] == 1
-    assert result["excluded"][0]["reason"] == "not_passed"
+    assert (result["eligible_count"], result["failed_count"], result["excluded_count"]) == (0, 1, 0)
+    assert result["failed"][0]["reason"] == "not_passed"
 
 
 def test_preview_excludes_incomplete_grading(db: Session):
@@ -141,7 +141,7 @@ def test_preview_excludes_courses_without_evaluation_rules(db: Session):
     assert result["excluded"][0]["reason"] == "no_evaluation_rules"
 
 
-def test_execute_archives_only_passed_courses_and_keeps_profile_intact(db: Session, tmp_path, monkeypatch):
+def test_execute_records_passed_and_failed_courses_and_keeps_profile_intact(db: Session, tmp_path, monkeypatch):
     from backend.services import semester_export_service
 
     monkeypatch.setattr(semester_export_service, "SEMESTER_ARCHIVE_DIR", tmp_path)
@@ -161,10 +161,11 @@ def test_execute_archives_only_passed_courses_and_keeps_profile_intact(db: Sessi
 
     result = SemesterArchiveService(db).execute(SEMESTER, pass_threshold=60.0, admin_user_id=None)
 
-    assert result["students_affected"] == 1
+    assert result["students_affected"] == 2
     assert result["courses_affected"] == 1
     assert result["enrollments_archived"] == 1
-    assert result["enrollments_skipped"] == 1
+    assert result["enrollments_failed"] == 1
+    assert result["enrollments_skipped"] == 0
 
     # Passing student: raw rows gone, permanent record exists, profile untouched.
     assert db.query(CourseEnrollment).filter_by(student_id=passing_student.id, course_id=course.id).first() is None
@@ -182,9 +183,13 @@ def test_execute_archives_only_passed_courses_and_keeps_profile_intact(db: Sessi
     assert refreshed_student is not None
     assert refreshed_student.first_name == "Test"
 
-    # Failing student: nothing touched, can retake.
-    assert db.query(CourseEnrollment).filter_by(student_id=failing_student.id, course_id=course.id).first() is not None
-    assert db.query(Grade).filter_by(student_id=failing_student.id, course_id=course.id).count() == 1
+    # Failing student (plan todo 87): recorded as failed, the records cleared, to take the course
+    # again from the beginning; the profile untouched.
+    assert db.query(CourseEnrollment).filter_by(student_id=failing_student.id, course_id=course.id).first() is None
+    assert db.query(Grade).filter_by(student_id=failing_student.id, course_id=course.id).count() == 0
+    failed = db.query(StudentCoursePerformance).filter_by(student_id=failing_student.id).one()
+    assert (failed.passed, failed.fail_reason, failed.final_grade) == (False, "not_passed", 30.0)
+    assert db.query(Student).filter_by(id=failing_student.id).one().is_active is True
 
     export_row = db.query(SemesterArchiveExport).filter_by(semester=SEMESTER).first()
     assert export_row.status == "completed"

@@ -146,6 +146,8 @@ export interface StudentCoursePerformance {
   letter_grade: string;
   gpa?: number;
   passed: boolean;
+  /** Plan todo 87: why a failed course failed (not_passed, failed_absence_limit, failed_final_retake). */
+  fail_reason?: string | null;
   archived_at: string;
 }
 
