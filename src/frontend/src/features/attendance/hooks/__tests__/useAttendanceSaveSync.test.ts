@@ -418,6 +418,42 @@ describe('useAttendanceSaveSync', () => {
       await first;
       await waitFor(() => expect(params.setAttendanceRecords).toHaveBeenCalled());
     });
+
+    // Until November 2026 a semester file's statuses were stored as the file wrote them, and the
+    // page compares the word: a stored "late" lit no button, counted as unrecorded in the
+    // insights, and an "absent" day left Rate open (plan todo 78, point 1).
+    it('reads a stored status in any case or spacing as the page writes it', async () => {
+      mockGet.mockImplementation((url: string) =>
+        Promise.resolve(
+          url.startsWith('/attendance/date/')
+            ? {
+                data: [
+                  { id: 1, student_id: 1, period_number: 1, date: '2026-09-04', status: 'late' },
+                  { id: 2, student_id: 1, period_number: 2, date: '2026-09-04', status: 'Late ' },
+                  { id: 3, student_id: 2, period_number: 1, date: '2026-09-04', status: 'absent' },
+                  { id: 4, student_id: 3, period_number: 1, date: '2026-09-04', status: 'Tardy' },
+                ],
+              }
+            : { data: [] }
+        )
+      );
+      const params = buildParams();
+      const { result } = renderHook(() => useAttendanceSaveSync(params));
+
+      await act(async () => {
+        await result.current.refreshAttendancePrefill();
+      });
+
+      const expected = {
+        '1|1|2026-09-04': 'Late',
+        '1|2|2026-09-04': 'Late',
+        '2|1|2026-09-04': 'Absent',
+        '3|1|2026-09-04': 'Tardy', // no status of the page's: shown unmarked, as before
+      };
+      expect(params.setAttendanceRecords).toHaveBeenCalledWith(expected);
+      // The saved copy holds the same words, so the autosave sends nothing for these rows.
+      expect(params.setPersistedAttendanceRecords).toHaveBeenCalledWith(expected);
+    });
   });
 
   describe('syncAttendanceAndPerformanceRequests (direct)', () => {

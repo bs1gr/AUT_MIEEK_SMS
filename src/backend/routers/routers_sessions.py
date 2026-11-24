@@ -22,6 +22,7 @@ from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
 from backend.rbac import require_permission
 from backend.security.path_validation import validate_filename, validate_path
+from backend.services import absence_limit_service
 from backend.services.session_data_service import fetch_semester_dataset
 from backend.services.session_data_service import serialize_attendance as _serialize_attendance
 from backend.services.session_data_service import serialize_course as _serialize_course
@@ -1015,8 +1016,22 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
     # file that repeats a slot would add it twice (one live row per slot: uq_attendance_live_slot).
     added: Dict[tuple, Any] = {}
 
-    for att_data in attendance_records:
+    for idx, att_data in enumerate(attendance_records):
         try:
+            # Stored as the API writes it ("late" -> "Late"): the Attendance page compares the
+            # word as written. Until November 2026 the file's word was stored as it was, and
+            # "late" was a Late on some pages and nothing on others (plan todo 78, point 1).
+            # A row with no status field is a Present, as before; any other word, an empty one
+            # included, is refused (an empty or null status was stored or failed the import).
+            raw_status = att_data.get("status", "Present")
+            status = absence_limit_service.status_form(raw_status)
+            if status is None:
+                results["summary"]["attendance"]["errors"].append(
+                    f"Attendance #{idx + 1}: status {str(raw_status)[:40]!r} is not one of "
+                    f"{', '.join(absence_limit_service.STATUS_FORMS)}"
+                )
+                continue
+
             student = _resolve_student(db, Student, att_data.get("student_id_ref"))
             course = _resolve_course(db, Course, att_data.get("course_code_ref"))
 
@@ -1045,7 +1060,7 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
 
             if existing:
                 if merge_strategy == "update":
-                    existing.status = att_data.get("status")
+                    existing.status = status
                     existing.notes = att_data.get("notes")
                     db.add(existing)
                     results["summary"]["attendance"]["updated"] += 1
@@ -1056,7 +1071,7 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
                     student_id=student.id,
                     course_id=course.id,
                     date=att_date,
-                    status=att_data.get("status", "Present"),
+                    status=status,
                     period_number=period_number,
                     notes=att_data.get("notes"),
                 )

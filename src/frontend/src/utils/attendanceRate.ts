@@ -11,6 +11,22 @@ export const statusKey = (status: string | null | undefined): string => String(s
 
 export const isAttended = (status: string | null | undefined): boolean => ATTENDED.has(statusKey(status));
 
+// A Map, not an object: a stored word such as "constructor" must not find Object's own members.
+const STATUS_FORMS: ReadonlyMap<string, string> = new Map([
+  ['present', 'Present'],
+  ['absent', 'Absent'],
+  ['late', 'Late'],
+  ['excused', 'Excused'],
+]);
+
+/**
+ * A status as the pages and the API write it ("late " is "Late"); any other word as it was
+ * stored. Until November 2026 the semester import stored a file's words as written, and the
+ * Attendance page, which compares the word, showed a stored "late" as unrecorded (plan todo 78).
+ */
+export const statusForm = (status: string | null | undefined): string =>
+  STATUS_FORMS.get(statusKey(status)) ?? String(status ?? '');
+
 /** Attended periods over every period recorded, in percent; 0 with nothing recorded. */
 export const attendedRate = (records: ReadonlyArray<{ status?: string | null }>): number =>
   records.length > 0 ? (records.filter((record) => isAttended(record.status)).length / records.length) * 100 : 0;
@@ -27,7 +43,8 @@ export const countStatuses = (records: ReadonlyArray<{ status?: string | null }>
   const counts: StatusCounts = { present: 0, absent: 0, late: 0, excused: 0 };
   records.forEach((record) => {
     const key = statusKey(record.status);
-    if (key in counts) counts[key as keyof StatusCounts] += 1;
+    // Own keys only: `in` also finds "constructor", "toString" and the rest of Object's members.
+    if (Object.prototype.hasOwnProperty.call(counts, key)) counts[key as keyof StatusCounts] += 1;
   });
   return counts;
 };

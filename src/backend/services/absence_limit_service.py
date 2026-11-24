@@ -48,9 +48,19 @@ ATTENDED_STATUSES = frozenset({"present", "late"})
 ABSENCE_STATUSES = frozenset({"absent", "excused"})
 
 
+# The four statuses as every page and the API write them (schemas/attendance.py).
+STATUS_FORMS = ("Present", "Absent", "Late", "Excused")
+_STATUS_BY_KEY = {form.lower(): form for form in STATUS_FORMS}
+
+
 def is_attended(status: Any) -> bool:
     """Present or Late, whatever the case the row was stored in."""
     return str(status or "").strip().lower() in ATTENDED_STATUSES
+
+
+def status_form(status: Any) -> Optional[str]:
+    """The status as the API writes it ("late " -> "Late"), or None for any other word."""
+    return _STATUS_BY_KEY.get(str(status or "").strip().lower())
 
 
 def semester_weeks() -> int:
