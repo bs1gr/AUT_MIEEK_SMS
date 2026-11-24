@@ -10,6 +10,7 @@ import {
   type SetStateAction,
 } from 'react';
 import { formatLocalDate } from '@/utils/date';
+import { statusForm } from '@/utils/attendanceRate';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
 import { useAutosave } from '@/hooks/useAutosave';
@@ -480,7 +481,9 @@ export function useAttendanceSaveSync(params: UseAttendanceSaveSyncParams) {
             const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
             const recordDate = formatLocalDate(a.date || dateStr);
             const key = getAttendanceKey(a.student_id, safePeriod, recordDate);
-            next[key] = a.status;
+            // The page compares the word, so a row a semester file stored as "late" is read as
+            // "Late" (plan todo 78, point 1); the saved copy below holds the same word.
+            next[key] = statusForm(a.status);
             if (a.id) {
               ids[key] = a.id;
             }

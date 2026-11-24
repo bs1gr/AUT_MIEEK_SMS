@@ -144,10 +144,12 @@ TRANSLATIONS = {
         "report_title": "Αναλυτική Αναφορά Σπουδαστή",
         "attendance_summary": "Σύνοψη Παρουσιών",
         "total_classes": "Σύνολο Μαθημάτων",
-        "present": "Παρόν",
+        # The Attendance page's words (plan todo 78, point 3): until November 2026 the files
+        # said «Παρόν», «Καθυστέρηση», «Δικαιολογημένη».
+        "present": "Παρών",
         "absent": "Απών",
-        "late": "Καθυστέρηση",
-        "excused": "Δικαιολογημένη",
+        "late": "Αργοπορία",
+        "excused": "Δικαιολογημένος",
         "attendance_rate": "Ποσοστό Παρουσιών",
         "grades_by_course": "Βαθμοί ανά Μάθημα",
         "assignment": "Άσκηση",

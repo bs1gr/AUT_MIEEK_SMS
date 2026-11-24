@@ -333,6 +333,32 @@ word (moved 2026-11-20, todo 57).
 
 ### On `main` since v1.18.80 (unreleased)
 
+**2026-11-24: a semester file's attendance statuses are stored as the pages write them, and every
+file names them in the Attendance page's words** (todo 78, points 1 and 3; found by todo 77 point
+1's review; no decision needed). Every page and the API take only "Present", "Absent", "Late",
+"Excused", but the semester import (`routers_sessions._import_attendance`) stored the file's word
+as written: a "late" counted as a Late in the server's figures and as nothing on the Attendance
+page, which compares the word (no status button lit, unrecorded in its insights; an "absent" day
+left Rate open), "Tardy" counted nowhere, an empty status was stored as one, and a null one failed
+the whole import when it was written (`NOT NULL constraint failed: attendances.status`). Now the
+import stores one of the four forms whatever the case and spacing
+(`absence_limit_service.status_form`) and lists any other word among its errors ("Attendance #N:
+status 'Tardy' is not one of Present, Absent, Late, Excused"), the row not stored and a stored row
+kept as it was; a row with no status field is still a Present. The rows already stored are not
+rewritten: the Attendance page reads a status whatever its case (`statusForm` in
+`utils/attendanceRate.ts`, where the sheet is loaded), so a stored "late" lights Late, and as the
+saved copy holds the same word the autosave sends nothing for it (with it, `countStatuses` no
+longer takes a stored word that names an object's member, "constructor", for a column).
+**Point 3:** the Export Center's files (the headers and every status cell) said «Παρόν»,
+«Καθυστέρηση», «Δικαιολογημένη», the custom reports «Καθυστέρηση» for a Late or a Tardy, Analytics
+«Δικαιολογημένη»; all say the Attendance page's «Παρών», «Απών», «Αργοπορία», «Δικαιολογημένος»
+now. Tests: `test_attendance_import_status_forms.py` (16; 13 fail on the old import, the null
+status among them), `test_attendance_status_words.py` (the server's words against the page's own
+translation file; 5 fail on the old words), `useAttendanceSaveSync.test.ts` (a stored "late",
+"Late ", "absent", "Tardy"; failed on the old page), `attendanceRate.test.ts` (the "constructor"
+count failed on the old code), `attendanceStatusWords.test.ts` (Analytics and the reports against
+the page; failed on the old Analytics word).
+
 **2026-11-24: the page says which language it is in** (todo 76; found by todo 75 stage 3's review; no
 decision needed). `index.html` says `lang="en"` and nothing changed it, so on a Greek page the
 browser kept the accents of words written in capitals by CSS (`uppercase`, 48 places in 26 files:
@@ -3026,9 +3052,10 @@ no longer exist (PR 425 turned them into "No role").
 four answers are in its entry. Stages 1 to 3 (the grade sheets, their server side and their
 page; Analytics by category) are on `main`. **Todo 77**, three corrections to the final grade
 the owner decided that day (Late is attended, lab names match lab, the Weight counts without
-rules), in three PRs, all three on `main`; then **todo 76** (the page's language), then stages
-4 to 6. **Todo 78**, found by point 1's review: a semester file's statuses, Excused days on the
-Attendance page (a question for the owner), the exports' Greek words. Found and decided by
+rules), in three PRs, all three on `main`; **todo 76** (the page's language) too (2026-11-24);
+next, stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's statuses and the
+exports' Greek words (points 1 and 3, on `main` since 2026-11-24), Excused days on the
+Attendance page (point 2, a question for the owner). Found and decided by
 point 2's and 3's reviews: todos 80 (a retake of the final under 50 fails the course), 81 (the
 importer keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, a
 question for the owner), 84 (Analytics fails for an inactive student).
@@ -3649,7 +3676,8 @@ and 44 and 48 in its part 5):
        four forms whatever the case and spacing, and list any other in the import's errors
        instead of storing it; then either put the rows already stored into the four forms
        once, or have the Attendance page read a status whatever its case (`statusKey` in
-       `utils/attendanceRate.ts`).
+       `utils/attendanceRate.ts`). **Done** (under "On `main` since v1.18.80"; the page reads
+       the rows already stored whatever their case, none rewritten).
     2. **An Excused day can be rated** (the owner's decision). The Attendance page closes Rate
        and the participation ticks only for a student marked Absent; an Excused one stays
        open, and a tick on that day makes the day an attended one, so it takes its slice of
@@ -3659,6 +3687,8 @@ and 44 and 48 in its part 5):
     3. **The exports' Greek status words** (no decision needed): the Export Center's files say
        "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
        where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
+       **Done** (the page's words, under "On `main` since v1.18.80"). Point 2 waits for the
+       owner.
 
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):

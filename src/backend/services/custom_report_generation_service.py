@@ -136,13 +136,13 @@ class CustomReportGenerationService:
         "practical": {"en": "Practical", "el": "Πρακτική"},
         "oral": {"en": "Oral", "el": "Προφορική"},
         "written": {"en": "Written", "el": "Γραπτή"},
-        # Attendance statuses
+        # Attendance statuses, in the Attendance page's words (plan todo 78, point 3)
         "present": {"en": "Present", "el": "Παρών"},
         "absent": {"en": "Absent", "el": "Απών"},
-        "late": {"en": "Late", "el": "Καθυστέρηση"},
+        "late": {"en": "Late", "el": "Αργοπορία"},
         "excused": {"en": "Excused", "el": "Δικαιολογημένος"},
         "unexcused": {"en": "Unexcused", "el": "Αδικαιολόγητος"},
-        "tardy": {"en": "Tardy", "el": "Καθυστέρηση"},
+        "tardy": {"en": "Tardy", "el": "Αργοπορία"},
         # Common assignment name patterns
         "sample exam": {"en": "Sample Exam", "el": "Δοκιμαστική Εξέταση"},
         "practice exam": {"en": "Practice Exam", "el": "Πρακτική Εξέταση"},

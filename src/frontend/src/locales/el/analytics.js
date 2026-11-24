@@ -163,7 +163,7 @@ export default {
     present: 'Παρών',
     late: 'Αργοπορία',
     absent: 'Απών',
-    excused: 'Δικαιολογημένη',
+    excused: 'Δικαιολογημένος',
     passFail: 'Επιτυχία / Αποτυχία',
     failingCourses: 'Μαθήματα κάτω από τη βάση',
     chartFinalVsClass: 'Τελικός Βαθμός και Μέσος Όρος Τάξης',
