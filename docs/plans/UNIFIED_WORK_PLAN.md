@@ -1,8 +1,45 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.81
-**Last Updated**: November 24, 2026
-**Status**: ✅ **v1.18.81 released 2026-11-24** (tag on `ec257a61b`, run by the assistant; the
+**Current Version**: 1.18.82
+**Last Updated**: November 25, 2026
+**Status**: ✅ **v1.18.82 released 2026-11-25** (tag on `2aacc4291`, run by the assistant; the
+owner, offered it with the dead code: "do all suggested"). It carries PRs 502 to 509, under "In
+v1.18.82" below: the Semester Archive preview's 500 of v1.18.81 fixed (502), a failed student
+recorded as failed at the archive run and the course taken again fresh (503, todo 87), the
+Analytics export following the filters (504), the custom reports' sort, filters, CSV and GPA
+templates (505) and their builder (506), Utils → Reports tidied (507), the Grading page's form
+kept while the list reloads (508), the dead code removed (509). **Two database changes:**
+migration `d8b3f1a6c2e9` (additive: `student_course_performance.fail_reason`,
+`semester_archive_exports.enrollments_failed`, the unique index limited to passed records) and
+`e5c1a7d9b3f2` (data only: the three GPA templates on the percent scale). **The shared database
+is still at `c7d4e2a9f1b6`:** the cloud VM runs v1.18.81 until the owner says otherwise.
+**v1.18.81 keeps working on the new schema, with one exception:** once v1.18.82 saves a custom
+report (filters and sort as lists), v1.18.81's list of custom reports answers 500 (Pydantic
+`dict_type`); the release text says to update every installation sharing a database together.
+
+- **Before the tag:** `RELEASE_READY` (release commit `48c4d2854`, about 70 min under the memory
+  watchdog, never under 5.0 GB free, Docker Desktop stopped): backend 2,538 passed, 46 skipped,
+  0 failed; the frontend suite passed; the local test installer 90,465,984 bytes, never uploaded.
+  The notes commit `2aacc4291` passed `COMMIT_READY -Quick` in a clone; `DOCKER_BUILD_CHECK.ps1
+  -Version 1.18.82` on it: amd64 and arm64 in 4.3 min; CI/CD (backend 2,527 passed and 57
+  skipped, frontend 181 files) and E2E green on the same commit.
+- **Smoke test before the release** (on `e7ce48f71`, the final code; scripts in
+  `D:\tmp\sms-tools\smoke82`): SMS Lite v1.18.81's code → the new build on one profile, 17 + 15
+  + 6 checks (the migrations to the head, Greek intact, the stored GPA templates repaired, an old
+  report's dict sort applied in a CSV with a byte-order mark, two filters and a sort saved as
+  lists, the Analytics Excel following a course filter, the archive preview and run with two
+  failed students, one enrolled again with a clean record, v1.18.81 on the new schema);
+  PostgreSQL 14.25 the same 17 + 15 + 6, both migrations down and up, Greek intact; a browser walk
+  of the new Lite as a teacher (14 pages) and as an administrator (17), in English and Greek, no
+  failed request and no console error.
+- **Verified on the published assets:** `SMS_Installer_1.18.82.exe` 87,717,312 bytes, SHA-256
+  `30f1450a…9747` = GitHub's digest, Authenticode Valid, CN=AUT MIEEK, thumbprint
+  `2693C1B1…075D`, timestamped by DigiCert, file version v1.18.82, not the local build;
+  `SMS_Android_1.18.82.apk` 4,681,559 bytes, SHA-256 `c6fbd9dc…33da` = GitHub's digest,
+  `versionCode 118082`, signer `686fb6ed…d2ea` as before. The release text is identical to
+  `.github/RELEASE_NOTES_v1.18.82.md`; the release has those two files only and is the latest.
+
+**Before that: v1.18.81 released 2026-11-24** (tag on `ec257a61b`, run by the assistant; the
 owner, asked when to release: "After todo 83"). It carries PRs 472 to 501, under "In v1.18.81"
 below. **Final grades change in some courses:** a teacher marks a Midterm or Final Exam grade as
 the retake, which replaces the earlier sitting, and a final exam retake under 50 fails the course
@@ -391,7 +428,7 @@ Two things the update brought to light, neither changed:
 The status records of v1.18.73 back to v1.18.67, and the release record of v1.18.66, are in part 4 of [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for
 word (moved 2026-11-20, todo 57).
 
-### On `main` since v1.18.81 (unreleased)
+### In v1.18.82
 
 **2026-11-24: the dead code of the analytics and reports rework removed** (todo 75 stage 6; the
 owner, offered it: "do all suggested"). Nothing called any of it; each was checked against the
@@ -3396,7 +3433,7 @@ released** (2026-11-24, the top of this plan; the owner: "After todo 83"), and t
 (the same day, the owner: "do all suggested"; the shared database at `c7d4e2a9f1b6`, migrated
 from the dev PC two minutes before, the top of this plan). Next, todo 75's stages 4 to 6.
 **Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
-the design confirmed and done the same evening (on `main` since v1.18.81, with migration
+the design confirmed and done the same evening (in v1.18.82, with migration
 `d8b3f1a6c2e9`).
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
@@ -3868,16 +3905,14 @@ and 44 and 48 in its part 5):
          category and course. **Done** (under "In v1.18.81").
       4. The Analytics export keeps the filters and carries the per-student rows and category
          profile (a course row opening its grade sheets came with stage 2). **Done** (under
-         "On `main` since v1.18.81").
+         "In v1.18.82").
       5. The custom report builder: the saved sort, more than one filter per field, course and
          category pickers, generate and download from the builder, the CSV with a BOM (Greek in
          Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **Done**, in two
-         PRs (under "On `main` since v1.18.81").
-      6. Utils → Reports tidied (about 15 links lead to 3 pages): **the tidy done** (under "On
-         `main` since v1.18.81"). Removing the dead code
+         PRs (under "In v1.18.82").
+      6. Utils → Reports tidied (about 15 links lead to 3 pages): **the tidy done** (under "In v1.18.82"). Removing the dead code
          (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
-         asked first. **Asked, the owner (2026-11-24): "do all suggested"; done** (under "On
-         `main` since v1.18.81").
+         asked first. **Asked, the owner (2026-11-24): "do all suggested"; done** (under "In v1.18.82").
 
 76. **The page's language for the browser** (found by todo 75 stage 3's review, 2026-11-23; no
     decision needed). `index.html` says `lang="en"` and nothing changes it with the language
@@ -4050,8 +4085,7 @@ and 44 and 48 in its part 5):
     keeps them): that a failed course is recorded as failed and cleared at the archive run, and
     whether a student below the pass mark is cleared too or only the two hard fails.
     - **The owner's answers (2026-11-24, evening):** "At the archive run" and "All three fails"
-      (below the pass mark, the absence limit, a final retake under 50). **Done** (under "On `main`
-      since v1.18.81"; migration `d8b3f1a6c2e9`).
+      (below the pass mark, the absence limit, a final retake under 50). **Done** (under "In v1.18.82"; migration `d8b3f1a6c2e9`).
 
 78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
     todo 77 point 1's review, 2026-11-23).
