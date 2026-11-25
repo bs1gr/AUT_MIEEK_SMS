@@ -12,10 +12,11 @@ kept while the list reloads (508), the dead code removed (509). **Two database c
 migration `d8b3f1a6c2e9` (additive: `student_course_performance.fail_reason`,
 `semester_archive_exports.enrollments_failed`, the unique index limited to passed records) and
 `e5c1a7d9b3f2` (data only: the three GPA templates on the percent scale). **The shared database
-is still at `c7d4e2a9f1b6`:** the cloud VM runs v1.18.81 until the owner says otherwise.
-**v1.18.81 keeps working on the new schema, with one exception:** once v1.18.82 saves a custom
-report (filters and sort as lists), v1.18.81's list of custom reports answers 500 (Pydantic
-`dict_type`); the release text says to update every installation sharing a database together.
+is at `e5c1a7d9b3f2` since 2026-11-25, 03:55 UTC** (the cloud VM's first start on v1.18.82,
+below). **v1.18.81 keeps working on the new schema, with one exception:** once v1.18.82 saves a
+custom report (filters and sort as lists), v1.18.81's list of custom reports answers 500
+(Pydantic `dict_type`); the release text says to update every installation sharing a database
+together.
 
 - **Before the tag:** `RELEASE_READY` (release commit `48c4d2854`, about 70 min under the memory
   watchdog, never under 5.0 GB free, Docker Desktop stopped): backend 2,538 passed, 46 skipped,
@@ -24,8 +25,8 @@ report (filters and sort as lists), v1.18.81's list of custom reports answers 50
   -Version 1.18.82` on it: amd64 and arm64 in 4.3 min; CI/CD (backend 2,527 passed and 57
   skipped, frontend 181 files) and E2E green on the same commit.
 - **Smoke test before the release** (on `e7ce48f71`, the final code; scripts in
-  `D:\tmp\sms-tools\smoke82`): SMS Lite v1.18.81's code → the new build on one profile, 17 + 15
-  + 6 checks (the migrations to the head, Greek intact, the stored GPA templates repaired, an old
+  `D:\tmp\sms-tools\smoke82`): SMS Lite v1.18.81's code → the new build on one profile, 17, 15
+  and 6 checks (the migrations to the head, Greek intact, the stored GPA templates repaired, an old
   report's dict sort applied in a CSV with a byte-order mark, two filters and a sort saved as
   lists, the Analytics Excel following a course filter, the archive preview and run with two
   failed students, one enrolled again with a clean record, v1.18.81 on the new schema);
@@ -38,6 +39,13 @@ report (filters and sort as lists), v1.18.81's list of custom reports answers 50
   `SMS_Android_1.18.82.apk` 4,681,559 bytes, SHA-256 `c6fbd9dc…33da` = GitHub's digest,
   `versionCode 118082`, signer `686fb6ed…d2ea` as before. The release text is identical to
   `.github/RELEASE_NOTES_v1.18.82.md`; the release has those two files only and is the latest.
+- **The cloud VM runs v1.18.82** (2026-11-25, 03:53 to 03:55 UTC, over SSH; the owner: "update
+  the VM to v1.18.82"): `git checkout v1.18.82` (`2aacc4291`), `docker compose up -d --build`
+  (114 s), healthy 144 s after the start. The first start made
+  `pre_migration_20261125_035507.enc` by itself, then ran `c7d4e2a9f1b6 -> d8b3f1a6c2e9 ->
+  e5c1a7d9b3f2` on the shared database; no error line in the log; `/health` v1.18.82, the
+  database connected, the migrations at head. No forced backup (the daily one stays at about
+  15:29 UTC). Script: `D:\tmp\sms-tools\vm_update_1_18_82.sh`.
 
 **Before that: v1.18.81 released 2026-11-24** (tag on `ec257a61b`, run by the assistant; the
 owner, asked when to release: "After todo 83"). It carries PRs 472 to 501, under "In v1.18.81"
