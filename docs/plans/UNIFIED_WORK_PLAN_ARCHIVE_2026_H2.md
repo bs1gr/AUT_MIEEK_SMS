@@ -6343,7 +6343,7 @@ The records of v1.18.65 down to v1.18.51, and of the work between them, are in p
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), unchanged.
 
 
-## Part 5: closed todos (moved from the plan's "Next todos" on 2026-11-20; 63 on 2026-11-21; 50, 55, 66, 67 and 69 to 74 on 2026-11-22)
+## Part 5: closed todos (moved from the plan's "Next todos" on 2026-11-20; 63 on 2026-11-21; 50, 55, 66, 67 and 69 to 74 on 2026-11-22; 75 to 78, 80 to 85 and 87 on 2026-11-25)
 
 44. **Cloud host: deploy the backend on Oracle Always Free, keeping today's setup as the backup**
     (owner approved todo 19's proposal on 2026-11-12) — Oracle Always Free, home region
@@ -7203,3 +7203,242 @@ of periods recalculates every student's limits for the whole semester, past week
     holds on a busy PC too. No decision needed.
     - **Done 2026-11-22** (the entry under "On `main` since v1.18.80"), with the stages logged
       just before `/health` answered shown as well.
+
+75. **Analytics and reports rework** (the owner, 2026-11-23: rebuild the analytics dashboard
+    into a course-agnostic view of each student's scores, for comparison across courses and the
+    diagnosis of strengths and difficulties; tie analytics to the export reports in one direct
+    workflow; make grading lists for exams and other assessments easy to produce).
+    - **What the code had** (mapped that day). The Analytics page (Dashboard → Analytics) shows
+      one student across courses only as each course's final grade. Nothing groups scores by
+      category or assessment. Its Export ignores the filters on screen and exports school totals,
+      and nothing links it to Utils → Reports. No page lists a course's students for one exam:
+      the nearest is the custom report builder, about ten steps with the course number typed by
+      hand, listing only students who already have a grade, and its saved sort never applies
+      (the builder saves `{"<field>": "asc"}`, the generator reads only `field`/`direction`
+      keys). `features/analytics/` is not imported anywhere.
+    - **The owner's answers (2026-11-23):** (1) "competency/activity" means the grade
+      categories, folded into one standard list across courses, with no database change;
+      (2) grade sheets: one assessment, the course matrix (every assessment) and category
+      totals, not a blank roster; (3) Analytics stays behind the Dashboard toggle (no new tab),
+      with an export that keeps the filters and links to the grade sheets, and Utils → Reports
+      tidied; (4) the custom report builder stays, as "Advanced", and is fixed.
+    - **Stages, each its own PR:**
+      1. Grade sheets, the server side: the standard category list, the three sheets as JSON,
+         PDF and Excel. **Done** (PR 484, under "In v1.18.81").
+      2. Grade sheets, the page: a course and assessment picker, the sheet on screen, PDF and
+         Excel; reached from Utils → Reports, the Grading page and Analytics. **Done** (PR 485,
+         under "In v1.18.81"; the Analytics course rows already open their sheets).
+      3. Analytics, the diagnosis across courses: each student's category profile over all
+         their courses against the class's, with strengths and difficulties; the class view by
+         category and course. **Done** (under "In v1.18.81").
+      4. The Analytics export keeps the filters and carries the per-student rows and category
+         profile (a course row opening its grade sheets came with stage 2). **Done** (under
+         "In v1.18.82").
+      5. The custom report builder: the saved sort, more than one filter per field, course and
+         category pickers, generate and download from the builder, the CSV with a BOM (Greek in
+         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **Done**, in two
+         PRs (under "In v1.18.82").
+      6. Utils → Reports tidied (about 15 links lead to 3 pages): **the tidy done** (under "In v1.18.82"). Removing the dead code
+         (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
+         asked first. **Asked, the owner (2026-11-24): "do all suggested"; done** (under "In v1.18.82").
+
+76. **The page's language for the browser** (found by todo 75 stage 3's review, 2026-11-23; no
+    decision needed). `index.html` says `lang="en"` and nothing changes it with the language
+    chosen, so the browser keeps the accents of Greek words written in capitals by CSS
+    (`uppercase`: "ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ", in 33 files), and a screen reader reads
+    Greek with an English voice (WCAG 3.1.1). Set `document.documentElement.lang` from the
+    language in `LanguageProvider`, then look over the pages that use `uppercase`. Its own PR,
+    after todo 77. **Done** (under "In v1.18.81").
+
+77. **Three corrections to the final grade** (the owner, 2026-11-23, asked after todo 75 stage
+    3's review; each changes final grades, no database change):
+    1. **Late is not an absence.** An "Attendance"/"Παρουσία" rule counted only Present as
+       attended, while the attendance rate and the ΜΙΕΕΚ absence limit count Present + Late.
+       The owner: "Late should not count as absent, but should be referenced in a students
+       attendance results in order to be considered in the teacher's final evaluation." Count
+       Late as attended in the rule, and show the number of Lates beside the student's
+       attendance where the teacher evaluates (proposed: the Analytics student view, the grade
+       sheets on screen, PDF and Excel, the Grading page's final-grade breakdown).
+    2. **Lab names match lab.** The final grade's matching (`normalize_rule_category`) finds
+       "εργασ" (homework) before "εργαστηρ" (lab), so a rule "Εργαστήρια" or "Εργαστηριακή
+       Εργασία" takes the homework grades. The owner: "The lab always happens in class, the
+       matching should be reordered or corrected properly." "Παρουσίαση" (a presentation) is
+       matched as attendance by the same order: corrected with it. "Τελική Εργασία" stays a
+       Final Exam, as the course editor saves it. With it, the Greek pages name an Attendance
+       rule «Παρουσία»: the Grading page's summary and the breakdown print "Attendance" (their
+       `translateCategory` has no such name; seen in point 1's browser check).
+    3. **The Weight counts without rules too** (done, PR 490). A course without rules, or a student whose
+       grades match no rule, gets the plain mean of the grades; the grade's Weight box counts
+       only in the category figures and the grade sheets. The owner: "The final grade should use
+       the Weight too."
+    One PR after todo 75 stage 3, with tests that fail on the old rules, the help texts and docs
+    that state them, and release notes that say final grades change.
+    - **The owner's follow-up answers (2026-11-23)**, each the recommended one: (a) one meaning
+      of attended on every page, Present + Late (Absent and Excused absences); (b) matching:
+      compare Greek names without accents, a rule typed "Παρουσία"/"Παρουσίες" in the course
+      editor saves as Attendance (not Class Participation), an Attendance rule under any
+      spelling counts the attendance records, Midterm/Final under any spelling take the latest
+      grade; (c) one final grade everywhere (Analytics, the grade sheets, the Grading page and
+      the Students page): the rules, else the Weight-weighted mean of the grades; (d) the number
+      of Lates shown on the grade sheets, in the Grading page's breakdown, in Analytics and in
+      the Attendance page's absence limits.
+    - **The owner's answers after point 2's second review (2026-11-23, late)**, which changed it: one
+      midterm and one final per course, each counting one grade, its latest sitting, however its
+      rules are named ("The second midterm is only if the student missed the first one"; "there
+      should no averaging any exam per course"); continuous assessment takes every other graded
+      task of the lesson ("homework, any other exercise or any other assessment and task during
+      the lesson's period, belongs to «Συνεχής Αξιολόγηση»"); the course editor renames only
+      standard names. And a new rule, todo 80: a retake of the final exam under 50 fails the course.
+    - **Three PRs, one per point.** Point 1 (attended, the Lates shown) and point 2 (matching):
+      **Done** (under "In v1.18.81"), and point 3 (the Weight, one final grade)
+      **done** too (PR 490).
+      Points 1 and 2 go out in the same release: point 1's Greek help and guide name a
+      «Παρουσία» rule, which the course editor saved as Class Participation before point 2 (such a
+      rule stays so until it is typed again: the release notes must say it).
+
+80. **A retake of the final exam under 50 fails the course** (the owner, 2026-11-23, asked after
+    todo 77 point 2's second review: "if the final exam is missed, can be repeated and only then,
+    the final exams' grade kept will be the second one. However, in the second effort, iff the
+    exam grade is under 50, is considered a fail"; then, asked: the final exam only; the course
+    failed, the grade still worked out and shown). Like the ΜΙΕΕΚ absence limit: the final grade
+    stays, marked "failed: retake under 50", and the course counts as failed on the Grading page,
+    the grade sheets and Analytics whatever the figure. **A missed first sitting gets no grade
+    recorded** (the owner, the same evening), so a student has one Final Exam grade either way and the
+    data cannot tell a retake. **By date** (the owner's choice, the same day): each course gets the
+    date of its final exam (a new optional course field, an additive migration built in a clone),
+    and a Final Exam grade dated after it is the retake. Its own PR, after todo 77.
+    - **Built and held (2026-11-24): the owner's choice is needed again.** The work is in the clone
+      `D:\tmp\sms-retake` (branch `feat/final-retake-fails`, uncommitted: an additive migration
+      `b8e3d5f7a2c4` for `courses.final_exam_date`, the rule in the final-grade calculation, the
+      "failed: retake under 50" mark on the Grading page, the grade sheets (§) and Analytics, the
+      date in the course editor, the Grading page's "Exam sitting date" box for a new Final Exam
+      grade, the import's date). Two reviews. The second found that **"by date" misreads the grades
+      already recorded**: a grade's date is the day it was typed, so every Final Exam grade made so
+      far carries that day, and setting a course's exam date afterwards turns an on-time final typed
+      in a few days later into a failed retake (tried: 67 and passing became failed). A course
+      without a date keeps storing the typing day too. Options: (a) when a date is set, list the
+      Final Exam grades dated after it and have the teacher confirm or correct each; (b) an explicit
+      "retake" mark on the grade (the option not chosen before), which no date can misread; (c) by
+      date, counting only grades entered after the course's date was set. Smaller findings, fixed
+      once the design is settled: the date cannot be saved on the Evaluation Rules tab of a course
+      without rules; the sitting date stays when the teacher picks the next student; an emptied box
+      saves today; editing an undated Final Exam grade dates it today; the Control Panel's import
+      text does not name the new `date_submitted` column. The semester archive (todo 85) would
+      record such a failed student as passed.
+    - **The owner's answer (2026-11-24): (b), for the midterm too.** "teacher shall have the option
+      to select the date exam was taken and also to select a retake exam as an overwrite of the
+      first final exam. After retake exam the first final exam should not count in grading and the
+      retake exam replaces it at the final grading. The same should happen with a midterm retake".
+      **Done** (under "In v1.18.81"): a retake mark per grade (migration
+      `c7d4e2a9f1b6`), the date chosen on the Grading page; the by-date build was dropped. Of the
+      smaller findings, those that still apply are fixed (an undated grade stays undated on an edit,
+      the import text names the columns); the sitting date staying for the next student is now on
+      purpose (one exam, one day, for a class), the retake mark never does.
+81. **The course importer keeps a course's own rule names** (found by todo 77 point 2's third
+    review, 2026-11-23; the owner: "Yes, keep names"). `routers_imports._map_category` renames every
+    rule to an English label by substring ("Τελική Εργασία" -> "Assignments", "Ασκήσεις" ->
+    "Exercises", the lab templates' «Συνεχής Αξιολόγηση (… και Ενδιάμεση Εξέταση)» -> "Continuous
+    Assessment") and `_translate_rules` merges rules that get the same label, keeping the last weight
+    («Θεωρητική Εξέταση» 40 + «Πρακτική Εξέταση» 30 -> one "Exam" 30). Rename only standard names, as
+    the course editor does since todo 77 point 2, and never merge two rules. Future imports only.
+    **Done** (PR 492, under "In v1.18.81").
+
+82. **Editing a grade's category or name is ignored by the server** (found by the same review; no
+    decision needed). **Done** (PR 491, under "In v1.18.81"). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
+    so the Grading page's Edit sends them and the server drops them: a grade filed under the wrong
+    category cannot be moved. Add them (the category title-cased as `GradeCreate` does), with a test
+    that an edit moves a grade to another rule. Its own PR.
+
+83. **The "Average" figures that are not the final grade** (found by todo 77 point 3,
+    2026-11-23; the owner's decision). The final grade is now one figure on every page that shows
+    one, but some figures labelled "Average" still take the plain mean of every grade: the Students
+    page's expanded card ("Average Grade", and the "Greek scale" and "Letter grade" tiles made from
+    it, over all the student's courses), the Student Profile's overall GPA and Average tiles, each
+    course's "Average" in its grade breakdown (it ignores the Weight; its categories' averages
+    count it; both count every sitting of an exam), and the student report's "Average Grade"
+    (PDF, Excel, CSV). The Students page fetches the final grades and shows none of them
+    there (the Profile's breakdown does). Analytics' "top by exams" counts every sitting of an exam.
+    Keep them as plain averages of the grades listed, count them as the final grade counts (Weight,
+    an exam's latest sitting), or show the final grade in their place?
+    - **The owner's answer (2026-11-24):** "should show averages if not exams grades published yet.
+      otherwise, the real grades should populate". Per course: the average while no exam grade is
+      recorded, the course's real final grade once it is; the overall figures take each course's
+      figure so. To settle when building and say in the PR: whether "exam grades in" is the Final
+      Exam's grade or any exam's, and what a course with no exam rule shows. Its own PR, next.
+    - **Asked, the owner (2026-11-24): the Final Exam's grade decides**; a course whose rules name no
+      Final Exam shows its final grade (said in the question). **The Students page and the Profile:
+      done** (under "In v1.18.81"). **The student report and Analytics' "top by exams":
+      done** too, in a second PR.
+
+84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
+    decision needed). `GET /api/v1/analytics/student/{id}/overview` answers 500 for a student who
+    is no longer active: `ValueError: 73.0 is not in list` at the rank
+    (`analytics_overview_service.py`, around line 889), as the student's own figures include the
+    inactive student while the class figures leave them out. Give such a student no rank (or the
+    class figures without them) instead of failing; a test for an inactive student's overview.
+    **Done** (PR 493, under "In v1.18.81").
+
+85. **The semester archive records a failed student as passed** (found by todo 80's build,
+    2026-11-24; the owner's decision, as archiving cannot be undone). `SemesterArchiveService`
+    archives an enrolment as passed when its final grade is at least the pass mark and the rules
+    cover the whole course, and then replaces its raw grades and attendance with that record. It
+    never looks at the ΜΙΕΕΚ absence limit (a student over 30% is failed whatever the grade; true
+    since the limit came in) nor, once todo 80 is in, at a final exam retake under 50. Should either
+    fail keep the enrolment out of the archive (proposed: both, with the reason shown in the preview,
+    as "incomplete_grading" is today)?
+    - **The owner's answer (2026-11-24):** "such students should be kept out of the archive, with
+      the reason shown in its preview. however, they still have the opportunity to retake the course
+      next available year". Both fails keep the enrolment out, the reason in the preview; check, and
+      say, that such a student can enrol in the course again the next year (a live old enrolment, the
+      same course row or a new one). Its own PR, after todo 80 (on `main` since 2026-11-24).
+    - **Done** (under "In v1.18.81"), with a finding for the owner on taking the
+      course again next year: the student stays enrolled in the same course, whose old absences
+      and grades keep counting, unless next year's course is made anew under its own code.
+    - **Replaced by todo 87** (2026-11-24, the owner's design): a failed student is recorded as
+      failed at the archive run and their records cleared, instead of being kept out.
+
+87. **A student who fails a course repeats it fresh** (the owner, 2026-11-24, answering todo 85's
+    finding: "if the student fail, should retake the course from the beginning, nothing remains from
+    that course. He/She has to repeat fresh"; the owner's decision on the design). Since todo 85 a
+    student failed on the absence limit or on a final exam retake under 50 is kept out of the
+    semester archive, and so is one below the pass mark: their enrolment, grades, ratings and
+    attendance stay, and as a course code exists once and an enrolment is one per student and
+    course, next year they are still enrolled in the same course with last year's records counting
+    (the absence limit above all). Proposed: the archive run records each failed course in the
+    student's history as failed (`StudentCoursePerformance.passed` false, with the reason: below the
+    pass mark, over the absence limit, a final retake under 50) and then removes that enrolment and
+    its grades, ratings and attendance, after the semester backup it already makes, so the student
+    enrols again with a clean record. Kept as today: an enrolment whose grading is incomplete, or a
+    course without rules. To confirm before building, as it removes records (the semester backup
+    keeps them): that a failed course is recorded as failed and cleared at the archive run, and
+    whether a student below the pass mark is cleared too or only the two hard fails.
+    - **The owner's answers (2026-11-24, evening):** "At the archive run" and "All three fails"
+      (below the pass mark, the absence limit, a final retake under 50). **Done** (under "In v1.18.82"; migration `d8b3f1a6c2e9`).
+
+78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
+    todo 77 point 1's review, 2026-11-23).
+    1. **A semester file's statuses are stored as written** (no decision needed). Every page
+       and the API take only "Present", "Absent", "Late", "Excused", but the semester import
+       (`routers_sessions._import_attendance`) stores what the file says. Since point 1 a
+       "late" counts as a Late in the server's figures (Analytics, the absence limits, the
+       grade sheets, the Grading page), on the Students page and in the Profile, but not on
+       the Attendance page, which compares the exact word: its "Attendance insights" count it
+       as unrecorded and no status button is lit, and an "absent" day there leaves Rate open.
+       "Late " (a space) counts on some pages and not on others, "Tardy" on none. Store the
+       four forms whatever the case and spacing, and list any other in the import's errors
+       instead of storing it; then either put the rows already stored into the four forms
+       once, or have the Attendance page read a status whatever its case (`statusKey` in
+       `utils/attendanceRate.ts`). **Done** (under "In v1.18.81"; the page reads
+       the rows already stored whatever their case, none rewritten).
+    2. **An Excused day can be rated** (the owner's decision). The Attendance page closes Rate
+       and the participation ticks only for a student marked Absent; an Excused one stays
+       open, and a tick on that day makes the day an attended one, so it takes its slice of
+       Class Participation. Excused is an absence (point 1): should it close Rate as Absent
+       does? And when a day turns Excused after ratings were saved, should they be cleared, as
+       for Absent (that deletes the teacher's ratings)? **The owner's answer (2026-11-24):** "an
+       Excused day should close Rate the way Absent does, and clear ratings already saved for that
+       day". **Done** (under "In v1.18.81").
+    3. **The exports' Greek status words** (no decision needed): the Export Center's files say
+       "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
+       where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
+       **Done** (the page's words, under "In v1.18.81"). Point 2 is decided (above).

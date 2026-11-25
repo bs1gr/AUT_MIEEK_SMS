@@ -1005,7 +1005,7 @@ eye again and the tests and documents) and a skeptic per finding.
   only, since at 16 in English its 2 mm split long value headers for nothing, "Late" fits 14;
   in Excel it is 12 wide, as at 10 Excel too broke "Αργοπορίες"; the zeros this server sends
   for a student without a Late were never tested, only an older server's missing fields; and a
-  sentence of todo 78 below was false) and five more: the Grading test waited on a percentage
+  sentence of todo 78, now in part 5 of the archive, was false) and five more: the Grading test waited on a percentage
   the rules card shows too, the Greek late count of Analytics and the limits help word had no
   test, the metrics fields still said "Present records", and the plan quoted the help and the
   metrics fix wrongly. Not fixed: a newer phone app on an older server shows the old server's
@@ -3400,49 +3400,21 @@ tree as evidence that GitHub is clear.
 *(active enrolments only, matching the per-course endpoint; `GradingView.enrollments.test.tsx` fails on the old code).*
 *What is left is below.*
 
-**Open work as of 2026-11-22** (after the owner went through every open todo on 2026-11-20;
-the answers are under "In v1.18.78"). v1.18.80 is released (2026-11-22, the top of this
-plan) and the cloud VM runs it (the same day, on the owner's word "update the VM to
-v1.18.80"; its first start migrated the shared database to `f4c2a8d6e1b3`), with the privacy
-controller's name and contact in its `.env`. The owner's Docker test install on the dev PC
-runs v1.18.80 too (seen 2026-11-22; todo 40's Docker half, on 2026-11-21, had updated it to
-v1.18.79 from the page: the install worked, the rebuild failed on an unquoted path and SMS
-was started from SMS Manager; fixed in v1.18.80, under "In v1.18.80"). Still open: todo 40's
-last step, an update from the page that finishes by itself (from v1.18.80 on; its Lite half
-was done on 2026-11-21 and found that the Update of an installed SMS Lite could never save
-its download, fixed in v1.18.79); todos 65 and 68, found by that test (65, the uninstall
-entry in Settings → Apps; 68, SMS Lite running elevated after its own Update), fixed in
-v1.18.79 and proven only at the next release's updates; todo 58's PostgreSQL 14 on the NAS
-(the owner stays on 14.18 for now) and its smaller items. Closed on 2026-11-20: todo 44 (the
-owner: "Close it"), the contrast design calls (PR 455), the test data in the shared database
-(todo 56); on 2026-11-21 todo 63, every point of it done (moved to part 5 of the archive); on
-2026-11-22 todo 55 (the owner: "yes, archive todo 55"), its last point, the copy off the VM,
-automatic since 2026-11-21, todos 66, 67 and 69 to 74, all done (66 and 67, found by todo
-40's test, and 69 to 72, on changing a course's teaching schedule, released in v1.18.80; 73,
-the CI load tests, and 74, the startup status script, on `main` since), and todo 50, its two
-optional chores settled by the owner (the top of this plan), all moved to part 5 of the
-archive. Moot: `viewer` and `guest` getting 403 on the Dashboard overview, since those roles
-no longer exist (PR 425 turned them into "No role").
-
-**New on 2026-11-23: todo 75**, the analytics and reports rework, in six stages; the owner's
-four answers are in its entry. Stages 1 to 3 (the grade sheets, their server side and their
-page; Analytics by category) are on `main`. **Todo 77**, three corrections to the final grade
-the owner decided that day (Late is attended, lab names match lab, the Weight counts without
-rules), in three PRs, all three on `main`; **todo 76** (the page's language) too (2026-11-24);
-next, stages 4 to 6. **Todo 78**, found by point 1's review: a semester file's statuses and the
-exports' Greek words (points 1 and 3, on `main` since 2026-11-24), Excused days on the
-Attendance page (point 2, decided and done 2026-11-24). Found and decided by
-point 2's and 3's reviews: todos 80 (a retake, marked by the teacher, replaces the earlier
-sitting; under 50 a final retake fails the course; on `main` since 2026-11-24), 81 (the importer
-keeps names), 82 (a grade's edit keeps its category), 83 (the "Average" figures, decided
-2026-11-24), 84 (Analytics fails for an inactive student), 85 (the archive keeps failed students
-out, decided and done 2026-11-24). **Todo 83 is done** (two PRs, 2026-11-24); **v1.18.81 is
-released** (2026-11-24, the top of this plan; the owner: "After todo 83"), and the cloud VM runs it
-(the same day, the owner: "do all suggested"; the shared database at `c7d4e2a9f1b6`, migrated
-from the dev PC two minutes before, the top of this plan). Next, todo 75's stages 4 to 6.
-**Todo 87** (a failed student repeats the course fresh, the owner's answer to todo 85's finding):
-the design confirmed and done the same evening (in v1.18.82, with migration
-`d8b3f1a6c2e9`).
+**Open work as of 2026-11-25.** v1.18.82 is released (2026-11-25, the top of this plan) and
+the cloud VM runs it (the same day, the owner: "update the VM to v1.18.82"; its first start
+migrated the shared database to `e5c1a7d9b3f2`). The owner's Docker test install on the dev
+PC runs v1.18.80 (seen 2026-11-22). Still open: todo 40's last step, an update from the page
+that finishes by itself (from v1.18.80 on; its Lite half was done on 2026-11-21 and found
+that the Update of an installed SMS Lite could never save its download, fixed in v1.18.79);
+todos 65 and 68, found by that test (65, the uninstall entry in Settings → Apps; 68, SMS
+Lite running elevated after its own Update), fixed in v1.18.79 and proven only at a real
+update from the page; todo 58's PostgreSQL 14 on the NAS (the owner stays on 14.18 for now)
+and its smaller items, each the owner's call or deferred by the owner. Nothing in this list
+waits for work that needs no decision. Closed on 2026-11-25: todos 75 to 78, 80 to 85 and 87,
+every point done and released in v1.18.81 or v1.18.82, all moved to part 5 of the archive
+(the earlier moves are listed at the end of this list). Moot: `viewer` and `guest` getting
+403 on the Dashboard overview, since those roles no longer exist (PR 425 turned them into "No
+role").
 
 **The cloud VM's backups and its watch (todos 55 and 54): nothing is left for the owner.** Since v1.18.71 the cloud
 VM backs up the shared database once a day, and a restore of its first backup was proven;
@@ -3884,245 +3856,6 @@ and 44 and 48 in its part 5):
       starts SMS Lite again once the installer has finished. **Left:** seeing it in a real
       update (a release that carries it, updated to a later one).
 
-75. **Analytics and reports rework** (the owner, 2026-11-23: rebuild the analytics dashboard
-    into a course-agnostic view of each student's scores, for comparison across courses and the
-    diagnosis of strengths and difficulties; tie analytics to the export reports in one direct
-    workflow; make grading lists for exams and other assessments easy to produce).
-    - **What the code had** (mapped that day). The Analytics page (Dashboard → Analytics) shows
-      one student across courses only as each course's final grade. Nothing groups scores by
-      category or assessment. Its Export ignores the filters on screen and exports school totals,
-      and nothing links it to Utils → Reports. No page lists a course's students for one exam:
-      the nearest is the custom report builder, about ten steps with the course number typed by
-      hand, listing only students who already have a grade, and its saved sort never applies
-      (the builder saves `{"<field>": "asc"}`, the generator reads only `field`/`direction`
-      keys). `features/analytics/` is not imported anywhere.
-    - **The owner's answers (2026-11-23):** (1) "competency/activity" means the grade
-      categories, folded into one standard list across courses, with no database change;
-      (2) grade sheets: one assessment, the course matrix (every assessment) and category
-      totals, not a blank roster; (3) Analytics stays behind the Dashboard toggle (no new tab),
-      with an export that keeps the filters and links to the grade sheets, and Utils → Reports
-      tidied; (4) the custom report builder stays, as "Advanced", and is fixed.
-    - **Stages, each its own PR:**
-      1. Grade sheets, the server side: the standard category list, the three sheets as JSON,
-         PDF and Excel. **Done** (PR 484, under "In v1.18.81").
-      2. Grade sheets, the page: a course and assessment picker, the sheet on screen, PDF and
-         Excel; reached from Utils → Reports, the Grading page and Analytics. **Done** (PR 485,
-         under "In v1.18.81"; the Analytics course rows already open their sheets).
-      3. Analytics, the diagnosis across courses: each student's category profile over all
-         their courses against the class's, with strengths and difficulties; the class view by
-         category and course. **Done** (under "In v1.18.81").
-      4. The Analytics export keeps the filters and carries the per-student rows and category
-         profile (a course row opening its grade sheets came with stage 2). **Done** (under
-         "In v1.18.82").
-      5. The custom report builder: the saved sort, more than one filter per field, course and
-         category pickers, generate and download from the builder, the CSV with a BOM (Greek in
-         Excel), the "Top Performers" template (GPA 3.5 against a 0–100 average). **Done**, in two
-         PRs (under "In v1.18.82").
-      6. Utils → Reports tidied (about 15 links lead to 3 pages): **the tidy done** (under "In v1.18.82"). Removing the dead code
-         (`features/analytics/`, `ops/seed_report_templates.py`, endpoints with no caller) is
-         asked first. **Asked, the owner (2026-11-24): "do all suggested"; done** (under "In v1.18.82").
-
-76. **The page's language for the browser** (found by todo 75 stage 3's review, 2026-11-23; no
-    decision needed). `index.html` says `lang="en"` and nothing changes it with the language
-    chosen, so the browser keeps the accents of Greek words written in capitals by CSS
-    (`uppercase`: "ΚΑΤΗΓΟΡΊΑ", "ΣΥΜΜΕΤΟΧΉ ΣΤΟ ΜΆΘΗΜΑ", in 33 files), and a screen reader reads
-    Greek with an English voice (WCAG 3.1.1). Set `document.documentElement.lang` from the
-    language in `LanguageProvider`, then look over the pages that use `uppercase`. Its own PR,
-    after todo 77. **Done** (under "In v1.18.81").
-
-77. **Three corrections to the final grade** (the owner, 2026-11-23, asked after todo 75 stage
-    3's review; each changes final grades, no database change):
-    1. **Late is not an absence.** An "Attendance"/"Παρουσία" rule counted only Present as
-       attended, while the attendance rate and the ΜΙΕΕΚ absence limit count Present + Late.
-       The owner: "Late should not count as absent, but should be referenced in a students
-       attendance results in order to be considered in the teacher's final evaluation." Count
-       Late as attended in the rule, and show the number of Lates beside the student's
-       attendance where the teacher evaluates (proposed: the Analytics student view, the grade
-       sheets on screen, PDF and Excel, the Grading page's final-grade breakdown).
-    2. **Lab names match lab.** The final grade's matching (`normalize_rule_category`) finds
-       "εργασ" (homework) before "εργαστηρ" (lab), so a rule "Εργαστήρια" or "Εργαστηριακή
-       Εργασία" takes the homework grades. The owner: "The lab always happens in class, the
-       matching should be reordered or corrected properly." "Παρουσίαση" (a presentation) is
-       matched as attendance by the same order: corrected with it. "Τελική Εργασία" stays a
-       Final Exam, as the course editor saves it. With it, the Greek pages name an Attendance
-       rule «Παρουσία»: the Grading page's summary and the breakdown print "Attendance" (their
-       `translateCategory` has no such name; seen in point 1's browser check).
-    3. **The Weight counts without rules too** (done, PR 490). A course without rules, or a student whose
-       grades match no rule, gets the plain mean of the grades; the grade's Weight box counts
-       only in the category figures and the grade sheets. The owner: "The final grade should use
-       the Weight too."
-    One PR after todo 75 stage 3, with tests that fail on the old rules, the help texts and docs
-    that state them, and release notes that say final grades change.
-    - **The owner's follow-up answers (2026-11-23)**, each the recommended one: (a) one meaning
-      of attended on every page, Present + Late (Absent and Excused absences); (b) matching:
-      compare Greek names without accents, a rule typed "Παρουσία"/"Παρουσίες" in the course
-      editor saves as Attendance (not Class Participation), an Attendance rule under any
-      spelling counts the attendance records, Midterm/Final under any spelling take the latest
-      grade; (c) one final grade everywhere (Analytics, the grade sheets, the Grading page and
-      the Students page): the rules, else the Weight-weighted mean of the grades; (d) the number
-      of Lates shown on the grade sheets, in the Grading page's breakdown, in Analytics and in
-      the Attendance page's absence limits.
-    - **The owner's answers after point 2's second review (2026-11-23, late)**, which changed it: one
-      midterm and one final per course, each counting one grade, its latest sitting, however its
-      rules are named ("The second midterm is only if the student missed the first one"; "there
-      should no averaging any exam per course"); continuous assessment takes every other graded
-      task of the lesson ("homework, any other exercise or any other assessment and task during
-      the lesson's period, belongs to «Συνεχής Αξιολόγηση»"); the course editor renames only
-      standard names. And a new rule, todo 80: a retake of the final exam under 50 fails the course.
-    - **Three PRs, one per point.** Point 1 (attended, the Lates shown) and point 2 (matching):
-      **Done** (under "In v1.18.81"), and point 3 (the Weight, one final grade)
-      **done** too (PR 490).
-      Points 1 and 2 go out in the same release: point 1's Greek help and guide name a
-      «Παρουσία» rule, which the course editor saved as Class Participation before point 2 (such a
-      rule stays so until it is typed again: the release notes must say it).
-
-80. **A retake of the final exam under 50 fails the course** (the owner, 2026-11-23, asked after
-    todo 77 point 2's second review: "if the final exam is missed, can be repeated and only then,
-    the final exams' grade kept will be the second one. However, in the second effort, iff the
-    exam grade is under 50, is considered a fail"; then, asked: the final exam only; the course
-    failed, the grade still worked out and shown). Like the ΜΙΕΕΚ absence limit: the final grade
-    stays, marked "failed: retake under 50", and the course counts as failed on the Grading page,
-    the grade sheets and Analytics whatever the figure. **A missed first sitting gets no grade
-    recorded** (the owner, the same evening), so a student has one Final Exam grade either way and the
-    data cannot tell a retake. **By date** (the owner's choice, the same day): each course gets the
-    date of its final exam (a new optional course field, an additive migration built in a clone),
-    and a Final Exam grade dated after it is the retake. Its own PR, after todo 77.
-    - **Built and held (2026-11-24): the owner's choice is needed again.** The work is in the clone
-      `D:\tmp\sms-retake` (branch `feat/final-retake-fails`, uncommitted: an additive migration
-      `b8e3d5f7a2c4` for `courses.final_exam_date`, the rule in the final-grade calculation, the
-      "failed: retake under 50" mark on the Grading page, the grade sheets (§) and Analytics, the
-      date in the course editor, the Grading page's "Exam sitting date" box for a new Final Exam
-      grade, the import's date). Two reviews. The second found that **"by date" misreads the grades
-      already recorded**: a grade's date is the day it was typed, so every Final Exam grade made so
-      far carries that day, and setting a course's exam date afterwards turns an on-time final typed
-      in a few days later into a failed retake (tried: 67 and passing became failed). A course
-      without a date keeps storing the typing day too. Options: (a) when a date is set, list the
-      Final Exam grades dated after it and have the teacher confirm or correct each; (b) an explicit
-      "retake" mark on the grade (the option not chosen before), which no date can misread; (c) by
-      date, counting only grades entered after the course's date was set. Smaller findings, fixed
-      once the design is settled: the date cannot be saved on the Evaluation Rules tab of a course
-      without rules; the sitting date stays when the teacher picks the next student; an emptied box
-      saves today; editing an undated Final Exam grade dates it today; the Control Panel's import
-      text does not name the new `date_submitted` column. The semester archive (todo 85) would
-      record such a failed student as passed.
-    - **The owner's answer (2026-11-24): (b), for the midterm too.** "teacher shall have the option
-      to select the date exam was taken and also to select a retake exam as an overwrite of the
-      first final exam. After retake exam the first final exam should not count in grading and the
-      retake exam replaces it at the final grading. The same should happen with a midterm retake".
-      **Done** (under "In v1.18.81"): a retake mark per grade (migration
-      `c7d4e2a9f1b6`), the date chosen on the Grading page; the by-date build was dropped. Of the
-      smaller findings, those that still apply are fixed (an undated grade stays undated on an edit,
-      the import text names the columns); the sitting date staying for the next student is now on
-      purpose (one exam, one day, for a class), the retake mark never does.
-81. **The course importer keeps a course's own rule names** (found by todo 77 point 2's third
-    review, 2026-11-23; the owner: "Yes, keep names"). `routers_imports._map_category` renames every
-    rule to an English label by substring ("Τελική Εργασία" -> "Assignments", "Ασκήσεις" ->
-    "Exercises", the lab templates' «Συνεχής Αξιολόγηση (… και Ενδιάμεση Εξέταση)» -> "Continuous
-    Assessment") and `_translate_rules` merges rules that get the same label, keeping the last weight
-    («Θεωρητική Εξέταση» 40 + «Πρακτική Εξέταση» 30 -> one "Exam" 30). Rename only standard names, as
-    the course editor does since todo 77 point 2, and never merge two rules. Future imports only.
-    **Done** (PR 492, under "In v1.18.81").
-
-82. **Editing a grade's category or name is ignored by the server** (found by the same review; no
-    decision needed). **Done** (PR 491, under "In v1.18.81"). `GradeUpdate` (schemas/grades.py) has no `category` and no `assignment_name`,
-    so the Grading page's Edit sends them and the server drops them: a grade filed under the wrong
-    category cannot be moved. Add them (the category title-cased as `GradeCreate` does), with a test
-    that an edit moves a grade to another rule. Its own PR.
-
-83. **The "Average" figures that are not the final grade** (found by todo 77 point 3,
-    2026-11-23; the owner's decision). The final grade is now one figure on every page that shows
-    one, but some figures labelled "Average" still take the plain mean of every grade: the Students
-    page's expanded card ("Average Grade", and the "Greek scale" and "Letter grade" tiles made from
-    it, over all the student's courses), the Student Profile's overall GPA and Average tiles, each
-    course's "Average" in its grade breakdown (it ignores the Weight; its categories' averages
-    count it; both count every sitting of an exam), and the student report's "Average Grade"
-    (PDF, Excel, CSV). The Students page fetches the final grades and shows none of them
-    there (the Profile's breakdown does). Analytics' "top by exams" counts every sitting of an exam.
-    Keep them as plain averages of the grades listed, count them as the final grade counts (Weight,
-    an exam's latest sitting), or show the final grade in their place?
-    - **The owner's answer (2026-11-24):** "should show averages if not exams grades published yet.
-      otherwise, the real grades should populate". Per course: the average while no exam grade is
-      recorded, the course's real final grade once it is; the overall figures take each course's
-      figure so. To settle when building and say in the PR: whether "exam grades in" is the Final
-      Exam's grade or any exam's, and what a course with no exam rule shows. Its own PR, next.
-    - **Asked, the owner (2026-11-24): the Final Exam's grade decides**; a course whose rules name no
-      Final Exam shows its final grade (said in the question). **The Students page and the Profile:
-      done** (under "In v1.18.81"). **The student report and Analytics' "top by exams":
-      done** too, in a second PR.
-
-84. **Analytics fails for an inactive student** (found by todo 77 point 3's review, 2026-11-23; no
-    decision needed). `GET /api/v1/analytics/student/{id}/overview` answers 500 for a student who
-    is no longer active: `ValueError: 73.0 is not in list` at the rank
-    (`analytics_overview_service.py`, around line 889), as the student's own figures include the
-    inactive student while the class figures leave them out. Give such a student no rank (or the
-    class figures without them) instead of failing; a test for an inactive student's overview.
-    **Done** (PR 493, under "In v1.18.81").
-
-85. **The semester archive records a failed student as passed** (found by todo 80's build,
-    2026-11-24; the owner's decision, as archiving cannot be undone). `SemesterArchiveService`
-    archives an enrolment as passed when its final grade is at least the pass mark and the rules
-    cover the whole course, and then replaces its raw grades and attendance with that record. It
-    never looks at the ΜΙΕΕΚ absence limit (a student over 30% is failed whatever the grade; true
-    since the limit came in) nor, once todo 80 is in, at a final exam retake under 50. Should either
-    fail keep the enrolment out of the archive (proposed: both, with the reason shown in the preview,
-    as "incomplete_grading" is today)?
-    - **The owner's answer (2026-11-24):** "such students should be kept out of the archive, with
-      the reason shown in its preview. however, they still have the opportunity to retake the course
-      next available year". Both fails keep the enrolment out, the reason in the preview; check, and
-      say, that such a student can enrol in the course again the next year (a live old enrolment, the
-      same course row or a new one). Its own PR, after todo 80 (on `main` since 2026-11-24).
-    - **Done** (under "In v1.18.81"), with a finding for the owner on taking the
-      course again next year: the student stays enrolled in the same course, whose old absences
-      and grades keep counting, unless next year's course is made anew under its own code.
-    - **Replaced by todo 87** (2026-11-24, the owner's design): a failed student is recorded as
-      failed at the archive run and their records cleared, instead of being kept out.
-
-87. **A student who fails a course repeats it fresh** (the owner, 2026-11-24, answering todo 85's
-    finding: "if the student fail, should retake the course from the beginning, nothing remains from
-    that course. He/She has to repeat fresh"; the owner's decision on the design). Since todo 85 a
-    student failed on the absence limit or on a final exam retake under 50 is kept out of the
-    semester archive, and so is one below the pass mark: their enrolment, grades, ratings and
-    attendance stay, and as a course code exists once and an enrolment is one per student and
-    course, next year they are still enrolled in the same course with last year's records counting
-    (the absence limit above all). Proposed: the archive run records each failed course in the
-    student's history as failed (`StudentCoursePerformance.passed` false, with the reason: below the
-    pass mark, over the absence limit, a final retake under 50) and then removes that enrolment and
-    its grades, ratings and attendance, after the semester backup it already makes, so the student
-    enrols again with a clean record. Kept as today: an enrolment whose grading is incomplete, or a
-    course without rules. To confirm before building, as it removes records (the semester backup
-    keeps them): that a failed course is recorded as failed and cleared at the archive run, and
-    whether a student below the pass mark is cleared too or only the two hard fails.
-    - **The owner's answers (2026-11-24, evening):** "At the archive run" and "All three fails"
-      (below the pass mark, the absence limit, a final retake under 50). **Done** (under "In v1.18.82"; migration `d8b3f1a6c2e9`).
-
-78. **Attendance statuses: a semester file, Excused days, the exports' Greek words** (found by
-    todo 77 point 1's review, 2026-11-23).
-    1. **A semester file's statuses are stored as written** (no decision needed). Every page
-       and the API take only "Present", "Absent", "Late", "Excused", but the semester import
-       (`routers_sessions._import_attendance`) stores what the file says. Since point 1 a
-       "late" counts as a Late in the server's figures (Analytics, the absence limits, the
-       grade sheets, the Grading page), on the Students page and in the Profile, but not on
-       the Attendance page, which compares the exact word: its "Attendance insights" count it
-       as unrecorded and no status button is lit, and an "absent" day there leaves Rate open.
-       "Late " (a space) counts on some pages and not on others, "Tardy" on none. Store the
-       four forms whatever the case and spacing, and list any other in the import's errors
-       instead of storing it; then either put the rows already stored into the four forms
-       once, or have the Attendance page read a status whatever its case (`statusKey` in
-       `utils/attendanceRate.ts`). **Done** (under "In v1.18.81"; the page reads
-       the rows already stored whatever their case, none rewritten).
-    2. **An Excused day can be rated** (the owner's decision). The Attendance page closes Rate
-       and the participation ticks only for a student marked Absent; an Excused one stays
-       open, and a tick on that day makes the day an attended one, so it takes its slice of
-       Class Participation. Excused is an absence (point 1): should it close Rate as Absent
-       does? And when a day turns Excused after ratings were saved, should they be cleared, as
-       for Absent (that deletes the teacher's ratings)? **The owner's answer (2026-11-24):** "an
-       Excused day should close Rate the way Absent does, and clear ratings already saved for that
-       day". **Done** (under "In v1.18.81").
-    3. **The exports' Greek status words** (no decision needed): the Export Center's files say
-       "Παρόν", "Καθυστέρηση", "Δικαιολογημένη" (`routers_exports`), Analytics "Δικαιολογημένη",
-       where the Attendance page says "Παρών", "Αργοπορία", "Δικαιολογημένος". One set of words.
-       **Done** (the page's words, under "In v1.18.81"). Point 2 is decided (above).
-
 **Open design calls from the dark-theme work of 2026-10-07** (the owner's decision; the rest of
 that entry is in part 2 of the archive):
 
@@ -4139,7 +3872,7 @@ stood between them (the Tailwind 4 migration, the dependency rounds, the Septemb
 follow-ups) and the dated sections from September 29 back to June 15, 2026 are in
 [`UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md`](./UNIFIED_WORK_PLAN_ARCHIVE_2026_H2.md), word for word. A section this plan names and
 does not contain is there.
-On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done, and todo 55 on 2026-11-22 (the owner: "yes, archive todo 55"). Todos 66, 67 and 69 to 74 followed the same day, all done (66, 67 and 69 to 72 released in v1.18.80, 73 and 74 on `main` since). Todo 50 followed the same day, its two optional chores settled by the owner.
+On 2026-11-20 the closed todos 44, 48, 52, 53, 56, 57, 59, 60, 61, 62 and 64 went to part 5 of it, and the records of v1.18.73 back to v1.18.66 to part 4. Todo 63 followed on 2026-11-21, every point of it done, and todo 55 on 2026-11-22 (the owner: "yes, archive todo 55"). Todos 66, 67 and 69 to 74 followed the same day, all done (66, 67 and 69 to 72 released in v1.18.80, 73 and 74 on `main` since). Todo 50 followed the same day, its two optional chores settled by the owner. Todos 75 to 78, 80 to 85 and 87 followed on 2026-11-25, every point done and released in v1.18.81 or v1.18.82.
 
 ## 🗄️ Historical Archive (Feb–Aug 2026)
 
